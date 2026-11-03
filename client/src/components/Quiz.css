@@ -108,3 +108,5 @@
 /* Why Submit is unavailable on the last question, under the action row and
    on the primary's side; Submit names it as its description. */
 .quiz-submit-why { margin: -8px 0 0; text-align: end; font-size: var(--ss-type-meta); color: var(--color-text-secondary); }
+
+.quiz-setup__helper { margin: 0; font-size: var(--ss-type-meta); color: var(--color-text-secondary); }

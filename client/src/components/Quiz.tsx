@@ -9,7 +9,6 @@ import { Text } from '@astryxdesign/core/Text';
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Banner } from '@astryxdesign/core/Banner';
-import { Tooltip } from '@astryxdesign/core/Tooltip';
 import { Popover } from '@astryxdesign/core/Popover';
 import { AlertDialog } from '@astryxdesign/core/AlertDialog';
 import { AppToast } from './ui/AppToast';
@@ -68,6 +67,7 @@ import { useDayChangeTime } from '../lib/utcDay';
 import './Quiz.css';
 import { CategoryTag, TopicPill } from './ui/CategoryTag';
 import { PageHeader } from './ui/PageHeader';
+import { StatePanel } from './ui/StatePanel';
 
 type QuizMode = 'standard' | 'daily' | 'review';
 const QUIZ_MODES: readonly string[] = ['standard', 'daily', 'review'];
@@ -592,11 +592,14 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const handleSelectAll = () => {
     const pool = displayedCategoryOptions.map((c) => c.value);
     setSelectedCategories((prev) =>
-      pool.every((c) => prev.includes(c)) ? prev.filter((c) => !pool.includes(c)) : pool,
+      pool.every((c) => prev.includes(c))
+        ? prev.filter((c) => !pool.includes(c))
+        : [...new Set([...prev, ...pool])],
     );
   };
 
   const displayedCategoryIds = displayedCategoryOptions.map((c) => c.value);
+  const hiddenSelectedCount = selectedCategories.filter((category) => !displayedCategoryIds.includes(category)).length;
   const isAllSelected =
     displayedCategoryIds.length > 0 &&
     displayedCategoryIds.every((c) => selectedCategories.includes(c));
@@ -908,7 +911,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
               <span id="quiz-categories-label" style={labelStyle}>{t('quiz.categories')}</span>
               <span className="ss-text-links" style={{ margin: 0 }}>
                 <button type="button" onClick={handleSelectAll}>
-                  {isAllSelected ? t('quiz.deselectAll') : t('quiz.selectAll')}
+                  {t(hasCollapsedSubset && !showAllCategories
+                    ? isAllSelected ? 'quiz.deselectVisible' : 'quiz.selectVisible'
+                    : isAllSelected ? 'quiz.deselectAll' : 'quiz.selectAll')}
                 </button>
               </span>
             </div>
@@ -925,6 +930,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
                 <button type="button" onClick={() => setShowAllCategories((v) => !v)}>
                   {showAllCategories ? t('quiz.showFewer') : t('quiz.showAllCategories')}
                 </button>
+                {hiddenSelectedCount > 0 && <span className="quiz-setup__helper">{t('quiz.moreTopicsSelected', { count: hiddenSelectedCount })}</span>}
               </span>
             )}
             {/* Takes no line until it has something to say, so the next
@@ -953,18 +959,22 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
               <RadioCardGroup value={difficultyMode} onChange={(value) => setDifficultyMode(value as DifficultyMode)} labelledBy="quiz-difficulty-label" orientation="horizontal" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {DIFFICULTY_VALUES.map((value, index) => {
                   const label = t(`difficulty.${value}` as TranslationKey);
-                  const tip = t(`difficulty.${value}.tip` as TranslationKey);
                   return (
-                    <Tooltip key={value} content={tip} placement="above">
-                      <RadioCard value={value} index={index} label={t('quiz.difficultyAria', { label })} style={{ ...pill(difficultyMode === value), borderRadius: 'var(--radius-element)' }}>
-                        {label}
-                      </RadioCard>
-                    </Tooltip>
+                    <RadioCard key={value} value={value} index={index} label={t('quiz.difficultyAria', { label })} style={{ ...pill(difficultyMode === value), borderRadius: 'var(--radius-element)' }}>
+                      {label}
+                    </RadioCard>
                   );
                 })}
               </RadioCardGroup>
+              <p className="quiz-setup__helper" role="status">
+                {t(`difficulty.${difficultyMode}` as TranslationKey)}: {t(`difficulty.${difficultyMode}.tip` as TranslationKey)}
+              </p>
             </div>
           </div>
+
+          {!authLoading && !isAuthenticated && (
+            <StatePanel inline body={t('quiz.guestSetup')} signIn={{ emphasis: 'secondary' }} />
+          )}
 
           {/* Start: the screen's one primary, SwimCta md. */}
           <div className="quiz-setup__start">

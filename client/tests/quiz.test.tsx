@@ -148,6 +148,48 @@ describe('keyboard shortcuts', () => {
   });
 });
 
+describe('setup clarity and category selection', () => {
+  it('keeps hidden topic choices when selecting or clearing only the visible topics', async () => {
+    queryClient.setQueryData(['game-config'], {
+      ...DEFAULT_CONFIG,
+      quiz: { ...DEFAULT_CONFIG.quiz, defaultCategoryIds: ['javascript', 'react'] },
+    });
+    server.use(http.get('*/api/settings', () => HttpResponse.json({
+      ...DEFAULT_CONFIG,
+      quiz: { ...DEFAULT_CONFIG.quiz, defaultCategoryIds: ['javascript', 'react'] },
+    })));
+    renderQuiz();
+    fireEvent.click(await screen.findByRole('button', { name: 'Show all categories' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Security', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Show fewer' }));
+    expect(screen.getByText('1 more selected')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Select visible topics' }));
+    expect(JSON.parse(localStorage.getItem('devquiz:quiz-setup:v1')!).categories.sort()).toEqual(['javascript', 'react', 'security']);
+    fireEvent.click(screen.getByRole('button', { name: 'Deselect visible topics' }));
+    expect(JSON.parse(localStorage.getItem('devquiz:quiz-setup:v1')!).categories).toEqual(['security']);
+    fireEvent.click(screen.getByRole('button', { name: 'Show all categories' }));
+    expect(screen.getByRole('button', { name: 'Security', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('explains the selected difficulty without a tooltip and tells guests before they start', async () => {
+    renderQuiz();
+    expect(await screen.findByText('Mixed: Difficulty 1 to 5, shuffled.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: 'Difficulty: Progressive' }));
+    expect(screen.getByText('Progressive: Difficulty 1 to 5, in order.')).toHaveAttribute('role', 'status');
+    expect(screen.queryByText('Mixed: Difficulty 1 to 5, shuffled.')).not.toBeInTheDocument();
+    expect(screen.getByText('You’re practising on this device. Sign in before starting to save results to your account.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign in', exact: true })).not.toHaveClass('ss-swim-cta');
+    expect(document.querySelectorAll('.ss-swim-cta')).toHaveLength(1);
+  });
+
+  it('does not show the guest setup warning to an authenticated learner', async () => {
+    signIn();
+    renderQuiz();
+    await screen.findByRole('button', { name: /start quiz/i });
+    expect(screen.queryByText(/Sign in before starting/)).not.toBeInTheDocument();
+  });
+});
+
 describe('starting', () => {
   it('keeps Start quiz focusable without a category, and pressing it says what is missing', async () => {
     localStorage.setItem('devquiz:quiz-setup:v1', JSON.stringify({ count: 10, difficulty: 'mixed', categories: [] }));
