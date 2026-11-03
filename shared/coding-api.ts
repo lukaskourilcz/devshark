@@ -19,6 +19,8 @@ export interface CodingTaskProgress {
   nextReviewAt: string | null;
   revealCount: number;
   bestPassedAt: string | null;
+  /** Latest recorded activity, from the server clock. */
+  updatedAt?: string;
 }
 
 export type CodingLockReason = 'foundations' | 'sweep' | 'tier3' | 'tier4' | 'evolving';

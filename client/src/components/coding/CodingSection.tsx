@@ -18,6 +18,7 @@ import { splitsTaskRead } from '../../coding/taskRead';
 import { queryClient as appQueryClient } from '../../lib/queryClient';
 import { freshStoredAccessToken, storedSessionUserId } from '../../lib/supabaseClient';
 import { autosaveDraft, deviceDraft, draftStoredBySubmit, flushAutosave, forgetDeviceDraft, keepDeviceDraft, openingDraft, saveDraft } from '../../coding/drafts';
+import { rememberCodingTask, useRecentCodingTasks } from '../../coding/recentTasks';
 import { DraftNote, useDraftChoice } from '../../coding/DraftNote';
 import { bookmarksQuery, practiceSessionQuery, useAdvanceSession, useBookmarks, usePracticeSession, useSaveChallenge } from '../../coding/practice';
 import { ChallengeRunPlanner, taskHref } from './ChallengeRunPlanner';
@@ -401,13 +402,9 @@ function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = t
 /** Which challenge is next, and a way into it, beside the page heading. For a
  * signed-in learner it waits for their progress: worked out from nothing, it
  * would name the first challenge and then swap it for the real one. */
-function NextChallenge({ next, state, onRetry, choices = [], inRun = false, errorText }: { next: CodingTaskSummary | null; state: 'loading' | 'error' | 'ready'; onRetry: () => void; choices?: CodingTaskSummary[]; inRun?: boolean; errorText?: string }) {
+function NextChallenge({ next, state, onRetry, inRun = false, errorText }: { next: CodingTaskSummary | null; state: 'loading' | 'error' | 'ready'; onRetry: () => void; inRun?: boolean; errorText?: string }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [chosenId, setChosenId] = useState('');
-  const chosen = choices.find((task) => task.id === chosenId) ?? null;
-  const choose = choices.length > 1;
-  const destination = choose ? chosen : next;
   return (
     <section className="cd-next" aria-labelledby="cd-next-label" aria-busy={state === 'loading' || undefined}>
       <div className="cd-next__text">
@@ -419,19 +416,12 @@ function NextChallenge({ next, state, onRetry, choices = [], inRun = false, erro
           </p>
         )}
         {state === 'error' && <p className="cd-next__title cd-next__title--error" role="alert">{errorText ?? t('coding.discovery.failed')}</p>}
-        {state === 'ready' && <p className="cd-next__title">{choose ? codingListCopy('coding.resume.count', { n: choices.length }) : next ? next.title : t('coding.allDone')}</p>}
-      {state === 'ready' && choose && <div className="cd-next__choices">
-        <label htmlFor="cd-resume-choice">{codingListCopy('coding.resume.work')}</label>
-        <select id="cd-resume-choice" value={chosen?.id ?? ''} onChange={(event) => setChosenId(event.target.value)}>
-          <option value="">{codingListCopy('coding.resume.choose')}</option>
-          {choices.map((task) => <option key={task.id} value={task.id}>{task.title}</option>)}
-        </select>
-      </div>}
+        {state === 'ready' && <p className="cd-next__title">{next ? next.title : t('coding.allDone')}</p>}
       </div>
       {state === 'error' && <Button variant="secondary" onClick={onRetry} label={t('coding.retry')} />}
       {/* Held disabled while loading, so the card keeps its size when the title arrives. */}
-      {state !== 'error' && (state === 'loading' || next || choose) && (
-        <SwimCta label={inRun ? t('coding.run.continue') : t('coding.continue')} disabled={state === 'loading' || (choose && !chosen)} onClick={() => { if (destination) navigate(`/coding/${destination.track}/${destination.id}`); }} />
+      {state !== 'error' && (state === 'loading' || next) && (
+        <SwimCta label={inRun ? t('coding.run.continue') : t('coding.continue')} disabled={state === 'loading'} onClick={() => { if (next) navigate(`/coding/${next.track}/${next.id}`); }} />
       )}
     </section>
   );
@@ -449,27 +439,41 @@ export function CodingHome() {
   const activeRun = run.data?.session?.status === 'active' ? run.data.session : null;
   const runNextId = activeRun?.queue[activeRun.position];
   const runNext = runNextId ? INDEX_BY_ID.get(runNextId) ?? null : null;
-  // There is no last-opened timestamp in the progress contract. A single
-  // unfinished item can resume directly; several offer a named choice.
+  const recentIds = useRecentCodingTasks();
   const unfinished = useMemo(() => {
-    if (!progress.data) return [];
-    const recorded = progress.data.tasks;
-    const tasks = SECTION_INDEX.filter((task) => statusOf(task) === 'in_progress');
+    const recorded = progress.data?.tasks ?? {};
+    const tasks = SECTION_INDEX.filter((task) => {
+      const status = statusOf(task);
+      return status === 'in_progress' || status === 'revealed' || (recentIds.includes(task.id) && status === 'open');
+    });
     for (const challenge of EVOLVING_CHALLENGES) {
+      if (challenge.unlisted) continue;
       const done = challenge.stages.filter((id) => evolvingPassed(id, passed)).length;
-      const touched = done > 0 || challenge.stages.some((id) => recorded[id]?.status === 'in_progress');
+      const touched = done > 0 || challenge.stages.some((id) => recorded[id]?.status === 'in_progress' || recorded[id]?.status === 'revealed' || recentIds.includes(id));
       if (!touched || done === challenge.stages.length) continue;
       const id = evolvingResume(challenge, passed);
       const task = INDEX_BY_ID.get(id);
       if (task && !isBarred(premiumOf(id)) && evolvingUnlocked(id, passed)) tasks.push({ ...task, title: `${challenge.title} · ${t(challenge.short ? 'coding.evolving.level' : 'coding.evolving.stage', { n: challenge.stages.indexOf(id) + 1, total: challenge.stages.length })}` });
     }
-    return tasks;
-  }, [progress.data, statusOf, passed, premiumOf, t]);
+    const idsOf = (task: CodingTaskSummary) => evolvingStage(task.id)?.challenge.stages ?? [task.id];
+    const rank = (task: CodingTaskSummary) => {
+      const index = recentIds.findIndex(id => idsOf(task).includes(id));
+      return index < 0 ? Infinity : index;
+    };
+    const activity = (task: CodingTaskSummary) => Math.max(0, ...idsOf(task).map(id => Date.parse(recorded[id]?.updatedAt ?? '') || 0));
+    // A real visit on this device comes first; existing account progress
+    // falls back to its latest server-recorded activity, never catalogue order
+    // masquerading as a timestamp. Passed/inaccessible work was filtered above.
+    return tasks.sort((a, b) => {
+      const aRank = rank(a), bRank = rank(b);
+      return aRank !== bRank ? aRank - bRank : activity(b) - activity(a);
+    });
+  }, [progress.data, statusOf, passed, premiumOf, recentIds, t]);
   const recommended = nextOpenTask(SECTION_INDEX, statusOf) ?? CODING_INDEX.find((task) => {
     const stage = evolvingStage(task.id);
     return stage && !stage.challenge.unlisted && !evolvingPassed(task.id, passed) && evolvingUnlocked(task.id, passed) && !isBarred(premiumOf(task.id));
   }) ?? null;
-  const next = runNext ?? (unfinished.length === 1 ? unfinished[0] : recommended);
+  const next = runNext ?? unfinished[0] ?? recommended;
   // The plan decides which tasks are Premium, so the card also waits for it:
   // otherwise a free account would see a Premium task named first.
   const runFailed = isAuthenticated && run.isError && !run.data;
@@ -485,7 +489,7 @@ export function CodingHome() {
           <p className="cd-lead">{t('coding.subtitle')}</p>
           {!authLoading && !isAuthenticated && <SignInLine />}
         </header>
-        <NextChallenge next={next} state={nextState} choices={runNext ? [] : unfinished} inRun={Boolean(runNext)} errorText={runFailed ? t('coding.run.loadFailed') : undefined} onRetry={() => { void progress.refetch(); if (runFailed) void run.refetch(); }} />
+        <NextChallenge next={next} state={nextState} inRun={Boolean(runNext)} errorText={runFailed ? t('coding.run.loadFailed') : undefined} onRetry={() => { void progress.refetch(); if (runFailed) void run.refetch(); }} />
       </div>
       <PlanNotice failed={planFailed} onRetry={retryPlan} />
       <StaleProgressNotice failed={isAuthenticated && progress.isError && Boolean(progress.data)} onRetry={() => void progress.refetch()} />
@@ -920,14 +924,24 @@ function CodingTaskView({ track, taskId }: { track: CodingTrack; taskId: string 
   const choice = useDraftChoice(task.data?.task.id ?? null, opening, task.data?.draftUpdatedAt, { signedIn: isAuthenticated, keepOnDevice });
   const { base: draftBase, epoch: draftEpoch } = choice;
 
+  const visitedTask = useRef<{ id: string; epoch: number } | null>(null);
+  useEffect(() => {
+    if (visitedTask.current?.id === taskId && visitedTask.current.epoch === draftEpoch) return;
+    if (!authLoading && task.data?.task.id === taskId && task.data.task.track === track
+      && !task.data.locked && task.data.signedIn === isAuthenticated && draftEpoch === accountEpoch()) {
+      rememberCodingTask(taskId, draftEpoch);
+      visitedTask.current = { id: taskId, epoch: draftEpoch };
+    }
+  }, [authLoading, task.data, taskId, track, isAuthenticated, draftEpoch]);
+
   // A device copy a second after typing stops, and the account draft on Run
   // and Submit, silently (coding/drafts.ts). Evolving code is also the
   // offline starting point of the next stage, so it stays on the device after
   // the account takes it.
   const onDraft = useCallback((code: string) => (
-    taskId ? saveDraft(taskId, code, { signedIn: isAuthenticated, base: draftBase, epoch: draftEpoch, keepOnDevice }) : null
+    taskId ? (rememberCodingTask(taskId, draftEpoch), saveDraft(taskId, code, { signedIn: isAuthenticated, base: draftBase, epoch: draftEpoch, keepOnDevice })) : null
   ), [taskId, isAuthenticated, draftBase, draftEpoch, keepOnDevice]);
-  const onEdit = useCallback((code: string) => { if (taskId) autosaveDraft(taskId, code, draftBase, draftEpoch); }, [taskId, draftBase, draftEpoch]);
+  const onEdit = useCallback((code: string) => { if (taskId) { rememberCodingTask(taskId, draftEpoch); autosaveDraft(taskId, code, draftBase, draftEpoch); } }, [taskId, draftBase, draftEpoch]);
   // Leaving the task writes what is still waiting.
   useEffect(() => () => { if (taskId) flushAutosave(taskId); }, [taskId]);
   // Signed in on this page (the sign-in dialog, another tab): the task is

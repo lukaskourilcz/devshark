@@ -193,7 +193,7 @@ async function main() {
     const levels = Object.fromEntries(Array.from({ length: 10 }, (_, index) => [String(index + 1), { passed: true }]));
     type Read = { table: string; columns: string; filters: Record<string, unknown>; single: boolean };
     const reads: Read[] = [];
-    const ownRow = { task_id: tierThree.id, track: 'javascript', status: 'in_progress', passes: 0, review_stage: 0, next_review_at: null, reveal_count: 2, best_passed_at: null };
+    const ownRow = { task_id: tierThree.id, track: 'javascript', status: 'in_progress', passes: 0, review_stage: 0, next_review_at: null, reveal_count: 2, best_passed_at: null, updated_at: '2026-11-03T17:00:00Z' };
     const progressDb = {
       from: (table: string) => {
         const read: Read = { table, columns: '', filters: {}, single: false };
@@ -222,14 +222,15 @@ async function main() {
       await handleCodingTask({ method: 'GET', headers: { authorization: 'Bearer stand-in-token' }, query: { id: tierThree.id, user_id: 'account-ladder' } } as never, out as never, progressDb as never);
     });
     assert.equal(out.statusCode, 200, JSON.stringify(out.body));
-    const body = out.body as { locked: string | null; session: string | null; progress: { revealCount?: number } | null };
+    const body = out.body as { locked: string | null; session: string | null; progress: { revealCount?: number; updatedAt?: string } | null };
     assert.equal(body.locked, null, 'ten cleared JavaScript Learn levels, read from the levels alone, open tier 3');
     assert.ok(body.session, 'and the task page seals a session for it');
     assert.equal(body.progress?.revealCount, 2, 'this task\'s own progress row comes back');
+    assert.equal(body.progress?.updatedAt, ownRow.updated_at, 'the existing activity time is available for automatic resume');
     const progressReads = reads.filter((read) => read.table === 'coding_progress');
     assert.deepEqual(progressReads.map((read) => [read.columns, read.filters, read.single]).sort((a, b) => String(a[0]).localeCompare(String(b[0]))), [
       ['task_id,status', { user_id: 'account-ladder', status: 'passed' }, false],
-      ['task_id,track,status,passes,review_stage,next_review_at,reveal_count,best_passed_at', { user_id: 'account-ladder', task_id: tierThree.id }, true],
+      ['task_id,track,status,passes,review_stage,next_review_at,reveal_count,best_passed_at,updated_at', { user_id: 'account-ladder', task_id: tierThree.id }, true],
     ], 'the task page reads the passed ids and its own row, never every row in full');
     assert.deepEqual(reads.filter((read) => read.table === 'roadmap_progress').map((read) => read.columns), [JAVASCRIPT_LEVELS_SELECT], 'only the JavaScript levels of the roadmap row are read');
 

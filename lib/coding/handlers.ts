@@ -89,8 +89,9 @@ interface ProgressRow {
   next_review_at: string | null;
   reveal_count: number;
   best_passed_at: string | null;
+  updated_at?: string;
 }
-const PROGRESS_FIELDS = 'task_id,track,status,passes,review_stage,next_review_at,reveal_count,best_passed_at';
+const PROGRESS_FIELDS = 'task_id,track,status,passes,review_stage,next_review_at,reveal_count,best_passed_at,updated_at';
 /** PostgREST's JSON path selection: only `data.javascript.levels` of the
  * roadmap row, as the column `levels` (null when the row has none). */
 export const JAVASCRIPT_LEVELS_SELECT = 'levels:data->javascript->levels';
@@ -103,6 +104,7 @@ const toProgress = (row: ProgressRow): CodingTaskProgress => ({
   nextReviewAt: null,
   revealCount: Number(row.reveal_count ?? 0),
   bestPassedAt: row.best_passed_at ?? null,
+  ...(row.updated_at ? { updatedAt: row.updated_at } : {}),
 });
 
 async function loadProgressRows(supabase: SupabaseClient, userId: string): Promise<ProgressRow[]> {

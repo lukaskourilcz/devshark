@@ -13,7 +13,7 @@ The initial Description change is merged through PR #594 at `0744084b`, with all
 
 ## Coding
 
-- [x] C01: prioritize the active run and real unfinished work, without invented recency.
+- [x] C01: prioritize the active run and real unfinished work. Owner follow-up on 3 November removes the multiple-work selector: Continue now opens the last visited unfinished challenge on this device, falling back to existing server activity times for account progress. Completed or inaccessible work is skipped; an unfinished project resumes at its first unmet stage.
 - [x] C02: distinguish unavailable/stale data from zero progress.
 - [x] C03: distinguish Saved errors from an empty collection; retain safe serialized writes and retry feedback.
 - [x] C04: apply the owner's single-row run actions.

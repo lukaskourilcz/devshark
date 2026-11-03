@@ -31,9 +31,6 @@ export const codingListEn = {
   'coding.stage.unlock': 'Complete stage {previous} to unlock stage {n}.',
   'coding.level.unlock': 'Complete level {previous} to unlock level {n}.',
   'coding.resume.run': 'Continue your run',
-  'coding.resume.work': 'Choose what to continue',
-  'coding.resume.choose': 'Choose a challenge',
-  'coding.resume.count': '{n} challenges in progress',
   'coding.run.saved': 'Completed challenges stay saved.',
 } as const;
 
