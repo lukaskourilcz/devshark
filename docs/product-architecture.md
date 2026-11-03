@@ -385,6 +385,10 @@ a healing poll, or every 4 s while Realtime is down.
 The `/coding` section, the coding phase inside Learn levels and the GitHub
 garden share one server-owned grader.
 
+### Continuing unfinished work
+
+The Coding home offers a single Continue action. An active run keeps its queue position; otherwise it resumes the last visited unfinished challenge on this device, then the most recently updated unfinished account progress, before recommending untouched work. An evolving/debugging/FullStack project resumes at its first unmet stage. The browser keeps a bounded navigation history under `devshark:coding:recent:v1`, using the existing account-data clearing and store notifications. Visits and edits affect navigation only, never completion or access. The progress API exposes the existing `coding_progress.updated_at` as optional `updatedAt`; no schema change or new read-time write is needed. Completed and locked work remains excluded by the existing progression and entitlement checks.
+
 ### Catalogue
 
 The section lists four tracks: `javascript`, `typescript`, `react` and
