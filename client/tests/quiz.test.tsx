@@ -304,6 +304,60 @@ describe('the results screen (UX audit U2)', () => {
   });
 });
 
+describe('result review priorities and focus', () => {
+  it('prioritizes mistakes, preserves the all-answers view and keeps retired questions separate', async () => {
+    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json({
+      totalQuestions: 2, correctAnswers: 1, percentage: 50, questXp: 6, voided: ['c'],
+      results: [
+        { questionId: 'a', selectedIndex: 0, correctAnswer: 0, isCorrect: true, explanation: 'Correct explanation' },
+        { questionId: 'b', selectedIndex: 0, correctAnswer: 2, isCorrect: false, explanation: 'Mistake explanation' },
+      ],
+    })));
+    await startQuiz([Q('a'), Q('b'), Q('c')]);
+    answerAll(3);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    const review = await screen.findByRole('button', { name: 'Review incorrect answers (1)' });
+    expect(review).toHaveClass('ss-swim-cta--md');
+    expect(screen.getByRole('button', { name: 'New quiz', exact: true })).not.toHaveClass('ss-swim-cta');
+    expect(screen.getByText('Mistake explanation')).toBeInTheDocument();
+    expect(screen.queryByText('Correct explanation')).not.toBeInTheDocument();
+    expect(document.querySelector('.quiz-retired')).toHaveTextContent('Question c?');
+    expect(document.querySelector('.quiz-review-grid')).not.toHaveTextContent('Question c?');
+    fireEvent.click(screen.getByRole('radio', { name: 'All answers (2)' }));
+    expect(screen.getByText('Correct explanation')).toBeInTheDocument();
+    review.focus();
+    fireEvent.click(review);
+    expect(screen.getByRole('heading', { level: 2, name: 'Review your answers (2)' })).toHaveFocus();
+    expect(screen.queryByText('Correct explanation')).not.toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Incorrect (1)' })).toHaveAttribute('aria-checked', 'true');
+    expect(document.querySelectorAll('.ss-swim-cta')).toHaveLength(1);
+  });
+
+  it('moves focus to review while keeping New quiz primary after a perfect result', async () => {
+    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json(graded([Q('a')]))));
+    await startQuiz([Q('a')]);
+    answerAll(1);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    const review = await screen.findByRole('button', { name: 'Review answers ↓' });
+    fireEvent.click(review);
+    expect(screen.getByRole('heading', { level: 2 })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'New quiz', exact: true })).toHaveClass('ss-swim-cta--md');
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+  });
+
+  it('does not manufacture incorrect answers when every question was retired', async () => {
+    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json({ totalQuestions: 0, correctAnswers: 0, percentage: 0, questXp: 0, voided: ['a'], results: [] })));
+    await startQuiz([Q('a')]);
+    answerAll(1);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    expect(await screen.findByText('No answers were graded. Retired questions do not affect your score.')).toBeInTheDocument();
+    expect(screen.queryByText('Incorrect')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /review incorrect/i })).not.toBeInTheDocument();
+    expect(document.querySelector('.quiz-review-grid')?.children).toHaveLength(0);
+    expect(document.querySelector('.quiz-retired')).toHaveTextContent('Question a?');
+  });
+});
+
 describe('the question screen (UX audit U2)', () => {
   it('keeps the 16px phone gutter on /quiz like every other route (questions-18)', () => {
     const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');

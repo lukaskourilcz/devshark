@@ -11,6 +11,7 @@ import { Card } from '@astryxdesign/core/Card';
 import { Banner } from '@astryxdesign/core/Banner';
 import { Popover } from '@astryxdesign/core/Popover';
 import { AlertDialog } from '@astryxdesign/core/AlertDialog';
+import { SegmentedControl, SegmentedControlItem } from '@astryxdesign/core/SegmentedControl';
 import { AppToast } from './ui/AppToast';
 import { CloseIcon } from './ui/icons';
 import { useAuth, getUserProfile } from '../lib/auth';
@@ -175,6 +176,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [result, setResult] = useState<QuizResult | null>(null);
+  const [reviewFilter, setReviewFilter] = useState<'incorrect' | 'all'>('all');
+  const [reviewFocusRequest, setReviewFocusRequest] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [stop, setStop] = useState<StopReason | null>(null);
@@ -243,6 +246,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const [settings] = useSettings();
 
   const resultHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const reviewHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const questionTextRef = useRef<HTMLDivElement | null>(null);
   const fetchAbortRef = useRef<AbortController | null>(null);
   // Leaving the page drops a quiz, review or daily set still loading.
@@ -671,6 +675,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       const say = (message: string) => { if (onScreen) setSnack(message); };
       if (onScreen) {
         setResult(data);
+        setReviewFilter(data.results.some((item) => !item.isCorrect) ? 'incorrect' : 'all');
         setState('submitted');
         clearProgress();
         playComplete();
@@ -796,6 +801,19 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       resultHeadingRef.current.focus();
     }
   }, [state]);
+
+  const openAnswerReview = (filter: 'incorrect' | 'all') => {
+    setReviewFilter(filter);
+    setReviewFocusRequest((request) => request + 1);
+  };
+
+  useEffect(() => {
+    if (state !== 'submitted' || reviewFocusRequest === 0) return;
+    const heading = reviewHeadingRef.current;
+    heading?.focus({ preventScroll: true });
+    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    heading?.scrollIntoView?.({ behavior: still ? 'auto' : 'smooth', block: 'start' });
+  }, [state, reviewFocusRequest]);
 
   // Starting unmounts the setup screen with the button that was pressed, so
   // focus goes to the first question instead of falling to <body>.
@@ -1047,7 +1065,12 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     const resultTopics = resultCategories.length <= 3
       ? resultCategories.map((category) => t(categoryLabelKey(category))).join(', ')
       : t('quiz.resultTopics', { n: resultCategories.length });
-    const resultDifficulty = t(`difficulty.${mode === 'standard' ? difficultyMode : 'mixed'}` as TranslationKey);
+    const resultDifficulty = t(`difficulty.${mode === 'standard' ? lastStart?.mode === 'standard' ? lastStart.difficulty : difficultyMode : 'mixed'}` as TranslationKey);
+    const incorrectCount = result.results.filter((item) => !item.isCorrect).length;
+    const indexedQuestions = questions.map((question, index) => ({ question, index }));
+    const gradedQuestions = indexedQuestions.filter(({ question }) => resultsById.has(question.id));
+    const visibleReview = gradedQuestions.filter(({ question }) => reviewFilter === 'all' || resultsById.get(question.id)?.isCorrect === false);
+    const voidedQuestions = indexedQuestions.filter(({ question }) => result.voided?.includes(question.id));
     return (
       <>
         {/* The summary and the review share one column and both edges
@@ -1103,49 +1126,52 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
 
           </div>
           <QuestionActions
-            secondary={
-              <Button
-                variant="secondary"
-                label={t('quiz.reviewAnswersArrow')}
-                onClick={() => {
-                  const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-                  document.getElementById('quiz-review')?.scrollIntoView({ behavior: still ? 'auto' : 'smooth' });
-                }}
-              />
+            secondary={incorrectCount > 0
+              ? <Button variant="secondary" label={t('quiz.newQuiz')} onClick={handleRestart} />
+              : gradedQuestions.length > 0
+                ? <Button variant="secondary" label={t('quiz.reviewAnswersArrow')} onClick={() => openAnswerReview('all')} />
+                : undefined
             }
-            primary={{ label: t('quiz.newQuiz'), onClick: handleRestart }}
+            primary={incorrectCount > 0
+              ? { label: t('quiz.reviewIncorrect', { count: incorrectCount }), onClick: () => openAnswerReview('incorrect') }
+              : { label: t('quiz.newQuiz'), onClick: handleRestart }
+            }
           />
         </div>
 
-        <h2 id="quiz-review" className={`quiz-review-header ${reviewWave}`}>
-          {t('quiz.reviewYourAnswers', { count: questions.length })}
+        <h2 id="quiz-review" ref={reviewHeadingRef} tabIndex={-1} className={`quiz-review-header ${reviewWave}`}>
+          {t('quiz.reviewYourAnswers', { count: gradedQuestions.length })}
         </h2>
+        {incorrectCount > 0 && (
+          <div className="quiz-review-filter">
+            <SegmentedControl value={reviewFilter} onChange={(value) => setReviewFilter(value as 'incorrect' | 'all')} label={t('quiz.reviewFilter')}>
+              <SegmentedControlItem value="incorrect" label={t('quiz.filterIncorrect', { count: incorrectCount })} />
+              <SegmentedControlItem value="all" label={t('quiz.filterAll', { count: gradedQuestions.length })} />
+            </SegmentedControl>
+          </div>
+        )}
+        {gradedQuestions.length === 0 && <StatePanel inline body={t('quiz.noGradedAnswers')} />}
         <div className="quiz-review-grid">
-        {questions.map((question, index) => {
+        {visibleReview.map(({ question, index }) => {
           const questionResult = resultsById.get(question.id);
           const isCorrect = questionResult?.isCorrect;
-          // Retired while the quiz was open: graded as void, so there is no
-          // verdict and no answer key to show or to bookmark.
-          const isVoided = !questionResult && (result.voided ?? []).includes(question.id);
+          // Only server-graded answers belong in this review filter. Retired
+          // questions are listed separately and never count as mistakes.
 
           return (
-            <MotionItem key={question.id} index={index} className={`quiz-review-item ${isVoided ? 'is-voided' : isCorrect ? 'is-correct' : 'is-incorrect'}`}>
+            <MotionItem key={question.id} index={index} className={`quiz-review-item ${isCorrect ? 'is-correct' : 'is-incorrect'}`}>
               <Card variant="default" padding={3} width="100%" className="quiz-review-card">
                 <VStack gap={1.5}>
                   <HStack justify="between" align="center" wrap="wrap" gap={1}>
                     {/* One meta line: number, topic, verdict (glyph and word). */}
                     <Text type="supporting" color="secondary">
                       {index + 1} · {t(categoryLabelKey(question.category))} ·{' '}
-                      {isVoided ? (
-                        <span style={{ fontWeight: 600 }}>{t('quiz.voidedItem')}</span>
-                      ) : (
-                        <span style={{ color: isCorrect ? 'var(--ss-success-strong)' : 'var(--ss-error)', fontWeight: 600 }}>
-                          <span aria-hidden>{isCorrect ? '✓' : '✕'}</span> {isCorrect ? t('quiz.correct') : t('quiz.incorrect')}
-                        </span>
-                      )}
+                      <span style={{ color: isCorrect ? 'var(--ss-success-strong)' : 'var(--ss-error)', fontWeight: 600 }}>
+                        <span aria-hidden>{isCorrect ? '✓' : '✕'}</span> {isCorrect ? t('quiz.correct') : t('quiz.incorrect')}
+                      </span>
                     </Text>
                     <HStack gap={0.5} align="center">
-                      {questionResult && !isVoided && <SaveSharkCard question={question} correctIndex={questionResult.correctAnswer} explanation={questionResult.explanation ?? ''} />}
+                      {questionResult && <SaveSharkCard question={question} correctIndex={questionResult.correctAnswer} explanation={questionResult.explanation ?? ''} />}
                       <QuestionIconButton
                         label={t('quiz.reportAria')}
                         icon={<ReportFlagIcon />}
@@ -1156,13 +1182,11 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
 
                   <div className="quiz-review-question">{renderQuestion(question.question)}</div>
 
-                  {!isVoided && (
-                    <Text type="body" size="sm">
-                      {t('quiz.yourAnswerLabel')}{' '}
-                      <strong>{question.options[questionResult?.selectedIndex ?? 0]}</strong>
-                    </Text>
-                  )}
-                  {!isCorrect && !isVoided && (
+                  <Text type="body" size="sm">
+                    {t('quiz.yourAnswerLabel')}{' '}
+                    <strong>{question.options[questionResult?.selectedIndex ?? 0]}</strong>
+                  </Text>
+                  {!isCorrect && (
                     <span style={{ color: 'var(--ss-success-strong)' }}>
                       <Text type="body" size="sm" color="inherit">
                         {t('quiz.correctLabel')}{' '}
@@ -1184,6 +1208,20 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           );
         })}
         </div>
+        {voidedQuestions.length > 0 && (
+          <section className="quiz-retired" aria-labelledby="quiz-retired-heading">
+            <h3 id="quiz-retired-heading">{t('quiz.retiredQuestions')}</h3>
+            {voidedQuestions.map(({ question, index }) => (
+              <div className="quiz-retired__row" key={question.id}>
+                <div>
+                  <Text type="supporting" color="secondary">{index + 1} · {t(categoryLabelKey(question.category))} · <span>{t('quiz.voidedItem')}</span></Text>
+                  <div className="quiz-review-question">{renderQuestion(question.question)}</div>
+                </div>
+                <QuestionIconButton label={t('quiz.reportAria')} icon={<ReportFlagIcon />} onClick={() => setReportTarget({ id: question.id, version: question.review?.version })} />
+              </div>
+            ))}
+          </section>
+        )}
 
         <AppToast
           open={!!snack}
