@@ -106,7 +106,7 @@ it('uses a visible, accessible branded loading status', () => {
 it('leaves section stage context to the route while keeping it for an embedded lesson', () => {
   const project = EVOLVING_CHALLENGES.find(item => item.id === 'js-evolving-calculator')!;
   const stageTask = { ...task, id: project.stages[2] };
-  const tree = (mode: 'section' | 'lesson') => <MemoryRouter><LanguageProvider><CodingWorkbench task={stageTask} session={null} locked={null} signedIn={false} mode={mode} /></LanguageProvider></MemoryRouter>;
+  const tree = (mode: 'section' | 'lesson') => <MemoryRouter><LanguageProvider><CodingWorkbench task={stageTask} session={null} locked={null} signedIn={false} initialCode="" mode={mode} /></LanguageProvider></MemoryRouter>;
   const section = render(tree('section'));
   expect(section.container.querySelector('.cd-brief__meta')).toBeNull();
   section.unmount();

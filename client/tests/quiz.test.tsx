@@ -160,7 +160,7 @@ describe('setup clarity and category selection', () => {
     })));
     renderQuiz();
     fireEvent.click(await screen.findByRole('button', { name: 'Show all categories' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Security', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Security' }));
     fireEvent.click(screen.getByRole('button', { name: 'Show fewer' }));
     expect(screen.getByText('1 more selected')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Select visible topics' }));
@@ -168,7 +168,7 @@ describe('setup clarity and category selection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Deselect visible topics' }));
     expect(JSON.parse(localStorage.getItem('devquiz:quiz-setup:v1')!).categories).toEqual(['security']);
     fireEvent.click(screen.getByRole('button', { name: 'Show all categories' }));
-    expect(screen.getByRole('button', { name: 'Security', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Security' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('explains the selected difficulty without a tooltip and tells guests before they start', async () => {
@@ -178,7 +178,7 @@ describe('setup clarity and category selection', () => {
     expect(screen.getByText('Progressive: Difficulty 1 to 5, in order.')).toHaveAttribute('role', 'status');
     expect(screen.queryByText('Mixed: Difficulty 1 to 5, shuffled.')).not.toBeInTheDocument();
     expect(screen.getByText('You’re practising on this device. Sign in before starting to save results to your account.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Sign in', exact: true })).not.toHaveClass('ss-swim-cta');
+    expect(screen.getByRole('button', { name: 'Sign in' })).not.toHaveClass('ss-swim-cta');
     expect(document.querySelectorAll('.ss-swim-cta')).toHaveLength(1);
   });
 
@@ -318,7 +318,7 @@ describe('result review priorities and focus', () => {
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     const review = await screen.findByRole('button', { name: 'Review incorrect answers (1)' });
     expect(review).toHaveClass('ss-swim-cta--md');
-    expect(screen.getByRole('button', { name: 'New quiz', exact: true })).not.toHaveClass('ss-swim-cta');
+    expect(screen.getByRole('button', { name: 'New quiz' })).not.toHaveClass('ss-swim-cta');
     expect(screen.getByText('Mistake explanation')).toBeInTheDocument();
     expect(screen.queryByText('Correct explanation')).not.toBeInTheDocument();
     expect(document.querySelector('.quiz-retired')).toHaveTextContent('Question c?');
@@ -341,7 +341,7 @@ describe('result review priorities and focus', () => {
     const review = await screen.findByRole('button', { name: 'Review answers ↓' });
     fireEvent.click(review);
     expect(screen.getByRole('heading', { level: 2 })).toHaveFocus();
-    expect(screen.getByRole('button', { name: 'New quiz', exact: true })).toHaveClass('ss-swim-cta--md');
+    expect(screen.getByRole('button', { name: 'New quiz' })).toHaveClass('ss-swim-cta--md');
     expect(screen.queryByRole('radio')).not.toBeInTheDocument();
   });
 
@@ -760,7 +760,7 @@ describe('slow loading and recovery', () => {
     fireEvent.click(cancel);
     expect(screen.getByRole('heading', { level: 1, name: 'Build your quiz.' })).toHaveFocus();
     expect(signal!.aborted).toBe(true);
-    expect(screen.getByRole('button', { name: 'JavaScript', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'JavaScript' })).toHaveAttribute('aria-pressed', 'true');
     await act(async () => { respond!(); });
     expect(screen.queryByText('Question late?')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /start quiz/i })).toBeInTheDocument();
@@ -770,9 +770,9 @@ describe('slow loading and recovery', () => {
     server.use(http.get('*/api/quiz/questions', () => HttpResponse.json({ error: { code: 'upstream', message: 'Busy' } }, { status: 503 })));
     renderQuiz();
     fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
-    await screen.findByRole('button', { name: 'Retry', exact: true });
+    await screen.findByRole('button', { name: 'Retry' });
     expect(screen.getByRole('heading', { level: 1 })).toHaveFocus();
-    fireEvent.click(screen.getByRole('button', { name: 'Back to settings', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Back to settings' }));
     expect(screen.getByRole('heading', { name: 'Build your quiz.' })).toHaveFocus();
   });
 });
