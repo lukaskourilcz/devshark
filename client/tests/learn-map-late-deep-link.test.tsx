@@ -7,7 +7,7 @@
 // keeps their choice.
 import { afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { delay, http, HttpResponse } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { server } from './mocks/server';
@@ -33,14 +33,16 @@ const STRUCTURE = { topics: TOPICS, structure: Object.fromEntries(TOPICS.map((to
 const PREMIUM = { tier: 'premium', source: 'stripe', currentPeriodEnd: null, cancelAtPeriodEnd: false, inGrace: false, validUntil: null };
 const passed = { levels: Object.fromEntries(Array.from({ length: 5 }, (_, i) => [String(i + 1), { passed: true, bestPct: 100 }])), checkpoints: {} };
 
-/** The account's progress answers after the hold's 1.2 s cap. */
+/** Hold account progress until the test has observed the initial map. */
 function answer() {
+  let release!: () => void;
+  const ready = new Promise<void>((resolve) => { release = resolve; });
   server.use(
     http.get('*/api/quiz/roadmap', async ({ request }) => {
       const resource = new URL(request.url).searchParams.get('resource');
       if (resource === 'learning-path-catalog') return HttpResponse.json({ versions: {}, paths: [] });
       if (resource === 'progress') {
-        await delay(1500);
+        await ready;
         return HttpResponse.json({ data: { javascript: passed, dsa: passed }, extra: { unlocked: [] } });
       }
       return HttpResponse.json(STRUCTURE as never);
@@ -53,6 +55,7 @@ function answer() {
       return HttpResponse.json({ enrollments: [] });
     }),
   );
+  return release;
 }
 
 let visits = 0;
@@ -81,16 +84,17 @@ const topicRadio = (name: RegExp) => topics().find((radio) => name.test(radio.te
 const checkedTopic = () => topics().find((radio) => radio.getAttribute('aria-checked') === 'true');
 
 it('lands on the deep link’s topic once the account’s progress opens it', async () => {
-  answer();
+  const releaseProgress = answer();
   await mount('/learn/software-engineer?topic=dsa-advanced');
   // The first draw, before the progress: the deep link's topic is not open.
   await screen.findByRole('radiogroup', { name: 'Choose a topic' }, { timeout: 3000 });
   expect(checkedTopic()?.textContent).toMatch(/^DSA Foundations/);
+  releaseProgress();
   await waitFor(() => expect(checkedTopic()?.textContent).toMatch(/DSA Advanced/), { timeout: 4000 });
 });
 
 it('keeps a topic the learner picked before the progress answered', async () => {
-  answer();
+  const releaseProgress = answer();
   await mount('/learn/software-engineer?topic=dsa-advanced');
   await screen.findByRole('radiogroup', { name: 'Choose a topic' }, { timeout: 3000 });
   const general = topicRadio(/^General/);
@@ -98,6 +102,7 @@ it('keeps a topic the learner picked before the progress answered', async () => 
   fireEvent.click(general!);
   await waitFor(() => expect(checkedTopic()?.textContent).toMatch(/^General/));
   // The progress lands and opens DSA Advanced; the learner's choice stands.
-  await act(async () => { await new Promise((resolve) => setTimeout(resolve, 1800)); });
+  releaseProgress();
+  await waitFor(() => expect(topicRadio(/^DSA Advanced/)).not.toHaveAttribute('aria-disabled', 'true'));
   expect(checkedTopic()?.textContent).toMatch(/^General/);
 });
