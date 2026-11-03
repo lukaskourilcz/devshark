@@ -444,12 +444,12 @@ export function CodingHome() {
     const recorded = progress.data?.tasks ?? {};
     const tasks = SECTION_INDEX.filter((task) => {
       const status = statusOf(task);
-      return status === 'in_progress' || (recentIds.includes(task.id) && (status === 'open' || status === 'revealed'));
+      return status === 'in_progress' || status === 'revealed' || (recentIds.includes(task.id) && status === 'open');
     });
     for (const challenge of EVOLVING_CHALLENGES) {
       if (challenge.unlisted) continue;
       const done = challenge.stages.filter((id) => evolvingPassed(id, passed)).length;
-      const touched = done > 0 || challenge.stages.some((id) => recorded[id]?.status === 'in_progress' || recentIds.includes(id));
+      const touched = done > 0 || challenge.stages.some((id) => recorded[id]?.status === 'in_progress' || recorded[id]?.status === 'revealed' || recentIds.includes(id));
       if (!touched || done === challenge.stages.length) continue;
       const id = evolvingResume(challenge, passed);
       const task = INDEX_BY_ID.get(id);

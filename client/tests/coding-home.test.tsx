@@ -134,6 +134,16 @@ it('automatically continues the most recently active unfinished project without 
   expect(screen.getByTestId('location')).toHaveTextContent(`/coding/${projects[1].track}/${projects[1].stages[1]}`);
 });
 
+it('keeps an unfinished task with a revealed solution eligible for automatic resume', () => {
+  state.progress = { data: { ...passedDigitSum, tasks: {
+    'js-count-multiples': { status: 'in_progress', updatedAt: '2026-11-01T12:00:00Z' },
+    'js-sum-array': { status: 'revealed', updatedAt: '2026-11-02T12:00:00Z' },
+  } } as unknown as CodingProgressResponse, isLoading: false, isError: false, refetch: () => {} };
+  mount();
+  fireEvent.click(within(card()).getByRole('button', { name: 'Continue' }));
+  expect(screen.getByTestId('location')).toHaveTextContent('/coding/javascript/js-sum-array');
+});
+
 it('continues the last visited unfinished work, including a task not submitted yet', () => {
   state.progress = { data: passedDigitSum, isLoading: false, isError: false, refetch: () => {} };
   rememberCodingTask('js-sum-array', accountEpoch());
