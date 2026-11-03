@@ -95,6 +95,28 @@ const topicCard = (page: Page, name: string) =>
   // The whole label: "DSA Foundations" must not also match "DSA Advanced".
   page.getByRole('radiogroup', { name: 'Choose a topic' }).getByRole('radio', { name: new RegExp(`^${name.replace(/[&]/g, '\\$&')}(?:$|,| —)`) });
 
+test.describe('Touch inspection of locked content', () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  test('a tap explains the exact topic and level without opening either', async ({ page }) => {
+    await prepare(page);
+    await stand(page, 'guest', { progress: {} });
+    await page.goto('/learn/web-developer?topic=html');
+    const tap = async (item: ReturnType<typeof topicCard>) => {
+      await item.scrollIntoViewIfNeeded();
+      const box = await item.boundingBox();
+      await page.touchscreen.tap(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    };
+    await tap(topicCard(page, 'TypeScript'));
+    await expect(page.getByRole('status').filter({ hasText: 'Pass 5 levels in each prerequisite topic to open TypeScript: JavaScript.' })).toBeVisible();
+    await expect(page).toHaveURL(/topic=html$/);
+    await page.getByRole('button', { name: 'Dismiss', exact: true }).click();
+    await tap(page.getByRole('button', { name: 'Level 2: Links, Buttons & Interaction, Locked', exact: true }));
+    await expect(page.getByRole('status').filter({ hasText: 'Pass Level 1: Structure & Semantics to open this level.' })).toBeVisible();
+    await expect(page.locator('.rm-overview-card')).toBeVisible();
+    await expect(page).toHaveURL(/topic=html$/);
+  });
+});
+
 test.describe('Learn section routes', () => {
   test('keyboard inspection explains an exact locked topic and level without opening them', async ({ page }) => {
     await prepare(page);

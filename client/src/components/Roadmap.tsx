@@ -474,10 +474,18 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
   // the check replaces the map, so that control is gone while it runs.
   const skillCheckOpener = useRef<'row' | 'gate' | null>(null);
   const openSkillCheck = (from: 'row' | 'gate') => {
+    setLockReason(null);
     skillCheckOpener.current = from;
     setSkillCheckOpen(true);
   };
   const [unlockSnack, setUnlockSnack] = useState<string | null>(null);
+  const [lockReason, setLockReason] = useState<string | null>(null);
+  const inspectLock = (reason: string) => {
+    // Astryx deliberately suppresses hover/focus tooltips after a touch tap.
+    // Reuse the page's live toast for that pointer press; keyboard focus keeps
+    // the contextual tooltip and receives no duplicate announcement.
+    if (window.matchMedia('(hover: none)').matches) setLockReason(reason);
+  };
 
   // The section follows the address, except while a level or the skill check
   // is open: Back, Forward or a nav click then change the address only, and
@@ -527,6 +535,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
   };
 
   const selectTopic = (next: RoadmapTopic) => {
+    setLockReason(null);
     // Locked and dimmed topics aren't tabbable; ignore if somehow invoked.
     if (!entries.some((entry) => entry.topic === next && entry.state === 'open')) return;
     lateDeepLink.current = null;
@@ -566,6 +575,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
    * dropped, so a ?topic of the section left behind cannot send the learner
    * back. */
   const switchSection = (id: LearnSectionId, nextTopic?: RoadmapTopic) => {
+    setLockReason(null);
     lateDeepLink.current = null;
     if (nextTopic) landOn(nextTopic, id);
     navigate({ pathname: `/learn/${id}`, search: nextTopic ? `?topic=${nextTopic}` : '' });
@@ -676,6 +686,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
   );
 
   const open = (a: Active, questions = false) => {
+    setLockReason(null);
     lateDeepLink.current = null;
     preloadLessonRunner();
     if (hasCodeQuestions(topic)) preloadCodeHighlighter();
@@ -1077,6 +1088,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
           entries={entries}
           value={topic}
           onSelect={(value) => selectTopic(value as RoadmapTopic)}
+          onInspect={inspectLock}
           loading={loadingStructure}
           loadingCount={sectionTopics(section, TOPICS).length}
           levelCounts={levelCounts}
@@ -1259,6 +1271,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
                           isCurrent={n.isCurrent}
                           premium={n.premium ?? false}
                           outOfPlan={n.outOfPlan ?? false}
+                          onInspect={inspectLock}
                           cellW={layout.cellW}
                           onClick={() => openOrUpgrade({ kind: 'test', ref: n.part! })}
                           t={t}
@@ -1277,6 +1290,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
                           due={n.due ?? false}
                           masteryDays={n.masteryDays ?? 0}
                           prerequisite={n.prerequisite}
+                          onInspect={inspectLock}
                           premium={n.premium ?? false}
                           outOfPlan={n.outOfPlan ?? false}
                           cellW={layout.cellW}
@@ -1304,10 +1318,10 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
       </div>
 
       <AppToast
-        open={!!unlockSnack}
-        onClose={() => setUnlockSnack(null)}
-        message={unlockSnack ?? ''}
-        autoHideDuration={4500}
+        open={!!(lockReason || unlockSnack)}
+        onClose={() => { setLockReason(null); setUnlockSnack(null); }}
+        message={lockReason ?? unlockSnack ?? ''}
+        autoHideDuration={lockReason ? 8000 : 4500}
       />
     </div>
   );
@@ -1345,7 +1359,7 @@ function MasteryLegend({ t }: { t: TFn }) {
 /* ──── level node ───────────────────────────────────────────────────────── */
 
 function LevelNode({
-  meta, displayNum, accent, unlocked, unavailable, passed, best, isCurrent, mastery, due, masteryDays, premium, outOfPlan = false, prerequisite, onClick, t, cellW,
+  meta, displayNum, accent, unlocked, unavailable, passed, best, isCurrent, mastery, due, masteryDays, premium, outOfPlan = false, prerequisite, onInspect, onClick, t, cellW,
 }: {
   meta: RoadmapLevelMeta; displayNum: number; accent: string;
   unlocked: boolean; unavailable: boolean; passed: boolean; best: number; isCurrent: boolean;
@@ -1355,6 +1369,7 @@ function LevelNode({
   /** Outside the learner's plan: shut, with the reason in its hint. */
   outOfPlan?: boolean;
   prerequisite?: PlacedNode['prerequisite'];
+  onInspect: (reason: string) => void;
   onClick: () => void; t: TFn; cellW: number;
 }) {
   if (premium) {
@@ -1406,7 +1421,7 @@ function LevelNode({
           <button
             type="button"
             className={`rm-level-btn${unlocked ? '' : ' rm-unavailable-btn'}`}
-            onClick={() => { if (unlocked) onClick(); }}
+            onClick={(event) => { if (unlocked) onClick(); else if (event.detail > 0) onInspect(tip); }}
             aria-disabled={!unlocked || undefined}
             aria-label={label}
             style={{
@@ -1455,12 +1470,13 @@ function LevelNode({
 /* ──── part-test (boss) node ────────────────────────────────────────────── */
 
 function PartTestNode({
-  part, range, accent, grad, unlocked, unavailable, passed, best, isCurrent, premium, outOfPlan = false, onClick, t, cellW,
+  part, range, accent, grad, unlocked, unavailable, passed, best, isCurrent, premium, outOfPlan = false, onInspect, onClick, t, cellW,
 }: {
   part: number; range: PartRange; accent: string; grad: [string, string];
   unlocked: boolean; unavailable: boolean; passed: boolean; best: number; isCurrent: boolean;
   premium: boolean;
   outOfPlan?: boolean;
+  onInspect: (reason: string) => void;
   onClick: () => void; t: TFn; cellW: number;
 }) {
   const title = t('roadmap.partTestTitle', { n: part });
@@ -1480,7 +1496,7 @@ function PartTestNode({
           <button
             type="button"
             className={`rm-test-btn${unlocked ? '' : ' rm-unavailable-btn'}${isCurrent ? ' rm-shimmer' : ''}`}
-            onClick={() => { if (unlocked) onClick(); }}
+            onClick={(event) => { if (unlocked) onClick(); else if (event.detail > 0) onInspect(`${title}. ${lockedHint}`); }}
             aria-disabled={!unlocked || undefined}
             aria-label={label}
             style={{

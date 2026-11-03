@@ -6,9 +6,10 @@ describe('inspecting an unavailable radio card', () => {
   it('lets arrows focus the reason without selecting or activating gated content', () => {
     const select = vi.fn();
     const activate = vi.fn();
+    const inspect = vi.fn();
     render(<RadioCardGroup value="open" onChange={select} onActivate={activate} label="Topics" orientation="horizontal">
       <RadioCard index={0} value="open" label="Open">Open</RadioCard>
-      <RadioCard index={1} value="locked" label="Locked" unavailable describedBy="why">Locked</RadioCard>
+      <RadioCard index={1} value="locked" label="Locked" unavailable onUnavailable={inspect} describedBy="why">Locked</RadioCard>
       <RadioCard index={2} value="next" label="Next">Next</RadioCard>
       <p id="why">Pass the first part test.</p>
     </RadioCardGroup>);
@@ -21,6 +22,7 @@ describe('inspecting an unavailable radio card', () => {
     expect(open).toHaveAttribute('aria-checked', 'true');
     expect(locked).toHaveAttribute('aria-checked', 'false');
     fireEvent.click(locked);
+    expect(inspect).toHaveBeenCalledOnce();
     expect(select).not.toHaveBeenCalled();
     expect(activate).not.toHaveBeenCalled();
     fireEvent.keyDown(locked, { key: 'ArrowRight' });

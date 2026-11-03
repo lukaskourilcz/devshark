@@ -18,6 +18,7 @@ import {
   useRef,
   type CSSProperties,
   type KeyboardEvent,
+  type MouseEvent,
   type ReactNode,
 } from 'react';
 
@@ -196,6 +197,8 @@ interface CardProps {
   /** Keep a gated choice available to arrow-key/focus inspection without
    * allowing selection or activation. Ordinary disabled choices still skip. */
   unavailable?: boolean;
+  /** Explain a gated choice on a press without selecting or activating it. */
+  onUnavailable?: (event: MouseEvent<HTMLButtonElement>) => void;
   /** 'success' paints the card green — e.g. revealing the correct answer;
    *  'error' marks a graded wrong pick (AnswerOptionList draws it). */
   tone?: 'default' | 'success' | 'error';
@@ -208,7 +211,7 @@ interface CardProps {
   children: ReactNode;
 }
 
-export function RadioCard({ value, index, label, describedBy, padding = 3, disabled, unavailable, tone = 'default', width, style, className, 'data-locked': dataLocked, children }: CardProps) {
+export function RadioCard({ value, index, label, describedBy, padding = 3, disabled, unavailable, onUnavailable, tone = 'default', width, style, className, 'data-locked': dataLocked, children }: CardProps) {
   const ctx = useContext(Ctx);
   const ref = useRef<HTMLButtonElement>(null);
   if (!ctx) throw new Error('RadioCard must render inside RadioCardGroup');
@@ -238,8 +241,9 @@ export function RadioCard({ value, index, label, describedBy, padding = 3, disab
       data-locked={dataLocked || undefined}
       // A pointer click (or Enter/Space on the focused card) both selects and
       // activates; arrow-key browsing in onKeyNav only selects.
-      onClick={() => {
-        if (disabled || unavailable) return;
+      onClick={(event) => {
+        if (disabled) return;
+        if (unavailable) { onUnavailable?.(event); return; }
         select(value);
         activate(value);
       }}

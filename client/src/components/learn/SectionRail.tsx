@@ -56,6 +56,7 @@ export function SectionRail({
   entries,
   value,
   onSelect,
+  onInspect,
   loading,
   loadingCount,
   levelCounts,
@@ -66,6 +67,7 @@ export function SectionRail({
   entries: readonly RailEntry[];
   value: string;
   onSelect: (topic: string) => void;
+  onInspect?: (reason: string) => void;
   loading: boolean;
   loadingCount: number;
   levelCounts: Readonly<Record<string, number>>;
@@ -115,6 +117,7 @@ export function SectionRail({
                 value={topic}
                 index={index}
                 unavailable={state !== 'open'}
+                onUnavailable={(event) => { if (event.detail > 0) onInspect?.(reason); }}
                 label={name}
                 className={state === 'dimmed' ? 'rm-topic-pill rm-topic-pill--dimmed' : 'rm-topic-pill'}
                 padding={2.5}
