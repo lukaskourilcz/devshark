@@ -23,7 +23,7 @@ import { bookmarksQuery, practiceSessionQuery, useAdvanceSession, useBookmarks, 
 import { ChallengeRunPlanner, taskHref } from './ChallengeRunPlanner';
 import { CategoryGlyph } from '../ui/techIcons';
 import { CODING_INDEX } from '../../../../shared/coding-index';
-import { evolvingResume, evolvingStage, evolvingTaskTrack, evolvingPassed, evolvingUnlocked, listedChallenges, type EvolvingCategory } from '../../../../shared/evolving';
+import { EVOLVING_CHALLENGES, evolvingResume, evolvingStage, evolvingTaskTrack, evolvingPassed, evolvingUnlocked, listedChallenges, type EvolvingCategory } from '../../../../shared/evolving';
 import { prepareEvolvingDraft } from '../../../../shared/coding-fullstack-support';
 import {
   CODING_DIFFICULTIES,
@@ -401,26 +401,37 @@ function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = t
 /** Which challenge is next, and a way into it, beside the page heading. For a
  * signed-in learner it waits for their progress: worked out from nothing, it
  * would name the first challenge and then swap it for the real one. */
-function NextChallenge({ next, state, onRetry }: { next: CodingTaskSummary | null; state: 'loading' | 'error' | 'ready'; onRetry: () => void }) {
+function NextChallenge({ next, state, onRetry, choices = [], inRun = false, errorText }: { next: CodingTaskSummary | null; state: 'loading' | 'error' | 'ready'; onRetry: () => void; choices?: CodingTaskSummary[]; inRun?: boolean; errorText?: string }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [chosenId, setChosenId] = useState('');
+  const chosen = choices.find((task) => task.id === chosenId) ?? null;
+  const choose = choices.length > 1;
+  const destination = choose ? chosen : next;
   return (
     <section className="cd-next" aria-labelledby="cd-next-label" aria-busy={state === 'loading' || undefined}>
       <div className="cd-next__text">
-        <h2 id="cd-next-label" className="cd-next__label">{t('coding.discovery.next')}</h2>
+        <h2 id="cd-next-label" className="cd-next__label">{inRun ? codingListCopy('coding.resume.run') : t('coding.discovery.next')}</h2>
         {state === 'loading' && (
           <p className="cd-next__title">
             <span className="cd-next__placeholder" aria-hidden="true" />
             <span className="cd-visually-hidden">{t('coding.discovery.loading')}</span>
           </p>
         )}
-        {state === 'error' && <p className="cd-next__title cd-next__title--error" role="alert">{t('coding.discovery.failed')}</p>}
-        {state === 'ready' && <p className="cd-next__title">{next ? next.title : t('coding.allDone')}</p>}
+        {state === 'error' && <p className="cd-next__title cd-next__title--error" role="alert">{errorText ?? t('coding.discovery.failed')}</p>}
+        {state === 'ready' && <p className="cd-next__title">{choose ? codingListCopy('coding.resume.count', { n: choices.length }) : next ? next.title : t('coding.allDone')}</p>}
+      {state === 'ready' && choose && <div className="cd-next__choices">
+        <label htmlFor="cd-resume-choice">{codingListCopy('coding.resume.work')}</label>
+        <select id="cd-resume-choice" value={chosen?.id ?? ''} onChange={(event) => setChosenId(event.target.value)}>
+          <option value="">{codingListCopy('coding.resume.choose')}</option>
+          {choices.map((task) => <option key={task.id} value={task.id}>{task.title}</option>)}
+        </select>
+      </div>}
       </div>
       {state === 'error' && <Button variant="secondary" onClick={onRetry} label={t('coding.retry')} />}
       {/* Held disabled while loading, so the card keeps its size when the title arrives. */}
-      {state !== 'error' && (state === 'loading' || next) && (
-        <SwimCta label={t('coding.continue')} disabled={state === 'loading'} onClick={() => { if (next) navigate(`/coding/${next.track}/${next.id}`); }} />
+      {state !== 'error' && (state === 'loading' || next || choose) && (
+        <SwimCta label={inRun ? t('coding.run.continue') : t('coding.continue')} disabled={state === 'loading' || (choose && !chosen)} onClick={() => { if (destination) navigate(`/coding/${destination.track}/${destination.id}`); }} />
       )}
     </section>
   );
@@ -432,14 +443,39 @@ export function CodingHome() {
   const { t } = useLanguage();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const progress = useCodingProgress(isAuthenticated);
+  const run = usePracticeSession(isAuthenticated);
   const { passed, statusOf, premiumOf, planLoading, planFailed, retryPlan } = useStatuses(progress.data);
-  const progressKnown = !isAuthenticated || Boolean(progress.data);
-  const next = useMemo(() => nextOpenTask(SECTION_INDEX, statusOf), [statusOf]);
+  const progressKnown = !authLoading && (!isAuthenticated || Boolean(progress.data));
+  const activeRun = run.data?.session?.status === 'active' ? run.data.session : null;
+  const runNextId = activeRun?.queue[activeRun.position];
+  const runNext = runNextId ? INDEX_BY_ID.get(runNextId) ?? null : null;
+  // There is no last-opened timestamp in the progress contract. A single
+  // unfinished item can resume directly; several offer a named choice.
+  const unfinished = useMemo(() => {
+    if (!progress.data) return [];
+    const recorded = progress.data.tasks;
+    const tasks = SECTION_INDEX.filter((task) => statusOf(task) === 'in_progress');
+    for (const challenge of EVOLVING_CHALLENGES) {
+      const done = challenge.stages.filter((id) => evolvingPassed(id, passed)).length;
+      const touched = done > 0 || challenge.stages.some((id) => recorded[id]?.status === 'in_progress');
+      if (!touched || done === challenge.stages.length) continue;
+      const id = evolvingResume(challenge, passed);
+      const task = INDEX_BY_ID.get(id);
+      if (task && !isBarred(premiumOf(id)) && evolvingUnlocked(id, passed)) tasks.push({ ...task, title: `${challenge.title} · ${t(challenge.short ? 'coding.evolving.level' : 'coding.evolving.stage', { n: challenge.stages.indexOf(id) + 1, total: challenge.stages.length })}` });
+    }
+    return tasks;
+  }, [progress.data, statusOf, passed, premiumOf, t]);
+  const recommended = nextOpenTask(SECTION_INDEX, statusOf) ?? CODING_INDEX.find((task) => {
+    const stage = evolvingStage(task.id);
+    return stage && !stage.challenge.unlisted && !evolvingPassed(task.id, passed) && evolvingUnlocked(task.id, passed) && !isBarred(premiumOf(task.id));
+  }) ?? null;
+  const next = runNext ?? (unfinished.length === 1 ? unfinished[0] : recommended);
   // The plan decides which tasks are Premium, so the card also waits for it:
   // otherwise a free account would see a Premium task named first.
-  const nextState = authLoading || planLoading || (isAuthenticated && progress.isLoading)
+  const runFailed = isAuthenticated && run.isError && !run.data;
+  const nextState = authLoading || planLoading || (isAuthenticated && (progress.isLoading || run.isPending))
     ? 'loading'
-    : isAuthenticated && progress.isError && !progress.data ? 'error' : 'ready';
+    : (isAuthenticated && progress.isError && !progress.data) || runFailed ? 'error' : 'ready';
 
   return (
     <div className="cd-page cd-discovery ss-pop">
@@ -449,7 +485,7 @@ export function CodingHome() {
           <p className="cd-lead">{t('coding.subtitle')}</p>
           {!authLoading && !isAuthenticated && <SignInLine />}
         </header>
-        <NextChallenge next={next} state={nextState} onRetry={() => void progress.refetch()} />
+        <NextChallenge next={next} state={nextState} choices={runNext ? [] : unfinished} inRun={Boolean(runNext)} errorText={runFailed ? t('coding.run.loadFailed') : undefined} onRetry={() => { void progress.refetch(); if (runFailed) void run.refetch(); }} />
       </div>
       <PlanNotice failed={planFailed} onRetry={retryPlan} />
       <StaleProgressNotice failed={isAuthenticated && progress.isError && Boolean(progress.data)} onRetry={() => void progress.refetch()} />
@@ -475,7 +511,7 @@ export function CodingHome() {
       </section>
       {/* Below the tracks and collapsed to one row until it is opened: a run
           is a way through the tracks, not the first thing to read. */}
-      <ChallengeRunPlanner signedIn={isAuthenticated} collapsible />
+      <ChallengeRunPlanner signedIn={isAuthenticated} collapsible resumeInPrimary={Boolean(runNext) && nextState === 'ready'} />
       <EvolvingGallery passed={passed} premiumOf={premiumOf} category="debugging" progressKnown={progressKnown} />
       <EvolvingGallery passed={passed} premiumOf={premiumOf} progressKnown={progressKnown} />
       <Link className="cd-fullstack-feature" to="/coding/fullstack">
@@ -577,8 +613,13 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
   // `mutate` keeps its identity while the mutation's result object does not,
   // so the rows' callback stays the same and the rows can skip a redraw.
   const saveChallenge = save.mutate;
+  const savingChallenge = useRef(false);
   const onSave = useCallback((taskId: string, next: boolean) => {
-    saveChallenge({ op: 'save', taskId, saved: next });
+    // Each response contains the whole saved set. Serialize writes so an older
+    // response cannot replace a newer one, even before React shows busy state.
+    if (savingChallenge.current) return;
+    savingChallenge.current = true;
+    saveChallenge({ op: 'save', taskId, saved: next }, { onSettled: () => { savingChallenge.current = false; } });
   }, [saveChallenge]);
 
   const tasks = useMemo(() => SECTION_INDEX.filter((task) => task.track === track), [track]);
@@ -750,7 +791,7 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
                       premium={premiumOf(task.id)}
                       saved={savedIds.has(task.id)}
                       onSave={isAuthenticated && bookmarks.data ? onSave : undefined}
-                      saving={save.isPending && save.variables?.op === 'save' && save.variables.taskId === task.id}
+                      saving={save.isPending}
                       saveError={save.isError && save.variables?.op === 'save' && save.variables.taskId === task.id}
                     />
                   ))}

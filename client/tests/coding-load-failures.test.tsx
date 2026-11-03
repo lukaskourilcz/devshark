@@ -4,7 +4,7 @@
 // answered a failed progress load with "0 passed" (C5-5). Each screen is drawn
 // against the real hooks, with the API answered by MSW in the real shapes.
 import { afterEach, beforeAll, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { http, HttpResponse } from 'msw';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -146,6 +146,28 @@ it('keeps focus on the star and names the row whose save failed', async () => {
   expect(await within(row).findByRole('alert')).toHaveTextContent('Could not save this challenge. Try again.');
   expect(star).toHaveFocus();
   expect(star).toHaveAttribute('aria-pressed', 'false');
+});
+
+it('serializes track bookmark writes so older full-set responses cannot overwrite newer saves', async () => {
+  answer([]);
+  let finish!: () => void;
+  const waiting = new Promise<void>(resolve => { finish = resolve; });
+  let writes = 0;
+  server.use(http.put('*/api/user/*', async () => {
+    writes += 1;
+    await waiting;
+    return HttpResponse.json({ saved: ['js-digit-sum'], collections: [] });
+  }));
+  await mountAt('/coding/javascript', '/coding/:track', <CodingTrackScreen />);
+  const starFor = (name: RegExp) => within(screen.getByRole('link', { name }).closest('li')!).getByRole('button', { name: /Save this challenge/ });
+  const first = starFor(/Digit sum/), second = starFor(/Count multiples/);
+  await act(async () => { fireEvent.click(first); fireEvent.click(second); });
+  expect(writes).toBe(1);
+  expect(first).toHaveAttribute('aria-disabled', 'true');
+  expect(second).toHaveAttribute('aria-disabled', 'true');
+  await act(async () => { finish(); });
+  await waitFor(() => expect(first).toHaveAttribute('aria-pressed', 'true'));
+  expect(second).toHaveAttribute('aria-pressed', 'false');
 });
 
 it('says the saved challenges could not load on a task page, and offers to load them again', async () => {
