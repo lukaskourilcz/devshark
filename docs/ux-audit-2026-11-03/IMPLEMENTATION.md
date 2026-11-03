@@ -52,7 +52,7 @@ The initial Description change is merged through PR #594 at `0744084b`, with all
 - [x] Verify the production project and learning-path storage metadata without reading learner data.
 - [x] Confirm RLS on all five learning-path tables and service-only execution of migration 066's quota acceptance function.
 - [x] Set `LEARNING_PATH_FDE_ENABLED=true` for Production only, as authorised by the owner.
-- [ ] Verify the corresponding production deployment is READY.
-- [ ] Verify settings/catalogue report FDE available and guest path pages render at desktop and narrow widths.
+- [x] Verify the corresponding production deployment is READY.
+- [x] Verify settings/catalogue report FDE available and guest path pages render at desktop and narrow widths.
 
-The deployment following PR #594 will pick up the production environment change. No new schema, grading, reward, account, tier or handler changes are planned. Existing authenticated production acceptance remains a separate owner walkthrough; the rollout checks create no learner results.
+READY production `dpl_FkqzWx8MSztcEaMNmdNYXBwEMbZZ` at PR #594 merge `0744084b` picked up the production environment change; eight real guest browser cells passed at 390px and 1280px. No new schema, grading, reward, account, tier or handler changes are planned. Existing authenticated production acceptance remains a separate owner walkthrough; the rollout checks create no learner results.
