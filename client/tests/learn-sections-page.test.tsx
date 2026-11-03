@@ -117,7 +117,10 @@ describe('the section switch while a level is open', () => {
   it('keeps the level on screen and shows the new section once the learner leaves it', async () => {
     answer();
     await mountAt('/learn/web-developer?topic=html&level=1');
-    const start = await screen.findByRole('button', { name: 'Start the level' }, { timeout: 5000 }).catch(() => null);
+    await waitFor(() => expect(
+      screen.queryByRole('button', { name: 'Start the level' }) ?? screen.queryByText('Which option is first?'),
+    ).not.toBeNull(), { timeout: 10_000 });
+    const start = screen.queryByRole('button', { name: 'Start the level' });
     if (start) fireEvent.click(start);
     expect(await screen.findByText('Which option is first?')).toBeInTheDocument();
 
