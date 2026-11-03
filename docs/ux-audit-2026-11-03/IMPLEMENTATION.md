@@ -57,8 +57,15 @@ The initial Description change is merged through PR #594 at `0744084b`, with all
 
 READY production `dpl_FkqzWx8MSztcEaMNmdNYXBwEMbZZ` at PR #594 merge `0744084b` picked up the production environment change; eight real guest browser cells passed at 390px and 1280px. No new schema, grading, reward, account, tier or handler changes are planned. Existing authenticated production acceptance remains a separate owner walkthrough; the rollout checks create no learner results.
 
-## Verification in progress
+## Local verification — 3 November 2026
 
-Coding's 16 new browser cases pass, including seven widths in both themes. Quiz's 20 browser cases and 62 focused unit cases pass; the final deadline-placement assertion will be rerun on the integrated build. Learn's focused units pass, including shared radio-card behavior and touched lock explanations. Integrated browser, type and bundle gates and the required PR checks are still in progress.
+- API, scripts and tooling type checks pass; public/design, unused and security checks pass.
+- Combined application build passes. The production-shaped bundle is 231,726 / 241,651 gzip bytes; monitoring is 49,500 / 60,000. Both production dependency audits report zero vulnerabilities.
+- Integrated browser run: 102/103 pass initially; the transient XP-toast test passes separately. Its expected clock text is now computed before Submit so the test does not spend the toast's display time on an extra browser evaluation. Final targeted rerun passes.
+- Coding's 16 audit cases, all original Description/workbench/evolving/draft cases, Quiz's 20 audit cases (including the final expiry geometry assertion), and reading in both themes are covered by the integrated run and follow-up.
+- Learn: seven focused browser cases pass, including actual first/final checkpoint questions, keyboard and touch locks, and reading. The 42-cell sweep (three states × seven widths × two themes) reports no overflow or page errors; FDE shelf axe checks find no violations in either theme.
+- The report itself passes seven widths, embedded-image decoding and filter checks, and includes seven actual post-change screenshots.
 
-The first integrated unit run passed 1,788 of 1,795 tests; it exposed an outdated bulk-selection label and timing assumptions under simultaneous builds. Follow-up changes use valid typed role queries, provide the workbench's required initial code, explicitly release delayed Learn progress, and verify eager reading via the boundary-render contract rather than CPU wall time. No product behavior was changed to satisfy those timing assertions.
+The first integrated unit run passed 1,788 of 1,795 tests. Follow-ups corrected an outdated guest bulk-selection fixture, typed role queries and required initial code, a delayed-progress race, and an eager-reading wall-time assumption. The seven initially failing cases pass in follow-up runs, alongside all 62 Quiz cases and the workbench regression cases. No product behavior was changed to satisfy timing assertions.
+
+Required PR CI and the new production deployment are still pending. Authenticated production acceptance remains an owner walkthrough, as recorded in NEEDED.md.
