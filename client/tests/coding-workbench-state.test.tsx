@@ -472,6 +472,7 @@ it('shows three landing examples while Run still checks every test', async () =>
   const subject = { ...task, tests: [1, 2, 3, 4, 5].map(n => ({ call: `double([${n}])`, expected: [n * 2] })) };
   vi.mocked(runCodeTests).mockResolvedValue(outcome({ results: subject.tests.map(test => ({ pass: true, actual: JSON.stringify(test.expected), error: null })) }));
   mount({ subject, mode: 'landing' });
+  fireEvent.click(screen.getByRole('tab', { name: 'Results' }));
   const results = screen.getByRole('tabpanel', { name: 'Results' });
   expect(within(results).getAllByRole('listitem')).toHaveLength(3);
   fireEvent.click(screen.getByRole('button', { name: 'Run' }));

@@ -1,5 +1,5 @@
 // The results pane's tabs (UX audit coding-04): one order on every track, so
-// the shared tabs keep their place, and React opens on Results like the rest,
+// the shared tabs keep their place, and every task opens on Description,
 // with an empty preview that takes no room until a run draws into it.
 import { beforeAll, beforeEach, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -46,20 +46,54 @@ beforeAll(async () => { await loadEditor(); });
 
 beforeEach(() => { harness.run = null; });
 
-it('keeps Results, Console, the track tab, then Resources on every track', () => {
-  const javascript = mount('javascript');
-  expect(tabNames()).toEqual(['Results', 'Console', 'Resources']);
-  javascript.unmount();
-  const typescript = mount('typescript');
-  expect(tabNames()).toEqual(['Results', 'Console', 'Types', 'Resources']);
-  typescript.unmount();
-  mount('react');
-  expect(tabNames()).toEqual(['Results', 'Console', 'Preview', 'Resources']);
+it('keeps the complete task in Description, without a second brief above the editor or a Target line', () => {
+  const task = {
+    ...tasks.javascript, title: 'Digit sum',
+    prompt: 'Write `digitSum(n)`. Target: O(log n) time. Zero takes constant work.',
+    previousRequirements: ['Keep earlier inputs. Target: O(n) time.'],
+  } as PlayableCodingTask;
+  const { container } = render(<MemoryRouter><LanguageProvider><CodingWorkbench task={task} initialCode={null} session="s" locked={null} signedIn mode="section" /></LanguageProvider></MemoryRouter>);
+  const description = screen.getByRole('tabpanel', { name: 'Description' });
+  expect(within(description).getByRole('heading', { name: 'Digit sum' })).toBeVisible();
+  expect(description).toHaveTextContent('Write digitSum(n).');
+  expect(description).toHaveTextContent('Desired complexity: O(log n)');
+  expect(description).not.toHaveTextContent('Target:');
+  expect(container.querySelector('.cd-pane--editor .cd-brief')).toBeNull();
+  expect(container.querySelector('.cd-brief__body')).toHaveAttribute('data-capped', 'false');
+  expect(screen.queryByRole('button', { name: 'Show full brief' })).toBeNull();
+  expect(container.querySelectorAll('.cd-brief')).toHaveLength(1);
+  // Keyboard navigation includes Description and preserves its content.
+  const tab = screen.getByRole('tab', { name: 'Description' });
+  fireEvent.keyDown(tab, { key: 'ArrowRight' });
+  expect(screen.getByRole('tab', { name: 'Results' })).toHaveFocus();
+  fireEvent.keyDown(screen.getByRole('tab', { name: 'Results' }), { key: 'Home' });
+  expect(tab).toHaveFocus();
+  expect(description).toBeVisible();
 });
 
-it('opens React on Results, keeps the empty preview to one line, and shows the preview after the first Run that renders', async () => {
+it('opens Results after a JavaScript Run and keeps Description available', async () => {
+  vi.mocked(runCodeTests).mockResolvedValueOnce({ results: [{ pass: true, actual: '1', error: null }], logs: [] } as never);
+  mount('javascript');
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Run' })); });
+  expect(screen.getByRole('tab', { name: /Results/ })).toHaveAttribute('aria-selected', 'true');
+  fireEvent.click(screen.getByRole('tab', { name: 'Description' }));
+  expect(screen.getByRole('tabpanel', { name: 'Description' })).toHaveTextContent('Do it.');
+});
+
+it('keeps Description, Results, Console, the track tab, then Resources on every track', () => {
+  const javascript = mount('javascript');
+  expect(tabNames()).toEqual(['Description', 'Results', 'Console', 'Resources']);
+  javascript.unmount();
+  const typescript = mount('typescript');
+  expect(tabNames()).toEqual(['Description', 'Results', 'Console', 'Types', 'Resources']);
+  typescript.unmount();
+  mount('react');
+  expect(tabNames()).toEqual(['Description', 'Results', 'Console', 'Preview', 'Resources']);
+});
+
+it('opens React on Description, keeps the empty preview to one line, and shows the preview after the first Run that renders', async () => {
   const { container } = mount('react');
-  expect(screen.getByRole('tab', { name: 'Results' })).toHaveAttribute('aria-selected', 'true');
+  expect(screen.getByRole('tab', { name: 'Description' })).toHaveAttribute('aria-selected', 'true');
   fireEvent.click(screen.getByRole('tab', { name: 'Preview' }));
   const panel = screen.getByRole('tabpanel', { name: 'Preview' });
   expect(within(panel).getByText('Run to see the component.')).toBeInTheDocument();
@@ -126,6 +160,7 @@ it('scrolls the tab strip instead of squeezing its tabs, and drops the Resources
 it('lists checks as one divided list: the call, the expected value after an arrow, then what came back (coding-15)', async () => {
   const task = { ...tasks.javascript, tests: [{ call: 'digitSum(0)', expected: 0, edge: true, label: 'zero has a digit sum of zero' }, { call: 'digitSum(493)', expected: 16 }] } as PlayableCodingTask;
   render(<MemoryRouter><LanguageProvider><CodingWorkbench task={task} initialCode={null} session="s" locked={null} signedIn mode="section" /></LanguageProvider></MemoryRouter>);
+  fireEvent.click(screen.getByRole('tab', { name: 'Results' }));
   const panel = screen.getByRole('tabpanel', { name: 'Results' });
   const [zero, other] = within(panel).getAllByRole('listitem');
   expect(zero).toHaveTextContent('digitSum(0) → expected 0edge');

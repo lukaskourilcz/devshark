@@ -101,6 +101,46 @@ function runInWorker(page: Page, url: string, calls: string[], expectations: unk
 
 const announced = (page: Page) => page.locator('.cd-workbench > [role="status"]');
 
+for (const theme of ['light', 'dark'] as const) {
+  for (const width of [360, 390, 430, 768, 1024, 1280, 1440]) {
+    test(`Description owns the complete brief at ${width}px in ${theme}`, async ({ page }, info) => {
+      await prepare(page);
+      await page.setViewportSize({ width, height: 900 });
+      await page.addInitScript((theme) => localStorage.setItem('devquiz:color-mode', theme), theme);
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+      await openTask(page, '/coding/javascript/js-digit-sum');
+      const description = page.getByRole('tabpanel', { name: 'Description' });
+      await expect(description.getByRole('heading', { name: 'Digit sum' })).toBeVisible();
+      await expect(description).toContainText('Desired complexity: O(log n)');
+      await expect(description).not.toContainText('Target:');
+      await expect(page.locator('.cd-pane--editor .cd-brief')).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Show full brief' })).toHaveCount(0);
+      expect(await description.locator('.cd-brief__body').evaluate((body) => getComputedStyle(body).maxHeight)).toBe('none');
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      if (width >= 1024) {
+        const editor = await page.locator('.cd-pane--editor:not([hidden])').boundingBox();
+        const output = await page.locator('.cd-pane--output').boundingBox();
+        expect(output!.x).toBeGreaterThan(editor!.x + editor!.width);
+        expect(Math.abs(output!.y - editor!.y)).toBeLessThan(2);
+      } else {
+        const panes = await page.locator('.cd-pane--editor:not([hidden]), .cd-pane--output').all();
+        const output = await page.locator('.cd-pane--output').boundingBox();
+        const editor = await panes[1].boundingBox();
+        expect(output!.y).toBeLessThan(editor!.y);
+      }
+      await page.screenshot({ path: info.outputPath(`description-${width}-${theme}.png`), fullPage: true });
+      const tab = page.getByRole('tab', { name: 'Description' });
+      await tab.focus();
+      await page.keyboard.press('ArrowRight');
+      await expect(page.getByRole('tab', { name: /^Results/ })).toBeFocused();
+      await expect(page.getByRole('tabpanel', { name: /^Results/ })).toBeVisible();
+      await page.keyboard.press('Home');
+      await expect(tab).toBeFocused();
+      await expect(description).toBeVisible();
+    });
+  }
+}
+
 test('Clone Promise.all: Run blocks an initialization-time native alias and accepts manual aggregation', async ({ page }) => {
   await prepare(page);
   const id = 'js-clone-promise-all';
@@ -468,6 +508,7 @@ for (const width of [360, 1280]) {
     const id = 'alg-dsa-bst-search-insert';
     await openTask(page, `/coding/algorithms/${id}`);
     await expect(page.locator('.cd-brief__meta')).toHaveText(/DSA Foundations · Level 13$/);
+    await page.getByRole('tab', { name: /^Results/ }).click();
     const calls = page.locator('.cd-result__call');
     await expect(calls).toHaveCount(7);
     for (const text of await calls.allInnerTexts()) {

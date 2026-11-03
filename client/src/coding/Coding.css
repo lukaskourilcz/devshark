@@ -302,7 +302,6 @@
   .cd-workbench--lesson .cd-pane--editor { grid-column: 1; grid-row: 1; }
   .cd-workbench--section .cd-pane--output,
   .cd-workbench--lesson .cd-pane--output { grid-column: 3; grid-row: 1; }
-  .cd-splitter { grid-column: 2; grid-row: 1; }
   /* Inside the frame the code pane is brief, editor, action bar: the brief
      and the bar keep their size and the editor takes the rest. */
   /* When what sits above the editor outgrows its share (a lock or fixture
@@ -341,6 +340,8 @@
      stays the pointer's target. Hover and keyboard focus draw it 3px in the
      accent; focus keeps its ring as well. */
   .cd-splitter {
+    grid-column: 2;
+    grid-row: 1;
     align-self: stretch;
     width: 12px;
     background: linear-gradient(to right, transparent calc(50% - 0.5px), var(--ss-card-line) calc(50% - 0.5px), var(--ss-card-line) calc(50% + 0.5px), transparent calc(50% + 0.5px));
