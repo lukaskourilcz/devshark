@@ -4,14 +4,16 @@
 // answered a failed progress load with "0 passed" (C5-5). Each screen is drawn
 // against the real hooks, with the API answered by MSW in the real shapes.
 import { afterEach, beforeAll, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { http, HttpResponse } from 'msw';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { ChallengeRunPlanner } from '../src/components/coding/ChallengeRunPlanner';
-import { CodingTaskScreen, CodingTrackScreen, FullStackScreen } from '../src/components/coding/CodingSection';
+import { CodingHome, CodingTaskScreen, CodingTrackScreen, FullStackScreen } from '../src/components/coding/CodingSection';
+import { practiceKeys } from '../src/coding/practice';
+import { codingKeys } from '../src/coding/api';
 import Collection from '../src/components/Collection';
 import { preloadPath } from '../src/lib/routePreload';
 import { server } from './mocks/server';
@@ -49,8 +51,7 @@ function answer(failing: string[]) {
 }
 
 let visits = 0;
-async function mountAt(path: string, route: string, page: ReactNode, search = '') {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+async function mountAt(path: string, route: string, page: ReactNode, search = '', client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })) {
   await act(async () => render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[{ pathname: path, search, key: `load-failure-${++visits}` }]}>
@@ -87,6 +88,64 @@ it('says FullStack progress could not load, not that a collection did not save',
   const alert = await screen.findByRole('alert');
   expect(alert).toHaveTextContent('Could not load your progress.');
   expect(alert).not.toHaveTextContent(/save|collection/i);
+  expect(screen.queryByText(/^0 of \d+ (stages|levels) completed$/)).toBeNull();
+  expect(screen.getAllByText('Progress unavailable')).not.toHaveLength(0);
+});
+
+it('does not invent zero progress in home tracks or galleries after an initial read failure', async () => {
+  answer(['GET coding-progress']);
+  await mountAt('/coding', '/coding', <CodingHome />);
+  expect(await screen.findByRole('alert')).toHaveTextContent('Could not load your progress.');
+  expect(screen.queryByText(/^0 of \d+ (passed|stages completed|levels completed)$/)).toBeNull();
+  expect(screen.getAllByText('Progress unavailable').length).toBeGreaterThan(4);
+});
+
+it('preserves cached progress and identifies a failed refresh', async () => {
+  answer(['GET coding-progress']);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  client.setQueryData(codingKeys.progress(), { tasks: { 'js-digit-sum': { status: 'passed' } }, due: [], javascriptLevelsCleared: 0 }, { updatedAt: 1 });
+  await mountAt('/coding', '/coding', <CodingHome />, '', client);
+  expect(await screen.findByRole('alert')).toHaveTextContent('Progress could not be refreshed. Showing your last saved progress.');
+  expect(screen.getAllByText(/^1 of \d+ passed$/).length).toBeGreaterThan(0);
+});
+
+it.each(['/coding', '/coding/fullstack'])('explains failed plan reads on %s', async (path) => {
+  answer(['GET entitlement']);
+  await mountAt(path, path, path === '/coding' ? <CodingHome /> : <FullStackScreen />);
+  expect(await screen.findByRole('alert')).toHaveTextContent('We could not load your plan');
+});
+
+it('distinguishes a failed Saved read from a genuinely empty list, then retries', async () => {
+  answer(['GET coding-bookmarks']);
+  await mountAt('/coding/javascript', '/coding/:track', <CodingTrackScreen />, '?saved=1');
+  expect(await screen.findByRole('alert')).toHaveTextContent('Could not load your saved challenges.');
+  expect(screen.queryByText('No challenge matches those filters. Clear them to see the rest.')).toBeNull();
+  expect(screen.queryByText(/^Showing 0 of/)).toBeNull();
+  answer([]);
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Try again' })));
+  expect(await screen.findByText('No challenge matches those filters. Clear them to see the rest.')).toBeInTheDocument();
+  expect(screen.queryByRole('alert')).toBeNull();
+});
+
+it('keeps the last Saved list visible if its refresh fails', async () => {
+  answer(['GET coding-bookmarks']);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  client.setQueryData(practiceKeys.bookmarks(), { saved: ['js-digit-sum'], collections: [] }, { updatedAt: 1 });
+  await mountAt('/coding/javascript', '/coding/:track', <CodingTrackScreen />, '?saved=1', client);
+  expect(await screen.findByRole('alert')).toHaveTextContent('Saved challenges could not be refreshed. Showing your last saved list.');
+  expect(screen.getByRole('link', { name: /Digit sum/ })).toBeInTheDocument();
+});
+
+it('keeps focus on the star and names the row whose save failed', async () => {
+  answer(['PUT coding-bookmarks']);
+  await mountAt('/coding/javascript', '/coding/:track', <CodingTrackScreen />);
+  const row = (await screen.findByRole('link', { name: /Digit sum/ })).closest('li')!;
+  const star = within(row).getByRole('button', { name: /Save this challenge/ });
+  star.focus();
+  await act(async () => fireEvent.click(star));
+  expect(await within(row).findByRole('alert')).toHaveTextContent('Could not save this challenge. Try again.');
+  expect(star).toHaveFocus();
+  expect(star).toHaveAttribute('aria-pressed', 'false');
 });
 
 it('says the saved challenges could not load on a task page, and offers to load them again', async () => {

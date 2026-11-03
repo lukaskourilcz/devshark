@@ -18,6 +18,12 @@ export const codingListEn = {
   'coding.run.open': 'Plan a run',
   'coding.run.hide': 'Hide the planner',
   'coding.filter.anyStatus': 'Any status',
+  'coding.progress.unavailable': 'Progress unavailable',
+  'coding.progress.stale': 'Progress could not be refreshed. Showing your last saved progress.',
+  'coding.saved.stale': 'Saved challenges could not be refreshed. Showing your last saved list.',
+  'coding.saved.saveFailed': 'Could not save this challenge. Try again.',
+  'coding.saved.loading': 'Loading saved challenges…',
+  'coding.project.open': 'Open project',
 } as const;
 
 export type CodingListKey = keyof typeof codingListEn;

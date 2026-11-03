@@ -683,8 +683,9 @@
 .cd-hint--failure p { margin: 0; }
 
 /* Saved challenges, collections, filters and short sessions. */
-.cd-row-item { display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--ss-card-line); }
+.cd-row-item { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; border-bottom: 1px solid var(--ss-card-line); }
 .cd-row-item .cd-row { flex: 1 1 auto; }
+.cd-row-item__error { flex-basis: 100%; margin: 0 0 8px; color: var(--color-text-primary); font-size: 0.875rem; }
 .cd-save {
   flex: none;
   min-width: 44px;
@@ -702,7 +703,7 @@
 .cd-save:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 2px; }
 /* The same star in the workbench toolbar, sized like the report flag beside it. */
 .cd-save--toolbar { min-width: 44px; width: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-element); font-size: 1.15rem; }
-.cd-save:disabled { opacity: 0.55; cursor: not-allowed; }
+.cd-save:disabled, .cd-save[aria-disabled='true'] { opacity: 0.55; cursor: not-allowed; }
 
 /* The challenge-run planner on the Coding home: a form the learner shapes a
    run with, or the one open run and its actions. Same paper as the panes. */
