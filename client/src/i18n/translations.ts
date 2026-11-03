@@ -350,6 +350,9 @@ export const en = {
   // Quiz, setup screen
   'quiz.title': 'Web Development Quiz',
   'quiz.loadingQuote': 'Preparing your questions.',
+  'quiz.loadingSlow': 'This is taking longer than usual. You can go back and try again.',
+  'quiz.cancelLoading': 'Back to quiz settings',
+  'quiz.retryHelp': 'Try again, or change your quiz settings.',
   'quiz.todaysChallenge': 'Today’s challenge',
   'quiz.categories': 'Categories',
   'quiz.selectAll': 'Select all',

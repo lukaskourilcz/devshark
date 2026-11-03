@@ -125,3 +125,5 @@
 .quiz-retired h3 { font-size: var(--ss-type-compact); margin: 0 0 12px; }
 .quiz-retired__row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding-block: 16px; border-top: 1px solid var(--ss-card-line); }
 .quiz-retired__row > div { min-width: 0; }
+
+.quiz-loading { flex: 1; min-height: 240px; }

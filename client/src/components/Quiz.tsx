@@ -171,6 +171,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const navigate = useNavigate();
   const config = useGameConfig();
   const [state, setState] = useState<QuizState>('ready');
+  const [slowLoad, setSlowLoad] = useState(false);
+  const [setupFocusRequest, setSetupFocusRequest] = useState(0);
   const [sessionId, setSessionId] = useState<string>('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -246,6 +248,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const [settings] = useSettings();
 
   const resultHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const setupHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const stopHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const reviewHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const questionTextRef = useRef<HTMLDivElement | null>(null);
   const fetchAbortRef = useRef<AbortController | null>(null);
@@ -760,7 +764,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   }, [answers, clearProgress, isAuthenticated, sessionId, user, t, questions, mode, hintedIds]);
 
   const handleRestart = () => {
+    fetchAbortRef.current?.abort();
     leaveScreen();
+    setSetupFocusRequest((request) => request + 1);
     clearProgress();
     setState('ready');
     setQuestions([]);
@@ -792,6 +798,20 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   };
 
   const currentQuestion = questions[currentIndex];
+
+  useEffect(() => {
+    if (state !== 'loading') {
+      setSlowLoad(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setSlowLoad(true), 5_000);
+    return () => window.clearTimeout(timer);
+  }, [state]);
+
+  useEffect(() => {
+    if (state === 'error') stopHeadingRef.current?.focus({ preventScroll: true });
+    if (state === 'ready' && setupFocusRequest > 0) setupHeadingRef.current?.focus({ preventScroll: true });
+  }, [state, setupFocusRequest]);
 
   // Move focus to the result heading, which reads the score out. It is no
   // live region: one drawn together with its words is not read, and where a
@@ -913,7 +933,16 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   /* ──── render branches ─────────────────────────────────────────── */
 
   if (state === 'loading') {
-    return <QuoteLoader quote={t('quiz.loadingQuote')} label={t('common.loading')} />;
+    return (
+      <div className="quiz-stop quiz-loading">
+        <QuoteLoader quote={t('quiz.loadingQuote')} label={t('common.loading')} />
+        {slowLoad && (
+          <StatePanel inline body={t('quiz.loadingSlow')} live>
+            <Button variant="secondary" label={t('quiz.cancelLoading')} onClick={handleRestart} />
+          </StatePanel>
+        )}
+      </div>
+    );
   }
 
   if (state === 'error') {
@@ -928,7 +957,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     // settings on the left, the one way on as the primary on the right.
     return (
       <div className="quiz-stop">
-        <Banner {...banner} />
+        <PageHeader title={banner.title} titleRef={stopHeadingRef} />
+        <StatePanel inline body={banner.description ?? t('quiz.retryHelp')} />
         <QuestionActions
           secondary={<Button variant="secondary" label={t('quiz.backToSettings')} onClick={handleRestart} />}
           primary={stop === 'daily-done'
@@ -953,7 +983,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     return (
       <div className="ss-pop quiz-setup">
         {/* The one operational page header (UX audit U2, questions-19). */}
-        <PageHeader title={t('quiz.buildTitle')} lead={t('quiz.buildSubtitle')} />
+        <PageHeader title={t('quiz.buildTitle')} lead={t('quiz.buildSubtitle')} titleRef={setupHeadingRef} />
 
         <div className="ss-panel quiz-setup__panel">
           {/* Categories as accent pills. */}

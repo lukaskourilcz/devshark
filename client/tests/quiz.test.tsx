@@ -741,6 +741,42 @@ describe('submitting', () => {
   });
 });
 
+describe('slow loading and recovery', () => {
+  it('can cancel a delayed request and ignores its late response without losing setup preferences', async () => {
+    let respond: (() => void) | undefined;
+    let signal: AbortSignal | undefined;
+    server.use(http.get('*/api/quiz/questions', ({ request }) => {
+      signal = request.signal;
+      return new Promise<Response>((resolve) => {
+        respond = () => resolve(HttpResponse.json({ sessionId: sessionFor('cancelled'), questions: [Q('late')] }));
+      });
+    }));
+    renderQuiz();
+    fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
+    await waitFor(() => expect(respond).toBeDefined());
+    expect(screen.queryByRole('button', { name: 'Back to quiz settings' })).not.toBeInTheDocument();
+    const cancel = await screen.findByRole('button', { name: 'Back to quiz settings' }, { timeout: 7_000 });
+    cancel.focus();
+    fireEvent.click(cancel);
+    expect(screen.getByRole('heading', { level: 1, name: 'Build your quiz.' })).toHaveFocus();
+    expect(signal!.aborted).toBe(true);
+    expect(screen.getByRole('button', { name: 'JavaScript', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await act(async () => { respond!(); });
+    expect(screen.queryByText('Question late?')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /start quiz/i })).toBeInTheDocument();
+  });
+
+  it('focuses an error heading and returns to the setup heading after recovery', async () => {
+    server.use(http.get('*/api/quiz/questions', () => HttpResponse.json({ error: { code: 'upstream', message: 'Busy' } }, { status: 503 })));
+    renderQuiz();
+    fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
+    await screen.findByRole('button', { name: 'Retry', exact: true });
+    expect(screen.getByRole('heading', { level: 1 })).toHaveFocus();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to settings', exact: true }));
+    expect(screen.getByRole('heading', { name: 'Build your quiz.' })).toHaveFocus();
+  });
+});
+
 describe('quiz orientation and deadline', () => {
   it('offers one direct return to earlier unanswered questions before the last item', async () => {
     await startQuiz([Q('a'), Q('b'), Q('c')]);
