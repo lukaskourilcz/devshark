@@ -264,6 +264,8 @@
 .cd-workbench--landing .cd-panel > .cd-results { margin-top: auto; }
 @media (min-width: 600px) {
   .cd-workbench--landing .cd-workbench__grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: stretch; }
+  .cd-workbench--landing .cd-pane--editor { grid-column: 1; grid-row: 1; }
+  .cd-workbench--landing .cd-pane--output { grid-column: 2; grid-row: 1; }
   .cd-workbench--landing .cd-pane--output { contain: size; }
   .cd-workbench--landing .cd-output-scroll { max-height: none; }
   .cd-workbench--landing .cd-output-scroll { flex: 1; min-height: 0; overflow-y: auto; }
@@ -295,6 +297,12 @@
      workbench's third column, so the code pane is the same width. */
   .cd-workbench--activity .cd-pane--editor { grid-column: 1; grid-row: 1; }
   .cd-workbench--activity .cd-pane--output { grid-column: 3; grid-row: 1; }
+  /* Description comes first in reading order; code stays on the left. */
+  .cd-workbench--section .cd-pane--editor,
+  .cd-workbench--lesson .cd-pane--editor { grid-column: 1; grid-row: 1; }
+  .cd-workbench--section .cd-pane--output,
+  .cd-workbench--lesson .cd-pane--output { grid-column: 3; grid-row: 1; }
+  .cd-splitter { grid-column: 2; grid-row: 1; }
   /* Inside the frame the code pane is brief, editor, action bar: the brief
      and the bar keep their size and the editor takes the rest. */
   /* When what sits above the editor outgrows its share (a lock or fixture
@@ -369,6 +377,8 @@
 /* The capped body (BriefZone): about five lines of prompt, then it scrolls
    inside with a 24px fade at its foot; "Show full brief" lifts the cap. */
 .cd-brief__body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+/* The Description panel is the only scroll container for its full brief. */
+.cd-pane--output .cd-brief__body[data-capped='false'] { max-height: none; overflow: visible; }
 .cd-brief__body[data-capped='true'] { max-height: var(--cd-brief-cap); overflow-y: auto; overscroll-behavior: contain; }
 /* The fade is the body's last 24px: pinned to the visible foot while there
    is more to read, and over empty space once the end is reached. */
