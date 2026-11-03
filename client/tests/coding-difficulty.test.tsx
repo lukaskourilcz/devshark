@@ -126,8 +126,8 @@ describe('searching a track', () => {
 describe('the format filter', () => {
   it('offers only formats a challenge can have, and reads an old checklist link as no filter', () => {
     mount('/coding/react?format=checklist', <CodingTrackScreen />, '/coding/:track');
-    const select = screen.getByLabelText('Any format') as HTMLSelectElement;
-    expect([...select.options].map((option) => option.value)).toEqual(['all', 'tests', 'debug']);
+    const select = screen.getByLabelText('Any task type') as HTMLSelectElement;
+    expect([...select.options].map((option) => option.value)).toEqual(['all', 'write', 'debug']);
     expect(select.value).toBe('all');
     // Every React challenge is graded by tests, so none disappears.
     const standalone = CODING_INDEX.filter((task) => task.track === 'react' && !evolvingStage(task.id));

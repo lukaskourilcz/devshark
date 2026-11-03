@@ -124,7 +124,10 @@ describe('the project cards on the free plan', () => {
   // row keeps only its "Premium" badge beside its progress line.
   it('name the stages the free plan opens once: 1 and 2 of a FullStack app, level 1 of a short path', () => {
     mount('/coding/fullstack', <FullStackScreen />, '/coding/fullstack');
-    const list = screen.getByRole('region', { name: 'FullStack' });
+    const list = screen.getByRole('region', { name: 'FullStack projects' });
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('FullStack projects');
+    expect(screen.queryByRole('heading', { name: 'Evolving challenges' })).toBeNull();
     expect(within(list).getAllByText(/come with the free plan/)).toHaveLength(1);
     expect(within(list).getByText('Level 1 of every path, and stages 1 and 2 of every project, come with the free plan. Premium opens the rest.')).toBeInTheDocument();
     const rows = within(list).getAllByRole('article');
@@ -132,6 +135,9 @@ describe('the project cards on the free plan', () => {
     for (const row of rows) {
       expect(within(row).getByText('Premium')).toBeInTheDocument();
       expect(row).not.toHaveTextContent(/free plan/);
+      expect(row.querySelector('.cd-project__track')).toBeNull();
+      const title = within(row).getByRole('heading').textContent;
+      expect(within(row).getByRole('button')).toHaveAccessibleName(`Start ${title}`);
     }
   });
 });

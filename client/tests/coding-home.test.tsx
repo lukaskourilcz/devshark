@@ -169,9 +169,9 @@ it('keeps one SwimCta and labels each row Start, Continue or Review by its progr
   expect(container.querySelectorAll('.ss-swim-cta')).toHaveLength(1);
   expect(card().querySelector('.ss-swim-cta')).not.toBeNull();
   const row = (title: string) => screen.getByRole('heading', { level: 3, name: title }).closest('article')!;
-  expect(within(row(untouched.title)).getByRole('button', { name: 'Start' })).not.toHaveClass('ss-swim-cta');
-  expect(within(row(partial.title)).getByRole('button', { name: 'Continue' })).not.toHaveClass('ss-swim-cta');
-  expect(within(row(complete.title)).getByRole('button', { name: 'Review' })).not.toHaveClass('ss-swim-cta');
+  expect(within(row(untouched.title)).getByRole('button', { name: `Start ${untouched.title}` })).not.toHaveClass('ss-swim-cta');
+  expect(within(row(partial.title)).getByRole('button', { name: `Continue ${partial.title}` })).not.toHaveClass('ss-swim-cta');
+  expect(within(row(complete.title)).getByRole('button', { name: `Review ${complete.title}` })).not.toHaveClass('ss-swim-cta');
   // A Premium account sees no Premium rule anywhere on the page.
   expect(screen.queryByText(/come with the free plan/)).toBeNull();
 });

@@ -24,6 +24,10 @@ export const codingListEn = {
   'coding.saved.saveFailed': 'Could not save this challenge. Try again.',
   'coding.saved.loading': 'Loading saved challenges…',
   'coding.project.open': 'Open project',
+  'coding.fullstack.title': 'FullStack projects',
+  'coding.project.action': '{action} {title}',
+  'coding.filter.taskType': 'Any task type',
+  'coding.filter.write': 'Write code',
 } as const;
 
 export type CodingListKey = keyof typeof codingListEn;

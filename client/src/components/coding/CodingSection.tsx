@@ -325,13 +325,13 @@ function StaleProgressNotice({ failed, onRetry }: { failed: boolean; onRetry: ()
  * FullStack list holds its short path and its long apps together; the
  * debugging list holds its three short paths; the plain list on the Coding
  * home holds the long projects only. `listedChallenges` decides. */
-function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = true }: { passed: ReadonlySet<string>; premiumOf: (taskId: string) => LockState; category?: EvolvingCategory; track?: CodingTrack; progressKnown?: boolean }) {
+function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = true, labelledBy }: { passed: ReadonlySet<string>; premiumOf: (taskId: string) => LockState; category?: EvolvingCategory; track?: CodingTrack; progressKnown?: boolean; labelledBy?: string }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const listRef = useRef<HTMLDivElement>(null);
   const fullstack = category === 'fullstack';
   const challenges = useMemo(() => listedChallenges({ category, track }), [category, track]);
-  const titleId = `${track ? `${track}-paths` : category ?? 'evolving'}-title`;
+  const titleId = labelledBy ?? `${track ? `${track}-paths` : category ?? 'evolving'}-title`;
   const listId = `${titleId}-list`;
   // A long list shows its first five rows and a button for the rest, in
   // place of a scroll box inside the page (UX audit coding-09). The open list
@@ -355,7 +355,7 @@ function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = t
   const anyLocked = challenges.some(laterLockedIn);
   return <section className="cd-projects" aria-labelledby={titleId}>
     <div className="cd-projects__intro">
-    <Kicker as="h2" id={titleId}>{t(titleKey)}</Kicker>
+    {!labelledBy && <Kicker as="h2" id={titleId}>{t(titleKey)}</Kicker>}
     <p className="cd-lead">{t(bodyKey)}</p>
     {anyLocked && <PremiumRuleNote challenges={challenges} />}
     </div>
@@ -370,7 +370,7 @@ function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = t
         <span className="cd-project__number" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
         <div className="cd-project__name">
         {/* On a section's own page every path is that section's, so the line would only repeat the heading. */}
-        {!track && <p className="cd-project__track">{fullstack ? 'JavaScript · TypeScript · React · API' : category === 'debugging' ? `${t(`coding.track.${challenge.track}` as never)} · ${t('coding.format.debug')}` : t(`coding.track.${challenge.track}` as never)}</p>}
+        {!track && !fullstack && <p className="cd-project__track">{category === 'debugging' ? `${t(`coding.track.${challenge.track}` as never)} · ${t('coding.format.debug')}` : t(`coding.track.${challenge.track}` as never)}</p>}
         <h3 id={`${challenge.id}-name`}>{challenge.title}</h3>
         </div>
         <div className="cd-project__progress">
@@ -378,7 +378,7 @@ function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = t
           <p>{progressKnown ? t(challenge.short ? 'coding.evolving.levelsProgress' : 'coding.evolving.progress', { n: completed, total: challenge.stages.length }) : codingListCopy('coding.progress.unavailable')}{laterLocked && <> <Badge variant="neutral" label={t('premium.badge')} /></>}</p>
         </div>
         {/* The quieter fin: the page's one SwimCta is its next challenge. */}
-        <FadeFinCta label={action} finLeft="62%" finSize={26} accent="var(--brand-accent)" onClick={() => { if (isBarred(premiumOf(resumeId))) askForPremium(resumeId); else navigate(`/coding/${evolvingTaskTrack(resumeId)}/${resumeId}`); }} />
+        <FadeFinCta label={action} ariaLabel={codingListCopy('coding.project.action', { action, title: challenge.title })} finLeft="62%" finSize={26} accent="var(--brand-accent)" onClick={() => { if (isBarred(premiumOf(resumeId))) askForPremium(resumeId); else navigate(`/coding/${evolvingTaskTrack(resumeId)}/${resumeId}`); }} />
       </article>;
     })}</div>
     {foldable && (
@@ -525,11 +525,11 @@ export function FullStackScreen() {
   if ((isAuthenticated && progress.isLoading) || planLoading) return <LoadingScreen label={t('coding.loading')} />;
   return <div className="cd-page ss-pop">
     <Link className="cd-link" to="/coding">{t('coding.title')}</Link>
-    <h1>{t('coding.evolving.title')}</h1>
+    <Kicker as="h1" className="ss-section-title" id="cd-fullstack-title">{codingListCopy('coding.fullstack.title')}</Kicker>
     <PlanNotice failed={planFailed} onRetry={retryPlan} />
     {isAuthenticated && progress.isError && !progress.data && <p className="cd-note cd-note--error" role="alert">{t('coding.discovery.failed')} <Button variant="secondary" onClick={()=>void progress.refetch()} label={t('coding.retry')} /></p>}
     <StaleProgressNotice failed={isAuthenticated && progress.isError && Boolean(progress.data)} onRetry={() => void progress.refetch()} />
-    <EvolvingGallery passed={passed} premiumOf={premiumOf} category="fullstack" progressKnown={!isAuthenticated || Boolean(progress.data)} />
+    <EvolvingGallery passed={passed} premiumOf={premiumOf} category="fullstack" progressKnown={!isAuthenticated || Boolean(progress.data)} labelledBy="cd-fullstack-title" />
   </div>;
 }
 
@@ -567,7 +567,9 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
   // No task is graded by a checklist since 29 Sep 2026, so an old
   // ?format=checklist link reads as no format filter rather than an empty list.
   const formatParam = params.get('format');
-  const format = formatParam === 'tests' || formatParam === 'debug' ? formatParam : 'all';
+  // Old ?format=tests links still include every test-graded task. All issued
+  // formats use tests; the current choices describe what the learner does.
+  const format = formatParam === 'write' || formatParam === 'debug' ? formatParam : 'all';
   const savedOnly = params.get('saved') === '1';
   const bookmarks = useBookmarks(isAuthenticated);
   const savedIds = useMemo(() => new Set(bookmarks.data?.saved ?? []), [bookmarks.data]);
@@ -596,10 +598,9 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
     if (duration === 'short' && task.estimatedMinutes > 10) return false;
     if (duration === 'medium' && (task.estimatedMinutes <= 10 || task.estimatedMinutes > 25)) return false;
     if (duration === 'long' && task.estimatedMinutes <= 25) return false;
-    // Format is what the learner does (write it, or fix it); verify is how it
-    // is graded. The filter offers both, because they answer different questions.
+    // A single dimension: write the implementation or repair an existing one.
     if (format === 'debug' && formatOf(task) !== 'debug') return false;
-    if (format !== 'all' && format !== 'debug' && task.verify !== format) return false;
+    if (format === 'write' && formatOf(task) !== 'implement') return false;
     if (savedOnly && !savedIds.has(task.id)) return false;
     if (statusFilter === 'all') return true;
     const status = statusOf(task);
@@ -689,10 +690,10 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
           <option value="medium">{t('coding.filter.durationMedium')}</option>
           <option value="long">{t('coding.filter.durationLong')}</option>
         </select>
-        <label className="cd-visually-hidden" htmlFor={`${track}-format`}>{t('coding.filter.format')}</label>
+        <label className="cd-visually-hidden" htmlFor={`${track}-format`}>{codingListCopy('coding.filter.taskType')}</label>
         <select id={`${track}-format`} value={format} onChange={(event) => setFilter('format', event.target.value === 'all' ? null : event.target.value)}>
-          <option value="all">{t('coding.filter.format')}</option>
-          <option value="tests">{t('coding.filter.formatTests')}</option>
+          <option value="all">{codingListCopy('coding.filter.taskType')}</option>
+          <option value="write">{codingListCopy('coding.filter.write')}</option>
           <option value="debug">{t('coding.filter.formatDebug')}</option>
         </select>
         {isAuthenticated && (

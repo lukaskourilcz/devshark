@@ -84,15 +84,15 @@ export function StatItem({ value, label }: StatSpec) {
 
 /** A CTA whose fin fades in on hover (no drift — see DESIGN_RULES §3). */
 export function FadeFinCta({
-  label, primary, onClick, finLeft, finSize, accent, disabled,
+  label, primary, onClick, finLeft, finSize, accent, disabled, ariaLabel,
 }: {
-  label: string; primary?: boolean; onClick: () => void; finLeft: string; finSize: number; accent: string; disabled?: boolean;
+  label: string; primary?: boolean; onClick: () => void; finLeft: string; finSize: number; accent: string; disabled?: boolean; ariaLabel?: string;
 }) {
   const [hover, setHover] = useState(false);
   const reduce = useReducedMotion();
   return (
     <button
-      type="button" className="ss-fin-button" onClick={onClick} disabled={disabled}
+      type="button" className="ss-fin-button" onClick={onClick} disabled={disabled} aria-label={ariaLabel}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       onFocus={() => setHover(true)} onBlur={() => setHover(false)}
       style={{
