@@ -767,6 +767,9 @@ export const en = {
   // (lib/pendingQuizReceipts.ts) to be saved.
   'quiz.streakWarning': 'Your result isn’t saved to your account yet. devShark will try again the next time you open it.',
   'quiz.resultNotSaved': 'This result could not be saved to your account.',
+  'quiz.saveSaving': 'Saving to your account…',
+  'quiz.saveSaved': 'Saved to your account',
+  'quiz.savePending': 'Waiting to sync. We’ll retry when you reconnect or reopen devShark.',
   'quiz.dailyPractice': 'You started this daily challenge signed out, so it counted as practice and was not saved.',
   'quiz.pendingResultLost': 'An earlier quiz result could not be saved to your account: a result has to be saved within an hour.',
   'quiz.shareCopied': 'Result copied to clipboard',

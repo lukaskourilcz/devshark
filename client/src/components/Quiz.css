@@ -127,3 +127,6 @@
 .quiz-retired__row > div { min-width: 0; }
 
 .quiz-loading { flex: 1; min-height: 240px; }
+
+.quiz-save-status { margin: 0; font-size: var(--ss-type-compact); color: var(--color-text-secondary); }
+.quiz-save-status:empty { display: none; }

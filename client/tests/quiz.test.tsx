@@ -895,6 +895,96 @@ describe('an expired quiz session', () => {
   });
 });
 
+describe('persistent result save status', () => {
+  it('shows Saving until the server confirms a save, then keeps Saved in the summary', async () => {
+    signIn();
+    let save: (() => void) | undefined;
+    server.use(
+      http.post('*/api/quiz/submit', () => HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'status-receipt' })),
+      http.post('*/api/user/stats', () => new Promise<Response>((resolve) => {
+        save = () => resolve(HttpResponse.json({ data: null, applied: false, questXp: 0 }));
+      })),
+    );
+    await startQuiz([Q('a')]);
+    answerAll(1);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    expect(await screen.findByText('Saving to your account…')).toHaveClass('quiz-save-status');
+    await waitFor(() => expect(save).toBeDefined());
+    expect(screen.queryByText('Saved to your account')).not.toBeInTheDocument();
+    await act(async () => { save!(); });
+    expect(await screen.findByText('Saved to your account')).toHaveAttribute('role', 'status');
+    expect(screen.getByText('Saved to your account').closest('.quiz-results__summary')).not.toBeNull();
+    expect(screen.queryByText('Saving to your account…')).not.toBeInTheDocument();
+    expect(localStorage.getItem(PENDING_KEY)).toBeNull();
+  });
+
+  it('updates a waiting result after background replay without regrading the quiz', async () => {
+    signIn();
+    let grades = 0;
+    const receipts: string[] = [];
+    server.use(
+      http.post('*/api/quiz/submit', () => { grades++; return HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'replay-status-receipt' }); }),
+      http.post('*/api/user/stats', async ({ request }) => {
+        receipts.push(((await request.json()) as { result_receipt: string }).result_receipt);
+        return receipts.length === 1
+          ? HttpResponse.json({ error: { code: 'offline', message: 'Try again' } }, { status: 503 })
+          : HttpResponse.json({ data: null, applied: false, questXp: 0 });
+      }),
+    );
+    await startQuiz([Q('a')]);
+    answerAll(1);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    expect(await screen.findByText('Waiting to sync. We’ll retry when you reconnect or reopen devShark.')).toHaveAttribute('role', 'status');
+    fireEvent(window, new Event('online'));
+    expect(await screen.findByText('Saved to your account')).toBeInTheDocument();
+    expect(screen.queryByText(/Waiting to sync/)).not.toBeInTheDocument();
+    expect(grades).toBe(1);
+    expect(receipts).toEqual(['replay-status-receipt', 'replay-status-receipt']);
+    expect(localStorage.getItem(PENDING_KEY)).toBeNull();
+  });
+
+  it('keeps a permanent refusal visible after replay and does not say Saved', async () => {
+    signIn();
+    let writes = 0;
+    server.use(
+      http.post('*/api/quiz/submit', () => HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'refused-later-receipt' })),
+      http.post('*/api/user/stats', () => ++writes === 1
+        ? HttpResponse.json({ error: { code: 'offline', message: 'Try again' } }, { status: 503 })
+        : HttpResponse.json({ error: { code: 'invalid_receipt', message: 'Expired' } }, { status: 400 })),
+    );
+    await startQuiz([Q('a')]);
+    answerAll(1);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    await screen.findByText(/Waiting to sync/);
+    fireEvent(window, new Event('online'));
+    expect(await screen.findByText('This result could not be saved to your account.')).toHaveClass('quiz-save-status');
+    expect(screen.queryByText('Saved to your account')).not.toBeInTheDocument();
+    expect(localStorage.getItem(PENDING_KEY)).toBeNull();
+  });
+
+  it('does not show the previous account’s save status when it signs out during the write', async () => {
+    signIn();
+    let save: (() => void) | undefined;
+    server.use(
+      http.post('*/api/quiz/submit', () => HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'old-account-receipt' })),
+      http.post('*/api/user/stats', () => new Promise<Response>((resolve) => {
+        save = () => resolve(HttpResponse.json({ data: null, applied: true, questXp: 6 }));
+      })),
+    );
+    await startQuiz([Q('a')]);
+    answerAll(1);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    await screen.findByText('Saving to your account…');
+    await waitFor(() => expect(save).toBeDefined());
+    clearAccountData();
+    auth.value = { user: null, isAuthenticated: false, isLoading: false };
+    await act(async () => { save!(); });
+    expect(screen.queryByText('Saved to your account')).not.toBeInTheDocument();
+    expect(screen.queryByText('Saving to your account…')).not.toBeInTheDocument();
+    expect(localStorage.getItem(PENDING_KEY)).toBeNull();
+  });
+});
+
 describe('saving a result to the account', () => {
   const pendingStore = () => JSON.parse(localStorage.getItem(PENDING_KEY) ?? '{}') as Record<string, { receipt: string }>;
 
@@ -911,7 +1001,7 @@ describe('saving a result to the account', () => {
     await questionOnScreen();
     fireEvent.keyDown(document.body, { key: '1' });
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
-    expect(await screen.findByText(/isn’t saved to your account yet/)).toBeInTheDocument();
+    expect(await screen.findByText('Waiting to sync. We’ll retry when you reconnect or reopen devShark.')).toBeInTheDocument();
     await waitFor(() => expect(Object.values(pendingStore()).map((pending) => pending.receipt)).toEqual(['receipt-1']));
 
     fireEvent.click(screen.getByRole('button', { name: /^new quiz$/i }));

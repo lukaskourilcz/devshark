@@ -31,7 +31,8 @@ import {
 import { apiFetch, ApiError, friendlyError } from '../lib/api';
 import {
   attemptKeyOf,
-  dropPendingReceipt,
+  onPendingReceiptResolution,
+  resolvePendingReceipt,
   isReceiptRefused,
   queuePendingReceipt,
   type PendingReceipt,
@@ -88,6 +89,8 @@ type StartSpec =
 
 /** Why a quiz stopped on the error screen without a result. */
 type StopReason = 'expired' | 'graded' | 'daily-done';
+type ResultSaveStatus = 'saving' | 'saved' | 'pending' | 'refused' | 'practice';
+interface ResultSave { attemptKey: string; userId: string; epoch: number; status: ResultSaveStatus }
 
 
 interface SavedSetup {
@@ -178,6 +181,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [result, setResult] = useState<QuizResult | null>(null);
+  const [resultSave, setResultSave] = useState<ResultSave | null>(null);
   const [reviewFilter, setReviewFilter] = useState<'incorrect' | 'all'>('all');
   const [reviewFocusRequest, setReviewFocusRequest] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -310,6 +314,12 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   useEffect(() => {
     onActiveChange?.(state === 'in-progress' || state === 'loading');
   }, [state, onActiveChange]);
+
+  useEffect(() => onPendingReceiptResolution(({ attemptKey, userId, outcome }) => {
+    setResultSave((current) => current && current.attemptKey === attemptKey && current.userId === userId && current.epoch === accountEpoch()
+      ? { ...current, status: outcome }
+      : current);
+  }), []);
 
   // Restore in-progress quiz on mount
   useEffect(() => {
@@ -676,9 +686,13 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         }),
       });
       const onScreen = screen === screenRef.current;
-      const say = (message: string) => { if (onScreen) setSnack(message); };
+      const sameAccount = accountEpoch() === epoch;
+      const attemptKey = attemptKeyOf(sessionId);
       if (onScreen) {
         setResult(data);
+        setResultSave(sameAccount && isAuthenticated && user?.id && (data.resultReceipt || data.totalQuestions > 0)
+          ? { attemptKey, userId: user.id, epoch, status: data.resultReceipt ? 'saving' : mode === 'daily' ? 'practice' : 'refused' }
+          : null);
         setReviewFilter(data.results.some((item) => !item.isCorrect) ? 'incorrect' : 'all');
         setState('submitted');
         clearProgress();
@@ -696,26 +710,27 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       // Every quiz counts. There is no unranked kind any more, so the only
       // question left is whether there is an account to record it against.
       // Signed out since the submit, nothing of the account is kept here.
-      const sameAccount = accountEpoch() === epoch;
       if (sameAccount && data.percentage === 100) recordPerfectQuiz();
       if (sameAccount && isAuthenticated && user?.id) {
         if (!data.resultReceipt) {
           // Nothing to record. A daily fetched signed out is practice; with
           // every question retired there was nothing to grade, and the
           // result screen already says why.
-          if (data.totalQuestions > 0) say(t(mode === 'daily' ? 'quiz.dailyPractice' : 'quiz.resultNotSaved'));
+          // The persistent result status explains this instead of a toast.
         } else {
           const pending: PendingReceipt = {
             userId: user.id,
             receipt: data.resultReceipt,
             profile: { email: profile.email, name: profile.name, picture: profile.picture },
           };
-          const attemptKey = attemptKeyOf(sessionId);
           queuePendingReceipt(attemptKey, pending);
+          let recorded = false;
           try {
             const saved = await recordQuizResult(pending.receipt, pending.profile);
+            if (accountEpoch() !== epoch) return;
             if (saved.data) queryClient.setQueryData(profileStatsQueryKey(user.id), saved.data);
-            dropPendingReceipt(attemptKey);
+            resolvePendingReceipt(attemptKey, user.id, 'saved');
+            recorded = true;
             // The gain the account recorded first, then the rank it crosses
             // once the account's verified balance is in. A server from before
             // migration 048 names no amount and awarded the result's.
@@ -726,14 +741,19 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
             if (saved.xpHeld) announceXpHeld({ on: 'questions', count: saved.xpHeld.questions, availableAt: saved.xpHeld.availableAt });
             await syncXpWithServer({ announceRankUp: saved.applied });
           } catch (writeError) {
+            if (accountEpoch() !== epoch) return;
+            // A later XP refresh failure cannot undo a confirmed save.
+            if (recorded) {
+              console.error('Account refresh failed:', writeError);
+              return;
+            }
             console.error('Stat write failed:', writeError);
             // Refused (expired or invalid) can never be recorded: drop it and
             // say so. Anything else waits in the queue and is sent again.
             if (isReceiptRefused(writeError)) {
-              dropPendingReceipt(attemptKey);
-              say(t('quiz.resultNotSaved'));
+              resolvePendingReceipt(attemptKey, user.id, 'refused');
             } else {
-              say(t('quiz.streakWarning'));
+              if (screen === screenRef.current) setResultSave({ attemptKey, userId: user.id, epoch, status: 'pending' });
             }
           }
         }
@@ -771,6 +791,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     setState('ready');
     setQuestions([]);
     setResult(null);
+    setResultSave(null);
     setAnswers({});
     setHintedIds([]);
     setAnswersLocked(false);
@@ -1101,6 +1122,10 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     const gradedQuestions = indexedQuestions.filter(({ question }) => resultsById.has(question.id));
     const visibleReview = gradedQuestions.filter(({ question }) => reviewFilter === 'all' || resultsById.get(question.id)?.isCorrect === false);
     const voidedQuestions = indexedQuestions.filter(({ question }) => result.voided?.includes(question.id));
+    const visibleSave = isAuthenticated && resultSave?.userId === user?.id && resultSave.epoch === accountEpoch() ? resultSave.status : null;
+    const saveCopy: Record<ResultSaveStatus, TranslationKey> = {
+      saving: 'quiz.saveSaving', saved: 'quiz.saveSaved', pending: 'quiz.savePending', refused: 'quiz.resultNotSaved', practice: 'quiz.dailyPractice',
+    };
     return (
       <>
         {/* The summary and the review share one column and both edges
@@ -1126,6 +1151,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
             <span style={{ position: 'relative', fontSize: 'var(--ss-type-compact)', color: 'var(--color-text-secondary)' }}>
               {result.percentage}% · {resultTopics} · {resultDifficulty}
             </span>
+
+            <p className="quiz-save-status" role="status">{visibleSave ? t(saveCopy[visibleSave]) : ''}</p>
 
             {(result.voided?.length ?? 0) > 0 && (
               <Text type="supporting" color="secondary" justify="center">

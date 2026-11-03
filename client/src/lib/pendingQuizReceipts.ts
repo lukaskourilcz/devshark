@@ -60,6 +60,26 @@ export function dropPendingReceipt(attemptKey: string): void {
   else writeJSON(STORE_KEY, store);
 }
 
+export interface PendingReceiptResolution {
+  attemptKey: string;
+  userId: string;
+  outcome: 'saved' | 'refused';
+}
+
+// The existing queue is also the source of truth for a result still on
+// screen. Only a server-confirmed write or permanent refusal resolves it;
+// disappearing local storage is never evidence that a result was saved.
+const resolutionListeners = new Set<(resolution: PendingReceiptResolution) => void>();
+export function onPendingReceiptResolution(listener: (resolution: PendingReceiptResolution) => void): () => void {
+  resolutionListeners.add(listener);
+  return () => { resolutionListeners.delete(listener); };
+}
+
+export function resolvePendingReceipt(attemptKey: string, userId: string, outcome: PendingReceiptResolution['outcome']): void {
+  dropPendingReceipt(attemptKey);
+  for (const listener of resolutionListeners) listener({ attemptKey, userId, outcome });
+}
+
 export function pendingReceiptsFor(userId: string): [string, PendingReceipt][] {
   return Object.entries(readStore()).filter(([, pending]) => pending.userId === userId);
 }
