@@ -298,6 +298,10 @@ for (const theme of ['light', 'dark'] as const) for (const width of [360, 390, 4
     await expect(primary).toHaveClass(/ss-swim-cta/);
     await expect(page.getByText('42 is a numeric literal; null is not a number.')).toBeVisible();
     await expect(page.locator('.quiz-review-grid')).not.toContainText('typeof null returns object');
+    if (width === 360 || width === 1440) {
+      await page.locator('main').evaluate(element => { element.scrollTop = 0; });
+      await page.screenshot({ path: info.outputPath(`quiz-result-summary-${theme}-${width}.png`), fullPage: true });
+    }
     await expect(page.locator('.quiz-retired')).toContainText('Retired, not counted');
     await page.getByRole('radio', { name: 'All answers (2)', exact: true }).click();
     await expect(page.locator('.quiz-review-grid')).toContainText('typeof null returns object');
@@ -370,9 +374,11 @@ test('Quiz notices a passed deadline without clearing answers or inventing a gra
   await page.goto('/quiz');
   await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
   await page.getByRole('radio', { name: 'object', exact: true }).click();
+  const answersTop = (await page.getByRole('radiogroup').boundingBox())!.y;
   await page.clock.fastForward(61 * 60_000);
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await expect(page.getByText(/This quiz’s submit deadline has passed/)).toBeVisible();
+  expect(Math.abs((await page.getByRole('radiogroup').boundingBox())!.y - answersTop)).toBeLessThan(1);
   await expect(page.getByRole('radio', { name: 'object', exact: true })).toBeChecked();
   expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('devquiz:in-progress')!).answers)).toEqual({ 'quiz-ux-code': 0 });
   await page.getByRole('button', { name: 'Next', exact: true }).click();

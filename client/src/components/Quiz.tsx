@@ -1380,9 +1380,6 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         questionId={questionId}
         notice={
           <>
-            <p role="status" className="quiz-expiry-note">
-              {expired ? t('quiz.deadlinePassed') : expiresSoon ? t('quiz.expiresSoon') : ''}
-            </p>
             {error && (
               <Banner
                 status="error"
@@ -1470,6 +1467,11 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
             {isLast && !allAnswered && (
               <p id="quiz-submit-why" className="quiz-submit-why">{t('quiz.unansweredHelp')}</p>
             )}
+            {/* A clock-driven notice stays after the actions, so it never
+                moves the question or answer rows while the learner reads. */}
+            <p role="status" className="quiz-expiry-note">
+              {expired ? t('quiz.deadlinePassed') : expiresSoon ? t('quiz.expiresSoon') : ''}
+            </p>
           </>
         }
       >
