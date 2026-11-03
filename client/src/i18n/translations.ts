@@ -381,6 +381,13 @@ export const en = {
 
   // Quiz, in progress
   'quiz.progressAria': 'Quiz progress',
+  'quiz.answeredCount': '{answered} of {total} answered',
+  'quiz.reviewUnanswered': 'Review unanswered ({count})',
+  'quiz.unansweredHelp': 'Go to the first unanswered question. You can still change your answers.',
+  'quiz.reviewMode': 'Review',
+  'quiz.submitBefore': 'Submit before {time}',
+  'quiz.expiresSoon': 'Submit soon to finish before this quiz expires.',
+  'quiz.deadlinePassed': 'This quiz’s submit deadline has passed. Your answers are still here; try submitting to check whether they can be graded.',
   'quiz.questionCounter': 'Question {current} of {total}',
   'quiz.showHint': 'Show hint',
   'quiz.closeHint': 'Close hint',

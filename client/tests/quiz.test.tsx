@@ -349,21 +349,22 @@ describe('the question screen (UX audit U2)', () => {
     expect(screen.getByText('Press 1–4 to select · Enter to submit')).toBeInTheDocument();
   });
 
-  it('keeps Submit pressable with questions left, says how many, and goes to the first one open', async () => {
+  it('names the last-step navigation Review unanswered, then focuses the first open question', async () => {
     await startQuiz([Q('a'), Q('b'), Q('c')]);
     fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
     fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
     fireEvent.keyDown(document.body, { key: '1' });
-    const submit = screen.getByRole('button', { name: /submit quiz/i });
+    const submit = screen.getByRole('button', { name: 'Review unanswered (2)' });
     expect(submit).not.toBeDisabled();
-    expect(submit).toHaveAttribute('aria-disabled', 'true');
-    expect(submit).toHaveAccessibleDescription('Answer 2 more to submit');
+    expect(submit).not.toHaveAttribute('aria-disabled');
+    expect(submit).toHaveAccessibleDescription('Go to the first unanswered question. You can still change your answers.');
     // Said in sight too, under the action row, not only to a screen reader.
-    const why = screen.getByText('Answer 2 more to submit');
+    const why = screen.getByText('Go to the first unanswered question. You can still change your answers.');
     expect(why).toHaveClass('quiz-submit-why');
     expect(why.style.position).toBe('');
     fireEvent.click(submit);
-    expect(screen.getByText('Question a?')).toBeInTheDocument();
+    expect(screen.getByText('Question a?').closest('.ss-question__block')).toHaveFocus();
+    expect(screen.queryByRole('button', { name: /submit quiz/i })).not.toBeInTheDocument();
   });
 });
 
@@ -549,6 +550,7 @@ describe('the daily challenge', () => {
     expect(await screen.findByText('Nobody has finished today’s daily challenge yet.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Today’s challenge' }));
     expect(await screen.findByText('Question d1?')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Today’s challenge · Question');
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/quiz$/);
     await act(async () => {});
     expect(hits).toEqual(['daily']);
@@ -611,6 +613,7 @@ describe('the review linked from Today', () => {
     expect(await screen.findByText('Question r1?')).toBeInTheDocument();
     await act(async () => { await new Promise((resolve) => setTimeout(resolve, 20)); });
     expect(asked).toEqual(['review']);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Review · Question');
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/quiz$/);
   });
 });
@@ -681,6 +684,46 @@ describe('submitting', () => {
   it('says when advanced was asked of topics that have none', async () => {
     await startQuiz([Q('a')], { hardestAvailable: true });
     expect(screen.getByText(/no advanced questions yet/)).toBeInTheDocument();
+  });
+});
+
+describe('quiz orientation and deadline', () => {
+  it('offers one direct return to earlier unanswered questions before the last item', async () => {
+    await startQuiz([Q('a'), Q('b'), Q('c')]);
+    expect(screen.getByText('0 of 3 answered')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /review unanswered/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
+    fireEvent.keyDown(document.body, { key: '1' });
+    expect(screen.getByText('1 of 3 answered')).toBeInTheDocument();
+    const review = screen.getByRole('button', { name: 'Review unanswered (2)' });
+    review.focus();
+    fireEvent.click(review);
+    expect(screen.getByText('Question a?').closest('.ss-question__block')).toHaveFocus();
+    expect(checked()).toEqual([false, false, false, false]);
+  });
+
+  it('uses the actual deadline, warns on wake, and keeps answers available for a server-accepted submit', async () => {
+    let now = Date.now();
+    vi.spyOn(Date, 'now').mockImplementation(() => now);
+    const deadline = now + 4 * 60_000;
+    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json(graded([Q('a')]))));
+    await startQuiz([Q('a')], { expiresAt: deadline });
+    expect(document.querySelector('time')).toHaveAttribute('datetime', new Date(deadline).toISOString());
+    expect(screen.getByText('Submit soon to finish before this quiz expires.')).toBeInTheDocument();
+    fireEvent.keyDown(document.body, { key: '2' });
+    now += 5 * 60_000;
+    fireEvent(window, new Event('focus'));
+    expect(screen.getByText(/This quiz’s submit deadline has passed/)).toBeInTheDocument();
+    expect(checked()).toEqual([false, true, false, false]);
+    expect(JSON.parse(sessionStorage.getItem(PROGRESS_KEY)!).answers).toEqual({ a: 1 });
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    expect(await screen.findByText('1 / 1')).toBeInTheDocument();
+  });
+
+  it('does not invent a deadline for a session whose server response has none', async () => {
+    await startQuiz([Q('a')], { expiresAt: undefined });
+    expect(document.querySelector('time')).toBeNull();
+    expect(screen.queryByText(/Submit before/)).not.toBeInTheDocument();
   });
 });
 

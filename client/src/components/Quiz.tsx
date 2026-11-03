@@ -180,6 +180,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const [stop, setStop] = useState<StopReason | null>(null);
   const [lastStart, setLastStart] = useState<StartSpec | null>(null);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
+  const [sessionNow, setSessionNow] = useState(() => Date.now());
+  const [questionFocusRequest, setQuestionFocusRequest] = useState(0);
   // Set when a submit is sent. The server claims the answer set on its first
   // grade, so an answer changed after that could never be graded: a retry
   // after a lost response must send the same answers.
@@ -777,6 +779,13 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     handleRestart();
   };
 
+  const reviewUnanswered = () => {
+    const open = questions.findIndex((question) => answers[question.id] === undefined);
+    if (open < 0) return;
+    setCurrentIndex(open);
+    setQuestionFocusRequest((request) => request + 1);
+  };
+
   const currentQuestion = questions[currentIndex];
 
   // Move focus to the result heading, which reads the score out. It is no
@@ -803,6 +812,30 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       questionTextRef.current?.focus({ preventScroll: true });
     }
   }, [state, currentIndex]);
+
+  // A direct jump changes the question under the same stable block. Focus
+  // after React has updated its words, including a jump to the current item.
+  useEffect(() => {
+    if (state === 'in-progress' && questionFocusRequest > 0) questionTextRef.current?.focus({ preventScroll: true });
+  }, [state, questionFocusRequest]);
+
+  // Only the issued expiresAt supplies a deadline. The client clock warns;
+  // the server still decides whether a submit/retry can be graded. In
+  // particular, a sleeping tab never clears answers or an in-flight submit.
+  useEffect(() => {
+    if (state !== 'in-progress' || expiresAt === null) return;
+    const refresh = () => setSessionNow(Date.now());
+    const onVisible = () => { if (document.visibilityState === 'visible') refresh(); };
+    refresh();
+    const interval = window.setInterval(refresh, 30_000);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [state, expiresAt]);
 
   // Keyboard shortcuts during in-progress quiz
   useEffect(() => {
@@ -1178,12 +1211,15 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const isLast = currentIndex === questions.length - 1;
   const questionId = `question-text-${currentQuestion.id}`;
   const hintOpen = !!revealedHints[currentQuestion.id];
-  // Submit with questions left stays pressable and says how many; pressed,
-  // it goes to the first one still open.
+  const hasEarlierUnanswered = questions.slice(0, currentIndex).some((question) => answers[question.id] === undefined);
+  const expired = expiresAt !== null && sessionNow >= expiresAt;
+  const expiresSoon = expiresAt !== null && !expired && expiresAt - sessionNow <= 5 * 60_000;
+  const deadline = expiresAt === null ? null : new Date(expiresAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  // The last step names its real action: review unanswered items until
+  // the set is complete, then submit the same server-issued session.
   const submitPressed = () => {
     if (!allAnswered) {
-      const open = questions.findIndex((q) => answers[q.id] === undefined);
-      if (open >= 0) setCurrentIndex(open);
+      reviewUnanswered();
       return;
     }
     void handleSubmit();
@@ -1244,22 +1280,36 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           so the answers start at the same y on every question, and the
           action row under the panel. */}
       <QuestionShell
+        className="quiz-run"
         ref={questionTextRef}
         questionId={questionId}
-        notice={error && (
-          <Banner
-            status="error"
-            title={error}
-            description={answersLocked ? t('quiz.answersLocked') : undefined}
-            isDismissable
-            onDismiss={() => setError(null)}
-          />
-        )}
+        notice={
+          <>
+            <p role="status" className="quiz-expiry-note">
+              {expired ? t('quiz.deadlinePassed') : expiresSoon ? t('quiz.expiresSoon') : ''}
+            </p>
+            {error && (
+              <Banner
+                status="error"
+                title={error}
+                description={answersLocked ? t('quiz.answersLocked') : undefined}
+                isDismissable
+                onDismiss={() => setError(null)}
+              />
+            )}
+          </>
+        }
         header={
           <QuestionHeader
-            run={t('nav.quiz')}
+            run={t(mode === 'daily' ? 'quiz.todaysChallenge' : mode === 'review' ? 'quiz.reviewMode' : 'nav.quiz')}
             title={t('quiz.questionCounter', { current: currentIndex + 1, total: questions.length })}
             progress={{ value: progress, label: t('quiz.progressAria') }}
+            status={
+              <div className="quiz-run-status">
+                <span>{t('quiz.answeredCount', { answered, total: questions.length })}</span>
+                {deadline && <time dateTime={new Date(expiresAt!).toISOString()}>{t('quiz.submitBefore', { time: deadline })}</time>}
+              </div>
+            }
             meta={<CategoryTag category={currentQuestion.category} />}
             difficulty={currentQuestion.difficulty}
             tools={
@@ -1297,29 +1347,33 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           <>
             <QuestionActions
               secondary={
-                <Button
-                  variant="secondary"
-                  label={t('quiz.previous')}
-                  onClick={handlePrevious}
-                  isDisabled={currentIndex === 0}
-                />
+                <>
+                  <Button
+                    variant="secondary"
+                    label={t('quiz.previous')}
+                    onClick={handlePrevious}
+                    isDisabled={currentIndex === 0}
+                  />
+                  {!isLast && hasEarlierUnanswered && !answersLocked && (
+                    <Button variant="ghost" label={t('quiz.reviewUnanswered', { count: remaining })} onClick={reviewUnanswered} />
+                  )}
+                </>
               }
               primary={
                 isLast
                   ? {
-                    label: submitting ? t('quiz.submitting') : t('quiz.submitQuiz'),
+                    label: submitting ? t('quiz.submitting') : allAnswered ? t('quiz.submitQuiz') : t('quiz.reviewUnanswered', { count: remaining }),
                     onClick: submitPressed,
                     disabled: submitting,
-                    unavailable: !allAnswered,
                     describedBy: !allAnswered ? 'quiz-submit-why' : undefined,
                   }
                   : { label: t('quiz.next'), onClick: handleNext }
               }
             />
-            {/* Why Submit reads unavailable, in sight under it: the old
-                disabled button said so in a hover tooltip. */}
+            {/* Review is navigation, not a disabled submit. Its description
+                explains the destination without repeating the answer count. */}
             {isLast && !allAnswered && (
-              <p id="quiz-submit-why" className="quiz-submit-why">{t('quiz.answerMore', { count: remaining })}</p>
+              <p id="quiz-submit-why" className="quiz-submit-why">{t('quiz.unansweredHelp')}</p>
             )}
           </>
         }

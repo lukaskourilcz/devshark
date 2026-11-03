@@ -110,3 +110,9 @@
 .quiz-submit-why { margin: -8px 0 0; text-align: end; font-size: var(--ss-type-meta); color: var(--color-text-secondary); }
 
 .quiz-setup__helper { margin: 0; font-size: var(--ss-type-meta); color: var(--color-text-secondary); }
+
+.quiz-run .ss-question-header__row:first-child { display: grid; grid-template-columns: minmax(0, 1fr) 72px; }
+.quiz-run .ss-question-header__status { grid-column: 1 / -1; margin-inline-start: 0; min-width: 0; }
+.quiz-run-status { display: flex; justify-content: space-between; flex-wrap: wrap; width: 100%; gap: 6px 12px; font-size: var(--ss-type-meta); color: var(--color-text-secondary); }
+.quiz-expiry-note { margin: 0; padding: 12px 16px; border: 1px solid var(--color-border); border-radius: var(--radius-element); font-size: var(--ss-type-compact); }
+.quiz-expiry-note:empty { display: none; }
