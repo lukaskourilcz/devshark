@@ -315,11 +315,10 @@ a.lp-activity:focus-visible { outline: 3px solid var(--ss-focus); outline-offset
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px 24px;
   max-width: 72ch;
 }
-.lp-lesson-start .lp-note { margin: 0; flex: 1 1 16rem; }
 .lp-lesson p { margin: 0; line-height: 1.7; }
 .lp-lesson code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;

@@ -14,8 +14,8 @@ import '../paths/LearningPaths.css';
 // The route shell sets the page width (narrow, 800px); the article caps itself
 // at 72ch. Back sits at the top-left at its own width and names where it goes
 // (the caller passes the place: the topic's map, the Big O introduction). The
-// note and the one primary share a row at the end of the article's column
-// (UX audit learn-05), so neither stretches across the page.
+// one primary ends the article's column (UX audit learn-05), without an
+// extra notice or a second action to skip the reading.
 export function LearnLesson({ lessonId, backLabel, onStart, onBack }: { lessonId: string; backLabel: string; onStart: () => void; onBack: () => void }) {
   const t = useT();
   const root = useRef<HTMLDivElement>(null);
@@ -51,7 +51,6 @@ export function LearnLesson({ lessonId, backLabel, onStart, onBack }: { lessonId
         : query.isPending ? <LoadingScreen label={t('common.loading')} />
           : <ErrorRetry message={learnText('learn.lesson.error')} onRetry={() => void query.refetch()} />}
       <div className="lp-lesson-start">
-        <p className="lp-note">{learnText('learn.lesson.readingOnly')}</p>
         <SwimCta label={learnText('learn.lesson.startQuestions')} onClick={onStart} />
       </div>
     </div>
