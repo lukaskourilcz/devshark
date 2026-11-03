@@ -1,14 +1,14 @@
 # Release acceptance matrix
 
-## Current state (3 November 2026, UX rollout #595)
+## Current state (3 November 2026, Coding continuation #597)
 
 This file is an append-style evidence ledger. Each dated entry records what someone checked that day, and later entries leave earlier ones as they were. The entries from 15 October back to 8 September sit at the top; from "2026-09-11 — eight free-tool recommendations" on, the file runs oldest to newest, so the newest entry is at the end.
 
 Released:
 
-- `main` ships the approved Coding/Learn/Quiz UX rollout from PR #595 (`7519a27b9ab436391c1feb844e3dc7a643f804e4`), including the Description workbench change from #594. All 25 accepted audit findings are implemented with the owner’s C04/C06/C07/L03 overrides; L04 is excluded. Required CI and the READY deployment pass, as recorded in the newest entry below. Vercel serves the release at https://devshark.app.
+- `main` ships the approved Coding/Learn/Quiz UX rollout from PR #595 (`7519a27b9ab436391c1feb844e3dc7a643f804e4`), including the Description workbench change from #594. All 25 accepted audit findings are implemented with the owner’s C04/C06/C07/L03 overrides; L04 is excluded. Follow-up #597 (`b3714c88238c63cf6c0cb52aff50ce229ef11ae4`) removes the multiple-work selector and automatically continues the latest unfinished task. Required CI and the READY deployments pass, as recorded in the newest entries below. Vercel serves the release at https://devshark.app.
 - None of these added an SQL migration, and the twelve handlers stay twelve. Supabase project `rvlybcjdpafwyeuojvhl` has every migration through 066 (`accept_learning_path_quota_result`); see "Migration 066 in production".
-- The approved UX release measures 231,726 initial gzip bytes against the 241,651-byte budget. Monitoring is 49,500/60,000. Both production dependency audits report zero vulnerabilities. The current build shape and budgets live in `docs/quality/bundle-budget.json`.
+- The approved UX release measures 231,724 initial gzip bytes against the 241,651-byte budget. Monitoring is 49,500/60,000. Both production dependency audits report zero vulnerabilities. The current build shape and budgets live in `docs/quality/bundle-budget.json`.
 - Since #590 and #591 a read trusts a token Supabase Auth accepted on the same instance for up to a minute, the learning-path catalogue is shared by the CDN for five minutes, a free coding task's brief is a public read apart from the caller's part, and the browser loads the TypeScript compiler, Prettier, CodeMirror and the React sandbox when the learner reaches for them. `docs/product-architecture.md` describes each change and its bound; `NEEDED.md` lists the trade-offs for the owner to accept or turn off.
 - The progress PUT on `/api/quiz/roadmap` is retired and answers 405. The browser only reads progress.
 - Learn has three sections: Web Developer, Software Engineer and Forward Deployed Engineer. DSA lives in Learn as the topics `dsa` and `dsa-advanced`. The standalone DSA path is retired, and `/roadmap/paths/dsa-foundations/*` answers 308 to `/learn/software-engineer?topic=dsa`.
@@ -6400,3 +6400,11 @@ Local Node 24.22.2 checks: API/scripts/tooling types, build, public/design contr
 PR #595 merged at 7519a27b9ab436391c1feb844e3dc7a643f804e4. Frozen head ce4512046e212afc1c3a81ddde7385e012974b88 passes required Product quality run 41672475795: verify success (4s aggregate), SQL 48s, static 3m05s, tests 6m51s, browser 12m12s and coding 25m24s; all 187 client test files and all 1,795 tests pass. READY production dpl_7Tdf44Ja1WvrW3BZtYgLP8CoS4CN matches the merge and serves devshark.app. Twelve actual guest route/width cells pass at 390px and 1280px across Quiz, FullStack, Description, the FDE shelf, path overview and first module. FDE settings report enabled/available. The browser records no overflow, page errors or API writes..
 
 FDE remains enabled only for Production, as authorised by the owner. Authenticated owner acceptance remains tracked in NEEDED.md; release smoke checks use guest reads and create no accounts, learner results or orders. Physical devices and an independent human review are not claimed.
+
+## Automatic Coding continuation — 3 November 2026
+
+Owner follow-up to #595: remove the multiple-challenge selector and continue the latest unfinished work directly. PR #597 remembers actual task visits/edits on this device using existing account-cleared storage and falls back to the account progress's existing activity timestamp. Completed/inaccessible work is skipped; revealed solutions remain unfinished, and projects resume at their first unmet stage. Active-run queue behavior is retained. No schema, database write, handler-count, grading or entitlement change.
+
+Local Node 24.22.2: 47 focused client tests pass; all 30 area browser cases pass, followed by all four resume flows on the final build. API/scripts/tooling types, build, public/design, unused, launch and coding authorization checks pass. Initial load is 231,724/241,651 gzip bytes; monitoring 49,500/60,000. The final build/public/bundle parity run at 58795118 is complete, clean and passing.
+
+PR #597 merged at b3714c88238c63cf6c0cb52aff50ce229ef11ae4 after required run 41692820663 passed verify and SQL, including all 187 client test files and 1,799 tests. Coding passes in 19m56s, browser in 15m02s, tests in 8m13s, static in 3m04s, SQL in 1m12s and verify in 3s. READY production dpl_FQNsoDcCz38qrBd4PTZVGkwkV2mq matches that merge. Eight actual guest resume flows pass across two task visits, 360/1280px and both themes, with no overflow, page errors or app API writes. Account isolation and signed-in continuation are covered by fixtures and authorization tests; authenticated production acceptance and physical devices are not claimed.
