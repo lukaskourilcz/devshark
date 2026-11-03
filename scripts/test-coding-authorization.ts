@@ -193,7 +193,7 @@ async function main() {
     const levels = Object.fromEntries(Array.from({ length: 10 }, (_, index) => [String(index + 1), { passed: true }]));
     type Read = { table: string; columns: string; filters: Record<string, unknown>; single: boolean };
     const reads: Read[] = [];
-    const ownRow = { task_id: tierThree.id, track: 'javascript', status: 'in_progress', passes: 0, review_stage: 0, next_review_at: null, reveal_count: 2, best_passed_at: null };
+    const ownRow = { task_id: tierThree.id, track: 'javascript', status: 'in_progress', passes: 0, review_stage: 0, next_review_at: null, reveal_count: 2, best_passed_at: null, updated_at: '2026-11-03T17:00:00Z' };
     const progressDb = {
       from: (table: string) => {
         const read: Read = { table, columns: '', filters: {}, single: false };
@@ -229,7 +229,7 @@ async function main() {
     const progressReads = reads.filter((read) => read.table === 'coding_progress');
     assert.deepEqual(progressReads.map((read) => [read.columns, read.filters, read.single]).sort((a, b) => String(a[0]).localeCompare(String(b[0]))), [
       ['task_id,status', { user_id: 'account-ladder', status: 'passed' }, false],
-      ['task_id,track,status,passes,review_stage,next_review_at,reveal_count,best_passed_at', { user_id: 'account-ladder', task_id: tierThree.id }, true],
+      ['task_id,track,status,passes,review_stage,next_review_at,reveal_count,best_passed_at,updated_at', { user_id: 'account-ladder', task_id: tierThree.id }, true],
     ], 'the task page reads the passed ids and its own row, never every row in full');
     assert.deepEqual(reads.filter((read) => read.table === 'roadmap_progress').map((read) => read.columns), [JAVASCRIPT_LEVELS_SELECT], 'only the JavaScript levels of the roadmap row are read');
 
