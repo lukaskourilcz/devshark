@@ -8,6 +8,7 @@
 import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { ComplexityInfo } from '../../coding/CodingCompletion';
 import { BriefZone } from '../../coding/BriefZone';
+import { descriptionText } from '../../coding/description';
 import { workbenchCopy } from '../../i18n/translations.workbench';
 import { useT } from '../../i18n/LanguageContext';
 import { beforeAccountChange } from '../../lib/accountData';
@@ -430,7 +431,7 @@ export function CodeActivity({
             )}
           >
             <div className="lp-brief">
-              <RichText text={code.prompt} />
+              <RichText text={descriptionText(code.prompt)} />
             </div>
             {code.complexityGuidance?.targetTime && <div className="cd-complexity"><span>{t('coding.complexity.desired', { complexity: code.complexityGuidance.targetTime })}</span><ComplexityInfo guidance={code.complexityGuidance} /></div>}
           </BriefZone>

@@ -42,6 +42,7 @@ import { RepeatXpNote } from './RepeatXpNote';
 import { CODING_TIERS, difficultyOf, formatOf, hasLearnLevel, type PlayableCodingTask } from '../../../shared/coding-catalog';
 import { DifficultyBadge } from './DifficultyBadge';
 import { BriefZone } from './BriefZone';
+import { descriptionText } from './description';
 import type { CodingLockReason, CodingSolutionPair, CodingTaskProgress, CodingVerdictResponse } from '../../../shared/coding-api';
 import { complexityGuidance } from '../../../shared/coding-complexity';
 import './Coding.css';
@@ -1182,7 +1183,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       )}
       after={locked && <p className="cd-note cd-note--warn">{t('coding.lockedTask')} {t(`coding.lock.${locked}` as never)}</p>}
     >
-      <Prompt className="cd-prompt" text={task.prompt} />
+      <Prompt className="cd-prompt" text={descriptionText(task.prompt)} />
       {complexity.targetTime && <div className="cd-complexity">
         <span>{t('coding.complexity.desired', { complexity: complexity.targetTime })}</span>
         <ComplexityInfo guidance={complexity} />
@@ -1195,14 +1196,14 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
           {task.previousRequirements!.map((requirement, index) => (
             <li key={index}>
               <span className="cd-previous__stage">{t(evolution?.challenge.short ? 'coding.evolving.levelShort' : 'coding.evolving.stageShort', { n: index + 1 })}</span>
-              <Prompt className="cd-prompt cd-prompt--previous" text={requirement} />
+              <Prompt className="cd-prompt cd-prompt--previous" text={descriptionText(requirement)} />
             </li>
           ))}
         </ol>
       </details>}
       {/* Beside the brief, so nothing is injected into code the learner
           is reading or about to run. */}
-      <TermsBar texts={[task.prompt, task.title]} domain={glossaryDomainFor(task.track)} />
+      <TermsBar texts={[descriptionText(task.prompt), task.title]} domain={glossaryDomainFor(task.track)} />
       {formatOf(task) === 'debug' && <p className="cd-note">{t('coding.format.debugHint')}</p>}
       {task.api && <p className="cd-api"><code>{task.api.method} {task.api.url}</code><br />{task.api.note}</p>}
     </BriefZone>
