@@ -542,6 +542,24 @@ describe('the interview-prep shelf', () => {
 });
 
 describe('the Learn path shelf', () => {
+  it.each([
+    ['available', null, 'Open path'],
+    ['available', 'active', 'Continue path'],
+    ['available', 'paused', 'Resume path'],
+    ['disabled', 'active', 'View outline'],
+  ] as const)('offers %s / %s as the actual %s link', async (availability, status, action) => {
+    state.availability = availability;
+    state.enrollments = status ? [enrolled('fde', status)] : [];
+    await mount('/r', '/r', async () => {
+      const { default: PathShelf } = await import('../src/components/paths/PathShelf');
+      return <PathShelf pathIds={['fde']} />;
+    });
+    const link = screen.getByRole('link', { name: `${action}: Forward Deployed Engineer` });
+    expect(link).toHaveTextContent(action);
+    expect(link).toHaveAttribute('href', '/learn/forward-deployed-engineer/path');
+    expect(state.changes).toEqual([]);
+  });
+
   it('opens path enrollment on the free tier', async () => {
     state.tier = 'free';
     await mount('/r', '/r', async () => {
@@ -553,7 +571,7 @@ describe('the Learn path shelf', () => {
 
   // UX audit learn-01: the section switcher names the section, so the card
   // says what it is and keeps the path's name in its link's name only.
-  it('titles the card by what it is and names the path only in its link', async () => {
+  it('offers a real path action and names the path in its link', async () => {
     state.tier = 'free';
     await mount('/r', '/r', async () => {
       const { default: PathShelf } = await import('../src/components/paths/PathShelf');
@@ -561,7 +579,10 @@ describe('the Learn path shelf', () => {
     });
     const heading = await screen.findByRole('heading', { level: 3 });
     expect(heading.textContent).toMatch(/^Guided path( outline)?$/);
-    expect(within(heading).getByRole('link')).toHaveAccessibleName(`${heading.textContent}: Forward Deployed Engineer`);
+    const card = heading.closest('section')!;
+    const link = within(card).getByRole('link');
+    expect(link).toHaveAccessibleName(/^(Open path|View outline): Forward Deployed Engineer$/);
+    expect(link).toHaveAttribute('href', '/learn/forward-deployed-engineer/path');
     expect(screen.queryByText('Role')).toBeNull();
   });
 });

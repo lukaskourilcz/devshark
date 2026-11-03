@@ -37,31 +37,20 @@ export function PathCard({ entry, enrollment, premium }: {
   const { manifest, inventory, availability } = entry;
   const open = isOpen(availability);
   const cardTitle = learnText(open ? 'learn.paths.card' : 'learn.paths.cardOutline');
+  const action = learnText(!open ? 'learn.paths.outline'
+    : enrollment?.status === 'paused' ? 'learn.paths.resume'
+      : enrollment ? 'learn.paths.continue' : 'learn.paths.open');
   return (
     <section className="lp-module">
       <div className="lp-module__head">
-        {/* The section switcher above names the path's section, so the card
-            does not name it again (UX audit learn-01): its title says what
-            the card is, and the path's name is in the link's name only. */}
-        <h3 className="lp-module__title">
-          <Link
-            to={pathHref(manifest.id)}
-            aria-label={learnText('learn.paths.cardAria', { card: cardTitle, path: manifest.title })}
-          >
-            {cardTitle}
-          </Link>
-        </h3>
+        <h3 className="lp-module__title">{cardTitle}</h3>
         <span className="lp-module__meta">
           {premium && <><span className="ss-premium-label">{t('premium.badge')}</span>{' '}</>}
-          {enrollment
-            ? enrollment.status === 'paused'
-              ? t('paths.action.resume')
-              : t('paths.action.continue')
-            : open
-              ? t('paths.action.start')
-              : t(`paths.availability.${availability}` as never)}
+          <Button variant="secondary" as={Link} href={pathHref(manifest.id)} label={action}
+            aria-label={learnText('learn.paths.actionAria', { action, path: manifest.title })} />
         </span>
       </div>
+      {!open && <p className="lp-note">{t(`paths.availability.${availability}` as never)}</p>}
       <p className="lp-lead" style={{ margin: 0 }}>
         {manifest.summary}
       </p>
