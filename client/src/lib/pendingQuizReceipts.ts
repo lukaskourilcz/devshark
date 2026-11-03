@@ -52,7 +52,7 @@ export function queuePendingReceipt(attemptKey: string, pending: PendingReceipt)
   writeJSON(STORE_KEY, { ...readStore(), [attemptKey]: pending });
 }
 
-export function dropPendingReceipt(attemptKey: string): void {
+function dropPendingReceipt(attemptKey: string): void {
   const store = readStore();
   if (!(attemptKey in store)) return;
   delete store[attemptKey];

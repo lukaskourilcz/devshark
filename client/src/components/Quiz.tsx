@@ -1122,7 +1122,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     const gradedQuestions = indexedQuestions.filter(({ question }) => resultsById.has(question.id));
     const visibleReview = gradedQuestions.filter(({ question }) => reviewFilter === 'all' || resultsById.get(question.id)?.isCorrect === false);
     const voidedQuestions = indexedQuestions.filter(({ question }) => result.voided?.includes(question.id));
-    const visibleSave = isAuthenticated && resultSave?.userId === user?.id && resultSave.epoch === accountEpoch() ? resultSave.status : null;
+    const visibleSave = resultSave && isAuthenticated && resultSave.userId === user?.id && resultSave.epoch === accountEpoch() ? resultSave.status : null;
     const saveCopy: Record<ResultSaveStatus, TranslationKey> = {
       saving: 'quiz.saveSaving', saved: 'quiz.saveSaved', pending: 'quiz.savePending', refused: 'quiz.resultNotSaved', practice: 'quiz.dailyPractice',
     };
