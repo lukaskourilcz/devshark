@@ -1170,7 +1170,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       labelledBy={titleId}
       head={(
         <div className="cd-brief__head">
-          <p className="cd-brief__meta">{briefMeta}</p>
+          {!(evolution && mode === 'section') && <p className="cd-brief__meta">{briefMeta}</p>}
           <div className="cd-brief__line">
             <Title id={titleId} className="cd-brief__title">{task.title}</Title>
             <DifficultyBadge difficulty={difficultyOf(task)} />

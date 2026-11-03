@@ -23,7 +23,7 @@ import { bookmarksQuery, practiceSessionQuery, useAdvanceSession, useBookmarks, 
 import { ChallengeRunPlanner, taskHref } from './ChallengeRunPlanner';
 import { CategoryGlyph } from '../ui/techIcons';
 import { CODING_INDEX } from '../../../../shared/coding-index';
-import { evolvingResume, evolvingStage, evolvingTaskTrack, evolvingPassed, evolvingUnlocked, listedChallenges, type EvolvingCategory } from '../../../../shared/evolving';
+import { EVOLVING_CHALLENGES, evolvingResume, evolvingStage, evolvingTaskTrack, evolvingPassed, evolvingUnlocked, listedChallenges, type EvolvingCategory } from '../../../../shared/evolving';
 import { prepareEvolvingDraft } from '../../../../shared/coding-fullstack-support';
 import {
   CODING_DIFFICULTIES,
@@ -202,9 +202,10 @@ function SaveButton({ taskId, saved, onToggle, busy, toolbar = false }: { taskId
       type="button"
       className={`cd-save${saved ? ' cd-save--on' : ''}${toolbar ? ' cd-save--toolbar' : ''}`}
       aria-pressed={saved}
-      disabled={busy}
+      aria-disabled={busy || undefined}
+      aria-busy={busy || undefined}
       title={t(saved ? 'coding.saved.remove' : 'coding.saved.add')}
-      onClick={(event) => { event.preventDefault(); event.stopPropagation(); onToggle(!saved); }}
+      onClick={(event) => { event.preventDefault(); event.stopPropagation(); if (!busy) onToggle(!saved); }}
     >
       <span aria-hidden>{saved ? '★' : '☆'}</span>
       <span className="cd-visually-hidden">{t(saved ? 'coding.saved.remove' : 'coding.saved.add', { id: taskId })}</span>
@@ -215,7 +216,7 @@ function SaveButton({ taskId, saved, onToggle, busy, toolbar = false }: { taskId
 /** One row of a track's list. A track lists up to three hundred of them, and
  * every key typed in its search box draws the list again: a row whose task
  * and state did not change is not drawn again. */
-const TaskRow = memo(function TaskRow({ task, status, premium = 'open', saved, onSave, saving }: {
+const TaskRow = memo(function TaskRow({ task, status, premium = 'open', saved, onSave, saving, saveError }: {
   task: CodingTaskSummary;
   status: Status;
   /** 'locked' and 'preview' show the "Premium" badge. 'unknown' (the plan is
@@ -224,6 +225,7 @@ const TaskRow = memo(function TaskRow({ task, status, premium = 'open', saved, o
   saved?: boolean;
   onSave?: (taskId: string, next: boolean) => void;
   saving?: boolean;
+  saveError?: boolean;
 }) {
   const { t } = useLanguage();
   const locked = status === 'locked';
@@ -255,6 +257,7 @@ const TaskRow = memo(function TaskRow({ task, status, premium = 'open', saved, o
           ? <div className="cd-row" aria-disabled="true">{inner}</div>
           : <Link className="cd-row" to={`/coding/${task.track}/${task.id}`}>{inner}</Link>}
       {save}
+      {saveError && <p className="cd-row-item__error" role="alert">{codingListCopy('coding.saved.saveFailed')}</p>}
     </li>
   );
 });
@@ -304,6 +307,17 @@ function SignInLine() {
   return <p className="cd-signin-line">{t('coding.signInHint')}</p>;
 }
 
+/** Unknown access and stale progress mean the same thing on every Coding list. */
+function PlanNotice({ failed, onRetry }: { failed: boolean; onRetry: () => void }) {
+  const { t } = useLanguage();
+  return failed ? <p className="cd-note cd-note--error" role="alert">{t('coding.planFailed')} <Button variant="secondary" onClick={onRetry} label={t('coding.retry')} /></p> : null;
+}
+
+function StaleProgressNotice({ failed, onRetry }: { failed: boolean; onRetry: () => void }) {
+  const { t } = useLanguage();
+  return failed ? <p className="cd-note cd-note--error" role="alert">{codingListCopy('coding.progress.stale')} <Button variant="secondary" onClick={onRetry} label={t('coding.retry')} /></p> : null;
+}
+
 /* ── /coding ──────────────────────────────────────────────────────────── */
 /** The evolving projects of one category (the plain ones, the FullStack
  * builds or the debugging paths), or with `track`, the short paths of one
@@ -311,13 +325,13 @@ function SignInLine() {
  * FullStack list holds its short path and its long apps together; the
  * debugging list holds its three short paths; the plain list on the Coding
  * home holds the long projects only. `listedChallenges` decides. */
-function EvolvingGallery({ passed, premiumOf, category, track }: { passed: ReadonlySet<string>; premiumOf: (taskId: string) => LockState; category?: EvolvingCategory; track?: CodingTrack }) {
+function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = true, labelledBy }: { passed: ReadonlySet<string>; premiumOf: (taskId: string) => LockState; category?: EvolvingCategory; track?: CodingTrack; progressKnown?: boolean; labelledBy?: string }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const listRef = useRef<HTMLDivElement>(null);
   const fullstack = category === 'fullstack';
   const challenges = useMemo(() => listedChallenges({ category, track }), [category, track]);
-  const titleId = `${track ? `${track}-paths` : category ?? 'evolving'}-title`;
+  const titleId = labelledBy ?? `${track ? `${track}-paths` : category ?? 'evolving'}-title`;
   const listId = `${titleId}-list`;
   // A long list shows its first five rows and a button for the rest, in
   // place of a scroll box inside the page (UX audit coding-09). The open list
@@ -341,7 +355,7 @@ function EvolvingGallery({ passed, premiumOf, category, track }: { passed: Reado
   const anyLocked = challenges.some(laterLockedIn);
   return <section className="cd-projects" aria-labelledby={titleId}>
     <div className="cd-projects__intro">
-    <Kicker as="h2" id={titleId}>{t(titleKey)}</Kicker>
+    {!labelledBy && <Kicker as="h2" id={titleId}>{t(titleKey)}</Kicker>}
     <p className="cd-lead">{t(bodyKey)}</p>
     {anyLocked && <PremiumRuleNote challenges={challenges} />}
     </div>
@@ -351,20 +365,20 @@ function EvolvingGallery({ passed, premiumOf, category, track }: { passed: Reado
       const resumeId = evolvingResume(challenge, passed);
       const laterLocked = laterLockedIn(challenge);
       // The verb says where the learner stands: nothing done, part done, all done.
-      const action = completed === challenge.stages.length ? codingListCopy('coding.evolving.review') : completed > 0 ? t('coding.continue') : codingListCopy('coding.evolving.start');
+      const action = !progressKnown ? codingListCopy('coding.project.open') : completed === challenge.stages.length ? codingListCopy('coding.evolving.review') : completed > 0 ? t('coding.continue') : codingListCopy('coding.evolving.start');
       return <article key={challenge.id} className="cd-project" tabIndex={index >= LIST_FOLD ? -1 : undefined} aria-labelledby={`${challenge.id}-name`}>
         <span className="cd-project__number" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
         <div className="cd-project__name">
         {/* On a section's own page every path is that section's, so the line would only repeat the heading. */}
-        {!track && <p className="cd-project__track">{fullstack ? 'JavaScript · TypeScript · React · API' : category === 'debugging' ? `${t(`coding.track.${challenge.track}` as never)} · ${t('coding.format.debug')}` : t(`coding.track.${challenge.track}` as never)}</p>}
+        {!track && !fullstack && <p className="cd-project__track">{category === 'debugging' ? `${t(`coding.track.${challenge.track}` as never)} · ${t('coding.format.debug')}` : t(`coding.track.${challenge.track}` as never)}</p>}
         <h3 id={`${challenge.id}-name`}>{challenge.title}</h3>
         </div>
         <div className="cd-project__progress">
-          <div className="cd-stage-meter" aria-hidden>{challenge.stages.map(id => <span key={id} data-complete={evolvingPassed(id, passed)} />)}</div>
-          <p>{t(challenge.short ? 'coding.evolving.levelsProgress' : 'coding.evolving.progress', { n: completed, total: challenge.stages.length })}{laterLocked && <> <Badge variant="neutral" label={t('premium.badge')} /></>}</p>
+          {progressKnown && <div className="cd-stage-meter" aria-hidden>{challenge.stages.map(id => <span key={id} data-complete={evolvingPassed(id, passed)} />)}</div>}
+          <p>{progressKnown ? t(challenge.short ? 'coding.evolving.levelsProgress' : 'coding.evolving.progress', { n: completed, total: challenge.stages.length }) : codingListCopy('coding.progress.unavailable')}{laterLocked && <> <Badge variant="neutral" label={t('premium.badge')} /></>}</p>
         </div>
         {/* The quieter fin: the page's one SwimCta is its next challenge. */}
-        <FadeFinCta label={action} finLeft="62%" finSize={26} accent="var(--brand-accent)" onClick={() => { if (isBarred(premiumOf(resumeId))) askForPremium(resumeId); else navigate(`/coding/${evolvingTaskTrack(resumeId)}/${resumeId}`); }} />
+        <FadeFinCta label={action} ariaLabel={codingListCopy('coding.project.action', { action, title: challenge.title })} finLeft="62%" finSize={26} accent="var(--brand-accent)" onClick={() => { if (isBarred(premiumOf(resumeId))) askForPremium(resumeId); else navigate(`/coding/${evolvingTaskTrack(resumeId)}/${resumeId}`); }} />
       </article>;
     })}</div>
     {foldable && (
@@ -387,26 +401,37 @@ function EvolvingGallery({ passed, premiumOf, category, track }: { passed: Reado
 /** Which challenge is next, and a way into it, beside the page heading. For a
  * signed-in learner it waits for their progress: worked out from nothing, it
  * would name the first challenge and then swap it for the real one. */
-function NextChallenge({ next, state, onRetry }: { next: CodingTaskSummary | null; state: 'loading' | 'error' | 'ready'; onRetry: () => void }) {
+function NextChallenge({ next, state, onRetry, choices = [], inRun = false, errorText }: { next: CodingTaskSummary | null; state: 'loading' | 'error' | 'ready'; onRetry: () => void; choices?: CodingTaskSummary[]; inRun?: boolean; errorText?: string }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [chosenId, setChosenId] = useState('');
+  const chosen = choices.find((task) => task.id === chosenId) ?? null;
+  const choose = choices.length > 1;
+  const destination = choose ? chosen : next;
   return (
     <section className="cd-next" aria-labelledby="cd-next-label" aria-busy={state === 'loading' || undefined}>
       <div className="cd-next__text">
-        <h2 id="cd-next-label" className="cd-next__label">{t('coding.discovery.next')}</h2>
+        <h2 id="cd-next-label" className="cd-next__label">{inRun ? codingListCopy('coding.resume.run') : t('coding.discovery.next')}</h2>
         {state === 'loading' && (
           <p className="cd-next__title">
             <span className="cd-next__placeholder" aria-hidden="true" />
             <span className="cd-visually-hidden">{t('coding.discovery.loading')}</span>
           </p>
         )}
-        {state === 'error' && <p className="cd-next__title cd-next__title--error" role="alert">{t('coding.discovery.failed')}</p>}
-        {state === 'ready' && <p className="cd-next__title">{next ? next.title : t('coding.allDone')}</p>}
+        {state === 'error' && <p className="cd-next__title cd-next__title--error" role="alert">{errorText ?? t('coding.discovery.failed')}</p>}
+        {state === 'ready' && <p className="cd-next__title">{choose ? codingListCopy('coding.resume.count', { n: choices.length }) : next ? next.title : t('coding.allDone')}</p>}
+      {state === 'ready' && choose && <div className="cd-next__choices">
+        <label htmlFor="cd-resume-choice">{codingListCopy('coding.resume.work')}</label>
+        <select id="cd-resume-choice" value={chosen?.id ?? ''} onChange={(event) => setChosenId(event.target.value)}>
+          <option value="">{codingListCopy('coding.resume.choose')}</option>
+          {choices.map((task) => <option key={task.id} value={task.id}>{task.title}</option>)}
+        </select>
+      </div>}
       </div>
       {state === 'error' && <Button variant="secondary" onClick={onRetry} label={t('coding.retry')} />}
       {/* Held disabled while loading, so the card keeps its size when the title arrives. */}
-      {state !== 'error' && (state === 'loading' || next) && (
-        <SwimCta label={t('coding.continue')} disabled={state === 'loading'} onClick={() => { if (next) navigate(`/coding/${next.track}/${next.id}`); }} />
+      {state !== 'error' && (state === 'loading' || next || choose) && (
+        <SwimCta label={inRun ? t('coding.run.continue') : t('coding.continue')} disabled={state === 'loading' || (choose && !chosen)} onClick={() => { if (destination) navigate(`/coding/${destination.track}/${destination.id}`); }} />
       )}
     </section>
   );
@@ -418,13 +443,39 @@ export function CodingHome() {
   const { t } = useLanguage();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const progress = useCodingProgress(isAuthenticated);
-  const { passed, statusOf, premiumOf, planLoading } = useStatuses(progress.data);
-  const next = useMemo(() => nextOpenTask(SECTION_INDEX, statusOf), [statusOf]);
+  const run = usePracticeSession(isAuthenticated);
+  const { passed, statusOf, premiumOf, planLoading, planFailed, retryPlan } = useStatuses(progress.data);
+  const progressKnown = !authLoading && (!isAuthenticated || Boolean(progress.data));
+  const activeRun = run.data?.session?.status === 'active' ? run.data.session : null;
+  const runNextId = activeRun?.queue[activeRun.position];
+  const runNext = runNextId ? INDEX_BY_ID.get(runNextId) ?? null : null;
+  // There is no last-opened timestamp in the progress contract. A single
+  // unfinished item can resume directly; several offer a named choice.
+  const unfinished = useMemo(() => {
+    if (!progress.data) return [];
+    const recorded = progress.data.tasks;
+    const tasks = SECTION_INDEX.filter((task) => statusOf(task) === 'in_progress');
+    for (const challenge of EVOLVING_CHALLENGES) {
+      const done = challenge.stages.filter((id) => evolvingPassed(id, passed)).length;
+      const touched = done > 0 || challenge.stages.some((id) => recorded[id]?.status === 'in_progress');
+      if (!touched || done === challenge.stages.length) continue;
+      const id = evolvingResume(challenge, passed);
+      const task = INDEX_BY_ID.get(id);
+      if (task && !isBarred(premiumOf(id)) && evolvingUnlocked(id, passed)) tasks.push({ ...task, title: `${challenge.title} · ${t(challenge.short ? 'coding.evolving.level' : 'coding.evolving.stage', { n: challenge.stages.indexOf(id) + 1, total: challenge.stages.length })}` });
+    }
+    return tasks;
+  }, [progress.data, statusOf, passed, premiumOf, t]);
+  const recommended = nextOpenTask(SECTION_INDEX, statusOf) ?? CODING_INDEX.find((task) => {
+    const stage = evolvingStage(task.id);
+    return stage && !stage.challenge.unlisted && !evolvingPassed(task.id, passed) && evolvingUnlocked(task.id, passed) && !isBarred(premiumOf(task.id));
+  }) ?? null;
+  const next = runNext ?? (unfinished.length === 1 ? unfinished[0] : recommended);
   // The plan decides which tasks are Premium, so the card also waits for it:
   // otherwise a free account would see a Premium task named first.
-  const nextState = authLoading || planLoading || (isAuthenticated && progress.isLoading)
+  const runFailed = isAuthenticated && run.isError && !run.data;
+  const nextState = authLoading || planLoading || (isAuthenticated && (progress.isLoading || run.isPending))
     ? 'loading'
-    : isAuthenticated && progress.isError && !progress.data ? 'error' : 'ready';
+    : (isAuthenticated && progress.isError && !progress.data) || runFailed ? 'error' : 'ready';
 
   return (
     <div className="cd-page cd-discovery ss-pop">
@@ -434,8 +485,10 @@ export function CodingHome() {
           <p className="cd-lead">{t('coding.subtitle')}</p>
           {!authLoading && !isAuthenticated && <SignInLine />}
         </header>
-        <NextChallenge next={next} state={nextState} onRetry={() => void progress.refetch()} />
+        <NextChallenge next={next} state={nextState} choices={runNext ? [] : unfinished} inRun={Boolean(runNext)} errorText={runFailed ? t('coding.run.loadFailed') : undefined} onRetry={() => { void progress.refetch(); if (runFailed) void run.refetch(); }} />
       </div>
+      <PlanNotice failed={planFailed} onRetry={retryPlan} />
+      <StaleProgressNotice failed={isAuthenticated && progress.isError && Boolean(progress.data)} onRetry={() => void progress.refetch()} />
       <section aria-label={t('coding.title')} className="cd-track-directory">
         {CODING_SECTION_TRACKS.map((track) => {
           const tasks = SECTION_INDEX.filter((task) => task.track === track);
@@ -446,9 +499,9 @@ export function CodingHome() {
               <div className="cd-track-entry__body">
               <div className="cd-track__title">
                 <h2>{t(`coding.track.${track}` as never)}</h2>
-                <span className="cd-track__count">{t('coding.progress', { passed: done, total: tasks.length })}</span>
+                <span className="cd-track__count">{progressKnown ? t('coding.progress', { passed: done, total: tasks.length }) : codingListCopy('coding.progress.unavailable')}</span>
               </div>
-              <WaterlineProgress decorativeFins value={tasks.length ? (100 * done) / tasks.length : 0} label={t('coding.progress', { passed: done, total: tasks.length })} />
+              {progressKnown && <WaterlineProgress decorativeFins value={tasks.length ? (100 * done) / tasks.length : 0} label={t('coding.progress', { passed: done, total: tasks.length })} />}
               <p className="cd-track__blurb">{t(`coding.trackBlurb.${track}` as never)}</p>
               </div>
               <span className="cd-track-entry__arrow" aria-hidden>↗</span>
@@ -458,9 +511,9 @@ export function CodingHome() {
       </section>
       {/* Below the tracks and collapsed to one row until it is opened: a run
           is a way through the tracks, not the first thing to read. */}
-      <ChallengeRunPlanner signedIn={isAuthenticated} collapsible />
-      <EvolvingGallery passed={passed} premiumOf={premiumOf} category="debugging" />
-      <EvolvingGallery passed={passed} premiumOf={premiumOf} />
+      <ChallengeRunPlanner signedIn={isAuthenticated} collapsible resumeInPrimary={Boolean(runNext) && nextState === 'ready'} />
+      <EvolvingGallery passed={passed} premiumOf={premiumOf} category="debugging" progressKnown={progressKnown} />
+      <EvolvingGallery passed={passed} premiumOf={premiumOf} progressKnown={progressKnown} />
       <Link className="cd-fullstack-feature" to="/coding/fullstack">
         <div><Kicker>{t('coding.discovery.build')}</Kicker><h2>{t('coding.evolving.fullstack')}</h2><p>{t('coding.discovery.fullstack')}</p><span className="cd-link">{t('coding.discovery.explore')} <span aria-hidden>↗</span></span></div>
         <div className="cd-stack-path" aria-hidden><span>JS</span><i>→</i><span>TS</span><i>→</i><span>API</span><i>→</i><span>React</span></div>
@@ -504,13 +557,15 @@ export function FullStackScreen() {
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
   const progress = useCodingProgress(isAuthenticated);
-  const { passed, premiumOf, planLoading } = useStatuses(progress.data);
+  const { passed, premiumOf, planLoading, planFailed, retryPlan } = useStatuses(progress.data);
   if ((isAuthenticated && progress.isLoading) || planLoading) return <LoadingScreen label={t('coding.loading')} />;
   return <div className="cd-page ss-pop">
     <Link className="cd-link" to="/coding">{t('coding.title')}</Link>
-    <h1>{t('coding.evolving.title')}</h1>
-    {isAuthenticated && progress.isError && <p className="cd-note cd-note--error" role="alert">{t('coding.discovery.failed')} <Button variant="secondary" onClick={()=>void progress.refetch()} label={t('coding.retry')} /></p>}
-    <EvolvingGallery passed={passed} premiumOf={premiumOf} category="fullstack" />
+    <Kicker as="h1" className="ss-section-title" id="cd-fullstack-title">{codingListCopy('coding.fullstack.title')}</Kicker>
+    <PlanNotice failed={planFailed} onRetry={retryPlan} />
+    {isAuthenticated && progress.isError && !progress.data && <p className="cd-note cd-note--error" role="alert">{t('coding.discovery.failed')} <Button variant="secondary" onClick={()=>void progress.refetch()} label={t('coding.retry')} /></p>}
+    <StaleProgressNotice failed={isAuthenticated && progress.isError && Boolean(progress.data)} onRetry={() => void progress.refetch()} />
+    <EvolvingGallery passed={passed} premiumOf={premiumOf} category="fullstack" progressKnown={!isAuthenticated || Boolean(progress.data)} labelledBy="cd-fullstack-title" />
   </div>;
 }
 
@@ -548,7 +603,9 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
   // No task is graded by a checklist since 29 Sep 2026, so an old
   // ?format=checklist link reads as no format filter rather than an empty list.
   const formatParam = params.get('format');
-  const format = formatParam === 'tests' || formatParam === 'debug' ? formatParam : 'all';
+  // Old ?format=tests links still include every test-graded task. All issued
+  // formats use tests; the current choices describe what the learner does.
+  const format = formatParam === 'write' || formatParam === 'debug' ? formatParam : 'all';
   const savedOnly = params.get('saved') === '1';
   const bookmarks = useBookmarks(isAuthenticated);
   const savedIds = useMemo(() => new Set(bookmarks.data?.saved ?? []), [bookmarks.data]);
@@ -556,8 +613,13 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
   // `mutate` keeps its identity while the mutation's result object does not,
   // so the rows' callback stays the same and the rows can skip a redraw.
   const saveChallenge = save.mutate;
+  const savingChallenge = useRef(false);
   const onSave = useCallback((taskId: string, next: boolean) => {
-    saveChallenge({ op: 'save', taskId, saved: next });
+    // Each response contains the whole saved set. Serialize writes so an older
+    // response cannot replace a newer one, even before React shows busy state.
+    if (savingChallenge.current) return;
+    savingChallenge.current = true;
+    saveChallenge({ op: 'save', taskId, saved: next }, { onSettled: () => { savingChallenge.current = false; } });
   }, [saveChallenge]);
 
   const tasks = useMemo(() => SECTION_INDEX.filter((task) => task.track === track), [track]);
@@ -577,10 +639,9 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
     if (duration === 'short' && task.estimatedMinutes > 10) return false;
     if (duration === 'medium' && (task.estimatedMinutes <= 10 || task.estimatedMinutes > 25)) return false;
     if (duration === 'long' && task.estimatedMinutes <= 25) return false;
-    // Format is what the learner does (write it, or fix it); verify is how it
-    // is graded. The filter offers both, because they answer different questions.
+    // A single dimension: write the implementation or repair an existing one.
     if (format === 'debug' && formatOf(task) !== 'debug') return false;
-    if (format !== 'all' && format !== 'debug' && task.verify !== format) return false;
+    if (format === 'write' && formatOf(task) !== 'implement') return false;
     if (savedOnly && !savedIds.has(task.id)) return false;
     if (statusFilter === 'all') return true;
     const status = statusOf(task);
@@ -592,7 +653,7 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
   const groupsHere = useMemo(() => GROUPS.filter((g) => tasks.some((task) => task.focus.some((tag) => (CODING_TECHNIQUE_GROUPS[g] as readonly string[]).includes(tag)))), [tasks]);
   // The plan decides which rows carry the Premium mark, so the list waits for
   // it, as the Coding home does; a plan that cannot load says so.
-  if (planLoading) return <LoadingScreen label={t('coding.loading')} />;
+  if (planLoading || (isAuthenticated && progress.isLoading && !progress.data)) return <LoadingScreen label={t('coding.loading')} />;
   // Without the learner's progress the list would read "0 passed", every
   // passed task "Open" and later tiers locked. It says the read failed
   // instead, as the Coding home does, and offers it again.
@@ -634,11 +695,8 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
           <p className="cd-track__count" style={{ margin: '6px 0 0' }}>{t('coding.progress', { passed: done, total: tasks.length })}</p>
         </div>
       </header>
-      {planFailed && (
-        <p className="cd-note cd-note--error" role="alert">
-          {t('coding.planFailed')} <Button variant="secondary" onClick={retryPlan} label={t('coding.retry')} />
-        </p>
-      )}
+      <PlanNotice failed={planFailed} onRetry={retryPlan} />
+      <StaleProgressNotice failed={isAuthenticated && progress.isError && Boolean(progress.data)} onRetry={() => void progress.refetch()} />
       <EvolvingGallery passed={passed} premiumOf={premiumOf} track={track} />
       {/* One filter row (UX audit coding-16): the search and one select per
           filter, the technique one at every width, and status with Saved for
@@ -673,10 +731,10 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
           <option value="medium">{t('coding.filter.durationMedium')}</option>
           <option value="long">{t('coding.filter.durationLong')}</option>
         </select>
-        <label className="cd-visually-hidden" htmlFor={`${track}-format`}>{t('coding.filter.format')}</label>
+        <label className="cd-visually-hidden" htmlFor={`${track}-format`}>{codingListCopy('coding.filter.taskType')}</label>
         <select id={`${track}-format`} value={format} onChange={(event) => setFilter('format', event.target.value === 'all' ? null : event.target.value)}>
-          <option value="all">{t('coding.filter.format')}</option>
-          <option value="tests">{t('coding.filter.formatTests')}</option>
+          <option value="all">{codingListCopy('coding.filter.taskType')}</option>
+          <option value="write">{codingListCopy('coding.filter.write')}</option>
           <option value="debug">{t('coding.filter.formatDebug')}</option>
         </select>
         {isAuthenticated && (
@@ -706,12 +764,13 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
           <Button variant="ghost" onClick={() => { if (searchBox.current) searchBox.current.value = ''; setParams(new URLSearchParams(), { replace: true }); }} label={t('coding.filter.reset')} />
         )}
       </div>
+      {isAuthenticated && bookmarks.isError && <p className="cd-note cd-note--error" role="alert">{bookmarks.data ? codingListCopy('coding.saved.stale') : t('coding.saved.loadFailed')} <Button variant="secondary" onClick={() => void bookmarks.refetch()} label={t('coding.retry')} /></p>}
       {/* The total is the header's; the count speaks only once a filter
           narrows the list. The live region stays in place, empty, so the
           first filter is announced too. */}
-      <p className="cd-filter-count" role="status">{filtersOn ? t('coding.filter.count', { shown: filtered.length, total: tasks.length }) : ''}</p>
+      <p className="cd-filter-count" role="status">{savedOnly && !bookmarks.data ? bookmarks.isPending ? codingListCopy('coding.saved.loading') : '' : filtersOn ? t('coding.filter.count', { shown: filtered.length, total: tasks.length }) : ''}</p>
 
-      {filtered.length === 0 && <p className="cd-note">{filtersOn ? t('coding.filter.empty') : t('coding.empty')}</p>}
+      {filtered.length === 0 && !(savedOnly && !bookmarks.data) && <p className="cd-note">{filtersOn ? t('coding.filter.empty') : t('coding.empty')}</p>}
       {bands.map(({ level, tiers }) => (
         <section key={level} className="cd-band" aria-labelledby={`cd-band-${level}`}>
           <h2 id={`cd-band-${level}`} className="cd-band__title">{t(`coding.difficulty.${level}`)}</h2>
@@ -731,8 +790,9 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
                       status={statusOf(task)}
                       premium={premiumOf(task.id)}
                       saved={savedIds.has(task.id)}
-                      onSave={isAuthenticated ? onSave : undefined}
+                      onSave={isAuthenticated && bookmarks.data ? onSave : undefined}
                       saving={save.isPending}
+                      saveError={save.isError && save.variables?.op === 'save' && save.variables.taskId === task.id}
                     />
                   ))}
                 </ul>
@@ -752,6 +812,14 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
 function StageNav({ stages, short, currentId, passed, premiumOf }: { stages: readonly string[]; short: boolean; currentId: string; passed: ReadonlySet<string>; premiumOf: (taskId: string) => LockState }) {
   const { t } = useLanguage();
   const navRef = useRef<HTMLElement>(null);
+  const [explainedLock, setExplainedLock] = useState<string | null>(null);
+  const prerequisiteReason = (index: number) => codingListCopy(short ? 'coding.level.unlock' : 'coding.stage.unlock', {
+    previous: stages.slice(0, index).findIndex((id) => !evolvingPassed(id, passed)) + 1,
+    n: index + 1,
+  });
+  const explainedIndex = explainedLock ? stages.indexOf(explainedLock) : -1;
+  const lockReason = explainedIndex > 0 && !evolvingUnlocked(stages[explainedIndex], passed)
+    ? prerequisiteReason(explainedIndex) : null;
   // On a phone the list scrolls sideways; bring the open stage into view
   // without moving the page.
   useEffect(() => {
@@ -770,7 +838,7 @@ function StageNav({ stages, short, currentId, passed, premiumOf }: { stages: rea
     else groups.push({ level, entries: [{ id, index }] });
   });
   return (
-    <nav ref={navRef} className="cd-actions cd-stage-nav" aria-label={t(short ? 'coding.evolving.levels' : 'coding.evolving.title')}>
+    <><nav ref={navRef} className="cd-actions cd-stage-nav" aria-label={t(short ? 'coding.evolving.levels' : 'coding.evolving.title')}>
       {groups.map(({ level, entries }) => {
         const labelId = `cd-stage-group-${entries[0].index}`;
         return (
@@ -785,13 +853,13 @@ function StageNav({ stages, short, currentId, passed, premiumOf }: { stages: rea
                 return <LockedButton key={id} variant="secondary" size="sm" label={premiumLabel} tooltip={premiumLabel} onClick={() => askForPremium(id)}>{index + 1}</LockedButton>;
               }
               return evolvingUnlocked(id, passed) || current
-                ? <Button key={id} variant={current ? 'primary' : 'secondary'} size="sm" as={Link} href={`/coding/${evolvingTaskTrack(id)}/${id}`} label={label} tooltip={label} aria-current={current ? 'step' : undefined}>{evolvingPassed(id, passed) ? '✓ ' : ''}{index + 1}</Button>
-                : <Button key={id} variant="secondary" size="sm" tooltip={label} isDisabled label={label}>{index + 1}</Button>;
+                ? <Button key={id} variant="secondary" size="sm" as={Link} href={`/coding/${evolvingTaskTrack(id)}/${id}`} label={label} tooltip={label} aria-current={current ? 'step' : undefined}>{evolvingPassed(id, passed) ? '✓ ' : ''}{index + 1}</Button>
+                : <LockedButton key={id} variant="secondary" size="sm" tooltip={prerequisiteReason(index)} label={`${label}. ${prerequisiteReason(index)}`} onClick={() => setExplainedLock(id)}>{index + 1}</LockedButton>;
             })}
           </div>
         );
       })}
-    </nav>
+    </nav>{lockReason && <p className="cd-note" role="status">{lockReason}</p>}</>
   );
 }
 

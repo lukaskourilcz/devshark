@@ -49,6 +49,8 @@
 /* Where the title will be while progress loads; still, so reduced motion needs nothing. */
 .cd-next__placeholder { display: inline-block; width: 9ch; height: 0.85em; border-radius: 4px; background: var(--color-border-strong); vertical-align: -0.05em; }
 .cd-next > .ss-swim-cta, .cd-next > .astryx-button { flex: none; }
+.cd-next__choices { display: grid; gap: 6px; margin-top: 8px; min-width: 0; font-size: 0.85rem; }
+.cd-next__choices select { width: 100%; min-width: 0; min-height: var(--ss-control-height); color: var(--color-text-primary); background: var(--color-background-surface); border: 1px solid var(--ss-card-line); border-radius: var(--radius-inner); font: inherit; }
 @media (max-width: 860px) {
   .cd-home-head { grid-template-columns: minmax(0, 1fr); }
   .cd-next { width: 100%; }
@@ -422,7 +424,7 @@
 /* Earlier stage briefs: still binding, no longer the task. Smaller, lighter and
    numbered, so the current brief above keeps the weight. */
 .cd-previous { font-size: 0.86rem; color: var(--color-text-secondary); }
-.cd-previous > summary { cursor: pointer; font-weight: 600; font-size: 0.82rem; min-height: 32px; display: flex; align-items: center; gap: 6px; }
+.cd-previous > summary { cursor: pointer; font-weight: 600; font-size: 0.82rem; min-height: var(--ss-control-height); display: flex; align-items: center; gap: 6px; }
 .cd-previous > summary:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 2px; border-radius: 4px; }
 .cd-previous__list { list-style: none; margin: 8px 0 0; padding: 0 0 0 12px; display: grid; gap: 10px; border-left: 2px solid var(--color-border); }
 .cd-previous__list li { display: grid; gap: 2px; }
@@ -683,8 +685,9 @@
 .cd-hint--failure p { margin: 0; }
 
 /* Saved challenges, collections, filters and short sessions. */
-.cd-row-item { display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--ss-card-line); }
+.cd-row-item { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; border-bottom: 1px solid var(--ss-card-line); }
 .cd-row-item .cd-row { flex: 1 1 auto; }
+.cd-row-item__error { flex-basis: 100%; margin: 0 0 8px; color: var(--color-text-primary); font-size: 0.875rem; }
 .cd-save {
   flex: none;
   min-width: 44px;
@@ -702,7 +705,7 @@
 .cd-save:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 2px; }
 /* The same star in the workbench toolbar, sized like the report flag beside it. */
 .cd-save--toolbar { min-width: 44px; width: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-element); font-size: 1.15rem; }
-.cd-save:disabled { opacity: 0.55; cursor: not-allowed; }
+.cd-save:disabled, .cd-save[aria-disabled='true'] { opacity: 0.55; cursor: not-allowed; }
 
 /* The challenge-run planner on the Coding home: a form the learner shapes a
    run with, or the one open run and its actions. Same paper as the panes. */
@@ -745,6 +748,9 @@
 .cd-run__card { display: grid; gap: 8px; }
 .cd-run__summary { margin: 0; font-family: var(--font-family-heading); font-size: 1.2rem; font-weight: 700; }
 .cd-run__when { margin: 0; color: var(--color-text-secondary); }
+.cd-run__ending { display: flex; flex: 1 1 auto; align-items: center; justify-content: flex-end; gap: 12px; min-width: 0; }
+.cd-run__ending > span { min-width: 0; color: var(--color-text-secondary); font-size: 0.85rem; }
+.cd-run__ending > .astryx-button { flex: none; }
 @media (max-width: 560px) { .cd-run__options { grid-template-columns: minmax(0, 1fr); } }
 
 /* One filter row (UX audit coding-16): the search grows, the selects share
@@ -865,6 +871,7 @@
 /* Keep 10–12 stage controls reachable without pushing the brief below a phone screen. */
 .cd-stage-nav { flex-wrap: nowrap; overflow-x: auto; padding: 4px 2px; }
 .cd-stage-nav .astryx-button { flex: 0 0 auto; min-width: 44px; min-height: 44px; justify-content: center; }
+.cd-stage-nav [aria-current='step'] { color: var(--brand-accent); border-color: var(--brand-accent); }
 /* Stages under their difficulty: a text label opens each run of stages. */
 .cd-stage-group { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
 .cd-stage-group + .cd-stage-group { padding-left: 10px; border-left: 1px solid var(--ss-card-line); }

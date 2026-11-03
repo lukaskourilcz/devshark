@@ -117,7 +117,10 @@ describe('the section switch while a level is open', () => {
   it('keeps the level on screen and shows the new section once the learner leaves it', async () => {
     answer();
     await mountAt('/learn/web-developer?topic=html&level=1');
-    const start = await screen.findByRole('button', { name: 'Start the level' }, { timeout: 5000 }).catch(() => null);
+    await waitFor(() => expect(
+      screen.queryByRole('button', { name: 'Start the level' }) ?? screen.queryByText('Which option is first?'),
+    ).not.toBeNull(), { timeout: 10_000 });
+    const start = screen.queryByRole('button', { name: 'Start the level' });
     if (start) fireEvent.click(start);
     expect(await screen.findByText('Which option is first?')).toBeInTheDocument();
 
@@ -148,7 +151,7 @@ describe('the section switcher', () => {
     });
     await mountAt('/learn?topic=dsa&level=1');
     expect(await screen.findByText('Nothing here is open yet')).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /^DSA Foundations — Locked/ })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: /^DSA Foundations — Locked/ })).toHaveAttribute('aria-disabled', 'true');
     expect(screen.queryByText('Which option is first?')).toBeNull();
     expect(levelRequests).toEqual([]);
     server.events.removeAllListeners('request:start');
@@ -160,7 +163,7 @@ describe('joining Software Engineer', () => {
     signIn({ devquiz_learning_preference_v1: FRONTEND });
     answer({ javascript: { levels: Object.fromEntries(levels(5).map(({ level: n }) => [String(n), { passed: true }])), checkpoints: {} } });
     await mountAt('/learn/software-engineer');
-    expect(await screen.findByRole('radio', { name: /^Algorithms, not in your plan/ })).toBeDisabled();
+    expect(await screen.findByRole('radio', { name: /^Algorithms, not in your plan/ })).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByRole('radio', { name: /^Git, Premium$/ })).not.toBeDisabled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Add it to your plan' }));
@@ -193,7 +196,7 @@ describe('joining Software Engineer', () => {
 
     auth.value = { ...auth.value, user: { id: 'user-2', user_metadata: { devquiz_learning_preference_v1: FRONTEND } }, isAuthenticated: true };
     act(() => clearAccountData());
-    expect(await screen.findByRole('radio', { name: /^Algorithms, not in your plan/ })).toBeDisabled();
+    expect(await screen.findByRole('radio', { name: /^Algorithms, not in your plan/ })).toHaveAttribute('aria-disabled', 'true');
     expect(screen.queryByText(/Software Engineer is in your plan\./)).toBeNull();
     expect(screen.getByRole('button', { name: 'Add it to your plan' })).toBeInTheDocument();
   });
@@ -210,7 +213,7 @@ describe('joining Software Engineer', () => {
     auth.value = { ...auth.value, user: { id: 'user-2', user_metadata: { devquiz_learning_preference_v1: FRONTEND } }, isAuthenticated: true };
     act(() => clearAccountData());
     await act(async () => { land({ ok: true, preference: FRONTEND }); });
-    expect(await screen.findByRole('radio', { name: /^Algorithms, not in your plan/ })).toBeDisabled();
+    expect(await screen.findByRole('radio', { name: /^Algorithms, not in your plan/ })).toHaveAttribute('aria-disabled', 'true');
     expect(screen.queryByText(/Software Engineer is in your plan\./)).toBeNull();
   });
 
@@ -280,7 +283,13 @@ describe('joining Forward Deployed Engineer', () => {
 describe('the Learn header (UX audit learn-01)', () => {
   // One h1 in every auth state; the switcher is the one place the section
   // is named, so the section body never repeats it.
-  const bodyText = () => document.querySelector('.rm-section-body')?.textContent ?? '';
+  const bodyText = () => {
+    const body = document.querySelector('.rm-section-body')?.cloneNode(true) as HTMLElement | undefined;
+    // Contextual lock descriptions are closed until a particular item is
+    // inspected; they are not another visible section header.
+    body?.querySelectorAll('[popover]').forEach((tooltip) => tooltip.remove());
+    return body?.textContent ?? '';
+  };
 
   it('is "Learn" for a visitor, with the section named only in the switcher', async () => {
     answer();
@@ -348,7 +357,7 @@ describe('the topic rail (UX audit learn-07)', () => {
     // The rail shares its tiles evenly across its rows: ten are two of five.
     const rail = document.querySelector<HTMLElement>('.rm-topic-rail')!;
     expect(rail.style.getPropertyValue('--rm-rail-cols')).toBe(String(Math.ceil(tiles.length / Math.ceil(tiles.length / 5))));
-    const note = screen.getByText(/paths still locked\./);
+    const note = screen.getByText(/topics locked\./);
     expect(note.closest('.rm-skillcheck-row')).not.toBeNull();
     expect(note.closest('.rm-skillcheck-row')!.querySelector('.rm-skillcheck-cta')).not.toBeNull();
   });
@@ -410,9 +419,23 @@ describe('a topic Premium opens, on a free account (UX audit learn-22)', () => {
 });
 
 describe('a topic whose first levels are free, on a free account (UX audit learn-22)', () => {
+  it('keeps the Premium guard when the overview’s next step is the final part test', async () => {
+    signIn({ devquiz_learning_preference_v1: FRONTEND });
+    answer({
+      javascript: { levels: Object.fromEntries(levels(5).map(({ level: n }) => [String(n), { passed: true }])), checkpoints: {} },
+      dsa: {
+        levels: Object.fromEntries(levels(10).map(({ level: n }) => [String(n), { passed: true }])),
+        checkpoints: { 1: { passed: true }, 2: { passed: true } },
+      },
+    });
+    await mountAt('/learn/software-engineer?topic=dsa');
+    fireEvent.click(await screen.findByRole('button', { name: 'See Premium', description: 'Part 3 Test is part of Premium' }));
+    expect(sheets.calls).toEqual([{ kind: 'learn-part-test', ref: 'dsa:part-3' }]);
+  });
+
   it('says the level Premium starts at, not that the whole topic is Premium', async () => {
     signIn({ devquiz_learning_preference_v1: FRONTEND });
-    const passed = (count: number) => ({ levels: Object.fromEntries(levels(count).map(({ level: n }) => [String(n), { passed: true }])), checkpoints: {} });
+    const passed = (count: number) => ({ levels: Object.fromEntries(levels(count).map(({ level: n }) => [String(n), { passed: true }])), checkpoints: { 1: { passed: true } } });
     answer({ javascript: passed(5), dsa: passed(5) });
     await mountAt('/learn/software-engineer?topic=dsa');
     const see = await screen.findByRole('button', { name: 'See Premium', description: 'From level 6, DSA Foundations is part of Premium' });

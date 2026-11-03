@@ -3,7 +3,7 @@
 // PendingQuizResults loads it only when a signed-in learner has a result
 // waiting, which is rare.
 import { accountEpoch } from './accountData';
-import { dropPendingReceipt, isReceiptRefused, pendingReceiptsFor } from './pendingQuizReceipts';
+import { resolvePendingReceipt, isReceiptRefused, pendingReceiptsFor } from './pendingQuizReceipts';
 import { recordQuizResult, type UserStats } from './supabase';
 
 // The replay under way. Coming back online while one runs started a second
@@ -41,13 +41,13 @@ async function sendPending(
     try {
       const saved = await recordQuizResult(pending.receipt, pending.profile);
       if (accountEpoch() !== epoch) break;
-      dropPendingReceipt(key);
+      resolvePendingReceipt(key, userId, 'saved');
       recorded++;
       onRecorded?.(saved.data);
     } catch (error) {
       if (accountEpoch() !== epoch) break;
       if (isReceiptRefused(error)) {
-        dropPendingReceipt(key);
+        resolvePendingReceipt(key, userId, 'refused');
         refused++;
       }
     }

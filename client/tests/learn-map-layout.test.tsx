@@ -68,7 +68,7 @@ describe('the Learn map at phone width', () => {
 
   it('writes a locked level’s name in the secondary text colour', async () => {
     await renderMap(390);
-    expect(screen.getByRole('button', { name: 'Level 2: Level 2, Locked' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Level 2: Level 2, Locked' })).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByText('Level 2').style.color).toBe('var(--color-text-secondary)');
     expect(screen.getByText('Level 1').style.color).toBe('var(--color-text-primary)');
   });

@@ -91,8 +91,12 @@ describe('the stage list on the free plan', () => {
     expect(waiting.map((button) => button.textContent)).toEqual(['2', '3']);
     for (const button of waiting) {
       expect(button).toHaveAttribute('aria-disabled', 'true');
+      expect(button).not.toBeDisabled();
       fireEvent.click(button);
     }
+    expect(screen.getByText('Complete stage 1 to unlock stage 3.', { selector: 'p' })).toHaveAttribute('role', 'status');
+    expect(waiting[0]).toHaveAccessibleName('Evolving · Stage 2 of 10. Complete stage 1 to unlock stage 2.');
+    expect(nav).not.toHaveTextContent('Current');
     expect(sheet.open).not.toHaveBeenCalled();
     fireEvent.click(premium[0]);
     expect(sheet.open).toHaveBeenCalledWith({ kind: 'evolving-stage', ref: `${project.id}:4` });
@@ -124,7 +128,10 @@ describe('the project cards on the free plan', () => {
   // row keeps only its "Premium" badge beside its progress line.
   it('name the stages the free plan opens once: 1 and 2 of a FullStack app, level 1 of a short path', () => {
     mount('/coding/fullstack', <FullStackScreen />, '/coding/fullstack');
-    const list = screen.getByRole('region', { name: 'FullStack' });
+    const list = screen.getByRole('region', { name: 'FullStack projects' });
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('FullStack projects');
+    expect(screen.queryByRole('heading', { name: 'Evolving challenges' })).toBeNull();
     expect(within(list).getAllByText(/come with the free plan/)).toHaveLength(1);
     expect(within(list).getByText('Level 1 of every path, and stages 1 and 2 of every project, come with the free plan. Premium opens the rest.')).toBeInTheDocument();
     const rows = within(list).getAllByRole('article');
@@ -132,6 +139,9 @@ describe('the project cards on the free plan', () => {
     for (const row of rows) {
       expect(within(row).getByText('Premium')).toBeInTheDocument();
       expect(row).not.toHaveTextContent(/free plan/);
+      expect(row.querySelector('.cd-project__track')).toBeNull();
+      const title = within(row).getByRole('heading').textContent;
+      expect(within(row).getByRole('button')).toHaveAccessibleName(`Start ${title}`);
     }
   });
 });

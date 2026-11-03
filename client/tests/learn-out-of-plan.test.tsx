@@ -126,7 +126,7 @@ describe('a refusal for a signed-in learner', () => {
     const fetched = answer({ levels: { 1: MASTERED, 2: MASTERED }, checkpoints: {} }, ['2']);
     await mountAt('/learn?topic=html&level=2', <Roadmap />);
     await waitFor(() => expect(fetched).toEqual(['level:2']), { timeout: 5000 });
-    expect(await screen.findByText('Not part of the track you chose. Change your track on the Roadmap page to open it.', {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(await screen.findByText('Not in your learning plan. Choose your plan in Profile to open this topic.', {}, { timeout: 5000 })).toBeInTheDocument();
     expect(screen.queryByText('You need to sign in to do that.')).toBeNull();
   });
 });

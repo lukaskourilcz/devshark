@@ -1,6 +1,6 @@
 # Release acceptance matrix
 
-## Current state (24 October 2026, after PR #591)
+## Current state (3 November 2026, after PR #594)
 
 This file is an append-style evidence ledger. Each dated entry records what someone checked that day, and later entries leave earlier ones as they were. The entries from 15 October back to 8 September sit at the top; from "2026-09-11 — eight free-tool recommendations" on, the file runs oldest to newest, so the newest entry is at the end.
 
@@ -12,12 +12,12 @@ Released:
 - Since #590 and #591 a read trusts a token Supabase Auth accepted on the same instance for up to a minute, the learning-path catalogue is shared by the CDN for five minutes, a free coding task's brief is a public read apart from the caller's part, and the browser loads the TypeScript compiler, Prettier, CodeMirror and the React sandbox when the learner reaches for them. `docs/product-architecture.md` describes each change and its bound; `NEEDED.md` lists the trade-offs for the owner to accept or turn off.
 - The progress PUT on `/api/quiz/roadmap` is retired and answers 405. The browser only reads progress.
 - Learn has three sections: Web Developer, Software Engineer and Forward Deployed Engineer. DSA lives in Learn as the topics `dsa` and `dsa-advanced`. The standalone DSA path is retired, and `/roadmap/paths/dsa-foundations/*` answers 308 to `/learn/software-engineer?topic=dsa`.
-- The FDE path is built and merged (epics A to E are closed) but switched off: Production does not set `LEARNING_PATH_FDE_ENABLED`. No Vercel environment sets an FDE or marketing-export variable, so the OwnDashboard marketing export stays inactive too.
+- The FDE path is available in Production since 3 November 2026, following the owner’s explicit launch instruction. Production sets `LEARNING_PATH_FDE_ENABLED=true`; Preview and Development remain unset. The diagnostic and first module remain free under the existing tier rules. The marketing export remains inactive; its separate variable was not changed.
 - devShark has shipped English only since 21 October 2026. Entries before that date describe a second language (Czech) that no longer exists.
 - Merchandise stays paused behind `MERCH_ENABLED`, and Stripe billing (#221) is not live.
 - Content review totals live in the "Current state" section of `docs/audit/devshark-content-audit.md`.
 
-Every open item lives in `NEEDED.md`. The owner items there include switching the FDE path on (the entry "B14 FDE release verification — 22 October 2026" is the evidence), the Terms line that still promises "the FDE and DSA learning paths", failure alerts and an uptime monitor for #190, the decisions under #391, #236 and #221, the performance trade-offs of #587, and the product decisions and migrations the audits raised. Nobody has run an authenticated walk-through on production or a preview, checked physical devices, or seen real learners' FDE data yet. The code audits ran no browser, responsive or SQL tests themselves; CI runs those.
+Every open item lives in `NEEDED.md`. The owner items there include an authenticated walkthrough of the now-live FDE path (the entry "FDE production launch — 3 November 2026" records the guest launch checks), the Terms line that still promises "the FDE and DSA learning paths", failure alerts and an uptime monitor for #190, the decisions under #391, #236 and #221, the performance trade-offs of #587, and the product decisions and migrations the audits raised. Nobody has run an authenticated walk-through on production or a preview, checked physical devices, or seen real learners' FDE data yet. The code audits ran no browser, responsive or SQL tests themselves; CI runs those.
 
 Of the issues these entries name, only #190, #221, #236, #391 and #587 are still open; #587 closes with the final walk's pull request. A "remains open" or "pending" line about any other issue or PR records the state on that entry's date. On 22 October 2026 the owner dropped Cloudflare Turnstile (#202), the workbench handoff with the unmerged `claude/elegant-cori-h9cdgb` work (#208; the branch survives as tag `archive/2026-10-22/claude/elegant-cori-h9cdgb`), the StudyShark promo video and the October marketing plan (#239). Entries that mention them describe past work, not plans.
 
@@ -6369,3 +6369,24 @@ Local Node 24.22.2 evidence: API, script and client-tooling typechecks, producti
 `docs/ux-audit-2026-11-03/index.html` embeds the three parallel audits, 26 proposed findings, actual screenshots, before/after schematics and the reusable audit prompt. The proposals are not implemented product changes. Integrated HTML passed all seven widths without page overflow, embedded images loaded, panels expanded to their full height, and area/priority filters returned the expected counts. Each area records its own runtime coverage and source-only findings.
 
 This entry records local evidence before the required checked PR merge. SQL and the complete CI matrix run on GitHub; no local database VM was started. Authenticated production behavior, physical devices and a full screen-reader review are not claimed.
+
+
+## FDE production launch — 3 November 2026
+
+The owner explicitly authorised the FDE path launch while requesting implementation of the three-area UX audit. `LEARNING_PATH_FDE_ENABLED=true` is configured for Production only on Vercel project `prj_E07Vsg4wS2K2jTximjwW6Nviahyj` (team `lukas-kourils-projects`). No other setting, entitlement, grading, reward or schema changed.
+
+PR #594 merged with its 16 incremental commits preserved at `0744084be47dbd54ad2021600a42b60ddad6a0ba`. Frozen head `b9f91d20` passed required run `41661730882`: SQL 35s, QuickJS 22s, static 1m49s, tests 8m15s, browser 10m40s, coding 21m20s and verify green. READY production `dpl_FkqzWx8MSztcEaMNmdNYXBwEMbZZ` matches the merge SHA and serves devshark.app; the same deployment includes the Description tab change.
+
+Before enabling, read-only metadata checks confirmed all five learning-path tables have RLS enabled, `learning_path_attempts` has zero policies, and `accept_learning_path_quota_result` is executable by service_role but not anon or authenticated. The catalogue validator reports the FDE content ready; its six existing optional interview-task contract warnings are non-blocking and no content was changed for rollout.
+
+After deployment, `/api/settings` reports FDE enabled/version1/available, the public catalogue reports available, and `/api/health` answers healthy with database and service-role checks OK and rate limiting configured. Real guest browser smoke passed eight cells: coding Digit sum, FDE hub, Customer discovery module and its first reading at 390px and 1280px. All answered 200, rendered their actual heading without horizontal overflow or page errors, and made zero API writes. The coding task opened Description without a Target duplicate.
+
+This is a guest launch check, not an authenticated production acceptance run. No production enrollment, submitted answer, learner result, account or Premium grant was created. The dedicated-account owner walkthrough remains open in NEEDED.md; physical devices and assistive technology are not claimed.
+
+## Approved UX implementation — 3 November 2026 (local evidence)
+
+The owner approved 25 of the 26 Coding/Learn/Quiz audit findings, with specific C04/C06/C07/L03 overrides and L04 excluded. Implementation and the original before/after report are tracked in `docs/ux-audit-2026-11-03/IMPLEMENTATION.md`; the report now includes actual implemented screenshots. No schema, handler, grading, reward or access-rule change.
+
+Node 24.22.2: API/scripts/tooling types, build, public/design contract, unused and security checks pass. Production-shaped initial load is 231,726/241,651 gzip bytes; monitoring 49,500/60,000. Both production npm audits report zero vulnerabilities. Integrated browser coverage passes 102/103 initially, with the transient XP-toast case passing on follow-up and its expected-time evaluation moved before Submit. Learn's seven focused browser cases and 42 responsive cells pass; Quiz's 20 cases include the final expiry geometry check. The standalone HTML passes seven widths and its embedded-image/filter checks.
+
+The first whole-client unit run passed 1,788/1,795. Follow-up runs pass the initially failing cases after updating the guest fixture, controlling late progress and testing the eager-reading boundary contract without CPU timing noise. The radio-card follow-up also passes against the frozen integrated source. Initial tooling errors in test fixtures were corrected and the final tooling/public check passes. Full CI is the release gate; no new main merge or production deployment is claimed here.

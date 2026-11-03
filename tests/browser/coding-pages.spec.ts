@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { CODING_TASKS, playable } from '../../lib/coding/catalog';
 import { localAuth, storeFakeSession } from './fake-session';
 import { fulfilTaskRead, isTaskRead } from './coding-task-read';
+import { EVOLVING_CHALLENGES } from '../../shared/evolving';
 
 // The Coding pages against the built app, with the API answered here in its
 // real shapes: a missing track or task (C3-17, V3-2), a track whose progress
@@ -24,6 +25,8 @@ const unknownTask = (route: Route) => route.fulfill({ status: 404, json: { error
 interface Api {
   progress?: (route: Route) => Promise<void>;
   task?: (route: Route) => Promise<void>;
+  session?: (route: Route) => Promise<void>;
+  bookmarks?: (route: Route) => Promise<void>;
 }
 /** The API this page talks to; anything else answers 404. */
 async function answer(page: Page, api: Api = {}) {
@@ -37,8 +40,8 @@ async function answer(page: Page, api: Api = {}) {
     }
     if (op === 'entitlement') return route.fulfill({ json: PREMIUM });
     if (op === 'coding-progress') return api.progress ? api.progress(route) : route.fulfill({ json: PROGRESS });
-    if (op === 'coding-bookmarks') return route.fulfill({ json: { saved: [], collections: [] } });
-    if (op === 'practice-session') return route.fulfill({ json: { session: null } });
+    if (op === 'coding-bookmarks') return api.bookmarks ? api.bookmarks(route) : route.fulfill({ json: { saved: [], collections: [] } });
+    if (op === 'practice-session') return api.session ? api.session(route) : route.fulfill({ json: { session: null } });
     return notFound(route);
   });
 }
@@ -92,6 +95,131 @@ test.describe('signed in', () => {
   test.beforeEach(async ({ page }) => {
     await localAuth(page);
     await storeFakeSession(page);
+  });
+
+  for (const theme of ['light', 'dark'] as const) for (const width of [360, 390, 430, 768, 1024, 1280, 1440]) {
+    test(`Coding audit: resume, FullStack and stage context at ${width}px in ${theme}`, async ({ page }, testInfo) => {
+      const project = EVOLVING_CHALLENGES.find(item => item.id === 'js-evolving-calculator')!;
+      await page.setViewportSize({ width, height: 1000 });
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+      await page.addInitScript(value => {
+        localStorage.setItem('devquiz:color-mode', value);
+        localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+      }, theme);
+      await answer(page, {
+        progress: route => route.fulfill({ json: { ...PROGRESS, tasks: { [project.stages[0]]: PROGRESS.tasks[TASK] } } }),
+        session: route => route.fulfill({ json: { session: { sessionId: 'audit-run', status: 'active', queue: ['js-digit-sum', 'js-count-multiples'], position: 1, minutes: 10, estimatedMinutes: 10, count: 2, order: 'sequential', topic: 'javascript', scheduledFor: null } } }),
+        task: route => {
+          const authored = CODING_TASKS.find(task => task.id === new URL(route.request().url()).searchParams.get('id'));
+          if (!authored) throw new Error('Missing audit fixture task');
+          return fulfilTaskRead(route, { task: playable(authored), session: 'audit-task', locked: null, progress: null, draft: null, signedIn: true });
+        },
+      });
+      const noOverflow = async () => expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.goto('/coding');
+      const resume = page.getByRole('region', { name: 'Continue your run' });
+      await expect(resume).toContainText('Count multiples');
+      await expect(page.locator('.cd-run').getByRole('link', { name: 'Continue', exact: true })).toHaveCount(0);
+      const ending = page.locator('.cd-run__ending');
+      await expect(ending).toContainText('Completed challenges stay saved.');
+      const text = await ending.locator(':scope > span').boundingBox();
+      const button = await ending.getByRole('button', { name: 'End the run' }).boundingBox();
+      expect(text && button && Math.abs(text.y + text.height / 2 - button.y - button.height / 2) < 2).toBe(true);
+      await noOverflow();
+      if (width === 1280 && theme === 'dark') {
+        await page.screenshot({ path: testInfo.outputPath('coding-resume-after.png') });
+        await page.locator('.cd-run').screenshot({ path: testInfo.outputPath('coding-run-actions-after.png') });
+      }
+
+      await page.goto('/coding/fullstack');
+      await expect(page.getByRole('heading', { level: 1, name: 'FullStack projects' })).toBeVisible();
+      await expect(page.locator('.cd-project__track')).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Start Link shortener', exact: true })).toBeVisible();
+      await noOverflow();
+      if (width === 1280 && theme === 'dark') await page.screenshot({ path: testInfo.outputPath('coding-fullstack-after.png') });
+
+      await page.goto(`/coding/javascript/${project.stages[2]}`);
+      const nav = page.locator('.cd-stage-nav');
+      const current = nav.locator('[aria-current="step"]');
+      await expect(current).toHaveText('3');
+      const accent = await current.evaluate(node => {
+        const color = document.createElement('span');
+        color.style.color = getComputedStyle(node).getPropertyValue('--brand-accent').trim();
+        return color.style.color;
+      });
+      await expect(current).toHaveCSS('color', accent);
+      await expect(nav).not.toContainText('Current');
+      await expect(page.locator('.cd-brief__meta')).toHaveCount(0);
+      const requirements = page.locator('.cd-previous > summary');
+      await expect(requirements).toBeVisible();
+      expect((await requirements.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      const locked = nav.getByRole('button', { name: /Stage 4 of 10\. Complete stage 2 to unlock stage 4\./ });
+      await locked.focus();
+      await expect(locked).toBeFocused();
+      await expect(locked).toHaveAttribute('aria-disabled', 'true');
+      await locked.press('Enter');
+      await expect(page.locator('p.cd-note[role="status"]')).toContainText('Complete stage 2 to unlock stage 4.');
+      await noOverflow();
+      if (width === 1280 && theme === 'dark') await page.screenshot({ path: testInfo.outputPath('coding-stage-after.png'), fullPage: true });
+    });
+  }
+
+  test('Coding audit: Saved failures recover and bookmark writes stay serialized', async ({ page }) => {
+    let failing = true;
+    let writes = 0;
+    let finish!: () => void;
+    const writing = new Promise<void>(resolve => { finish = resolve; });
+    await answer(page, { bookmarks: async route => {
+      if (route.request().method() === 'PUT') {
+        writes += 1;
+        await writing;
+        return route.fulfill({ json: { saved: ['js-digit-sum'], collections: [] } });
+      }
+      return failing
+        ? route.fulfill({ status: 500, json: { error: { code: 'db_error', message: 'Could not load bookmarks' } } })
+        : route.fulfill({ json: { saved: [], collections: [] } });
+    } });
+    await page.goto('/coding/javascript?saved=1');
+    await expect(page.getByRole('alert')).toContainText('Could not load your saved challenges.');
+    await expect(page.getByText('No challenge matches those filters. Clear them to see the rest.')).toHaveCount(0);
+    failing = false;
+    await page.getByRole('button', { name: 'Try again' }).click();
+    await expect(page.getByText('No challenge matches those filters. Clear them to see the rest.')).toBeVisible();
+    await page.getByRole('button', { name: 'Clear filters' }).click();
+    const star = page.getByRole('link', { name: /Digit sum/ }).locator('..').getByRole('button');
+    const other = page.getByRole('link', { name: /Count multiples/ }).locator('..').getByRole('button');
+    await star.click();
+    await expect(other).toHaveAttribute('aria-disabled', 'true');
+    await expect(star).toBeFocused();
+    await other.dispatchEvent('click');
+    expect(writes).toBe(1);
+    finish();
+    await expect(star).toHaveAttribute('aria-pressed', 'true');
+    await expect(other).toHaveAttribute('aria-pressed', 'false');
+    await expect(star).toBeFocused();
+  });
+
+  test('Coding audit: a phone offers explicit unfinished-project choices', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 900 });
+    const projects = EVOLVING_CHALLENGES.filter(project => !project.short && !project.category).slice(0, 2);
+    await answer(page, {
+      progress: route => route.fulfill({ json: { ...PROGRESS, tasks: Object.fromEntries(projects.map(project => [project.stages[0], PROGRESS.tasks[TASK]])) } }),
+      task: route => {
+        const task = CODING_TASKS.find(task => task.id === new URL(route.request().url()).searchParams.get('id'))!;
+        return fulfilTaskRead(route, { task: playable(task), session: 'choice-task', locked: null, progress: null, draft: null, signedIn: true });
+      },
+    });
+    await page.goto('/coding');
+    const card = page.getByRole('region', { name: 'Your next challenge' });
+    const resume = card.getByRole('button', { name: 'Continue', exact: true });
+    await expect(resume).toBeDisabled();
+    const choice = card.getByRole('combobox', { name: 'Choose what to continue' });
+    await choice.selectOption(projects[1].stages[1]);
+    await expect(resume).toBeEnabled();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await resume.click();
+    await expect(page).toHaveURL(new RegExp(`/coding/javascript/${projects[1].stages[1]}$`));
+    await expect(page.getByRole('tab', { name: 'Description', exact: true })).toBeVisible();
   });
 
   test('a track whose progress does not load says so, and draws the list on Try again', async ({ page }) => {

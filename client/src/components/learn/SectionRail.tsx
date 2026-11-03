@@ -6,7 +6,8 @@
 // second line, plus "Premium" where Premium opens it; "Locked" is in its
 // accessible name only. A topic outside the plan because the learner has not
 // joined the section is dimmed with "Not in your plan" (the header holds the
-// join action). Neither is selectable, and arrow keys skip both. A shared
+// join action). Neither is selectable; arrows can focus either to explain
+// its exact prerequisite without opening it. A shared
 // topic says which other sections list it; its progress line is the same
 // record wherever it appears. How many topics are still locked, and how to
 // open them, is said once, beside the skill check (`LockedNote`).
@@ -14,13 +15,14 @@
 import type { CSSProperties } from 'react';
 import { Button } from '@astryxdesign/core/Button';
 import { Skeleton } from '@astryxdesign/core/Skeleton';
+import { Tooltip } from '@astryxdesign/core/Tooltip';
 import { RadioCard, RadioCardGroup } from '../ui/RadioCards';
 import { CategoryGlyph } from '../ui/techIcons';
 import { SwimCta } from '../landing/LandingKit';
 import { categoryLabelKey, getCategoryHexColor, onCategoryColorText } from '../../lib/categories';
 import type { TranslationKey } from '../../i18n/translations';
 import { learnText } from '../../i18n/translations.learn';
-import { LEVELS_TO_UNLOCK_NEXT, passedLevelCount, type VerifiedProgress } from '../../../../shared/progression';
+import { LEVELS_TO_UNLOCK_NEXT, TOPIC_PREREQS, passedLevelCount, type VerifiedProgress } from '../../../../shared/progression';
 import type { RailEntry } from './sections';
 
 type TFn = (key: TranslationKey, vars?: Record<string, string | number>) => string;
@@ -54,6 +56,7 @@ export function SectionRail({
   entries,
   value,
   onSelect,
+  onInspect,
   loading,
   loadingCount,
   levelCounts,
@@ -64,6 +67,7 @@ export function SectionRail({
   entries: readonly RailEntry[];
   value: string;
   onSelect: (topic: string) => void;
+  onInspect?: (reason: string) => void;
   loading: boolean;
   loadingCount: number;
   levelCounts: Readonly<Record<string, number>>;
@@ -86,7 +90,7 @@ export function SectionRail({
           assistive technology announces "N of M selected". */}
       {/* Only an open topic reads as chosen: with nothing open in the
           section, no card is checked. */}
-      <RadioCardGroup value={entries.some((entry) => entry.topic === value && entry.state === 'open') ? value : ''} onChange={(next) => onSelect(String(next))} label={t('roadmap.topicsAria')} orientation="horizontal" className="rm-topic-rail" style={railStyle(entries.length)}>
+      <RadioCardGroup value={entries.some((entry) => entry.topic === value && entry.state === 'open') ? value : null} onChange={(next) => onSelect(String(next))} label={t('roadmap.topicsAria')} orientation="horizontal" className="rm-topic-rail" style={railStyle(entries.length)}>
         {entries.map((entry, index) => {
           const { topic, state, premium } = entry;
           const color = getCategoryHexColor(topic);
@@ -97,37 +101,49 @@ export function SectionRail({
                 : learnText('learn.rail.notJoinedAria', { topic: label, section: sectionName }),
             premium ? t('premium.badge') : null,
           ].filter(Boolean).join(', ');
+          const missing = (TOPIC_PREREQS[topic] ?? []).filter((prereq) => passedLevelCount(progress, prereq) < LEVELS_TO_UNLOCK_NEXT);
+          const reason = state === 'dimmed'
+            ? learnText('learn.rail.notJoinedReason', { section: sectionName })
+            : state === 'locked'
+              ? [learnText('learn.rail.prerequisiteReason', {
+                count: LEVELS_TO_UNLOCK_NEXT,
+                topics: missing.map((prereq) => t(categoryLabelKey(prereq))).join(', '),
+                topic: label,
+              }), premium ? learnText('learn.rail.premiumReason') : null].filter(Boolean).join(' ')
+              : '';
           return (
-            <RadioCard
-              key={topic}
-              value={topic}
-              index={index}
-              disabled={state !== 'open'}
-              label={name}
-              className={state === 'dimmed' ? 'rm-topic-pill rm-topic-pill--dimmed' : 'rm-topic-pill'}
-              padding={2.5}
-              style={{ ['--rm-accent']: color, ['--rm-on-accent']: onCategoryColorText(topic) } as CSSProperties}
-              data-locked={state === 'locked'}
-            >
-              {/* Constant white chip under the logo: the selected pill fills
-                  with the topic's own colour, which used to swallow a
-                  same-coloured glyph. */}
-              <span className="rm-topic-glyph">
-                <CategoryGlyph category={topic} color={color} size={20} />
-              </span>
-              <span className="rm-topic-text">
-                <span className="rm-topic-name">{label}</span>
-                <span className="rm-topic-progress">
-                  {state === 'locked' && <span className="rm-topic-lock" aria-hidden><LockIcon size={13} /></span>}
-                  {premium && <span className="ss-premium-label">{t('premium.badge')}</span>}
-                  {/* Without the structure (its request failed) the level
-                      count is unknown: an open topic shows no figure. */}
-                  {state === 'open'
-                    ? levelCounts[topic] === undefined ? null : <span className="rm-topic-count">{t('roadmap.progress', { done: passedLevelCount(progress, topic), total: levelCounts[topic] })}</span>
-                    : state === 'dimmed' ? learnText('learn.rail.notJoined') : null}
+            <Tooltip key={topic} content={reason} placement="above" isEnabled={reason !== ''}>
+              <RadioCard
+                value={topic}
+                index={index}
+                unavailable={state !== 'open'}
+                onUnavailable={(event) => { if (event.detail > 0) onInspect?.(reason); }}
+                label={name}
+                className={state === 'dimmed' ? 'rm-topic-pill rm-topic-pill--dimmed' : 'rm-topic-pill'}
+                padding={2.5}
+                style={{ ['--rm-accent']: color, ['--rm-on-accent']: onCategoryColorText(topic) } as CSSProperties}
+                data-locked={state === 'locked'}
+              >
+                {/* Constant white chip under the logo: the selected pill fills
+                    with the topic's own colour, which used to swallow a
+                    same-coloured glyph. */}
+                <span className="rm-topic-glyph">
+                  <CategoryGlyph category={topic} color={color} size={20} />
                 </span>
-              </span>
-            </RadioCard>
+                <span className="rm-topic-text">
+                  <span className="rm-topic-name">{label}</span>
+                  <span className="rm-topic-progress">
+                    {state === 'locked' && <span className="rm-topic-lock" aria-hidden><LockIcon size={13} /></span>}
+                    {premium && <span className="ss-premium-label">{t('premium.badge')}</span>}
+                    {/* Without the structure (its request failed) the level
+                        count is unknown: an open topic shows no figure. */}
+                    {state === 'open'
+                      ? levelCounts[topic] === undefined ? null : <span className="rm-topic-count">{t('roadmap.progress', { done: passedLevelCount(progress, topic), total: levelCounts[topic] })}</span>
+                      : state === 'dimmed' ? learnText('learn.rail.notJoined') : null}
+                  </span>
+                </span>
+              </RadioCard>
+            </Tooltip>
           );
         })}
       </RadioCardGroup>
@@ -147,7 +163,7 @@ export function LockedNote({ entries, t }: { entries: readonly RailEntry[]; t: T
       <LockIcon size={13} />
       <span>
         {t('roadmap.topicsLockedCount', { locked, total: reachable })}{' '}
-        {t('roadmap.topicsLockedHowTo')}
+        {t('roadmap.topicsLockedHowTo', { count: LEVELS_TO_UNLOCK_NEXT })}
       </span>
     </p>
   );

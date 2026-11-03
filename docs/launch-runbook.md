@@ -43,7 +43,7 @@ Feature switches:
 
 | Variable | Effect |
 |---|---|
-| `LEARNING_PATH_FDE_ENABLED=true` | Opens the FDE learning path. Unset in Production today, so the path is previewable only. |
+| `LEARNING_PATH_FDE_ENABLED=true` | Opens the FDE learning path. Set to `true` in Production on 3 November 2026 at the owner’s request; Preview and Development remain unset. |
 | `BILLING_ENABLED=true` | Opens Premium checkout when every Stripe value is present. Off. |
 | `REACT_RUNNER_SNAPSHOT_ID` | The Vercel Sandbox snapshot React grading runs on; needed in Production and Preview with Vercel OIDC ([React grading operations](react-grading-operations.md)). |
 | `SPREADSHOP_API_KEY`, `SPREADSHOP_SHOP_ID` | Optional Spreadshop promotion note on Rewards. |

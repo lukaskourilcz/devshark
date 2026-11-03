@@ -60,13 +60,12 @@ describe('opening a reading', () => {
     // Let the read's answer settle in the cache before the code arrives.
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    const arrivedAt = Date.now();
     gate.open();
     expect(await screen.findByText(PROSE, undefined, { timeout: 2000 })).toBeInTheDocument();
     // Drawn from state, not by suspending: React holds a boundary that showed
     // its fallback 300 ms before it draws what arrived (its production build;
-    // the test build skips that hold, so the boundary count pins it).
-    expect(Date.now() - arrivedAt).toBeLessThan(200);
+    // the test build skips that hold, so the boundary count pins it without
+    // depending on import/CPU wall time on a busy machine).
     expect(boundary.renders).toBe(0);
     expect(screen.getByRole('button', { name: 'Start the questions' })).toBeInTheDocument();
     // The reader took the opener's answer instead of asking again.

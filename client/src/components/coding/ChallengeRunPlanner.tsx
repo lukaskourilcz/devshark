@@ -68,7 +68,7 @@ export function runSummary(session: PracticeSession, t: (key: TranslationKey, va
 }
 
 /** The open run, with its own actions. */
-function RunCard({ session, onDone }: { session: PracticeSession; onDone: () => void }) {
+function RunCard({ session, onDone, resumeInPrimary = false }: { session: PracticeSession; onDone: () => void; resumeInPrimary?: boolean }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const advance = useAdvanceSession();
@@ -112,13 +112,16 @@ function RunCard({ session, onDone }: { session: PracticeSession; onDone: () => 
       <div className="cd-actions">
         {/* Secondary: the Coding home's one SwimCta is its next challenge. */}
         {scheduled && <Button variant="secondary" isDisabled={advance.isPending} onClick={begin} label={t('coding.run.startNow')} />}
-        {!scheduled && current && <Button variant="secondary" as={Link} href={taskHref(current)} label={t('coding.run.continue')} />}
+        {!scheduled && current && !resumeInPrimary && <Button variant="secondary" as={Link} href={taskHref(current)} label={t('coding.run.continue')} />}
         {scheduled && (
           <span className="ss-text-links" style={{ margin: 0 }}>
             <a href={calendarHref(session, t('coding.run.calendarTitle'))} download="devshark-challenge-run.ics">{t('coding.run.calendar')}</a>
           </span>
         )}
-        <Button variant="ghost" isDisabled={advance.isPending} onClick={end} label={t(finished ? 'coding.run.close' : scheduled ? 'coding.run.cancel' : 'coding.run.end')} />
+        <span className="cd-run__ending">
+          {!finished && <span>{codingListCopy('coding.run.saved')}</span>}
+          <Button variant="ghost" isDisabled={advance.isPending} onClick={end} label={t(finished ? 'coding.run.close' : scheduled ? 'coding.run.cancel' : 'coding.run.end')} />
+        </span>
       </div>
       {error && <p className="cd-note cd-note--error" role="alert">{error}</p>}
     </div>
@@ -130,7 +133,7 @@ function RunCard({ session, onDone }: { session: PracticeSession; onDone: () => 
  * the title, one line on what a run is, and "Plan a run" at its end. A run
  * already open or scheduled keeps the planner open, so its card is never
  * hidden behind the toggle. */
-export function ChallengeRunPlanner({ signedIn, collapsible = false }: { signedIn: boolean; collapsible?: boolean }) {
+export function ChallengeRunPlanner({ signedIn, collapsible = false, resumeInPrimary = false }: { signedIn: boolean; collapsible?: boolean; resumeInPrimary?: boolean }) {
   const { t } = useLanguage();
   const [expanded, setExpanded] = useState(!collapsible);
   const bodyId = useId();
@@ -197,7 +200,7 @@ export function ChallengeRunPlanner({ signedIn, collapsible = false }: { signedI
           {t('coding.run.loadFailed')} <Button variant="secondary" onClick={() => void session.refetch()} label={t('coding.retry')} />
         </p>
       )}
-      {signedIn && open && <RunCard session={open} onDone={() => void session.refetch()} />}
+      {signedIn && open && <RunCard session={open} onDone={() => void session.refetch()} resumeInPrimary={resumeInPrimary} />}
       {/* Until the open run is known there is no Start: a run started now
           would replace one the learner already has, unseen. */}
       {signedIn && !open && !session.isError && session.isPending && <p className="cd-note" role="status">{t('common.loading')}</p>}

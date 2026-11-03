@@ -4,6 +4,9 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { CodingTrackScreen } from '../src/components/coding/CodingSection';
+import { CODING_INDEX } from '../../shared/coding-index';
+import { formatOf } from '../../shared/coding-catalog';
+import { evolvingStage } from '../../shared/evolving';
 
 // UX audit coding-16: a track's filters are one row, a search and one select
 // per filter, and the list is counted only once a filter narrows it.
@@ -72,4 +75,19 @@ it('reads and writes status and Saved through one select', () => {
   expect(screen.getByTestId('search').textContent).toBe('?status=passed');
   fireEvent.change(status, { target: { value: 'all' } });
   expect(screen.getByTestId('search').textContent).toBe('');
+});
+
+it('filters by the learner’s task type even when debugging tasks are graded by tests too', () => {
+  const debugging = CODING_INDEX.find(task => task.track === 'javascript' && !evolvingStage(task.id) && formatOf(task) === 'debug')!;
+  expect(debugging.verify).toBe('tests');
+  mount('/coding/javascript?format=tests');
+  const select = screen.getByRole('combobox', { name: 'Any task type' });
+  expect(select).toHaveValue('all');
+  expect(screen.getByRole('link', { name: new RegExp(debugging.title) })).toBeInTheDocument();
+  fireEvent.change(select, { target: { value: 'write' } });
+  expect(screen.getByTestId('search')).toHaveTextContent('?format=write');
+  expect(screen.queryByRole('link', { name: new RegExp(debugging.title) })).toBeNull();
+  fireEvent.change(select, { target: { value: 'debug' } });
+  expect(screen.getByRole('link', { name: new RegExp(debugging.title) })).toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: /Digit sum/ })).toBeNull();
 });

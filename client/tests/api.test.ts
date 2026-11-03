@@ -13,7 +13,7 @@ describe('real API transport with MSW', () => {
     expect(friendlyError(error)).toMatch(/sign in/i);
   });
   it.each([
-    ['not_in_plan', 'Not part of the track you chose. Change your track on the Roadmap page to open it.'],
+    ['not_in_plan', 'Not in your learning plan. Choose your plan in Profile to open this topic.'],
     ['topic_locked', 'This topic is still locked. Finish the topics it builds on first.'],
     ['prerequisite_not_met', 'Pass the steps before this one first.'],
   ])('says what a signed-in learner’s Learn refusal %s means, not "sign in"', async (code, copy) => {

@@ -148,6 +148,48 @@ describe('keyboard shortcuts', () => {
   });
 });
 
+describe('setup clarity and category selection', () => {
+  it('keeps hidden topic choices when selecting or clearing only the visible topics', async () => {
+    queryClient.setQueryData(['game-config'], {
+      ...DEFAULT_CONFIG,
+      quiz: { ...DEFAULT_CONFIG.quiz, defaultCategoryIds: ['javascript', 'react'] },
+    });
+    server.use(http.get('*/api/settings', () => HttpResponse.json({
+      ...DEFAULT_CONFIG,
+      quiz: { ...DEFAULT_CONFIG.quiz, defaultCategoryIds: ['javascript', 'react'] },
+    })));
+    renderQuiz();
+    fireEvent.click(await screen.findByRole('button', { name: 'Show all categories' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Security' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Show fewer' }));
+    expect(screen.getByText('1 more selected')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Select visible topics' }));
+    expect(JSON.parse(localStorage.getItem('devquiz:quiz-setup:v1')!).categories.sort()).toEqual(['javascript', 'react', 'security']);
+    fireEvent.click(screen.getByRole('button', { name: 'Deselect visible topics' }));
+    expect(JSON.parse(localStorage.getItem('devquiz:quiz-setup:v1')!).categories).toEqual(['security']);
+    fireEvent.click(screen.getByRole('button', { name: 'Show all categories' }));
+    expect(screen.getByRole('button', { name: 'Security' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('explains the selected difficulty without a tooltip and tells guests before they start', async () => {
+    renderQuiz();
+    expect(await screen.findByText('Mixed: Difficulty 1 to 5, shuffled.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: 'Difficulty: Progressive' }));
+    expect(screen.getByText('Progressive: Difficulty 1 to 5, in order.')).toHaveAttribute('role', 'status');
+    expect(screen.queryByText('Mixed: Difficulty 1 to 5, shuffled.')).not.toBeInTheDocument();
+    expect(screen.getByText('You’re practising on this device. Sign in before starting to save results to your account.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign in' })).not.toHaveClass('ss-swim-cta');
+    expect(document.querySelectorAll('.ss-swim-cta')).toHaveLength(1);
+  });
+
+  it('does not show the guest setup warning to an authenticated learner', async () => {
+    signIn();
+    renderQuiz();
+    await screen.findByRole('button', { name: /start quiz/i });
+    expect(screen.queryByText(/Sign in before starting/)).not.toBeInTheDocument();
+  });
+});
+
 describe('starting', () => {
   it('keeps Start quiz focusable without a category, and pressing it says what is missing', async () => {
     localStorage.setItem('devquiz:quiz-setup:v1', JSON.stringify({ count: 10, difficulty: 'mixed', categories: [] }));
@@ -262,6 +304,60 @@ describe('the results screen (UX audit U2)', () => {
   });
 });
 
+describe('result review priorities and focus', () => {
+  it('prioritizes mistakes, preserves the all-answers view and keeps retired questions separate', async () => {
+    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json({
+      totalQuestions: 2, correctAnswers: 1, percentage: 50, questXp: 6, voided: ['c'],
+      results: [
+        { questionId: 'a', selectedIndex: 0, correctAnswer: 0, isCorrect: true, explanation: 'Correct explanation' },
+        { questionId: 'b', selectedIndex: 0, correctAnswer: 2, isCorrect: false, explanation: 'Mistake explanation' },
+      ],
+    })));
+    await startQuiz([Q('a'), Q('b'), Q('c')]);
+    answerAll(3);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    const review = await screen.findByRole('button', { name: 'Review incorrect answers (1)' });
+    expect(review).toHaveClass('ss-swim-cta--md');
+    expect(screen.getByRole('button', { name: 'New quiz' })).not.toHaveClass('ss-swim-cta');
+    expect(screen.getByText('Mistake explanation')).toBeInTheDocument();
+    expect(screen.queryByText('Correct explanation')).not.toBeInTheDocument();
+    expect(document.querySelector('.quiz-retired')).toHaveTextContent('Question c?');
+    expect(document.querySelector('.quiz-review-grid')).not.toHaveTextContent('Question c?');
+    fireEvent.click(screen.getByRole('radio', { name: 'All answers (2)' }));
+    expect(screen.getByText('Correct explanation')).toBeInTheDocument();
+    review.focus();
+    fireEvent.click(review);
+    expect(screen.getByRole('heading', { level: 2, name: 'Review your answers (2)' })).toHaveFocus();
+    expect(screen.queryByText('Correct explanation')).not.toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Incorrect (1)' })).toHaveAttribute('aria-checked', 'true');
+    expect(document.querySelectorAll('.ss-swim-cta')).toHaveLength(1);
+  });
+
+  it('moves focus to review while keeping New quiz primary after a perfect result', async () => {
+    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json(graded([Q('a')]))));
+    await startQuiz([Q('a')]);
+    answerAll(1);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    const review = await screen.findByRole('button', { name: 'Review answers ↓' });
+    fireEvent.click(review);
+    expect(screen.getByRole('heading', { level: 2 })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'New quiz' })).toHaveClass('ss-swim-cta--md');
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+  });
+
+  it('does not manufacture incorrect answers when every question was retired', async () => {
+    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json({ totalQuestions: 0, correctAnswers: 0, percentage: 0, questXp: 0, voided: ['a'], results: [] })));
+    await startQuiz([Q('a')]);
+    answerAll(1);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    expect(await screen.findByText('No answers were graded. Retired questions do not affect your score.')).toBeInTheDocument();
+    expect(screen.queryByText('Incorrect')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /review incorrect/i })).not.toBeInTheDocument();
+    expect(document.querySelector('.quiz-review-grid')?.children).toHaveLength(0);
+    expect(document.querySelector('.quiz-retired')).toHaveTextContent('Question a?');
+  });
+});
+
 describe('the question screen (UX audit U2)', () => {
   it('keeps the 16px phone gutter on /quiz like every other route (questions-18)', () => {
     const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
@@ -307,21 +403,22 @@ describe('the question screen (UX audit U2)', () => {
     expect(screen.getByText('Press 1–4 to select · Enter to submit')).toBeInTheDocument();
   });
 
-  it('keeps Submit pressable with questions left, says how many, and goes to the first one open', async () => {
+  it('names the last-step navigation Review unanswered, then focuses the first open question', async () => {
     await startQuiz([Q('a'), Q('b'), Q('c')]);
     fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
     fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
     fireEvent.keyDown(document.body, { key: '1' });
-    const submit = screen.getByRole('button', { name: /submit quiz/i });
+    const submit = screen.getByRole('button', { name: 'Review unanswered (2)' });
     expect(submit).not.toBeDisabled();
-    expect(submit).toHaveAttribute('aria-disabled', 'true');
-    expect(submit).toHaveAccessibleDescription('Answer 2 more to submit');
+    expect(submit).not.toHaveAttribute('aria-disabled');
+    expect(submit).toHaveAccessibleDescription('Go to the first unanswered question. You can still change your answers.');
     // Said in sight too, under the action row, not only to a screen reader.
-    const why = screen.getByText('Answer 2 more to submit');
+    const why = screen.getByText('Go to the first unanswered question. You can still change your answers.');
     expect(why).toHaveClass('quiz-submit-why');
     expect(why.style.position).toBe('');
     fireEvent.click(submit);
-    expect(screen.getByText('Question a?')).toBeInTheDocument();
+    expect(screen.getByText('Question a?').closest('.ss-question__block')).toHaveFocus();
+    expect(screen.queryByRole('button', { name: /submit quiz/i })).not.toBeInTheDocument();
   });
 });
 
@@ -507,6 +604,7 @@ describe('the daily challenge', () => {
     expect(await screen.findByText('Nobody has finished today’s daily challenge yet.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Today’s challenge' }));
     expect(await screen.findByText('Question d1?')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Today’s challenge · Question');
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/quiz$/);
     await act(async () => {});
     expect(hits).toEqual(['daily']);
@@ -569,6 +667,7 @@ describe('the review linked from Today', () => {
     expect(await screen.findByText('Question r1?')).toBeInTheDocument();
     await act(async () => { await new Promise((resolve) => setTimeout(resolve, 20)); });
     expect(asked).toEqual(['review']);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Review · Question');
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/quiz$/);
   });
 });
@@ -639,6 +738,82 @@ describe('submitting', () => {
   it('says when advanced was asked of topics that have none', async () => {
     await startQuiz([Q('a')], { hardestAvailable: true });
     expect(screen.getByText(/no advanced questions yet/)).toBeInTheDocument();
+  });
+});
+
+describe('slow loading and recovery', () => {
+  it('can cancel a delayed request and ignores its late response without losing setup preferences', async () => {
+    let respond: (() => void) | undefined;
+    let signal: AbortSignal | undefined;
+    server.use(http.get('*/api/quiz/questions', ({ request }) => {
+      signal = request.signal;
+      return new Promise<Response>((resolve) => {
+        respond = () => resolve(HttpResponse.json({ sessionId: sessionFor('cancelled'), questions: [Q('late')] }));
+      });
+    }));
+    renderQuiz();
+    fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
+    await waitFor(() => expect(respond).toBeDefined());
+    expect(screen.queryByRole('button', { name: 'Back to quiz settings' })).not.toBeInTheDocument();
+    const cancel = await screen.findByRole('button', { name: 'Back to quiz settings' }, { timeout: 7_000 });
+    cancel.focus();
+    fireEvent.click(cancel);
+    expect(screen.getByRole('heading', { level: 1, name: 'Build your quiz.' })).toHaveFocus();
+    expect(signal!.aborted).toBe(true);
+    expect(screen.getByRole('button', { name: 'JavaScript' })).toHaveAttribute('aria-pressed', 'true');
+    await act(async () => { respond!(); });
+    expect(screen.queryByText('Question late?')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /start quiz/i })).toBeInTheDocument();
+  });
+
+  it('focuses an error heading and returns to the setup heading after recovery', async () => {
+    server.use(http.get('*/api/quiz/questions', () => HttpResponse.json({ error: { code: 'upstream', message: 'Busy' } }, { status: 503 })));
+    renderQuiz();
+    fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
+    await screen.findByRole('button', { name: 'Retry' });
+    expect(screen.getByRole('heading', { level: 1 })).toHaveFocus();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to settings' }));
+    expect(screen.getByRole('heading', { name: 'Build your quiz.' })).toHaveFocus();
+  });
+});
+
+describe('quiz orientation and deadline', () => {
+  it('offers one direct return to earlier unanswered questions before the last item', async () => {
+    await startQuiz([Q('a'), Q('b'), Q('c')]);
+    expect(screen.getByText('0 of 3 answered')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /review unanswered/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
+    fireEvent.keyDown(document.body, { key: '1' });
+    expect(screen.getByText('1 of 3 answered')).toBeInTheDocument();
+    const review = screen.getByRole('button', { name: 'Review unanswered (2)' });
+    review.focus();
+    fireEvent.click(review);
+    expect(screen.getByText('Question a?').closest('.ss-question__block')).toHaveFocus();
+    expect(checked()).toEqual([false, false, false, false]);
+  });
+
+  it('uses the actual deadline, warns on wake, and keeps answers available for a server-accepted submit', async () => {
+    let now = Date.now();
+    vi.spyOn(Date, 'now').mockImplementation(() => now);
+    const deadline = now + 4 * 60_000;
+    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json(graded([Q('a')]))));
+    await startQuiz([Q('a')], { expiresAt: deadline });
+    expect(document.querySelector('time')).toHaveAttribute('datetime', new Date(deadline).toISOString());
+    expect(screen.getByText('Submit soon to finish before this quiz expires.')).toBeInTheDocument();
+    fireEvent.keyDown(document.body, { key: '2' });
+    now += 5 * 60_000;
+    fireEvent(window, new Event('focus'));
+    expect(screen.getByText(/This quiz’s submit deadline has passed/)).toBeInTheDocument();
+    expect(checked()).toEqual([false, true, false, false]);
+    expect(JSON.parse(sessionStorage.getItem(PROGRESS_KEY)!).answers).toEqual({ a: 1 });
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    expect(await screen.findByText('1 / 1')).toBeInTheDocument();
+  });
+
+  it('does not invent a deadline for a session whose server response has none', async () => {
+    await startQuiz([Q('a')], { expiresAt: undefined });
+    expect(document.querySelector('time')).toBeNull();
+    expect(screen.queryByText(/Submit before/)).not.toBeInTheDocument();
   });
 });
 
@@ -720,6 +895,96 @@ describe('an expired quiz session', () => {
   });
 });
 
+describe('persistent result save status', () => {
+  it('shows Saving until the server confirms a save, then keeps Saved in the summary', async () => {
+    signIn();
+    let save: (() => void) | undefined;
+    server.use(
+      http.post('*/api/quiz/submit', () => HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'status-receipt' })),
+      http.post('*/api/user/stats', () => new Promise<Response>((resolve) => {
+        save = () => resolve(HttpResponse.json({ data: null, applied: false, questXp: 0 }));
+      })),
+    );
+    await startQuiz([Q('a')]);
+    answerAll(1);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    expect(await screen.findByText('Saving to your account…')).toHaveClass('quiz-save-status');
+    await waitFor(() => expect(save).toBeDefined());
+    expect(screen.queryByText('Saved to your account')).not.toBeInTheDocument();
+    await act(async () => { save!(); });
+    expect(await screen.findByText('Saved to your account')).toHaveAttribute('role', 'status');
+    expect(screen.getByText('Saved to your account').closest('.quiz-results__summary')).not.toBeNull();
+    expect(screen.queryByText('Saving to your account…')).not.toBeInTheDocument();
+    expect(localStorage.getItem(PENDING_KEY)).toBeNull();
+  });
+
+  it('updates a waiting result after background replay without regrading the quiz', async () => {
+    signIn();
+    let grades = 0;
+    const receipts: string[] = [];
+    server.use(
+      http.post('*/api/quiz/submit', () => { grades++; return HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'replay-status-receipt' }); }),
+      http.post('*/api/user/stats', async ({ request }) => {
+        receipts.push(((await request.json()) as { result_receipt: string }).result_receipt);
+        return receipts.length === 1
+          ? HttpResponse.json({ error: { code: 'offline', message: 'Try again' } }, { status: 503 })
+          : HttpResponse.json({ data: null, applied: false, questXp: 0 });
+      }),
+    );
+    await startQuiz([Q('a')]);
+    answerAll(1);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    expect(await screen.findByText('Waiting to sync. We’ll retry when you reconnect or reopen devShark.')).toHaveAttribute('role', 'status');
+    fireEvent(window, new Event('online'));
+    expect(await screen.findByText('Saved to your account')).toBeInTheDocument();
+    expect(screen.queryByText(/Waiting to sync/)).not.toBeInTheDocument();
+    expect(grades).toBe(1);
+    expect(receipts).toEqual(['replay-status-receipt', 'replay-status-receipt']);
+    expect(localStorage.getItem(PENDING_KEY)).toBeNull();
+  });
+
+  it('keeps a permanent refusal visible after replay and does not say Saved', async () => {
+    signIn();
+    let writes = 0;
+    server.use(
+      http.post('*/api/quiz/submit', () => HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'refused-later-receipt' })),
+      http.post('*/api/user/stats', () => ++writes === 1
+        ? HttpResponse.json({ error: { code: 'offline', message: 'Try again' } }, { status: 503 })
+        : HttpResponse.json({ error: { code: 'invalid_receipt', message: 'Expired' } }, { status: 400 })),
+    );
+    await startQuiz([Q('a')]);
+    answerAll(1);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    await screen.findByText(/Waiting to sync/);
+    fireEvent(window, new Event('online'));
+    expect(await screen.findByText('This result could not be saved to your account.')).toHaveClass('quiz-save-status');
+    expect(screen.queryByText('Saved to your account')).not.toBeInTheDocument();
+    expect(localStorage.getItem(PENDING_KEY)).toBeNull();
+  });
+
+  it('does not show the previous account’s save status when it signs out during the write', async () => {
+    signIn();
+    let save: (() => void) | undefined;
+    server.use(
+      http.post('*/api/quiz/submit', () => HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'old-account-receipt' })),
+      http.post('*/api/user/stats', () => new Promise<Response>((resolve) => {
+        save = () => resolve(HttpResponse.json({ data: null, applied: true, questXp: 6 }));
+      })),
+    );
+    await startQuiz([Q('a')]);
+    answerAll(1);
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    await screen.findByText('Saving to your account…');
+    await waitFor(() => expect(save).toBeDefined());
+    clearAccountData();
+    auth.value = { user: null, isAuthenticated: false, isLoading: false };
+    await act(async () => { save!(); });
+    expect(screen.queryByText('Saved to your account')).not.toBeInTheDocument();
+    expect(screen.queryByText('Saving to your account…')).not.toBeInTheDocument();
+    expect(localStorage.getItem(PENDING_KEY)).toBeNull();
+  });
+});
+
 describe('saving a result to the account', () => {
   const pendingStore = () => JSON.parse(localStorage.getItem(PENDING_KEY) ?? '{}') as Record<string, { receipt: string }>;
 
@@ -736,7 +1001,7 @@ describe('saving a result to the account', () => {
     await questionOnScreen();
     fireEvent.keyDown(document.body, { key: '1' });
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
-    expect(await screen.findByText(/isn’t saved to your account yet/)).toBeInTheDocument();
+    expect(await screen.findByText('Waiting to sync. We’ll retry when you reconnect or reopen devShark.')).toBeInTheDocument();
     await waitFor(() => expect(Object.values(pendingStore()).map((pending) => pending.receipt)).toEqual(['receipt-1']));
 
     fireEvent.click(screen.getByRole('button', { name: /^new quiz$/i }));

@@ -1,12 +1,12 @@
 import { beforeEach, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { CodingHome, CodingTrackScreen } from '../src/components/coding/CodingSection';
-import type { CodingProgressResponse } from '../../shared/coding-api';
+import type { CodingProgressResponse, PracticeSessionResponse } from '../../shared/coding-api';
 import { CODING_INDEX } from '../../shared/coding-index';
-import { listedChallenges } from '../../shared/evolving';
+import { evolvingStage, listedChallenges } from '../../shared/evolving';
 import type { Tier } from '../../shared/tiers';
 
 // The Coding home's next-challenge card, in each state a reload goes through.
@@ -15,6 +15,7 @@ const state = vi.hoisted(() => ({
   auth: { isAuthenticated: true, isLoading: false },
   plan: { tier: 'premium' as Tier | null, loading: false },
   progress: { data: undefined as CodingProgressResponse | undefined, isLoading: true, isError: false, refetch: () => {} },
+  run: { data: { session: null } as PracticeSessionResponse | undefined, isPending: false, isError: false, refetch: vi.fn() },
 }));
 vi.mock('../src/lib/auth', () => ({ useAuth: () => state.auth }));
 vi.mock('../src/lib/entitlement', () => ({
@@ -36,14 +37,15 @@ vi.mock('../src/coding/api', () => ({
 vi.mock('../src/coding/practice', () => ({
   useBookmarks: () => ({ data: { saved: [] } }),
   useSaveChallenge: () => ({ mutate: vi.fn() }),
-  usePracticeSession: () => ({ data: { session: null } }),
+  usePracticeSession: () => state.run,
   useAdvanceSession: () => ({ mutate: vi.fn() }),
 }));
 vi.mock('../src/components/coding/ChallengeRunPlanner', () => ({ ChallengeRunPlanner: () => null, taskHref: (id: string) => `/coding/javascript/${id}` }));
 vi.mock('../src/coding/CodingWorkbench', () => ({ CodingWorkbench: () => null }));
 
 const client = new QueryClient();
-const tree = () => <QueryClientProvider client={client}><MemoryRouter><LanguageProvider><CodingHome /></LanguageProvider></MemoryRouter></QueryClientProvider>;
+function LocationProbe() { return <output data-testid="location">{useLocation().pathname}</output>; }
+const tree = () => <QueryClientProvider client={client}><MemoryRouter><LanguageProvider><CodingHome /><LocationProbe /></LanguageProvider></MemoryRouter></QueryClientProvider>;
 const mount = () => render(tree());
 const card = () => screen.getByRole('region', { name: 'Your next challenge' });
 const passedDigitSum = { tasks: { 'js-digit-sum': { status: 'passed' } }, due: [], javascriptLevelsCleared: 0 } as unknown as CodingProgressResponse;
@@ -54,6 +56,83 @@ beforeEach(() => {
   state.auth = { isAuthenticated: true, isLoading: false };
   state.plan = { tier: 'premium', loading: false };
   state.progress = { data: undefined, isLoading: true, isError: false, refetch: () => {} };
+  state.run = { data: { session: null }, isPending: false, isError: false, refetch: vi.fn() };
+});
+
+const queuedRun = (status: 'active' | 'scheduled'): NonNullable<PracticeSessionResponse['session']> => ({
+  sessionId: 'run-1', status, queue: ['js-digit-sum', 'js-count-multiples'], position: 1,
+  minutes: 10, topic: 'javascript', estimatedMinutes: 10, order: 'sequential', count: 2, scheduledFor: status === 'scheduled' ? '2026-12-01T10:00:00Z' : null,
+});
+
+it('prioritizes the active run over unrelated recommended tasks', () => {
+  state.progress = { data: { ...passedDigitSum, tasks: {} }, isLoading: false, isError: false, refetch: () => {} };
+  state.run.data = { session: queuedRun('active') };
+  mount();
+  const resume = screen.getByRole('region', { name: 'Continue your run' });
+  expect(resume).toHaveTextContent('Count multiples');
+  expect(within(resume).queryByText('Digit sum')).toBeNull();
+  fireEvent.click(within(resume).getByRole('button', { name: 'Continue' }));
+  expect(screen.getByTestId('location')).toHaveTextContent('/coding/javascript/js-count-multiples');
+});
+
+it('does not silently start a scheduled run', () => {
+  state.progress = { data: { ...passedDigitSum, tasks: {} }, isLoading: false, isError: false, refetch: () => {} };
+  state.run.data = { session: queuedRun('scheduled') };
+  mount();
+  expect(card()).toHaveTextContent('Digit sum');
+  expect(screen.queryByRole('region', { name: 'Continue your run' })).toBeNull();
+});
+
+it('waits for the open run before guessing another challenge, and retries a failed run read', () => {
+  state.progress = { data: passedDigitSum, isLoading: false, isError: false, refetch: () => {} };
+  state.run = { data: undefined, isPending: true, isError: false, refetch: vi.fn() };
+  const view = mount();
+  expect(card()).toHaveAttribute('aria-busy', 'true');
+  expect(card()).not.toHaveTextContent('Count multiples');
+  state.run.isPending = false;
+  state.run.isError = true;
+  view.rerender(tree());
+  expect(within(card()).getByRole('alert')).toHaveTextContent('Could not load your challenge run.');
+  fireEvent.click(within(card()).getByRole('button', { name: 'Try again' }));
+  expect(state.run.refetch).toHaveBeenCalledOnce();
+});
+
+it('resumes a single unfinished project at its first unmet stage', () => {
+  const project = listedChallenges({})[0];
+  state.progress = { data: { ...passedDigitSum, tasks: { [project.stages[0]]: { status: 'passed' } } } as unknown as CodingProgressResponse, isLoading: false, isError: false, refetch: () => {} };
+  mount();
+  expect(card()).toHaveTextContent(project.title);
+  fireEvent.click(within(card()).getByRole('button', { name: 'Continue' }));
+  expect(screen.getByTestId('location')).toHaveTextContent(`/coding/${project.track}/${project.stages[1]}`);
+});
+
+it('prefers an explicitly in-progress classic task over an untouched recommendation', () => {
+  state.progress = { data: { ...passedDigitSum, tasks: { 'js-count-multiples': { status: 'in_progress' } } } as unknown as CodingProgressResponse, isLoading: false, isError: false, refetch: () => {} };
+  mount();
+  expect(card()).toHaveTextContent('Count multiples');
+  expect(card()).not.toHaveTextContent('Digit sum');
+});
+
+it('still recommends an open project after every standalone task is passed', () => {
+  const tasks = Object.fromEntries(CODING_INDEX.filter(task => !evolvingStage(task.id)).map(task => [task.id, { status: 'passed' }]));
+  state.progress = { data: { ...passedDigitSum, tasks } as unknown as CodingProgressResponse, isLoading: false, isError: false, refetch: () => {} };
+  mount();
+  expect(card()).not.toHaveTextContent('Every open task is passed.');
+  expect(within(card()).getByRole('button', { name: 'Continue' })).toBeEnabled();
+});
+
+it('offers a named choice when several projects are unfinished instead of inventing recency', () => {
+  const projects = listedChallenges({}).slice(0, 2);
+  state.progress = { data: { ...passedDigitSum, tasks: Object.fromEntries(projects.map(project => [project.stages[0], { status: 'passed' }])) } as unknown as CodingProgressResponse, isLoading: false, isError: false, refetch: () => {} };
+  mount();
+  expect(card()).toHaveTextContent('2 challenges in progress');
+  const action = within(card()).getByRole('button', { name: 'Continue' });
+  expect(action).toBeDisabled();
+  const choices = within(card()).getByRole('combobox', { name: 'Choose what to continue' });
+  expect(within(choices).getByRole('option', { name: new RegExp(projects[1].title) })).toBeInTheDocument();
+  fireEvent.change(choices, { target: { value: projects[1].stages[1] } });
+  fireEvent.click(action);
+  expect(screen.getByTestId('location')).toHaveTextContent(`/coding/${projects[1].track}/${projects[1].stages[1]}`);
 });
 
 it('names no challenge while a signed-in learner’s progress loads, then names theirs', () => {
@@ -169,9 +248,9 @@ it('keeps one SwimCta and labels each row Start, Continue or Review by its progr
   expect(container.querySelectorAll('.ss-swim-cta')).toHaveLength(1);
   expect(card().querySelector('.ss-swim-cta')).not.toBeNull();
   const row = (title: string) => screen.getByRole('heading', { level: 3, name: title }).closest('article')!;
-  expect(within(row(untouched.title)).getByRole('button', { name: 'Start' })).not.toHaveClass('ss-swim-cta');
-  expect(within(row(partial.title)).getByRole('button', { name: 'Continue' })).not.toHaveClass('ss-swim-cta');
-  expect(within(row(complete.title)).getByRole('button', { name: 'Review' })).not.toHaveClass('ss-swim-cta');
+  expect(within(row(untouched.title)).getByRole('button', { name: `Start ${untouched.title}` })).not.toHaveClass('ss-swim-cta');
+  expect(within(row(partial.title)).getByRole('button', { name: `Continue ${partial.title}` })).not.toHaveClass('ss-swim-cta');
+  expect(within(row(complete.title)).getByRole('button', { name: `Review ${complete.title}` })).not.toHaveClass('ss-swim-cta');
   // A Premium account sees no Premium rule anywhere on the page.
   expect(screen.queryByText(/come with the free plan/)).toBeNull();
 });

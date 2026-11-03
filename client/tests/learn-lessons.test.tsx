@@ -52,7 +52,8 @@ describe('Learn lesson reading', () => {
     expect(document.querySelectorAll('.ss-swim-cta')).toHaveLength(1);
     const row = start.closest('.lp-lesson-start');
     expect(row).not.toBeNull();
-    expect(row).toContainElement(screen.getByText('Reading is optional. It records no progress and earns no XP.'));
+    expect(screen.queryByText('Reading is optional. It records no progress and earns no XP.')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Skip to questions' })).toBeNull();
     const back = screen.getByRole('button', { name: 'Big O introduction' });
     expect(back).toHaveClass('lp-lesson-back');
     fireEvent.click(back);

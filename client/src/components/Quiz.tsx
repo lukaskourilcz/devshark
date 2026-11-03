@@ -9,9 +9,9 @@ import { Text } from '@astryxdesign/core/Text';
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Banner } from '@astryxdesign/core/Banner';
-import { Tooltip } from '@astryxdesign/core/Tooltip';
 import { Popover } from '@astryxdesign/core/Popover';
 import { AlertDialog } from '@astryxdesign/core/AlertDialog';
+import { SegmentedControl, SegmentedControlItem } from '@astryxdesign/core/SegmentedControl';
 import { AppToast } from './ui/AppToast';
 import { CloseIcon } from './ui/icons';
 import { useAuth, getUserProfile } from '../lib/auth';
@@ -31,7 +31,8 @@ import {
 import { apiFetch, ApiError, friendlyError } from '../lib/api';
 import {
   attemptKeyOf,
-  dropPendingReceipt,
+  onPendingReceiptResolution,
+  resolvePendingReceipt,
   isReceiptRefused,
   queuePendingReceipt,
   type PendingReceipt,
@@ -68,6 +69,7 @@ import { useDayChangeTime } from '../lib/utcDay';
 import './Quiz.css';
 import { CategoryTag, TopicPill } from './ui/CategoryTag';
 import { PageHeader } from './ui/PageHeader';
+import { StatePanel } from './ui/StatePanel';
 
 type QuizMode = 'standard' | 'daily' | 'review';
 const QUIZ_MODES: readonly string[] = ['standard', 'daily', 'review'];
@@ -87,6 +89,8 @@ type StartSpec =
 
 /** Why a quiz stopped on the error screen without a result. */
 type StopReason = 'expired' | 'graded' | 'daily-done';
+type ResultSaveStatus = 'saving' | 'saved' | 'pending' | 'refused' | 'practice';
+interface ResultSave { attemptKey: string; userId: string; epoch: number; status: ResultSaveStatus }
 
 
 interface SavedSetup {
@@ -170,16 +174,23 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const navigate = useNavigate();
   const config = useGameConfig();
   const [state, setState] = useState<QuizState>('ready');
+  const [slowLoad, setSlowLoad] = useState(false);
+  const [setupFocusRequest, setSetupFocusRequest] = useState(0);
   const [sessionId, setSessionId] = useState<string>('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [result, setResult] = useState<QuizResult | null>(null);
+  const [resultSave, setResultSave] = useState<ResultSave | null>(null);
+  const [reviewFilter, setReviewFilter] = useState<'incorrect' | 'all'>('all');
+  const [reviewFocusRequest, setReviewFocusRequest] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [stop, setStop] = useState<StopReason | null>(null);
   const [lastStart, setLastStart] = useState<StartSpec | null>(null);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
+  const [sessionNow, setSessionNow] = useState(() => Date.now());
+  const [questionFocusRequest, setQuestionFocusRequest] = useState(0);
   // Set when a submit is sent. The server claims the answer set on its first
   // grade, so an answer changed after that could never be graded: a retry
   // after a lost response must send the same answers.
@@ -241,6 +252,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const [settings] = useSettings();
 
   const resultHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const setupHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const stopHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const reviewHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const questionTextRef = useRef<HTMLDivElement | null>(null);
   const fetchAbortRef = useRef<AbortController | null>(null);
   // Leaving the page drops a quiz, review or daily set still loading.
@@ -300,6 +314,12 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   useEffect(() => {
     onActiveChange?.(state === 'in-progress' || state === 'loading');
   }, [state, onActiveChange]);
+
+  useEffect(() => onPendingReceiptResolution(({ attemptKey, userId, outcome }) => {
+    setResultSave((current) => current && current.attemptKey === attemptKey && current.userId === userId && current.epoch === accountEpoch()
+      ? { ...current, status: outcome }
+      : current);
+  }), []);
 
   // Restore in-progress quiz on mount
   useEffect(() => {
@@ -592,11 +612,14 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const handleSelectAll = () => {
     const pool = displayedCategoryOptions.map((c) => c.value);
     setSelectedCategories((prev) =>
-      pool.every((c) => prev.includes(c)) ? prev.filter((c) => !pool.includes(c)) : pool,
+      pool.every((c) => prev.includes(c))
+        ? prev.filter((c) => !pool.includes(c))
+        : [...new Set([...prev, ...pool])],
     );
   };
 
   const displayedCategoryIds = displayedCategoryOptions.map((c) => c.value);
+  const hiddenSelectedCount = selectedCategories.filter((category) => !displayedCategoryIds.includes(category)).length;
   const isAllSelected =
     displayedCategoryIds.length > 0 &&
     displayedCategoryIds.every((c) => selectedCategories.includes(c));
@@ -663,9 +686,14 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         }),
       });
       const onScreen = screen === screenRef.current;
-      const say = (message: string) => { if (onScreen) setSnack(message); };
+      const sameAccount = accountEpoch() === epoch;
+      const attemptKey = attemptKeyOf(sessionId);
       if (onScreen) {
         setResult(data);
+        setResultSave(sameAccount && isAuthenticated && user?.id && (data.resultReceipt || data.totalQuestions > 0)
+          ? { attemptKey, userId: user.id, epoch, status: data.resultReceipt ? 'saving' : mode === 'daily' ? 'practice' : 'refused' }
+          : null);
+        setReviewFilter(data.results.some((item) => !item.isCorrect) ? 'incorrect' : 'all');
         setState('submitted');
         clearProgress();
         playComplete();
@@ -682,26 +710,27 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       // Every quiz counts. There is no unranked kind any more, so the only
       // question left is whether there is an account to record it against.
       // Signed out since the submit, nothing of the account is kept here.
-      const sameAccount = accountEpoch() === epoch;
       if (sameAccount && data.percentage === 100) recordPerfectQuiz();
       if (sameAccount && isAuthenticated && user?.id) {
         if (!data.resultReceipt) {
           // Nothing to record. A daily fetched signed out is practice; with
           // every question retired there was nothing to grade, and the
           // result screen already says why.
-          if (data.totalQuestions > 0) say(t(mode === 'daily' ? 'quiz.dailyPractice' : 'quiz.resultNotSaved'));
+          // The persistent result status explains this instead of a toast.
         } else {
           const pending: PendingReceipt = {
             userId: user.id,
             receipt: data.resultReceipt,
             profile: { email: profile.email, name: profile.name, picture: profile.picture },
           };
-          const attemptKey = attemptKeyOf(sessionId);
           queuePendingReceipt(attemptKey, pending);
+          let recorded = false;
           try {
             const saved = await recordQuizResult(pending.receipt, pending.profile);
+            if (accountEpoch() !== epoch) return;
             if (saved.data) queryClient.setQueryData(profileStatsQueryKey(user.id), saved.data);
-            dropPendingReceipt(attemptKey);
+            resolvePendingReceipt(attemptKey, user.id, 'saved');
+            recorded = true;
             // The gain the account recorded first, then the rank it crosses
             // once the account's verified balance is in. A server from before
             // migration 048 names no amount and awarded the result's.
@@ -712,14 +741,19 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
             if (saved.xpHeld) announceXpHeld({ on: 'questions', count: saved.xpHeld.questions, availableAt: saved.xpHeld.availableAt });
             await syncXpWithServer({ announceRankUp: saved.applied });
           } catch (writeError) {
+            if (accountEpoch() !== epoch) return;
+            // A later XP refresh failure cannot undo a confirmed save.
+            if (recorded) {
+              console.error('Account refresh failed:', writeError);
+              return;
+            }
             console.error('Stat write failed:', writeError);
             // Refused (expired or invalid) can never be recorded: drop it and
             // say so. Anything else waits in the queue and is sent again.
             if (isReceiptRefused(writeError)) {
-              dropPendingReceipt(attemptKey);
-              say(t('quiz.resultNotSaved'));
+              resolvePendingReceipt(attemptKey, user.id, 'refused');
             } else {
-              say(t('quiz.streakWarning'));
+              if (screen === screenRef.current) setResultSave({ attemptKey, userId: user.id, epoch, status: 'pending' });
             }
           }
         }
@@ -750,11 +784,14 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   }, [answers, clearProgress, isAuthenticated, sessionId, user, t, questions, mode, hintedIds]);
 
   const handleRestart = () => {
+    fetchAbortRef.current?.abort();
     leaveScreen();
+    setSetupFocusRequest((request) => request + 1);
     clearProgress();
     setState('ready');
     setQuestions([]);
     setResult(null);
+    setResultSave(null);
     setAnswers({});
     setHintedIds([]);
     setAnswersLocked(false);
@@ -774,7 +811,28 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     handleRestart();
   };
 
+  const reviewUnanswered = () => {
+    const open = questions.findIndex((question) => answers[question.id] === undefined);
+    if (open < 0) return;
+    setCurrentIndex(open);
+    setQuestionFocusRequest((request) => request + 1);
+  };
+
   const currentQuestion = questions[currentIndex];
+
+  useEffect(() => {
+    if (state !== 'loading') {
+      setSlowLoad(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setSlowLoad(true), 5_000);
+    return () => window.clearTimeout(timer);
+  }, [state]);
+
+  useEffect(() => {
+    if (state === 'error') stopHeadingRef.current?.focus({ preventScroll: true });
+    if (state === 'ready' && setupFocusRequest > 0) setupHeadingRef.current?.focus({ preventScroll: true });
+  }, [state, setupFocusRequest]);
 
   // Move focus to the result heading, which reads the score out. It is no
   // live region: one drawn together with its words is not read, and where a
@@ -784,6 +842,19 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       resultHeadingRef.current.focus();
     }
   }, [state]);
+
+  const openAnswerReview = (filter: 'incorrect' | 'all') => {
+    setReviewFilter(filter);
+    setReviewFocusRequest((request) => request + 1);
+  };
+
+  useEffect(() => {
+    if (state !== 'submitted' || reviewFocusRequest === 0) return;
+    const heading = reviewHeadingRef.current;
+    heading?.focus({ preventScroll: true });
+    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    heading?.scrollIntoView?.({ behavior: still ? 'auto' : 'smooth', block: 'start' });
+  }, [state, reviewFocusRequest]);
 
   // Starting unmounts the setup screen with the button that was pressed, so
   // focus goes to the first question instead of falling to <body>.
@@ -800,6 +871,30 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       questionTextRef.current?.focus({ preventScroll: true });
     }
   }, [state, currentIndex]);
+
+  // A direct jump changes the question under the same stable block. Focus
+  // after React has updated its words, including a jump to the current item.
+  useEffect(() => {
+    if (state === 'in-progress' && questionFocusRequest > 0) questionTextRef.current?.focus({ preventScroll: true });
+  }, [state, questionFocusRequest]);
+
+  // Only the issued expiresAt supplies a deadline. The client clock warns;
+  // the server still decides whether a submit/retry can be graded. In
+  // particular, a sleeping tab never clears answers or an in-flight submit.
+  useEffect(() => {
+    if (state !== 'in-progress' || expiresAt === null) return;
+    const refresh = () => setSessionNow(Date.now());
+    const onVisible = () => { if (document.visibilityState === 'visible') refresh(); };
+    refresh();
+    const interval = window.setInterval(refresh, 30_000);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [state, expiresAt]);
 
   // Keyboard shortcuts during in-progress quiz
   useEffect(() => {
@@ -859,7 +954,16 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   /* ──── render branches ─────────────────────────────────────────── */
 
   if (state === 'loading') {
-    return <QuoteLoader quote={t('quiz.loadingQuote')} label={t('common.loading')} />;
+    return (
+      <div className="quiz-stop quiz-loading">
+        <QuoteLoader quote={t('quiz.loadingQuote')} label={t('common.loading')} />
+        {slowLoad && (
+          <StatePanel inline body={t('quiz.loadingSlow')} live>
+            <Button variant="secondary" label={t('quiz.cancelLoading')} onClick={handleRestart} />
+          </StatePanel>
+        )}
+      </div>
+    );
   }
 
   if (state === 'error') {
@@ -874,7 +978,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     // settings on the left, the one way on as the primary on the right.
     return (
       <div className="quiz-stop">
-        <Banner {...banner} />
+        <PageHeader title={banner.title} titleRef={stopHeadingRef} />
+        <StatePanel inline body={banner.description ?? t('quiz.retryHelp')} />
         <QuestionActions
           secondary={<Button variant="secondary" label={t('quiz.backToSettings')} onClick={handleRestart} />}
           primary={stop === 'daily-done'
@@ -899,7 +1004,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     return (
       <div className="ss-pop quiz-setup">
         {/* The one operational page header (UX audit U2, questions-19). */}
-        <PageHeader title={t('quiz.buildTitle')} lead={t('quiz.buildSubtitle')} />
+        <PageHeader title={t('quiz.buildTitle')} lead={t('quiz.buildSubtitle')} titleRef={setupHeadingRef} />
 
         <div className="ss-panel quiz-setup__panel">
           {/* Categories as accent pills. */}
@@ -908,7 +1013,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
               <span id="quiz-categories-label" style={labelStyle}>{t('quiz.categories')}</span>
               <span className="ss-text-links" style={{ margin: 0 }}>
                 <button type="button" onClick={handleSelectAll}>
-                  {isAllSelected ? t('quiz.deselectAll') : t('quiz.selectAll')}
+                  {t(hasCollapsedSubset && !showAllCategories
+                    ? isAllSelected ? 'quiz.deselectVisible' : 'quiz.selectVisible'
+                    : isAllSelected ? 'quiz.deselectAll' : 'quiz.selectAll')}
                 </button>
               </span>
             </div>
@@ -925,6 +1032,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
                 <button type="button" onClick={() => setShowAllCategories((v) => !v)}>
                   {showAllCategories ? t('quiz.showFewer') : t('quiz.showAllCategories')}
                 </button>
+                {hiddenSelectedCount > 0 && <span className="quiz-setup__helper">{t('quiz.moreTopicsSelected', { count: hiddenSelectedCount })}</span>}
               </span>
             )}
             {/* Takes no line until it has something to say, so the next
@@ -953,18 +1061,22 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
               <RadioCardGroup value={difficultyMode} onChange={(value) => setDifficultyMode(value as DifficultyMode)} labelledBy="quiz-difficulty-label" orientation="horizontal" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {DIFFICULTY_VALUES.map((value, index) => {
                   const label = t(`difficulty.${value}` as TranslationKey);
-                  const tip = t(`difficulty.${value}.tip` as TranslationKey);
                   return (
-                    <Tooltip key={value} content={tip} placement="above">
-                      <RadioCard value={value} index={index} label={t('quiz.difficultyAria', { label })} style={{ ...pill(difficultyMode === value), borderRadius: 'var(--radius-element)' }}>
-                        {label}
-                      </RadioCard>
-                    </Tooltip>
+                    <RadioCard key={value} value={value} index={index} label={t('quiz.difficultyAria', { label })} style={{ ...pill(difficultyMode === value), borderRadius: 'var(--radius-element)' }}>
+                      {label}
+                    </RadioCard>
                   );
                 })}
               </RadioCardGroup>
+              <p className="quiz-setup__helper" role="status">
+                {t(`difficulty.${difficultyMode}` as TranslationKey)}: {t(`difficulty.${difficultyMode}.tip` as TranslationKey)}
+              </p>
             </div>
           </div>
+
+          {!authLoading && !isAuthenticated && (
+            <StatePanel inline body={t('quiz.guestSetup')} signIn={{ emphasis: 'secondary' }} />
+          )}
 
           {/* Start: the screen's one primary, SwimCta md. */}
           <div className="quiz-setup__start">
@@ -1004,7 +1116,16 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     const resultTopics = resultCategories.length <= 3
       ? resultCategories.map((category) => t(categoryLabelKey(category))).join(', ')
       : t('quiz.resultTopics', { n: resultCategories.length });
-    const resultDifficulty = t(`difficulty.${mode === 'standard' ? difficultyMode : 'mixed'}` as TranslationKey);
+    const resultDifficulty = t(`difficulty.${mode === 'standard' ? lastStart?.mode === 'standard' ? lastStart.difficulty : difficultyMode : 'mixed'}` as TranslationKey);
+    const incorrectCount = result.results.filter((item) => !item.isCorrect).length;
+    const indexedQuestions = questions.map((question, index) => ({ question, index }));
+    const gradedQuestions = indexedQuestions.filter(({ question }) => resultsById.has(question.id));
+    const visibleReview = gradedQuestions.filter(({ question }) => reviewFilter === 'all' || resultsById.get(question.id)?.isCorrect === false);
+    const voidedQuestions = indexedQuestions.filter(({ question }) => result.voided?.includes(question.id));
+    const visibleSave = resultSave && isAuthenticated && resultSave.userId === user?.id && resultSave.epoch === accountEpoch() ? resultSave.status : null;
+    const saveCopy: Record<ResultSaveStatus, TranslationKey> = {
+      saving: 'quiz.saveSaving', saved: 'quiz.saveSaved', pending: 'quiz.savePending', refused: 'quiz.resultNotSaved', practice: 'quiz.dailyPractice',
+    };
     return (
       <>
         {/* The summary and the review share one column and both edges
@@ -1030,6 +1151,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
             <span style={{ position: 'relative', fontSize: 'var(--ss-type-compact)', color: 'var(--color-text-secondary)' }}>
               {result.percentage}% · {resultTopics} · {resultDifficulty}
             </span>
+
+            <p className="quiz-save-status" role="status">{visibleSave ? t(saveCopy[visibleSave]) : ''}</p>
 
             {(result.voided?.length ?? 0) > 0 && (
               <Text type="supporting" color="secondary" justify="center">
@@ -1060,49 +1183,52 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
 
           </div>
           <QuestionActions
-            secondary={
-              <Button
-                variant="secondary"
-                label={t('quiz.reviewAnswersArrow')}
-                onClick={() => {
-                  const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-                  document.getElementById('quiz-review')?.scrollIntoView({ behavior: still ? 'auto' : 'smooth' });
-                }}
-              />
+            secondary={incorrectCount > 0
+              ? <Button variant="secondary" label={t('quiz.newQuiz')} onClick={handleRestart} />
+              : gradedQuestions.length > 0
+                ? <Button variant="secondary" label={t('quiz.reviewAnswersArrow')} onClick={() => openAnswerReview('all')} />
+                : undefined
             }
-            primary={{ label: t('quiz.newQuiz'), onClick: handleRestart }}
+            primary={incorrectCount > 0
+              ? { label: t('quiz.reviewIncorrect', { count: incorrectCount }), onClick: () => openAnswerReview('incorrect') }
+              : { label: t('quiz.newQuiz'), onClick: handleRestart }
+            }
           />
         </div>
 
-        <h2 id="quiz-review" className={`quiz-review-header ${reviewWave}`}>
-          {t('quiz.reviewYourAnswers', { count: questions.length })}
+        <h2 id="quiz-review" ref={reviewHeadingRef} tabIndex={-1} className={`quiz-review-header ${reviewWave}`}>
+          {t('quiz.reviewYourAnswers', { count: gradedQuestions.length })}
         </h2>
+        {incorrectCount > 0 && (
+          <div className="quiz-review-filter">
+            <SegmentedControl value={reviewFilter} onChange={(value) => setReviewFilter(value as 'incorrect' | 'all')} label={t('quiz.reviewFilter')}>
+              <SegmentedControlItem value="incorrect" label={t('quiz.filterIncorrect', { count: incorrectCount })} />
+              <SegmentedControlItem value="all" label={t('quiz.filterAll', { count: gradedQuestions.length })} />
+            </SegmentedControl>
+          </div>
+        )}
+        {gradedQuestions.length === 0 && <StatePanel inline body={t('quiz.noGradedAnswers')} />}
         <div className="quiz-review-grid">
-        {questions.map((question, index) => {
+        {visibleReview.map(({ question, index }) => {
           const questionResult = resultsById.get(question.id);
           const isCorrect = questionResult?.isCorrect;
-          // Retired while the quiz was open: graded as void, so there is no
-          // verdict and no answer key to show or to bookmark.
-          const isVoided = !questionResult && (result.voided ?? []).includes(question.id);
+          // Only server-graded answers belong in this review filter. Retired
+          // questions are listed separately and never count as mistakes.
 
           return (
-            <MotionItem key={question.id} index={index} className={`quiz-review-item ${isVoided ? 'is-voided' : isCorrect ? 'is-correct' : 'is-incorrect'}`}>
+            <MotionItem key={question.id} index={index} className={`quiz-review-item ${isCorrect ? 'is-correct' : 'is-incorrect'}`}>
               <Card variant="default" padding={3} width="100%" className="quiz-review-card">
                 <VStack gap={1.5}>
                   <HStack justify="between" align="center" wrap="wrap" gap={1}>
                     {/* One meta line: number, topic, verdict (glyph and word). */}
                     <Text type="supporting" color="secondary">
                       {index + 1} · {t(categoryLabelKey(question.category))} ·{' '}
-                      {isVoided ? (
-                        <span style={{ fontWeight: 600 }}>{t('quiz.voidedItem')}</span>
-                      ) : (
-                        <span style={{ color: isCorrect ? 'var(--ss-success-strong)' : 'var(--ss-error)', fontWeight: 600 }}>
-                          <span aria-hidden>{isCorrect ? '✓' : '✕'}</span> {isCorrect ? t('quiz.correct') : t('quiz.incorrect')}
-                        </span>
-                      )}
+                      <span style={{ color: isCorrect ? 'var(--ss-success-strong)' : 'var(--ss-error)', fontWeight: 600 }}>
+                        <span aria-hidden>{isCorrect ? '✓' : '✕'}</span> {isCorrect ? t('quiz.correct') : t('quiz.incorrect')}
+                      </span>
                     </Text>
                     <HStack gap={0.5} align="center">
-                      {questionResult && !isVoided && <SaveSharkCard question={question} correctIndex={questionResult.correctAnswer} explanation={questionResult.explanation ?? ''} />}
+                      {questionResult && <SaveSharkCard question={question} correctIndex={questionResult.correctAnswer} explanation={questionResult.explanation ?? ''} />}
                       <QuestionIconButton
                         label={t('quiz.reportAria')}
                         icon={<ReportFlagIcon />}
@@ -1113,13 +1239,11 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
 
                   <div className="quiz-review-question">{renderQuestion(question.question)}</div>
 
-                  {!isVoided && (
-                    <Text type="body" size="sm">
-                      {t('quiz.yourAnswerLabel')}{' '}
-                      <strong>{question.options[questionResult?.selectedIndex ?? 0]}</strong>
-                    </Text>
-                  )}
-                  {!isCorrect && !isVoided && (
+                  <Text type="body" size="sm">
+                    {t('quiz.yourAnswerLabel')}{' '}
+                    <strong>{question.options[questionResult?.selectedIndex ?? 0]}</strong>
+                  </Text>
+                  {!isCorrect && (
                     <span style={{ color: 'var(--ss-success-strong)' }}>
                       <Text type="body" size="sm" color="inherit">
                         {t('quiz.correctLabel')}{' '}
@@ -1141,6 +1265,20 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           );
         })}
         </div>
+        {voidedQuestions.length > 0 && (
+          <section className="quiz-retired" aria-labelledby="quiz-retired-heading">
+            <h3 id="quiz-retired-heading">{t('quiz.retiredQuestions')}</h3>
+            {voidedQuestions.map(({ question, index }) => (
+              <div className="quiz-retired__row" key={question.id}>
+                <div>
+                  <Text type="supporting" color="secondary">{index + 1} · {t(categoryLabelKey(question.category))} · <span>{t('quiz.voidedItem')}</span></Text>
+                  <div className="quiz-review-question">{renderQuestion(question.question)}</div>
+                </div>
+                <QuestionIconButton label={t('quiz.reportAria')} icon={<ReportFlagIcon />} onClick={() => setReportTarget({ id: question.id, version: question.review?.version })} />
+              </div>
+            ))}
+          </section>
+        )}
 
         <AppToast
           open={!!snack}
@@ -1168,12 +1306,15 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const isLast = currentIndex === questions.length - 1;
   const questionId = `question-text-${currentQuestion.id}`;
   const hintOpen = !!revealedHints[currentQuestion.id];
-  // Submit with questions left stays pressable and says how many; pressed,
-  // it goes to the first one still open.
+  const hasEarlierUnanswered = questions.slice(0, currentIndex).some((question) => answers[question.id] === undefined);
+  const expired = expiresAt !== null && sessionNow >= expiresAt;
+  const expiresSoon = expiresAt !== null && !expired && expiresAt - sessionNow <= 5 * 60_000;
+  const deadline = expiresAt === null ? null : new Date(expiresAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  // The last step names its real action: review unanswered items until
+  // the set is complete, then submit the same server-issued session.
   const submitPressed = () => {
     if (!allAnswered) {
-      const open = questions.findIndex((q) => answers[q.id] === undefined);
-      if (open >= 0) setCurrentIndex(open);
+      reviewUnanswered();
       return;
     }
     void handleSubmit();
@@ -1234,22 +1375,33 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           so the answers start at the same y on every question, and the
           action row under the panel. */}
       <QuestionShell
+        className="quiz-run"
         ref={questionTextRef}
         questionId={questionId}
-        notice={error && (
-          <Banner
-            status="error"
-            title={error}
-            description={answersLocked ? t('quiz.answersLocked') : undefined}
-            isDismissable
-            onDismiss={() => setError(null)}
-          />
-        )}
+        notice={
+          <>
+            {error && (
+              <Banner
+                status="error"
+                title={error}
+                description={answersLocked ? t('quiz.answersLocked') : undefined}
+                isDismissable
+                onDismiss={() => setError(null)}
+              />
+            )}
+          </>
+        }
         header={
           <QuestionHeader
-            run={t('nav.quiz')}
+            run={t(mode === 'daily' ? 'quiz.todaysChallenge' : mode === 'review' ? 'quiz.reviewMode' : 'nav.quiz')}
             title={t('quiz.questionCounter', { current: currentIndex + 1, total: questions.length })}
             progress={{ value: progress, label: t('quiz.progressAria') }}
+            status={
+              <div className="quiz-run-status">
+                <span>{t('quiz.answeredCount', { answered, total: questions.length })}</span>
+                {deadline && <time dateTime={new Date(expiresAt!).toISOString()}>{t('quiz.submitBefore', { time: deadline })}</time>}
+              </div>
+            }
             meta={<CategoryTag category={currentQuestion.category} />}
             difficulty={currentQuestion.difficulty}
             tools={
@@ -1287,30 +1439,39 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           <>
             <QuestionActions
               secondary={
-                <Button
-                  variant="secondary"
-                  label={t('quiz.previous')}
-                  onClick={handlePrevious}
-                  isDisabled={currentIndex === 0}
-                />
+                <>
+                  <Button
+                    variant="secondary"
+                    label={t('quiz.previous')}
+                    onClick={handlePrevious}
+                    isDisabled={currentIndex === 0}
+                  />
+                  {!isLast && hasEarlierUnanswered && !answersLocked && (
+                    <Button variant="ghost" label={t('quiz.reviewUnanswered', { count: remaining })} onClick={reviewUnanswered} />
+                  )}
+                </>
               }
               primary={
                 isLast
                   ? {
-                    label: submitting ? t('quiz.submitting') : t('quiz.submitQuiz'),
+                    label: submitting ? t('quiz.submitting') : allAnswered ? t('quiz.submitQuiz') : t('quiz.reviewUnanswered', { count: remaining }),
                     onClick: submitPressed,
                     disabled: submitting,
-                    unavailable: !allAnswered,
                     describedBy: !allAnswered ? 'quiz-submit-why' : undefined,
                   }
                   : { label: t('quiz.next'), onClick: handleNext }
               }
             />
-            {/* Why Submit reads unavailable, in sight under it: the old
-                disabled button said so in a hover tooltip. */}
+            {/* Review is navigation, not a disabled submit. Its description
+                explains the destination without repeating the answer count. */}
             {isLast && !allAnswered && (
-              <p id="quiz-submit-why" className="quiz-submit-why">{t('quiz.answerMore', { count: remaining })}</p>
+              <p id="quiz-submit-why" className="quiz-submit-why">{t('quiz.unansweredHelp')}</p>
             )}
+            {/* A clock-driven notice stays after the actions, so it never
+                moves the question or answer rows while the learner reads. */}
+            <p role="status" className="quiz-expiry-note">
+              {expired ? t('quiz.deadlinePassed') : expiresSoon ? t('quiz.expiresSoon') : ''}
+            </p>
           </>
         }
       >

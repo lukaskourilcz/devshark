@@ -18,6 +18,7 @@ import {
   useRef,
   type CSSProperties,
   type KeyboardEvent,
+  type MouseEvent,
   type ReactNode,
 } from 'react';
 
@@ -27,7 +28,7 @@ interface RadioCtx {
   selected: RadioValue | null;
   select: (value: RadioValue) => void;
   activate: (value: RadioValue) => void;
-  register: (index: number, value: RadioValue, el: HTMLButtonElement | null, disabled: boolean) => () => void;
+  register: (index: number, value: RadioValue, el: HTMLButtonElement | null, disabled: boolean, unavailable: boolean) => () => void;
   onKeyNav: (e: KeyboardEvent, index: number) => void;
 }
 
@@ -61,7 +62,7 @@ export function RadioCardGroup({ value, onChange, onActivate, label, labelledBy,
   // Options register themselves under their `index` prop, so navigation order
   // is explicit and stable even when options render inside wrappers
   // (tooltips, motion items) that would obscure DOM order.
-  const items = useRef(new Map<number, { value: RadioValue; el: HTMLButtonElement; disabled: boolean }>());
+  const items = useRef(new Map<number, { value: RadioValue; el: HTMLButtonElement; disabled: boolean; unavailable: boolean }>());
   const valueRef = useRef(value);
   valueRef.current = value;
   const onChangeRef = useRef(onChange);
@@ -74,8 +75,8 @@ export function RadioCardGroup({ value, onChange, onActivate, label, labelledBy,
       selected: value,
       select: (v) => onChangeRef.current(v),
       activate: (v) => onActivateRef.current?.(v),
-      register: (index, v, el, disabled) => {
-        if (el) items.current.set(index, { value: v, el, disabled });
+      register: (index, v, el, disabled, unavailable) => {
+        if (el) items.current.set(index, { value: v, el, disabled, unavailable });
         return () => {
           items.current.delete(index);
         };
@@ -111,7 +112,8 @@ export function RadioCardGroup({ value, onChange, onActivate, label, labelledBy,
         const target = items.current.get(order[nextPos]);
         if (!target) return;
         // Radio pattern: moving focus also selects.
-        onChangeRef.current(target.value);
+        // A gated item can be browsed to hear its reason, but never selected.
+        if (!target.unavailable) onChangeRef.current(target.value);
         target.el.focus();
       },
     }),
@@ -192,6 +194,11 @@ interface CardProps {
   /** Padding in 4px steps, matching Astryx spacing. */
   padding?: number;
   disabled?: boolean;
+  /** Keep a gated choice available to arrow-key/focus inspection without
+   * allowing selection or activation. Ordinary disabled choices still skip. */
+  unavailable?: boolean;
+  /** Explain a gated choice on a press without selecting or activating it. */
+  onUnavailable?: (event: MouseEvent<HTMLButtonElement>) => void;
   /** 'success' paints the card green — e.g. revealing the correct answer;
    *  'error' marks a graded wrong pick (AnswerOptionList draws it). */
   tone?: 'default' | 'success' | 'error';
@@ -204,13 +211,13 @@ interface CardProps {
   children: ReactNode;
 }
 
-export function RadioCard({ value, index, label, describedBy, padding = 3, disabled, tone = 'default', width, style, className, 'data-locked': dataLocked, children }: CardProps) {
+export function RadioCard({ value, index, label, describedBy, padding = 3, disabled, unavailable, onUnavailable, tone = 'default', width, style, className, 'data-locked': dataLocked, children }: CardProps) {
   const ctx = useContext(Ctx);
   const ref = useRef<HTMLButtonElement>(null);
   if (!ctx) throw new Error('RadioCard must render inside RadioCardGroup');
   const { selected, select, activate, register, onKeyNav } = ctx;
 
-  useEffect(() => register(index, value, ref.current, !!disabled), [disabled, index, value, register]);
+  useEffect(() => register(index, value, ref.current, !!disabled, !!unavailable), [disabled, unavailable, index, value, register]);
 
   const isSelected = selected === value;
   // Roving tabindex: the selected option is the group's single Tab stop; with
@@ -226,6 +233,7 @@ export function RadioCard({ value, index, label, describedBy, padding = 3, disab
       aria-label={label}
       aria-describedby={describedBy}
       disabled={disabled}
+      aria-disabled={unavailable || undefined}
       tabIndex={tabbable ? 0 : -1}
       className={className ? `ss-radio-card ${className}` : 'ss-radio-card'}
       data-selected={isSelected}
@@ -233,7 +241,9 @@ export function RadioCard({ value, index, label, describedBy, padding = 3, disab
       data-locked={dataLocked || undefined}
       // A pointer click (or Enter/Space on the focused card) both selects and
       // activates; arrow-key browsing in onKeyNav only selects.
-      onClick={() => {
+      onClick={(event) => {
+        if (disabled) return;
+        if (unavailable) { onUnavailable?.(event); return; }
         select(value);
         activate(value);
       }}

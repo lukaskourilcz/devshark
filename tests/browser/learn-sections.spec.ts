@@ -95,7 +95,101 @@ const topicCard = (page: Page, name: string) =>
   // The whole label: "DSA Foundations" must not also match "DSA Advanced".
   page.getByRole('radiogroup', { name: 'Choose a topic' }).getByRole('radio', { name: new RegExp(`^${name.replace(/[&]/g, '\\$&')}(?:$|,| —)`) });
 
+test.describe('Touch inspection of locked content', () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  test('a tap explains the exact topic and level without opening either', async ({ page }) => {
+    await prepare(page);
+    await stand(page, 'guest', { progress: {} });
+    await page.goto('/learn/web-developer?topic=html');
+    const tap = async (item: ReturnType<typeof topicCard>) => {
+      await item.scrollIntoViewIfNeeded();
+      const box = await item.boundingBox();
+      await page.touchscreen.tap(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    };
+    await tap(topicCard(page, 'TypeScript'));
+    await expect(page.getByRole('status').filter({ hasText: 'Pass 5 levels in each prerequisite topic to open TypeScript: JavaScript.' })).toBeVisible();
+    await expect(page).toHaveURL(/topic=html$/);
+    await page.getByRole('button', { name: 'Dismiss', exact: true }).click();
+    await tap(page.getByRole('button', { name: 'Level 2: Links, Buttons & Interaction, Locked', exact: true }));
+    await expect(page.getByRole('status').filter({ hasText: 'Pass Level 1: Structure & Semantics to open this level.' })).toBeVisible();
+    await expect(page.locator('.rm-overview-card')).toBeVisible();
+    await expect(page).toHaveURL(/topic=html$/);
+  });
+});
+
 test.describe('Learn section routes', () => {
+  test('keyboard inspection explains an exact locked topic without opening it', async ({ page }) => {
+    await prepare(page);
+    await stand(page, 'guest', { progress: {} });
+    const opened: string[] = [];
+    page.on('request', (request) => {
+      const url = new URL(request.url());
+      if (url.pathname === '/api/quiz/roadmap' && (url.searchParams.has('level') || url.searchParams.has('test'))) opened.push(url.href);
+    });
+    await page.goto('/learn/web-developer?topic=html');
+    const html = topicCard(page, 'HTML');
+    const typescript = topicCard(page, 'TypeScript');
+    await html.focus();
+    await page.keyboard.press('ArrowRight'); // CSS
+    await page.keyboard.press('ArrowRight'); // JavaScript
+    await page.keyboard.press('ArrowRight'); // inspect locked TypeScript
+    await expect(typescript).toBeFocused();
+    await expect(typescript).toHaveAttribute('aria-disabled', 'true');
+    await expect(typescript).toHaveAccessibleDescription(/Pass 5 levels in each prerequisite topic to open TypeScript: JavaScript/);
+    const addressBeforeInspection = page.url();
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(addressBeforeInspection);
+    await expect(topicCard(page, 'JavaScript')).toHaveAttribute('aria-checked', 'true');
+    expect(opened).toEqual([]);
+  });
+
+  test('keyboard inspection explains an exact locked level without opening it', async ({ page }) => {
+    await prepare(page);
+    await stand(page, 'guest', { progress: {} });
+    const opened: string[] = [];
+    page.on('request', (request) => {
+      const url = new URL(request.url());
+      if (url.pathname === '/api/quiz/roadmap' && (url.searchParams.has('level') || url.searchParams.has('test'))) opened.push(url.href);
+    });
+    await page.goto('/learn/web-developer?topic=html');
+    const level = page.getByRole('button', { name: 'Level 2: Links, Buttons & Interaction, Locked', exact: true });
+    await level.focus();
+    await expect(level).toHaveAccessibleDescription('Level 2: Links, Buttons & Interaction. Pass Level 1: Structure & Semantics to open this level.');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.rm-overview-card')).toBeVisible();
+    expect(opened).toEqual([]);
+  });
+
+  for (const part of [1, 3]) {
+    test(`the overview opens part test ${part} after its levels, including the final test`, async ({ page }) => {
+      await prepare(page);
+      const count = part === 1 ? 2 : 6;
+      await stand(page, 'guest', { progress: {
+        html: {
+          levels: Object.fromEntries(Array.from({ length: count }, (_, index) => [index + 1, { passed: true, bestPct: 100 }])),
+          checkpoints: part === 1 ? {} : { 1: { passed: true, bestPct: 100 }, 2: { passed: true, bestPct: 100 } },
+        },
+      } });
+      const requests: string[] = [];
+      await page.route('**/api/quiz/roadmap?topic=html&test=*', (route) => {
+        requests.push(route.request().url());
+        return route.fulfill({ json: {
+          kind: 'checkpoint', topic: 'html', ref: part, title: `Part ${part} Test`, passPct: 85,
+          sessionId: 'checkpoint-fixture', questions: [{ id: 'checkpoint-question', category: 'html', difficulty: 1,
+            question: 'Which element is a button?', options: ['button', 'div'], introduction: '', tags: [] }],
+        } });
+      });
+      await page.goto('/learn/web-developer?topic=html');
+      const overview = page.locator('.rm-overview-card');
+      await expect(overview).toContainText(`Part ${part} Test`);
+      await overview.getByRole('button', { name: 'Take the part test' }).click();
+      await expect(page.getByRole('heading', { name: `Part test · Part ${part}`, exact: true })).toBeVisible();
+      await expect(page.getByText('Which element is a button?', { exact: true })).toBeVisible();
+      expect(requests).toHaveLength(1);
+      expect(new URL(requests[0]).searchParams.get('test')).toBe(String(part));
+    });
+  }
+
   test('resolve /learn, deep links, unknown sections and this device’s last section', async ({ page }) => {
     await prepare(page);
     await stand(page, 'guest');

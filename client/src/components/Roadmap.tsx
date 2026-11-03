@@ -89,6 +89,7 @@ import { joinFde, joinSoftwareEngineer } from './learn/joinSection';
 import { useFdePathSteps } from './learn/useFdePathSteps';
 import { useMapReadsBesideHold } from './learn/mapReads';
 import { useOnline } from './learn/useOnline';
+import { nextLearnStep, type LearnStep as Active } from './learn/nextStep';
 import { isBarred, useContentLocks, type NonCodingContent } from '../lib/contentLocks';
 import { openUpgradeSheet } from '../lib/upgradeSheet';
 import { gatedRef } from '../../../shared/tiers';
@@ -154,8 +155,6 @@ const RUNNER_INTENT = {
 } as const;
 
 type TFn = (key: TranslationKey, vars?: Record<string, string | number>) => string;
-// `ref` is the GLOBAL level number for a level, or the part number for a test.
-type Active = { kind: 'level' | 'test'; ref: number };
 
 // The roadmap topic list is scoped to the active subject (see subjects.ts);
 // each subject exposes its own ordered set of Learn topics.
@@ -224,6 +223,7 @@ interface PlacedNode {
   /** For a test node: the part it ends and that part's global level range. */
   part?: number;
   range?: PartRange;
+  prerequisite?: { kind: 'level'; ref: number; title: string } | { kind: 'test'; ref: number };
   unavailable?: boolean;
   /** Premium opens this step and the account holds the free plan: the node reads
    * "Premium", stays focusable and opens the upgrade sheet. */
@@ -474,10 +474,18 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
   // the check replaces the map, so that control is gone while it runs.
   const skillCheckOpener = useRef<'row' | 'gate' | null>(null);
   const openSkillCheck = (from: 'row' | 'gate') => {
+    setLockReason(null);
     skillCheckOpener.current = from;
     setSkillCheckOpen(true);
   };
   const [unlockSnack, setUnlockSnack] = useState<string | null>(null);
+  const [lockReason, setLockReason] = useState<string | null>(null);
+  const inspectLock = (reason: string) => {
+    // Astryx deliberately suppresses hover/focus tooltips after a touch tap.
+    // Reuse the page's live toast for that pointer press; keyboard focus keeps
+    // the contextual tooltip and receives no duplicate announcement.
+    if (window.matchMedia('(hover: none)').matches) setLockReason(reason);
+  };
 
   // The section follows the address, except while a level or the skill check
   // is open: Back, Forward or a nav click then change the address only, and
@@ -499,10 +507,9 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
   // A topic outside the plan is on the rail only for the levels already
   // passed in it: those open for review, the rest stay shut.
   const topicInPlan = inPlan(topic);
-  const continueLevel = topicInPlan && levels.find((meta) => {
-    const owningRange = ranges.find((r) => meta.level >= r.startLevel && meta.level <= r.endLevel);
-    return !!owningRange && isPartLevelUnlocked(progress, topic, owningRange, meta.level, availability) && !isLevelPassed(progress, topic, meta.level);
-  });
+  const continueStep = nextLearnStep({ topic, levels, ranges, progress, availability, inPlan: topicInPlan });
+  const continueLevel = continueStep?.kind === 'level' ? levels.find((meta) => meta.level === continueStep.ref) : undefined;
+  const continueTest = continueStep?.kind === 'test' ? ranges.find((range) => range.part === continueStep.ref) : undefined;
 
   // Keep the selected part on something the learner can actually open: if it's
   // locked (reset progress, switched topic, stale deep link) snap to the first
@@ -528,6 +535,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
   };
 
   const selectTopic = (next: RoadmapTopic) => {
+    setLockReason(null);
     // Locked and dimmed topics aren't tabbable; ignore if somehow invoked.
     if (!entries.some((entry) => entry.topic === next && entry.state === 'open')) return;
     lateDeepLink.current = null;
@@ -567,6 +575,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
    * dropped, so a ?topic of the section left behind cannot send the learner
    * back. */
   const switchSection = (id: LearnSectionId, nextTopic?: RoadmapTopic) => {
+    setLockReason(null);
     lateDeepLink.current = null;
     if (nextTopic) landOn(nextTopic, id);
     navigate({ pathname: `/learn/${id}`, search: nextTopic ? `?topic=${nextTopic}` : '' });
@@ -677,6 +686,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
   );
 
   const open = (a: Active, questions = false) => {
+    setLockReason(null);
     lateDeepLink.current = null;
     preloadLessonRunner();
     if (hasCodeQuestions(topic)) preloadCodeHighlighter();
@@ -871,6 +881,8 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
       // Spaced mastery reads the stored level entry (migration-024 fields are
       // additive; older/guest rows without passDays resolve to "cleared").
       const entry = progress[topic]?.levels?.[String(meta.level)] as LevelMasteryEntry | undefined;
+      const earlier = levels.filter((one) => one.level >= nodeRange.startLevel && one.level < meta.level && !availability.unavailableLevels?.has(one.level));
+      const previous = earlier[earlier.length - 1];
       return {
         i, kind: 'level', key: `lvl-${meta.level}`, cx, cy, half: isCurrent ? 25 : 22,
         accent: band.solid, grad: band.grad, level: meta,
@@ -880,6 +892,8 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
         mastery: masteryState(entry),
         due: isDueForReview(entry),
         masteryDays: distinctPassDays(entry),
+        prerequisite: previous ? { kind: 'level', ref: previous.level, title: previous.title }
+          : nodeRange.part > 1 ? { kind: 'test', ref: nodeRange.part - 1 } : undefined,
       };
     });
     const rows = Math.ceil(nodes.length / cols);
@@ -1006,7 +1020,9 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
   // button under it then stays secondary.
   const headerJoins = section !== 'web-developer' && !authLoading && isAuthenticated && hasPlan && !isMember;
   const topicDone = passedLevelCount(progress, topic);
-  const continueBarred = !!continueLevel && isBarred(lockOf({ kind: 'learn-level', topic, level: continueLevel.level }));
+  const continueBarred = !!continueStep && isBarred(lockOf(continueStep.kind === 'level'
+    ? { kind: 'learn-level', topic, level: continueStep.ref }
+    : { kind: 'learn-part-test', topic, part: continueStep.ref }));
   // React and DSA open their first levels to every account: there Premium
   // starts at a level, not with the topic.
   const premiumFrom = !!continueLevel && continueBarred && continueLevel.level > 1 && !isBarred(lockOf({ kind: 'learn-level', topic, level: 1 }));
@@ -1072,6 +1088,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
           entries={entries}
           value={topic}
           onSelect={(value) => selectTopic(value as RoadmapTopic)}
+          onInspect={inspectLock}
           loading={loadingStructure}
           loadingCount={sectionTopics(section, TOPICS).length}
           levelCounts={levelCounts}
@@ -1161,12 +1178,16 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
             <span className="rm-overview-fin" aria-hidden="true" />
             <div className="rm-overview-copy">
               <p id="rm-overview-step" className="rm-overview-step">
-                {continueLevel
+                {continueStep
                   ? continueBarred
-                    ? premiumFrom
+                    ? continueTest
+                      ? learnText('learn.overview.premiumTest', { part: continueTest.part })
+                      : premiumFrom && continueLevel
                       ? learnText('learn.overview.premiumFrom', { n: continueLevel.level, topic: t(categoryLabelKey(topic)) })
                       : learnText('learn.overview.premium', { topic: t(categoryLabelKey(topic)) })
-                    : learnText('learn.overview.next', { n: continueLevel.level, total: levels.length, title: continueLevel.title })
+                    : continueTest
+                      ? learnText('learn.overview.nextTest', { part: continueTest.part, from: continueTest.startLevel, to: continueTest.endLevel })
+                      : continueLevel && learnText('learn.overview.next', { n: continueLevel.level, total: levels.length, title: continueLevel.title })
                   : t('roadmap.progress', { done: topicDone, total: levels.length })}
               </p>
               <div
@@ -1183,19 +1204,19 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
             {/* In a section the learner has not joined, a topic it shares
                 with their plan is open here too, but the header's join is
                 the screen's one primary, so this action is a secondary. */}
-            {continueLevel && (headerJoins ? (
+            {continueStep && (headerJoins ? (
               <AxButton
                 variant="secondary"
-                label={continueBarred ? learnText('learn.overview.seePremium') : t('roadmap.continue')}
+                label={continueBarred ? learnText('learn.overview.seePremium') : t(continueStep.kind === 'test' ? 'roadmap.toCheckpoint' : 'roadmap.continue')}
                 aria-describedby="rm-overview-step"
-                onClick={() => openOrUpgrade({ kind: 'level', ref: continueLevel.level })}
+                onClick={() => openOrUpgrade(continueStep)}
               />
             ) : (
               <SwimCta
-                label={continueBarred ? learnText('learn.overview.seePremium') : t('roadmap.continue')}
+                label={continueBarred ? learnText('learn.overview.seePremium') : t(continueStep.kind === 'test' ? 'roadmap.toCheckpoint' : 'roadmap.continue')}
                 describedBy="rm-overview-step"
                 dir={-1}
-                onClick={() => openOrUpgrade({ kind: 'level', ref: continueLevel.level })}
+                onClick={() => openOrUpgrade(continueStep)}
               />
             ))}
           </div>
@@ -1250,6 +1271,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
                           isCurrent={n.isCurrent}
                           premium={n.premium ?? false}
                           outOfPlan={n.outOfPlan ?? false}
+                          onInspect={inspectLock}
                           cellW={layout.cellW}
                           onClick={() => openOrUpgrade({ kind: 'test', ref: n.part! })}
                           t={t}
@@ -1267,6 +1289,8 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
                           mastery={n.mastery ?? 'notStarted'}
                           due={n.due ?? false}
                           masteryDays={n.masteryDays ?? 0}
+                          prerequisite={n.prerequisite}
+                          onInspect={inspectLock}
                           premium={n.premium ?? false}
                           outOfPlan={n.outOfPlan ?? false}
                           cellW={layout.cellW}
@@ -1294,10 +1318,10 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
       </div>
 
       <AppToast
-        open={!!unlockSnack}
-        onClose={() => setUnlockSnack(null)}
-        message={unlockSnack ?? ''}
-        autoHideDuration={4500}
+        open={!!(lockReason || unlockSnack)}
+        onClose={() => { setLockReason(null); setUnlockSnack(null); }}
+        message={lockReason ?? unlockSnack ?? ''}
+        autoHideDuration={lockReason ? 8000 : 4500}
       />
     </div>
   );
@@ -1335,7 +1359,7 @@ function MasteryLegend({ t }: { t: TFn }) {
 /* ──── level node ───────────────────────────────────────────────────────── */
 
 function LevelNode({
-  meta, displayNum, accent, unlocked, unavailable, passed, best, isCurrent, mastery, due, masteryDays, premium, outOfPlan = false, onClick, t, cellW,
+  meta, displayNum, accent, unlocked, unavailable, passed, best, isCurrent, mastery, due, masteryDays, premium, outOfPlan = false, prerequisite, onInspect, onClick, t, cellW,
 }: {
   meta: RoadmapLevelMeta; displayNum: number; accent: string;
   unlocked: boolean; unavailable: boolean; passed: boolean; best: number; isCurrent: boolean;
@@ -1344,6 +1368,8 @@ function LevelNode({
   premium: boolean;
   /** Outside the learner's plan: shut, with the reason in its hint. */
   outOfPlan?: boolean;
+  prerequisite?: PlacedNode['prerequisite'];
+  onInspect: (reason: string) => void;
   onClick: () => void; t: TFn; cellW: number;
 }) {
   if (premium) {
@@ -1358,11 +1384,14 @@ function LevelNode({
       />
     );
   }
-  // Within a shown part levels gate sequentially; the first level of a part is
-  // gated by the previous part's test at the part selector, never here. An
+  // Levels gate sequentially; the first available level of a part requires
+  // the preceding part's test. An
   // unavailable level is a different thing from a locked one: nothing the
   // learner does opens it, and the path continues past it.
-  const lockedHint = unavailable ? t('roadmap.unavailableHint') : outOfPlan ? t('roadmap.notInPlanHint') : t('roadmap.lockedHint');
+  const lockedHint = unavailable ? t('roadmap.unavailableHint') : outOfPlan ? t('roadmap.notInPlanHint')
+    : prerequisite?.kind === 'level' ? learnText('learn.lock.previousLevel', { n: prerequisite.ref, title: prerequisite.title })
+      : prerequisite?.kind === 'test' ? learnText('learn.lock.previousPart', { n: prerequisite.ref })
+        : t('roadmap.lockedHint');
   // Spaced mastery: a passed level is "cleared" (amber) until it is mastered
   // (green). Soft fill + strong border/icon mirror the quiz feedback tokens so
   // contrast holds in light and dark; the glyph (check vs star) and the aria
@@ -1372,7 +1401,7 @@ function LevelNode({
   const passedFill = mastered ? 'var(--ss-success-soft)' : 'var(--ss-warning-soft)';
   const masteryText = mastered ? t('mastery.mastered') : t('mastery.cleared');
   const tip = !unlocked
-    ? lockedHint
+    ? `${t('roadmap.levelLabel', { n: displayNum })}: ${meta.title}. ${lockedHint}`
     : mastered
       ? t('mastery.masteredTooltip', { days: masteryDays })
       : passed
@@ -1388,15 +1417,12 @@ function LevelNode({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
       <div className={isCurrent ? 'rm-bob' : undefined}>
-        {/* span wrapper: disabled buttons swallow pointer events, so the
-            hint tooltip needs an enabled element to attach to. */}
         <Tooltip content={tip} placement="above" isEnabled={tip !== ''}>
-          <span style={{ display: 'inline-block' }}>
           <button
             type="button"
-            className={unlocked ? 'rm-level-btn' : undefined}
-            onClick={unlocked ? onClick : undefined}
-            disabled={!unlocked}
+            className={`rm-level-btn${unlocked ? '' : ' rm-unavailable-btn'}`}
+            onClick={(event) => { if (unlocked) onClick(); else if (event.detail > 0) onInspect(tip); }}
+            aria-disabled={!unlocked || undefined}
             aria-label={label}
             style={{
               position: 'relative', width: isCurrent ? 50 : 44, height: isCurrent ? 50 : 44, borderRadius: '50%',
@@ -1415,7 +1441,6 @@ function LevelNode({
             {due && <span className="rm-due-marker" aria-hidden="true"><ReviewIcon size={10} /></span>}
             {coding && unlocked && <span className="rm-code-marker" aria-hidden="true"><CodeIcon size={9} /></span>}
           </button>
-          </span>
         </Tooltip>
       </div>
       <div
@@ -1445,12 +1470,13 @@ function LevelNode({
 /* ──── part-test (boss) node ────────────────────────────────────────────── */
 
 function PartTestNode({
-  part, range, accent, grad, unlocked, unavailable, passed, best, isCurrent, premium, outOfPlan = false, onClick, t, cellW,
+  part, range, accent, grad, unlocked, unavailable, passed, best, isCurrent, premium, outOfPlan = false, onInspect, onClick, t, cellW,
 }: {
   part: number; range: PartRange; accent: string; grad: [string, string];
   unlocked: boolean; unavailable: boolean; passed: boolean; best: number; isCurrent: boolean;
   premium: boolean;
   outOfPlan?: boolean;
+  onInspect: (reason: string) => void;
   onClick: () => void; t: TFn; cellW: number;
 }) {
   const title = t('roadmap.partTestTitle', { n: part });
@@ -1461,16 +1487,17 @@ function PartTestNode({
     ? `${title}${passed ? ` — ${t('roadmap.passed')} ${best}%` : ''}`
     : `${title}: ${unavailable ? t('roadmap.unavailable') : t('roadmap.locked')}`;
   const labelWidth = Math.min(cellW - 4, Math.max(84, Math.min(160, cellW - 8)));
+  const lockedHint = unavailable ? t('roadmap.unavailableHint') : outOfPlan ? t('roadmap.notInPlanHint')
+    : learnText('learn.lock.testLevels', { from: range.startLevel, to: range.endLevel });
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
       <div className={isCurrent ? 'rm-bob' : undefined}>
-        <Tooltip content={unavailable ? t('roadmap.unavailableHint') : outOfPlan ? t('roadmap.notInPlanHint') : t('roadmap.checkpointLocked', { from: range.startLevel, to: range.endLevel })} placement="above" isEnabled={!unlocked}>
-          <span style={{ display: 'inline-block' }}>
+        <Tooltip content={`${title}. ${lockedHint}`} placement="above" isEnabled={!unlocked}>
           <button
             type="button"
-            className={`${unlocked ? 'rm-test-btn' : ''}${isCurrent ? ' rm-shimmer' : ''}`.trim() || undefined}
-            onClick={unlocked ? onClick : undefined}
-            disabled={!unlocked}
+            className={`rm-test-btn${unlocked ? '' : ' rm-unavailable-btn'}${isCurrent ? ' rm-shimmer' : ''}`}
+            onClick={(event) => { if (unlocked) onClick(); else if (event.detail > 0) onInspect(`${title}. ${lockedHint}`); }}
+            aria-disabled={!unlocked || undefined}
             aria-label={label}
             style={{
               position: 'relative', width: 52, height: 52, borderRadius: '14px',
@@ -1490,7 +1517,6 @@ function PartTestNode({
           >
             {passed ? <CheckIcon size={30} /> : unlocked ? <TrophyIcon size={26} /> : <LockIcon size={22} />}
           </button>
-          </span>
         </Tooltip>
       </div>
       <div

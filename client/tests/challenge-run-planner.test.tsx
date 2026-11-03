@@ -3,26 +3,27 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { ChallengeRunPlanner } from '../src/components/coding/ChallengeRunPlanner';
+import type { PracticeSession } from '../../shared/coding-api';
 
 // Design audit P1.6: on the Coding home the planner is one row until opened,
 // and opening it shows the same form as before.
-const practice = vi.hoisted(() => ({ start: null as null | ((input: unknown, callbacks: { onSuccess: (data: unknown) => void; onSettled?: () => void }) => void), pending: false }));
+const practice = vi.hoisted(() => ({ start: null as null | ((input: unknown, callbacks: { onSuccess: (data: unknown) => void; onSettled?: () => void }) => void), pending: false, session: null as PracticeSession | null, advance: vi.fn() }));
 const mutate = vi.fn((input: unknown, callbacks: { onSuccess: (data: unknown) => void; onSettled?: () => void }) => practice.start?.(input, callbacks));
 vi.mock('../src/coding/practice', () => ({
   usePracticeSession: () => (practice.pending
     ? { data: undefined, isPending: true, isError: false, refetch: () => {} }
-    : { data: { session: null }, isPending: false, isError: false, refetch: () => {} }),
+    : { data: { session: practice.session }, isPending: false, isError: false, refetch: () => {} }),
   useStartSession: () => ({ mutate, isPending: false }),
-  useAdvanceSession: () => ({ mutate: vi.fn(), isPending: false }),
+  useAdvanceSession: () => ({ mutate: practice.advance, isPending: false }),
 }));
 
-beforeEach(() => { mutate.mockClear(); practice.start = null; practice.pending = false; });
+beforeEach(() => { mutate.mockClear(); practice.start = null; practice.pending = false; practice.session = null; practice.advance.mockClear(); });
 
-const mount = (collapsible = true) => render(
+const mount = (collapsible = true, resumeInPrimary = false) => render(
   <MemoryRouter initialEntries={['/coding']}>
     <LanguageProvider>
       <Routes>
-        <Route path="/coding" element={<ChallengeRunPlanner signedIn collapsible={collapsible} />} />
+        <Route path="/coding" element={<ChallengeRunPlanner signedIn collapsible={collapsible} resumeInPrimary={resumeInPrimary} />} />
         <Route path="/coding/:track/:taskId" element={<h1>Task page</h1>} />
       </Routes>
     </LanguageProvider>
@@ -94,4 +95,17 @@ it('draws no SwimCta of its own', () => {
   const { container } = mount(false);
   expect(screen.getByRole('button', { name: 'Start' })).not.toHaveClass('ss-swim-cta');
   expect(container.querySelector('.ss-swim-cta')).toBeNull();
+});
+
+it.each(['active', 'scheduled'] as const)('keeps %s run ending and its reassurance in one row, without a confirmation step', status => {
+  practice.session = { sessionId: 'run-1', status, queue: ['js-digit-sum'], position: 0, minutes: 10, topic: null, estimatedMinutes: 5, order: 'sequential', count: 1, scheduledFor: status === 'scheduled' ? '2026-12-01T10:00:00Z' : null };
+  mount(true, true);
+  expect(screen.queryByRole('link', { name: 'Continue' })).toBeNull();
+  const end = screen.getByRole('button', { name: status === 'active' ? 'End the run' : 'Cancel the run' });
+  expect(end.parentElement).toContainElement(screen.getByText('Completed challenges stay saved.'));
+  fireEvent.click(end);
+  expect(practice.advance.mock.calls[0][0]).toEqual({ sessionId: 'run-1', status: 'abandoned' });
+  expect(screen.queryByRole('dialog')).toBeNull();
+  expect(screen.queryByRole('alertdialog')).toBeNull();
+  if (status === 'scheduled') expect(screen.getByRole('button', { name: 'Start now' })).toBeInTheDocument();
 });

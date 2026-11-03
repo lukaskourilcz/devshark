@@ -18,6 +18,23 @@ export const codingListEn = {
   'coding.run.open': 'Plan a run',
   'coding.run.hide': 'Hide the planner',
   'coding.filter.anyStatus': 'Any status',
+  'coding.progress.unavailable': 'Progress unavailable',
+  'coding.progress.stale': 'Progress could not be refreshed. Showing your last saved progress.',
+  'coding.saved.stale': 'Saved challenges could not be refreshed. Showing your last saved list.',
+  'coding.saved.saveFailed': 'Could not save this challenge. Try again.',
+  'coding.saved.loading': 'Loading saved challenges…',
+  'coding.project.open': 'Open project',
+  'coding.fullstack.title': 'FullStack projects',
+  'coding.project.action': '{action} {title}',
+  'coding.filter.taskType': 'Any task type',
+  'coding.filter.write': 'Write code',
+  'coding.stage.unlock': 'Complete stage {previous} to unlock stage {n}.',
+  'coding.level.unlock': 'Complete level {previous} to unlock level {n}.',
+  'coding.resume.run': 'Continue your run',
+  'coding.resume.work': 'Choose what to continue',
+  'coding.resume.choose': 'Choose a challenge',
+  'coding.resume.count': '{n} challenges in progress',
+  'coding.run.saved': 'Completed challenges stay saved.',
 } as const;
 
 export type CodingListKey = keyof typeof codingListEn;
