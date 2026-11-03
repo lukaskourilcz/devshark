@@ -771,6 +771,14 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
 function StageNav({ stages, short, currentId, passed, premiumOf }: { stages: readonly string[]; short: boolean; currentId: string; passed: ReadonlySet<string>; premiumOf: (taskId: string) => LockState }) {
   const { t } = useLanguage();
   const navRef = useRef<HTMLElement>(null);
+  const [explainedLock, setExplainedLock] = useState<string | null>(null);
+  const prerequisiteReason = (index: number) => codingListCopy(short ? 'coding.level.unlock' : 'coding.stage.unlock', {
+    previous: stages.slice(0, index).findIndex((id) => !evolvingPassed(id, passed)) + 1,
+    n: index + 1,
+  });
+  const explainedIndex = explainedLock ? stages.indexOf(explainedLock) : -1;
+  const lockReason = explainedIndex > 0 && !evolvingUnlocked(stages[explainedIndex], passed)
+    ? prerequisiteReason(explainedIndex) : null;
   // On a phone the list scrolls sideways; bring the open stage into view
   // without moving the page.
   useEffect(() => {
@@ -789,7 +797,7 @@ function StageNav({ stages, short, currentId, passed, premiumOf }: { stages: rea
     else groups.push({ level, entries: [{ id, index }] });
   });
   return (
-    <nav ref={navRef} className="cd-actions cd-stage-nav" aria-label={t(short ? 'coding.evolving.levels' : 'coding.evolving.title')}>
+    <><nav ref={navRef} className="cd-actions cd-stage-nav" aria-label={t(short ? 'coding.evolving.levels' : 'coding.evolving.title')}>
       {groups.map(({ level, entries }) => {
         const labelId = `cd-stage-group-${entries[0].index}`;
         return (
@@ -804,13 +812,13 @@ function StageNav({ stages, short, currentId, passed, premiumOf }: { stages: rea
                 return <LockedButton key={id} variant="secondary" size="sm" label={premiumLabel} tooltip={premiumLabel} onClick={() => askForPremium(id)}>{index + 1}</LockedButton>;
               }
               return evolvingUnlocked(id, passed) || current
-                ? <Button key={id} variant={current ? 'primary' : 'secondary'} size="sm" as={Link} href={`/coding/${evolvingTaskTrack(id)}/${id}`} label={label} tooltip={label} aria-current={current ? 'step' : undefined}>{evolvingPassed(id, passed) ? '✓ ' : ''}{index + 1}</Button>
-                : <Button key={id} variant="secondary" size="sm" tooltip={label} isDisabled label={label}>{index + 1}</Button>;
+                ? <Button key={id} variant="secondary" size="sm" as={Link} href={`/coding/${evolvingTaskTrack(id)}/${id}`} label={label} tooltip={label} aria-current={current ? 'step' : undefined}>{evolvingPassed(id, passed) ? '✓ ' : ''}{index + 1}</Button>
+                : <LockedButton key={id} variant="secondary" size="sm" tooltip={prerequisiteReason(index)} label={`${label}. ${prerequisiteReason(index)}`} onClick={() => setExplainedLock(id)}>{index + 1}</LockedButton>;
             })}
           </div>
         );
       })}
-    </nav>
+    </nav>{lockReason && <p className="cd-note" role="status">{lockReason}</p>}</>
   );
 }
 

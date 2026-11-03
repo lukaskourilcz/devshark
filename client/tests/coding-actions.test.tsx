@@ -103,6 +103,17 @@ it('uses a visible, accessible branded loading status', () => {
   expect(screen.getByText('Loading task…')).toBeVisible();
 });
 
+it('leaves section stage context to the route while keeping it for an embedded lesson', () => {
+  const project = EVOLVING_CHALLENGES.find(item => item.id === 'js-evolving-calculator')!;
+  const stageTask = { ...task, id: project.stages[2] };
+  const tree = (mode: 'section' | 'lesson') => <MemoryRouter><LanguageProvider><CodingWorkbench task={stageTask} session={null} locked={null} signedIn={false} mode={mode} /></LanguageProvider></MemoryRouter>;
+  const section = render(tree('section'));
+  expect(section.container.querySelector('.cd-brief__meta')).toBeNull();
+  section.unmount();
+  const lesson = render(tree('lesson'));
+  expect(lesson.container.querySelector('.cd-brief__meta')).toHaveTextContent('Evolving · Stage 3 of 10');
+});
+
 it('keeps the brief in Description and the editor with its actions, with revealed hints after it', () => {
   localStorage.setItem('devshark:coding:hints:js-test-editor', '1');
   render(<MemoryRouter><LanguageProvider><CodingWorkbench initialCode={null} task={task} session="test-session" locked={null} signedIn mode="section" /></LanguageProvider></MemoryRouter>);

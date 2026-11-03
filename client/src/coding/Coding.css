@@ -422,7 +422,7 @@
 /* Earlier stage briefs: still binding, no longer the task. Smaller, lighter and
    numbered, so the current brief above keeps the weight. */
 .cd-previous { font-size: 0.86rem; color: var(--color-text-secondary); }
-.cd-previous > summary { cursor: pointer; font-weight: 600; font-size: 0.82rem; min-height: 32px; display: flex; align-items: center; gap: 6px; }
+.cd-previous > summary { cursor: pointer; font-weight: 600; font-size: 0.82rem; min-height: var(--ss-control-height); display: flex; align-items: center; gap: 6px; }
 .cd-previous > summary:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 2px; border-radius: 4px; }
 .cd-previous__list { list-style: none; margin: 8px 0 0; padding: 0 0 0 12px; display: grid; gap: 10px; border-left: 2px solid var(--color-border); }
 .cd-previous__list li { display: grid; gap: 2px; }
@@ -866,6 +866,7 @@
 /* Keep 10–12 stage controls reachable without pushing the brief below a phone screen. */
 .cd-stage-nav { flex-wrap: nowrap; overflow-x: auto; padding: 4px 2px; }
 .cd-stage-nav .astryx-button { flex: 0 0 auto; min-width: 44px; min-height: 44px; justify-content: center; }
+.cd-stage-nav [aria-current='step'] { color: var(--brand-accent); border-color: var(--brand-accent); }
 /* Stages under their difficulty: a text label opens each run of stages. */
 .cd-stage-group { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
 .cd-stage-group + .cd-stage-group { padding-left: 10px; border-left: 1px solid var(--ss-card-line); }

@@ -91,8 +91,12 @@ describe('the stage list on the free plan', () => {
     expect(waiting.map((button) => button.textContent)).toEqual(['2', '3']);
     for (const button of waiting) {
       expect(button).toHaveAttribute('aria-disabled', 'true');
+      expect(button).not.toBeDisabled();
       fireEvent.click(button);
     }
+    expect(screen.getByText('Complete stage 1 to unlock stage 3.', { selector: 'p' })).toHaveAttribute('role', 'status');
+    expect(waiting[0]).toHaveAccessibleName('Evolving · Stage 2 of 10. Complete stage 1 to unlock stage 2.');
+    expect(nav).not.toHaveTextContent('Current');
     expect(sheet.open).not.toHaveBeenCalled();
     fireEvent.click(premium[0]);
     expect(sheet.open).toHaveBeenCalledWith({ kind: 'evolving-stage', ref: `${project.id}:4` });
