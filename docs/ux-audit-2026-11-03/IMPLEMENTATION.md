@@ -68,4 +68,4 @@ READY production `dpl_FkqzWx8MSztcEaMNmdNYXBwEMbZZ` at PR #594 merge `0744084b` 
 
 The first integrated unit run passed 1,788 of 1,795 tests. Follow-ups corrected an outdated guest bulk-selection fixture, typed role queries and required initial code, a delayed-progress race, and an eager-reading wall-time assumption. The seven initially failing cases pass in follow-up runs, alongside all 62 Quiz cases and the workbench regression cases. No product behavior was changed to satisfy timing assertions.
 
-Required PR CI and the new production deployment are still pending. Authenticated production acceptance remains an owner walkthrough, as recorded in NEEDED.md.
+PR #595 is merged at `7519a27b9ab436391c1feb844e3dc7a643f804e4` with all required checks green (run `41672475795`). All 187 client test files and 1,795 tests pass in CI. READY production `dpl_7Tdf44Ja1WvrW3BZtYgLP8CoS4CN` matches that merge and serves devshark.app. Twelve real guest route/width cells pass at 390px and 1280px, with no overflow, page errors or API writes; FDE remains enabled and available. Authenticated production acceptance remains an owner walkthrough, as recorded in NEEDED.md.
