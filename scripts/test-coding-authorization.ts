@@ -222,10 +222,11 @@ async function main() {
       await handleCodingTask({ method: 'GET', headers: { authorization: 'Bearer stand-in-token' }, query: { id: tierThree.id, user_id: 'account-ladder' } } as never, out as never, progressDb as never);
     });
     assert.equal(out.statusCode, 200, JSON.stringify(out.body));
-    const body = out.body as { locked: string | null; session: string | null; progress: { revealCount?: number } | null };
+    const body = out.body as { locked: string | null; session: string | null; progress: { revealCount?: number; updatedAt?: string } | null };
     assert.equal(body.locked, null, 'ten cleared JavaScript Learn levels, read from the levels alone, open tier 3');
     assert.ok(body.session, 'and the task page seals a session for it');
     assert.equal(body.progress?.revealCount, 2, 'this task\'s own progress row comes back');
+    assert.equal(body.progress?.updatedAt, ownRow.updated_at, 'the existing activity time is available for automatic resume');
     const progressReads = reads.filter((read) => read.table === 'coding_progress');
     assert.deepEqual(progressReads.map((read) => [read.columns, read.filters, read.single]).sort((a, b) => String(a[0]).localeCompare(String(b[0]))), [
       ['task_id,status', { user_id: 'account-ladder', status: 'passed' }, false],

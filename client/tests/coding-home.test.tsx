@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { CodingHome, CodingTrackScreen } from '../src/components/coding/CodingSection';
 import type { CodingProgressResponse, PracticeSessionResponse } from '../../shared/coding-api';
+import { rememberCodingTask } from '../src/coding/recentTasks';
+import { accountEpoch, clearAccountData } from '../src/lib/accountData';
 import { CODING_INDEX } from '../../shared/coding-index';
 import { evolvingStage, listedChallenges } from '../../shared/evolving';
 import type { Tier } from '../../shared/tiers';
@@ -51,6 +53,7 @@ const card = () => screen.getByRole('region', { name: 'Your next challenge' });
 const passedDigitSum = { tasks: { 'js-digit-sum': { status: 'passed' } }, due: [], javascriptLevelsCleared: 0 } as unknown as CodingProgressResponse;
 
 beforeEach(() => {
+  localStorage.clear();
   // jsdom has no ResizeObserver; the project lists further down the page size themselves with one.
   vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
   state.auth = { isAuthenticated: true, isLoading: false };
@@ -121,18 +124,46 @@ it('still recommends an open project after every standalone task is passed', () 
   expect(within(card()).getByRole('button', { name: 'Continue' })).toBeEnabled();
 });
 
-it('offers a named choice when several projects are unfinished instead of inventing recency', () => {
+it('automatically continues the most recently active unfinished project without a selector', () => {
   const projects = listedChallenges({}).slice(0, 2);
-  state.progress = { data: { ...passedDigitSum, tasks: Object.fromEntries(projects.map(project => [project.stages[0], { status: 'passed' }])) } as unknown as CodingProgressResponse, isLoading: false, isError: false, refetch: () => {} };
+  state.progress = { data: { ...passedDigitSum, tasks: Object.fromEntries(projects.map((project, i) => [project.stages[0], { status: 'passed', updatedAt: `2026-11-0${i + 1}T12:00:00Z` }])) } as unknown as CodingProgressResponse, isLoading: false, isError: false, refetch: () => {} };
   mount();
-  expect(card()).toHaveTextContent('2 challenges in progress');
-  const action = within(card()).getByRole('button', { name: 'Continue' });
-  expect(action).toBeDisabled();
-  const choices = within(card()).getByRole('combobox', { name: 'Choose what to continue' });
-  expect(within(choices).getByRole('option', { name: new RegExp(projects[1].title) })).toBeInTheDocument();
-  fireEvent.change(choices, { target: { value: projects[1].stages[1] } });
-  fireEvent.click(action);
+  expect(within(card()).queryByRole('combobox')).toBeNull();
+  expect(card()).toHaveTextContent(projects[1].title);
+  fireEvent.click(within(card()).getByRole('button', { name: 'Continue' }));
   expect(screen.getByTestId('location')).toHaveTextContent(`/coding/${projects[1].track}/${projects[1].stages[1]}`);
+});
+
+it('continues the last visited unfinished work, including a task not submitted yet', () => {
+  state.progress = { data: passedDigitSum, isLoading: false, isError: false, refetch: () => {} };
+  rememberCodingTask('js-sum-array', accountEpoch());
+  rememberCodingTask('js-count-multiples', accountEpoch());
+  mount();
+  expect(card()).toHaveTextContent('Count multiples');
+  fireEvent.click(within(card()).getByRole('button', { name: 'Continue' }));
+  expect(screen.getByTestId('location')).toHaveTextContent('/coding/javascript/js-count-multiples');
+});
+
+it('skips completed work in recent history and resumes the next stage of an unfinished project', () => {
+  const project = listedChallenges({})[0];
+  state.progress = { data: { ...passedDigitSum, tasks: { ...passedDigitSum.tasks, [project.stages[0]]: { status: 'passed' } } } as unknown as CodingProgressResponse, isLoading: false, isError: false, refetch: () => {} };
+  rememberCodingTask(project.stages[0], accountEpoch());
+  rememberCodingTask('js-digit-sum', accountEpoch());
+  mount();
+  expect(card()).toHaveTextContent(project.title);
+  fireEvent.click(within(card()).getByRole('button', { name: 'Continue' }));
+  expect(screen.getByTestId('location')).toHaveTextContent(`/coding/${project.track}/${project.stages[1]}`);
+});
+
+it('does not reuse another account’s visit or a late write after sign-out', () => {
+  const previous = accountEpoch();
+  rememberCodingTask('js-count-multiples', previous);
+  clearAccountData();
+  rememberCodingTask('js-count-multiples', previous);
+  state.progress = { data: { ...passedDigitSum, tasks: {} }, isLoading: false, isError: false, refetch: () => {} };
+  mount();
+  expect(card()).toHaveTextContent('Digit sum');
+  expect(card()).not.toHaveTextContent('Count multiples');
 });
 
 it('names no challenge while a signed-in learner’s progress loads, then names theirs', () => {

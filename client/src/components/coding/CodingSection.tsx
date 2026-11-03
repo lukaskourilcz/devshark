@@ -924,9 +924,14 @@ function CodingTaskView({ track, taskId }: { track: CodingTrack; taskId: string 
   const choice = useDraftChoice(task.data?.task.id ?? null, opening, task.data?.draftUpdatedAt, { signedIn: isAuthenticated, keepOnDevice });
   const { base: draftBase, epoch: draftEpoch } = choice;
 
+  const visitedTask = useRef<{ id: string; epoch: number } | null>(null);
   useEffect(() => {
+    if (visitedTask.current?.id === taskId && visitedTask.current.epoch === draftEpoch) return;
     if (!authLoading && task.data?.task.id === taskId && task.data.task.track === track
-      && !task.data.locked && task.data.signedIn === isAuthenticated) rememberCodingTask(taskId, draftEpoch);
+      && !task.data.locked && task.data.signedIn === isAuthenticated && draftEpoch === accountEpoch()) {
+      rememberCodingTask(taskId, draftEpoch);
+      visitedTask.current = { id: taskId, epoch: draftEpoch };
+    }
   }, [authLoading, task.data, taskId, track, isAuthenticated, draftEpoch]);
 
   // A device copy a second after typing stops, and the account draft on Run

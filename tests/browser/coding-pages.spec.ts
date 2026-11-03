@@ -199,28 +199,37 @@ test.describe('signed in', () => {
     await expect(star).toBeFocused();
   });
 
-  test('Coding audit: a phone offers explicit unfinished-project choices', async ({ page }) => {
-    await page.setViewportSize({ width: 360, height: 900 });
-    const projects = EVOLVING_CHALLENGES.filter(project => !project.short && !project.category).slice(0, 2);
-    await answer(page, {
-      progress: route => route.fulfill({ json: { ...PROGRESS, tasks: Object.fromEntries(projects.map(project => [project.stages[0], PROGRESS.tasks[TASK]])) } }),
-      task: route => {
-        const task = CODING_TASKS.find(task => task.id === new URL(route.request().url()).searchParams.get('id'))!;
-        return fulfilTaskRead(route, { task: playable(task), session: 'choice-task', locked: null, progress: null, draft: null, signedIn: true });
-      },
+  for (const theme of ['light', 'dark'] as const) for (const width of [360, 1280]) {
+    test(`Coding automatically resumes the last unfinished challenge at ${width}px in ${theme}`, async ({ page }, info) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.emulateMedia({ colorScheme: theme });
+      const projects = EVOLVING_CHALLENGES.filter(project => !project.short && !project.category).slice(0, 2);
+      await answer(page, {
+        progress: route => route.fulfill({ json: { ...PROGRESS, tasks: Object.fromEntries(projects.map((project, i) => [project.stages[0], { ...PROGRESS.tasks[TASK], updatedAt: `2026-11-0${i + 1}T12:00:00Z` }])) } }),
+        task: route => {
+          const task = CODING_TASKS.find(task => task.id === new URL(route.request().url()).searchParams.get('id'))!;
+          return fulfilTaskRead(route, { task: playable(task), session: 'resume-task', locked: null, progress: null, draft: null, signedIn: true });
+        },
+      });
+      await page.goto('/coding');
+      const card = page.getByRole('region', { name: 'Your next challenge' });
+      await expect(card.getByRole('combobox')).toHaveCount(0);
+      await expect(card).toContainText(projects[1].title);
+      await card.getByRole('button', { name: 'Continue', exact: true }).click();
+      await expect(page).toHaveURL(new RegExp(`/${projects[1].stages[1]}$`));
+      await expect(page.getByRole('tab', { name: 'Description', exact: true })).toBeVisible();
+      // Visiting a different unfinished project now takes over automatically.
+      await page.goto(`/coding/javascript/${projects[0].stages[1]}`);
+      await expect(page.getByRole('tab', { name: 'Description', exact: true })).toBeVisible();
+      await page.goto('/coding');
+      await expect(card).toContainText(projects[0].title);
+      await expect(card.getByRole('button', { name: 'Continue', exact: true })).toBeEnabled();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      if (width === 1280 && theme === 'dark') await card.screenshot({ path: info.outputPath('automatic-resume.png') });
+      await card.getByRole('button', { name: 'Continue', exact: true }).click();
+      await expect(page).toHaveURL(new RegExp(`/${projects[0].stages[1]}$`));
     });
-    await page.goto('/coding');
-    const card = page.getByRole('region', { name: 'Your next challenge' });
-    const resume = card.getByRole('button', { name: 'Continue', exact: true });
-    await expect(resume).toBeDisabled();
-    const choice = card.getByRole('combobox', { name: 'Choose what to continue' });
-    await choice.selectOption(projects[1].stages[1]);
-    await expect(resume).toBeEnabled();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await resume.click();
-    await expect(page).toHaveURL(new RegExp(`/coding/javascript/${projects[1].stages[1]}$`));
-    await expect(page.getByRole('tab', { name: 'Description', exact: true })).toBeVisible();
-  });
+  }
 
   test('a track whose progress does not load says so, and draws the list on Try again', async ({ page }) => {
     let failing = true;
