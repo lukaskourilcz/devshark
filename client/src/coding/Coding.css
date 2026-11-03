@@ -49,8 +49,6 @@
 /* Where the title will be while progress loads; still, so reduced motion needs nothing. */
 .cd-next__placeholder { display: inline-block; width: 9ch; height: 0.85em; border-radius: 4px; background: var(--color-border-strong); vertical-align: -0.05em; }
 .cd-next > .ss-swim-cta, .cd-next > .astryx-button { flex: none; }
-.cd-next__choices { display: grid; gap: 6px; margin-top: 8px; min-width: 0; font-size: 0.85rem; }
-.cd-next__choices select { width: 100%; min-width: 0; min-height: var(--ss-control-height); color: var(--color-text-primary); background: var(--color-background-surface); border: 1px solid var(--ss-card-line); border-radius: var(--radius-inner); font: inherit; }
 @media (max-width: 860px) {
   .cd-home-head { grid-template-columns: minmax(0, 1fr); }
   .cd-next { width: 100%; }
