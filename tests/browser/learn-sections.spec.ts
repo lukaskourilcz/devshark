@@ -96,6 +96,35 @@ const topicCard = (page: Page, name: string) =>
   page.getByRole('radiogroup', { name: 'Choose a topic' }).getByRole('radio', { name: new RegExp(`^${name.replace(/[&]/g, '\\$&')}(?:$|,| —)`) });
 
 test.describe('Learn section routes', () => {
+  for (const part of [1, 3]) {
+    test(`the overview opens part test ${part} after its levels, including the final test`, async ({ page }) => {
+      await prepare(page);
+      const count = part === 1 ? 2 : 6;
+      await stand(page, 'guest', { progress: {
+        html: {
+          levels: Object.fromEntries(Array.from({ length: count }, (_, index) => [index + 1, { passed: true, bestPct: 100 }])),
+          checkpoints: part === 1 ? {} : { 1: { passed: true, bestPct: 100 }, 2: { passed: true, bestPct: 100 } },
+        },
+      } });
+      const requests: string[] = [];
+      await page.route('**/api/quiz/roadmap?topic=html&test=*', (route) => {
+        requests.push(route.request().url());
+        return route.fulfill({ json: {
+          kind: 'checkpoint', topic: 'html', ref: part, title: `Part ${part} Test`, passPct: 85,
+          sessionId: 'checkpoint-fixture', questions: [{ id: 'checkpoint-question', category: 'html', difficulty: 1,
+            question: 'Which element is a button?', options: ['button', 'div'], introduction: '', tags: [] }],
+        } });
+      });
+      await page.goto('/learn/web-developer?topic=html');
+      const overview = page.locator('.rm-overview-card');
+      await expect(overview).toContainText(`Part ${part} Test`);
+      await overview.getByRole('button', { name: 'Take the part test' }).click();
+      await expect(page.getByRole('heading', { name: `Part test · Part ${part} Test` })).toBeVisible();
+      expect(requests).toHaveLength(1);
+      expect(new URL(requests[0]).searchParams.get('test')).toBe(String(part));
+    });
+  }
+
   test('resolve /learn, deep links, unknown sections and this device’s last section', async ({ page }) => {
     await prepare(page);
     await stand(page, 'guest');

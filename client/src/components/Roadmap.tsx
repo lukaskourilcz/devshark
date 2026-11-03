@@ -89,6 +89,7 @@ import { joinFde, joinSoftwareEngineer } from './learn/joinSection';
 import { useFdePathSteps } from './learn/useFdePathSteps';
 import { useMapReadsBesideHold } from './learn/mapReads';
 import { useOnline } from './learn/useOnline';
+import { nextLearnStep, type LearnStep as Active } from './learn/nextStep';
 import { isBarred, useContentLocks, type NonCodingContent } from '../lib/contentLocks';
 import { openUpgradeSheet } from '../lib/upgradeSheet';
 import { gatedRef } from '../../../shared/tiers';
@@ -154,8 +155,6 @@ const RUNNER_INTENT = {
 } as const;
 
 type TFn = (key: TranslationKey, vars?: Record<string, string | number>) => string;
-// `ref` is the GLOBAL level number for a level, or the part number for a test.
-type Active = { kind: 'level' | 'test'; ref: number };
 
 // The roadmap topic list is scoped to the active subject (see subjects.ts);
 // each subject exposes its own ordered set of Learn topics.
@@ -499,10 +498,9 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
   // A topic outside the plan is on the rail only for the levels already
   // passed in it: those open for review, the rest stay shut.
   const topicInPlan = inPlan(topic);
-  const continueLevel = topicInPlan && levels.find((meta) => {
-    const owningRange = ranges.find((r) => meta.level >= r.startLevel && meta.level <= r.endLevel);
-    return !!owningRange && isPartLevelUnlocked(progress, topic, owningRange, meta.level, availability) && !isLevelPassed(progress, topic, meta.level);
-  });
+  const continueStep = nextLearnStep({ topic, levels, ranges, progress, availability, inPlan: topicInPlan });
+  const continueLevel = continueStep?.kind === 'level' ? levels.find((meta) => meta.level === continueStep.ref) : undefined;
+  const continueTest = continueStep?.kind === 'test' ? ranges.find((range) => range.part === continueStep.ref) : undefined;
 
   // Keep the selected part on something the learner can actually open: if it's
   // locked (reset progress, switched topic, stale deep link) snap to the first
@@ -1006,7 +1004,9 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
   // button under it then stays secondary.
   const headerJoins = section !== 'web-developer' && !authLoading && isAuthenticated && hasPlan && !isMember;
   const topicDone = passedLevelCount(progress, topic);
-  const continueBarred = !!continueLevel && isBarred(lockOf({ kind: 'learn-level', topic, level: continueLevel.level }));
+  const continueBarred = !!continueStep && isBarred(lockOf(continueStep.kind === 'level'
+    ? { kind: 'learn-level', topic, level: continueStep.ref }
+    : { kind: 'learn-part-test', topic, part: continueStep.ref }));
   // React and DSA open their first levels to every account: there Premium
   // starts at a level, not with the topic.
   const premiumFrom = !!continueLevel && continueBarred && continueLevel.level > 1 && !isBarred(lockOf({ kind: 'learn-level', topic, level: 1 }));
@@ -1161,12 +1161,16 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
             <span className="rm-overview-fin" aria-hidden="true" />
             <div className="rm-overview-copy">
               <p id="rm-overview-step" className="rm-overview-step">
-                {continueLevel
+                {continueStep
                   ? continueBarred
-                    ? premiumFrom
+                    ? continueTest
+                      ? learnText('learn.overview.premiumTest', { part: continueTest.part })
+                      : premiumFrom && continueLevel
                       ? learnText('learn.overview.premiumFrom', { n: continueLevel.level, topic: t(categoryLabelKey(topic)) })
                       : learnText('learn.overview.premium', { topic: t(categoryLabelKey(topic)) })
-                    : learnText('learn.overview.next', { n: continueLevel.level, total: levels.length, title: continueLevel.title })
+                    : continueTest
+                      ? learnText('learn.overview.nextTest', { part: continueTest.part, from: continueTest.startLevel, to: continueTest.endLevel })
+                      : continueLevel && learnText('learn.overview.next', { n: continueLevel.level, total: levels.length, title: continueLevel.title })
                   : t('roadmap.progress', { done: topicDone, total: levels.length })}
               </p>
               <div
@@ -1183,19 +1187,19 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
             {/* In a section the learner has not joined, a topic it shares
                 with their plan is open here too, but the header's join is
                 the screen's one primary, so this action is a secondary. */}
-            {continueLevel && (headerJoins ? (
+            {continueStep && (headerJoins ? (
               <AxButton
                 variant="secondary"
-                label={continueBarred ? learnText('learn.overview.seePremium') : t('roadmap.continue')}
+                label={continueBarred ? learnText('learn.overview.seePremium') : t(continueStep.kind === 'test' ? 'roadmap.toCheckpoint' : 'roadmap.continue')}
                 aria-describedby="rm-overview-step"
-                onClick={() => openOrUpgrade({ kind: 'level', ref: continueLevel.level })}
+                onClick={() => openOrUpgrade(continueStep)}
               />
             ) : (
               <SwimCta
-                label={continueBarred ? learnText('learn.overview.seePremium') : t('roadmap.continue')}
+                label={continueBarred ? learnText('learn.overview.seePremium') : t(continueStep.kind === 'test' ? 'roadmap.toCheckpoint' : 'roadmap.continue')}
                 describedBy="rm-overview-step"
                 dir={-1}
-                onClick={() => openOrUpgrade({ kind: 'level', ref: continueLevel.level })}
+                onClick={() => openOrUpgrade(continueStep)}
               />
             ))}
           </div>

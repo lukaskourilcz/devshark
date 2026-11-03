@@ -43,6 +43,8 @@ export const learnEn = {
   'learn.rail.notJoined': 'Not in your plan',
   'learn.rail.notJoinedAria': '{topic}, not in your plan. Add {section} to open it.',
   'learn.overview.next': 'Level {n} of {total} · {title}',
+  'learn.overview.nextTest': 'Part {part} Test · Levels {from}–{to} completed',
+  'learn.overview.premiumTest': 'Part {part} Test is part of Premium',
   'learn.overview.premium': '{topic} is part of Premium',
   'learn.overview.premiumFrom': 'From level {n}, {topic} is part of Premium',
   'learn.overview.seePremium': 'See Premium',
