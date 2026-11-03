@@ -159,3 +159,16 @@ Nebyl prokázán blocker, který by bránil dokončení celého Quiz flow. Níž
 ## Jak číst priority
 
 P1 = konkrétní riziko změny volby, ztráty kontextu nebo dokončení/porozumění výsledku; vyřešit před širším restylingem. P2 = zlepšení orientace, vysvětlitelnosti nebo odolnosti při pomalém/stale stavu. Priorita není naměřená finanční škoda. Uživatelsky ověřit zejména rychlost nalezení přeskočené odpovědi a schopnost po výsledku vybrat další smysluplný krok; počty a časy teprve změřit, nevymýšlet.
+
+
+## Doplněk: vykonané browser ověření
+
+Skutečný lokální built preview `http://127.0.0.1:4173/quiz`; Playwright/Chromium, dvě deterministické otázky, guest, reduced motion, 3. listopadu 2026. API bylo interceptováno fixturem: výsledky potvrzují UI flow, nikoli autentizaci, správnost backend gradingu nebo zápis do databáze.
+
+- **14 dokončených průchodů:** šířky 360, 390, 430, 768, 1024, 1280, 1440 × light/dark. Setup → přeskočit první otázku → poslední Submit → návrat na první nevyplněnou → vyplnit → odeslat → výsledek → Review answers. U žádné z těchto 42 kontrol stavů setup/active/results nebylo zjištěno horizontální přetečení dokumentu. Dlouhé kódové otázky tento fixture neobsahoval; závěr se na ně nevztahuje.
+- **Q02 potvrzeno:** stisk posledního Submit při nevyplněné otázce přesměruje na `Quiz · Question 1 of 2`. Playwright vyžadoval pro tuto záměrně aria-disabled akci force click; to není důkaz, že by šlo o běžně enabled Submit.
+- **Q07 potvrzeno:** po Review answers zůstává `document.activeElement` tlačítko s textem `Review answers ↓`, nikoli nadpis review, ve všech 14 průchodech.
+- **Vizuální důkazy:** 3 skutečné screenshoty z dark/1440 (setup, active, results) jsou vložené přímo v `quiz.html` jako data URI. Vedle nich jsou původní before/after rekonstrukce zřetelně označené jako schémata. Screenshoty používají 2 otázky a 50% skóre; návrhy demonstrují 10 otázek a 80% skóre. Nejde o stejnou datovou sadu.
+- **HTML report:** 4 přepínatelné scény × 7 šířek = 28 kontrol přepnutí a horizontálního přetečení, všechny prošly. Desktop screenshot reportu byl vizuálně zkontrolován.
+- **Limity:** neprovedeno přihlášení, skutečný serverový grading/XP, account-save/reconnect, Premium, daily/review runtime, expiry runtime, čtečka, formální kontrastní měření nebo 400% reflow. Q01 a ostatní nálezy zůstávají tam, kde není výše uvedeno jinak, důkazy z kódu a expertním posouzením.
+- **Statická kontrola designu:** `npm run check:design` prošel: 13 contract fixtures, `design contract: ok (26 allowlisted)`. `git diff --check` pro oba vlastní report soubory prošel. Report nemění produkční TSX/CSS; nevyžaduje nový funkční test kopírující implementaci vizualizace.
