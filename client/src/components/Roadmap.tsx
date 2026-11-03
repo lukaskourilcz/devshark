@@ -223,6 +223,7 @@ interface PlacedNode {
   /** For a test node: the part it ends and that part's global level range. */
   part?: number;
   range?: PartRange;
+  prerequisite?: { kind: 'level'; ref: number; title: string } | { kind: 'test'; ref: number };
   unavailable?: boolean;
   /** Premium opens this step and the account holds the free plan: the node reads
    * "Premium", stays focusable and opens the upgrade sheet. */
@@ -869,6 +870,8 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
       // Spaced mastery reads the stored level entry (migration-024 fields are
       // additive; older/guest rows without passDays resolve to "cleared").
       const entry = progress[topic]?.levels?.[String(meta.level)] as LevelMasteryEntry | undefined;
+      const earlier = levels.filter((one) => one.level >= nodeRange.startLevel && one.level < meta.level && !availability.unavailableLevels?.has(one.level));
+      const previous = earlier[earlier.length - 1];
       return {
         i, kind: 'level', key: `lvl-${meta.level}`, cx, cy, half: isCurrent ? 25 : 22,
         accent: band.solid, grad: band.grad, level: meta,
@@ -878,6 +881,8 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
         mastery: masteryState(entry),
         due: isDueForReview(entry),
         masteryDays: distinctPassDays(entry),
+        prerequisite: previous ? { kind: 'level', ref: previous.level, title: previous.title }
+          : nodeRange.part > 1 ? { kind: 'test', ref: nodeRange.part - 1 } : undefined,
       };
     });
     const rows = Math.ceil(nodes.length / cols);
@@ -1271,6 +1276,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
                           mastery={n.mastery ?? 'notStarted'}
                           due={n.due ?? false}
                           masteryDays={n.masteryDays ?? 0}
+                          prerequisite={n.prerequisite}
                           premium={n.premium ?? false}
                           outOfPlan={n.outOfPlan ?? false}
                           cellW={layout.cellW}
@@ -1339,7 +1345,7 @@ function MasteryLegend({ t }: { t: TFn }) {
 /* ──── level node ───────────────────────────────────────────────────────── */
 
 function LevelNode({
-  meta, displayNum, accent, unlocked, unavailable, passed, best, isCurrent, mastery, due, masteryDays, premium, outOfPlan = false, onClick, t, cellW,
+  meta, displayNum, accent, unlocked, unavailable, passed, best, isCurrent, mastery, due, masteryDays, premium, outOfPlan = false, prerequisite, onClick, t, cellW,
 }: {
   meta: RoadmapLevelMeta; displayNum: number; accent: string;
   unlocked: boolean; unavailable: boolean; passed: boolean; best: number; isCurrent: boolean;
@@ -1348,6 +1354,7 @@ function LevelNode({
   premium: boolean;
   /** Outside the learner's plan: shut, with the reason in its hint. */
   outOfPlan?: boolean;
+  prerequisite?: PlacedNode['prerequisite'];
   onClick: () => void; t: TFn; cellW: number;
 }) {
   if (premium) {
@@ -1362,11 +1369,14 @@ function LevelNode({
       />
     );
   }
-  // Within a shown part levels gate sequentially; the first level of a part is
-  // gated by the previous part's test at the part selector, never here. An
+  // Levels gate sequentially; the first available level of a part requires
+  // the preceding part's test. An
   // unavailable level is a different thing from a locked one: nothing the
   // learner does opens it, and the path continues past it.
-  const lockedHint = unavailable ? t('roadmap.unavailableHint') : outOfPlan ? t('roadmap.notInPlanHint') : t('roadmap.lockedHint');
+  const lockedHint = unavailable ? t('roadmap.unavailableHint') : outOfPlan ? t('roadmap.notInPlanHint')
+    : prerequisite?.kind === 'level' ? learnText('learn.lock.previousLevel', { n: prerequisite.ref, title: prerequisite.title })
+      : prerequisite?.kind === 'test' ? learnText('learn.lock.previousPart', { n: prerequisite.ref })
+        : t('roadmap.lockedHint');
   // Spaced mastery: a passed level is "cleared" (amber) until it is mastered
   // (green). Soft fill + strong border/icon mirror the quiz feedback tokens so
   // contrast holds in light and dark; the glyph (check vs star) and the aria
@@ -1376,7 +1386,7 @@ function LevelNode({
   const passedFill = mastered ? 'var(--ss-success-soft)' : 'var(--ss-warning-soft)';
   const masteryText = mastered ? t('mastery.mastered') : t('mastery.cleared');
   const tip = !unlocked
-    ? lockedHint
+    ? `${t('roadmap.levelLabel', { n: displayNum })}: ${meta.title}. ${lockedHint}`
     : mastered
       ? t('mastery.masteredTooltip', { days: masteryDays })
       : passed
@@ -1392,15 +1402,12 @@ function LevelNode({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
       <div className={isCurrent ? 'rm-bob' : undefined}>
-        {/* span wrapper: disabled buttons swallow pointer events, so the
-            hint tooltip needs an enabled element to attach to. */}
         <Tooltip content={tip} placement="above" isEnabled={tip !== ''}>
-          <span style={{ display: 'inline-block' }}>
           <button
             type="button"
-            className={unlocked ? 'rm-level-btn' : undefined}
-            onClick={unlocked ? onClick : undefined}
-            disabled={!unlocked}
+            className={`rm-level-btn${unlocked ? '' : ' rm-unavailable-btn'}`}
+            onClick={() => { if (unlocked) onClick(); }}
+            aria-disabled={!unlocked || undefined}
             aria-label={label}
             style={{
               position: 'relative', width: isCurrent ? 50 : 44, height: isCurrent ? 50 : 44, borderRadius: '50%',
@@ -1419,7 +1426,6 @@ function LevelNode({
             {due && <span className="rm-due-marker" aria-hidden="true"><ReviewIcon size={10} /></span>}
             {coding && unlocked && <span className="rm-code-marker" aria-hidden="true"><CodeIcon size={9} /></span>}
           </button>
-          </span>
         </Tooltip>
       </div>
       <div
@@ -1465,16 +1471,17 @@ function PartTestNode({
     ? `${title}${passed ? ` — ${t('roadmap.passed')} ${best}%` : ''}`
     : `${title}: ${unavailable ? t('roadmap.unavailable') : t('roadmap.locked')}`;
   const labelWidth = Math.min(cellW - 4, Math.max(84, Math.min(160, cellW - 8)));
+  const lockedHint = unavailable ? t('roadmap.unavailableHint') : outOfPlan ? t('roadmap.notInPlanHint')
+    : learnText('learn.lock.testLevels', { from: range.startLevel, to: range.endLevel });
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
       <div className={isCurrent ? 'rm-bob' : undefined}>
-        <Tooltip content={unavailable ? t('roadmap.unavailableHint') : outOfPlan ? t('roadmap.notInPlanHint') : t('roadmap.checkpointLocked', { from: range.startLevel, to: range.endLevel })} placement="above" isEnabled={!unlocked}>
-          <span style={{ display: 'inline-block' }}>
+        <Tooltip content={`${title}. ${lockedHint}`} placement="above" isEnabled={!unlocked}>
           <button
             type="button"
-            className={`${unlocked ? 'rm-test-btn' : ''}${isCurrent ? ' rm-shimmer' : ''}`.trim() || undefined}
-            onClick={unlocked ? onClick : undefined}
-            disabled={!unlocked}
+            className={`rm-test-btn${unlocked ? '' : ' rm-unavailable-btn'}${isCurrent ? ' rm-shimmer' : ''}`}
+            onClick={() => { if (unlocked) onClick(); }}
+            aria-disabled={!unlocked || undefined}
             aria-label={label}
             style={{
               position: 'relative', width: 52, height: 52, borderRadius: '14px',
@@ -1494,7 +1501,6 @@ function PartTestNode({
           >
             {passed ? <CheckIcon size={30} /> : unlocked ? <TrophyIcon size={26} /> : <LockIcon size={22} />}
           </button>
-          </span>
         </Tooltip>
       </div>
       <div

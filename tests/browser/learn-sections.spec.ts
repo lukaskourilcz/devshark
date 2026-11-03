@@ -96,6 +96,36 @@ const topicCard = (page: Page, name: string) =>
   page.getByRole('radiogroup', { name: 'Choose a topic' }).getByRole('radio', { name: new RegExp(`^${name.replace(/[&]/g, '\\$&')}(?:$|,| —)`) });
 
 test.describe('Learn section routes', () => {
+  test('keyboard inspection explains an exact locked topic and level without opening them', async ({ page }) => {
+    await prepare(page);
+    await stand(page, 'guest', { progress: {} });
+    const opened: string[] = [];
+    page.on('request', (request) => {
+      const url = new URL(request.url());
+      if (url.pathname === '/api/quiz/roadmap' && (url.searchParams.has('level') || url.searchParams.has('test'))) opened.push(url.href);
+    });
+    await page.goto('/learn/web-developer?topic=html');
+    const html = topicCard(page, 'HTML');
+    const typescript = topicCard(page, 'TypeScript');
+    await html.focus();
+    await page.keyboard.press('ArrowRight'); // CSS
+    await page.keyboard.press('ArrowRight'); // JavaScript
+    await page.keyboard.press('ArrowRight'); // inspect locked TypeScript
+    await expect(typescript).toBeFocused();
+    await expect(typescript).toHaveAttribute('aria-disabled', 'true');
+    await expect(typescript).toHaveAccessibleDescription(/Pass 5 levels in each prerequisite topic to open TypeScript: JavaScript/);
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/topic=javascript$/);
+    await expect(topicCard(page, 'JavaScript')).toHaveAttribute('aria-checked', 'true');
+    await page.goto('/learn/web-developer?topic=html');
+    const level = page.getByRole('button', { name: 'Level 2: Links, Buttons & Interaction, Locked', exact: true });
+    await level.focus();
+    await expect(level).toHaveAccessibleDescription('Level 2: Links, Buttons & Interaction. Pass Level 1: Structure & Semantics to open this level.');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.rm-overview-card')).toBeVisible();
+    expect(opened).toEqual([]);
+  });
+
   for (const part of [1, 3]) {
     test(`the overview opens part test ${part} after its levels, including the final test`, async ({ page }) => {
       await prepare(page);

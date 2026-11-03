@@ -334,8 +334,12 @@
 /* Path node "bubbles" — hover/active lift (only applied to unlocked nodes). */
 .rm-level-btn:hover { transform: scale(1.1) translateY(-1px); }
 .rm-level-btn:active { transform: translateY(3px) scale(0.98); }
+.rm-level-btn:focus-visible,
+.rm-test-btn:focus-visible { outline: 3px solid var(--ss-focus); outline-offset: 3px; }
 .rm-test-btn:hover { transform: scale(1.06) translateY(-1px); }
 .rm-test-btn:active { transform: translateY(3px) scale(0.98); }
+.rm-unavailable-btn:hover,
+.rm-unavailable-btn:active { transform: none; }
 
 /* RoadmapTree: gentle re-animate of the path when the track changes. */
 @keyframes rmTrackIn {
