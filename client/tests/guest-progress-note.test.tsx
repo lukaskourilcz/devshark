@@ -81,7 +81,9 @@ it('tells a guest on the quiz result that the progress stays on this device', as
       </MemoryRouter>
     </QueryClientProvider>,
   );
-  fireEvent.click(await screen.findByRole('button', { name: 'Select all' }));
+  // This fixture is an HTML quiz; selecting its topic keeps the persistence
+  // assertion independent of the setup's expanded/collapsed topic controls.
+  fireEvent.click(await screen.findByRole('button', { name: 'HTML', pressed: false }));
   fireEvent.click(screen.getByRole('button', { name: 'Start quiz' }));
   fireEvent.click(await screen.findByRole('radio', { name: /anchor/ }, { timeout: 4000 }));
   fireEvent.click(screen.getByRole('button', { name: 'Submit quiz' }));
