@@ -118,7 +118,7 @@ test.describe('Touch inspection of locked content', () => {
 });
 
 test.describe('Learn section routes', () => {
-  test('keyboard inspection explains an exact locked topic and level without opening them', async ({ page }) => {
+  test('keyboard inspection explains an exact locked topic without opening it', async ({ page }) => {
     await prepare(page);
     await stand(page, 'guest', { progress: {} });
     const opened: string[] = [];
@@ -136,9 +136,21 @@ test.describe('Learn section routes', () => {
     await expect(typescript).toBeFocused();
     await expect(typescript).toHaveAttribute('aria-disabled', 'true');
     await expect(typescript).toHaveAccessibleDescription(/Pass 5 levels in each prerequisite topic to open TypeScript: JavaScript/);
+    const addressBeforeInspection = page.url();
     await page.keyboard.press('Enter');
-    await expect(page).toHaveURL(/topic=javascript$/);
+    await expect(page).toHaveURL(addressBeforeInspection);
     await expect(topicCard(page, 'JavaScript')).toHaveAttribute('aria-checked', 'true');
+    expect(opened).toEqual([]);
+  });
+
+  test('keyboard inspection explains an exact locked level without opening it', async ({ page }) => {
+    await prepare(page);
+    await stand(page, 'guest', { progress: {} });
+    const opened: string[] = [];
+    page.on('request', (request) => {
+      const url = new URL(request.url());
+      if (url.pathname === '/api/quiz/roadmap' && (url.searchParams.has('level') || url.searchParams.has('test'))) opened.push(url.href);
+    });
     await page.goto('/learn/web-developer?topic=html');
     const level = page.getByRole('button', { name: 'Level 2: Links, Buttons & Interaction, Locked', exact: true });
     await level.focus();
@@ -171,7 +183,8 @@ test.describe('Learn section routes', () => {
       const overview = page.locator('.rm-overview-card');
       await expect(overview).toContainText(`Part ${part} Test`);
       await overview.getByRole('button', { name: 'Take the part test' }).click();
-      await expect(page.getByRole('heading', { name: `Part test · Part ${part} Test` })).toBeVisible();
+      await expect(page.getByRole('heading', { name: `Part test · Part ${part}`, exact: true })).toBeVisible();
+      await expect(page.getByText('Which element is a button?', { exact: true })).toBeVisible();
       expect(requests).toHaveLength(1);
       expect(new URL(requests[0]).searchParams.get('test')).toBe(String(part));
     });
