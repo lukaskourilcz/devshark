@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { publicLesson } from '../../lib/learn-lessons';
+import { localAuth, storeFakeSession } from './fake-session';
 
 // These tests exercise the built UI with local wire fixtures. They do not
 // establish server grading or leaderboard writes; SQL and preview smoke
@@ -215,3 +216,188 @@ for (const theme of ['light', 'dark'] as const) {
     expect(attempts).toBe(1);
   });
 }
+
+
+// Quiz audit Q01–Q10: deterministic wire fixtures exercise the actual built
+// UI; grading, account writes and entitlements remain server responsibilities.
+const quizAuditQuestions = [
+  { id: 'quiz-ux-code', category: 'javascript', difficulty: 1, introduction: 'Think about JavaScript’s historical compatibility.',
+    question: `What does typeof null return?\n\n\`\`\`javascript\n${longCode}\n\`\`\``, options: ['object', 'string', 'null', 'undefined'] },
+  { id: 'quiz-ux-number', category: 'javascript', difficulty: 1, introduction: '', question: 'Which value is a number?', options: ['42', '"42"', 'null', 'undefined'] },
+  { id: 'quiz-ux-retired', category: 'javascript', difficulty: 1, introduction: '', question: 'This question was retired during your attempt.', options: ['True', 'False'] },
+];
+const quizAuditGrade = {
+  totalQuestions: 2, correctAnswers: 1, percentage: 50, questXp: 0, voided: ['quiz-ux-retired'],
+  results: [
+    { questionId: 'quiz-ux-code', selectedIndex: 0, correctAnswer: 0, isCorrect: true, explanation: 'typeof null returns object for historical compatibility.' },
+    { questionId: 'quiz-ux-number', selectedIndex: 2, correctAnswer: 0, isCorrect: false, explanation: '42 is a numeric literal; null is not a number.' },
+  ],
+};
+
+async function quizAuditFixture(page: Page, signedIn = false) {
+  let grades = 0;
+  let writes = 0;
+  await page.addInitScript(() => localStorage.setItem('devquiz:quiz-setup:v1', JSON.stringify({ count: 10, difficulty: 'mixed', categories: ['javascript'] })));
+  await page.route('**/api/**', route => {
+    const url = new URL(route.request().url());
+    if (url.pathname === '/api/quiz/questions' || url.pathname === '/api/quiz/daily') {
+      return route.fulfill({ json: { sessionId: 'quiz-audit-session-unique-attempt-key', expiresAt: Date.now() + 3_600_000, questions: quizAuditQuestions } });
+    }
+    if (url.pathname === '/api/quiz/submit') {
+      grades++;
+      return route.fulfill({ json: { ...quizAuditGrade, ...(signedIn ? { resultReceipt: 'quiz-audit-signed-receipt' } : {}) } });
+    }
+    if (url.pathname === '/api/user/stats' && route.request().method() === 'POST') {
+      writes++;
+      return writes === 1
+        ? route.fulfill({ status: 503, json: { error: { code: 'temporarily_unavailable', message: 'Try again' } } })
+        : route.fulfill({ json: { data: null, applied: false, questXp: 0 } });
+    }
+    if (url.pathname === '/api/user/xp') return route.fulfill({ json: { data: { quest_xp: 0, by_subject: {} } } });
+    return route.fulfill({ status: 503, json: { error: { code: 'offline', message: 'local Quiz fixture' } } });
+  });
+  return { grades: () => grades, writes: () => writes };
+}
+
+async function finishQuizAudit(page: Page) {
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await page.getByRole('radio', { name: 'null', exact: true }).click();
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await page.getByRole('radio', { name: 'True', exact: true }).click();
+  const review = page.getByRole('button', { name: 'Review unanswered (1)', exact: true });
+  await expect(review).not.toHaveAttribute('aria-disabled');
+  await review.click();
+  await expect(page.locator('#question-text-quiz-ux-code')).toBeFocused();
+  await page.getByRole('radio', { name: 'object', exact: true }).click();
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await page.getByRole('button', { name: 'Submit quiz', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('1 / 2');
+}
+
+for (const theme of ['light', 'dark'] as const) for (const width of [360, 390, 430, 768, 1024, 1280, 1440]) {
+  test(`${theme} ${width}px: Quiz setup, unanswered navigation and mistake review stay usable`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await prepare(page, theme);
+    const fixture = await quizAuditFixture(page);
+    await page.goto('/quiz');
+    await expect(page.getByText('You’re practising on this device. Sign in before starting to save results to your account.')).toBeVisible();
+    await page.getByRole('radio', { name: 'Difficulty: Progressive', exact: true }).click();
+    await expect(page.getByText('Progressive: Difficulty 1 to 5, in order.')).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (width === 360 || width === 1440) await page.screenshot({ path: info.outputPath(`quiz-setup-${theme}-${width}.png`), fullPage: true });
+    await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Quiz · Question 1 of 3');
+    await expect(page.getByText('0 of 3 answered', { exact: true })).toBeVisible();
+    await expect(page.locator('time')).toContainText('Submit before');
+    await expect(page.locator('#question-text-quiz-ux-code pre')).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (width === 360 || width === 1440) await page.screenshot({ path: info.outputPath(`quiz-active-${theme}-${width}.png`), fullPage: true });
+    await finishQuizAudit(page);
+    const primary = page.getByRole('button', { name: 'Review incorrect answers (1)', exact: true });
+    await expect(primary).toHaveClass(/ss-swim-cta/);
+    await expect(page.getByText('42 is a numeric literal; null is not a number.')).toBeVisible();
+    await expect(page.locator('.quiz-review-grid')).not.toContainText('typeof null returns object');
+    await expect(page.locator('.quiz-retired')).toContainText('Retired, not counted');
+    await page.getByRole('radio', { name: 'All answers (2)', exact: true }).click();
+    await expect(page.locator('.quiz-review-grid')).toContainText('typeof null returns object');
+    await primary.click();
+    await expect(page.locator('#quiz-review')).toBeFocused();
+    await expect(page.getByRole('radio', { name: 'Incorrect (1)', exact: true })).toBeChecked();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(fixture.grades()).toBe(1);
+    if (width === 360 || width === 1440) {
+      const findings = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+      expect(findings.violations.map(v => v.id)).toEqual([]);
+      await page.screenshot({ path: info.outputPath(`quiz-result-${theme}-${width}.png`), fullPage: true });
+    }
+  });
+}
+
+test('Quiz keeps account save status visible and updates it after background receipt replay', async ({ page }, info) => {
+  await page.setViewportSize({ width: 390, height: 1000 });
+  await prepare(page, 'dark');
+  await storeFakeSession(page);
+  await localAuth(page);
+  const fixture = await quizAuditFixture(page, true);
+  await page.goto('/quiz');
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
+  await finishQuizAudit(page);
+  await expect(page.locator('.quiz-save-status')).toHaveText('Waiting to sync. We’ll retry when you reconnect or reopen devShark.');
+  await page.screenshot({ path: info.outputPath('quiz-save-pending-dark-390.png'), fullPage: true });
+  await page.evaluate(() => window.dispatchEvent(new Event('online')));
+  await expect(page.locator('.quiz-save-status')).toHaveText('Saved to your account');
+  expect(fixture.grades()).toBe(1);
+  expect(fixture.writes()).toBe(2);
+});
+
+for (const mode of ['daily', 'review']) {
+  test(`Quiz identifies the linked ${mode} mode while preserving answer navigation`, async ({ page }) => {
+    await prepare(page, 'dark');
+    await storeFakeSession(page);
+    await localAuth(page);
+    await quizAuditFixture(page);
+    await page.goto(`/quiz?mode=${mode}`);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(`${mode === 'daily' ? 'Today’s challenge' : 'Review'} · Question 1 of 3`);
+    await expect(page.getByText('0 of 3 answered', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Review unanswered (3)', exact: true })).toBeVisible();
+  });
+}
+
+test('Quiz visible-topic bulk actions preserve a hidden selected topic', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 1000 });
+  await prepare(page, 'dark');
+  await quizAuditFixture(page);
+  await page.goto('/quiz');
+  await page.getByRole('button', { name: 'Show all categories', exact: true }).click();
+  await page.getByRole('button', { name: 'Security', exact: true }).click();
+  await page.getByRole('button', { name: 'Show fewer', exact: true }).click();
+  await expect(page.getByText('1 more selected', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Select visible topics', exact: true }).click();
+  await page.getByRole('button', { name: 'Deselect visible topics', exact: true }).click();
+  await page.getByRole('button', { name: 'Show all categories', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Security', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('devquiz:quiz-setup:v1')!).categories)).toEqual(['security']);
+});
+
+test('Quiz notices a passed deadline without clearing answers or inventing a grading refusal', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 1000 });
+  await page.clock.install();
+  await prepare(page, 'dark');
+  await quizAuditFixture(page);
+  await page.goto('/quiz');
+  await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
+  await page.getByRole('radio', { name: 'object', exact: true }).click();
+  await page.clock.fastForward(61 * 60_000);
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await expect(page.getByText(/This quiz’s submit deadline has passed/)).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'object', exact: true })).toBeChecked();
+  expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('devquiz:in-progress')!).answers)).toEqual({ 'quiz-ux-code': 0 });
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await page.getByRole('radio', { name: 'null', exact: true }).click();
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await page.getByRole('radio', { name: 'True', exact: true }).click();
+  await page.getByRole('button', { name: 'Submit quiz', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('1 / 2');
+});
+
+test('Quiz can cancel a slow question load and gives focus back to settings', async ({ page }) => {
+  await prepare(page, 'dark');
+  await quizAuditFixture(page);
+  let release: (() => void) | undefined;
+  await page.route('**/api/quiz/questions?**', async route => {
+    await new Promise<void>(resolve => { release = resolve; });
+    await route.fulfill({ json: { sessionId: 'late-quiz', questions: quizAuditQuestions } }).catch(() => undefined);
+  });
+  await page.goto('/quiz');
+  await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
+  const cancel = page.getByRole('button', { name: 'Back to quiz settings', exact: true });
+  await expect(cancel).toBeVisible({ timeout: 8_000 });
+  await cancel.click();
+  await expect(page.getByRole('heading', { name: 'Build your quiz.', exact: true })).toBeFocused();
+  release!();
+  await expect(page.getByRole('button', { name: 'Start quiz', exact: true })).toBeVisible();
+  await expect(page.getByText('What does typeof null return?', { exact: true })).toHaveCount(0);
+});
