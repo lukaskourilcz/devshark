@@ -7,6 +7,8 @@
 // the way t() does.
 
 export const workbenchEn = {
+  'coding.tab.description': 'Description',
+  'coding.output.label': 'Task information and results',
   'coding.brief.showFull': 'Show full brief',
   'coding.brief.showLess': 'Show less',
   'coding.brief.label': 'Task brief',

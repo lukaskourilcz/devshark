@@ -42,6 +42,7 @@ import { RepeatXpNote } from './RepeatXpNote';
 import { CODING_TIERS, difficultyOf, formatOf, hasLearnLevel, type PlayableCodingTask } from '../../../shared/coding-catalog';
 import { DifficultyBadge } from './DifficultyBadge';
 import { BriefZone } from './BriefZone';
+import { descriptionText } from './description';
 import type { CodingLockReason, CodingSolutionPair, CodingTaskProgress, CodingVerdictResponse } from '../../../shared/coding-api';
 import { complexityGuidance } from '../../../shared/coding-complexity';
 import './Coding.css';
@@ -98,7 +99,7 @@ export interface CodingWorkbenchProps {
   onContinue?: () => void;
 }
 
-type Tab = 'results' | 'types' | 'console' | 'preview' | 'resources' | 'solution' | 'approaches';
+type Tab = 'description' | 'results' | 'types' | 'console' | 'preview' | 'resources' | 'solution' | 'approaches';
 type Phase = 'idle' | 'running' | 'submitting';
 
 // Layout is a preference of the person, not of the task, and it is not their
@@ -214,10 +215,8 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   // The last Run or Submit kept the code on this device only.
   const [draftTooLarge, setDraftTooLarge] = useState(false);
-  // Every track opens on the checks the learner has to pass, React included
-  // (UX audit coding-04); the preview takes over after the first Run that
-  // renders something.
-  const [tab, setTab] = useState<Tab>('results');
+  // Read the task first; Run still opens the checks (or the first React preview).
+  const [tab, setTab] = useState<Tab>('description');
   const previewShown = useRef(false);
   const [hintsTaken, setHintsTaken] = useState(0);
   const [confirming, setConfirming] = useState<'reset' | 'reveal' | null>(null);
@@ -778,10 +777,11 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
    * stopped on the types, or the code ran out of time. */
   const runNote = (outcome: RunOutcome): string => outcome.runnerUnavailable ? t('coding.results.runnerUnavailable')
     : outcome.codeError === TYPE_CHECK_STOPPED_MESSAGE ? t('coding.results.typeCheckStopped') : t('coding.results.timeout');
-  // One order on every track (UX audit coding-04): Results, Console, then
+  // One order on every track: Description, Results, Console, then
   // the track's own tab (Types or Preview), then Resources, so the shared tabs
   // keep their place from one track to the next.
   const tabs: { key: Tab; label: string; badge: string | null; good: boolean | null }[] = [
+    { key: 'description', label: workbenchCopy('coding.tab.description'), badge: null, good: null },
     { key: 'results', label: t('coding.tab.results'), badge: resultsBadge, good: isReact ? (reactRun ? reactRun.failed === 0 && reactRun.total > 0 : null) : localPassed },
     { key: 'console', label: t('coding.tab.console'), badge: null, good: null },
     ...(isTypeScript ? [{ key: 'types' as Tab, label: t('coding.tab.types'), badge: typesBadge, good: typesClean }] : []),
@@ -1162,13 +1162,11 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
     ? t(evolution.challenge.short ? 'coding.evolving.level' : 'coding.evolving.stage', { n: evolution.index + 1, total: evolution.challenge.stages.length })
     : `${trackLabel} · ${tierLabel}${task.topic === 'dsa' ? ` · ${t('category.dsa')}` : ''}${hasLearnLevel(task) ? ` · ${t('coding.level', { n: task.level })}` : ''}`;
 
-  // The brief opens the pane the learner works in, whichever pane that is: a
-  // quiet eyebrow saying where the task sits, then its name as the heading
-  // with the difficulty beside it (UX audit coding-11), then what it asks.
-  // The body under the heading is capped (BriefZone, coding-01), so the editor
-  // and the action bar sit at one height on every task.
+  // The whole brief belongs to Description, including the task's metadata,
+  // earlier requirements and glossary. Its panel owns scrolling.
   const brief = (
     <BriefZone
+      full
       labelledBy={titleId}
       head={(
         <div className="cd-brief__head">
@@ -1182,7 +1180,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       )}
       after={locked && <p className="cd-note cd-note--warn">{t('coding.lockedTask')} {t(`coding.lock.${locked}` as never)}</p>}
     >
-      <Prompt className="cd-prompt" text={task.prompt} />
+      <Prompt className="cd-prompt" text={descriptionText(task.prompt)} />
       {complexity.targetTime && <div className="cd-complexity">
         <span>{t('coding.complexity.desired', { complexity: complexity.targetTime })}</span>
         <ComplexityInfo guidance={complexity} />
@@ -1195,14 +1193,14 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
           {task.previousRequirements!.map((requirement, index) => (
             <li key={index}>
               <span className="cd-previous__stage">{t(evolution?.challenge.short ? 'coding.evolving.levelShort' : 'coding.evolving.stageShort', { n: index + 1 })}</span>
-              <Prompt className="cd-prompt cd-prompt--previous" text={requirement} />
+              <Prompt className="cd-prompt cd-prompt--previous" text={descriptionText(requirement)} />
             </li>
           ))}
         </ol>
       </details>}
       {/* Beside the brief, so nothing is injected into code the learner
           is reading or about to run. */}
-      <TermsBar texts={[task.prompt, task.title]} domain={glossaryDomainFor(task.track)} />
+      <TermsBar texts={[descriptionText(task.prompt), task.title]} domain={glossaryDomainFor(task.track)} />
       {formatOf(task) === 'debug' && <p className="cd-note">{t('coding.format.debugHint')}</p>}
       {task.api && <p className="cd-api"><code>{task.api.method} {task.api.url}</code><br />{task.api.note}</p>}
     </BriefZone>
@@ -1303,9 +1301,66 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
     >
       <span className="cd-visually-hidden" role="status" aria-live="polite">{announcement}</span>
       <div className="cd-workbench__grid" style={{ ['--cd-split' as string]: `${layout.split}%` }}>
+        <section className="cd-pane cd-pane--output" aria-label={workbenchCopy('coding.output.label')}>
+          <div className="cd-tabs" role="tablist" onKeyDown={onTabKeyDown}>
+            {tabs.map((one) => (
+              <FinButton
+                key={one.key}
+                type="button"
+                role="tab"
+                id={`${baseId}-tab-${one.key}`}
+                aria-selected={tab === one.key}
+                aria-controls={`${baseId}-panel-${one.key}`}
+                // Roving tab stop: Tab reaches the strip once, arrows move
+                // within it, which is what `role="tab"` promises a reader.
+                tabIndex={tab === one.key ? 0 : -1}
+                ref={(node) => { tabRefs.current[one.key] = node; }}
+                className="cd-tab"
+                data-tab={one.key}
+                onClick={() => setTab(one.key)}
+              >
+                {one.label}
+                {one.badge && <span className={`cd-tab__badge${one.good === true ? ' cd-tab__badge--good' : one.good === false ? ' cd-tab__badge--bad' : ''}`}>{one.badge}</span>}
+              </FinButton>
+            ))}
+          </div>
+          {/* Everything under the tab strip scrolls as one: the panel, the
+              verdict and the failure hint. On the two-column layout the pane is
+              exactly as tall as the editor beside it (see Coding.css), so this
+              is where a long list of checks goes instead of below Run. */}
+          <div className="cd-output-scroll">
+          {tabs.map((one) => {
+            // A suite that moves focus needs the preview's document laid out,
+            // and a hidden panel has none: every focus check failed once Run
+            // had switched to Results. While a suite runs, the preview panel
+            // is parked off-screen instead, out of reading and tab order.
+            const parked = one.key === 'preview' && tab !== 'preview' && busy;
+            return (
+            // The panel takes focus itself: its content is often plain text,
+            // so without this a keyboard user tabs straight past the results.
+            <div key={one.key} role="tabpanel" tabIndex={tab === one.key ? 0 : -1} id={`${baseId}-panel-${one.key}`} aria-labelledby={`${baseId}-tab-${one.key}`} className={`cd-panel${parked ? ' cd-panel--parked' : ''}`} hidden={tab !== one.key && !parked} aria-hidden={parked || undefined}>
+              {one.key === 'description' && brief}
+              {one.key === 'results' && renderResults()}
+              {one.key === 'types' && renderTypes()}
+              {one.key === 'console' && renderConsole()}
+              {one.key === 'preview' && renderPreview()}
+              {one.key === 'resources' && renderResources()}
+              {one.key === 'solution' && renderSolution()}
+              {one.key === 'approaches' && renderApproaches()}
+            </div>
+            );
+          })}
+          {verdictCard}
+          {tab === 'results' && shownHint && (
+            <div className="cd-hint cd-hint--failure" role="status">
+              <strong className="cd-hint__label">{t(`coding.failure.${shownHint.category}` as never)}</strong>
+              <Prompt text={shownHint.body} />
+            </div>
+          )}
+          </div>
+        </section>
           {puzzleMode && task.puzzle && (
             <section className="cd-pane cd-pane--editor" aria-labelledby={titleId}>
-              {brief}
               {/* Keyed by the session: a re-issued task comes with a fresh
                   shuffle and a fresh translation, so the arrangement starts
                   over rather than being graded under the new one. */}
@@ -1321,7 +1376,6 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
 
           {pendingOnDesktop && (
             <section className="cd-pane cd-pane--editor" aria-labelledby={titleId}>
-              {brief}
               {/* No editor, no puzzle, and no pass: the task waits. The draft is
                   kept exactly as it is, and nothing about this marks it done.
                   Waiting is the default, never the only way: the editor works
@@ -1340,14 +1394,12 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
 
           {/* Stays mounted while a puzzle or the pending note stands in for it,
               so the code survives a resize; the editor inside it mounts once
-              it has shown (editorMounted). The brief and the actions go with
-              whichever pane is showing. */}
+              it has shown (editorMounted). */}
           <section className="cd-pane cd-pane--editor" ref={editorPaneRef} tabIndex={-1} hidden={puzzleMode || pendingOnDesktop} aria-labelledby={puzzleMode || pendingOnDesktop ? undefined : titleId}>
-            {!puzzleMode && !pendingOnDesktop && brief}
             <div className="cd-editor-slot" onPointerEnter={wantCompiler} onFocus={wantCompiler}>
               {!puzzleMode && !pendingOnDesktop && editorBar}
-              {/* In the frame (1024px and up) the editor takes what the brief
-                  and the action bar leave and scrolls inside; stacked, it
+              {/* In the frame (1024px and up) the editor fills the pane above
+                  the action bar and scrolls inside; stacked, it
                   starts at --cd-editor-min and grows with the code. */}
               {editorMounted && <EditorPart loadingLabel={t('common.loading')} failedLabel={t('coding.loadError')} fill={mode !== 'landing'} minHeight={mode === 'landing' ? 160 : undefined} maxHeight={mode === 'landing' ? 160 : undefined} value={code} onChange={onCodeChange} track={task.track} ariaLabel={t('coding.editorLabel')} describedBy={`${baseId}-keys`} readOnly={Boolean(solution) && mode === 'lesson'} />}
               {/* The shortcuts are not printed on the page; a screen reader
@@ -1471,63 +1523,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
           onPointerDown={onSeparatorPointerDown}
         />
 
-        <section className="cd-pane cd-pane--output" aria-label={t('coding.tab.results')}>
-          <div className="cd-tabs" role="tablist" onKeyDown={onTabKeyDown}>
-            {tabs.map((one) => (
-              <FinButton
-                key={one.key}
-                type="button"
-                role="tab"
-                id={`${baseId}-tab-${one.key}`}
-                aria-selected={tab === one.key}
-                aria-controls={`${baseId}-panel-${one.key}`}
-                // Roving tab stop: Tab reaches the strip once, arrows move
-                // within it, which is what `role="tab"` promises a reader.
-                tabIndex={tab === one.key ? 0 : -1}
-                ref={(node) => { tabRefs.current[one.key] = node; }}
-                className="cd-tab"
-                data-tab={one.key}
-                onClick={() => setTab(one.key)}
-              >
-                {one.label}
-                {one.badge && <span className={`cd-tab__badge${one.good === true ? ' cd-tab__badge--good' : one.good === false ? ' cd-tab__badge--bad' : ''}`}>{one.badge}</span>}
-              </FinButton>
-            ))}
-          </div>
-          {/* Everything under the tab strip scrolls as one: the panel, the
-              verdict and the failure hint. On the two-column layout the pane is
-              exactly as tall as the editor beside it (see Coding.css), so this
-              is where a long list of checks goes instead of below Run. */}
-          <div className="cd-output-scroll">
-          {tabs.map((one) => {
-            // A suite that moves focus needs the preview's document laid out,
-            // and a hidden panel has none: every focus check failed once Run
-            // had switched to Results. While a suite runs, the preview panel
-            // is parked off-screen instead, out of reading and tab order.
-            const parked = one.key === 'preview' && tab !== 'preview' && busy;
-            return (
-            // The panel takes focus itself: its content is often plain text,
-            // so without this a keyboard user tabs straight past the results.
-            <div key={one.key} role="tabpanel" tabIndex={tab === one.key ? 0 : -1} id={`${baseId}-panel-${one.key}`} aria-labelledby={`${baseId}-tab-${one.key}`} className={`cd-panel${parked ? ' cd-panel--parked' : ''}`} hidden={tab !== one.key && !parked} aria-hidden={parked || undefined}>
-              {one.key === 'results' && renderResults()}
-              {one.key === 'types' && renderTypes()}
-              {one.key === 'console' && renderConsole()}
-              {one.key === 'preview' && renderPreview()}
-              {one.key === 'resources' && renderResources()}
-              {one.key === 'solution' && renderSolution()}
-              {one.key === 'approaches' && renderApproaches()}
-            </div>
-            );
-          })}
-          {verdictCard}
-          {tab === 'results' && shownHint && (
-            <div className="cd-hint cd-hint--failure" role="status">
-              <strong className="cd-hint__label">{t(`coding.failure.${shownHint.category}` as never)}</strong>
-              <Prompt text={shownHint.body} />
-            </div>
-          )}
-          </div>
-        </section>
+
       </div>
       {/* The same dialog the quiz uses, carrying the task id and the version of
           the brief that was on screen. Reporting needs no account. */}

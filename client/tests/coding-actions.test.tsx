@@ -103,7 +103,7 @@ it('uses a visible, accessible branded loading status', () => {
   expect(screen.getByText('Loading task…')).toBeVisible();
 });
 
-it('keeps the brief, the editor and the actions in one pane, with revealed hints after it', () => {
+it('keeps the brief in Description and the editor with its actions, with revealed hints after it', () => {
   localStorage.setItem('devshark:coding:hints:js-test-editor', '1');
   render(<MemoryRouter><LanguageProvider><CodingWorkbench initialCode={null} task={task} session="test-session" locked={null} signedIn mode="section" /></LanguageProvider></MemoryRouter>);
   expect(screen.queryByText('Use a function.')).toBeNull();
@@ -118,17 +118,19 @@ it('keeps the brief, the editor and the actions in one pane, with revealed hints
   // Focus mode is gone: nothing in the bar toggles the layout.
   expect(within(bar as HTMLElement).queryByRole('button',{name:'Focus'})).toBeNull();
   expect(within(bar as HTMLElement).getByRole('button',{name:/Skip/i})).toBeInTheDocument();
-  // One pane: the green line and the brief on top, the editor, the actions at its foot.
+  // Description owns the complete brief; code actions stay beside the editor.
   const pane = bar.closest('.cd-pane--editor')!;
   const title = screen.getByRole('heading',{level:1,name:'Test task'});
-  expect(title.closest('.cd-pane--editor')).toBe(pane);
+  const description = screen.getByRole('tabpanel', { name: 'Description' });
+  expect(description).toContainElement(title);
+  expect(title.closest('.cd-pane--editor')).toBeNull();
   // Two lines (coding-11): the eyebrow says where the task sits, the heading under it names it.
   const head = title.closest('.cd-brief__head')!;
   expect(head.firstElementChild).toHaveClass('cd-brief__meta');
   expect(head.firstElementChild).toHaveTextContent('JavaScript · Foundations · Level 1');
   expect(title.closest('.cd-brief__line')?.querySelector('.cd-brief__meta')).toBeNull();
-  expect(within(pane as HTMLElement).getByText('Return one.')).toBeInTheDocument();
-  expect(pane.firstElementChild).toHaveClass('cd-brief');
+  expect(within(description).getByText('Return one.')).toBeInTheDocument();
+  expect(pane.firstElementChild).toHaveClass('cd-editor-slot');
   expect(pane.lastElementChild).toBe(bar);
   expect(bar.compareDocumentPosition(screen.getByLabelText('Test editor')) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
   // No visible editor label and no printed shortcuts; the editor still describes them.

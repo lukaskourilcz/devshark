@@ -21,9 +21,11 @@ export interface BriefZoneProps {
   children: ReactNode;
   /** Shown under the body and never capped (a lock note, for one). */
   after?: ReactNode;
+  /** A dedicated Description panel owns scrolling, so its brief needs no cap. */
+  full?: boolean;
 }
 
-export function BriefZone({ labelledBy, label, head, children, after }: BriefZoneProps) {
+export function BriefZone({ labelledBy, label, head, children, after, full = false }: BriefZoneProps) {
   const bodyId = useId();
   const body = useRef<HTMLDivElement | null>(null);
   const [expanded, setExpanded] = useState(false);
@@ -38,6 +40,7 @@ export function BriefZone({ labelledBy, label, head, children, after }: BriefZon
   // A child added or removed (a note appearing) is seen by the mutation
   // observer, a child growing (a term opened) by the resize observer.
   useLayoutEffect(() => {
+    if (full) return;
     const node = body.current;
     if (!node) return;
     const measure = () => setOverflows(node.scrollHeight > node.clientHeight + 1);
@@ -53,10 +56,10 @@ export function BriefZone({ labelledBy, label, head, children, after }: BriefZon
     const mutation = typeof MutationObserver === 'undefined' ? null : new MutationObserver(() => { observeAll(); measure(); });
     mutation?.observe(node, { childList: true });
     return () => { resize?.disconnect(); mutation?.disconnect(); };
-  }, [expanded]);
+  }, [expanded, full]);
 
-  const capped = !expanded;
-  const scrolls = overflows;
+  const capped = !full && !expanded;
+  const scrolls = !full && overflows;
   const toggle = () => {
     if (expanded) {
       if (body.current) body.current.scrollTop = 0;
@@ -85,7 +88,7 @@ export function BriefZone({ labelledBy, label, head, children, after }: BriefZon
       >
         {children}
       </div>
-      {(overflows || expanded) && (
+      {!full && (overflows || expanded) && (
         <Button
           className="cd-brief__toggle"
           variant="ghost"

@@ -85,7 +85,7 @@ it('opens the editor with Run and Submit on a narrow screen when the learner ask
   expect(screen.getByRole('button', { name: 'Submit' })).toBeVisible();
   // The button that was pressed is gone; focus lands on the pane that replaced it.
   expect(document.activeElement).toBe(editor.closest('.cd-pane--editor'));
-  expect(screen.getByRole('heading', { level: 2, name: 'Narrow task' }).closest('.cd-pane--editor')).toBe(editor.closest('.cd-pane--editor'));
+  expect(screen.getByRole('tabpanel', { name: 'Description' })).toContainElement(screen.getByRole('heading', { level: 2, name: 'Narrow task' }));
 
   // The next task in the same browser session opens straight in the editor.
   cleanup();
