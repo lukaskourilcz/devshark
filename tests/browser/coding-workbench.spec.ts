@@ -338,8 +338,8 @@ test('signed in: a pass inside the hour says in a toast when the XP opens again'
   await prepare(page, { signedIn: true, verdict: { applied: true, repeatXp: { availableAt: opens, needsReset: true, withheld: 'cooldown' } } });
   await openTask(page, '/coding/javascript/js-count-multiples');
   await fillEditor(page, solutionFor('js-count-multiples')!.solution);
-  await page.getByRole('button', { name: 'Submit', exact: true }).click();
   const time = await page.evaluate((iso) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), opens);
+  await page.getByRole('button', { name: 'Submit', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: `No XP this time: reset the task and pass it from ${time} to earn it again.` })).toBeVisible();
 });
 
