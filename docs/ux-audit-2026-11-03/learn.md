@@ -6,7 +6,7 @@ Datum: 3. 11. 2026. Stav: audit a návrhy, nikoli implementované změny aplikac
 
 Začínající i vracející se vývojář potřebuje najít další dostupný krok, pochopit podmínky postupu a dokončit jej bez ztráty orientace. Zahrnuto: `/learn/web-developer`, `/learn/software-engineer`, `/learn/forward-deployed-engineer`, `/learn/big-o`, volitelné čtení, otázky, výsledky, placement a vstup do FDE modulu. Route map: `client/src/App.tsx:79`, `client/src/App.tsx:884`; FDE má vlastní workspace `client/src/components/paths/LearningPathScreens.tsx:664`.
 
-Zjištění jsou odvozena z aktuálního kódu, nikoli ze starých auditů. Rozlišuji staticky ověřené chování od prohlížečové validace. Před/po schémata v HTML jsou označená jako rekonstrukce a návrh; nejsou vydávána za fotografie produkce. Provedená prohlížečová kontrola bude zapsána níže. Bez uživatelského výzkumu neuvádím smyšlené konverze, časové úspory ani četnost problémů.
+Zjištění jsou odvozena z aktuálního kódu, nikoli ze starých auditů. Rozlišuji staticky ověřené chování od prohlížečové validace. Před/po schémata v HTML jsou označená jako rekonstrukce a návrh; nejsou vydávána za fotografie produkce. Níže jsou odděleně zapsané provedené prohlížečové kontroly. Bez uživatelského výzkumu neuvádím smyšlené konverze, časové úspory ani četnost problémů.
 
 ## Co zachovat
 
@@ -115,12 +115,29 @@ Rizika vyžadující runtime ověření: L02, čitelnost dlouhých nadpisů, po�
 | Oblast | Scénáře | Stav tohoto auditu |
 | --- | --- | --- |
 | Kód/flow | všechny tři sekce, Big O reader, otázky, výsledek, placement, FDE vstup/workspace | Staticky přečteno; šest výše uvedených nálezů |
-| Widths | 360, 390, 430, 768, 1024, 1280, 1440 | Runtime výsledky doplnit; zatím žádné tvrzení o plném sweepu |
+| Widths | 360, 390, 430, 768, 1024, 1280, 1440 | Všech 7 šířek: HTML 2/6 před checkpointem, bez page overflow; nejde o sweep všech stavů |
 | Vzhled | light, dark, reduced motion, dlouhý obsah, zoom 200/400% | Statická kontrola existujících pravidel; plná vizuální validace neprovedena |
-| Stav mapy | loading, partial/error, no levels, checkpoint, completed, Premium, not-in-plan | Kódové větve zkontrolovány; runtime checkpoint doplnit |
+| Stav mapy | loading, partial/error, no levels, checkpoint, completed, Premium, not-in-plan | Runtime: HTML 2/6, overview 0 actions, Part 1 Test enabled ve všech 7 šířkách; ostatní větve staticky |
 | Session | guest, signed in, expired/sign-in changed | Kódové větve zkontrolovány; žádný zápis do produkčních dat |
 | Recovery | offline, ztracený POST, expired token, failed apply receipt | Statická kontrola; žádné fault-injection testování serveru |
 | Accessibility | focus návrat, radio arrows, zámky, status, non-color, touch targets | Existující implementace přečtena; VoiceOver neproveden |
-| FDE | closed outline, active, paused, error, local draft recovery, Reset | Workspace přečten; v tomto auditu bez ověření reálného enrollmentu |
+| FDE | closed outline, active, paused, error, local draft recovery, Reset | Runtime closed outline + skutečný inventář; active/paused/workspace staticky, bez reálného enrollmentu |
 
 Kontroly při implementaci: `npm run check:design`, relevantní `client/tests/learn-*`, `npm run test:browser -- tests/browser/learn-sections.spec.ts tests/browser/learning-release.spec.ts`, responsive sweep a `git diff --check`. Merge až podle pravidel repozitáře; tento audit sám není release acceptance.
+
+## Provedené kontroly a původ vizuálů
+
+- `npm run check:design`: PASS, 13 contract fixtures, 26 existujících allowlisted výjimek.
+- Built preview na `http://127.0.0.1:4173`, headless Google Chrome; struktura a path catalog z `scripts/responsive-fixtures.ts`, lekce z `lib/learn-lessons/index.ts:publicLesson`. Fixtures mění pouze síťová data lokálního prohlížeče a guest local storage, ne produkční záznamy.
+- L01 runtime: `/learn/web-developer?topic=html`, prošlé úrovně 1 a 2, žádný checkpoint. Všech sedm šířek ukazuje `2 / 6 levels`, overview má nula button/link akcí, Part 1 Test je enabled. Page overflow nezjištěn v těchto konkrétních buňkách.
+- Runtime `/learn/big-o?lesson=1`: skutečný článek `Counting work, not seconds`; při vstupu je `Start the questions` přibližně na y = 3 492 CSS px (viewport 1440 × 1000).
+- Runtime `/learn/forward-deployed-engineer`: guest, cesta vypnutá, skutečný closed outline a inventář. Návrh active/Continue varianty v HTML je rekonstrukce statické větve, nikoli screenshot aktivního účtu.
+- PNG screenshoty aktuálního klienta jsou vloženy jako data URI přímo v `learn.html`; žádný odkaz na lokální obrázek či externí font. HTML/CSS schémata „Po“ jsou deterministické návrhy, aplikace jimi změněna nebyla.
+- Screenshoty v HTML jsou doklady konkrétních stavů; nejsou tvrzením o kompletním light/dark, keyboard, zoom ani server fault sweepu.
+
+### Kontrola výsledného HTML reportu
+
+- Všech 7 šířek 360, 390, 430, 768, 1024, 1280 a 1440: bez page overflow; všech šest párů před/po přítomno; všechny vložené obrázky načtené.
+- Vizuálně zkontrolované renderované páry: L01 desktop, L03 mobile. Nadpisy, tlačítka a kód se vejdou, porovnání se na mobilu skládá pod sebe.
+- Axe kontrola samotného reportu při 390px: 0 violations po opravě heading order a focusovatelných, jednoznačně pojmenovaných scroll tabulek. Toto není axe kontrola celé aplikace.
+- `git diff --check` pro oba soubory: PASS.
