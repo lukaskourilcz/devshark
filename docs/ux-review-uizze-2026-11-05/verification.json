@@ -1,0 +1,345 @@
+{
+  "checkedAt": "2026-11-04T23:52:09.166331+00:00",
+  "production": [
+    {
+      "route": "/coding",
+      "theme": "dark",
+      "width": 1280,
+      "overflow": false,
+      "errors": [],
+      "apiWrites": []
+    },
+    {
+      "route": "/coding/javascript/js-digit-sum",
+      "theme": "dark",
+      "width": 1280,
+      "overflow": false,
+      "errors": [],
+      "apiWrites": []
+    },
+    {
+      "route": "/learn/web-developer?topic=html",
+      "theme": "dark",
+      "width": 1280,
+      "overflow": false,
+      "errors": [],
+      "apiWrites": []
+    },
+    {
+      "route": "/quiz",
+      "theme": "dark",
+      "width": 1280,
+      "overflow": false,
+      "errors": [],
+      "apiWrites": []
+    },
+    {
+      "route": "/coding",
+      "theme": "dark",
+      "width": 390,
+      "overflow": false,
+      "errors": [],
+      "apiWrites": []
+    },
+    {
+      "route": "/coding/javascript/js-digit-sum",
+      "theme": "dark",
+      "width": 390,
+      "overflow": false,
+      "errors": [],
+      "apiWrites": []
+    },
+    {
+      "route": "/learn/web-developer?topic=html",
+      "theme": "dark",
+      "width": 390,
+      "overflow": false,
+      "errors": [],
+      "apiWrites": []
+    },
+    {
+      "route": "/quiz",
+      "theme": "dark",
+      "width": 390,
+      "overflow": false,
+      "errors": [],
+      "apiWrites": []
+    },
+    {
+      "route": "/coding",
+      "theme": "light",
+      "width": 1280,
+      "overflow": false,
+      "errors": [],
+      "apiWrites": []
+    },
+    {
+      "route": "/coding/javascript/js-digit-sum",
+      "theme": "light",
+      "width": 1280,
+      "overflow": false,
+      "errors": [],
+      "apiWrites": []
+    },
+    {
+      "route": "/learn/web-developer?topic=html",
+      "theme": "light",
+      "width": 1280,
+      "overflow": false,
+      "errors": [],
+      "apiWrites": []
+    },
+    {
+      "route": "/quiz",
+      "theme": "light",
+      "width": 1280,
+      "overflow": false,
+      "errors": [],
+      "apiWrites": []
+    }
+  ],
+  "concept": [
+    {
+      "theme": "dark",
+      "width": 1280,
+      "screen": "learn",
+      "errors": [],
+      "overflow": false,
+      "smallControls": [],
+      "heading": "Learn"
+    },
+    {
+      "theme": "dark",
+      "width": 1280,
+      "screen": "workbench",
+      "errors": [],
+      "overflow": false,
+      "smallControls": [],
+      "heading": "Digit sum"
+    },
+    {
+      "theme": "dark",
+      "width": 1280,
+      "screen": "quiz",
+      "errors": [],
+      "overflow": false,
+      "smallControls": [],
+      "heading": "Build your quiz."
+    },
+    {
+      "theme": "dark",
+      "width": 390,
+      "screen": "learn",
+      "errors": [],
+      "overflow": false,
+      "smallControls": [],
+      "heading": "Learn"
+    },
+    {
+      "theme": "dark",
+      "width": 390,
+      "screen": "workbench",
+      "errors": [],
+      "overflow": false,
+      "smallControls": [],
+      "heading": "Digit sum"
+    },
+    {
+      "theme": "dark",
+      "width": 390,
+      "screen": "quiz",
+      "errors": [],
+      "overflow": false,
+      "smallControls": [],
+      "heading": "Build your quiz."
+    },
+    {
+      "theme": "light",
+      "width": 1280,
+      "screen": "learn",
+      "errors": [],
+      "overflow": false,
+      "smallControls": [],
+      "heading": "Learn"
+    },
+    {
+      "theme": "light",
+      "width": 1280,
+      "screen": "workbench",
+      "errors": [],
+      "overflow": false,
+      "smallControls": [],
+      "heading": "Digit sum"
+    },
+    {
+      "theme": "light",
+      "width": 1280,
+      "screen": "quiz",
+      "errors": [],
+      "overflow": false,
+      "smallControls": [],
+      "heading": "Build your quiz."
+    }
+  ],
+  "mcp": {
+    "verification": "fresh native Codex CLI session, private user-level configuration",
+    "registered": [
+      "find_ui_references",
+      "find_ui_materials",
+      "get_ui_flow"
+    ],
+    "called": [
+      "find_ui_references"
+    ],
+    "result": "success; three supporting editor matches; no exact learning-challenge match",
+    "currentParentToolCatalogReloaded": false
+  },
+  "limitations": [
+    "Guest observations only",
+    "Visual HTML concepts; no production implementation",
+    "No authenticated, grading, offline or full accessibility acceptance"
+  ],
+  "report": {
+    "rows": [
+      {
+        "width": 390,
+        "s": "learn",
+        "mode": "dark-390"
+      },
+      {
+        "width": 390,
+        "s": "learn",
+        "mode": "dark-1280"
+      },
+      {
+        "width": 390,
+        "s": "learn",
+        "mode": "light-1280"
+      },
+      {
+        "width": 390,
+        "s": "workbench",
+        "mode": "dark-390"
+      },
+      {
+        "width": 390,
+        "s": "workbench",
+        "mode": "dark-1280"
+      },
+      {
+        "width": 390,
+        "s": "workbench",
+        "mode": "light-1280"
+      },
+      {
+        "width": 390,
+        "s": "quiz",
+        "mode": "dark-390"
+      },
+      {
+        "width": 390,
+        "s": "quiz",
+        "mode": "dark-1280"
+      },
+      {
+        "width": 390,
+        "s": "quiz",
+        "mode": "light-1280"
+      },
+      {
+        "width": 1280,
+        "s": "learn",
+        "mode": "dark-390"
+      },
+      {
+        "width": 1280,
+        "s": "learn",
+        "mode": "dark-1280"
+      },
+      {
+        "width": 1280,
+        "s": "learn",
+        "mode": "light-1280"
+      },
+      {
+        "width": 1280,
+        "s": "workbench",
+        "mode": "dark-390"
+      },
+      {
+        "width": 1280,
+        "s": "workbench",
+        "mode": "dark-1280"
+      },
+      {
+        "width": 1280,
+        "s": "workbench",
+        "mode": "light-1280"
+      },
+      {
+        "width": 1280,
+        "s": "quiz",
+        "mode": "dark-390"
+      },
+      {
+        "width": 1280,
+        "s": "quiz",
+        "mode": "dark-1280"
+      },
+      {
+        "width": 1280,
+        "s": "quiz",
+        "mode": "light-1280"
+      },
+      {
+        "width": 1440,
+        "s": "learn",
+        "mode": "dark-390"
+      },
+      {
+        "width": 1440,
+        "s": "learn",
+        "mode": "dark-1280"
+      },
+      {
+        "width": 1440,
+        "s": "learn",
+        "mode": "light-1280"
+      },
+      {
+        "width": 1440,
+        "s": "workbench",
+        "mode": "dark-390"
+      },
+      {
+        "width": 1440,
+        "s": "workbench",
+        "mode": "dark-1280"
+      },
+      {
+        "width": 1440,
+        "s": "workbench",
+        "mode": "light-1280"
+      },
+      {
+        "width": 1440,
+        "s": "quiz",
+        "mode": "dark-390"
+      },
+      {
+        "width": 1440,
+        "s": "quiz",
+        "mode": "dark-1280"
+      },
+      {
+        "width": 1440,
+        "s": "quiz",
+        "mode": "light-1280"
+      }
+    ],
+    "overflow": false,
+    "errors": [],
+    "axeViolations": [],
+    "dialogEscapeAndFocus": "PASS"
+  }
+}
