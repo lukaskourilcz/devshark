@@ -24,19 +24,19 @@
       style(`
         .ss-daily{gap:10px!important}.ss-daily>.ss-info-page__header{padding:0!important;gap:6px!important;margin-bottom:0!important}
         .ss-daily>.ss-info-page__header h1{font-size:24px!important;line-height:1.25!important}
-        .ss-daily .ss-daily__context{font-size:14px!important;line-height:1.45!important}.ss-daily__context p{margin-bottom:5px!important}
+        .ss-daily .ss-daily__context{font-size:14px!important;line-height:1.4!important}.ss-daily__context p{margin-bottom:5px!important}
         .ss-daily>.ss-info-page__header .ss-daily__practice{font-size:12px!important;line-height:1.45!important}
-        .ss-daily .ss-question{gap:10px!important}.ss-daily .ss-question__panel{padding:16px 24px!important;gap:10px!important}
-        .ss-daily .ss-question__body{gap:10px!important}.ss-daily .ss-question__block p{margin:0 0 8px!important}
-        .ss-daily .ss-question__block pre{margin:8px 0 0!important;padding:12px 16px!important}
-        .ss-daily .ss-answer-list{--ss-answer-row-min:44px;gap:6px!important}.ss-daily .ss-answer-option{min-height:44px!important;padding-block:7px!important}
+        .ss-daily .ss-question{gap:8px!important}.ss-daily .ss-question__panel{padding:12px 24px!important;gap:10px!important}
+        .ss-daily .ss-question__body{gap:8px!important}.ss-daily .ss-question__block p{margin:0 0 8px!important}
+        .ss-daily .ss-question__block pre{margin:8px 0 0!important;padding:10px 16px!important}
+        .ss-daily .ss-answer-list{--ss-answer-row-min:44px;gap:4px!important}.ss-daily .ss-answer-option{min-height:44px!important;padding-block:7px!important}
         @media(max-width:559px){.ss-daily .ss-question__panel{padding:16px!important}.ss-daily>.ss-info-page__header h1{font-size:22px!important}}
       `);
     }
     if (scene === 'learn-mobile') {
       const section = one('.rm-section-switcher'), rail = one('.rm-topic-rail');
-      const selectedSection = section.querySelector('[aria-checked="true"]')?.textContent?.replace(/\s+/g, ' ').trim() || 'Web Developer · 0%';
-      const selectedTopic = rail.querySelector('[aria-checked="true"]')?.textContent?.replace(/\s+/g, ' ').trim() || 'HTML · 0 / 6 levels';
+      const selectedSection = section.querySelector('[aria-checked="true"]')?.textContent?.replace(/\s+/g, ' ').replace(/\s*·\s*/g, ' · ').trim() || 'Web Developer · 0%';
+      const selectedTopic = rail.querySelector('[aria-checked="true"]')?.textContent?.replace(/\s+/g, ' ').replace(/([^\d\s])(\d)/, '$1 · $2').trim() || 'HTML · 0 / 6 levels';
       disclosure(section, selectedSection); disclosure(rail, selectedTopic);
       style(`
         .r3-pick .rm-section-switcher{margin:0!important}.r3-pick .rm-topic-rail{margin:8px!important;width:calc(100% - 16px)!important}
@@ -51,7 +51,7 @@
       const grid = one('.cd-workbench__grid'); grid.prepend(bar); bar.classList.add('r3-mobile-path');
       style(`
         .cd-workbench__grid>.r3-mobile-path{order:-2!important;width:100%;min-width:0;position:sticky;top:0;z-index:4;background:var(--ss-card-bg);border-bottom:1px solid var(--color-border);border-radius:var(--radius-container) var(--radius-container) 0 0;flex-wrap:nowrap!important;padding:6px 10px!important;gap:4px!important}
-        .r3-mobile-path .cd-editor-bar__path{min-width:0;flex:1!important;overflow:hidden!important;font-size:11px!important}
+        .r3-mobile-path .cd-editor-bar__path{min-width:0;flex:1!important;overflow:hidden!important;font-size:12px!important}
         .r3-mobile-path .cd-editor-bar__path ol{flex-wrap:wrap!important;gap:3px!important}.r3-mobile-path button{flex:none}
         .cd-pane--output{border-radius:0!important}
       `);
@@ -82,7 +82,7 @@
       for (const [i, row] of failed.entries()) {
         const call = row.querySelector('.cd-result__call')?.textContent || '';
         const text = row.querySelector('.cd-result__expect')?.innerText || '';
-        const pair = text.split(/\s*·\s*got\s*/), expected = pair[0].replace(/^\s*→\s*/, '').trim(), actual = pair[1] ?? '';
+        const pair = text.split(/\s*·\s*got\s*/), expected = pair[0].replace(/^\s*→\s*/, '').replace(/^expected\s*/i, '').trim(), actual = pair[1] ?? '';
         const d = make('details', undefined, 'r3-failure'); if (i === 0) d.open = true;
         const sum = make('summary'); sum.append(make('strong', 'Failed · Test ' + (rows.indexOf(row) + 1)), make('span', call)); d.append(sum);
         const body = make('div', undefined, 'r3-failure-body');
@@ -96,9 +96,9 @@
       const ul = make('ul', undefined, 'cd-results'); passed.forEach(n => ul.append(n)); passGroup.append(ul); wrap.append(passGroup); list.replaceWith(wrap);
       one('[role="tab"][data-tab="results"] .cd-tab__badge').remove();
       style(`
-        .r3-results-summary{display:flex;align-items:center;gap:16px;padding:0 0 12px;font-size:13px}.r3-fail-text{color:var(--ss-error)}.r3-pass-text{color:var(--ss-success)}
+        .r3-results-summary{display:flex;align-items:center;gap:16px;padding:0 0 12px;font-size:13px}.r3-fail-text{color:color-mix(in srgb,var(--ss-error) 78%,var(--ss-ink))}.r3-pass-text{color:var(--ss-success)}
         .r3-failure{border-top:1px solid var(--color-border)}.r3-failure>summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;font-size:12px;list-style:none}
-        .r3-failure>summary strong{white-space:nowrap;color:var(--ss-error)}.r3-failure>summary span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;font-family:var(--font-family-mono,monospace)}
+        .r3-failure>summary strong{white-space:nowrap;color:color-mix(in srgb,var(--ss-error) 78%,var(--ss-ink))}.r3-failure>summary span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;font-family:var(--font-family-mono,monospace)}
         .r3-failure>summary::after{content:'⌄';font-size:14px}.r3-failure-body{display:grid;gap:9px;padding-bottom:14px}.r3-value-label{font-size:11px;font-weight:700;color:var(--color-text-secondary);margin-bottom:3px}
         .r3-value pre{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 var(--font-family-mono,monospace);padding:7px 10px;background:var(--color-background-muted);border-radius:6px}
         .r3-passed>summary{min-height:44px;display:flex;align-items:center;font-size:13px;cursor:pointer;border-top:1px solid var(--color-border);color:var(--ss-success)}
@@ -141,6 +141,23 @@
       const button = one('.lp-module-overview .lp-head__actions button');
       const label = [...button.querySelectorAll('span')].find(n => n.textContent.trim() === 'Start module' && n.children.length === 0);
       if (!label) throw new Error('Missing first module CTA label'); label.textContent = 'Start reading · ' + first.estimatedMinutes + ' min';
+    }
+    if (scene === 'quiz-jump') {
+      const heading = one('.ss-question-header__title'), container = make('div', undefined, 'r3-qnav');
+      heading.before(container); container.append(heading);
+      const toggle = make('button', undefined, 'r3-qnav-toggle'); toggle.type='button';
+      while(heading.firstChild)toggle.append(heading.firstChild);toggle.append(document.createTextNode(' ⌄'));heading.append(toggle);
+      const panel=make('div',undefined,'r3-qnav-panel');panel.id='r3-question-picker';panel.setAttribute('role','group');panel.setAttribute('aria-label','Choose a question');
+      panel.append(make('strong','Jump to question'),make('p','✓ Answered · Empty: unanswered','r3-note'));
+      const grid=make('div',undefined,'r3-qnav-grid');
+      for(let i=1;i<=6;i++){
+        const b=make('button',String(i)+(i<=3?' ✓':''),'r3-qnav-number');b.type='button';b.setAttribute('aria-label','Question '+i+(i<=3?', answered':', unanswered')+(i===6?', current question':''));
+        if(i===6)b.setAttribute('aria-current','step');if(i<=3)b.dataset.answered='true';grid.append(b);
+      }
+      panel.append(grid);container.append(panel);toggle.setAttribute('aria-controls',panel.id);toggle.setAttribute('aria-expanded','true');
+      toggle.onclick=()=>{panel.hidden=!panel.hidden;toggle.setAttribute('aria-expanded',String(!panel.hidden));};
+      container.onkeydown=e=>{if(e.key==='Escape'){panel.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();}};
+      style(`.r3-qnav{position:relative;min-width:0}.r3-qnav-toggle{font:inherit;font-weight:inherit;letter-spacing:inherit;min-height:44px;padding:0;border:0;background:transparent;color:inherit;cursor:pointer;text-align:left}.r3-qnav-panel{position:absolute;z-index:8;top:calc(100% + 6px);left:0;width:280px;max-width:calc(100vw - 52px);border:1px solid var(--color-border-strong);border-radius:var(--radius-element);background:var(--ss-card-bg);padding:16px;box-shadow:0 8px 28px color-mix(in srgb,var(--ss-ink) 14%,transparent);font-size:14px}.r3-qnav-panel[hidden]{display:none}.r3-qnav-grid{display:grid;grid-template-columns:repeat(3,minmax(44px,1fr));gap:8px}.r3-qnav-number{font:inherit;min-height:44px;border:1px solid var(--color-border);border-radius:var(--radius-inner);background:var(--color-background-muted);color:var(--color-text-primary)}.r3-qnav-number[data-answered]{color:var(--color-text-primary);font-weight:600}.r3-qnav-number[aria-current]{border:2px solid var(--brand-accent);font-weight:700}.r3-qnav button:focus-visible{outline:2px solid var(--ss-focus);outline-offset:3px}`);
     }
   };
 })();

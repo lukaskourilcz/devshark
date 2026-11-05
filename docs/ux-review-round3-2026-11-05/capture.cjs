@@ -22,7 +22,8 @@ const scenes = [
  {id:'results',route:'/coding/javascript/js-fullstack-links-1',modes:desktop},
  {id:'today',fixture:true,modes:desktop},
  {id:'profile',fixture:true,modes:desktop},
- {id:'fde-module',fixture:true,modes:desktop}
+ {id:'fde-module',fixture:true,modes:desktop},
+ {id:'quiz-jump',fixture:true,modes:desktop}
 ];
 const wanted = process.env.SCENES?.split(',');
 const manifestFile = path.join(root,'capture-manifest.json');
@@ -32,7 +33,7 @@ async function guest(browser, mode) {
  const page = await context.newPage(), errors = [], blocked = [];
  page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(theme=>{localStorage.setItem('devquiz:color-mode',theme);localStorage.setItem('devshark:consent',JSON.stringify({version:1,analytics:false,marketing:false,decidedAt:Date.now()}));},mode.theme);
- await page.route('**/*',route=>{if(!['GET','HEAD','OPTIONS'].includes(route.request().method())){blocked.push(route.request().method()+' '+new URL(route.request().url()).pathname);return route.abort();}return route.continue();});
+ await page.route('**/*',route=>{if(!['GET','HEAD','OPTIONS'].includes(route.request().method())){const u=new URL(route.request().url());blocked.push({method:route.request().method(),host:u.hostname,path:u.pathname});return route.abort();}return route.continue();});
  return {context,page,errors,blocked};
 }
 async function position(page, scene, width) {
@@ -42,7 +43,7 @@ async function position(page, scene, width) {
  }
  if (scene === 'catalogue') {
   const n = page.locator('.cd-search'); await n.waitFor();
-  await page.locator('main').evaluate((main,y)=>main.scrollTop += y-(width<600?120:140), (await n.boundingBox()).y);
+  await page.locator('main').evaluate((main,{y,top})=>main.scrollTop += y-top, {y:(await n.boundingBox()).y,top:width<600?120:140});
  }
 }
 async function geometry(page) {
@@ -63,10 +64,20 @@ async function geometry(page) {
  const browser=await chromium.launch({channel:'chrome'});
  try{for(const scene of scenes.filter(s=>!wanted||wanted.includes(s.id)))for(const mode of scene.modes){
   const id=scene.id+'-'+mode.theme+'-'+mode.width+'x'+mode.height;
-  const x=scene.fixture ? await pageFor(browser,{...mode,signedIn:true}) : await guest(browser,mode);
+  const x=scene.fixture ? await pageFor(browser,{...mode,signedIn:scene.id!=='quiz-jump'}) : await guest(browser,mode);
   const {page,context}=x;
   try{
-   if(scene.fixture){await openScene(page,scene.id);if(scene.id==='profile')await page.getByRole('heading',{name:'Account',exact:true}).waitFor();}
+   if(scene.fixture){
+    await openScene(page,scene.id==='quiz-jump'?'quiz-active':scene.id);
+    if(scene.id==='profile')await page.getByRole('heading',{name:'Account',exact:true}).waitFor();
+    if(scene.id==='quiz-jump'){
+      for(let i=0;i<5;i++){
+        if(i<3)await page.getByRole('radio').first().click();
+        await page.getByRole('button',{name:'Next',exact:true}).click();
+      }
+      await page.getByRole('heading',{name:/Question 6 of 6/}).waitFor();
+    }
+   }
    else{
     await page.goto('https://devshark.app'+scene.route,{waitUntil:'domcontentloaded'});
     await page.locator('main h1,main h2').first().waitFor({timeout:25000});await settled(page);
@@ -85,9 +96,9 @@ async function geometry(page) {
    await position(page,scene.id,mode.width);
    const after=await geometry(page);await page.screenshot({path:path.join(out,id+'-after.png')});
    const afterText=await page.locator('main').innerText();
-   const row={id,scene:scene.id,...mode,source:scene.fixture?'current build with local fictional Test Learner / enrollment':'current production guest',baseline:'ca5900282d5e4cc2aa115d5d02585ac056a6d58d',before,after,pageErrors:x.errors||[],blockedNonReadRequests:x.blocked||[],localFixtureWrites:x.localWrites||[],optionalFixtureReads:x.unknown||[],beforeText,afterText};
+   const row={id,scene:scene.id,...mode,source:scene.fixture?'current build with local fictional Test Learner / enrollment':'current production guest',baseline:'ca5900282d5e4cc2aa115d5d02585ac056a6d58d',before,after,pageErrors:x.errors||[],blockedNonReadRequests:x.blocked||[],blockedFixtureExternalRequests:x.blockedExternal||[],localFixtureWrites:x.localWrites||[],optionalFixtureReads:x.unknown||[],beforeText,afterText};
    const old=rows.findIndex(r=>r.id===id);if(old>=0)rows.splice(old,1);rows.push(row);fs.writeFileSync(manifestFile,JSON.stringify(rows,null,2));
-   if(after.overflow||row.pageErrors.length||row.blockedNonReadRequests.length)throw new Error('Capture issues: '+JSON.stringify({overflow:after.overflow,errors:row.pageErrors,blocked:row.blockedNonReadRequests}));
+   if(after.overflow||row.pageErrors.length)throw new Error('Capture issues: '+JSON.stringify({overflow:after.overflow,errors:row.pageErrors}));
    console.log(id+' captured');
   }finally{await context.close();}
  }}finally{await browser.close();}

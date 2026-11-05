@@ -97,5 +97,16 @@
   "dependency":"Zdroj dat zůstává manifest; cíl CTA dál určuje existující nextActivityId a gate. Nezavádět nový text o nepovinném čtení ani Skip to questions. U locku ponechat jeho konkrétní Premium vysvětlení.",
   "checks":"Nový, rozpracovaný, dokončený i volitelný modul; další krok Read, Check, Code nebo Write; odhad nedostupný; více než hodina a správné plurály. Změna času nikdy nesmí změnit postup, XP ani odemčení.",
   "scenes":["fde-module"],"reference":"Framer"
+ },
+ {
+  "id":"R3-10","area":"Quiz","priority":"P2","title":"Vrátit se ke konkrétní odpovědi bez opakovaného Previous",
+  "basis":"Přímý výběr již zodpovězené otázky; hotový návrat k nezodpovězeným se nemění.",
+  "before":"Quiz umožňuje Previous, Next a přechod na první nezodpovězenou otázku. Pokud chci na konci padesáti otázek změnit odpověď u otázky 2, musím se k ní vracet po jedné. Počítadlo otázky je pouze text.",
+  "after":"Z počítadla otevřít malý přehled čísel otázek. Rozlišit zodpovězené, nezodpovězené a právě otevřenou otázku slovy i značkou. Výběr přejde přímo na otázku, zavře přehled a předá fokus jejímu textu.",
+  "reason":"Delší kvíz potřebuje cílený návrat k odpovědi, kterou si chci zkontrolovat. Přehled se otevře jen na vyžádání, aby zůstal zachovaný klidný režim soustředění.",
+  "evidence":"Quiz.tsx handleNext/handlePrevious mění index o jedna; reviewUnanswered otevírá první chybějící odpověď. QuestionHeader nemá obecný výběr otázky. Ukázka používá šest lokálně dodaných fiktivních otázek a tři odpovědi, nikdy produkční výsledek.",
+  "dependency":"Ponechat existující Previous/Next, Review unanswered, termín odevzdání, odpovědi i navázané hinty. Žádné skóre, správné odpovědi nebo nová funkce označování nejistoty před Submit.",
+  "checks":"Sady 1, 6 a 50 otázek, otevření i zavření klávesnicí a Escape, focus po skoku, nerozhýbat odpovědi při změně počítadla. Na 360 px musí být přehled uvnitř obrazovky a každé číslo mít nejméně 44px plochu. Expirace ani probíhající Submit nesmí znovu povolit úpravy.",
+  "scenes":["quiz-jump"],"reference":""
  }
 ]

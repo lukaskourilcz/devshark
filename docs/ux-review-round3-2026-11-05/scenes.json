@@ -7,5 +7,6 @@
  {"id":"results","title":"Coding · výsledky lokálního Run","note":"Obě strany zobrazují skutečný lokální běh starteru Link shortener: 8 prošlých a 3 neúspěšné kontroly. Po mění pouze čtení existujících hodnot. Nebyl proveden produkční Submit."},
  {"id":"today","title":"Today · konkrétní názvy lekcí","note":"Lokální fiktivní Test Learner. Na obou stranách je stejný plán a stejné FDE pokračování. Po doplňuje veřejné názvy příslušných levelů; nejde o nové doporučení."},
  {"id":"profile","title":"Profile · skok na nastavení","note":"Lokální fiktivní Test Learner, nikoli skutečný účet. Po přidává pouze rozcestník na existující části. Account je dál vlevo pod Track and Sections a karty si drží přirozené výšky."},
- {"id":"fde-module","title":"FDE · rozsah modulu Customer discovery","note":"Lokální fiktivní enrollment, skutečný veřejný obsah modulu. Po sčítá existující odhady 25 + 35 + 15 + 75 + 30 minut a upřesňuje cíl prvního tlačítka. Žádný krok nebyl zapsán do produkce."}
+ {"id":"fde-module","title":"FDE · rozsah modulu Customer discovery","note":"Lokální fiktivní enrollment, skutečný veřejný obsah modulu. Po sčítá existující odhady 25 + 35 + 15 + 75 + 30 minut a upřesňuje cíl prvního tlačítka. Žádný krok nebyl zapsán do produkce."},
+ {"id":"quiz-jump","title":"Quiz · rychlý přehled otázek","note":"Šest lokálně dodaných fiktivních otázek, tři uložené odpovědi v běžícím guest kvízu. Po ukazuje otevřený návrh přehledu. Značka znamená pouze zodpovězeno, nikoli správně. Žádný požadavek nešel do produkčního Quiz API."}
 ]
