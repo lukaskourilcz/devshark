@@ -37,7 +37,6 @@ import {
   isCodingSectionTrack,
   isCodingTier,
   isDifficulty,
-  stageDifficulty,
   tierLockReason,
   tierUnlocked,
   type CodingTaskSummary,
@@ -812,7 +811,7 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
 /** The stages of the path the open task belongs to, numbered, under their
  * difficulty. Consecutive stages with one label share a labelled group, so the
  * order stays the path's order even when an authored label breaks a band. */
-function StageNav({ stages, short, currentId, passed, premiumOf }: { stages: readonly string[]; short: boolean; currentId: string; passed: ReadonlySet<string>; premiumOf: (taskId: string) => LockState }) {
+function StageNav({ stages, short, currentId, passed, savedStages, premiumOf }: { stages: readonly string[]; short: boolean; currentId: string; passed: ReadonlySet<string>; savedStages: ReadonlySet<string>; premiumOf: (taskId: string) => LockState }) {
   const { t } = useLanguage();
   const navRef = useRef<HTMLElement>(null);
   const [explainedLock, setExplainedLock] = useState<string | null>(null);
@@ -833,34 +832,21 @@ function StageNav({ stages, short, currentId, passed, premiumOf }: { stages: rea
     const box = current.getBoundingClientRect();
     nav.scrollLeft += box.left - navBox.left - (navBox.width - box.width) / 2;
   }, [currentId]);
-  const groups: { level: Difficulty; entries: { id: string; index: number }[] }[] = [];
-  stages.forEach((id, index) => {
-    const level = INDEX_BY_ID.get(id)?.difficulty ?? stageDifficulty(index, stages.length);
-    const last = groups[groups.length - 1];
-    if (last && last.level === level) last.entries.push({ id, index });
-    else groups.push({ level, entries: [{ id, index }] });
-  });
   return (
-    <><nav ref={navRef} className="cd-actions cd-stage-nav" aria-label={t(short ? 'coding.evolving.levels' : 'coding.evolving.title')}>
-      {groups.map(({ level, entries }) => {
-        const labelId = `cd-stage-group-${entries[0].index}`;
-        return (
-          <div key={labelId} className="cd-stage-group" role="group" aria-labelledby={labelId}>
-            <span id={labelId} className="cd-stage-group__label">{t(`coding.difficulty.${level}`)}</span>
-            {entries.map(({ id, index }) => {
-              const label = t(short ? 'coding.evolving.level' : 'coding.evolving.stage', { n: index + 1, total: stages.length });
-              const current = id === currentId;
-              // A Premium stage stays focusable and opens the upgrade sheet.
-              if (!current && isBarred(premiumOf(id))) {
-                const premiumLabel = t('premium.stageLabel', { label });
-                return <LockedButton key={id} variant="secondary" size="sm" label={premiumLabel} tooltip={premiumLabel} onClick={() => askForPremium(id)}>{index + 1}</LockedButton>;
-              }
-              return evolvingUnlocked(id, passed) || current
-                ? <Button key={id} variant="secondary" size="sm" as={Link} href={`/coding/${evolvingTaskTrack(id)}/${id}`} label={label} tooltip={label} aria-current={current ? 'step' : undefined}>{evolvingPassed(id, passed) ? '✓ ' : ''}{index + 1}</Button>
-                : <LockedButton key={id} variant="secondary" size="sm" tooltip={prerequisiteReason(index)} label={`${label}. ${prerequisiteReason(index)}`} onClick={() => setExplainedLock(id)}>{index + 1}</LockedButton>;
-            })}
-          </div>
-        );
+    <><nav ref={navRef} className="cd-actions cd-stage-nav" aria-label={t('coding.evolving.levels')}>
+      <span className="cd-stage-nav__label">{codingListCopy('coding.level.label')}</span>
+      {stages.map((id, index) => {
+        const complete = evolvingPassed(id, passed);
+        const saved = complete && savedStages.has(id);
+        const label = t('coding.evolving.level', { n: index + 1, total: stages.length }) + (complete ? ` · ${t('coding.status.passed')}` : '');
+        const current = id === currentId;
+        if (!current && isBarred(premiumOf(id))) {
+          const premiumLabel = t('premium.stageLabel', { label });
+          return <LockedButton key={id} variant="secondary" label={premiumLabel} tooltip={premiumLabel} onClick={() => askForPremium(id)}>{index + 1}</LockedButton>;
+        }
+        return evolvingUnlocked(id, passed) || current
+          ? <Button key={id} variant="secondary" className={complete ? 'cd-stage--complete' : undefined} as={Link} href={`/coding/${evolvingTaskTrack(id)}/${id}`} label={label} tooltip={label} aria-current={current ? 'step' : undefined}>{index + 1}{saved && <span aria-hidden="true"> ✓</span>}</Button>
+          : <LockedButton key={id} variant="secondary" tooltip={prerequisiteReason(index)} label={`${label}. ${prerequisiteReason(index)}`} onClick={() => setExplainedLock(id)}>{index + 1}</LockedButton>;
       })}
     </nav>{lockReason && <p className="cd-note" role="status">{lockReason}</p>}</>
   );
@@ -881,6 +867,7 @@ function CodingTaskView({ track, taskId }: { track: CodingTrack; taskId: string 
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const progress = useCodingProgress(isAuthenticated);
   const { statusOf, premiumOf, passed: passedIds } = useStatuses(progress.data);
+  const savedStages = useMemo(() => new Set(progress.data?.stagesWithSavedCode ?? []), [progress.data?.stagesWithSavedCode]);
   const [learnLink, setLearnLink] = useState(() => ({ taskId, session: learnSessionAt(taskId) }));
   const learnSession = learnLink.taskId === taskId ? learnLink.session : undefined;
   useEffect(() => {
@@ -900,7 +887,6 @@ function CodingTaskView({ track, taskId }: { track: CodingTrack; taskId: string 
   // The code kept across a refresh of the brief belongs to the account it
   // was typed under: after a sign-out the editor does not reopen on it.
   const [refreshDraft, setRefreshDraft] = useState<{ taskId: string; code: string; epoch: number } | null>(null);
-  const [completedTask, setCompletedTask] = useState<string | null>(null);
   const workbench = useWorkbench(true, attempt);
   const bookmarks = useBookmarks(isAuthenticated);
   const save = useSaveChallenge();
@@ -956,7 +942,6 @@ function CodingTaskView({ track, taskId }: { track: CodingTrack; taskId: string 
   }, [authLoading, fetchedSignedIn, isAuthenticated, refetchTask]);
 
   const onVerdict = useCallback((verdict: CodingVerdictResponse, submittedCode?: string) => {
-    setCompletedTask(verdict.verdict === 'passed' && !verdict.graderUnavailable ? taskId ?? null : null);
     if (verdict.progress) void queryClient.invalidateQueries({ queryKey: codingKeys.progress() });
     // An accepted order comes back as "passed" about the arrangement. The task
     // itself stays open for the code (the server records no progress), so it
@@ -1048,22 +1033,7 @@ function CodingTaskView({ track, taskId }: { track: CodingTrack; taskId: string 
     : null);
 
   return (
-    <div className="cd-page ss-pop">
-      {/* Rendered only when it has something to say: an empty row would still
-          take a gap in the page's column and push the brief down for nothing. */}
-      {completedTask !== taskId && (stage || (runIndex >= 0 && activeRun)) && <div className="cd-actions">
-        {stage && <span>{stage.challenge.title} — {t(stage.challenge.short ? 'coding.evolving.level' : 'coding.evolving.stage', { n: stage.index + 1, total: stage.challenge.stages.length })}</span>}
-        {runIndex >= 0 && activeRun && <Link className="cd-link" to="/coding">{t('coding.run.stage', { n: runIndex + 1, total: activeRun.queue.length })}</Link>}
-      </div>}
-      {/* A list that did not load offers to load it again; a star that did
-          not save says so, and the star itself is the way to try again. */}
-      {completedTask !== taskId && bookmarks.isError && <p role="alert" className="cd-note cd-note--error">{t('coding.saved.loadFailed')} <Button variant="secondary" onClick={() => void bookmarks.refetch()} label={t('coding.retry')} /></p>}
-      {completedTask !== taskId && save.isError && <p role="alert" className="cd-note cd-note--error">{t('coding.collections.failed')}</p>}
-      {completedTask !== taskId && <DraftNote choice={choice} />}
-      {completedTask !== taskId && stage && stage.challenge.stages.some((id) => isBarred(premiumOf(id))) && (
-        <PremiumStagesNote stages={stage.challenge.stages} short={stage.challenge.short === true} />
-      )}
-      {completedTask !== taskId && stage && <StageNav stages={stage.challenge.stages} short={stage.challenge.short === true} currentId={data.task.id} passed={passedIds} premiumOf={premiumOf} />}
+    <div className="cd-page ss-pop ss-focus-page">
       {CodingWorkbench && <CodingWorkbench
             key={`${data.task.id}-${attempt}-${choice.version}-${data.signedIn}`}
             task={data.task}
@@ -1096,6 +1066,16 @@ function CodingTaskView({ track, taskId }: { track: CodingTrack; taskId: string 
               />
             )}
           />}
+      {stage && <StageNav stages={stage.challenge.stages} short={stage.challenge.short === true} currentId={data.task.id} passed={passedIds} savedStages={savedStages} premiumOf={premiumOf} />}
+      {runIndex >= 0 && activeRun && <Link className="cd-link cd-task-run" to="/coding">{t('coding.run.stage', { n: runIndex + 1, total: activeRun.queue.length })}</Link>}
+      {/* A list that did not load offers to load it again; a star that did
+          not save says so, and the star itself is the way to try again. */}
+      {bookmarks.isError && <p role="alert" className="cd-note cd-note--error">{t('coding.saved.loadFailed')} <Button variant="secondary" onClick={() => void bookmarks.refetch()} label={t('coding.retry')} /></p>}
+      {save.isError && <p role="alert" className="cd-note cd-note--error">{t('coding.collections.failed')}</p>}
+      {<DraftNote choice={choice} />}
+      {stage && stage.challenge.stages.some((id) => isBarred(premiumOf(id))) && (
+        <PremiumStagesNote stages={stage.challenge.stages} short={stage.challenge.short === true} />
+      )}
     </div>
   );
 }

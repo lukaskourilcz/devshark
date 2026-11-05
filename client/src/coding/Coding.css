@@ -930,15 +930,14 @@
 .cd-hint-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style-position: inside; }
 .cd-hint-list:empty { display: none; }
 
-/* Keep 10–12 stage controls reachable without pushing the brief below a phone screen. */
-.cd-stage-nav { flex-wrap: nowrap; overflow-x: auto; padding: 4px 2px; }
+.cd-page.ss-focus-page { gap: 12px; }
+/* Level navigation stays below and to the right of the task card. */
+.cd-stage-nav { justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding: 4px 2px; }
+.cd-stage-nav__label { font-size: var(--ss-type-meta); color: var(--color-text-secondary); }
 .cd-stage-nav .astryx-button { flex: 0 0 auto; min-width: 44px; min-height: 44px; justify-content: center; }
-.cd-stage-nav [aria-current='step'] { color: var(--brand-accent); border-color: var(--brand-accent); }
-/* Stages under their difficulty: a text label opens each run of stages. */
-.cd-stage-group { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
-.cd-stage-group + .cd-stage-group { padding-left: 10px; border-left: 1px solid var(--ss-card-line); }
-.cd-stage-group__label { font-size: 0.8rem; font-weight: 650; color: var(--color-text-secondary); white-space: nowrap; }
-
+.cd-stage-nav [aria-current='step'] { color: var(--brand-accent); outline: 2px solid var(--brand-accent); outline-offset: 2px; }
+.cd-stage-nav .cd-stage--complete { color: var(--brand-accent); background: var(--brand-accent-soft); border-color: var(--brand-accent); }
+.cd-task-run { align-self: flex-end; font-size: var(--ss-type-meta); }
 
 /* Compact samples keep every output tab readable instead of clipping labels. */
 .cd-workbench--landing .cd-tabs { flex-wrap: wrap; overflow-x: visible; padding-inline-end: 0; -webkit-mask-image: none; mask-image: none; }

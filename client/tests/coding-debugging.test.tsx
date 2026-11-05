@@ -12,11 +12,11 @@ import { EVOLVING_CHALLENGES, listedChallenges } from '../../shared/evolving';
 
 // The debugging trio (#225): three short paths on the Coding home in place of
 // the café-orders project, whose ten stages still open, count and resolve.
-const state = vi.hoisted(() => ({ signedIn: false, saved: [] as string[], passed: [] as string[] }));
+const state = vi.hoisted(() => ({ signedIn: false, saved: [] as string[], passed: [] as string[], savedStages: [] as string[] }));
 // The task screen loads its editor beside the task; load it once up front
 // so each screen draws the (mocked) workbench on its first render.
 beforeAll(() => preloadPath('/coding/javascript/js-digit-sum'));
-beforeEach(() => { state.signedIn = false; state.saved = []; state.passed = []; });
+beforeEach(() => { state.signedIn = false; state.saved = []; state.passed = []; state.savedStages = []; });
 vi.mock('../src/lib/auth', () => ({ useAuth: () => ({ isAuthenticated: state.signedIn, signInWithGoogle: vi.fn() }) }));
 vi.mock('../src/coding/practice', () => ({
   useBookmarks: () => (state.signedIn ? { data: { saved: state.saved }, isPending: false, isError: false } : { data: undefined }),
@@ -30,7 +30,7 @@ vi.mock('../src/coding/api', () => ({
   saveCodingDraft: vi.fn(),
   useCodingProgress: () => ({
     data: state.passed.length
-      ? { tasks: Object.fromEntries(state.passed.map((id) => [id, { status: 'passed' }])), due: [], javascriptLevelsCleared: 0 }
+      ? { tasks: Object.fromEntries(state.passed.map((id) => [id, { status: 'passed' }])), due: [], javascriptLevelsCleared: 0, stagesWithSavedCode: state.savedStages }
       : undefined,
   }),
   useCodingTask: (id: string) => ({ data: {
@@ -87,16 +87,28 @@ describe('the debugging paths on the Coding home', () => {
 });
 
 describe('a debugging level', () => {
-  it.each([
-    ['js-path-logging-1', ['Easy'], [5]],
-    ['js-path-tracing-3', ['Medium'], [5]],
-    ['js-path-edges-2', ['Medium', 'Hard'], [4, 1]],
-  ] as const)('%s groups its levels under the labels its path promises', (id, labels, sizes) => {
+  it.each(['js-path-logging-1', 'js-path-tracing-3', 'js-path-edges-2'])('%s keeps all five levels below the work', id => {
     mount(`/coding/javascript/${id}`, <CodingTaskScreen />, '/coding/:track/:taskId');
-    const groups = within(screen.getByRole('navigation', { name: 'Levels' })).getAllByRole('group');
-    expect(groups.map((group) => group.querySelector('.cd-stage-group__label')!.textContent)).toEqual(labels);
-    expect(groups.map((group) => within(group).queryAllByRole('link').length + within(group).queryAllByRole('button').length)).toEqual(sizes);
+    const nav = screen.getByRole('navigation', { name: 'Levels' });
+    expect(within(nav).getByText('Level:')).toBeVisible();
+    expect(within(nav).queryByRole('group')).toBeNull();
+    expect(within(nav).getAllByRole('link').length + within(nav).getAllByRole('button').length).toBe(5);
   });
+});
+
+it('checks only passed levels whose code is saved, including on another visit', () => {
+  state.signedIn = true;
+  state.passed = ['js-path-logging-1', 'js-path-logging-2'];
+  state.savedStages = ['js-path-logging-1'];
+  mount('/coding/javascript/js-path-logging-3', <CodingTaskScreen />, '/coding/:track/:taskId');
+  const nav = screen.getByRole('navigation', { name: 'Levels' });
+  const first = within(nav).getByRole('link', { name: 'Level 1 of 5 · Passed' });
+  const second = within(nav).getByRole('link', { name: 'Level 2 of 5 · Passed' });
+  expect(first).toHaveTextContent('1 ✓');
+  expect(second).toHaveTextContent('2');
+  expect(second).not.toHaveTextContent('✓');
+  expect(first).toHaveClass('cd-stage--complete');
+  expect(second).toHaveClass('cd-stage--complete');
 });
 
 describe('the retired café-orders project', () => {
@@ -111,10 +123,9 @@ describe('the retired café-orders project', () => {
     state.signedIn = true;
     state.passed = ['js-evolving-debug-1-start', 'js-evolving-debug-1'];
     mount('/coding/javascript/js-evolving-debug-2-start', <CodingTaskScreen />, '/coding/:track/:taskId');
-    expect(screen.getByText(/Debugging path/)).toBeInTheDocument();
-    const nav = screen.getByRole('navigation', { name: 'Evolving challenges' });
-    expect(within(nav).getByRole('link', { name: 'Evolving · Stage 3 of 10' })).toHaveAttribute('aria-current', 'step');
-    expect(within(nav).getByRole('link', { name: 'Evolving · Stage 2 of 10' }).textContent).toBe('✓ 2');
+    const nav = screen.getByRole('navigation', { name: 'Levels' });
+    expect(within(nav).getByRole('link', { name: 'Level 3 of 10' })).toHaveAttribute('aria-current', 'step');
+    expect(within(nav).getByRole('link', { name: 'Level 2 of 10 · Passed' }).textContent).toBe('2');
   });
 
   it('shows a saved stage in Collection', () => {

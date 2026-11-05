@@ -28,6 +28,7 @@ export const codingListEn = {
   'coding.project.action': '{action} {title}',
   'coding.filter.taskType': 'Any task type',
   'coding.filter.write': 'Write code',
+  'coding.level.label': 'Level:',
   'coding.stage.unlock': 'Complete stage {previous} to unlock stage {n}.',
   'coding.level.unlock': 'Complete level {previous} to unlock level {n}.',
   'coding.resume.run': 'Continue your run',
