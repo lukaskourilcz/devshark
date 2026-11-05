@@ -215,6 +215,9 @@ export interface CodingRevealResponse {
 /** GET /api/user/[op]?op=coding-progress */
 export interface CodingProgressResponse {
   tasks: Record<string, CodingTaskProgress>;
+  /** Passed stage ids with nonblank code saved for this account. No source
+   * code or reference answers are included. Older responses omit this. */
+  stagesWithSavedCode?: string[];
   /** Task ids due for a review, oldest first. */
   due: string[];
   /** Highest contiguous cleared `javascript` Learn level. */
