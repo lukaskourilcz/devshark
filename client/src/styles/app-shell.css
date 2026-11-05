@@ -339,6 +339,9 @@
 @media (min-width: 701px) { :root { --ss-page-gutter: 64px; } }
 .ss-app-root:has(.ss-question, .ss-focus-page, .cd-workbench:not(.cd-workbench--landing), [data-activity='active']) :is(.ss-header, .ss-brand-footer, .ss-consent:not(.ss-consent--compact)) { display: none !important; }
 .ss-route:has(.ss-question, .ss-focus-page, .cd-workbench:not(.cd-workbench--landing), [data-activity='active']) { flex: 0 0 auto !important; margin-block: auto; }
+/* Timed notices grow down from a stable question anchor, so an answer never
+   moves under the learner's pointer when the deadline warning arrives. */
+.ss-route:has(.ss-question):not(:has(.cd-workbench)) { margin-block: max(0px, calc((100dvh - 640px - 2 * var(--ss-focus-inset)) / 2)) auto; }
 .ss-brand-footer {
   box-sizing: border-box;
   width: 100%;

@@ -283,6 +283,8 @@ proves each rule fails on a bad sample.
   Check: `check:design`, `client/tests/page-width.test.tsx`, `page-own-width.test.ts`.
 - **Question columns are 880px.** Use `--ss-width-question` inside the wide shell. Auth, billing, checkout, StatePanel and lobbies keep `--ss-width-task` (640px). Longer content scrolls rather than shrinking text.
   Check: `client/tests/question-shell.test.tsx`, `info-page.test.tsx`.
+- **Active questions keep a stable vertical anchor.** Global navigation is hidden during an activity. Question/answer blocks use the shared 640px reference area for vertical placement; long content grows downward and scrolls. A deadline notice must not recenter the answers. Coding cards retain their bounded frame and safe auto margins.
+  Check: `tests/browser/learning-release.spec.ts` (deadline notice), `coding-workbench.spec.ts`.
 - **The chrome does not move.** The header and footer share
   `--ss-width-chrome` (1168px) on every route.
   Check: `tests/browser/first-load.spec.ts`.

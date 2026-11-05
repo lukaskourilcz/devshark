@@ -15,8 +15,8 @@ Set in `astryx-theme.css` (UX audit U1, #573). A page never writes its own page 
 | `--ss-width-task` | 640px | Auth, billing, checkout, StatePanel, lobby and gates. Never a route width. |
 | `--ss-width-question` | 880px | Active question/answer blocks and Daily. |
 | `--ss-width-narrow` | 800px | The route default. |
-| `--ss-width-standard` | 1000px | Two-column pages. |
-| `--ss-width-wide` | 1200px | Operational screens with an editor. |
+| `--ss-width-standard` | 1000px | Public home. |
+| `--ss-width-wide` | 1200px | Operational learning, account and collection screens. |
 | `--ss-width-chrome` | 1168px | The floating header and the footer, on every route, so neither moves when the route width changes. |
 
 A component may cap its own text measure (`max-width: 68ch` on a paragraph). Question columns use `--ss-width-question`; auth and gate columns use `--ss-width-task`.
@@ -115,7 +115,7 @@ Search here before you build anything. Each entry is the one component for its j
 
 ### Page headers
 
-**`PageHeader`** is the only operational header: an optional `<Kicker>`, the route's one `h1` in ink at Astryx `display-3`, one lead line (at most 68ch), 8px apart, on the column's left edge. `titleRef` makes the `h1` a focus target (`tabIndex` -1, a ring only for keyboard focus). `aside` puts a short status at the end of the `h1`'s row; pass it (null while empty) for as long as the header shows, so the `h1` does not remount when the status arrives. Children sit under the lead as a status line. Users: `/collection`, `/cards`, `/leaderboard`, `/play`, the Quiz and Challenge setups and `/today`. Leave the kicker out when tabs or the title already say it. The lead is the scope sentence, and the one control row sits right on the list it filters (the Leaderboard: period control left, topic filter right, then the board).
+**`PageHeader`** is the only operational header: an optional `<Kicker>`, the route's one `h1` in ink at `--ss-type-page-title` (29px), one lead line (at most 68ch), 8px apart, on the column's left edge. `titleRef` makes the `h1` a focus target (`tabIndex` -1, a ring only for keyboard focus). `aside` puts a short status at the end of the `h1`'s row; pass it (null while empty) for as long as the header shows, so the `h1` does not remount when the status arrives. Children sit under the lead as a status line. Users: `/collection`, `/cards`, `/leaderboard`, `/play`, the Quiz and Challenge setups and `/today`. Leave the kicker out when tabs or the title already say it. The lead is the scope sentence, and the one control row sits right on the list it filters (the Leaderboard: period control left, topic filter right, then the board).
 
 **`Page`** keeps the editorial header for public pages. `/daily` keeps its markup through `DailyHeader` (`DailyStaticArticle.tsx`), which the build also writes into the static HTML; its kicker is the day.
 
@@ -146,7 +146,7 @@ Every question screen draws through `client/src/components/question/` (UX audit 
 
 A run, top to bottom: `QuestionShell` › `QuestionHeader` › question block › `AnswerOptionList` › `QuestionHint` › `QuestionFeedback` (once graded), then `QuestionActions` under the panel. `Quiz.tsx` is the reference.
 
-- **`QuestionShell`**: the `--ss-width-task` column with one `.ss-panel` (24px padding, 16px under 560px, no accent edge) and the actions 16px under it. Props: `header`, `question`, `questionId`, `children`, `actions`, `notice`, `stable` (default `true`; `false` for one question on its own page), `focusable`, `className`, `labelledBy`. The ref is the question block. A runner sets no width, card or `flex: 1` of its own.
+- **`QuestionShell`**: the `--ss-width-question` column with one `.ss-panel` (24px padding, 16px under 560px, no accent edge) and the actions 16px under it. Props: `header`, `question`, `questionId`, `children`, `actions`, `notice`, `stable` (default `true`; `false` for one question on its own page), `focusable`, `className`, `labelledBy`. The ref is the question block. A runner sets no width, card or `flex: 1` of its own. Active questions use a stable viewport anchor based on a 640px work area, so a late notice after the actions grows downward without moving the answers.
 - **`QuestionHeader`**: row 1 the run's `h1` ("Quiz · Question 3 of 10", `run` muted before `title`) and `WaterlineProgress`, run status on the right; row 2 tags, the difficulty badge and the tools. Tools are `QuestionIconButton`s: 44×44, 20px stroke glyph (`HintIcon`, `ReportFlagIcon`, `ExitIcon`), `aria-label` and tooltip. Every runner can report; Exit asks first in an `AlertDialog`.
 - **`AnswerOptionList`**: a vertical `RadioCardGroup` of 48px rows 8px apart with a 26px chip; the selection is `--brand-accent`, never a track colour. Props: `options`, `value`, `onChange`, `onActivate` (a press commits at once), `labelledBy`, `disabled`, `grade` (`{ correct, picked }`), `renderOption`, `className`. Graded rows show ✓ or ✕ in a 20px slot every row keeps, with "Correct answer" and "Your pick" in the accessible name, and a hidden semibold copy of each row's words reserves its height, so grading never rewraps or moves a row. Number keys belong to the runner.
 - **`QuestionHint`**: "Press 1–{max} to {select|answer} · Enter to {continue|submit}" under the answers, only with a fine pointer from 600px. `hidden` hides the words and keeps the line.
