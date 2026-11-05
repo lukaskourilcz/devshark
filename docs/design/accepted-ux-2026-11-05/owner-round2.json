@@ -1,0 +1,51 @@
+{
+  "schema": "devshark-platform-ux-review-round2-v1",
+  "exportedAt": "2026-11-05T11:58:47.985Z",
+  "baseline": "round1-proposal-2026-11-05",
+  "decisions": {
+    "R2-01": {
+      "status": "accept",
+      "comment": ""
+    },
+    "R2-02": {
+      "status": "accept",
+      "comment": "description musi byt mensim pismem a musi byt lepe naformatovane, at jsou tam nejake line breaky a at to vypada lip - tohle se moc neda cist. Fajfka u levelu musi byt pouze, pokud uz je level splnen a je v nem ulozeno solution, pokud ne, tak at tam ta fajfka neni."
+    },
+    "R2-03": {
+      "status": "accept",
+      "comment": "Tady v tech breadcrumbs ma byt i / Javascript. Breadcrumbs se neukazuji pouze, pokud jsou v nultem levelu (treba hned, kdyz se na sekci dojde z navigace). Breadcrumbs se musi ukazovat, jen pokud jsou tam aspon dve hodnoty."
+    },
+    "R2-04": {
+      "status": "accept",
+      "comment": ""
+    },
+    "R2-05": {
+      "status": "accept",
+      "comment": "Prijimam, ale description by melo byt aspon na dva az tri radky, aby uzivatel vedel hned ze startu, co je TypeScript a co jsou Generics (ktere jsou tematem otazky). Vytvor na to GitHub issue, aby to Opus pozdeji dokoncil a vsechny tyhle descriptions tam vymyslel. (kazda otazka uz ma svuj hint, info a description, takze to muze posbirat z toho a nemusi vymyslet nove texty)."
+    },
+    "R2-06": {
+      "status": "accept",
+      "comment": ""
+    },
+    "R2-07": {
+      "status": "accept",
+      "comment": ""
+    },
+    "R2-08": {
+      "status": "accept",
+      "comment": ""
+    },
+    "R2-09": {
+      "status": "accept",
+      "comment": ""
+    },
+    "R2-10": {
+      "status": "reject",
+      "comment": "Nesmi tam byt zbytecne whitespace, ty karty muzou mit jinou vysku, jen musi byt poskladane tak, aby byly hezky poskladane a na spodu nebyla karta, ktera zacinala pod kartou, ktera ma spodni hranu pod koncem karty na druhe strane."
+    },
+    "R2-11": {
+      "status": "accept",
+      "comment": ""
+    }
+  }
+}
