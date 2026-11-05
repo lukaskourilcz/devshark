@@ -1,0 +1,2262 @@
+{
+  "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+  "captureType": "fresh production guest observations",
+  "captures": [
+    {
+      "id": "coding-light-1280",
+      "name": "coding",
+      "path": "/coding",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1694,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Coding challenges",
+          "y": 112
+        },
+        {
+          "text": "Your next challenge",
+          "y": 149
+        },
+        {
+          "text": "JavaScript",
+          "y": 296
+        },
+        {
+          "text": "TypeScript",
+          "y": 296
+        },
+        {
+          "text": "React",
+          "y": 296
+        },
+        {
+          "text": "Algorithms",
+          "y": 296
+        },
+        {
+          "text": "Challenge run",
+          "y": 558
+        },
+        {
+          "text": "Project challenges",
+          "y": 651
+        },
+        {
+          "text": "Expression engine",
+          "y": 868
+        },
+        {
+          "text": "Query pipeline",
+          "y": 960
+        },
+        {
+          "text": "Event bus",
+          "y": 1052
+        },
+        {
+          "text": "Dependency planner",
+          "y": 1144
+        },
+        {
+          "text": "Result pipeline",
+          "y": 1236
+        }
+      ]
+    },
+    {
+      "id": "catalogue-light-1280",
+      "name": "catalogue",
+      "path": "/coding/javascript",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1810,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "JavaScript",
+          "y": 172
+        },
+        {
+          "text": "Paths",
+          "y": 1103
+        },
+        {
+          "text": "Map basics",
+          "y": 1137
+        },
+        {
+          "text": "Set basics",
+          "y": 1226
+        },
+        {
+          "text": "Map and Set together",
+          "y": 1315
+        },
+        {
+          "text": "Objects and grouping",
+          "y": 1404
+        },
+        {
+          "text": "Lookups and crawling",
+          "y": 1493
+        }
+      ]
+    },
+    {
+      "id": "editor-light-1280",
+      "name": "editor",
+      "path": "/coding/javascript/js-digit-sum",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 680,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "digitSum.js",
+          "y": 57
+        },
+        {
+          "text": "Digit sum",
+          "y": 162
+        },
+        {
+          "text": "Examples",
+          "y": 396
+        },
+        {
+          "text": "Report this question",
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "evolving-light-1280",
+      "name": "evolving",
+      "path": "/coding/javascript/js-fullstack-links-1",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 680,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "linkShortener1.js",
+          "y": 37
+        },
+        {
+          "text": "Link shortener · 1",
+          "y": 122
+        },
+        {
+          "text": "Examples",
+          "y": 683
+        },
+        {
+          "text": "Report this question",
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "quiz-light-1280",
+      "name": "quiz",
+      "path": "/quiz",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 913,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Build your quiz.",
+          "y": 112
+        }
+      ]
+    },
+    {
+      "id": "learn-light-1280",
+      "name": "learn",
+      "path": "/learn/web-developer?topic=html",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1256,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Learn",
+          "y": 164
+        },
+        {
+          "text": "HTML",
+          "y": 295
+        }
+      ]
+    },
+    {
+      "id": "fde-light-1280",
+      "name": "fde",
+      "path": "/learn/forward-deployed-engineer/path",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 13153,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Forward Deployed Engineer",
+          "y": 203
+        },
+        {
+          "text": "What you will be able to do",
+          "y": 488
+        },
+        {
+          "text": "What this path does not cover",
+          "y": 726
+        },
+        {
+          "text": "What you need before starting",
+          "y": 932
+        },
+        {
+          "text": "The delivery loop",
+          "y": 1127
+        },
+        {
+          "text": "Discover and scope",
+          "y": 1228
+        },
+        {
+          "text": "Integrate",
+          "y": 1228
+        },
+        {
+          "text": "Build with models",
+          "y": 1228
+        },
+        {
+          "text": "Harden and ship",
+          "y": 1228
+        },
+        {
+          "text": "Enable and codify",
+          "y": 1228
+        },
+        {
+          "text": "Modules",
+          "y": 1300
+        },
+        {
+          "text": "Module 1Customer discovery",
+          "y": 1463
+        },
+        {
+          "text": "Module 2Decomposition cases",
+          "y": 1964
+        },
+        {
+          "text": "Module 3Integration and data",
+          "y": 2905
+        },
+        {
+          "text": "Module 4Enterprise boundaries and identity",
+          "y": 3329
+        },
+        {
+          "text": "Module 5Data plumbing",
+          "y": 3799
+        },
+        {
+          "text": "Module 6AI system choices",
+          "y": 4223
+        },
+        {
+          "text": "Module 7Retrieval and grounding",
+          "y": 4647
+        },
+        {
+          "text": "Module 8Tools, agents and MCP",
+          "y": 5025
+        },
+        {
+          "text": "Module 9Evaluation",
+          "y": 5472
+        },
+        {
+          "text": "Module 10AI security",
+          "y": 5919
+        },
+        {
+          "text": "Module 11Deploy in the customer’s environment",
+          "y": 6466
+        },
+        {
+          "text": "Module 12Production delivery",
+          "y": 6958
+        },
+        {
+          "text": "Module 13Adoption and handoff",
+          "y": 7428
+        },
+        {
+          "text": "Module 14Codify the pattern",
+          "y": 8174
+        },
+        {
+          "text": "Module 15Capstone: the support operations workbench",
+          "y": 8529
+        },
+        {
+          "text": "Competency evidence",
+          "y": 9406
+        },
+        {
+          "text": "Customer discovery",
+          "y": 9513
+        },
+        {
+          "text": "Integration and data",
+          "y": 9571
+        },
+        {
+          "text": "Data plumbing",
+          "y": 9629
+        },
+        {
+          "text": "Enterprise boundaries",
+          "y": 9687
+        },
+        {
+          "text": "AI system choices",
+          "y": 9746
+        },
+        {
+          "text": "Retrieval and grounding",
+          "y": 9804
+        },
+        {
+          "text": "Tools and boundaries",
+          "y": 9862
+        },
+        {
+          "text": "Evaluation",
+          "y": 9921
+        },
+        {
+          "text": "AI security",
+          "y": 9979
+        },
+        {
+          "text": "Deployment in the customer’s environment",
+          "y": 10037
+        },
+        {
+          "text": "Production delivery",
+          "y": 10096
+        },
+        {
+          "text": "Adoption and handoff",
+          "y": 10154
+        },
+        {
+          "text": "Interview prep",
+          "y": 9474
+        },
+        {
+          "text": "OptionalInterview practice: learning round",
+          "y": 9579
+        },
+        {
+          "text": "OptionalInterview practice: re-engineering round",
+          "y": 9989
+        },
+        {
+          "text": "OptionalInterview practice: LLM system design",
+          "y": 10398
+        },
+        {
+          "text": "OptionalInterview practice: case bank and reflections",
+          "y": 11294
+        },
+        {
+          "text": "Optional: placement and bridges",
+          "y": 11807
+        },
+        {
+          "text": "OptionalWhere you already are",
+          "y": 11911
+        },
+        {
+          "text": "OptionalBridges",
+          "y": 12258
+        }
+      ]
+    },
+    {
+      "id": "daily-light-1280",
+      "name": "daily",
+      "path": "/daily",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 935,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "TypeScript question of the day",
+          "y": 128
+        }
+      ]
+    },
+    {
+      "id": "today-light-1280",
+      "name": "today",
+      "path": "/today",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 793,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Today",
+          "y": 120
+        },
+        {
+          "text": "New material",
+          "y": 222
+        }
+      ]
+    },
+    {
+      "id": "profile-light-1280",
+      "name": "profile",
+      "path": "/profile",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 2994,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Lessons, quizzes and coding tasks for web developers.",
+          "y": 112
+        },
+        {
+          "text": "Pick a topic.",
+          "y": 726
+        },
+        {
+          "text": "Inside JavaScript",
+          "y": 1059
+        },
+        {
+          "text": "Forward Deployed Engineer",
+          "y": 1453
+        },
+        {
+          "text": "Free and Premium",
+          "y": 2101
+        }
+      ]
+    },
+    {
+      "id": "leaderboard-light-1280",
+      "name": "leaderboard",
+      "path": "/leaderboard",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 680,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Leaderboard",
+          "y": 120
+        }
+      ]
+    },
+    {
+      "id": "cards-light-1280",
+      "name": "cards",
+      "path": "/cards",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 680,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Sign in to save questions",
+          "y": 209
+        }
+      ]
+    },
+    {
+      "id": "collection-light-1280",
+      "name": "collection",
+      "path": "/collection",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 790,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Shark Cards",
+          "y": 112
+        },
+        {
+          "text": "Sign in to save questions",
+          "y": 368
+        }
+      ]
+    },
+    {
+      "id": "typing-light-1280",
+      "name": "typing",
+      "path": "/typing",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 928,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Typing racer",
+          "y": 148
+        }
+      ]
+    },
+    {
+      "id": "challenge-light-1280",
+      "name": "challenge",
+      "path": "/challenge",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 932,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Biggest Shark Challenge",
+          "y": 112
+        },
+        {
+          "text": "Top scores",
+          "y": 619
+        }
+      ]
+    },
+    {
+      "id": "play-light-1280",
+      "name": "play",
+      "path": "/play",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 680,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Sign in to play live",
+          "y": 145
+        }
+      ]
+    },
+    {
+      "id": "shop-light-1280",
+      "name": "shop",
+      "path": "/shop",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1571,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Coins",
+          "y": 148
+        },
+        {
+          "text": "Your coins",
+          "y": 260
+        },
+        {
+          "text": "How to earn",
+          "y": 399
+        },
+        {
+          "text": "Crown and streak protection",
+          "y": 898
+        },
+        {
+          "text": "The crown",
+          "y": 964
+        },
+        {
+          "text": "Streak protection",
+          "y": 1034
+        },
+        {
+          "text": "Invite a friend",
+          "y": 1141
+        }
+      ]
+    },
+    {
+      "id": "career-light-1280",
+      "name": "career",
+      "path": "/roadmap",
+      "theme": "light",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 2703,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Career roadmap",
+          "y": 112
+        },
+        {
+          "text": "Your roadmap",
+          "y": 578
+        },
+        {
+          "text": "Web Developer",
+          "y": 861
+        },
+        {
+          "text": "Frontend foundations",
+          "y": 995
+        },
+        {
+          "text": "Frontend frameworks",
+          "y": 995
+        },
+        {
+          "text": "Backend & the web",
+          "y": 995
+        },
+        {
+          "text": "Engineering for production",
+          "y": 1253
+        },
+        {
+          "text": "Topics",
+          "y": 1253
+        },
+        {
+          "text": "Software Engineer",
+          "y": 1447
+        },
+        {
+          "text": "Computer science",
+          "y": 1582
+        },
+        {
+          "text": "Engineering for production",
+          "y": 1582
+        },
+        {
+          "text": "Topics",
+          "y": 1582
+        },
+        {
+          "text": "Forward Deployed Engineer",
+          "y": 1885
+        },
+        {
+          "text": "Topics",
+          "y": 2019
+        },
+        {
+          "text": "Skills that require real project experience",
+          "y": 2183
+        }
+      ]
+    },
+    {
+      "id": "coding-dark-1280",
+      "name": "coding",
+      "path": "/coding",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1694,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Coding challenges",
+          "y": 112
+        },
+        {
+          "text": "Your next challenge",
+          "y": 149
+        },
+        {
+          "text": "JavaScript",
+          "y": 296
+        },
+        {
+          "text": "TypeScript",
+          "y": 296
+        },
+        {
+          "text": "React",
+          "y": 296
+        },
+        {
+          "text": "Algorithms",
+          "y": 296
+        },
+        {
+          "text": "Challenge run",
+          "y": 558
+        },
+        {
+          "text": "Project challenges",
+          "y": 651
+        },
+        {
+          "text": "Expression engine",
+          "y": 868
+        },
+        {
+          "text": "Query pipeline",
+          "y": 960
+        },
+        {
+          "text": "Event bus",
+          "y": 1052
+        },
+        {
+          "text": "Dependency planner",
+          "y": 1144
+        },
+        {
+          "text": "Result pipeline",
+          "y": 1236
+        }
+      ]
+    },
+    {
+      "id": "catalogue-dark-1280",
+      "name": "catalogue",
+      "path": "/coding/javascript",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1810,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "JavaScript",
+          "y": 172
+        },
+        {
+          "text": "Paths",
+          "y": 1103
+        },
+        {
+          "text": "Map basics",
+          "y": 1137
+        },
+        {
+          "text": "Set basics",
+          "y": 1226
+        },
+        {
+          "text": "Map and Set together",
+          "y": 1315
+        },
+        {
+          "text": "Objects and grouping",
+          "y": 1404
+        },
+        {
+          "text": "Lookups and crawling",
+          "y": 1493
+        }
+      ]
+    },
+    {
+      "id": "editor-dark-1280",
+      "name": "editor",
+      "path": "/coding/javascript/js-digit-sum",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 680,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "digitSum.js",
+          "y": 57
+        },
+        {
+          "text": "Digit sum",
+          "y": 162
+        },
+        {
+          "text": "Examples",
+          "y": 396
+        },
+        {
+          "text": "Report this question",
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "evolving-dark-1280",
+      "name": "evolving",
+      "path": "/coding/javascript/js-fullstack-links-1",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 680,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "linkShortener1.js",
+          "y": 37
+        },
+        {
+          "text": "Link shortener · 1",
+          "y": 122
+        },
+        {
+          "text": "Examples",
+          "y": 683
+        },
+        {
+          "text": "Report this question",
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "quiz-dark-1280",
+      "name": "quiz",
+      "path": "/quiz",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 913,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Build your quiz.",
+          "y": 112
+        }
+      ]
+    },
+    {
+      "id": "learn-dark-1280",
+      "name": "learn",
+      "path": "/learn/web-developer?topic=html",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1256,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Learn",
+          "y": 164
+        },
+        {
+          "text": "HTML",
+          "y": 295
+        }
+      ]
+    },
+    {
+      "id": "fde-dark-1280",
+      "name": "fde",
+      "path": "/learn/forward-deployed-engineer/path",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 13153,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Forward Deployed Engineer",
+          "y": 203
+        },
+        {
+          "text": "What you will be able to do",
+          "y": 488
+        },
+        {
+          "text": "What this path does not cover",
+          "y": 726
+        },
+        {
+          "text": "What you need before starting",
+          "y": 932
+        },
+        {
+          "text": "The delivery loop",
+          "y": 1127
+        },
+        {
+          "text": "Discover and scope",
+          "y": 1228
+        },
+        {
+          "text": "Integrate",
+          "y": 1228
+        },
+        {
+          "text": "Build with models",
+          "y": 1228
+        },
+        {
+          "text": "Harden and ship",
+          "y": 1228
+        },
+        {
+          "text": "Enable and codify",
+          "y": 1228
+        },
+        {
+          "text": "Modules",
+          "y": 1300
+        },
+        {
+          "text": "Module 1Customer discovery",
+          "y": 1463
+        },
+        {
+          "text": "Module 2Decomposition cases",
+          "y": 1964
+        },
+        {
+          "text": "Module 3Integration and data",
+          "y": 2905
+        },
+        {
+          "text": "Module 4Enterprise boundaries and identity",
+          "y": 3329
+        },
+        {
+          "text": "Module 5Data plumbing",
+          "y": 3799
+        },
+        {
+          "text": "Module 6AI system choices",
+          "y": 4223
+        },
+        {
+          "text": "Module 7Retrieval and grounding",
+          "y": 4647
+        },
+        {
+          "text": "Module 8Tools, agents and MCP",
+          "y": 5025
+        },
+        {
+          "text": "Module 9Evaluation",
+          "y": 5472
+        },
+        {
+          "text": "Module 10AI security",
+          "y": 5919
+        },
+        {
+          "text": "Module 11Deploy in the customer’s environment",
+          "y": 6466
+        },
+        {
+          "text": "Module 12Production delivery",
+          "y": 6958
+        },
+        {
+          "text": "Module 13Adoption and handoff",
+          "y": 7428
+        },
+        {
+          "text": "Module 14Codify the pattern",
+          "y": 8174
+        },
+        {
+          "text": "Module 15Capstone: the support operations workbench",
+          "y": 8529
+        },
+        {
+          "text": "Competency evidence",
+          "y": 9406
+        },
+        {
+          "text": "Customer discovery",
+          "y": 9513
+        },
+        {
+          "text": "Integration and data",
+          "y": 9571
+        },
+        {
+          "text": "Data plumbing",
+          "y": 9629
+        },
+        {
+          "text": "Enterprise boundaries",
+          "y": 9687
+        },
+        {
+          "text": "AI system choices",
+          "y": 9746
+        },
+        {
+          "text": "Retrieval and grounding",
+          "y": 9804
+        },
+        {
+          "text": "Tools and boundaries",
+          "y": 9862
+        },
+        {
+          "text": "Evaluation",
+          "y": 9921
+        },
+        {
+          "text": "AI security",
+          "y": 9979
+        },
+        {
+          "text": "Deployment in the customer’s environment",
+          "y": 10037
+        },
+        {
+          "text": "Production delivery",
+          "y": 10096
+        },
+        {
+          "text": "Adoption and handoff",
+          "y": 10154
+        },
+        {
+          "text": "Interview prep",
+          "y": 9474
+        },
+        {
+          "text": "OptionalInterview practice: learning round",
+          "y": 9579
+        },
+        {
+          "text": "OptionalInterview practice: re-engineering round",
+          "y": 9989
+        },
+        {
+          "text": "OptionalInterview practice: LLM system design",
+          "y": 10398
+        },
+        {
+          "text": "OptionalInterview practice: case bank and reflections",
+          "y": 11294
+        },
+        {
+          "text": "Optional: placement and bridges",
+          "y": 11807
+        },
+        {
+          "text": "OptionalWhere you already are",
+          "y": 11911
+        },
+        {
+          "text": "OptionalBridges",
+          "y": 12258
+        }
+      ]
+    },
+    {
+      "id": "daily-dark-1280",
+      "name": "daily",
+      "path": "/daily",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 935,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "TypeScript question of the day",
+          "y": 128
+        }
+      ]
+    },
+    {
+      "id": "today-dark-1280",
+      "name": "today",
+      "path": "/today",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 793,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Today",
+          "y": 120
+        },
+        {
+          "text": "New material",
+          "y": 222
+        }
+      ]
+    },
+    {
+      "id": "profile-dark-1280",
+      "name": "profile",
+      "path": "/profile",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 2994,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Lessons, quizzes and coding tasks for web developers.",
+          "y": 112
+        },
+        {
+          "text": "Pick a topic.",
+          "y": 726
+        },
+        {
+          "text": "Inside JavaScript",
+          "y": 1059
+        },
+        {
+          "text": "Forward Deployed Engineer",
+          "y": 1453
+        },
+        {
+          "text": "Free and Premium",
+          "y": 2101
+        }
+      ]
+    },
+    {
+      "id": "leaderboard-dark-1280",
+      "name": "leaderboard",
+      "path": "/leaderboard",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 680,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Leaderboard",
+          "y": 120
+        }
+      ]
+    },
+    {
+      "id": "cards-dark-1280",
+      "name": "cards",
+      "path": "/cards",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 680,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Sign in to save questions",
+          "y": 209
+        }
+      ]
+    },
+    {
+      "id": "collection-dark-1280",
+      "name": "collection",
+      "path": "/collection",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 790,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Shark Cards",
+          "y": 112
+        },
+        {
+          "text": "Sign in to save questions",
+          "y": 368
+        }
+      ]
+    },
+    {
+      "id": "typing-dark-1280",
+      "name": "typing",
+      "path": "/typing",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 928,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Typing racer",
+          "y": 148
+        }
+      ]
+    },
+    {
+      "id": "challenge-dark-1280",
+      "name": "challenge",
+      "path": "/challenge",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 932,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Biggest Shark Challenge",
+          "y": 112
+        },
+        {
+          "text": "Top scores",
+          "y": 619
+        }
+      ]
+    },
+    {
+      "id": "play-dark-1280",
+      "name": "play",
+      "path": "/play",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 680,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Sign in to play live",
+          "y": 145
+        }
+      ]
+    },
+    {
+      "id": "shop-dark-1280",
+      "name": "shop",
+      "path": "/shop",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1571,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Coins",
+          "y": 148
+        },
+        {
+          "text": "Your coins",
+          "y": 260
+        },
+        {
+          "text": "How to earn",
+          "y": 399
+        },
+        {
+          "text": "Crown and streak protection",
+          "y": 898
+        },
+        {
+          "text": "The crown",
+          "y": 964
+        },
+        {
+          "text": "Streak protection",
+          "y": 1034
+        },
+        {
+          "text": "Invite a friend",
+          "y": 1141
+        }
+      ]
+    },
+    {
+      "id": "career-dark-1280",
+      "name": "career",
+      "path": "/roadmap",
+      "theme": "dark",
+      "width": 1280,
+      "height": 680,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 2703,
+      "mainHeight": 680,
+      "headings": [
+        {
+          "text": "Career roadmap",
+          "y": 112
+        },
+        {
+          "text": "Your roadmap",
+          "y": 578
+        },
+        {
+          "text": "Web Developer",
+          "y": 861
+        },
+        {
+          "text": "Frontend foundations",
+          "y": 995
+        },
+        {
+          "text": "Frontend frameworks",
+          "y": 995
+        },
+        {
+          "text": "Backend & the web",
+          "y": 995
+        },
+        {
+          "text": "Engineering for production",
+          "y": 1253
+        },
+        {
+          "text": "Topics",
+          "y": 1253
+        },
+        {
+          "text": "Software Engineer",
+          "y": 1447
+        },
+        {
+          "text": "Computer science",
+          "y": 1582
+        },
+        {
+          "text": "Engineering for production",
+          "y": 1582
+        },
+        {
+          "text": "Topics",
+          "y": 1582
+        },
+        {
+          "text": "Forward Deployed Engineer",
+          "y": 1885
+        },
+        {
+          "text": "Topics",
+          "y": 2019
+        },
+        {
+          "text": "Skills that require real project experience",
+          "y": 2183
+        }
+      ]
+    },
+    {
+      "id": "coding-light-390",
+      "name": "coding",
+      "path": "/coding",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 2829,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Coding challenges",
+          "y": 96
+        },
+        {
+          "text": "Your next challenge",
+          "y": 294
+        },
+        {
+          "text": "JavaScript",
+          "y": 417
+        },
+        {
+          "text": "TypeScript",
+          "y": 609
+        },
+        {
+          "text": "React",
+          "y": 822
+        },
+        {
+          "text": "Algorithms",
+          "y": 1035
+        },
+        {
+          "text": "Challenge run",
+          "y": 1285
+        },
+        {
+          "text": "Project challenges",
+          "y": 1388
+        },
+        {
+          "text": "Expression engine",
+          "y": 1695
+        },
+        {
+          "text": "Query pipeline",
+          "y": 1840
+        },
+        {
+          "text": "Event bus",
+          "y": 1984
+        },
+        {
+          "text": "Dependency planner",
+          "y": 2128
+        },
+        {
+          "text": "Result pipeline",
+          "y": 2272
+        }
+      ]
+    },
+    {
+      "id": "catalogue-light-390",
+      "name": "catalogue",
+      "path": "/coding/javascript",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 2789,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "JavaScript",
+          "y": 156
+        },
+        {
+          "text": "Paths",
+          "y": 1748
+        },
+        {
+          "text": "Map basics",
+          "y": 1967
+        },
+        {
+          "text": "Set basics",
+          "y": 2075
+        },
+        {
+          "text": "Map and Set together",
+          "y": 2183
+        },
+        {
+          "text": "Objects and grouping",
+          "y": 2291
+        },
+        {
+          "text": "Lookups and crawling",
+          "y": 2400
+        }
+      ]
+    },
+    {
+      "id": "editor-light-390",
+      "name": "editor",
+      "path": "/coding/javascript/js-digit-sum",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 844,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "digitSum.js",
+          "y": 60
+        },
+        {
+          "text": "Digit sum",
+          "y": 165
+        },
+        {
+          "text": "Examples",
+          "y": 469
+        },
+        {
+          "text": "Report this question",
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "evolving-light-390",
+      "name": "evolving",
+      "path": "/coding/javascript/js-fullstack-links-1",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 887,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "linkShortener1.js",
+          "y": 24
+        },
+        {
+          "text": "Link shortener · 1",
+          "y": 109
+        },
+        {
+          "text": "Examples",
+          "y": 877
+        },
+        {
+          "text": "Report this question",
+          "y": 0
+        }
+      ]
+    },
+    {
+      "id": "quiz-light-390",
+      "name": "quiz",
+      "path": "/quiz",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1631,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Build your quiz.",
+          "y": 96
+        }
+      ]
+    },
+    {
+      "id": "learn-light-390",
+      "name": "learn",
+      "path": "/learn/web-developer?topic=html",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1993,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Learn",
+          "y": 140
+        },
+        {
+          "text": "HTML",
+          "y": 716
+        }
+      ]
+    },
+    {
+      "id": "fde-light-390",
+      "name": "fde",
+      "path": "/learn/forward-deployed-engineer/path",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 24847,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Forward Deployed Engineer",
+          "y": 187
+        },
+        {
+          "text": "What you will be able to do",
+          "y": 666
+        },
+        {
+          "text": "What this path does not cover",
+          "y": 1339
+        },
+        {
+          "text": "What you need before starting",
+          "y": 1852
+        },
+        {
+          "text": "The delivery loop",
+          "y": 2175
+        },
+        {
+          "text": "Discover and scope",
+          "y": 2276
+        },
+        {
+          "text": "Integrate",
+          "y": 2276
+        },
+        {
+          "text": "Build with models",
+          "y": 2355
+        },
+        {
+          "text": "Harden and ship",
+          "y": 2355
+        },
+        {
+          "text": "Enable and codify",
+          "y": 2433
+        },
+        {
+          "text": "Modules",
+          "y": 2505
+        },
+        {
+          "text": "Module 1Customer discovery",
+          "y": 2737
+        },
+        {
+          "text": "Module 2Decomposition cases",
+          "y": 3784
+        },
+        {
+          "text": "Module 3Integration and data",
+          "y": 5358
+        },
+        {
+          "text": "Module 4Enterprise boundaries and identity",
+          "y": 6244
+        },
+        {
+          "text": "Module 5Data plumbing",
+          "y": 7274
+        },
+        {
+          "text": "Module 6AI system choices",
+          "y": 8137
+        },
+        {
+          "text": "Module 7Retrieval and grounding",
+          "y": 9069
+        },
+        {
+          "text": "Module 8Tools, agents and MCP",
+          "y": 9795
+        },
+        {
+          "text": "Module 9Evaluation",
+          "y": 10818
+        },
+        {
+          "text": "Module 10AI security",
+          "y": 11772
+        },
+        {
+          "text": "Module 11Deploy in the customer’s environment",
+          "y": 12980
+        },
+        {
+          "text": "Module 12Production delivery",
+          "y": 14035
+        },
+        {
+          "text": "Module 13Adoption and handoff",
+          "y": 14919
+        },
+        {
+          "text": "Module 14Codify the pattern",
+          "y": 16453
+        },
+        {
+          "text": "Module 15Capstone: the support operations workbench",
+          "y": 17018
+        },
+        {
+          "text": "Competency evidence",
+          "y": 18961
+        },
+        {
+          "text": "Customer discovery",
+          "y": 19090
+        },
+        {
+          "text": "Integration and data",
+          "y": 19170
+        },
+        {
+          "text": "Data plumbing",
+          "y": 19249
+        },
+        {
+          "text": "Enterprise boundaries",
+          "y": 19328
+        },
+        {
+          "text": "AI system choices",
+          "y": 19407
+        },
+        {
+          "text": "Retrieval and grounding",
+          "y": 19487
+        },
+        {
+          "text": "Tools and boundaries",
+          "y": 19566
+        },
+        {
+          "text": "Evaluation",
+          "y": 19645
+        },
+        {
+          "text": "AI security",
+          "y": 19725
+        },
+        {
+          "text": "Deployment in the customer’s environment",
+          "y": 19804
+        },
+        {
+          "text": "Production delivery",
+          "y": 19905
+        },
+        {
+          "text": "Adoption and handoff",
+          "y": 19984
+        },
+        {
+          "text": "Interview prep",
+          "y": 19029
+        },
+        {
+          "text": "OptionalInterview practice: learning round",
+          "y": 19159
+        },
+        {
+          "text": "OptionalInterview practice: re-engineering round",
+          "y": 19850
+        },
+        {
+          "text": "OptionalInterview practice: LLM system design",
+          "y": 20494
+        },
+        {
+          "text": "OptionalInterview practice: case bank and reflections",
+          "y": 21914
+        },
+        {
+          "text": "Optional: placement and bridges",
+          "y": 22718
+        },
+        {
+          "text": "OptionalWhere you already are",
+          "y": 22848
+        },
+        {
+          "text": "OptionalBridges",
+          "y": 23456
+        }
+      ]
+    },
+    {
+      "id": "daily-light-390",
+      "name": "daily",
+      "path": "/daily",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1148,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "TypeScript question of the day",
+          "y": 206
+        }
+      ]
+    },
+    {
+      "id": "today-light-390",
+      "name": "today",
+      "path": "/today",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 844,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Today",
+          "y": 96
+        },
+        {
+          "text": "New material",
+          "y": 198
+        }
+      ]
+    },
+    {
+      "id": "profile-light-390",
+      "name": "profile",
+      "path": "/profile",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 4333,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Lessons, quizzes and coding tasks for web developers.",
+          "y": 96
+        },
+        {
+          "text": "Pick a topic.",
+          "y": 1191
+        },
+        {
+          "text": "Inside JavaScript",
+          "y": 1587
+        },
+        {
+          "text": "Forward Deployed Engineer",
+          "y": 2058
+        },
+        {
+          "text": "Free and Premium",
+          "y": 3127
+        }
+      ]
+    },
+    {
+      "id": "leaderboard-light-390",
+      "name": "leaderboard",
+      "path": "/leaderboard",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 844,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Leaderboard",
+          "y": 104
+        }
+      ]
+    },
+    {
+      "id": "cards-light-390",
+      "name": "cards",
+      "path": "/cards",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 844,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Sign in to save questions",
+          "y": 185
+        }
+      ]
+    },
+    {
+      "id": "collection-light-390",
+      "name": "collection",
+      "path": "/collection",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 849,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Shark Cards",
+          "y": 96
+        },
+        {
+          "text": "Sign in to save questions",
+          "y": 368
+        }
+      ]
+    },
+    {
+      "id": "typing-light-390",
+      "name": "typing",
+      "path": "/typing",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1032,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Typing racer",
+          "y": 132
+        }
+      ]
+    },
+    {
+      "id": "challenge-light-390",
+      "name": "challenge",
+      "path": "/challenge",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1227,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Biggest Shark Challenge",
+          "y": 96
+        },
+        {
+          "text": "Top scores",
+          "y": 871
+        }
+      ]
+    },
+    {
+      "id": "play-light-390",
+      "name": "play",
+      "path": "/play",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 844,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Sign in to play live",
+          "y": 121
+        }
+      ]
+    },
+    {
+      "id": "shop-light-390",
+      "name": "shop",
+      "path": "/shop",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 1949,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Coins",
+          "y": 132
+        },
+        {
+          "text": "Your coins",
+          "y": 232
+        },
+        {
+          "text": "How to earn",
+          "y": 407
+        },
+        {
+          "text": "Crown and streak protection",
+          "y": 1060
+        },
+        {
+          "text": "The crown",
+          "y": 1124
+        },
+        {
+          "text": "Streak protection",
+          "y": 1247
+        },
+        {
+          "text": "Invite a friend",
+          "y": 1429
+        }
+      ]
+    },
+    {
+      "id": "career-light-390",
+      "name": "career",
+      "path": "/roadmap",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "source": "production guest, current main ca590028",
+      "errors": [],
+      "blockedWrites": [],
+      "overflow": false,
+      "scrollHeight": 4307,
+      "mainHeight": 844,
+      "headings": [
+        {
+          "text": "Career roadmap",
+          "y": 96
+        },
+        {
+          "text": "Your roadmap",
+          "y": 670
+        },
+        {
+          "text": "Web Developer",
+          "y": 1291
+        },
+        {
+          "text": "Frontend foundations",
+          "y": 1442
+        },
+        {
+          "text": "Frontend frameworks",
+          "y": 1700
+        },
+        {
+          "text": "Backend & the web",
+          "y": 1870
+        },
+        {
+          "text": "Engineering for production",
+          "y": 2112
+        },
+        {
+          "text": "Topics",
+          "y": 2307
+        },
+        {
+          "text": "Software Engineer",
+          "y": 2473
+        },
+        {
+          "text": "Computer science",
+          "y": 2647
+        },
+        {
+          "text": "Engineering for production",
+          "y": 2851
+        },
+        {
+          "text": "Topics",
+          "y": 3137
+        },
+        {
+          "text": "Forward Deployed Engineer",
+          "y": 3276
+        },
+        {
+          "text": "Topics",
+          "y": 3451
+        },
+        {
+          "text": "Skills that require real project experience",
+          "y": 3610
+        }
+      ]
+    }
+  ]
+}

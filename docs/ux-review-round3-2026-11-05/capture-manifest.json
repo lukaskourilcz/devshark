@@ -1,0 +1,1478 @@
+[
+  {
+    "id": "projects-light-1280x680",
+    "scene": "projects",
+    "theme": "light",
+    "width": 1280,
+    "height": 680,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 611,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Coding challenges"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 611,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Coding challenges"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Coding challenges\n\nJavaScript, TypeScript, React and algorithm tasks, graded by running tests.\n\nSign in to keep your progress. Signed out, you can run and check the free tasks, but no pass is recorded.\n\nYOUR NEXT CHALLENGE\n\nDigit sum\n\nContinue\nJavaScript\n0 of 222 passed\n\nLoops, array methods, closures, and promises, including edge cases.\n\n↗\nTypeScript\n0 of 102 passed\n\nImplementation tasks checked by both runtime tests and the TypeScript compiler.\n\n↗\nReact\n0 of 120 passed\n\nComponents, state and effects, checked with Testing Library in a sandbox.\n\n↗\nAlgorithms\n0 of 104 passed\n\nInterview problems in plain JavaScript: hash maps, two pointers, recursion, and concurrency.\n\n↗\nChallenge run\n\nPick a track and a time, and we line up the tasks.\n\nPlan a run\nPROJECT CHALLENGES\nEvolving challenges\nDebugging paths\nFullStack\n\nProjects of 10–12 stages, each building on your code.\n\nPREMIUM Stages 1, 2 and 3 of every project come with the free plan. Premium opens the rest.\n\n01\n\nJavaScript\n\nExpression engine\n\n0 of 10 stages completed Premium\n\nStart\n02\n\nJavaScript\n\nQuery pipeline\n\n0 of 10 stages completed Premium\n\nStart\n03\n\nJavaScript\n\nEvent bus\n\n0 of 10 stages completed Premium\n\nStart\n04\n\nJavaScript\n\nDependency planner\n\n0 of 10 stages completed Premium\n\nStart\n05\n\nTypeScript\n\nResult pipeline\n\n0 of 10 stages completed Premium\n\nStart\nShow all 10 challenges\nTechniques\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nDark mode\nTurn sound on",
+    "afterText": "Coding challenges\n\nJavaScript, TypeScript, React and algorithm tasks, graded by running tests.\n\nSign in to keep your progress. Signed out, you can run and check the free tasks, but no pass is recorded.\n\nYOUR NEXT CHALLENGE\n\nDigit sum\n\nContinue\nJavaScript\n0 of 222 passed\n\nLoops, array methods, closures, and promises, including edge cases.\n\n↗\nTypeScript\n0 of 102 passed\n\nImplementation tasks checked by both runtime tests and the TypeScript compiler.\n\n↗\nReact\n0 of 120 passed\n\nComponents, state and effects, checked with Testing Library in a sandbox.\n\n↗\nAlgorithms\n0 of 104 passed\n\nInterview problems in plain JavaScript: hash maps, two pointers, recursion, and concurrency.\n\n↗\nChallenge run\n\nPick a track and a time, and we line up the tasks.\n\nPlan a run\nPROJECT CHALLENGES\nEvolving challenges\nDebugging paths\nFullStack\n\nProjects of 10–12 stages, each building on your code.\n\nStages 1–3 are free. Premium opens the later stages.\n\n01\n\nJavaScript\n\nExpression engine\n\n0 of 10 stages completed\n\nStart\n02\n\nJavaScript\n\nQuery pipeline\n\n0 of 10 stages completed\n\nStart\n03\n\nJavaScript\n\nEvent bus\n\n0 of 10 stages completed\n\nStart\n04\n\nJavaScript\n\nDependency planner\n\n0 of 10 stages completed\n\nStart\n05\n\nTypeScript\n\nResult pipeline\n\n0 of 10 stages completed\n\nStart\nShow all 10 challenges\nTechniques\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nDark mode\nTurn sound on"
+  },
+  {
+    "id": "projects-dark-1280x680",
+    "scene": "projects",
+    "theme": "dark",
+    "width": 1280,
+    "height": 680,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 611,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Coding challenges"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 611,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Coding challenges"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Coding challenges\n\nJavaScript, TypeScript, React and algorithm tasks, graded by running tests.\n\nSign in to keep your progress. Signed out, you can run and check the free tasks, but no pass is recorded.\n\nYOUR NEXT CHALLENGE\n\nDigit sum\n\nContinue\nJavaScript\n0 of 222 passed\n\nLoops, array methods, closures, and promises, including edge cases.\n\n↗\nTypeScript\n0 of 102 passed\n\nImplementation tasks checked by both runtime tests and the TypeScript compiler.\n\n↗\nReact\n0 of 120 passed\n\nComponents, state and effects, checked with Testing Library in a sandbox.\n\n↗\nAlgorithms\n0 of 104 passed\n\nInterview problems in plain JavaScript: hash maps, two pointers, recursion, and concurrency.\n\n↗\nChallenge run\n\nPick a track and a time, and we line up the tasks.\n\nPlan a run\nPROJECT CHALLENGES\nEvolving challenges\nDebugging paths\nFullStack\n\nProjects of 10–12 stages, each building on your code.\n\nPREMIUM Stages 1, 2 and 3 of every project come with the free plan. Premium opens the rest.\n\n01\n\nJavaScript\n\nExpression engine\n\n0 of 10 stages completed Premium\n\nStart\n02\n\nJavaScript\n\nQuery pipeline\n\n0 of 10 stages completed Premium\n\nStart\n03\n\nJavaScript\n\nEvent bus\n\n0 of 10 stages completed Premium\n\nStart\n04\n\nJavaScript\n\nDependency planner\n\n0 of 10 stages completed Premium\n\nStart\n05\n\nTypeScript\n\nResult pipeline\n\n0 of 10 stages completed Premium\n\nStart\nShow all 10 challenges\nTechniques\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nLight mode\nTurn sound on",
+    "afterText": "Coding challenges\n\nJavaScript, TypeScript, React and algorithm tasks, graded by running tests.\n\nSign in to keep your progress. Signed out, you can run and check the free tasks, but no pass is recorded.\n\nYOUR NEXT CHALLENGE\n\nDigit sum\n\nContinue\nJavaScript\n0 of 222 passed\n\nLoops, array methods, closures, and promises, including edge cases.\n\n↗\nTypeScript\n0 of 102 passed\n\nImplementation tasks checked by both runtime tests and the TypeScript compiler.\n\n↗\nReact\n0 of 120 passed\n\nComponents, state and effects, checked with Testing Library in a sandbox.\n\n↗\nAlgorithms\n0 of 104 passed\n\nInterview problems in plain JavaScript: hash maps, two pointers, recursion, and concurrency.\n\n↗\nChallenge run\n\nPick a track and a time, and we line up the tasks.\n\nPlan a run\nPROJECT CHALLENGES\nEvolving challenges\nDebugging paths\nFullStack\n\nProjects of 10–12 stages, each building on your code.\n\nStages 1–3 are free. Premium opens the later stages.\n\n01\n\nJavaScript\n\nExpression engine\n\n0 of 10 stages completed\n\nStart\n02\n\nJavaScript\n\nQuery pipeline\n\n0 of 10 stages completed\n\nStart\n03\n\nJavaScript\n\nEvent bus\n\n0 of 10 stages completed\n\nStart\n04\n\nJavaScript\n\nDependency planner\n\n0 of 10 stages completed\n\nStart\n05\n\nTypeScript\n\nResult pipeline\n\n0 of 10 stages completed\n\nStart\nShow all 10 challenges\nTechniques\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nLight mode\nTurn sound on"
+  },
+  {
+    "id": "projects-light-390x844",
+    "scene": "projects",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 1424,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Coding challenges"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 1424,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Coding challenges"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Coding challenges\n\nJavaScript, TypeScript, React and algorithm tasks, graded by running tests.\n\nSign in to keep your progress. Signed out, you can run and check the free tasks, but no pass is recorded.\n\nYOUR NEXT CHALLENGE\n\nDigit sum\n\nContinue\nJavaScript\n0 of 222 passed\n\nLoops, array methods, closures, and promises, including edge cases.\n\n↗\nTypeScript\n0 of 102 passed\n\nImplementation tasks checked by both runtime tests and the TypeScript compiler.\n\n↗\nReact\n0 of 120 passed\n\nComponents, state and effects, checked with Testing Library in a sandbox.\n\n↗\nAlgorithms\n0 of 104 passed\n\nInterview problems in plain JavaScript: hash maps, two pointers, recursion, and concurrency.\n\n↗\nChallenge run\n\nPick a track and a time, and we line up the tasks.\n\nPlan a run\nPROJECT CHALLENGES\nEvolving challenges\nDebugging paths\nFullStack\n\nProjects of 10–12 stages, each building on your code.\n\nPREMIUM Stages 1, 2 and 3 of every project come with the free plan. Premium opens the rest.\n\n01\n\nJavaScript\n\nExpression engine\n\n0 of 10 stages completed Premium\n\nStart\n02\n\nJavaScript\n\nQuery pipeline\n\n0 of 10 stages completed Premium\n\nStart\n03\n\nJavaScript\n\nEvent bus\n\n0 of 10 stages completed Premium\n\nStart\n04\n\nJavaScript\n\nDependency planner\n\n0 of 10 stages completed Premium\n\nStart\n05\n\nTypeScript\n\nResult pipeline\n\n0 of 10 stages completed Premium\n\nStart\nShow all 10 challenges\nTechniques\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.",
+    "afterText": "Coding challenges\n\nJavaScript, TypeScript, React and algorithm tasks, graded by running tests.\n\nSign in to keep your progress. Signed out, you can run and check the free tasks, but no pass is recorded.\n\nYOUR NEXT CHALLENGE\n\nDigit sum\n\nContinue\nJavaScript\n0 of 222 passed\n\nLoops, array methods, closures, and promises, including edge cases.\n\n↗\nTypeScript\n0 of 102 passed\n\nImplementation tasks checked by both runtime tests and the TypeScript compiler.\n\n↗\nReact\n0 of 120 passed\n\nComponents, state and effects, checked with Testing Library in a sandbox.\n\n↗\nAlgorithms\n0 of 104 passed\n\nInterview problems in plain JavaScript: hash maps, two pointers, recursion, and concurrency.\n\n↗\nChallenge run\n\nPick a track and a time, and we line up the tasks.\n\nPlan a run\nPROJECT CHALLENGES\nEvolving challenges\nDebugging paths\nFullStack\n\nProjects of 10–12 stages, each building on your code.\n\nStages 1–3 are free. Premium opens the later stages.\n\n01\n\nJavaScript\n\nExpression engine\n\n0 of 10 stages completed\n\nStart\n02\n\nJavaScript\n\nQuery pipeline\n\n0 of 10 stages completed\n\nStart\n03\n\nJavaScript\n\nEvent bus\n\n0 of 10 stages completed\n\nStart\n04\n\nJavaScript\n\nDependency planner\n\n0 of 10 stages completed\n\nStart\n05\n\nTypeScript\n\nResult pipeline\n\n0 of 10 stages completed\n\nStart\nShow all 10 challenges\nTechniques\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram."
+  },
+  {
+    "id": "daily-light-1280x680",
+    "scene": "daily",
+    "theme": "light",
+    "width": 1280,
+    "height": 680,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": [
+          {
+            "y": 566.421875,
+            "bottom": 614.421875,
+            "height": 48
+          },
+          {
+            "y": 622.421875,
+            "bottom": 670.421875,
+            "height": 48
+          },
+          {
+            "y": 678.421875,
+            "bottom": 726.421875,
+            "height": 48
+          },
+          {
+            "y": 734.421875,
+            "bottom": 782.421875,
+            "height": 48
+          }
+        ],
+        "checkBottom": 867.421875
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "TypeScript question of the day"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": [
+          {
+            "y": 402.625,
+            "bottom": 446.625,
+            "height": 44
+          },
+          {
+            "y": 450.625,
+            "bottom": 494.625,
+            "height": 44
+          },
+          {
+            "y": 498.625,
+            "bottom": 542.625,
+            "height": 44
+          },
+          {
+            "y": 546.625,
+            "bottom": 590.625,
+            "height": 44
+          }
+        ],
+        "checkBottom": 655.625
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "TypeScript question of the day"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Today\n/\nQuestion of the day\nTHURSDAY, 5 NOVEMBER 2026\nTypeScript question of the day\n\nTypeScript adds static type checking to JavaScript. Explore how types describe values and relationships, and what the compiler can check before the code runs.\n\ntypeof reads the type the compiler inferred for obj; decide whether the property values 1 and 2 were kept as literals or widened when the object was created.\n\nOne question a day from a different track. No account needed; nothing is recorded.\n\nTypeScript\nDifficulty 4\nWhat is T?\nconst obj = { a: 1, b: 2 };\ntype T = typeof obj;\n1\nnumber\n2\n{ a: number; b: number }\n3\n{ a: 1; b: 2 }\n4\n{ readonly a: 1; readonly b: 2 }\nCheck answer",
+    "afterText": "Today\n/\nQuestion of the day\nTHURSDAY, 5 NOVEMBER 2026\nTypeScript question of the day\n\nTypeScript adds static type checking to JavaScript. Explore how types describe values and relationships, and what the compiler can check before the code runs.\n\ntypeof reads the type the compiler inferred for obj; decide whether the property values 1 and 2 were kept as literals or widened when the object was created.\n\nOne question a day from a different track. No account needed; nothing is recorded.\n\nTypeScript\nDifficulty 4\nWhat is T?\nconst obj = { a: 1, b: 2 };\ntype T = typeof obj;\n1\nnumber\n2\n{ a: number; b: number }\n3\n{ a: 1; b: 2 }\n4\n{ readonly a: 1; readonly b: 2 }\nCheck answer"
+  },
+  {
+    "id": "daily-dark-1280x680",
+    "scene": "daily",
+    "theme": "dark",
+    "width": 1280,
+    "height": 680,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": [
+          {
+            "y": 566.421875,
+            "bottom": 614.421875,
+            "height": 48
+          },
+          {
+            "y": 622.421875,
+            "bottom": 670.421875,
+            "height": 48
+          },
+          {
+            "y": 678.421875,
+            "bottom": 726.421875,
+            "height": 48
+          },
+          {
+            "y": 734.421875,
+            "bottom": 782.421875,
+            "height": 48
+          }
+        ],
+        "checkBottom": 867.421875
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "TypeScript question of the day"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": [
+          {
+            "y": 402.625,
+            "bottom": 446.625,
+            "height": 44
+          },
+          {
+            "y": 450.625,
+            "bottom": 494.625,
+            "height": 44
+          },
+          {
+            "y": 498.625,
+            "bottom": 542.625,
+            "height": 44
+          },
+          {
+            "y": 546.625,
+            "bottom": 590.625,
+            "height": 44
+          }
+        ],
+        "checkBottom": 655.625
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "TypeScript question of the day"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Today\n/\nQuestion of the day\nTHURSDAY, 5 NOVEMBER 2026\nTypeScript question of the day\n\nTypeScript adds static type checking to JavaScript. Explore how types describe values and relationships, and what the compiler can check before the code runs.\n\ntypeof reads the type the compiler inferred for obj; decide whether the property values 1 and 2 were kept as literals or widened when the object was created.\n\nOne question a day from a different track. No account needed; nothing is recorded.\n\nTypeScript\nDifficulty 4\nWhat is T?\nconst obj = { a: 1, b: 2 };\ntype T = typeof obj;\n1\nnumber\n2\n{ a: number; b: number }\n3\n{ a: 1; b: 2 }\n4\n{ readonly a: 1; readonly b: 2 }\nCheck answer",
+    "afterText": "Today\n/\nQuestion of the day\nTHURSDAY, 5 NOVEMBER 2026\nTypeScript question of the day\n\nTypeScript adds static type checking to JavaScript. Explore how types describe values and relationships, and what the compiler can check before the code runs.\n\ntypeof reads the type the compiler inferred for obj; decide whether the property values 1 and 2 were kept as literals or widened when the object was created.\n\nOne question a day from a different track. No account needed; nothing is recorded.\n\nTypeScript\nDifficulty 4\nWhat is T?\nconst obj = { a: 1, b: 2 };\ntype T = typeof obj;\n1\nnumber\n2\n{ a: number; b: number }\n3\n{ a: 1; b: 2 }\n4\n{ readonly a: 1; readonly b: 2 }\nCheck answer"
+  },
+  {
+    "id": "daily-light-390x844",
+    "scene": "daily",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": [
+          {
+            "y": 787.421875,
+            "bottom": 835.421875,
+            "height": 48
+          },
+          {
+            "y": 843.421875,
+            "bottom": 891.421875,
+            "height": 48
+          },
+          {
+            "y": 899.421875,
+            "bottom": 947.421875,
+            "height": 48
+          },
+          {
+            "y": 955.421875,
+            "bottom": 1003.421875,
+            "height": 48
+          }
+        ],
+        "checkBottom": 1080.421875
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "TypeScript question of the day"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": [
+          {
+            "y": 577.890625,
+            "bottom": 621.890625,
+            "height": 44
+          },
+          {
+            "y": 625.890625,
+            "bottom": 669.890625,
+            "height": 44
+          },
+          {
+            "y": 673.890625,
+            "bottom": 717.890625,
+            "height": 44
+          },
+          {
+            "y": 721.890625,
+            "bottom": 765.890625,
+            "height": 44
+          }
+        ],
+        "checkBottom": 834.890625
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "TypeScript question of the day"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Today\n/\nQuestion of the day\nTHURSDAY, 5 NOVEMBER 2026\nTypeScript question of the day\n\nTypeScript adds static type checking to JavaScript. Explore how types describe values and relationships, and what the compiler can check before the code runs.\n\ntypeof reads the type the compiler inferred for obj; decide whether the property values 1 and 2 were kept as literals or widened when the object was created.\n\nOne question a day from a different track. No account needed; nothing is recorded.\n\nTypeScript\nDifficulty 4\nWhat is T?\nconst obj = { a: 1, b: 2 };\ntype T = typeof obj;\n1\nnumber\n2\n{ a: number; b: number }\n3\n{ a: 1; b: 2 }\n4\n{ readonly a: 1; readonly b: 2 }\nCheck answer",
+    "afterText": "Today\n/\nQuestion of the day\nTHURSDAY, 5 NOVEMBER 2026\nTypeScript question of the day\n\nTypeScript adds static type checking to JavaScript. Explore how types describe values and relationships, and what the compiler can check before the code runs.\n\ntypeof reads the type the compiler inferred for obj; decide whether the property values 1 and 2 were kept as literals or widened when the object was created.\n\nOne question a day from a different track. No account needed; nothing is recorded.\n\nTypeScript\nDifficulty 4\nWhat is T?\nconst obj = { a: 1, b: 2 };\ntype T = typeof obj;\n1\nnumber\n2\n{ a: number; b: number }\n3\n{ a: 1; b: 2 }\n4\n{ readonly a: 1; readonly b: 2 }\nCheck answer"
+  },
+  {
+    "id": "learn-mobile-light-390x844",
+    "scene": "learn-mobile",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": {
+        "x": 26,
+        "y": 896.53125,
+        "width": 334,
+        "height": 140.1875,
+        "bottom": 1036.71875
+      },
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 10,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Learn"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": {
+        "x": 26,
+        "y": 501.53125,
+        "width": 334,
+        "height": 140.1875,
+        "bottom": 641.71875
+      },
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 10,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Learn"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Learn\n/\nWeb Developer\nLearn\nWeb Developer\n0%\nSoftware Engineer\n0%\nForward Deployed Engineer\n0%\n\nUse the arrow keys to move between sections, then Enter or Space to open one.\n\nHTML\n0 / 6 levels\nCSS\n0 / 6 levels\nJavaScript\n0 / 25 levels\nTypeScript\nPremium\nReact\nNext.js\nPremium\nNode.js\nPremium\nDatabases\nPremium\nGit\nPremium\nGeneral\nPremium\nHTML\n\nHTML gives a web page its structure and meaning. Explore elements, forms and document semantics, including how assistive technology reads them.\n\nYou’re not signed in, so this progress stays on this device only. Signing in starts from your account’s progress instead.\n\nLevel 1 of 6 · Structure & Semantics\n\nContinue\nROADMAP KEY\nNot started\nCleared\nMastered\nDue for review\n1\nStructure & Semantics\nLinks, Buttons & Interaction\nPart 1 Test\nForms\nImages, Media & Responsive Delivery\nPart 2 Test\nReal Content Structures\nInspect & Repair\nPart 3 Test\n\n7 of 10 topics locked. Pass 5 levels in the prerequisite topics, or take the skill check to open more at once.\n\n20 mixed questions · unlimited hearts\nSkill check\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.",
+    "afterText": "Learn\n/\nWeb Developer\nLearn\nWeb Developer · 0%\nHTML · 0 / 6 levels\nHTML\n\nHTML gives a web page its structure and meaning. Explore elements, forms and document semantics, including how assistive technology reads them.\n\nYou’re not signed in, so this progress stays on this device only. Signing in starts from your account’s progress instead.\n\nLevel 1 of 6 · Structure & Semantics\n\nContinue\nROADMAP KEY\nNot started\nCleared\nMastered\nDue for review\n1\nStructure & Semantics\nLinks, Buttons & Interaction\nPart 1 Test\nForms\nImages, Media & Responsive Delivery\nPart 2 Test\nReal Content Structures\nInspect & Repair\nPart 3 Test\n\n7 of 10 topics locked. Pass 5 levels in the prerequisite topics, or take the skill check to open more at once.\n\n20 mixed questions · unlimited hearts\nSkill check\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram."
+  },
+  {
+    "id": "learn-mobile-dark-390x844",
+    "scene": "learn-mobile",
+    "theme": "dark",
+    "width": 390,
+    "height": 844,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": {
+        "x": 26,
+        "y": 896.53125,
+        "width": 334,
+        "height": 140.1875,
+        "bottom": 1036.71875
+      },
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 10,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Learn"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": {
+        "x": 26,
+        "y": 501.53125,
+        "width": 334,
+        "height": 140.1875,
+        "bottom": 641.71875
+      },
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 10,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Learn"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Learn\n/\nWeb Developer\nLearn\nWeb Developer\n0%\nSoftware Engineer\n0%\nForward Deployed Engineer\n0%\n\nUse the arrow keys to move between sections, then Enter or Space to open one.\n\nHTML\n0 / 6 levels\nCSS\n0 / 6 levels\nJavaScript\n0 / 25 levels\nTypeScript\nPremium\nReact\nNext.js\nPremium\nNode.js\nPremium\nDatabases\nPremium\nGit\nPremium\nGeneral\nPremium\nHTML\n\nHTML gives a web page its structure and meaning. Explore elements, forms and document semantics, including how assistive technology reads them.\n\nYou’re not signed in, so this progress stays on this device only. Signing in starts from your account’s progress instead.\n\nLevel 1 of 6 · Structure & Semantics\n\nContinue\nROADMAP KEY\nNot started\nCleared\nMastered\nDue for review\n1\nStructure & Semantics\nLinks, Buttons & Interaction\nPart 1 Test\nForms\nImages, Media & Responsive Delivery\nPart 2 Test\nReal Content Structures\nInspect & Repair\nPart 3 Test\n\n7 of 10 topics locked. Pass 5 levels in the prerequisite topics, or take the skill check to open more at once.\n\n20 mixed questions · unlimited hearts\nSkill check\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.",
+    "afterText": "Learn\n/\nWeb Developer\nLearn\nWeb Developer · 0%\nHTML · 0 / 6 levels\nHTML\n\nHTML gives a web page its structure and meaning. Explore elements, forms and document semantics, including how assistive technology reads them.\n\nYou’re not signed in, so this progress stays on this device only. Signing in starts from your account’s progress instead.\n\nLevel 1 of 6 · Structure & Semantics\n\nContinue\nROADMAP KEY\nNot started\nCleared\nMastered\nDue for review\n1\nStructure & Semantics\nLinks, Buttons & Interaction\nPart 1 Test\nForms\nImages, Media & Responsive Delivery\nPart 2 Test\nReal Content Structures\nInspect & Repair\nPart 3 Test\n\n7 of 10 topics locked. Pass 5 levels in the prerequisite topics, or take the skill check to open more at once.\n\n20 mixed questions · unlimited hearts\nSkill check\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram."
+  },
+  {
+    "id": "learn-mobile-light-360x800",
+    "scene": "learn-mobile",
+    "theme": "light",
+    "width": 360,
+    "height": 800,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": {
+        "x": 26,
+        "y": 918.921875,
+        "width": 304,
+        "height": 140.1875,
+        "bottom": 1059.109375
+      },
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 10,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Learn"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": {
+        "x": 26,
+        "y": 523.921875,
+        "width": 304,
+        "height": 140.1875,
+        "bottom": 664.109375
+      },
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 10,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Learn"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Learn\n/\nWeb Developer\nLearn\nWeb Developer\n0%\nSoftware Engineer\n0%\nForward Deployed Engineer\n0%\n\nUse the arrow keys to move between sections, then Enter or Space to open one.\n\nHTML\n0 / 6 levels\nCSS\n0 / 6 levels\nJavaScript\n0 / 25 levels\nTypeScript\nPremium\nReact\nNext.js\nPremium\nNode.js\nPremium\nDatabases\nPremium\nGit\nPremium\nGeneral\nPremium\nHTML\n\nHTML gives a web page its structure and meaning. Explore elements, forms and document semantics, including how assistive technology reads them.\n\nYou’re not signed in, so this progress stays on this device only. Signing in starts from your account’s progress instead.\n\nLevel 1 of 6 · Structure & Semantics\n\nContinue\nROADMAP KEY\nNot started\nCleared\nMastered\nDue for review\n1\nStructure & Semantics\nLinks, Buttons & Interaction\nPart 1 Test\nForms\nImages, Media & Responsive Delivery\nPart 2 Test\nReal Content Structures\nInspect & Repair\nPart 3 Test\n\n7 of 10 topics locked. Pass 5 levels in the prerequisite topics, or take the skill check to open more at once.\n\n20 mixed questions · unlimited hearts\nSkill check\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.",
+    "afterText": "Learn\n/\nWeb Developer\nLearn\nWeb Developer · 0%\nHTML · 0 / 6 levels\nHTML\n\nHTML gives a web page its structure and meaning. Explore elements, forms and document semantics, including how assistive technology reads them.\n\nYou’re not signed in, so this progress stays on this device only. Signing in starts from your account’s progress instead.\n\nLevel 1 of 6 · Structure & Semantics\n\nContinue\nROADMAP KEY\nNot started\nCleared\nMastered\nDue for review\n1\nStructure & Semantics\nLinks, Buttons & Interaction\nPart 1 Test\nForms\nImages, Media & Responsive Delivery\nPart 2 Test\nReal Content Structures\nInspect & Repair\nPart 3 Test\n\n7 of 10 topics locked. Pass 5 levels in the prerequisite topics, or take the skill check to open more at once.\n\n20 mixed questions · unlimited hearts\nSkill check\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram."
+  },
+  {
+    "id": "editor-mobile-light-390x844",
+    "scene": "editor-mobile",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": {
+        "x": 35,
+        "y": 534.953125,
+        "width": 316,
+        "height": 44,
+        "bottom": 578.953125
+      },
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "digitSum.js"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": {
+        "x": 27,
+        "y": 78.84375,
+        "width": 332,
+        "height": 57,
+        "bottom": 135.84375
+      },
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "digitSum.js"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "digitSum.js\nDescription\nResults\nConsole\nResources\n\nJavaScript · Foundations · Level 1\n\nDigit sum\nDifficulty\nEasy\n\nWrite digitSum(n), returning the sum of the decimal digits of a nonnegative safe-integer Number, from 0 through Number.MAX_SAFE_INTEGER (9007199254740991).\n\nPractice a while loop and arithmetic instead of text conversion. digitSum(493) gives 16; a single digit is its own sum and zero gives 0. The caller guarantees this domain, so no validation is required.\n\nExamples\ndigitSum(9007199254740991) → \nexpected\n76\ndigitSum(493) → \nexpected\n16\ndigitSum(1234) → \nexpected\n10\nDesired complexity: O(log n)\ncoding\n/\njavascript\n/\ndigitSum.js\n\nThis task works best on a bigger screen. Your code is kept.\n\nUse the editor here",
+    "afterText": "digitSum.js\ncoding\n/\njavascript\n/\ndigitSum.js\nDescription\nResults\nConsole\nResources\n\nJavaScript · Foundations · Level 1\n\nDigit sum\nDifficulty\nEasy\n\nWrite digitSum(n), returning the sum of the decimal digits of a nonnegative safe-integer Number, from 0 through Number.MAX_SAFE_INTEGER (9007199254740991).\n\nPractice a while loop and arithmetic instead of text conversion. digitSum(493) gives 16; a single digit is its own sum and zero gives 0. The caller guarantees this domain, so no validation is required.\n\nExamples\ndigitSum(9007199254740991) → \nexpected\n76\ndigitSum(493) → \nexpected\n16\ndigitSum(1234) → \nexpected\n10\nDesired complexity: O(log n)\n\nThis task works best on a bigger screen. Your code is kept.\n\nUse the editor here"
+  },
+  {
+    "id": "editor-mobile-dark-390x844",
+    "scene": "editor-mobile",
+    "theme": "dark",
+    "width": 390,
+    "height": 844,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": {
+        "x": 35,
+        "y": 534.953125,
+        "width": 316,
+        "height": 44,
+        "bottom": 578.953125
+      },
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "digitSum.js"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": {
+        "x": 27,
+        "y": 78.84375,
+        "width": 332,
+        "height": 57,
+        "bottom": 135.84375
+      },
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "digitSum.js"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "digitSum.js\nDescription\nResults\nConsole\nResources\n\nJavaScript · Foundations · Level 1\n\nDigit sum\nDifficulty\nEasy\n\nWrite digitSum(n), returning the sum of the decimal digits of a nonnegative safe-integer Number, from 0 through Number.MAX_SAFE_INTEGER (9007199254740991).\n\nPractice a while loop and arithmetic instead of text conversion. digitSum(493) gives 16; a single digit is its own sum and zero gives 0. The caller guarantees this domain, so no validation is required.\n\nExamples\ndigitSum(9007199254740991) → \nexpected\n76\ndigitSum(493) → \nexpected\n16\ndigitSum(1234) → \nexpected\n10\nDesired complexity: O(log n)\ncoding\n/\njavascript\n/\ndigitSum.js\n\nThis task works best on a bigger screen. Your code is kept.\n\nUse the editor here",
+    "afterText": "digitSum.js\ncoding\n/\njavascript\n/\ndigitSum.js\nDescription\nResults\nConsole\nResources\n\nJavaScript · Foundations · Level 1\n\nDigit sum\nDifficulty\nEasy\n\nWrite digitSum(n), returning the sum of the decimal digits of a nonnegative safe-integer Number, from 0 through Number.MAX_SAFE_INTEGER (9007199254740991).\n\nPractice a while loop and arithmetic instead of text conversion. digitSum(493) gives 16; a single digit is its own sum and zero gives 0. The caller guarantees this domain, so no validation is required.\n\nExamples\ndigitSum(9007199254740991) → \nexpected\n76\ndigitSum(493) → \nexpected\n16\ndigitSum(1234) → \nexpected\n10\nDesired complexity: O(log n)\n\nThis task works best on a bigger screen. Your code is kept.\n\nUse the editor here"
+  },
+  {
+    "id": "editor-mobile-light-360x800",
+    "scene": "editor-mobile",
+    "theme": "light",
+    "width": 360,
+    "height": 800,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": {
+        "x": 35,
+        "y": 502.390625,
+        "width": 286,
+        "height": 44,
+        "bottom": 546.390625
+      },
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "digitSum.js"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": {
+        "x": 27,
+        "y": 67.390625,
+        "width": 302,
+        "height": 57,
+        "bottom": 124.390625
+      },
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "digitSum.js"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "digitSum.js\nDescription\nResults\nConsole\nResources\n\nJavaScript · Foundations · Level 1\n\nDigit sum\nDifficulty\nEasy\n\nWrite digitSum(n), returning the sum of the decimal digits of a nonnegative safe-integer Number, from 0 through Number.MAX_SAFE_INTEGER (9007199254740991).\n\nPractice a while loop and arithmetic instead of text conversion. digitSum(493) gives 16; a single digit is its own sum and zero gives 0. The caller guarantees this domain, so no validation is required.\n\nExamples\ndigitSum(9007199254740991) → \nexpected\n76\ndigitSum(493) → \nexpected\n16\ndigitSum(1234) → \nexpected\n10\nDesired complexity: O(log n)\ncoding\n/\njavascript\n/\ndigitSum.js\n\nThis task works best on a bigger screen. Your code is kept.\n\nUse the editor here",
+    "afterText": "digitSum.js\ncoding\n/\njavascript\n/\ndigitSum.js\nDescription\nResults\nConsole\nResources\n\nJavaScript · Foundations · Level 1\n\nDigit sum\nDifficulty\nEasy\n\nWrite digitSum(n), returning the sum of the decimal digits of a nonnegative safe-integer Number, from 0 through Number.MAX_SAFE_INTEGER (9007199254740991).\n\nPractice a while loop and arithmetic instead of text conversion. digitSum(493) gives 16; a single digit is its own sum and zero gives 0. The caller guarantees this domain, so no validation is required.\n\nExamples\ndigitSum(9007199254740991) → \nexpected\n76\ndigitSum(493) → \nexpected\n16\ndigitSum(1234) → \nexpected\n10\nDesired complexity: O(log n)\n\nThis task works best on a bigger screen. Your code is kept.\n\nUse the editor here"
+  },
+  {
+    "id": "catalogue-light-1280x680",
+    "scene": "catalogue",
+    "theme": "light",
+    "width": 1280,
+    "height": 680,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 303,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "JavaScript"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 303,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "JavaScript"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Coding\n/\nJavaScript\nJavaScript\n\nLoops, array methods, closures, and promises, including edge cases.\n\nBuild a project in steps, with each level extending your code. Explore JavaScript Paths\n\nSign in to keep your progress. Signed out, you can run and check the free tasks, but no pass is recorded.\n\n0 of 222 passed\n\nSearch challenges\nTechniques\nAll techniques\nLoops\nArray methods\nStrings\nObjects\nFunctions\nAsync\nAny difficulty\nAny difficulty\nEasy\nMedium\nHard\nAny length\nAny length\nUp to 10 minutes\n10 to 25 minutes\nOver 25 minutes\nAny task type\nAny task type\nWrite code\nFind the bug\n\nDigit sum\n·\nLevel 1\nOpen\nCount multiples\n·\nLevel 1\nOpen\nKeep only the digits\n·\nLevel 2\nOpen\nWords of a length\n·\nLevel 2\nOpen\nReverse string\n·\nLevel 2\nOpen\nFirst letters\n·\nLevel 2\nOpen\nCapitalize\n·\nLevel 2\nOpen\nWord count\n·\nLevel 2\nOpen\nThe average that divides by nothing\n·\nLevel 3\nFind the bug\nOpen\nFizz values\n·\nLevel 3\nOpen\nFlatten one level\n·\nLevel 4\nOpen\nUndo the last step\n·\nLevel 4\nPremium\nSplit off the command\n·\nLevel 4\nPremium\nServe the queue\n·\nLevel 4\nOpen\nAdd a header and a footer\n·\nLevel 4\nPremium\nSwap the top\n·\nLevel 4\nOpen\nAdd to a playlist\n·\nLevel 4\nPremium\nOne line of CSV\n·\nLevel 4\nPremium\nAdd to the front\n·\nLevel 4\nPremium\nThe last few\n·\nLevel 4\nPremium\nPrevious\n1–20 of 222 · Page 1 of 12\nNext\nPATHS\n\nUp to five levels of about ten minutes. Each adds to the same code, and earlier checks run again.\n\nPREMIUM Level 1 of every path comes with the free plan. Premium opens the rest.\n\n01\nMap basics\n\n0 of 5 levels completed Premium\n\nStart\n02\nSet basics\n\n0 of 5 levels completed Premium\n\nStart\n03\nMap and Set together\n\n0 of 5 levels completed Premium\n\nStart\n04\nObjects and grouping\n\n0 of 5 levels completed Premium\n\nStart\n05\nLookups and crawling\n\n0 of 5 levels completed Premium\n\nStart\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nDark mode\nTurn sound on",
+    "afterText": "Coding\n/\nJavaScript\nJavaScript\n\nLoops, array methods, closures, and promises, including edge cases.\n\nBuild a project in steps, with each level extending your code. Explore JavaScript Paths\n\nSign in to keep your progress. Signed out, you can run and check the free tasks, but no pass is recorded.\n\n0 of 222 passed\n\nSearch challenges\nTechniques\nAll techniques\nLoops\nArray methods\nStrings\nObjects\nFunctions\nAsync\nAny difficulty\nAny difficulty\nEasy\nMedium\nHard\nAny length\nAny length\nUp to 10 minutes\n10 to 25 minutes\nOver 25 minutes\nAny task type\nAny task type\nWrite code\nFind the bug\n\nDigit sum\nEasy · 5 min\nOpen\nCount multiples\nEasy · 5 min\nOpen\nKeep only the digits\nEasy · 5 min\nOpen\nWords of a length\nEasy · 5 min\nOpen\nReverse string\nEasy · 10 min\nOpen\nFirst letters\nEasy · 10 min\nOpen\nCapitalize\nEasy · 10 min\nOpen\nWord count\nEasy · 10 min\nOpen\nThe average that divides by nothing\nEasy · 6 min\nFind the bug\nOpen\nFizz values\nEasy · 10 min\nOpen\nFlatten one level\nEasy · 5 min\nOpen\nUndo the last step\nEasy · 5 min\nPremium\nSplit off the command\nEasy · 5 min\nPremium\nServe the queue\nEasy · 5 min\nOpen\nAdd a header and a footer\nEasy · 5 min\nPremium\nSwap the top\nEasy · 5 min\nOpen\nAdd to a playlist\nEasy · 5 min\nPremium\nOne line of CSV\nEasy · 5 min\nPremium\nAdd to the front\nEasy · 5 min\nPremium\nThe last few\nEasy · 5 min\nPremium\nPrevious\n1–20 of 222 · Page 1 of 12\nNext\nPATHS\n\nUp to five levels of about ten minutes. Each adds to the same code, and earlier checks run again.\n\nPREMIUM Level 1 of every path comes with the free plan. Premium opens the rest.\n\n01\nMap basics\n\n0 of 5 levels completed Premium\n\nStart\n02\nSet basics\n\n0 of 5 levels completed Premium\n\nStart\n03\nMap and Set together\n\n0 of 5 levels completed Premium\n\nStart\n04\nObjects and grouping\n\n0 of 5 levels completed Premium\n\nStart\n05\nLookups and crawling\n\n0 of 5 levels completed Premium\n\nStart\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nDark mode\nTurn sound on"
+  },
+  {
+    "id": "catalogue-dark-1280x680",
+    "scene": "catalogue",
+    "theme": "dark",
+    "width": 1280,
+    "height": 680,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 303,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "JavaScript"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 303,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "JavaScript"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Coding\n/\nJavaScript\nJavaScript\n\nLoops, array methods, closures, and promises, including edge cases.\n\nBuild a project in steps, with each level extending your code. Explore JavaScript Paths\n\nSign in to keep your progress. Signed out, you can run and check the free tasks, but no pass is recorded.\n\n0 of 222 passed\n\nSearch challenges\nTechniques\nAll techniques\nLoops\nArray methods\nStrings\nObjects\nFunctions\nAsync\nAny difficulty\nAny difficulty\nEasy\nMedium\nHard\nAny length\nAny length\nUp to 10 minutes\n10 to 25 minutes\nOver 25 minutes\nAny task type\nAny task type\nWrite code\nFind the bug\n\nDigit sum\n·\nLevel 1\nOpen\nCount multiples\n·\nLevel 1\nOpen\nKeep only the digits\n·\nLevel 2\nOpen\nWords of a length\n·\nLevel 2\nOpen\nReverse string\n·\nLevel 2\nOpen\nFirst letters\n·\nLevel 2\nOpen\nCapitalize\n·\nLevel 2\nOpen\nWord count\n·\nLevel 2\nOpen\nThe average that divides by nothing\n·\nLevel 3\nFind the bug\nOpen\nFizz values\n·\nLevel 3\nOpen\nFlatten one level\n·\nLevel 4\nOpen\nUndo the last step\n·\nLevel 4\nPremium\nSplit off the command\n·\nLevel 4\nPremium\nServe the queue\n·\nLevel 4\nOpen\nAdd a header and a footer\n·\nLevel 4\nPremium\nSwap the top\n·\nLevel 4\nOpen\nAdd to a playlist\n·\nLevel 4\nPremium\nOne line of CSV\n·\nLevel 4\nPremium\nAdd to the front\n·\nLevel 4\nPremium\nThe last few\n·\nLevel 4\nPremium\nPrevious\n1–20 of 222 · Page 1 of 12\nNext\nPATHS\n\nUp to five levels of about ten minutes. Each adds to the same code, and earlier checks run again.\n\nPREMIUM Level 1 of every path comes with the free plan. Premium opens the rest.\n\n01\nMap basics\n\n0 of 5 levels completed Premium\n\nStart\n02\nSet basics\n\n0 of 5 levels completed Premium\n\nStart\n03\nMap and Set together\n\n0 of 5 levels completed Premium\n\nStart\n04\nObjects and grouping\n\n0 of 5 levels completed Premium\n\nStart\n05\nLookups and crawling\n\n0 of 5 levels completed Premium\n\nStart\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nLight mode\nTurn sound on",
+    "afterText": "Coding\n/\nJavaScript\nJavaScript\n\nLoops, array methods, closures, and promises, including edge cases.\n\nBuild a project in steps, with each level extending your code. Explore JavaScript Paths\n\nSign in to keep your progress. Signed out, you can run and check the free tasks, but no pass is recorded.\n\n0 of 222 passed\n\nSearch challenges\nTechniques\nAll techniques\nLoops\nArray methods\nStrings\nObjects\nFunctions\nAsync\nAny difficulty\nAny difficulty\nEasy\nMedium\nHard\nAny length\nAny length\nUp to 10 minutes\n10 to 25 minutes\nOver 25 minutes\nAny task type\nAny task type\nWrite code\nFind the bug\n\nDigit sum\nEasy · 5 min\nOpen\nCount multiples\nEasy · 5 min\nOpen\nKeep only the digits\nEasy · 5 min\nOpen\nWords of a length\nEasy · 5 min\nOpen\nReverse string\nEasy · 10 min\nOpen\nFirst letters\nEasy · 10 min\nOpen\nCapitalize\nEasy · 10 min\nOpen\nWord count\nEasy · 10 min\nOpen\nThe average that divides by nothing\nEasy · 6 min\nFind the bug\nOpen\nFizz values\nEasy · 10 min\nOpen\nFlatten one level\nEasy · 5 min\nOpen\nUndo the last step\nEasy · 5 min\nPremium\nSplit off the command\nEasy · 5 min\nPremium\nServe the queue\nEasy · 5 min\nOpen\nAdd a header and a footer\nEasy · 5 min\nPremium\nSwap the top\nEasy · 5 min\nOpen\nAdd to a playlist\nEasy · 5 min\nPremium\nOne line of CSV\nEasy · 5 min\nPremium\nAdd to the front\nEasy · 5 min\nPremium\nThe last few\nEasy · 5 min\nPremium\nPrevious\n1–20 of 222 · Page 1 of 12\nNext\nPATHS\n\nUp to five levels of about ten minutes. Each adds to the same code, and earlier checks run again.\n\nPREMIUM Level 1 of every path comes with the free plan. Premium opens the rest.\n\n01\nMap basics\n\n0 of 5 levels completed Premium\n\nStart\n02\nSet basics\n\n0 of 5 levels completed Premium\n\nStart\n03\nMap and Set together\n\n0 of 5 levels completed Premium\n\nStart\n04\nObjects and grouping\n\n0 of 5 levels completed Premium\n\nStart\n05\nLookups and crawling\n\n0 of 5 levels completed Premium\n\nStart\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nLight mode\nTurn sound on"
+  },
+  {
+    "id": "catalogue-light-390x844",
+    "scene": "catalogue",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 365,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "JavaScript"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 365,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "JavaScript"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Coding\n/\nJavaScript\nJavaScript\n\nLoops, array methods, closures, and promises, including edge cases.\n\nBuild a project in steps, with each level extending your code. Explore JavaScript Paths\n\nSign in to keep your progress. Signed out, you can run and check the free tasks, but no pass is recorded.\n\n0 of 222 passed\n\nSearch challenges\nTechniques\nAll techniques\nLoops\nArray methods\nStrings\nObjects\nFunctions\nAsync\nAny difficulty\nAny difficulty\nEasy\nMedium\nHard\nAny length\nAny length\nUp to 10 minutes\n10 to 25 minutes\nOver 25 minutes\nAny task type\nAny task type\nWrite code\nFind the bug\n\nDigit sum\nLevel 1\nOpen\nCount multiples\nLevel 1\nOpen\nKeep only the digits\nLevel 2\nOpen\nWords of a length\nLevel 2\nOpen\nReverse string\nLevel 2\nOpen\nFirst letters\nLevel 2\nOpen\nCapitalize\nLevel 2\nOpen\nWord count\nLevel 2\nOpen\nThe average that divides by nothing\nLevel 3\nFind the bug\nOpen\nFizz values\nLevel 3\nOpen\nFlatten one level\nLevel 4\nOpen\nUndo the last step\nLevel 4\nPremium\nSplit off the command\nLevel 4\nPremium\nServe the queue\nLevel 4\nOpen\nAdd a header and a footer\nLevel 4\nPremium\nSwap the top\nLevel 4\nOpen\nAdd to a playlist\nLevel 4\nPremium\nOne line of CSV\nLevel 4\nPremium\nAdd to the front\nLevel 4\nPremium\nThe last few\nLevel 4\nPremium\nPrevious\n1–20 of 222 · Page 1 of 12\nNext\nPATHS\n\nUp to five levels of about ten minutes. Each adds to the same code, and earlier checks run again.\n\nPREMIUM Level 1 of every path comes with the free plan. Premium opens the rest.\n\n01\nMap basics\n\n0 of 5 levels completed Premium\n\nStart\n02\nSet basics\n\n0 of 5 levels completed Premium\n\nStart\n03\nMap and Set together\n\n0 of 5 levels completed Premium\n\nStart\n04\nObjects and grouping\n\n0 of 5 levels completed Premium\n\nStart\n05\nLookups and crawling\n\n0 of 5 levels completed Premium\n\nStart\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.",
+    "afterText": "Coding\n/\nJavaScript\nJavaScript\n\nLoops, array methods, closures, and promises, including edge cases.\n\nBuild a project in steps, with each level extending your code. Explore JavaScript Paths\n\nSign in to keep your progress. Signed out, you can run and check the free tasks, but no pass is recorded.\n\n0 of 222 passed\n\nSearch challenges\nTechniques\nAll techniques\nLoops\nArray methods\nStrings\nObjects\nFunctions\nAsync\nAny difficulty\nAny difficulty\nEasy\nMedium\nHard\nAny length\nAny length\nUp to 10 minutes\n10 to 25 minutes\nOver 25 minutes\nAny task type\nAny task type\nWrite code\nFind the bug\n\nDigit sum\nEasy · 5 min\nOpen\nCount multiples\nEasy · 5 min\nOpen\nKeep only the digits\nEasy · 5 min\nOpen\nWords of a length\nEasy · 5 min\nOpen\nReverse string\nEasy · 10 min\nOpen\nFirst letters\nEasy · 10 min\nOpen\nCapitalize\nEasy · 10 min\nOpen\nWord count\nEasy · 10 min\nOpen\nThe average that divides by nothing\nEasy · 6 min\nFind the bug\nOpen\nFizz values\nEasy · 10 min\nOpen\nFlatten one level\nEasy · 5 min\nOpen\nUndo the last step\nEasy · 5 min\nPremium\nSplit off the command\nEasy · 5 min\nPremium\nServe the queue\nEasy · 5 min\nOpen\nAdd a header and a footer\nEasy · 5 min\nPremium\nSwap the top\nEasy · 5 min\nOpen\nAdd to a playlist\nEasy · 5 min\nPremium\nOne line of CSV\nEasy · 5 min\nPremium\nAdd to the front\nEasy · 5 min\nPremium\nThe last few\nEasy · 5 min\nPremium\nPrevious\n1–20 of 222 · Page 1 of 12\nNext\nPATHS\n\nUp to five levels of about ten minutes. Each adds to the same code, and earlier checks run again.\n\nPREMIUM Level 1 of every path comes with the free plan. Premium opens the rest.\n\n01\nMap basics\n\n0 of 5 levels completed Premium\n\nStart\n02\nSet basics\n\n0 of 5 levels completed Premium\n\nStart\n03\nMap and Set together\n\n0 of 5 levels completed Premium\n\nStart\n04\nObjects and grouping\n\n0 of 5 levels completed Premium\n\nStart\n05\nLookups and crawling\n\n0 of 5 levels completed Premium\n\nStart\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram."
+  },
+  {
+    "id": "today-light-1280x680",
+    "scene": "today",
+    "theme": "light",
+    "width": 1280,
+    "height": 680,
+    "source": "current build with local fictional Test Learner / enrollment",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Today"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Today"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Today\n0/3 done\nDays change at 01:00 your time.\nNew material\nHTML · Level 1\nSTART HERE\nStart\nCSS · Level 1\nStart\nJavaScript · Level 1\nStart\nLearning paths\nRead: the workflow and who is in it\nForward Deployed Engineer · Your next step on this path\nContinue Forward Deployed Engineer\nContinue where you left off\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nDark mode\nTurn sound on",
+    "afterText": "Today\n0/3 done\nDays change at 01:00 your time.\nNew material\nHTML · Level 1\nStructure & Semantics\nSTART HERE\nStart\nCSS · Level 1\nCascade, Inheritance & Selectors\nStart\nJavaScript · Level 1\nValues & Math\nStart\nLearning paths\nRead: the workflow and who is in it\nForward Deployed Engineer · Your next step on this path\nContinue Forward Deployed Engineer\nContinue where you left off\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nDark mode\nTurn sound on"
+  },
+  {
+    "id": "today-dark-1280x680",
+    "scene": "today",
+    "theme": "dark",
+    "width": 1280,
+    "height": 680,
+    "source": "current build with local fictional Test Learner / enrollment",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Today"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Today"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Today\n0/3 done\nDays change at 01:00 your time.\nNew material\nHTML · Level 1\nSTART HERE\nStart\nCSS · Level 1\nStart\nJavaScript · Level 1\nStart\nLearning paths\nRead: the workflow and who is in it\nForward Deployed Engineer · Your next step on this path\nContinue Forward Deployed Engineer\nContinue where you left off\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nLight mode\nTurn sound on",
+    "afterText": "Today\n0/3 done\nDays change at 01:00 your time.\nNew material\nHTML · Level 1\nStructure & Semantics\nSTART HERE\nStart\nCSS · Level 1\nCascade, Inheritance & Selectors\nStart\nJavaScript · Level 1\nValues & Math\nStart\nLearning paths\nRead: the workflow and who is in it\nForward Deployed Engineer · Your next step on this path\nContinue Forward Deployed Engineer\nContinue where you left off\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nLight mode\nTurn sound on"
+  },
+  {
+    "id": "today-light-390x844",
+    "scene": "today",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "current build with local fictional Test Learner / enrollment",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Today"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Today"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Today\n0/3 done\nDays change at 01:00 your time.\nNew material\nHTML · Level 1\nSTART HERE\nCSS · Level 1\nJavaScript · Level 1\nLearning paths\nRead: the workflow and who is in it\nForward Deployed Engineer · Your next step on this path\nContinue Forward Deployed Engineer\nContinue where you left off\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.",
+    "afterText": "Today\n0/3 done\nDays change at 01:00 your time.\nNew material\nHTML · Level 1\nStructure & Semantics\nSTART HERE\nCSS · Level 1\nCascade, Inheritance & Selectors\nJavaScript · Level 1\nValues & Math\nLearning paths\nRead: the workflow and who is in it\nForward Deployed Engineer · Your next step on this path\nContinue Forward Deployed Engineer\nContinue where you left off\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram."
+  },
+  {
+    "id": "profile-light-1280x680",
+    "scene": "profile",
+    "theme": "light",
+    "width": 1280,
+    "height": 680,
+    "source": "current build with local fictional Test Learner / enrollment",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Test Learner"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Test Learner"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "TL\nTest Learner\nlazy-auth@example.test\nPLAN\nPremium, complimentary\nEvery Learn topic, every coding challenge and every project stage.\nOverview\nFriends\nSTREAKS\n3\ndays\nCurrent streak\n5\ndays\nLongest streak\nA day counts when you finish a quiz, a Learn level or a Challenge run, or pass a coding task.\nDays change at 01:00 your time.\nTRACK AND SECTIONS\nYour track orders the Web Developer section. Software Engineer and Forward Deployed Engineer are optional sections beside it.\nFrontend\nSections: Web Developer · Software Engineer · Forward Deployed Engineer\nChoose your path\nGoals\nGet better at what I already do\nExperience\nI have built a few things\nStudy time\n30 to 60 minutes\nROLE\nForward Deployed Engineer\nIn progress\nACCOUNT\nAll devices\nEnds every session of this account, this browser included. Log out in the account menu signs out only this browser.\nSign out on all devices\nDelete account\nDeletes your account and all learning data.\nDelete my account\nSTUDY ADVISOR\nYour weakest areas, from your own results.\nNot enough data yet\nAnswer a few more quizzes and your weakest topics appear here.\nCAREER LEVEL\nSuperjunior Frontend Developer\nLevel 1 of 10\n420\nXP\n1,580 XP to Junior Frontend Developer\n1,580 XP to Junior Frontend Developer\n12\nQuizzes completed\n100\nQuestions answered\n76\nCorrect answers\n76%\nAverage score\nYOUR NAME\n\nFriends add you by your sharkname. You can change it once every 30 days.\n\nSharkname\nGenerate\nSave\n\nFriends see\nAnd anyone you send a request to.\nSharkname\nAccount name\nTest Learner\nShow my photo to friends\nYour account has no photo, so friends see your initials.\nFriends see you as\nC\ncalmShark1\nLeaderboards show\nNext to your results on every board.\nSharkname\nAccount name\nTest Learner\nShow my photo on leaderboards\nYour results and chosen name appear either way.\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nDark mode\nTurn sound on",
+    "afterText": "TL\nTest Learner\nlazy-auth@example.test\nPLAN\nPremium, complimentary\nEvery Learn topic, every coding challenge and every project stage.\nOverview\nFriends\nStudy plan\nAccount\nName\nSTREAKS\n3\ndays\nCurrent streak\n5\ndays\nLongest streak\nA day counts when you finish a quiz, a Learn level or a Challenge run, or pass a coding task.\nDays change at 01:00 your time.\nTRACK AND SECTIONS\nYour track orders the Web Developer section. Software Engineer and Forward Deployed Engineer are optional sections beside it.\nFrontend\nSections: Web Developer · Software Engineer · Forward Deployed Engineer\nChoose your path\nGoals\nGet better at what I already do\nExperience\nI have built a few things\nStudy time\n30 to 60 minutes\nROLE\nForward Deployed Engineer\nIn progress\nACCOUNT\nAll devices\nEnds every session of this account, this browser included. Log out in the account menu signs out only this browser.\nSign out on all devices\nDelete account\nDeletes your account and all learning data.\nDelete my account\nSTUDY ADVISOR\nYour weakest areas, from your own results.\nNot enough data yet\nAnswer a few more quizzes and your weakest topics appear here.\nCAREER LEVEL\nSuperjunior Frontend Developer\nLevel 1 of 10\n420\nXP\n1,580 XP to Junior Frontend Developer\n1,580 XP to Junior Frontend Developer\n12\nQuizzes completed\n100\nQuestions answered\n76\nCorrect answers\n76%\nAverage score\nYOUR NAME\n\nFriends add you by your sharkname. You can change it once every 30 days.\n\nSharkname\nGenerate\nSave\n\nFriends see\nAnd anyone you send a request to.\nSharkname\nAccount name\nTest Learner\nShow my photo to friends\nYour account has no photo, so friends see your initials.\nFriends see you as\nC\ncalmShark1\nLeaderboards show\nNext to your results on every board.\nSharkname\nAccount name\nTest Learner\nShow my photo on leaderboards\nYour results and chosen name appear either way.\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nDark mode\nTurn sound on"
+  },
+  {
+    "id": "profile-dark-1280x680",
+    "scene": "profile",
+    "theme": "dark",
+    "width": 1280,
+    "height": 680,
+    "source": "current build with local fictional Test Learner / enrollment",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Test Learner"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Test Learner"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "TL\nTest Learner\nlazy-auth@example.test\nPLAN\nPremium, complimentary\nEvery Learn topic, every coding challenge and every project stage.\nOverview\nFriends\nSTREAKS\n3\ndays\nCurrent streak\n5\ndays\nLongest streak\nA day counts when you finish a quiz, a Learn level or a Challenge run, or pass a coding task.\nDays change at 01:00 your time.\nTRACK AND SECTIONS\nYour track orders the Web Developer section. Software Engineer and Forward Deployed Engineer are optional sections beside it.\nFrontend\nSections: Web Developer · Software Engineer · Forward Deployed Engineer\nChoose your path\nGoals\nGet better at what I already do\nExperience\nI have built a few things\nStudy time\n30 to 60 minutes\nROLE\nForward Deployed Engineer\nIn progress\nACCOUNT\nAll devices\nEnds every session of this account, this browser included. Log out in the account menu signs out only this browser.\nSign out on all devices\nDelete account\nDeletes your account and all learning data.\nDelete my account\nSTUDY ADVISOR\nYour weakest areas, from your own results.\nNot enough data yet\nAnswer a few more quizzes and your weakest topics appear here.\nCAREER LEVEL\nSuperjunior Frontend Developer\nLevel 1 of 10\n420\nXP\n1,580 XP to Junior Frontend Developer\n1,580 XP to Junior Frontend Developer\n12\nQuizzes completed\n100\nQuestions answered\n76\nCorrect answers\n76%\nAverage score\nYOUR NAME\n\nFriends add you by your sharkname. You can change it once every 30 days.\n\nSharkname\nGenerate\nSave\n\nFriends see\nAnd anyone you send a request to.\nSharkname\nAccount name\nTest Learner\nShow my photo to friends\nYour account has no photo, so friends see your initials.\nFriends see you as\nC\ncalmShark1\nLeaderboards show\nNext to your results on every board.\nSharkname\nAccount name\nTest Learner\nShow my photo on leaderboards\nYour results and chosen name appear either way.\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nLight mode\nTurn sound on",
+    "afterText": "TL\nTest Learner\nlazy-auth@example.test\nPLAN\nPremium, complimentary\nEvery Learn topic, every coding challenge and every project stage.\nOverview\nFriends\nStudy plan\nAccount\nName\nSTREAKS\n3\ndays\nCurrent streak\n5\ndays\nLongest streak\nA day counts when you finish a quiz, a Learn level or a Challenge run, or pass a coding task.\nDays change at 01:00 your time.\nTRACK AND SECTIONS\nYour track orders the Web Developer section. Software Engineer and Forward Deployed Engineer are optional sections beside it.\nFrontend\nSections: Web Developer · Software Engineer · Forward Deployed Engineer\nChoose your path\nGoals\nGet better at what I already do\nExperience\nI have built a few things\nStudy time\n30 to 60 minutes\nROLE\nForward Deployed Engineer\nIn progress\nACCOUNT\nAll devices\nEnds every session of this account, this browser included. Log out in the account menu signs out only this browser.\nSign out on all devices\nDelete account\nDeletes your account and all learning data.\nDelete my account\nSTUDY ADVISOR\nYour weakest areas, from your own results.\nNot enough data yet\nAnswer a few more quizzes and your weakest topics appear here.\nCAREER LEVEL\nSuperjunior Frontend Developer\nLevel 1 of 10\n420\nXP\n1,580 XP to Junior Frontend Developer\n1,580 XP to Junior Frontend Developer\n12\nQuizzes completed\n100\nQuestions answered\n76\nCorrect answers\n76%\nAverage score\nYOUR NAME\n\nFriends add you by your sharkname. You can change it once every 30 days.\n\nSharkname\nGenerate\nSave\n\nFriends see\nAnd anyone you send a request to.\nSharkname\nAccount name\nTest Learner\nShow my photo to friends\nYour account has no photo, so friends see your initials.\nFriends see you as\nC\ncalmShark1\nLeaderboards show\nNext to your results on every board.\nSharkname\nAccount name\nTest Learner\nShow my photo on leaderboards\nYour results and chosen name appear either way.\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nLight mode\nTurn sound on"
+  },
+  {
+    "id": "profile-light-390x844",
+    "scene": "profile",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "current build with local fictional Test Learner / enrollment",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Test Learner"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Test Learner"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "TL\nTest Learner\nlazy-auth@example.test\nPLAN\nPremium, complimentaryEvery Learn topic, every coding challenge and every project stage.\nOverview\nFriends\nSTREAKS\n3\ndays\nCurrent streak\n5\ndays\nLongest streak\nA day counts when you finish a quiz, a Learn level or a Challenge run, or pass a coding task.\nDays change at 01:00 your time.\nTRACK AND SECTIONS\nYour track orders the Web Developer section. Software Engineer and Forward Deployed Engineer are optional sections beside it.\nFrontend\nSections: Web Developer · Software Engineer · Forward Deployed Engineer\nChoose your path\nGoals\nGet better at what I already do\nExperience\nI have built a few things\nStudy time\n30 to 60 minutes\nROLE\nForward Deployed Engineer\nIn progress\nACCOUNT\nAll devices\nEnds every session of this account, this browser included. Log out in the account menu signs out only this browser.\nSign out on all devices\nDelete account\nDeletes your account and all learning data.\nDelete my account\nSTUDY ADVISOR\nYour weakest areas, from your own results.\nNot enough data yet\nAnswer a few more quizzes and your weakest topics appear here.\nCAREER LEVEL\nSuperjunior Frontend Developer\nLevel 1 of 10\n420\nXP\n1,580 XP to Junior Frontend Developer\n1,580 XP to Junior Frontend Developer\n12\nQuizzes completed\n100\nQuestions answered\n76\nCorrect answers\n76%\nAverage score\nYOUR NAME\n\nFriends add you by your sharkname. You can change it once every 30 days.\n\nSharkname\nGenerate\nSave\n\nFriends see\nAnd anyone you send a request to.\nSharkname\nAccount name\nTest Learner\nShow my photo to friends\nYour account has no photo, so friends see your initials.\nFriends see you as\nC\ncalmShark1\nLeaderboards show\nNext to your results on every board.\nSharkname\nAccount name\nTest Learner\nShow my photo on leaderboards\nYour results and chosen name appear either way.\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.",
+    "afterText": "TL\nTest Learner\nlazy-auth@example.test\nPLAN\nPremium, complimentaryEvery Learn topic, every coding challenge and every project stage.\nOverview\nFriends\nJump to section\nStudy plan\nAccount\nName\nSTREAKS\n3\ndays\nCurrent streak\n5\ndays\nLongest streak\nA day counts when you finish a quiz, a Learn level or a Challenge run, or pass a coding task.\nDays change at 01:00 your time.\nTRACK AND SECTIONS\nYour track orders the Web Developer section. Software Engineer and Forward Deployed Engineer are optional sections beside it.\nFrontend\nSections: Web Developer · Software Engineer · Forward Deployed Engineer\nChoose your path\nGoals\nGet better at what I already do\nExperience\nI have built a few things\nStudy time\n30 to 60 minutes\nROLE\nForward Deployed Engineer\nIn progress\nACCOUNT\nAll devices\nEnds every session of this account, this browser included. Log out in the account menu signs out only this browser.\nSign out on all devices\nDelete account\nDeletes your account and all learning data.\nDelete my account\nSTUDY ADVISOR\nYour weakest areas, from your own results.\nNot enough data yet\nAnswer a few more quizzes and your weakest topics appear here.\nCAREER LEVEL\nSuperjunior Frontend Developer\nLevel 1 of 10\n420\nXP\n1,580 XP to Junior Frontend Developer\n1,580 XP to Junior Frontend Developer\n12\nQuizzes completed\n100\nQuestions answered\n76\nCorrect answers\n76%\nAverage score\nYOUR NAME\n\nFriends add you by your sharkname. You can change it once every 30 days.\n\nSharkname\nGenerate\nSave\n\nFriends see\nAnd anyone you send a request to.\nSharkname\nAccount name\nTest Learner\nShow my photo to friends\nYour account has no photo, so friends see your initials.\nFriends see you as\nC\ncalmShark1\nLeaderboards show\nNext to your results on every board.\nSharkname\nAccount name\nTest Learner\nShow my photo on leaderboards\nYour results and chosen name appear either way.\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram."
+  },
+  {
+    "id": "fde-module-light-1280x680",
+    "scene": "fde-module",
+    "theme": "light",
+    "width": 1280,
+    "height": 680,
+    "source": "current build with local fictional Test Learner / enrollment",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Customer discovery"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Customer discovery"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Learn\n/\nForward Deployed Engineer\n/\nCustomer discovery\nNot started\nCustomer discovery\n\nFind the operator whose hands are on the work, watch one real item end to end, and name everyone who can refuse the project.\n\nWhat you will be able to do\nStart module\nActivities in this module\nREAD\nThe workflow and who is in it\nNext →\n25 min\n\nObserved workflow evidence, stated mechanisms and underlying needs, approval owners and the limits of a small sample.\n\nREAD\nBaseline and scope\n35 min\n\nA baseline with defined data and method, a dated success metric apart from the acceptance gate, explicit exclusions and risks, a delivery sequence, and a four-part executive update.\n\nCHECK\nDiscovery decisions\n15 min\n\nFour bounded decisions: making routine work observable, recognizing a measured baseline, identifying a prescribed mechanism, and resolving an explicit data-access launch gate.\n\nWRITE\nOne-page scope: “add AI to support”\n75 min\n\nTurn a one-line request into a scope with a workflow, five questions, a baseline, a success metric, a sequenced scope, non-goals, risks and an acceptance condition. Recorded as self-reviewed.\n\nWRITE\nExecutive update: the end of discovery week\n30 min\n\nWrite the update a Marlbrook executive reads in two minutes: the audience, the decisions you need, the open questions and the next step, in four fields with their own limits (200, 600, 600 and 300 characters, 1,700 in all). Recorded as self-reviewed.\n\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nDark mode\nTurn sound on",
+    "afterText": "Learn\n/\nForward Deployed Engineer\n/\nCustomer discovery\nNot started\nCustomer discovery\n\nFind the operator whose hands are on the work, watch one real item end to end, and name everyone who can refuse the project.\n\nEstimated total: 3h · 5 activities\n\nWhat you will be able to do\nStart reading · 25 min\nActivities in this module\nREAD\nThe workflow and who is in it\nNext →\n25 min\n\nObserved workflow evidence, stated mechanisms and underlying needs, approval owners and the limits of a small sample.\n\nREAD\nBaseline and scope\n35 min\n\nA baseline with defined data and method, a dated success metric apart from the acceptance gate, explicit exclusions and risks, a delivery sequence, and a four-part executive update.\n\nCHECK\nDiscovery decisions\n15 min\n\nFour bounded decisions: making routine work observable, recognizing a measured baseline, identifying a prescribed mechanism, and resolving an explicit data-access launch gate.\n\nWRITE\nOne-page scope: “add AI to support”\n75 min\n\nTurn a one-line request into a scope with a workflow, five questions, a baseline, a success metric, a sequenced scope, non-goals, risks and an acceptance condition. Recorded as self-reviewed.\n\nWRITE\nExecutive update: the end of discovery week\n30 min\n\nWrite the update a Marlbrook executive reads in two minutes: the audience, the decisions you need, the open questions and the next step, in four fields with their own limits (200, 600, 600 and 300 characters, 1,700 in all). Recorded as self-reviewed.\n\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nDark mode\nTurn sound on"
+  },
+  {
+    "id": "fde-module-dark-1280x680",
+    "scene": "fde-module",
+    "theme": "dark",
+    "width": 1280,
+    "height": 680,
+    "source": "current build with local fictional Test Learner / enrollment",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Customer discovery"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Customer discovery"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Learn\n/\nForward Deployed Engineer\n/\nCustomer discovery\nNot started\nCustomer discovery\n\nFind the operator whose hands are on the work, watch one real item end to end, and name everyone who can refuse the project.\n\nWhat you will be able to do\nStart module\nActivities in this module\nREAD\nThe workflow and who is in it\nNext →\n25 min\n\nObserved workflow evidence, stated mechanisms and underlying needs, approval owners and the limits of a small sample.\n\nREAD\nBaseline and scope\n35 min\n\nA baseline with defined data and method, a dated success metric apart from the acceptance gate, explicit exclusions and risks, a delivery sequence, and a four-part executive update.\n\nCHECK\nDiscovery decisions\n15 min\n\nFour bounded decisions: making routine work observable, recognizing a measured baseline, identifying a prescribed mechanism, and resolving an explicit data-access launch gate.\n\nWRITE\nOne-page scope: “add AI to support”\n75 min\n\nTurn a one-line request into a scope with a workflow, five questions, a baseline, a success metric, a sequenced scope, non-goals, risks and an acceptance condition. Recorded as self-reviewed.\n\nWRITE\nExecutive update: the end of discovery week\n30 min\n\nWrite the update a Marlbrook executive reads in two minutes: the audience, the decisions you need, the open questions and the next step, in four fields with their own limits (200, 600, 600 and 300 characters, 1,700 in all). Recorded as self-reviewed.\n\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nLight mode\nTurn sound on",
+    "afterText": "Learn\n/\nForward Deployed Engineer\n/\nCustomer discovery\nNot started\nCustomer discovery\n\nFind the operator whose hands are on the work, watch one real item end to end, and name everyone who can refuse the project.\n\nEstimated total: 3h · 5 activities\n\nWhat you will be able to do\nStart reading · 25 min\nActivities in this module\nREAD\nThe workflow and who is in it\nNext →\n25 min\n\nObserved workflow evidence, stated mechanisms and underlying needs, approval owners and the limits of a small sample.\n\nREAD\nBaseline and scope\n35 min\n\nA baseline with defined data and method, a dated success metric apart from the acceptance gate, explicit exclusions and risks, a delivery sequence, and a four-part executive update.\n\nCHECK\nDiscovery decisions\n15 min\n\nFour bounded decisions: making routine work observable, recognizing a measured baseline, identifying a prescribed mechanism, and resolving an explicit data-access launch gate.\n\nWRITE\nOne-page scope: “add AI to support”\n75 min\n\nTurn a one-line request into a scope with a workflow, five questions, a baseline, a success metric, a sequenced scope, non-goals, risks and an acceptance condition. Recorded as self-reviewed.\n\nWRITE\nExecutive update: the end of discovery week\n30 min\n\nWrite the update a Marlbrook executive reads in two minutes: the audience, the decisions you need, the open questions and the next step, in four fields with their own limits (200, 600, 600 and 300 characters, 1,700 in all). Recorded as self-reviewed.\n\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.\nLight mode\nTurn sound on"
+  },
+  {
+    "id": "fde-module-light-390x844",
+    "scene": "fde-module",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "current build with local fictional Test Learner / enrollment",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Customer discovery"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": true,
+      "title": "Customer discovery"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Learn\n/\nForward Deployed Engineer\n/\nCustomer discovery\nNot started\nCustomer discovery\n\nFind the operator whose hands are on the work, watch one real item end to end, and name everyone who can refuse the project.\n\nWhat you will be able to do\nStart module\nActivities in this module\nREAD\nThe workflow and who is in it\nNext →\n25 min\n\nObserved workflow evidence, stated mechanisms and underlying needs, approval owners and the limits of a small sample.\n\nREAD\nBaseline and scope\n35 min\n\nA baseline with defined data and method, a dated success metric apart from the acceptance gate, explicit exclusions and risks, a delivery sequence, and a four-part executive update.\n\nCHECK\nDiscovery decisions\n15 min\n\nFour bounded decisions: making routine work observable, recognizing a measured baseline, identifying a prescribed mechanism, and resolving an explicit data-access launch gate.\n\nWRITE\nOne-page scope: “add AI to support”\n75 min\n\nTurn a one-line request into a scope with a workflow, five questions, a baseline, a success metric, a sequenced scope, non-goals, risks and an acceptance condition. Recorded as self-reviewed.\n\nWRITE\nExecutive update: the end of discovery week\n30 min\n\nWrite the update a Marlbrook executive reads in two minutes: the audience, the decisions you need, the open questions and the next step, in four fields with their own limits (200, 600, 600 and 300 characters, 1,700 in all). Recorded as self-reviewed.\n\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram.",
+    "afterText": "Learn\n/\nForward Deployed Engineer\n/\nCustomer discovery\nNot started\nCustomer discovery\n\nFind the operator whose hands are on the work, watch one real item end to end, and name everyone who can refuse the project.\n\nEstimated total: 3h · 5 activities\n\nWhat you will be able to do\nStart reading · 25 min\nActivities in this module\nREAD\nThe workflow and who is in it\nNext →\n25 min\n\nObserved workflow evidence, stated mechanisms and underlying needs, approval owners and the limits of a small sample.\n\nREAD\nBaseline and scope\n35 min\n\nA baseline with defined data and method, a dated success metric apart from the acceptance gate, explicit exclusions and risks, a delivery sequence, and a four-part executive update.\n\nCHECK\nDiscovery decisions\n15 min\n\nFour bounded decisions: making routine work observable, recognizing a measured baseline, identifying a prescribed mechanism, and resolving an explicit data-access launch gate.\n\nWRITE\nOne-page scope: “add AI to support”\n75 min\n\nTurn a one-line request into a scope with a workflow, five questions, a baseline, a success metric, a sequenced scope, non-goals, risks and an acceptance condition. Recorded as self-reviewed.\n\nWRITE\nExecutive update: the end of discovery week\n30 min\n\nWrite the update a Marlbrook executive reads in two minutes: the audience, the decisions you need, the open questions and the next step, in four fields with their own limits (200, 600, 600 and 300 characters, 1,700 in all). Recorded as self-reviewed.\n\nPremium\nPrivacy\nTerms\nCookie settings\nCancel Premium\nFollow us on Instagram."
+  },
+  {
+    "id": "quiz-jump-light-1280x680",
+    "scene": "quiz-jump",
+    "theme": "light",
+    "width": 1280,
+    "height": 680,
+    "source": "current build with local fictional Test Learner / enrollment",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "Quiz · Question 6 of 6"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "Quiz · Question 6 of 6 ⌄"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "blockedFixtureExternalRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Quiz · Question 6 of 6\n3 of 6 answered\nSubmit before 18:45\nJavaScript\nDifficulty 1\nWhich method converts JSON text into a value?\nTERMS IN THIS QUESTION\nJSON\ni\n1\nJSON.parse\n2\nJSON.stringify\n3\nObject.keys\n4\nArray.from\n\nPress 1–4 to select\n\nPrevious\nReview unanswered (3)\n\nGo to the first unanswered question. You can still change your answers.",
+    "afterText": "Quiz · Question 6 of 6 ⌄\nJump to question\n\n✓ Answered · Empty: unanswered\n\n1 ✓\n2 ✓\n3 ✓\n4\n5\n6\n3 of 6 answered\nSubmit before 18:45\nJavaScript\nDifficulty 1\nWhich method converts JSON text into a value?\nTERMS IN THIS QUESTION\nJSON\ni\n1\nJSON.parse\n2\nJSON.stringify\n3\nObject.keys\n4\nArray.from\n\nPress 1–4 to select\n\nPrevious\nReview unanswered (3)\n\nGo to the first unanswered question. You can still change your answers."
+  },
+  {
+    "id": "quiz-jump-dark-1280x680",
+    "scene": "quiz-jump",
+    "theme": "dark",
+    "width": 1280,
+    "height": 680,
+    "source": "current build with local fictional Test Learner / enrollment",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "Quiz · Question 6 of 6"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "Quiz · Question 6 of 6 ⌄"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "blockedFixtureExternalRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Quiz · Question 6 of 6\n3 of 6 answered\nSubmit before 18:45\nJavaScript\nDifficulty 1\nWhich method converts JSON text into a value?\nTERMS IN THIS QUESTION\nJSON\ni\n1\nJSON.parse\n2\nJSON.stringify\n3\nObject.keys\n4\nArray.from\n\nPress 1–4 to select\n\nPrevious\nReview unanswered (3)\n\nGo to the first unanswered question. You can still change your answers.",
+    "afterText": "Quiz · Question 6 of 6 ⌄\nJump to question\n\n✓ Answered · Empty: unanswered\n\n1 ✓\n2 ✓\n3 ✓\n4\n5\n6\n3 of 6 answered\nSubmit before 18:45\nJavaScript\nDifficulty 1\nWhich method converts JSON text into a value?\nTERMS IN THIS QUESTION\nJSON\ni\n1\nJSON.parse\n2\nJSON.stringify\n3\nObject.keys\n4\nArray.from\n\nPress 1–4 to select\n\nPrevious\nReview unanswered (3)\n\nGo to the first unanswered question. You can still change your answers."
+  },
+  {
+    "id": "quiz-jump-light-390x844",
+    "scene": "quiz-jump",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "current build with local fictional Test Learner / enrollment",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "Quiz · Question 6 of 6"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": null,
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 0,
+      "hasHeader": false,
+      "title": "Quiz · Question 6 of 6 ⌄"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "blockedFixtureExternalRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "Quiz · Question 6 of 6\n3 of 6 answered\nSubmit before 18:45\nJavaScript\nDifficulty 1\nWhich method converts JSON text into a value?\nTERMS IN THIS QUESTION\nJSON\ni\n1\nJSON.parse\n2\nJSON.stringify\n3\nObject.keys\n4\nArray.from\nPrevious\nReview unanswered (3)\n\nGo to the first unanswered question. You can still change your answers.",
+    "afterText": "Quiz · Question 6 of 6 ⌄\nJump to question\n\n✓ Answered · Empty: unanswered\n\n1 ✓\n2 ✓\n3 ✓\n4\n5\n6\n3 of 6 answered\nSubmit before 18:45\nJavaScript\nDifficulty 1\nWhich method converts JSON text into a value?\nTERMS IN THIS QUESTION\nJSON\ni\n1\nJSON.parse\n2\nJSON.stringify\n3\nObject.keys\n4\nArray.from\nPrevious\nReview unanswered (3)\n\nGo to the first unanswered question. You can still change your answers."
+  },
+  {
+    "id": "results-light-1280x680",
+    "scene": "results",
+    "theme": "light",
+    "width": 1280,
+    "height": 680,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": {
+        "x": 77,
+        "y": 42.40625,
+        "width": 274.0625,
+        "height": 44,
+        "bottom": 86.40625
+      },
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 11,
+      "hasHeader": false,
+      "title": "linkShortener1.js"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": {
+        "x": 77,
+        "y": 42.40625,
+        "width": 274.0625,
+        "height": 44,
+        "bottom": 86.40625
+      },
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 11,
+      "hasHeader": false,
+      "title": "linkShortener1.js"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "blockedFixtureExternalRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "linkShortener1.js\n8 of 11 passing\nDescription\nResults\n8/11\nConsole\nResources\n6\nFail\nnormalizeLink({url: \" https://devshark.app/learn \", slug: \" Learn-JS \"}) → \nexpected\n{\"url\":\"https://devshark.app/learn\",\"slug\":\"learn-js\"} · got null\nFail\nnormalizeLink({url: \"https://a.io\", slug: \"abc\", extra: 1}) → \nexpected\n{\"url\":\"https://a.io\",\"slug\":\"abc\"} · got null\nextra fields are dropped\nPass\nnormalizeLink({url: \"http://example.com\", slug: \"abc\"}) → \nexpected\nnull · got null\nonly https links\nPass\nnormalizeLink({url: \"https://\", slug: \"abc\"}) → \nexpected\nnull · got nulledge\na link needs more than the scheme\nPass\nnormalizeLink({url: \"https://a.io\", slug: \"ab\"}) → \nexpected\nnull · got nulledge\na slug needs three characters\nPass\nnormalizeLink({url: \"https://a.io\", slug: \"no spaces\"}) → \nexpected\nnull · got nulledge\na slug has no spaces\nPass\nnormalizeLink({url: 42, slug: \"abc\"}) → \nexpected\nnull · got nulledge\nthe url must be a string\nPass\nnormalizeLink(null) → \nexpected\nnull · got nulledge\nnull\nPass\nnormalizeLink([\"https://a.io\", \"abc\"]) → \nexpected\nnull · got nulledge\nan array is not a link\nPass\n(() => { const input = {url: \" https://a.io \", slug: \"ABC\"}; normalizeLink(input); return input; })() → \nexpected\n{\"url\":\" https://a.io \",\"slug\":\"ABC\"} · got {\"url\":\" https://a.io \",\"slug\":\"ABC\"}edge\nthe input is not changed\nFail\nnormalizeLink({url:'https://a b',slug:' A-B '}) → \nexpected\n{\"url\":\"https://a b\",\"slug\":\"a-b\"} · got null\nprefix and length only; this is not URL parsing\ncoding\n/\nfullstack\n/\nlinkShortener1.js\n1\n2\n3\n4\n5\n6\n// Link shortener. Level 1 checks the input every later level relies on.\n\n\nfunction normalizeLink(value) {\n  return null;\n}\n\n\nCtrl+Enter runs, Ctrl+Shift+Enter submits. Escape then Tab leaves the editor.\nRun\nHint\nSubmit\nLevel:\n1\n2\n3\n4\n5\n\nPREMIUM Level 1 comes with the free plan. Premium opens the levels after it.",
+    "afterText": "linkShortener1.js\n8 of 11 passing\nDescription\nResults\nConsole\nResources\n6\n3 failed\n8 passed\nFailed · Test 1\nnormalizeLink({url: \" https://devshark.app/learn \", slug: \" Learn-JS \"})\nInput\nnormalizeLink({url: \" https://devshark.app/learn \", slug: \" Learn-JS \"})\nExpected\n{\n  \"url\": \"https://devshark.app/learn\",\n  \"slug\": \"learn-js\"\n}\nReceived\nnull\nFailed · Test 2\nnormalizeLink({url: \"https://a.io\", slug: \"abc\", extra: 1})\nFailed · Test 11\nnormalizeLink({url:'https://a b',slug:' A-B '})\nPassed tests (8)\ncoding\n/\nfullstack\n/\nlinkShortener1.js\n1\n2\n3\n4\n5\n6\n// Link shortener. Level 1 checks the input every later level relies on.\n\n\nfunction normalizeLink(value) {\n  return null;\n}\n\n\nCtrl+Enter runs, Ctrl+Shift+Enter submits. Escape then Tab leaves the editor.\nRun\nHint\nSubmit\nLevel:\n1\n2\n3\n4\n5\n\nPREMIUM Level 1 comes with the free plan. Premium opens the levels after it."
+  },
+  {
+    "id": "results-dark-1280x680",
+    "scene": "results",
+    "theme": "dark",
+    "width": 1280,
+    "height": 680,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": {
+        "x": 77,
+        "y": 42.40625,
+        "width": 274.0625,
+        "height": 44,
+        "bottom": 86.40625
+      },
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 11,
+      "hasHeader": false,
+      "title": "linkShortener1.js"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": {
+        "x": 77,
+        "y": 42.40625,
+        "width": 274.0625,
+        "height": 44,
+        "bottom": 86.40625
+      },
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 11,
+      "hasHeader": false,
+      "title": "linkShortener1.js"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "blockedFixtureExternalRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "linkShortener1.js\n8 of 11 passing\nDescription\nResults\n8/11\nConsole\nResources\n6\nFail\nnormalizeLink({url: \" https://devshark.app/learn \", slug: \" Learn-JS \"}) → \nexpected\n{\"url\":\"https://devshark.app/learn\",\"slug\":\"learn-js\"} · got null\nFail\nnormalizeLink({url: \"https://a.io\", slug: \"abc\", extra: 1}) → \nexpected\n{\"url\":\"https://a.io\",\"slug\":\"abc\"} · got null\nextra fields are dropped\nPass\nnormalizeLink({url: \"http://example.com\", slug: \"abc\"}) → \nexpected\nnull · got null\nonly https links\nPass\nnormalizeLink({url: \"https://\", slug: \"abc\"}) → \nexpected\nnull · got nulledge\na link needs more than the scheme\nPass\nnormalizeLink({url: \"https://a.io\", slug: \"ab\"}) → \nexpected\nnull · got nulledge\na slug needs three characters\nPass\nnormalizeLink({url: \"https://a.io\", slug: \"no spaces\"}) → \nexpected\nnull · got nulledge\na slug has no spaces\nPass\nnormalizeLink({url: 42, slug: \"abc\"}) → \nexpected\nnull · got nulledge\nthe url must be a string\nPass\nnormalizeLink(null) → \nexpected\nnull · got nulledge\nnull\nPass\nnormalizeLink([\"https://a.io\", \"abc\"]) → \nexpected\nnull · got nulledge\nan array is not a link\nPass\n(() => { const input = {url: \" https://a.io \", slug: \"ABC\"}; normalizeLink(input); return input; })() → \nexpected\n{\"url\":\" https://a.io \",\"slug\":\"ABC\"} · got {\"url\":\" https://a.io \",\"slug\":\"ABC\"}edge\nthe input is not changed\nFail\nnormalizeLink({url:'https://a b',slug:' A-B '}) → \nexpected\n{\"url\":\"https://a b\",\"slug\":\"a-b\"} · got null\nprefix and length only; this is not URL parsing\ncoding\n/\nfullstack\n/\nlinkShortener1.js\n1\n2\n3\n4\n5\n6\n// Link shortener. Level 1 checks the input every later level relies on.\n\n\nfunction normalizeLink(value) {\n  return null;\n}\n\n\nCtrl+Enter runs, Ctrl+Shift+Enter submits. Escape then Tab leaves the editor.\nRun\nHint\nSubmit\nLevel:\n1\n2\n3\n4\n5\n\nPREMIUM Level 1 comes with the free plan. Premium opens the levels after it.",
+    "afterText": "linkShortener1.js\n8 of 11 passing\nDescription\nResults\nConsole\nResources\n6\n3 failed\n8 passed\nFailed · Test 1\nnormalizeLink({url: \" https://devshark.app/learn \", slug: \" Learn-JS \"})\nInput\nnormalizeLink({url: \" https://devshark.app/learn \", slug: \" Learn-JS \"})\nExpected\n{\n  \"url\": \"https://devshark.app/learn\",\n  \"slug\": \"learn-js\"\n}\nReceived\nnull\nFailed · Test 2\nnormalizeLink({url: \"https://a.io\", slug: \"abc\", extra: 1})\nFailed · Test 11\nnormalizeLink({url:'https://a b',slug:' A-B '})\nPassed tests (8)\ncoding\n/\nfullstack\n/\nlinkShortener1.js\n1\n2\n3\n4\n5\n6\n// Link shortener. Level 1 checks the input every later level relies on.\n\n\nfunction normalizeLink(value) {\n  return null;\n}\n\n\nCtrl+Enter runs, Ctrl+Shift+Enter submits. Escape then Tab leaves the editor.\nRun\nHint\nSubmit\nLevel:\n1\n2\n3\n4\n5\n\nPREMIUM Level 1 comes with the free plan. Premium opens the levels after it."
+  },
+  {
+    "id": "results-light-390x844",
+    "scene": "results",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "current production guest",
+    "baseline": "ca5900282d5e4cc2aa115d5d02585ac056a6d58d",
+    "before": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": {
+        "x": 35,
+        "y": 499.109375,
+        "width": 316,
+        "height": 44,
+        "bottom": 543.109375
+      },
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 11,
+      "hasHeader": false,
+      "title": "linkShortener1.js"
+    },
+    "after": {
+      "overflow": false,
+      "mainScroll": 0,
+      "breadcrumb": {
+        "x": 35,
+        "y": 499.109375,
+        "width": 316,
+        "height": 44,
+        "bottom": 543.109375
+      },
+      "continue": null,
+      "daily": {
+        "answers": []
+      },
+      "topicCount": 0,
+      "resultsCount": 11,
+      "hasHeader": false,
+      "title": "linkShortener1.js"
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "blockedFixtureExternalRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [],
+    "beforeText": "linkShortener1.js\n8 of 11 passing\nDescription\nResults\n8/11\nConsole\nResources\nFail\nnormalizeLink({url: \" https://devshark.app/learn \", slug: \" Learn-JS \"}) → \nexpected\n{\"url\":\"https://devshark.app/learn\",\"slug\":\"learn-js\"} · got null\nFail\nnormalizeLink({url: \"https://a.io\", slug: \"abc\", extra: 1}) → \nexpected\n{\"url\":\"https://a.io\",\"slug\":\"abc\"} · got null\nextra fields are dropped\nPass\nnormalizeLink({url: \"http://example.com\", slug: \"abc\"}) → \nexpected\nnull · got null\nonly https links\nPass\nnormalizeLink({url: \"https://\", slug: \"abc\"}) → \nexpected\nnull · got nulledge\na link needs more than the scheme\nPass\nnormalizeLink({url: \"https://a.io\", slug: \"ab\"}) → \nexpected\nnull · got nulledge\na slug needs three characters\nPass\nnormalizeLink({url: \"https://a.io\", slug: \"no spaces\"}) → \nexpected\nnull · got nulledge\na slug has no spaces\nPass\nnormalizeLink({url: 42, slug: \"abc\"}) → \nexpected\nnull · got nulledge\nthe url must be a string\nPass\nnormalizeLink(null) → \nexpected\nnull · got nulledge\nnull\nPass\nnormalizeLink([\"https://a.io\", \"abc\"]) → \nexpected\nnull · got nulledge\nan array is not a link\nPass\n(() => { const input = {url: \" https://a.io \", slug: \"ABC\"}; normalizeLink(input); return input; })() → \nexpected\n{\"url\":\" https://a.io \",\"slug\":\"ABC\"} · got {\"url\":\" https://a.io \",\"slug\":\"ABC\"}edge\nthe input is not changed\nFail\nnormalizeLink({url:'https://a b',slug:' A-B '}) → \nexpected\n{\"url\":\"https://a b\",\"slug\":\"a-b\"} · got null\nprefix and length only; this is not URL parsing\ncoding\n/\nfullstack\n/\nlinkShortener1.js\n1\n2\n3\n4\n5\n6\n// Link shortener. Level 1 checks the input every later level relies on.\n\n\nfunction normalizeLink(value) {\n  return null;\n}\n\n\nCtrl+Enter runs, Ctrl+Shift+Enter submits. Escape then Tab leaves the editor.\nRun\nHint\nSubmit\nLevel:\n1\n2\n3\n4\n5\n\nPREMIUM Level 1 comes with the free plan. Premium opens the levels after it.",
+    "afterText": "linkShortener1.js\n8 of 11 passing\nDescription\nResults\nConsole\nResources\n3 failed\n8 passed\nFailed · Test 1\nnormalizeLink({url: \" https://devshark.app/learn \", slug: \" Learn-JS \"})\nInput\nnormalizeLink({url: \" https://devshark.app/learn \", slug: \" Learn-JS \"})\nExpected\n{\n  \"url\": \"https://devshark.app/learn\",\n  \"slug\": \"learn-js\"\n}\nReceived\nnull\nFailed · Test 2\nnormalizeLink({url: \"https://a.io\", slug: \"abc\", extra: 1})\nFailed · Test 11\nnormalizeLink({url:'https://a b',slug:' A-B '})\nPassed tests (8)\ncoding\n/\nfullstack\n/\nlinkShortener1.js\n1\n2\n3\n4\n5\n6\n// Link shortener. Level 1 checks the input every later level relies on.\n\n\nfunction normalizeLink(value) {\n  return null;\n}\n\n\nCtrl+Enter runs, Ctrl+Shift+Enter submits. Escape then Tab leaves the editor.\nRun\nHint\nSubmit\nLevel:\n1\n2\n3\n4\n5\n\nPREMIUM Level 1 comes with the free plan. Premium opens the levels after it."
+  }
+]
