@@ -238,6 +238,8 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const [checked, setChecked] = useState<boolean[]>(() => (task.checklist ?? []).map(() => false));
   const [formatError, setFormatError] = useState<string | null>(null);
   const [layout, setLayout] = useState<WorkbenchLayout>(readLayout);
+  const feedbackDragStop = useRef<(() => void) | null>(null);
+  useEffect(() => () => feedbackDragStop.current?.(), []);
   const [skipping, setSkipping] = useState(false);
   const [skipSubmitting, setSkipSubmitting] = useState(false);
   const [skipReason, setSkipReason] = useState<SkipReason>('later');
@@ -341,13 +343,16 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
     const pane = event.currentTarget.parentElement;
     if (!pane) return;
     const bottom = pane.getBoundingClientRect().bottom;
+    feedbackDragStop.current?.();
     event.currentTarget.setPointerCapture(event.pointerId);
     const move = (next: PointerEvent) => setFeedbackHeight(bottom - next.clientY);
     const stop = () => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', stop);
       window.removeEventListener('pointercancel', stop);
+      feedbackDragStop.current = null;
     };
+    feedbackDragStop.current = stop;
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', stop);
     window.addEventListener('pointercancel', stop);
@@ -402,6 +407,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
     setDraftTooLarge(onDraft?.(code) === 'tooLarge');
     localRun.current?.abort();
     setPhase('running');
+    setFeedbackCollapsed(false);
     wantCompiler();
     setServerChecked(false);
     setFormatError(null);
@@ -456,6 +462,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       return;
     }
     setPhase('submitting');
+    setFeedbackCollapsed(false);
     wantCompiler();
     setSubmitError(null);
     setFormatError(null);
@@ -1226,6 +1233,16 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       after={locked && <p className="cd-note cd-note--warn">{t('coding.lockedTask')} {t(`coding.lock.${locked}` as never)}</p>}
     >
       <Prompt className="cd-prompt" text={descriptionText(task.prompt)} />
+      {sectionLayout && Boolean(task.tests?.length) && <section className="cd-brief-examples" aria-labelledby={`${baseId}-examples`}>
+        <h2 id={`${baseId}-examples`}>{workbenchCopy('coding.brief.examples')}</h2>
+        <ul>
+          {task.tests!.slice(0, 3).map((test, index) => <li key={index}>
+            <code>{test.shown ?? test.call}</code>
+            <span aria-hidden="true"> → </span><span className="cd-visually-hidden"> {t('coding.results.expected')} </span>
+            <code>{JSON.stringify(test.expected)}</code>
+          </li>)}
+        </ul>
+      </section>}
       {complexity.targetTime && <div className="cd-complexity">
         <span>{t('coding.complexity.desired', { complexity: complexity.targetTime })}</span>
         <ComplexityInfo guidance={complexity} />
@@ -1256,6 +1273,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   // and their names as tooltips (UX audit coding-02).
   const editorBar = (
     <div className="cd-editor-bar ss-compact">
+      {sectionLayout && <code className="cd-editor-bar__label">{isReact ? 'App.js' : isTypeScript ? 'solution.ts' : 'solution.js'}</code>}
       <Button variant="ghost" isIconOnly icon={<FormatCodeIcon />} tooltip={t('coding.format')} onClick={() => void format()} isDisabled={formatDisabled} label={t('coding.format')} />
       <Button variant="ghost" ref={resetRef} isIconOnly icon={<ResetIcon />} tooltip={t('coding.reset')} onClick={() => setConfirming('reset')} isDisabled={resetDisabled} label={t('coding.reset')} />
     </div>
@@ -1269,6 +1287,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const hintLabel = taken === 0 ? t('coding.hint') : t('coding.hintNext');
   const showReveal = mode !== 'landing' && Boolean(session) && !solution && !solutions;
   const showSkip = signedIn && mode === 'section' && !skipResult;
+  const submitAction = mode !== 'landing' && <SwimCta dir={1} onClick={() => { if (!submitDisabled) void submit(); }} unavailable={submitDisabled} label={phase === 'submitting' ? t('coding.submitting') : t('coding.submit')} />;
   const actionBar = (
     <div className="cd-editor-actions" onPointerEnter={reachForRun} onFocus={reachForRun}>
       <div className="cd-actions cd-actions--commands">
@@ -1276,7 +1295,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
         {/* Busy, not disabled: the button that was pressed keeps the focus
             (a disabled one hands it to the page), and a press does nothing. */}
         <Button className="ss-action" variant="secondary" onClick={() => void runLocal()} isDisabled={busy} tooltip={busy ? t('coding.status.working') : undefined} label={phase === 'running' ? (runPhase === 'compiling' ? t('coding.compiling') : t('coding.running')) : t('coding.run')} />
-        {mode !== 'landing' && <SwimCta dir={1} onClick={() => { if (!submitDisabled) void submit(); }} unavailable={submitDisabled} label={phase === 'submitting' ? t('coding.submitting') : t('coding.submit')} />}
+        {!sectionLayout && submitAction}
         </>}
 
         {!menuCommands && <>
@@ -1287,6 +1306,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
           )}
           {showSkip && <Button variant="ghost" onClick={() => setSkipping((open) => !open)} aria-expanded={skipping} label={t('coding.skip.action')} />}
         </>}
+        {sectionLayout && !puzzleMode && !pendingOnDesktop && submitAction}
         <div className="cd-actions cd-actions--utility">
           {mode !== 'landing' && !locked && saveAction}
           {menuCommands ? (
@@ -1442,7 +1462,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
             {!puzzleMode && !pendingOnDesktop && actionBar}
           </section>
 
-          {sectionLayout && editorShown && <section className="cd-feedback" aria-label={workbenchCopy('coding.feedback.label')}>
+          {sectionLayout && editorMounted && <section className="cd-feedback" hidden={!editorShown} aria-label={workbenchCopy('coding.feedback.label')}>
             {!feedbackCollapsed && <div className="cd-feedback__resize" role="separator" tabIndex={0}
               aria-orientation="horizontal" aria-label={workbenchCopy('coding.feedback.resize')}
               aria-valuenow={layout.feedbackHeight} aria-valuemin={FEEDBACK_MIN} aria-valuemax={FEEDBACK_MAX}

@@ -57,6 +57,7 @@ import { codingContent, gatedRef } from '../../../../shared/tiers';
 import '../../coding/Coding.css';
 import { Button } from '@astryxdesign/core/Button';
 import { LockedButton } from '../ui/LockedButton';
+import { PageHeader } from '../ui/PageHeader';
 
 type Status = 'open' | 'in_progress' | 'passed' | 'revealed' | 'locked' | 'premium';
 
@@ -484,11 +485,9 @@ export function CodingHome() {
   return (
     <div className="cd-page cd-discovery ss-pop">
       <div className="cd-home-head">
-        <header>
-          <Kicker as="h1" className="ss-section-title">{t('coding.title')}</Kicker>
-          <p className="cd-lead">{t('coding.subtitle')}</p>
+        <PageHeader title={t('coding.title')} lead={t('coding.subtitle')}>
           {!authLoading && !isAuthenticated && <SignInLine />}
-        </header>
+        </PageHeader>
         <NextChallenge next={next} state={nextState} inRun={Boolean(runNext)} errorText={runFailed ? t('coding.run.loadFailed') : undefined} onRetry={() => { void progress.refetch(); if (runFailed) void run.refetch(); }} />
       </div>
       <PlanNotice failed={planFailed} onRetry={retryPlan} />
