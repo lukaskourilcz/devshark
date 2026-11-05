@@ -33,9 +33,9 @@ const tasks: Record<'javascript' | 'typescript' | 'react', PlayableCodingTask> =
   typescript: { ...base, id: 'ts-tabs', track: 'typescript', tests: [{ call: 'f()', expected: 1 }], typeTests: [{ code: 'f(1)', rejects: true }] } as PlayableCodingTask,
   react: { ...base, id: 'react-tabs', track: 'react', suite: 'test("greets", () => {});' } as PlayableCodingTask,
 };
-const mount = (track: keyof typeof tasks) => render(
+const mount = (track: keyof typeof tasks, mode: 'section' | 'lesson' = 'section') => render(
   <MemoryRouter><LanguageProvider>
-    <CodingWorkbench task={tasks[track]} initialCode={null} session="s" locked={null} signedIn mode="section" />
+    <CodingWorkbench task={tasks[track]} initialCode={null} session="s" locked={null} signedIn mode={mode} />
   </LanguageProvider></MemoryRouter>,
 );
 const tabNames = () => screen.getAllByRole('tab').map((tab) => tab.textContent?.replace(/\d+(\/\d+)?$/, '').trim());
@@ -65,8 +65,8 @@ it('keeps the complete task in Description, without a second brief above the edi
   // Keyboard navigation includes Description and preserves its content.
   const tab = screen.getByRole('tab', { name: 'Description' });
   fireEvent.keyDown(tab, { key: 'ArrowRight' });
-  expect(screen.getByRole('tab', { name: 'Results' })).toHaveFocus();
-  fireEvent.keyDown(screen.getByRole('tab', { name: 'Results' }), { key: 'Home' });
+  expect(screen.getByRole('tab', { name: 'Resources' })).toHaveFocus();
+  fireEvent.keyDown(screen.getByRole('tab', { name: 'Resources' }), { key: 'Home' });
   expect(tab).toHaveFocus();
   expect(description).toBeVisible();
 });
@@ -80,15 +80,56 @@ it('opens Results after a JavaScript Run and keeps Description available', async
   expect(screen.getByRole('tabpanel', { name: 'Description' })).toHaveTextContent('Do it.');
 });
 
-it('keeps Description, Results, Console, the track tab, then Resources on every track', () => {
+it('keeps reference and feedback tabs in independent groups on every track', () => {
   const javascript = mount('javascript');
-  expect(tabNames()).toEqual(['Description', 'Results', 'Console', 'Resources']);
+  expect(tabNames()).toEqual(['Description', 'Resources', 'Results', 'Console']);
   javascript.unmount();
   const typescript = mount('typescript');
-  expect(tabNames()).toEqual(['Description', 'Results', 'Console', 'Types', 'Resources']);
+  expect(tabNames()).toEqual(['Description', 'Resources', 'Results', 'Console', 'Types']);
   typescript.unmount();
   mount('react');
-  expect(tabNames()).toEqual(['Description', 'Results', 'Console', 'Preview', 'Resources']);
+  expect(tabNames()).toEqual(['Description', 'Resources', 'Results', 'Console', 'Preview']);
+});
+
+it('leaves the embedded Learn workbench in its existing single-strip layout', () => {
+  const view = mount('javascript', 'lesson');
+  expect(tabNames()).toEqual(['Description', 'Results', 'Console', 'Resources']);
+  expect(screen.getAllByRole('tablist')).toHaveLength(1);
+  expect(view.container.querySelector('.cd-feedback')).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Hide output' })).toBeNull();
+});
+
+it('keeps resources open while Run restores collapsed feedback and retains the editor', async () => {
+  vi.mocked(runCodeTests).mockResolvedValueOnce({ results: [{ pass: true, actual: '1', error: null }], logs: [] } as never);
+  mount('javascript');
+  const editor = screen.getByLabelText('Test editor');
+  fireEvent.click(screen.getByRole('tab', { name: /Resources/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Hide output' }));
+  expect(screen.queryByRole('tabpanel', { name: 'Results' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Show output' })).toHaveAttribute('aria-expanded', 'false');
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Run' })); });
+  expect(screen.getByRole('tab', { name: /Resources/ })).toHaveAttribute('aria-selected', 'true');
+  expect(screen.getByRole('tabpanel', { name: /Results/ })).toBeVisible();
+  expect(screen.getByLabelText('Test editor')).toBe(editor);
+  fireEvent.click(screen.getByRole('tab', { name: 'Description' }));
+  expect(screen.getByRole('tabpanel', { name: 'Description' })).toBeVisible();
+  expect(screen.getByRole('tabpanel', { name: /Results/ })).toBeVisible();
+});
+
+it('bounds the feedback height and supports arrows, Home, End and reset from the keyboard', () => {
+  mount('javascript');
+  const resize = screen.getByRole('separator', { name: 'Resize the code feedback panel' });
+  fireEvent.keyDown(resize, { key: 'ArrowUp' });
+  expect(resize).toHaveAttribute('aria-valuenow', '252');
+  fireEvent.keyDown(resize, { key: 'Home' });
+  expect(resize).toHaveAttribute('aria-valuenow', '160');
+  fireEvent.keyDown(resize, { key: 'ArrowDown' });
+  expect(resize).toHaveAttribute('aria-valuenow', '160');
+  fireEvent.keyDown(resize, { key: 'End' });
+  expect(resize).toHaveAttribute('aria-valuenow', '400');
+  fireEvent.keyDown(resize, { key: 'Enter' });
+  expect(resize).toHaveAttribute('aria-valuenow', '220');
+  localStorage.removeItem('devshark:coding:layout:v1');
 });
 
 it('opens React on Description, keeps the empty preview to one line, and shows the preview after the first Run that renders', async () => {

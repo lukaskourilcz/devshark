@@ -794,6 +794,13 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   // a recorded earlier one — and from nowhere else.
   const solutions: CodingSolutionPair | null = verdict?.solutions ?? approaches.data?.solutions ?? null;
   const suiteCases = useMemo(() => suiteCaseNames(task.suite), [task.suite]);
+  // Public, authored calls only. Large fixtures still belong in Results;
+  // they would turn the short examples into a second scrolling test suite.
+  const publicExamples = useMemo(() => (task.tests ?? []).flatMap((test) => {
+    const call = test.shown ?? test.call;
+    const expected = JSON.stringify(test.expected);
+    return call.length <= 180 && expected !== undefined && expected.length <= 180 ? [{ call, expected }] : [];
+  }).slice(0, 3), [task.tests]);
 
   // What went wrong, said once, in the learner's language.
   //
@@ -1233,13 +1240,13 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       after={locked && <p className="cd-note cd-note--warn">{t('coding.lockedTask')} {t(`coding.lock.${locked}` as never)}</p>}
     >
       <Prompt className="cd-prompt" text={descriptionText(task.prompt)} />
-      {sectionLayout && Boolean(task.tests?.length) && <section className="cd-brief-examples" aria-labelledby={`${baseId}-examples`}>
+      {sectionLayout && publicExamples.length > 0 && <section className="cd-brief-examples" aria-labelledby={`${baseId}-examples`}>
         <h2 id={`${baseId}-examples`}>{workbenchCopy('coding.brief.examples')}</h2>
         <ul>
-          {task.tests!.slice(0, 3).map((test, index) => <li key={index}>
-            <code>{test.shown ?? test.call}</code>
+          {publicExamples.map((test, index) => <li key={index}>
+            <code>{test.call}</code>
             <span aria-hidden="true"> → </span><span className="cd-visually-hidden"> {t('coding.results.expected')} </span>
-            <code>{JSON.stringify(test.expected)}</code>
+            <code>{test.expected}</code>
           </li>)}
         </ul>
       </section>}

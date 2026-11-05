@@ -132,8 +132,8 @@ for (const theme of ['light', 'dark'] as const) {
       const tab = page.getByRole('tab', { name: 'Description' });
       await tab.focus();
       await page.keyboard.press('ArrowRight');
-      await expect(page.getByRole('tab', { name: /^Results/ })).toBeFocused();
-      await expect(page.getByRole('tabpanel', { name: /^Results/ })).toBeVisible();
+      await expect(page.getByRole('tab', { name: /^Resources/ })).toBeFocused();
+      if (width >= 1024) await expect(page.getByRole('tabpanel', { name: /^Results/ })).toBeVisible();
       await page.keyboard.press('Home');
       await expect(tab).toBeFocused();
       await expect(description).toBeVisible();
@@ -147,7 +147,7 @@ test('Clone Promise.all: Run blocks an initialization-time native alias and acce
   await openTask(page, `/coding/javascript/${id}`);
   await fillEditor(page, 'const original = Promise.all.bind(Promise); const promiseAll = items => original(items);');
   await page.getByRole('button', { name: 'Run', exact: true }).click();
-  await expect(page.getByRole('tabpanel')).toContainText('Promise.all is unavailable in this exercise.', { timeout: 30_000 });
+  await expect(page.locator('.cd-feedback').getByRole('tabpanel')).toContainText('Promise.all is unavailable in this exercise.', { timeout: 30_000 });
   await fillEditor(page, solutionFor(id)!.solution);
   await page.getByRole('button', { name: 'Run', exact: true }).click();
   await expect(announced(page)).toHaveText('5 of 5 passing', { timeout: 30_000 });
@@ -235,7 +235,7 @@ test('React: a focus check passes on every Run, not just the first, and a build 
   }
   await fillEditor(page, 'export default function App() {\n  return <main><h1>Deep End</main>;\n}\n');
   await run.click();
-  await expect(page.getByRole('tabpanel').getByText(/^Build error:/)).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('.cd-feedback').getByRole('tabpanel').getByText(/^Build error:/)).toBeVisible({ timeout: 30_000 });
   await expect(announced(page)).toContainText('Build error:');
   await expect(page.getByText(/0 of 0 passing/)).toHaveCount(0);
 });
@@ -273,7 +273,7 @@ test('a runner that never loaded says so instead of blaming the code (C3-7)', as
   await openTask(page, '/coding/javascript/js-count-multiples');
   await page.getByRole('button', { name: 'Run', exact: true }).click();
   const note = 'The runner did not load, so your code did not run. Check your connection and run again.';
-  await expect(page.getByRole('tabpanel').getByText(note)).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator('.cd-feedback').getByRole('tabpanel').getByText(note)).toBeVisible({ timeout: 60_000 });
   await expect(page.getByText(/could not run|The runner crashed|Your code threw/)).toHaveCount(0);
 });
 
@@ -290,7 +290,7 @@ test('TypeScript: Submit leaves at once, and a runaway type is named as one (C5-
   // The browser's own check of this code runs for half a minute; the
   // request no longer waits for it.
   expect(seen.submits[0] - pressed).toBeLessThan(5_000);
-  const stopped = page.getByRole('tabpanel').getByText(/^Type checking stopped before it finished/);
+  const stopped = page.locator('.cd-feedback').getByRole('tabpanel').getByText(/^Type checking stopped before it finished/);
   await expect(stopped).toBeVisible();
   await expect(page.getByText(/infinite loop|loop whose condition/)).toHaveCount(0);
 
@@ -399,7 +399,7 @@ test.describe('Run and Submit share built-ins (C1-3)', () => {
     await fillEditor(page, 'const parseQuery = query => new Intl.Locale(query) && {};');
     await run.click();
     await expect(announced(page)).toHaveText(/passing$/, { timeout: 30_000 });
-    await expect(page.getByRole('tabpanel').getByText(hiddenGlobalMessage('Intl')).first()).toBeVisible();
+    await expect(page.locator('.cd-feedback').getByRole('tabpanel').getByText(hiddenGlobalMessage('Intl')).first()).toBeVisible();
   });
 });
 
