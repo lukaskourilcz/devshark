@@ -49,7 +49,7 @@
       "Prijimam, ale Easy 1 2 Medium 3 4 Hard 5 at jsou na prave strane, a at je tam na zacatku napsane jen Level: a pak ty cisla bez popisku Easy, Medium, Hard. Kazdy dokonceny level musi svitit zelene."
     ],
     "reference": "",
-    "checks": "Ukázka používá explicitně fiktivní stav: dokončeno 1 a 2, otevřena 3, zamčeno 4 a 5. Zelená není jediná informace o dokončení.",
+    "checks": "Ukázka používá fiktivní stav: dokončeno 1 a 2, uživatel znovu otevřel 1, dostupná 3, zamčeno 4 a 5. Zelená není jediná informace o dokončení.",
     "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují.",
     "basis": "Komentář: COD-02, COD-06"
   },
@@ -64,6 +64,7 @@
     ],
     "scenes": [
       "coding-track",
+      "coding-track-list",
       "coding-track-paths"
     ],
     "scene": "coding-track",
@@ -117,7 +118,7 @@
     ],
     "scene": "daily",
     "before": "Pod názvem je One question a day… a pod otázkou Tomorrow’s question is about…",
-    "after": "Oba texty odstranit. Pod nadpisem stručný kontext k aktuálnímu tématu, maximálně dva řádky: například TypeScript adds static types to JavaScript. Generics make typed code reusable.",
+    "after": "Oba texty odstranit. Pod nadpisem stručný kontext k aktuálnímu tématu, maximálně dva řádky: například TypeScript types describe data. Here, a type comes from a value.",
     "reason": "Kontext patří k otázce, neslibuje zítřejší téma a neprozrazuje správnou odpověď. Sdílené centrování viz R2-01.",
     "evidence": "Připomínky vlastníka: SYS-02, SYS-04. nedavat napis \"Tomorrows question is about Git.\" at tam zadny takovy napis neni. A stejne tak at tam neni \"One question a day.....\" text, ale misto toho je vzdy vysvetleni na dva radky max, co to je TypeScript (nebo ty generics - proste jednoduche vysvetleni te otazky).",
     "ownerComments": [
@@ -149,7 +150,7 @@
     ],
     "reference": "",
     "checks": "Ukázka HTML, další navržené copy uvedené v podkladech. Žádný optional-reading warning ani Skip to questions.",
-    "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují.",
+    "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují. Další copy: CSS controls the layout, spacing and visual style of webpages. Learn to build responsive interfaces. JavaScript adds behavior to webpages. Learn values, functions and events to build interactive features.",
     "basis": "Komentář: LEA-02"
   },
   {
@@ -185,7 +186,8 @@
       "QUI-03"
     ],
     "scenes": [
-      "quiz-results"
+      "quiz-results",
+      "quiz-results-grid"
     ],
     "scene": "quiz-results",
     "before": "Souhrn výsledku je zarovnaný vlevo a review otázky tvoří jeden dlouhý sloupec.",
@@ -233,7 +235,8 @@
       "PRO-02"
     ],
     "scenes": [
-      "profile"
+      "profile",
+      "profile-account"
     ],
     "scene": "profile",
     "before": "Account je správně pod Track and Sections, ale nezávislé sloupce mají nesourodé začátky a příliš volného místa.",

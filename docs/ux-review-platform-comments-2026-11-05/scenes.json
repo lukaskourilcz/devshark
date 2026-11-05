@@ -76,5 +76,23 @@
     "title": "Coding · Paths pod seznamem",
     "source": "guest",
     "note": "Stejný katalog po scrollu; po revizi Paths začínají až pod stránkovaným seznamem."
+  },
+  {
+    "id": "coding-track-list",
+    "title": "Coding · celá první stránka seznamu",
+    "source": "guest",
+    "note": "Seznam po scrollu: dva sloupce po 10 položkách, pager a začátek Paths."
+  },
+  {
+    "id": "quiz-results-grid",
+    "title": "Quiz · mřížka všech šesti odpovědí",
+    "source": "fixture",
+    "note": "Stejných šest fiktivních odpovědí na obou stranách, po scrollu k review."
+  },
+  {
+    "id": "profile-account",
+    "title": "Profile · Account a navazující řada",
+    "source": "fixture",
+    "note": "Stejné fiktivní nastavení po scrollu ke kartě Account; žádná akce nebyla provedena."
   }
 ]
