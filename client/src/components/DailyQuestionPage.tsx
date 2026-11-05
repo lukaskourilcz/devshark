@@ -27,13 +27,15 @@ import { categoryLabelKey } from '../lib/categories';
 import { checkDailyAnswer, dailyQuestionQuery, qotdProblem, type QotdProblem, type QotdResult } from '../lib/dailyQuestion';
 import { CURRENT_PRODUCT } from '../lib/products';
 import { captureShare, canWebShare, copyText, shareLink } from '../lib/share';
-import { addDays, isIsoDate, qotdAvailability, qotdPath, qotdTrack, utcToday, type QotdResponse } from '../../../shared/daily-question';
+import { isIsoDate, qotdAvailability, qotdPath, qotdTrack, utcToday, type QotdResponse } from '../../../shared/daily-question';
 import type { CategoryType } from '../types/quiz';
 import { renderQuestion } from './CodeBlock';
 import { CategoryTag } from './ui/CategoryTag';
 import { AnswerOptionList, QuestionActions, QuestionFeedback, QuestionShell } from './question';
 import { questionText } from '../i18n/translations.question';
 import { SaveSharkCard } from './SaveSharkCard';
+import { Breadcrumb } from './ui/Breadcrumb';
+import { topicContext } from '../i18n/translations.topicContext';
 import { DailyHeader } from './DailyStaticArticle';
 import './DailyQuestion.css';
 
@@ -65,7 +67,8 @@ export default function DailyQuestionPage() {
 
   return (
     <article className="ss-info-page ss-daily" aria-busy={query.isFetching || undefined}>
-      <DailyHeader t={t} track={track ? trackName : undefined} date={valid ? shownDate : undefined} dateLabel={valid ? longDate(shownDate) : undefined} />
+      <Breadcrumb items={[{ label: t('nav.today'), href: '/today' }, { label: t('daily.titlePlain') }]} />
+      <DailyHeader context={query.data ? <><p>{topicContext[query.data.question.category] ?? topicContext[query.data.track]}</p>{query.data.question.introduction?.trim() && <div>{renderQuestion(query.data.question.introduction)}</div>}</> : undefined} t={t} track={track ? trackName : undefined} date={valid ? shownDate : undefined} dateLabel={valid ? longDate(shownDate) : undefined} />
 
       {availability !== 'open' ? (
         <Unavailable problem={availability === 'not-yet' ? 'not-yet' : 'before-start'} date={valid ? date : null} />
@@ -83,11 +86,7 @@ export default function DailyQuestionPage() {
         <DailyQuestion key={`${query.data.sessionId}:${reloads}`} data={query.data} onReload={() => void reload()} focusQuestion={reloads > 0} />
       )}
 
-      {valid && (
-        <p className="ss-daily__next">
-          {t('daily.next', { track: t(categoryLabelKey(qotdTrack(addDays(shownDate, 1)))) })}
-        </p>
-      )}
+
     </article>
   );
 }

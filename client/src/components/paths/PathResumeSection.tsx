@@ -56,17 +56,17 @@ interface ResumeRow {
 function PathRow({ row }: { row: ResumeRow }) {
   const { t } = useLanguage();
   return (
-    <li className="today-item">
-      <Link className="today-item__link" to={activityHref(row.enrollment.pathId as LearningPathId, row.moduleId, row.activityId)} onClick={event => { if (row.locked) { event.preventDefault(); openUpgradeSheet({ kind: 'learning-path-activity', ref: `${row.enrollment.pathId}:${row.activityId}` }); } }}>
-        <span className="today-item__body">
-          <span className="today-item__title">{row.activityTitle}</span>
-          <span className="today-item__reason">
+    <li className="today-path">
+      <Link className="today-card ss-panel" to={activityHref(row.enrollment.pathId as LearningPathId, row.moduleId, row.activityId)} onClick={event => { if (row.locked) { event.preventDefault(); openUpgradeSheet({ kind: 'learning-path-activity', ref: `${row.enrollment.pathId}:${row.activityId}` }); } }}>
+        <span className="today-card__body">
+          <span className="today-card__meta">{row.activityTitle}</span>
+          <span className="today-card__reason">
             {row.pathTitle} · {t('today.pathReason')}
             {row.locked && <> · <span className="ss-premium-label">{t('premium.badge')}</span></>}
           </span>
         </span>
-        <span className="today-item__action">
-          {t('today.pathResume', { path: row.pathTitle })}
+        <span className="today-card__action">
+          <span className="ss-sr-only">{t('today.pathResume', { path: row.pathTitle })}</span><span aria-hidden="true">{t('paths.action.continue')}</span>
           <ArrowGlyph />
         </span>
       </Link>
@@ -126,7 +126,7 @@ export function PathResumeSection() {
 
   // The heading names no path, so it holds whichever paths are published.
   return (
-    <section className="today-section" aria-label={t('today.pathSection')}>
+    <section className="today-section today-path-section" aria-label={t('today.pathSection')}>
       <h2 className="today-section__title">{t('today.pathSection')}</h2>
       <ul className="today-list">
         {rows.map((row) => (

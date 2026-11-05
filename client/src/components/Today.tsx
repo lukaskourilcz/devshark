@@ -256,6 +256,7 @@ export default function Today() {
 
       {completedToday && <DonePanel t={t} />}
 
+      <div className="today-columns"><div className="today-plan">
       {hasPlan ? (
         <>
           {SECTION_ORDER.map((kind) => {
@@ -283,13 +284,10 @@ export default function Today() {
         plan.premiumNext ? <PremiumEmptyState item={plan.premiumNext} t={t} /> : <EmptyState t={t} />
       ) : null}
 
-      {isAuthenticated && (
-        <>
-          <ConceptDue.Part />
-          <ChallengeRun.Part />
-          <PathResume.Part />
-        </>
-      )}
+      {isAuthenticated && <><ConceptDue.Part /><ChallengeRun.Part /></>}
+      </div>
+      {isAuthenticated && <PathResume.Part />}
+      </div>
     </TodayShell>
   );
 }
