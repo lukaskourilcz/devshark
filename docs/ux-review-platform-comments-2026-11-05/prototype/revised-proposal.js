@@ -39,6 +39,7 @@ window.applyOwnerRevision = function(scene) {
   .r2-catalogue .cd-row-item {border-bottom:1px solid var(--ss-card-line);}
   .r2-pager {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 0 20px;font-size:13px;color:var(--color-text-secondary);}
   .r2-pager button {min-height:44px;padding:6px 14px;border:1px solid var(--ss-card-line);border-radius:8px;background:var(--color-background-surface);color:var(--color-text-primary);}
+  [data-owner-revision='coding-track'] #r2-paths {scroll-margin-top:128px;}
   [data-owner-revision='coding-track'] .cd-projects {margin-top:20px;padding-top:24px;border-top:1px solid var(--ss-card-line);}
   [data-owner-revision='quiz-results'] .quiz-results {max-width:none!important;}
   [data-owner-revision='quiz-results'] .quiz-results__summary {align-items:center!important;text-align:center!important;}
@@ -81,7 +82,7 @@ window.applyOwnerRevision = function(scene) {
     previous.onclick=()=>{if(current>0){current--;render();}};next.onclick=()=>{if((current+1)*20<rows.length){current++;render();}};render();
   }
   if(scene==='evolving'){
-    const nav=$('.cd-stage-nav');if(nav){const buttons=all('a,button',nav);nav.replaceChildren(node('span','','Level:'));buttons.forEach((b,i)=>{b.textContent=String(i+1);if(i<2){b.classList.add('r2-complete');b.textContent+=' ✓';b.disabled=false;b.setAttribute('aria-label','Level '+(i+1)+', completed');if(i===0)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');}else if(i===2){b.disabled=false;b.removeAttribute('aria-current');b.setAttribute('aria-label','Level 3, available');}else{b.disabled=true;b.removeAttribute('aria-current');}nav.append(b);});}
+    const nav=$('.cd-stage-nav');if(nav){const buttons=all('a,button',nav);nav.replaceChildren(node('span','','Level:'));buttons.forEach((b,i)=>{b.textContent=String(i+1);if(i<2){b.classList.add('r2-complete');b.removeAttribute('aria-disabled');b.textContent+=' ✓';b.disabled=false;b.setAttribute('aria-label','Level '+(i+1)+', completed');if(i===0)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');}else if(i===2){b.disabled=false;b.removeAttribute('aria-current');b.setAttribute('aria-label','Level 3, available');b.removeAttribute('aria-disabled');}else{b.disabled=true;b.removeAttribute('aria-current');}nav.append(b);});}
   }
   if(scene==='daily'){
     $('.ss-daily__next')?.remove();const lead=$('.ss-info-lead')||$('.ss-daily header p');if(lead)lead.textContent='TypeScript types describe data. Here, a type comes from a value.';
