@@ -224,7 +224,7 @@ it('lists checks as one divided list: the call, the expected value after an arro
 
 it('draws the pane separator as a quiet 1px line in a 12px column with 2px either side (coding-18)', () => {
   const { container } = mount('javascript');
-  const separator = screen.getByRole('separator', { name: 'Resize the editor and results panes' });
+  const separator = screen.getByRole('separator', { name: 'Resize the editor and task information panes' });
   expect(separator).toHaveAttribute('tabindex', '0');
   expect(container.querySelector('.cd-workbench__grid')).toContainElement(separator);
   const css = readFileSync(new URL('../src/coding/Coding.css', import.meta.url), 'utf8');

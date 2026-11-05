@@ -1592,7 +1592,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
           role="separator"
           tabIndex={0}
           aria-orientation="vertical"
-          aria-label={t('coding.layout.splitter')}
+          aria-label={sectionLayout ? workbenchCopy('coding.reference.resize') : t('coding.layout.splitter')}
           aria-valuenow={layout.split}
           aria-valuemin={SPLIT_MIN}
           aria-valuemax={SPLIT_MAX}

@@ -101,6 +101,45 @@ function runInWorker(page: Page, url: string, calls: string[], expectations: unk
 
 const announced = (page: Page) => page.locator('.cd-workbench > [role="status"]');
 
+for (const theme of ['light', 'dark'] as const) for (const width of [360, 1280]) {
+  test(`task-first Coding keeps the brief, code and feedback at ${width}px in ${theme}`, async ({ page }, info) => {
+    await prepare(page);
+    await page.setViewportSize({ width, height: 900 });
+    await page.addInitScript((theme) => localStorage.setItem('devquiz:color-mode', theme), theme);
+    await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+    await openTask(page, '/coding/javascript/js-digit-sum');
+    if (width < 1024) await page.getByRole('button', { name: 'Use the editor here' }).click();
+    const editor = page.locator('.cm-content');
+    await fillEditor(page, 'const digitSum = n => 0;');
+    await page.getByRole('button', { name: 'Run', exact: true }).click();
+    const feedback = page.getByRole('region', { name: 'Code feedback', exact: true });
+    await expect(feedback.getByRole('tabpanel', { name: /^Results/ })).toContainText('Fail');
+    await expect(page.getByRole('tabpanel', { name: 'Description' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Examples' })).toContainText('digitSum(493)');
+    await page.getByRole('tab', { name: /^Resources/ }).click();
+    await page.getByRole('button', { name: 'Hide output' }).click();
+    await expect(feedback.getByRole('tabpanel', { name: /^Results/ })).not.toBeVisible();
+    await editor.press('Control+Enter');
+    await expect(feedback.getByRole('tabpanel', { name: /^Results/ })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /^Resources/ })).toHaveAttribute('aria-selected', 'true');
+    await expect(editor).toHaveText('const digitSum = n => 0;');
+    if (width >= 1024) {
+      const before = await feedback.boundingBox();
+      const resize = page.getByRole('separator', { name: 'Resize the code feedback panel' });
+      await resize.focus();
+      await resize.press('ArrowUp');
+      const after = await feedback.boundingBox();
+      expect(after!.height - before!.height).toBeGreaterThan(20);
+      await resize.press('Enter');
+    }
+    await page.getByRole('tab', { name: 'Description' }).click();
+    await expect(page.locator('.ss-header-brand svg use').last()).toHaveAttribute('href', /devshark-wordmark.*#shark/);
+    await expect(page.locator('.ss-fin-drift').first()).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: info.outputPath(`task-first-${theme}-${width}.png`), fullPage: true });
+  });
+}
+
 for (const theme of ['light', 'dark'] as const) {
   for (const width of [360, 390, 430, 768, 1024, 1280, 1440]) {
     test(`Description owns the complete brief at ${width}px in ${theme}`, async ({ page }, info) => {

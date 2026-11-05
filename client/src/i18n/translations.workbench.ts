@@ -10,6 +10,7 @@ export const workbenchEn = {
   'coding.tab.description': 'Description',
   'coding.output.label': 'Task information and results',
   'coding.reference.label': 'Task information',
+  'coding.reference.resize': 'Resize the editor and task information panes',
   'coding.feedback.label': 'Code feedback',
   'coding.feedback.show': 'Show output',
   'coding.feedback.hide': 'Hide output',
