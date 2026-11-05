@@ -305,31 +305,28 @@ function ProfileBody({
             a useful zero state. It must not be buried below track/stat cards. */}
         <StreakCard stats={stats} />
 
-        {/* On desktop the cards split into two columns so the profile lands close
-            to one viewport instead of one long scroll; on mobile they stack.
-            The learning column (career, track, GitHub garden) is the left
-            one; the right one opens with the study advisor, then saved
-            questions, your name and account. With the advisor on the left
-            the right column ended 411px short at 1280; here both end within
-            about 20px of each other (UX audit social-account-03). */}
+        {/* Natural-height columns group study/account settings separately from
+            progress and identity. Keep Track → Account adjacent in the DOM. */}
         <Grid columns={{ minWidth: 360, max: 2 }} gap={2} align="start" width="100%">
           <div className="de-profile-column" data-column="learning">
           <VStack gap={2}>
-            <CareerCard
-              totals={{ quizzes: totalQuizzes, questions: totalQuestions, correct: totalCorrect, average: averageScore }}
-            />
-
             {/* One card owns the track: the paths card, which carries the
                 joined Learn sections, the specialization and the picker. */}
             <LearningPathsCard />
 
-            <GithubGardenCard />
+            <AccountDeletionCard />
+            <AdvisorCard />
           </VStack>
           </div>
 
           <div className="de-profile-column" data-column="account">
           <VStack gap={2}>
-            <AdvisorCard />
+            <CareerCard
+              totals={{ quizzes: totalQuizzes, questions: totalQuestions, correct: totalCorrect, average: averageScore }}
+            />
+
+            <SharknameCard focus={focusSharkname} onFocused={() => setFocusSharkname(false)} />
+            <GithubGardenCard />
 
             {bookmarkedQuestions.length > 0 && (
               <div className="ss-panel" style={{ padding: 24, width: '100%' }}>
@@ -364,12 +361,6 @@ function ProfileBody({
               </div>
             )}
 
-            {/* One 'Your name' panel: the sharkname, then what friends see and
-                what leaderboards show, side by side and independent
-                (social-account-04). */}
-            <SharknameCard focus={focusSharkname} onFocused={() => setFocusSharkname(false)} />
-
-            <AccountDeletionCard />
           </VStack>
           </div>
         </Grid>
@@ -419,12 +410,12 @@ export function StreakCard({
               instead of two (UX audit social-account-18). */}
           <Grid columns={{ minWidth: 120, max: 2 }} gap={2}>
             <div role="group" aria-labelledby={currentLabelId} style={{ display: 'flex', width: '100%' }}>
-              <Card variant="muted" padding={3} width="100%">
+              <Card variant="muted" padding={1.5} width="100%">
                 <VStack gap={0.5} align="center">
                   {/* "4 days": the number and its unit on one line. */}
                   <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
                     <Text
-                      size="4xl"
+                      size="2xl"
                       weight="bold"
                       aria-label={unavailable || streakUnknown ? t('profile.streakValueUnavailable') : undefined}
                     >
@@ -440,11 +431,11 @@ export function StreakCard({
             </div>
 
             <div role="group" aria-labelledby={longestLabelId} style={{ display: 'flex', width: '100%' }}>
-              <Card variant="muted" padding={3} width="100%">
+              <Card variant="muted" padding={1.5} width="100%">
                 <VStack gap={0.5} align="center">
                   <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
                     <Text
-                      size="4xl"
+                      size="2xl"
                       weight="bold"
                       aria-label={unavailable ? t('profile.streakValueUnavailable') : undefined}
                     >
@@ -653,7 +644,7 @@ function CareerCard({ totals }: { totals: { quizzes: number; questions: number; 
             </Text>
           </div>
           <span className="de-career-head__xp">
-            <Text size="3xl" weight="bold" color="accent">{nf(totalXp)}</Text>
+            <Text size="xl" weight="bold" color="accent">{nf(totalXp)}</Text>
             <Text type="supporting" color="secondary">{t('profile.xpUnit')}</Text>
           </span>
         </div>
@@ -842,7 +833,7 @@ const StatTile = ({ label, value }: { label: string; value: number | string }) =
   <div style={{ display: 'flex', width: '100%' }}>
     <Card variant="muted" padding={2} width="100%">
       <VStack gap={0.5}>
-        <Text size="xl" weight="bold" style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</Text>
+        <Text size="lg" weight="bold" style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</Text>
         <Text type="supporting" size="xsm" color="primary" weight="semibold">{label}</Text>
       </VStack>
     </Card>
