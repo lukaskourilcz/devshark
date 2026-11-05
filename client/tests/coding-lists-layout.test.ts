@@ -46,7 +46,7 @@ describe('the Coding lists', () => {
     expect(row).toContain('border: 0');
     expect(row).toContain('border-radius: 0');
     expect(rule('.cd-row-item')).toContain('border-bottom: 1px solid var(--ss-card-line)');
-    expect(rule('.cd-tier .cd-rows', '@media (min-width: 1024px)')).toContain('repeat(2, minmax(0, 1fr))');
+    expect(rule('.cd-catalogue')).toContain('repeat(2, minmax(0, 1fr))');
     // A phone drops the meta's separator, so a wrapped meta line never opens with '·'.
     expect(rule('.cd-row__meta > [aria-hidden]', '@media (max-width: 599px)')).toContain('display: none');
   });

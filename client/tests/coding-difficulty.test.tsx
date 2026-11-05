@@ -57,16 +57,19 @@ const bandHeadings = () => screen.getAllByRole('heading', { level: 2 }).map((hea
   .filter((text) => text === 'Easy' || text === 'Medium' || text === 'Hard');
 
 describe('difficulty labels on a track page', () => {
-  it('groups Easy, Medium and Hard in that order, with the tier as a sub-label', () => {
+  it('paginates twenty tasks as two columns of ten before Paths', () => {
     mount('/coding/javascript', <CodingTrackScreen />, '/coding/:track');
-    expect(bandHeadings()).toEqual(['Easy', 'Medium', 'Hard']);
-    const easy = screen.getByRole('region', { name: 'Easy' });
-    expect(within(easy).getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual(['Foundations', 'Fluency']);
-    const hard = screen.getByRole('region', { name: 'Hard' });
-    expect(within(hard).getByRole('heading', { level: 3, name: 'Interview' })).toBeInTheDocument();
-    // Each challenge sits in the band its index row names, once.
-    const standalone = CODING_INDEX.filter((task) => task.track === 'javascript' && !evolvingStage(task.id));
-    expect(within(easy).getAllByRole('listitem')).toHaveLength(standalone.filter((task) => task.difficulty === 'easy').length);
+    const catalogue = screen.getByRole('region', { name: 'Coding challenges' });
+    const columns = within(catalogue).getAllByRole('list');
+    expect(columns.map(column => within(column).getAllByRole('listitem').length)).toEqual([10, 10]);
+    expect(bandHeadings()).toEqual([]);
+    const first = catalogue.querySelector('.cd-row__title')!.textContent;
+    fireEvent.click(screen.getByRole('button', { name: 'Next', exact: true }));
+    expect(screen.getByTestId('search').textContent).toBe('?page=2');
+    expect(catalogue.querySelector('.cd-row__title')!.textContent).not.toBe(first);
+    fireEvent.click(screen.getByRole('button', { name: 'Previous', exact: true }));
+    expect(catalogue.querySelector('.cd-row__title')!.textContent).toBe(first);
+    expect(catalogue.compareDocumentPosition(document.querySelector('#cd-track-paths')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('offers the three labels in the difficulty filter and keeps the choice in the URL', () => {
@@ -75,13 +78,15 @@ describe('difficulty labels on a track page', () => {
     expect([...select.options].map((option) => option.textContent)).toEqual(['Any difficulty', 'Easy', 'Medium', 'Hard']);
     fireEvent.change(select, { target: { value: 'medium' } });
     expect(screen.getByTestId('search').textContent).toBe('?difficulty=medium');
-    expect(bandHeadings()).toEqual(['Medium']);
+    const titles = new Set(CODING_INDEX.filter(task => task.track === 'javascript' && task.difficulty === 'medium').map(task => task.title));
+    expect([...document.querySelectorAll('.cd-catalogue .cd-row__title')].every(row => titles.has(row.textContent!))).toBe(true);
   });
 
   it('reads an older tier link as the label that tier projects to', () => {
     mount('/coding/javascript?tier=4', <CodingTrackScreen />, '/coding/:track');
     expect((screen.getByLabelText('Any difficulty') as HTMLSelectElement).value).toBe('hard');
-    expect(bandHeadings()).toEqual(['Hard']);
+    const titles = new Set(CODING_INDEX.filter(task => task.track === 'javascript' && task.difficulty === 'hard').map(task => task.title));
+    expect([...document.querySelectorAll('.cd-catalogue .cd-row__title')].every(row => titles.has(row.textContent!))).toBe(true);
     fireEvent.change(screen.getByLabelText('Any difficulty'), { target: { value: 'easy' } });
     expect(screen.getByTestId('search').textContent).toBe('?difficulty=easy');
   });
@@ -90,7 +95,7 @@ describe('difficulty labels on a track page', () => {
 describe('searching a track', () => {
   // The search reads the title the row shows and the technique tags, nothing
   // a learner cannot see.
-  const rows = () => screen.queryAllByRole('listitem').map((row) => row.textContent ?? '');
+  const rows = () => [...document.querySelectorAll('.cd-catalogue .cd-row-item')].map(row => row.textContent ?? '');
   it('finds a challenge by its title', () => {
     mount('/coding/javascript?q=zip%20two', <CodingTrackScreen />, '/coding/:track');
     expect(rows().some((row) => row.includes('Zip two lists'))).toBe(true);
@@ -132,7 +137,8 @@ describe('the format filter', () => {
     // Every React challenge is graded by tests, so none disappears.
     const standalone = CODING_INDEX.filter((task) => task.track === 'react' && !evolvingStage(task.id));
     expect(standalone.every((task) => task.verify === 'tests')).toBe(true);
-    expect(screen.getAllByRole('listitem').length).toBeGreaterThanOrEqual(standalone.length);
+    expect(within(screen.getByRole('region', { name: 'Coding challenges' })).getAllByRole('listitem')).toHaveLength(20);
+    expect(screen.getByRole('navigation', { name: 'Challenge pages' })).toHaveTextContent(`1–20 of ${standalone.length}`);
   });
 });
 

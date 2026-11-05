@@ -144,9 +144,9 @@ describe('the project cards on the free plan', () => {
 });
 
 describe('a track page on the free plan', () => {
-  it('shows the Premium state on rows inside their difficulty band', () => {
+  it('shows Premium accurately inside the paged catalogue', () => {
     mount('/coding/javascript', <CodingTrackScreen />, '/coding/:track');
-    const easy = screen.getByRole('heading', { level: 2, name: 'Easy' }).closest('section')!;
+    const easy = screen.getByRole('region', { name: 'Coding challenges' });
     const free = CODING_INDEX.find((task) => task.track === 'javascript' && task.difficulty === 'easy' && task.free && task.tier === 1)!;
     const premium = CODING_INDEX.find((task) => task.track === 'javascript' && task.difficulty === 'easy' && !task.free && task.tier === 1 && !task.id.includes('evolving') && !task.id.includes('-path-'))!;
     const rowOf = (title: string) => within(easy).getByText(title).closest('li')!;
@@ -172,7 +172,7 @@ describe('a track page before the plan is known', () => {
     const refetch = vi.fn();
     plan.value = { ...FREE_PLAN, tier: null, failed: true, refetch };
     mount('/coding/javascript', <CodingTrackScreen />, '/coding/:track');
-    const easy = screen.getByRole('heading', { level: 2, name: 'Easy' }).closest('section')!;
+    const easy = screen.getByRole('region', { name: 'Coding challenges' });
     const row = within(easy).getByText(premiumTask().title).closest('li')!;
     expect(within(row).queryByText('Premium')).toBeNull();
     expect(screen.getByRole('alert')).toHaveTextContent('We could not load your plan, so no challenge here carries the Premium mark.');
@@ -183,7 +183,7 @@ describe('a track page before the plan is known', () => {
   it('draws a Premium row for a signed-out visitor as Premium', () => {
     plan.value = { ...FREE_PLAN, signedIn: false };
     mount('/coding/javascript', <CodingTrackScreen />, '/coding/:track');
-    const easy = screen.getByRole('heading', { level: 2, name: 'Easy' }).closest('section')!;
+    const easy = screen.getByRole('region', { name: 'Coding challenges' });
     const row = within(easy).getByText(premiumTask().title).closest('li')!;
     expect(within(row).getByText('Premium')).toBeInTheDocument();
     const premiumRow = row.querySelector<HTMLButtonElement>('button.cd-row--premium')!;

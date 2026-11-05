@@ -58,8 +58,8 @@ const TRIO = ['Log it right', 'Trace the state', 'Edges and inputs'];
 
 describe('the debugging paths on the Coding home', () => {
   it('lists the three paths under their own heading, in levels, and not the old project', () => {
-    mount('/coding', <CodingHome />, '/coding');
-    const section = screen.getByRole('region', { name: 'Debugging paths' });
+    mount('/coding?projects=debugging', <CodingHome />, '/coding');
+    const section = screen.getByRole('region', { name: 'Project challenges' });
     expect(within(section).getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual(TRIO);
     expect(within(section).getAllByText('0 of 5 levels completed')).toHaveLength(3);
     expect(screen.queryByRole('heading', { name: 'Debugging path' })).toBeNull();
@@ -68,8 +68,8 @@ describe('the debugging paths on the Coding home', () => {
   it('counts a signed-in learner\'s passed levels', () => {
     state.signedIn = true;
     state.passed = ['js-path-tracing-1', 'js-path-tracing-2'];
-    mount('/coding', <CodingHome />, '/coding');
-    const section = screen.getByRole('region', { name: 'Debugging paths' });
+    mount('/coding?projects=debugging', <CodingHome />, '/coding');
+    const section = screen.getByRole('region', { name: 'Project challenges' });
     expect(within(section).getByText('2 of 5 levels completed')).toBeInTheDocument();
   });
 

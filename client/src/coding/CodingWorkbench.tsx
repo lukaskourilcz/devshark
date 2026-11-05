@@ -1241,7 +1241,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const hintLabel = taken === 0 ? t('coding.hint') : t('coding.hintNext');
   const showSkip = signedIn && mode === 'section' && !skipResult;
   const submitAction = mode !== 'landing' && <SwimCta dir={1} onClick={() => { if (!submitDisabled) void submit(); }} unavailable={submitDisabled} label={phase === 'submitting' ? t('coding.submitting') : t('coding.submit')} />;
-  const parentTrack = evolution?.challenge.category === 'fullstack' ? 'fullstack' : task.track;
+  const parentTrack = backHref?.match(/^\/coding\/([^/?]+)/)?.[1] ?? (evolution ? evolution.challenge.category ?? 'evolving' : task.track);
   const parentHref = backHref?.startsWith('/coding') ? backHref : `/coding/${parentTrack}`;
   const editorBar = (
     <div className="cd-editor-bar ss-compact">

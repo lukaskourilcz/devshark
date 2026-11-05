@@ -7,6 +7,15 @@
 // codingListCopy fills `{name}` placeholders the way t() does.
 
 export const codingListEn = {
+  'coding.projects.title': 'Project challenges',
+  'coding.projects.formats': 'Challenge formats',
+  'coding.paths.lead': 'Build a project in steps, with each level extending your code.',
+  'coding.paths.link': 'Explore {track} Paths',
+  'coding.pages.label': 'Challenge pages',
+  'coding.pages.previous': 'Previous',
+  'coding.pages.next': 'Next',
+  'coding.pages.range': '{from}–{to} of {total} · Page {page} of {pages}',
+
   'coding.evolving.start': 'Start',
   'coding.evolving.review': 'Review',
   'coding.evolving.showAll': 'Show all {n} challenges',

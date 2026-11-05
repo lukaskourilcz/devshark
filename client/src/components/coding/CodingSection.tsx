@@ -1,8 +1,8 @@
 // The Coding section: home, one track and one task. The review queue is
 // retired (a pass is permanent); /coding/review only redirects home.
 // devShark-only routes; the App gates them like /roadmap and /typing.
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Link, Navigate, useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { codingListCopy } from '../../i18n/translations.codingLists';
@@ -30,7 +30,6 @@ import {
   CODING_DIFFICULTIES,
   CODING_SECTION_TRACKS,
   CODING_TECHNIQUE_GROUPS,
-  CODING_TIERS,
   TIER_DIFFICULTY,
   formatOf,
   hasLearnLevel,
@@ -57,6 +56,7 @@ import '../../coding/Coding.css';
 import { Button } from '@astryxdesign/core/Button';
 import { LockedButton } from '../ui/LockedButton';
 import { PageHeader } from '../ui/PageHeader';
+import { Breadcrumb } from '../ui/Breadcrumb';
 
 type Status = 'open' | 'in_progress' | 'passed' | 'revealed' | 'locked' | 'premium';
 
@@ -72,7 +72,7 @@ const GROUPS = Object.keys(CODING_TECHNIQUE_GROUPS) as CodingTechniqueGroup[];
 // offers: system design is hidden, and no task of it ships (CODING_SECTION_TRACKS).
 const SECTION_INDEX = CODING_INDEX.filter((task) => isCodingSectionTrack(task.track) && !evolvingStage(task.id));
 const INDEX_BY_ID = new Map(CODING_INDEX.map((task) => [task.id, task]));
-const TIERS: readonly CodingTier[] = [1, 2, 3, 4, 5];
+const TASK_PAGE_SIZE = 20;
 /** How many project or path rows a list shows before "Show all". */
 const LIST_FOLD = 5;
 
@@ -217,7 +217,7 @@ function SaveButton({ taskId, saved, onToggle, busy, toolbar = false }: { taskId
 /** One row of a track's list. A track lists up to three hundred of them, and
  * every key typed in its search box draws the list again: a row whose task
  * and state did not change is not drawn again. */
-const TaskRow = memo(function TaskRow({ task, status, premium = 'open', saved, onSave, saving, saveError }: {
+const TaskRow = memo(function TaskRow({ task, status, premium = 'open', saved, onSave, saving, saveError, returnTo, reason }: {
   task: CodingTaskSummary;
   status: Status;
   /** 'locked' and 'preview' show the "Premium" badge. 'unknown' (the plan is
@@ -227,8 +227,12 @@ const TaskRow = memo(function TaskRow({ task, status, premium = 'open', saved, o
   onSave?: (taskId: string, next: boolean) => void;
   saving?: boolean;
   saveError?: boolean;
+  returnTo?: string;
+  reason?: string;
 }) {
   const { t } = useLanguage();
+  const lockId = useId();
+  const [lockExpanded, setLockExpanded] = useState(false);
   const locked = status === 'locked';
   // One line (UX audit coding-06): the title, its level as quiet meta, any
   // tag, then the status at the row's end; every row the same height.
@@ -255,9 +259,10 @@ const TaskRow = memo(function TaskRow({ task, status, premium = 'open', saved, o
         // Focusable and announced as unavailable; activating it explains why.
         ? <button type="button" className="cd-row cd-row--premium" aria-disabled="true" onClick={() => askForPremium(task.id)}>{inner}</button>
         : locked
-          ? <div className="cd-row" aria-disabled="true">{inner}</div>
-          : <Link className="cd-row" to={`/coding/${task.track}/${task.id}`}>{inner}</Link>}
+          ? <button type="button" className="cd-row" aria-disabled="true" aria-describedby={reason ? lockId : undefined} aria-expanded={reason ? lockExpanded : undefined} onClick={() => setLockExpanded(open => !open)}>{inner}</button>
+          : <Link className="cd-row" to={`/coding/${task.track}/${task.id}`} state={returnTo ? { codingReturnTo: returnTo } : undefined}>{inner}</Link>}
       {save}
+      {locked && reason && <p id={lockId} className={lockExpanded ? 'cd-row-item__reason' : 'cd-visually-hidden'} role={lockExpanded ? 'status' : undefined}>{reason}</p>}
       {saveError && <p className="cd-row-item__error" role="alert">{codingListCopy('coding.saved.saveFailed')}</p>}
     </li>
   );
@@ -329,6 +334,7 @@ function StaleProgressNotice({ failed, onRetry }: { failed: boolean; onRetry: ()
 function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = true, labelledBy }: { passed: ReadonlySet<string>; premiumOf: (taskId: string) => LockState; category?: EvolvingCategory; track?: CodingTrack; progressKnown?: boolean; labelledBy?: string }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const listRef = useRef<HTMLDivElement>(null);
   const fullstack = category === 'fullstack';
   const challenges = useMemo(() => listedChallenges({ category, track }), [category, track]);
@@ -379,7 +385,7 @@ function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = t
           <p>{progressKnown ? t(challenge.short ? 'coding.evolving.levelsProgress' : 'coding.evolving.progress', { n: completed, total: challenge.stages.length }) : codingListCopy('coding.progress.unavailable')}{laterLocked && <> <Badge variant="neutral" label={t('premium.badge')} /></>}</p>
         </div>
         {/* The quieter fin: the page's one SwimCta is its next challenge. */}
-        <FadeFinCta label={action} ariaLabel={codingListCopy('coding.project.action', { action, title: challenge.title })} finLeft="62%" finSize={26} accent="var(--brand-accent)" onClick={() => { if (isBarred(premiumOf(resumeId))) askForPremium(resumeId); else navigate(`/coding/${evolvingTaskTrack(resumeId)}/${resumeId}`); }} />
+        <FadeFinCta label={action} ariaLabel={codingListCopy('coding.project.action', { action, title: challenge.title })} finLeft="62%" finSize={26} accent="var(--brand-accent)" onClick={() => { if (isBarred(premiumOf(resumeId))) askForPremium(resumeId); else navigate(`/coding/${evolvingTaskTrack(resumeId)}/${resumeId}`, { state: { codingReturnTo: location.pathname + location.search } }); }} />
       </article>;
     })}</div>
     {foldable && (
@@ -431,6 +437,9 @@ export function CodingHome() {
   useCodingFirstData('session');
   useWarmWorkbench();
   const { t } = useLanguage();
+  const [params] = useSearchParams();
+  const selectedProjects = params.get('projects');
+  const projectFormat: EvolvingCategory | undefined = selectedProjects === 'debugging' || selectedProjects === 'fullstack' ? selectedProjects : undefined;
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const progress = useCodingProgress(isAuthenticated);
   const run = usePracticeSession(isAuthenticated);
@@ -514,20 +523,27 @@ export function CodingHome() {
       {/* Below the tracks and collapsed to one row until it is opened: a run
           is a way through the tracks, not the first thing to read. */}
       <ChallengeRunPlanner signedIn={isAuthenticated} collapsible resumeInPrimary={Boolean(runNext) && nextState === 'ready'} />
-      <EvolvingGallery passed={passed} premiumOf={premiumOf} category="debugging" progressKnown={progressKnown} />
-      <EvolvingGallery passed={passed} premiumOf={premiumOf} progressKnown={progressKnown} />
-      <Link className="cd-fullstack-feature" to="/coding/fullstack">
-        <div><Kicker>{t('coding.discovery.build')}</Kicker><h2>{t('coding.evolving.fullstack')}</h2><p>{t('coding.discovery.fullstack')}</p><span className="cd-link">{t('coding.discovery.explore')} <span aria-hidden>↗</span></span></div>
-        <div className="cd-stack-path" aria-hidden><span>JS</span><i>→</i><span>TS</span><i>→</i><span>API</span><i>→</i><span>React</span></div>
-      </Link>
+      <div className="cd-project-browser">
+        <Kicker as="h2" id="cd-projects-title">{codingListCopy('coding.projects.title')}</Kicker>
+        <nav className="cd-project-formats" aria-label={codingListCopy('coding.projects.formats')}>
+          {(['evolving', 'debugging', 'fullstack'] as const).map(format => {
+            const next = new URLSearchParams(params);
+            if (format === 'evolving') next.delete('projects'); else next.set('projects', format);
+            const label = format === 'evolving' ? t('coding.evolving.title') : format === 'debugging' ? t('coding.evolving.debugging') : t('coding.evolving.fullstack');
+            return <Link key={format} to={{ pathname: '/coding', search: next.toString() }} aria-current={(projectFormat ?? 'evolving') === format ? 'page' : undefined} >{label}</Link>;
+          })}
+        </nav>
+        <EvolvingGallery passed={passed} premiumOf={premiumOf} category={projectFormat} progressKnown={progressKnown} labelledBy="cd-projects-title" />
+      </div>
       {/* Ten technique groups, each one a row that says what it is rather than
           a pill that says only its name and a number. A row opens the track
           with the most of that technique, filtered to it, and counts that
           track's challenges, so the number is the one the list shows; the
           sentence is what makes the name mean something to a learner who has
           not met it yet. */}
-      <section aria-labelledby="cd-techniques">
-        <Kicker as="h2" id="cd-techniques">{t('coding.techniques')}</Kicker>
+      <details className="cd-technique-browser">
+        <summary id="cd-techniques">{t('coding.techniques')}</summary>
+        <section aria-labelledby="cd-techniques">
         <p className="cd-lead">{t('coding.techniquesLead')}</p>
         <div className="cd-techniques">
           {GROUPS.map((group) => {
@@ -548,7 +564,8 @@ export function CodingHome() {
             );
           })}
         </div>
-      </section>
+        </section>
+      </details>
     </div>
   );
 }
@@ -562,7 +579,7 @@ export function FullStackScreen() {
   const { passed, premiumOf, planLoading, planFailed, retryPlan } = useStatuses(progress.data);
   if ((isAuthenticated && progress.isLoading) || planLoading) return <LoadingScreen label={t('coding.loading')} />;
   return <div className="cd-page ss-pop">
-    <Link className="cd-link" to="/coding">{t('coding.title')}</Link>
+<Breadcrumb items={[{ label: t('nav.coding'), href: '/coding' }, { label: codingListCopy('coding.fullstack.title') }]} />
     <Kicker as="h1" className="ss-section-title" id="cd-fullstack-title">{codingListCopy('coding.fullstack.title')}</Kicker>
     <PlanNotice failed={planFailed} onRetry={retryPlan} />
     {isAuthenticated && progress.isError && !progress.data && <p className="cd-note cd-note--error" role="alert">{t('coding.discovery.failed')} <Button variant="secondary" onClick={()=>void progress.refetch()} label={t('coding.retry')} /></p>}
@@ -584,6 +601,8 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
   useCodingFirstData('bookmarks');
   useWarmWorkbench();
   const { t } = useLanguage();
+  const location = useLocation();
+  const catalogue = useRef<HTMLDivElement>(null);
   const [params, setParams] = useSearchParams();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const progress = useCodingProgress(isAuthenticated);
@@ -625,6 +644,7 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
   }, [saveChallenge]);
 
   const tasks = useMemo(() => SECTION_INDEX.filter((task) => task.track === track), [track]);
+  const hasPaths = useMemo(() => listedChallenges({ track }).length > 0, [track]);
   const needle = query.trim().toLowerCase();
   const filtered = useMemo(() => tasks.filter((task) => {
     if (group && group in CODING_TECHNIQUE_GROUPS) {
@@ -653,6 +673,11 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
   const filtersOn = Boolean(group) || needle !== '' || difficulty !== 'all' || duration !== 'all'
     || format !== 'all' || savedOnly || statusFilter !== 'all';
   const groupsHere = useMemo(() => GROUPS.filter((g) => tasks.some((task) => task.focus.some((tag) => (CODING_TECHNIQUE_GROUPS[g] as readonly string[]).includes(tag)))), [tasks]);
+  const ordered = useMemo(() => [...filtered].sort((a, b) => CODING_DIFFICULTIES.indexOf(a.difficulty) - CODING_DIFFICULTIES.indexOf(b.difficulty) || a.tier - b.tier), [filtered]);
+  const pageCount = Math.max(1, Math.ceil(ordered.length / TASK_PAGE_SIZE));
+  const requestedPage = Number(params.get('page') ?? 1);
+  const page = Math.min(pageCount, Math.max(1, Number.isSafeInteger(requestedPage) ? requestedPage : 1));
+  const pageRows = ordered.slice((page - 1) * TASK_PAGE_SIZE, page * TASK_PAGE_SIZE);
   // The plan decides which rows carry the Premium mark, so the list waits for
   // it, as the Coding home does; a plan that cannot load says so.
   if (planLoading || (isAuthenticated && progress.isLoading && !progress.data)) return <LoadingScreen label={t('coding.loading')} />;
@@ -662,6 +687,7 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
   if (isAuthenticated && progress.isError && !progress.data) {
     return (
       <div className="cd-page ss-pop">
+        <Breadcrumb items={[{ label: t('nav.coding'), href: '/coding' }, { label: t(`coding.track.${track}` as never) }]} />
         <header>
           <Kicker as="h1" className="ss-section-title">{t(`coding.track.${track}` as never)}</Kicker>
           <p className="cd-lead">{t(`coding.trackBlurb.${track}` as never)}</p>
@@ -673,37 +699,42 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
     );
   }
   const done = tasks.filter((task) => passed.has(task.id)).length;
-  // Easy, then Medium, then Hard; inside each, the tiers that fall in it, so
-  // a tier's lock line stays beside the challenges it locks.
-  const bands = CODING_DIFFICULTIES
-    .map((level) => ({ level, tiers: TIERS.filter((tier) => filtered.some((task) => task.difficulty === level && task.tier === tier)) }))
-    .filter((band) => band.tiers.length > 0);
   const setFilter = (key: string, value: string | null) => {
     const next = new URLSearchParams(params);
+    next.delete('page');
     if (value) next.set(key, value); else next.delete(key);
     // The label filter replaces the old tier one; never leave both in a link.
     if (key === 'difficulty') next.delete('tier');
     setParams(next, { replace: true });
   };
 
+  const changePage = (nextPage: number) => {
+    if (nextPage < 1 || nextPage > pageCount) return;
+    const next = new URLSearchParams(params);
+    if (nextPage === 1) next.delete('page'); else next.set('page', String(nextPage));
+    setParams(next, { preventScrollReset: true });
+    catalogue.current?.scrollIntoView?.({ block: 'start' });
+  };
+
   return (
-    <div className="cd-page ss-pop">
-      <header>
+    <div className="cd-page cd-track-page ss-pop">
+      <Breadcrumb items={[{ label: t('nav.coding'), href: '/coding' }, { label: t(`coding.track.${track}` as never) }]} />
+      <header className="cd-track-head">
         <Kicker as="h1" className="ss-section-title">{t(`coding.track.${track}` as never)}</Kicker>
         <p className="cd-lead">{t(`coding.trackBlurb.${track}` as never)}</p>
+        {hasPaths && <p className="cd-path-link">{codingListCopy('coding.paths.lead')} <a href="#cd-track-paths">{codingListCopy('coding.paths.link', { track: t(`coding.track.${track}` as never) })}</a></p>}
         {!authLoading && !isAuthenticated && <SignInLine />}
-        <div style={{ marginTop: 12, maxWidth: 420 }}>
+        <div className="cd-track-progress">
           <WaterlineProgress decorativeFins value={tasks.length ? (100 * done) / tasks.length : 0} label={t('coding.progress', { passed: done, total: tasks.length })} />
           <p className="cd-track__count" style={{ margin: '6px 0 0' }}>{t('coding.progress', { passed: done, total: tasks.length })}</p>
         </div>
       </header>
       <PlanNotice failed={planFailed} onRetry={retryPlan} />
       <StaleProgressNotice failed={isAuthenticated && progress.isError && Boolean(progress.data)} onRetry={() => void progress.refetch()} />
-      <EvolvingGallery passed={passed} premiumOf={premiumOf} track={track} />
       {/* One filter row (UX audit coding-16): the search and one select per
           filter, the technique one at every width, and status with Saved for
           a signed-in learner. Under 760px it folds to a 2-column grid. */}
-      <div className="cd-search">
+      <div className="cd-search" ref={catalogue}>
         <label className="cd-visually-hidden" htmlFor={`${track}-search`}>{t('coding.filter.searchLabel')}</label>
         <input
           key={track}
@@ -748,6 +779,7 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
               onChange={(event) => {
                 const value = event.target.value;
                 const next = new URLSearchParams(params);
+                next.delete('page');
                 next.delete('status');
                 next.delete('saved');
                 if (value === 'saved') next.set('saved', '1');
@@ -773,36 +805,28 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
       <p className="cd-filter-count" role="status">{savedOnly && !bookmarks.data ? bookmarks.isPending ? codingListCopy('coding.saved.loading') : '' : filtersOn ? t('coding.filter.count', { shown: filtered.length, total: tasks.length }) : ''}</p>
 
       {filtered.length === 0 && !(savedOnly && !bookmarks.data) && <p className="cd-note">{filtersOn ? t('coding.filter.empty') : t('coding.empty')}</p>}
-      {bands.map(({ level, tiers }) => (
-        <section key={level} className="cd-band" aria-labelledby={`cd-band-${level}`}>
-          <h2 id={`cd-band-${level}`} className="cd-band__title">{t(`coding.difficulty.${level}`)}</h2>
-          {tiers.map((tier) => {
-            const reason = lockReason(track, tier);
-            return (
-              <section key={tier} className="cd-tier" aria-labelledby={`cd-tier-${level}-${tier}`}>
-                <div className="cd-tier__head">
-                  <h3 id={`cd-tier-${level}-${tier}`}>{t(`coding.tier.${CODING_TIERS[tier]}` as never)}</h3>
-                  {reason && <p className="cd-tier__lock">{t(`coding.lock.${reason}` as never)}</p>}
-                </div>
-                <ul className="cd-rows">
-                  {filtered.filter((task) => task.difficulty === level && task.tier === tier).map((task) => (
-                    <TaskRow
-                      key={task.id}
-                      task={task}
-                      status={statusOf(task)}
-                      premium={premiumOf(task.id)}
-                      saved={savedIds.has(task.id)}
-                      onSave={isAuthenticated && bookmarks.data ? onSave : undefined}
-                      saving={save.isPending}
-                      saveError={save.isError && save.variables?.op === 'save' && save.variables.taskId === task.id}
-                    />
-                  ))}
-                </ul>
-              </section>
-            );
-          })}
+      {pageRows.length > 0 && <>
+        <section className="cd-catalogue" aria-label={t('coding.title')}>
+          {[pageRows.slice(0, 10), pageRows.slice(10)].filter(column => column.length > 0).map((column, index) => <ul className="cd-rows" key={index}>
+            {column.map(task => {
+              const status = statusOf(task);
+              const reason = status === 'locked' ? lockReason(track, task.tier) : null;
+              return <TaskRow key={task.id} task={task} status={status} premium={premiumOf(task.id)}
+                reason={reason ? t(`coding.lock.${reason}` as never) : undefined}
+                returnTo={location.pathname + location.search}
+                saved={savedIds.has(task.id)} onSave={isAuthenticated && bookmarks.data ? onSave : undefined}
+                saving={save.isPending} saveError={save.isError && save.variables?.op === 'save' && save.variables.taskId === task.id} />;
+            })}
+          </ul>)}
         </section>
-      ))}
+        <nav className="cd-pagination" aria-label={codingListCopy('coding.pages.label')}>
+          <Button variant="secondary" isDisabled={page === 1} onClick={() => changePage(page - 1)} label={codingListCopy('coding.pages.previous')} />
+          <span role="status">{codingListCopy('coding.pages.range', { from: (page - 1) * TASK_PAGE_SIZE + 1, to: Math.min(page * TASK_PAGE_SIZE, ordered.length), total: ordered.length, page, pages: pageCount })}</span>
+          <Button variant="secondary" isDisabled={page === pageCount} onClick={() => changePage(page + 1)} label={codingListCopy('coding.pages.next')} />
+        </nav>
+      </>}
+      {hasPaths && <div id="cd-track-paths" className="cd-track-paths"><EvolvingGallery passed={passed} premiumOf={premiumOf} track={track} /></div>}
+
     </div>
   );
 }
@@ -861,6 +885,7 @@ export function CodingTaskScreen() {
 }
 
 function CodingTaskView({ track, taskId }: { track: CodingTrack; taskId: string }) {
+  const location = useLocation();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -1026,7 +1051,10 @@ function CodingTaskView({ track, taskId }: { track: CodingTrack; taskId: string 
     : stage
       ? stage.next ? `/coding/${evolvingTaskTrack(stage.next)}/${stage.next}` : null
       : next && next.id !== data.task.id ? `/coding/${next.track}/${next.id}` : null;
-  const backHref = stage?.challenge.category === 'fullstack' ? '/coding/fullstack' : stage?.challenge.category === 'debugging' ? '/coding' : `/coding/${data.task.track}`;
+  const defaultBack = stage?.challenge.category === 'fullstack' ? '/coding/fullstack' : stage?.challenge.category === 'debugging' ? '/coding?projects=debugging' : `/coding/${data.task.track}`;
+  const returnTo = (location.state as { codingReturnTo?: unknown } | null)?.codingReturnTo;
+  const allowedParent = `/coding/${data.task.track}`;
+  const backHref = typeof returnTo === 'string' && (returnTo === allowedParent || returnTo.startsWith(allowedParent + '?') || returnTo === '/coding' || returnTo.startsWith('/coding?') || returnTo === '/coding/fullstack') ? returnTo : defaultBack;
   const previousLocal = stage?.previous ? deviceDraft(stage.previous) : null;
   const initialCode = (refreshDraft?.taskId === taskId && refreshDraft.epoch === accountEpoch() ? refreshDraft.code : null) ?? choice.code ?? (stage && previousLocal !== null
     ? prepareEvolvingDraft(previousLocal, stage.challenge, stage.index)
