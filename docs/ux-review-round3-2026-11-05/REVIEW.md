@@ -74,3 +74,19 @@ Issues are deferred backlog, not implementation performed or authorized now. Pre
 
 The audit's original captures remain proposal evidence. Future implementation must follow the owner overrides and the issue acceptance checks, with meaningful local/dedicated fixtures and no writes to the owner's production learning state.
 
+### Issue numbers (created 5 November 2026)
+
+All eight issues were read back after creation: titles and full bodies match the validated drafts, all remain open, and each carries `design-audit` plus its `P1` or `P2` priority. An open-issue search before creation found no overlapping work package. No issue was created for R3-02 or R3-08; #607 records the replacement requirement, not the rejected R3-03 breadcrumb concept.
+
+| ID | Issue | Blocked by | Status at handoff |
+|---|---|---|---|
+| R3-01 | [#606](https://github.com/lukaskourilcz/react-express-app/issues/606) | None | Deferred, not implemented |
+| R3-03 | [#607](https://github.com/lukaskourilcz/react-express-app/issues/607) | None | Deferred, not implemented |
+| R3-04 | [#608](https://github.com/lukaskourilcz/react-express-app/issues/608) | None | Deferred, not implemented |
+| R3-05 | [#609](https://github.com/lukaskourilcz/react-express-app/issues/609) | None | Deferred, not implemented |
+| R3-06 | [#610](https://github.com/lukaskourilcz/react-express-app/issues/610) | None | Deferred, not implemented |
+| R3-07 | [#611](https://github.com/lukaskourilcz/react-express-app/issues/611) | None | Deferred, not implemented |
+| R3-09 | [#612](https://github.com/lukaskourilcz/react-express-app/issues/612) | None | Deferred, not implemented |
+| R3-10 | [#613](https://github.com/lukaskourilcz/react-express-app/issues/613) | None | Deferred, not implemented |
+
+Each issue includes scope, affected files, blockers, observable acceptance and future verification. Script names, referenced source files and browser suites were checked against the repository. Product/browser checks listed in those issues have not been run as implementation evidence because no product change was made. A planning PR references these issues with `Refs` and must not close them.
