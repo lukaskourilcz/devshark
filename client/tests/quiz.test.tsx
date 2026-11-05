@@ -774,9 +774,11 @@ describe('slow loading and recovery', () => {
     renderQuiz();
     fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
     await screen.findByRole('button', { name: 'Retry' });
-    expect(screen.getByRole('heading', { level: 1 })).toHaveFocus();
+    // The DOM can appear before Quiz's passive focus effect has run.
+    // Wait for the focus contract itself, not only for the Retry button.
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveFocus());
     fireEvent.click(screen.getByRole('button', { name: 'Back to settings' }));
-    expect(screen.getByRole('heading', { name: 'Build your quiz.' })).toHaveFocus();
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Build your quiz.' })).toHaveFocus());
   });
 });
 

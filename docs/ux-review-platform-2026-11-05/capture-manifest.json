@@ -1,0 +1,1211 @@
+[
+  {
+    "id": "coding-home-light-1280",
+    "scene": "coding-home",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/coding",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "h1": "Coding challenges"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 2509,
+      "header": true,
+      "tabs": [],
+      "crumb": [],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [
+      "POST /api/4511814841794640/envelope/"
+    ],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "coding-discovery-light-1280",
+    "scene": "coding-discovery",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/coding",
+    "before": {
+      "overflow": false,
+      "scroll": 480,
+      "routeWidth": 1200,
+      "h1": "Coding challenges"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 480,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 1587,
+      "header": true,
+      "tabs": [],
+      "crumb": [],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "coding-track-light-1280",
+    "scene": "coding-track",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/coding/javascript",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "h1": "JavaScript"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 7074,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Coding/JavaScript"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "workbench-results-light-1280",
+    "scene": "workbench-results",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/coding/javascript/js-digit-sum",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "h1": "Digit sum"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 812,
+      "header": false,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "crumb": [
+        "coding/javascript/digitSum.js"
+      ],
+      "actionButtons": [
+        "Run",
+        "Hint",
+        "Submit"
+      ],
+      "editorBox": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 736,
+        "bottom": 752
+      }
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "evolving-light-1280",
+    "scene": "evolving",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/coding/javascript/js-fullstack-links-1",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "h1": "Link shortener · 1"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 816,
+      "header": false,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources6"
+      ],
+      "crumb": [
+        "coding/fullstack/linkShortener1.js"
+      ],
+      "actionButtons": [
+        "Run",
+        "Hint",
+        "Submit"
+      ],
+      "editorBox": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 680,
+        "bottom": 696
+      }
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "learn-light-1280",
+    "scene": "learn",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/learn/web-developer?topic=html",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Learn"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 1173,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Learn/Web Developer"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-setup-light-1280",
+    "scene": "quiz-setup",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/quiz",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Build your quiz."
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 955,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Quiz"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-active-light-1280",
+    "scene": "quiz-active",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "current built application with local fictional Test Learner / fixture data",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Quiz · Question 1 of 2"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 800,
+      "header": false,
+      "tabs": [],
+      "crumb": [],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-results-light-1280",
+    "scene": "quiz-results",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "current built application with local fictional Test Learner / fixture data",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "1 / 2"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 1054,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Quiz/Results"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [
+      "POST /api/quiz/submit"
+    ],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "daily-light-1280",
+    "scene": "daily",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/daily",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "TypeScript question of the day"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 834,
+      "header": false,
+      "tabs": [],
+      "crumb": [
+        "Today/Daily question"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "today-light-1280",
+    "scene": "today",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "current built application with local fictional Test Learner / fixture data",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Today"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 829,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Today"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [
+      {
+        "path": "/api/user/[op]",
+        "op": "practice-session",
+        "resource": null
+      }
+    ]
+  },
+  {
+    "id": "fde-module-light-1280",
+    "scene": "fde-module",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "current built application with local fictional Test Learner / fixture data",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Customer discovery"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 989,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Learn/Forward Deployed Engineer/Customer discovery"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "leaderboard-light-1280",
+    "scene": "leaderboard",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/leaderboard",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Leaderboard"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 800,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Leaderboard"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "premium-light-1280",
+    "scene": "premium",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/premium",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Everything in devShark for €4.99 a month"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 2282,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Premium"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "coding-home-dark-1280",
+    "scene": "coding-home",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/coding",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "h1": "Coding challenges"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 2509,
+      "header": true,
+      "tabs": [],
+      "crumb": [],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [
+      "POST /api/4511814841794640/envelope/"
+    ],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "coding-discovery-dark-1280",
+    "scene": "coding-discovery",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/coding",
+    "before": {
+      "overflow": false,
+      "scroll": 480,
+      "routeWidth": 1200,
+      "h1": "Coding challenges"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 480,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 1587,
+      "header": true,
+      "tabs": [],
+      "crumb": [],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "evolving-dark-1280",
+    "scene": "evolving",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/coding/javascript/js-fullstack-links-1",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "h1": "Link shortener · 1"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 816,
+      "header": false,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources6"
+      ],
+      "crumb": [
+        "coding/fullstack/linkShortener1.js"
+      ],
+      "actionButtons": [
+        "Run",
+        "Hint",
+        "Submit"
+      ],
+      "editorBox": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 680,
+        "bottom": 696
+      }
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "learn-dark-1280",
+    "scene": "learn",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/learn/web-developer?topic=html",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Learn"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 1173,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Learn/Web Developer"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-setup-dark-1280",
+    "scene": "quiz-setup",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/quiz",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Build your quiz."
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 955,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Quiz"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-active-dark-1280",
+    "scene": "quiz-active",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "current built application with local fictional Test Learner / fixture data",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Quiz · Question 1 of 2"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 800,
+      "header": false,
+      "tabs": [],
+      "crumb": [],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "today-dark-1280",
+    "scene": "today",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "current built application with local fictional Test Learner / fixture data",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Today"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 829,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Today"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [
+      {
+        "path": "/api/user/[op]",
+        "op": "practice-session",
+        "resource": null
+      },
+      {
+        "path": "/api/user/[op]",
+        "op": "practice-session",
+        "resource": null
+      }
+    ]
+  },
+  {
+    "id": "fde-module-dark-1280",
+    "scene": "fde-module",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "current built application with local fictional Test Learner / fixture data",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Customer discovery"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 989,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Learn/Forward Deployed Engineer/Customer discovery"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "learn-light-1440",
+    "scene": "learn",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "source": "production guest",
+    "requestedRoute": "/learn/web-developer?topic=html",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Learn"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 900,
+      "mainScroll": 1173,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Learn/Web Developer"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-setup-light-1440",
+    "scene": "quiz-setup",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "source": "production guest",
+    "requestedRoute": "/quiz",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 800,
+      "h1": "Build your quiz."
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 900,
+      "mainScroll": 955,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Quiz"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "learn-light-390",
+    "scene": "learn",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "production guest",
+    "requestedRoute": "/learn/web-developer?topic=html",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 354,
+      "h1": "Learn"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 354,
+      "mainHeight": 844,
+      "mainScroll": 1915,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Learn/Web Developer"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-active-light-390",
+    "scene": "quiz-active",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "current built application with local fictional Test Learner / fixture data",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 354,
+      "h1": "Quiz · Question 1 of 2"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 354,
+      "mainHeight": 844,
+      "mainScroll": 844,
+      "header": false,
+      "tabs": [],
+      "crumb": [],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "today-light-390",
+    "scene": "today",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "current built application with local fictional Test Learner / fixture data",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 354,
+      "h1": "Today"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 354,
+      "mainHeight": 844,
+      "mainScroll": 1036,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Today"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [
+      {
+        "path": "/api/user/[op]",
+        "op": "practice-session",
+        "resource": null
+      }
+    ]
+  },
+  {
+    "id": "workbench-light-1280",
+    "scene": "workbench",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/coding/javascript/js-digit-sum",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "h1": "Digit sum"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 812,
+      "header": false,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "crumb": [
+        "coding/javascript/digitSum.js"
+      ],
+      "actionButtons": [
+        "Run",
+        "Hint",
+        "Submit"
+      ],
+      "editorBox": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 736,
+        "bottom": 752
+      }
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "profile-light-1280",
+    "scene": "profile",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "current built application with local fictional Test Learner / fixture data",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 880,
+      "routeWidth": 1000,
+      "h1": "Test Learner"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 880,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 1904,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Profile"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "workbench-dark-1280",
+    "scene": "workbench",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "production guest",
+    "requestedRoute": "/coding/javascript/js-digit-sum",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "h1": "Digit sum"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 812,
+      "header": false,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "crumb": [
+        "coding/javascript/digitSum.js"
+      ],
+      "actionButtons": [
+        "Run",
+        "Hint",
+        "Submit"
+      ],
+      "editorBox": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 736,
+        "bottom": 752
+      }
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "profile-dark-1280",
+    "scene": "profile",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "current built application with local fictional Test Learner / fixture data",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 880,
+      "routeWidth": 1000,
+      "h1": "Test Learner"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 880,
+      "routeWidth": 1200,
+      "mainHeight": 800,
+      "mainScroll": 1904,
+      "header": true,
+      "tabs": [],
+      "crumb": [
+        "Profile"
+      ],
+      "actionButtons": [],
+      "editorBox": null
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "workbench-light-1440",
+    "scene": "workbench",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "source": "production guest",
+    "requestedRoute": "/coding/javascript/js-digit-sum",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "h1": "Digit sum"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 1200,
+      "mainHeight": 900,
+      "mainScroll": 912,
+      "header": false,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "crumb": [
+        "coding/javascript/digitSum.js"
+      ],
+      "actionButtons": [
+        "Run",
+        "Hint",
+        "Submit"
+      ],
+      "editorBox": {
+        "x": 118,
+        "y": 16,
+        "width": 1200,
+        "height": 836,
+        "bottom": 852
+      }
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "workbench-light-390",
+    "scene": "workbench",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "production guest",
+    "requestedRoute": "/coding/javascript/js-digit-sum",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "routeWidth": 354,
+      "h1": "Digit sum"
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 103,
+      "routeWidth": 354,
+      "mainHeight": 844,
+      "mainScroll": 947,
+      "header": false,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "crumb": [
+        "coding/javascript/digitSum.js"
+      ],
+      "actionButtons": [
+        "Run",
+        "Hint",
+        "Submit"
+      ],
+      "editorBox": {
+        "x": 16,
+        "y": -91,
+        "width": 354,
+        "height": 879,
+        "bottom": 788
+      }
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  }
+]
