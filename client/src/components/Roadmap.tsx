@@ -1,7 +1,9 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Kicker } from './landing/LandingKit';
+import { Breadcrumb } from './ui/Breadcrumb';
+import { topicContext } from '../i18n/translations.topicContext';
 import { retirementOf } from '../../../shared/retired-content';
 import { Text } from '@astryxdesign/core/Text';
 import { Banner } from '@astryxdesign/core/Banner';
@@ -34,7 +36,6 @@ import {
   partRanges,
   currentPart,
   isPathUnlocked,
-  pathStatus,
   PARTS_PER_TOPIC,
   getRoadmapProgress,
   unlockExtraTopics,
@@ -57,7 +58,7 @@ import { useRoadmapStructure, useRoadmapStructureFirst } from '../lib/queries';
 import { apiFetch } from '../lib/api';
 import { announceLearnRepeat, awardLearningOutcome } from '../lib/xp';
 import { computeLearningXp } from '../lib/leveling';
-import { getCategoryHexColor, categoryLabelKey, onCategoryColorText } from '../lib/categories';
+import { getCategoryHexColor, categoryLabelKey } from '../lib/categories';
 import { BRAND } from '../theme/MuiTheme';
 import { useLanguage } from '../i18n/LanguageContext';
 import type { TranslationKey } from '../i18n/translations';
@@ -502,7 +503,6 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
   // Which steps the server will not open, read from the map it sent: the
   // unlock rules step over them rather than dead-ending behind them.
   const availability = useMemo(() => availabilityOf(topicStructure), [topicStructure]);
-  const safePart = Math.min(Math.max(part, 1), Math.max(1, ranges.length));
   const topicColor = getCategoryHexColor(topic);
   // A topic outside the plan is on the rail only for the levels already
   // passed in it: those open for review, the rest stay shut.
@@ -662,11 +662,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
     }
   };
 
-  const selectPart = (p: number) => {
-    if (!isPathUnlocked(progress, topic, p, extraUnlocksSet)) return;
-    setPart(p);
-    writeString(PART_KEY, String(p));
-  };
+
 
   const onSkillCheckFinished = useCallback(
     (correct: number, verifiedUnlocks?: RoadmapTopic[]) => {
@@ -1030,12 +1026,8 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
 
   return (
     <div className="de-page">
-      {/* One header in every auth state (UX audit learn-01): the h1 is
-          always "Learn", the switcher below is the one place the section is
-          named, and the section line under it is the one supporting line. */}
-      <header className="rm-journey-heading">
-        <Kicker as="h1" className="ss-section-title">{t('roadmap.title')}</Kicker>
-      </header>
+      <Breadcrumb items={[{ label: t('roadmap.title'), href: '/learn' }, { label: sectionName }]} />
+      <header className="rm-journey-heading"><Kicker as="h1" className="ss-section-title">{t('roadmap.title')}</Kicker></header>
 
       {retired && (
         <div className="cd-note" role="status" style={{ marginBottom: 16 }}>
@@ -1055,8 +1047,24 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
       {/* Keyed by section: a switch fades the section in (rmTrackIn, none
           under reduced motion) and re-measures the map. */}
       <div key={section} ref={sectionBodyRef} className="rm-track-in rm-section-body" data-code={hasCodeQuestions(topic) ? '' : undefined} {...RUNNER_INTENT}>
+        <SectionRail
+          sectionName={sectionName}
+          entries={entries}
+          value={topic}
+          onSelect={(value) => selectTopic(value as RoadmapTopic)}
+          onInspect={inspectLock}
+          loading={loadingStructure}
+          loadingCount={sectionTopics(section, TOPICS).length}
+          levelCounts={levelCounts}
+          progress={progress}
+          t={t}
+        />
+
+        <div className="rm-section-content">
         <SectionHeader
           section={section}
+          introduction={topicContext[topic]}
+          topicName={t(categoryLabelKey(topic))}
           name={sectionName}
           isMember={isMember}
           hasPlan={hasPlan}
@@ -1083,18 +1091,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
           </Suspense>
         )}
 
-        <SectionRail
-          sectionName={sectionName}
-          entries={entries}
-          value={topic}
-          onSelect={(value) => selectTopic(value as RoadmapTopic)}
-          onInspect={inspectLock}
-          loading={loadingStructure}
-          loadingCount={sectionTopics(section, TOPICS).length}
-          levelCounts={levelCounts}
-          progress={progress}
-          t={t}
-        />
+
 
       {loadingStructure ? (
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 24, marginTop: 16 }}>
@@ -1135,37 +1132,6 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
         </div>
       ) : (
         <>
-          {/* Part selector — the topic is split into PARTS_PER_TOPIC shorter
-              paths, each ending with a test; only one part shows at a time. */}
-          <div role="radiogroup" aria-label={t('roadmap.partsAria')} style={{ display: 'none' }}>
-            {ranges.map((r) => {
-              const status = pathStatus(progress, topic, ranges, r.part, extraUnlocksSet, availability);
-              const locked = status === 'locked';
-              const selected = r.part === safePart;
-              return (
-                <Tooltip key={r.part} content={t('roadmap.partLockedHint', { n: r.part - 1 })} placement="above" isEnabled={locked}>
-                  <span style={{ display: 'inline-flex' }}>
-                    <button
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      disabled={locked}
-                      className="rm-part-pill"
-                      data-selected={selected}
-                      data-locked={locked}
-                      data-complete={status === 'complete'}
-                      onClick={() => selectPart(r.part)}
-                      style={{ ['--rm-accent']: topicColor, ['--rm-on-accent']: onCategoryColorText(topic) } as CSSProperties}
-                    >
-                      {locked ? <LockIcon size={12} /> : status === 'complete' ? <CheckIcon size={14} /> : null}
-                      {t('roadmap.partLabel', { n: r.part })}
-                    </button>
-                  </span>
-                </Tooltip>
-              );
-            })}
-          </div>
-
           {/* The next step, in one row (UX audit learn-06): the selected
               tile above already names the topic and its count, so the card
               says only what the tile does not, the next level, with the
@@ -1315,6 +1281,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
           {skillCheckRow}
         </>
       )}
+        </div>
       </div>
 
       <AppToast
