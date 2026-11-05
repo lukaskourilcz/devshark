@@ -1,0 +1,98 @@
+[
+  {
+    "id": "coding-home",
+    "title": "Coding · schválený úvod",
+    "note": "Před = návrh prvního kola. Po = jeho revize podle komentářů. Stejná data a viewport; žádná změna aplikace. Veřejná data bez zápisu.",
+    "source": "guest"
+  },
+  {
+    "id": "coding-track",
+    "title": "Coding · JavaScript katalog",
+    "note": "Před = návrh prvního kola. Po = jeho revize podle komentářů. Stejná data a viewport; žádná změna aplikace. Veřejná data bez zápisu.",
+    "source": "guest"
+  },
+  {
+    "id": "workbench",
+    "title": "Coding · Description a editor",
+    "note": "Před = návrh prvního kola. Po = jeho revize podle komentářů. Stejná data a viewport; žádná změna aplikace. Veřejná data bez zápisu.",
+    "source": "guest"
+  },
+  {
+    "id": "evolving",
+    "title": "FullStack · Link shortener, level 1",
+    "note": "Před = návrh prvního kola. Po = jeho revize podle komentářů. Stejná data a viewport; žádná změna aplikace. Veřejná data bez zápisu.",
+    "source": "guest"
+  },
+  {
+    "id": "learn",
+    "title": "Learn · téma HTML",
+    "note": "Před = návrh prvního kola. Po = jeho revize podle komentářů. Stejná data a viewport; žádná změna aplikace. Veřejná data bez zápisu.",
+    "source": "guest"
+  },
+  {
+    "id": "quiz-setup",
+    "title": "Quiz · nastavení",
+    "note": "Před = návrh prvního kola. Po = jeho revize podle komentářů. Stejná data a viewport; žádná změna aplikace. Veřejná data bez zápisu.",
+    "source": "guest"
+  },
+  {
+    "id": "quiz-active",
+    "title": "Quiz · aktivní otázka",
+    "note": "Před = návrh prvního kola. Po = jeho revize podle komentářů. Stejná data a viewport; žádná změna aplikace. Lokální fiktivní data.",
+    "source": "fixture"
+  },
+  {
+    "id": "quiz-results",
+    "title": "Quiz · výsledky a review",
+    "note": "Před = návrh prvního kola. Po = jeho revize podle komentářů. Stejná data a viewport; žádná změna aplikace. Lokální fiktivní data.",
+    "source": "fixture"
+  },
+  {
+    "id": "daily",
+    "title": "Daily · jedna otázka",
+    "note": "Před = návrh prvního kola. Po = jeho revize podle komentářů. Stejná data a viewport; žádná změna aplikace. Veřejná data bez zápisu.",
+    "source": "guest"
+  },
+  {
+    "id": "today",
+    "title": "Today · plán a Learning paths",
+    "note": "Před = návrh prvního kola. Po = jeho revize podle komentářů. Stejná data a viewport; žádná změna aplikace. Lokální fiktivní data.",
+    "source": "fixture"
+  },
+  {
+    "id": "profile",
+    "title": "Profile · Track and Sections → Account",
+    "note": "Před = návrh prvního kola. Po = jeho revize podle komentářů. Stejná data a viewport; žádná změna aplikace. Lokální fiktivní data.",
+    "source": "fixture"
+  },
+  {
+    "id": "fde-module",
+    "title": "FDE · Customer discovery",
+    "note": "Před = návrh prvního kola. Po = jeho revize podle komentářů. Stejná data a viewport; žádná změna aplikace. Lokální fiktivní data.",
+    "source": "fixture"
+  },
+  {
+    "id": "coding-track-paths",
+    "title": "Coding · Paths pod seznamem",
+    "source": "guest",
+    "note": "Stejný katalog po scrollu; po revizi Paths začínají až pod stránkovaným seznamem."
+  },
+  {
+    "id": "coding-track-list",
+    "title": "Coding · celá první stránka seznamu",
+    "source": "guest",
+    "note": "Seznam po scrollu: dva sloupce po 10 položkách, pager a začátek Paths."
+  },
+  {
+    "id": "quiz-results-grid",
+    "title": "Quiz · mřížka všech šesti odpovědí",
+    "source": "fixture",
+    "note": "Stejných šest fiktivních odpovědí na obou stranách, po scrollu k review."
+  },
+  {
+    "id": "profile-account",
+    "title": "Profile · Account a navazující řada",
+    "source": "fixture",
+    "note": "Stejné fiktivní nastavení po scrollu ke kartě Account; žádná akce nebyla provedena."
+  }
+]

@@ -10,6 +10,10 @@ The owner requested a new density, hierarchy and focus review after the Coding/Q
 
 These are proposals, not changes to the width/control contract above. The owner-approved Coding first fold is the calibration; original logo, Quiz topic pills/logos and the ocean/sharks stay. Review decisions must precede implementation. Detailed findings live in the linked review, not a second backlog here.
 
+## Owner-comment revision — 5 November 2026
+
+[Round-two HTML](../ux-review-platform-comments-2026-11-05/index.html) replaces the review queue with 11 consolidated topics covering all 16 commented IDs. Accepted items without comments and the rejected proposal are omitted. Before is the first proposal, After is its revision; unchanged accepted work remains the visual baseline. Shared comments apply across related screens without duplicate finding cards. [Scope](../ux-review-platform-comments-2026-11-05/REVIEW.md) and [document QA](../ux-review-platform-comments-2026-11-05/QA.md) record the comparison and separate feedback format. This round changes review documents only.
+
 ## Route and state inventory
 
 | Route | Auth | Primary goal and action | Major states | Component | Keep / check |

@@ -1,0 +1,24 @@
+{
+  "source": "Owner export devshark-ux-review-komentare.json",
+  "exportedAt": "2026-11-05T11:21:46.524Z",
+  "baseline": "2ff184bc",
+  "scope": "Second proposal review only. Include commented items, consolidate shared patterns, omit accepted items without comments and rejected items.",
+  "comments": {
+    "SYS-02": "nedavat napis \"Tomorrows question is about Git.\" at tam zadny takovy napis neni. A stejne tak at tam neni \"One question a day.....\" text, ale misto toho je vzdy vysvetleni na dva radky max, co to je TypeScript (nebo ty generics - proste jednoduche vysvetleni te otazky).",
+    "SYS-03": "Napis Javascript s vlnovkou by mohl byt zarovnany na stred i s description pod nim, ted jsou dva duplicitni nazvy Javascript hned nad seboou (je hned nad nim v breadcrumbs). 48 of 222 passed vcetne progress vlnovky tam musi zustat, ale hned pod tim by se mela ukazat tabulka se vsema cvicenima (a filter toolbar) - tabulka by mela byt pagination, aby byli videt dva sloupce po 10 radku cvicenich a Paths by mely byt az pod tou tabulkou. V description by mel byt zaroven odkaz a kratke description o Paths, ktere cloveka odscrolluje dolu.",
+    "SYS-04": "nedavat napis \"Tomorrows question is about Git.\" at tam zadny takovy napis neni. A stejne tak at tam neni \"One question a day.....\" text, ale misto toho je vzdy vysvetleni na dva radky max, co to je TypeScript (nebo ty generics - proste jednoduche vysvetleni te otazky).",
+    "SYS-05": "Prijimam, ale at je cela karta vertikalne zarovnana na stred, ted je pripnuta k vrchu, coz nevypada hezky",
+    "COD-01": "Prijimam, ale at je cela karta zarovnana vertikalne na stred a je tam trochu vetsi padding od vrchu a od spodu, at neni tak roztahnuta. Pak taky to zvyrazneni spodniho borderu u Description / Results / Console / Resources - nevypada to hezky, at je to jen podtrhnute zelenou vlnovkou (random vlnovkou, jak ma zbytek aplikace)",
+    "COD-02": "Prijimam, ale Easy 1 2 Medium 3 4 Hard 5 at jsou na prave strane, a at je tam na zacatku napsane jen Level: a pak ty cisla bez popisku Easy, Medium, Hard. Kazdy dokonceny level musi svitit zelene.",
+    "COD-06": "Prijimam, ale Easy 1 2 Medium 3 4 Hard 5 at jsou na prave strane, a at je tam na zacatku napsane jen Level: a pak ty cisla bez popisku Easy, Medium, Hard. Kazdy dokonceny level musi svitit zelene.",
+    "COD-08": "ten border at tam neni, jen at je ta zelena trochu vyraznejsi",
+    "COD-09": "Napis Javascript s vlnovkou by mohl byt zarovnany na stred i s description pod nim, ted jsou dva duplicitni nazvy Javascript hned nad seboou (je hned nad nim v breadcrumbs). 48 of 222 passed vcetne progress vlnovky tam musi zustat, ale hned pod tim by se mela ukazat tabulka se vsema cvicenima (a filter toolbar) - tabulka by mela byt pagination, aby byli videt dva sloupce po 10 radku cvicenich a Paths by mely byt az pod tou tabulkou. V description by mel byt zaroven odkaz a kratke description o Paths, ktere cloveka odscrolluje dolu.",
+    "LEA-02": "Prijimam, ale to prvni description vzdy musi byt nejake 2 - 3 radkove description the dane learning path, at clovek vi co je ve zkratce HTML, CSS, JavaScript, atp.",
+    "QUI-01": "At to vzdy ukazuje vsechny kategorie, takhle se tam vlezou jednoduse. Ten padding od leve/prave strany ale at je trochu vetsi (aspon o 60 procent vetsi, nez je ted) - tenhle padding ma pak platit na kazdou stranku.",
+    "QUI-02": "prijimam, ale cely panel musi byt vycentrovany vertikalne",
+    "QUI-03": "Prijimam, ale at se ty karty skladaj vedle sebe aspon po trojicich. Quiz Complete 1 / 2 i s textem podtim chci mit vycentrovano, tak jak to bylo Pred.",
+    "TOD-01": "Vrchni napis je duplicitni. Udelej z toho pravidlo, ze pokud ty breadcrumbs jsou na nultem levelu, tak at se tam neukazujou. Neni potreba ukazovat dvakrat \"today\" nebo dvakrat jakekoliv jine slovo hned pod sebou.",
+    "PRO-02": "Hlavne at je to poskladane tak, aby to bylo co nejvic srovnane.",
+    "PTH-01": "Prijimam, ale ten levy highlighted border je skaredy zpusob, jak neco oznacit. Navrhni to lip."
+  }
+}

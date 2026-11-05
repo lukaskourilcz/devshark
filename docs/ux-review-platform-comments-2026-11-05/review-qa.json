@@ -1,0 +1,110 @@
+{
+  "scope": "Interactive review document only; not application acceptance",
+  "node": "v26.8.2",
+  "chrome": "156.0.8078.81",
+  "artifactSha256": "d1719792c4ad0b00f4efa38f7236a60a529096ffb258e2384976e3948202ea0c",
+  "checks": [
+    {
+      "name": "11 stable decision cards and hash deep link",
+      "result": "pass"
+    },
+    {
+      "name": "autosave preserves Czech multiline comments and decision on reload",
+      "result": "pass"
+    },
+    {
+      "name": "area/search/priority/decision filters keep existing comments",
+      "result": "pass"
+    },
+    {
+      "name": "before/after, theme selection and side-by-side comparison",
+      "result": "pass"
+    },
+    {
+      "name": "native dialog zoom, Escape and focus restoration",
+      "result": "pass"
+    },
+    {
+      "name": "JSON export contains decisions and no screenshot payload",
+      "result": "pass"
+    },
+    {
+      "name": "import requires confirmation; Cancel preserves prior data",
+      "result": "pass"
+    },
+    {
+      "name": "validated import treats comment HTML as inert text",
+      "result": "pass"
+    },
+    {
+      "name": "invalid imports cannot overwrite existing review",
+      "result": "pass"
+    },
+    {
+      "name": "clear confirmation supports Cancel and confirmed reset",
+      "result": "pass"
+    },
+    {
+      "name": "all embedded screenshot pairs decode at declared dimensions",
+      "result": "pass"
+    },
+    {
+      "name": "report reflow light 320 CSS px",
+      "result": "pass"
+    },
+    {
+      "name": "report reflow light 390 CSS px",
+      "result": "pass"
+    },
+    {
+      "name": "report reflow light 640 CSS px",
+      "result": "pass"
+    },
+    {
+      "name": "report reflow light 1280 CSS px",
+      "result": "pass"
+    },
+    {
+      "name": "report reflow light 1440 CSS px",
+      "result": "pass"
+    },
+    {
+      "name": "report reflow dark 320 CSS px",
+      "result": "pass"
+    },
+    {
+      "name": "report reflow dark 390 CSS px",
+      "result": "pass"
+    },
+    {
+      "name": "report reflow dark 640 CSS px",
+      "result": "pass"
+    },
+    {
+      "name": "report reflow dark 1280 CSS px",
+      "result": "pass"
+    },
+    {
+      "name": "report reflow dark 1440 CSS px",
+      "result": "pass"
+    },
+    {
+      "name": "axe: review structure, labels and contrast in light/dark desktop",
+      "result": "pass"
+    },
+    {
+      "name": "no runtime page errors or outbound network dependencies",
+      "result": "pass"
+    },
+    {
+      "name": "standalone file opens with embedded comparisons",
+      "result": "pass"
+    },
+    {
+      "name": "blocked localStorage reports fallback and still accepts comments",
+      "result": "pass"
+    }
+  ],
+  "pageErrors": [],
+  "allPassed": true
+}

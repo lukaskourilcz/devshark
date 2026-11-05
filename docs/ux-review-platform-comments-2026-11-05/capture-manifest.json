@@ -1,0 +1,2490 @@
+[
+  {
+    "id": "coding-home-light-1280x800",
+    "scene": "coding-home",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 2136.28125,
+        "bottom": 2248.28125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 2136.28125,
+        "bottom": 2248.28125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "coding-track-light-1280x800",
+    "scene": "coding-track",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 6701.140625,
+        "bottom": 6813.140625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 1451.625,
+        "bottom": 1563.625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 20,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "coding-track-list-light-1280x800",
+    "scene": "coding-track-list",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript",
+    "before": {
+      "overflow": false,
+      "scroll": 736,
+      "route": {
+        "x": 38,
+        "y": -624,
+        "width": 1200,
+        "height": 6701.140625,
+        "bottom": 6077.140625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 306,
+      "route": {
+        "x": 64,
+        "y": -194,
+        "width": 1148,
+        "height": 1451.625,
+        "bottom": 1257.625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 20,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "workbench-light-1280x800",
+    "scene": "workbench",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript/js-digit-sum",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 736,
+        "bottom": 752
+      },
+      "editor": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 736,
+        "bottom": 752
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 58,
+        "width": 1148,
+        "height": 640,
+        "bottom": 698
+      },
+      "editor": {
+        "x": 64,
+        "y": 58,
+        "width": 1148,
+        "height": 640,
+        "bottom": 698
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "learn-light-1280x800",
+    "scene": "learn",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/learn/web-developer?topic=html",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 800,
+        "bottom": 912
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 800,
+        "bottom": 912
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-setup-light-1280x800",
+    "scene": "quiz-setup",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/quiz",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 589.5625,
+        "bottom": 701.5625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 1,
+      "rows": 0,
+      "categories": 7,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 559.375,
+        "bottom": 671.375
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 17,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [
+      "POST /api/4511814841794640/envelope/"
+    ],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-active-light-1280x800",
+    "scene": "quiz-active",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 724,
+        "bottom": 740
+      },
+      "editor": null,
+      "question": {
+        "x": 198,
+        "y": 16,
+        "width": 880,
+        "height": 609.40625,
+        "bottom": 625.40625
+      },
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 73.296875,
+        "width": 1148,
+        "height": 609.40625,
+        "bottom": 682.703125
+      },
+      "editor": null,
+      "question": {
+        "x": 198,
+        "y": 73.296875,
+        "width": 880,
+        "height": 609.40625,
+        "bottom": 682.703125
+      },
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-results-light-1280x800",
+    "scene": "quiz-results",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 1736.078125,
+        "bottom": 1848.078125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 979.203125,
+        "bottom": 1091.203125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [
+      "POST /api/quiz/submit"
+    ],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-results-grid-light-1280x800",
+    "scene": "quiz-results-grid",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 462,
+      "route": {
+        "x": 38,
+        "y": -350,
+        "width": 1200,
+        "height": 1736.078125,
+        "bottom": 1386.078125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 462,
+      "route": {
+        "x": 64,
+        "y": -350,
+        "width": 1148,
+        "height": 979.203125,
+        "bottom": 629.203125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [
+      "POST /api/quiz/submit"
+    ],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "daily-light-1280x800",
+    "scene": "daily",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/daily",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 758.046875,
+        "bottom": 774.046875
+      },
+      "editor": null,
+      "question": {
+        "x": 198,
+        "y": 242.125,
+        "width": 880,
+        "height": 493.59375,
+        "bottom": 735.71875
+      },
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 24,
+        "width": 1148,
+        "height": 719.71875,
+        "bottom": 743.71875
+      },
+      "editor": null,
+      "question": {
+        "x": 198,
+        "y": 250.125,
+        "width": 880,
+        "height": 493.59375,
+        "bottom": 743.71875
+      },
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "today-light-1280x800",
+    "scene": "today",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 456.21875,
+        "bottom": 568.21875
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 1,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 427,
+        "bottom": 539
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [
+      {
+        "path": "/api/user/[op]",
+        "op": "practice-session",
+        "resource": null
+      }
+    ]
+  },
+  {
+    "id": "profile-light-1280x800",
+    "scene": "profile",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 485,
+      "route": {
+        "x": 38,
+        "y": -373,
+        "width": 1200,
+        "height": 1530.609375,
+        "bottom": 1157.609375
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 1,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 455,
+      "route": {
+        "x": 64,
+        "y": -343,
+        "width": 1148,
+        "height": 1586.78125,
+        "bottom": 1243.78125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": [
+        {
+          "class": "ss-panel lp-plan-anchor r2-profile-track",
+          "text": "Track and sectionsYour track orders the Web Developer section. Software Engineer"
+        },
+        {
+          "class": "ss-panel sn-card r2-profile-name",
+          "text": "Your nameFriends add you by your sharkname. You can change it once every 30 days"
+        },
+        {
+          "class": "ss-panel r2-profile-account",
+          "text": "AccountAll devicesEnds every session of this account, this browser included. Log"
+        },
+        {
+          "class": "ss-panel r2-profile-advisor",
+          "text": "Study advisorYour weakest areas, from your own results.Not enough data yetAnswer"
+        },
+        {
+          "class": "ss-panel r2-profile-career",
+          "text": "Career levelSuperjunior Frontend DeveloperLevel 1 of 10420XP1,580 XP to Junior F"
+        }
+      ]
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "profile-account-light-1280x800",
+    "scene": "profile-account",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 1104,
+      "route": {
+        "x": 38,
+        "y": -992,
+        "width": 1200,
+        "height": 1530.609375,
+        "bottom": 538.609375
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 1,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 974,
+      "route": {
+        "x": 64,
+        "y": -862,
+        "width": 1148,
+        "height": 1586.78125,
+        "bottom": 724.78125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": [
+        {
+          "class": "ss-panel lp-plan-anchor r2-profile-track",
+          "text": "Track and sectionsYour track orders the Web Developer section. Software Engineer"
+        },
+        {
+          "class": "ss-panel sn-card r2-profile-name",
+          "text": "Your nameFriends add you by your sharkname. You can change it once every 30 days"
+        },
+        {
+          "class": "ss-panel r2-profile-account",
+          "text": "AccountAll devicesEnds every session of this account, this browser included. Log"
+        },
+        {
+          "class": "ss-panel r2-profile-advisor",
+          "text": "Study advisorYour weakest areas, from your own results.Not enough data yetAnswer"
+        },
+        {
+          "class": "ss-panel r2-profile-career",
+          "text": "Career levelSuperjunior Frontend DeveloperLevel 1 of 10420XP1,580 XP to Junior F"
+        }
+      ]
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "fde-module-light-1280x800",
+    "scene": "fde-module",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 616.3125,
+        "bottom": 728.3125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 671.9375,
+        "bottom": 783.9375
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "coding-home-dark-1280x800",
+    "scene": "coding-home",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 2136.28125,
+        "bottom": 2248.28125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 2136.28125,
+        "bottom": 2248.28125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "coding-track-dark-1280x800",
+    "scene": "coding-track",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 6701.140625,
+        "bottom": 6813.140625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 1451.625,
+        "bottom": 1563.625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 20,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "coding-track-list-dark-1280x800",
+    "scene": "coding-track-list",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript",
+    "before": {
+      "overflow": false,
+      "scroll": 736,
+      "route": {
+        "x": 38,
+        "y": -624,
+        "width": 1200,
+        "height": 6701.140625,
+        "bottom": 6077.140625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 306,
+      "route": {
+        "x": 64,
+        "y": -194,
+        "width": 1148,
+        "height": 1451.625,
+        "bottom": 1257.625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 20,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "workbench-dark-1280x800",
+    "scene": "workbench",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript/js-digit-sum",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 736,
+        "bottom": 752
+      },
+      "editor": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 736,
+        "bottom": 752
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 58,
+        "width": 1148,
+        "height": 640,
+        "bottom": 698
+      },
+      "editor": {
+        "x": 64,
+        "y": 58,
+        "width": 1148,
+        "height": 640,
+        "bottom": 698
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "learn-dark-1280x800",
+    "scene": "learn",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/learn/web-developer?topic=html",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 800,
+        "bottom": 912
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 800,
+        "bottom": 912
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-setup-dark-1280x800",
+    "scene": "quiz-setup",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/quiz",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 589.5625,
+        "bottom": 701.5625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 1,
+      "rows": 0,
+      "categories": 7,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 559.375,
+        "bottom": 671.375
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 17,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-active-dark-1280x800",
+    "scene": "quiz-active",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 724,
+        "bottom": 740
+      },
+      "editor": null,
+      "question": {
+        "x": 198,
+        "y": 16,
+        "width": 880,
+        "height": 609.40625,
+        "bottom": 625.40625
+      },
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 73.296875,
+        "width": 1148,
+        "height": 609.40625,
+        "bottom": 682.703125
+      },
+      "editor": null,
+      "question": {
+        "x": 198,
+        "y": 73.296875,
+        "width": 880,
+        "height": 609.40625,
+        "bottom": 682.703125
+      },
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-results-dark-1280x800",
+    "scene": "quiz-results",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 1736.078125,
+        "bottom": 1848.078125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 979.203125,
+        "bottom": 1091.203125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [
+      "POST /api/quiz/submit"
+    ],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-results-grid-dark-1280x800",
+    "scene": "quiz-results-grid",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 462,
+      "route": {
+        "x": 38,
+        "y": -350,
+        "width": 1200,
+        "height": 1736.078125,
+        "bottom": 1386.078125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 462,
+      "route": {
+        "x": 64,
+        "y": -350,
+        "width": 1148,
+        "height": 979.203125,
+        "bottom": 629.203125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [
+      "POST /api/quiz/submit"
+    ],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "daily-dark-1280x800",
+    "scene": "daily",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/daily",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 758.046875,
+        "bottom": 774.046875
+      },
+      "editor": null,
+      "question": {
+        "x": 198,
+        "y": 242.125,
+        "width": 880,
+        "height": 493.59375,
+        "bottom": 735.71875
+      },
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 24,
+        "width": 1148,
+        "height": 719.71875,
+        "bottom": 743.71875
+      },
+      "editor": null,
+      "question": {
+        "x": 198,
+        "y": 250.125,
+        "width": 880,
+        "height": 493.59375,
+        "bottom": 743.71875
+      },
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "today-dark-1280x800",
+    "scene": "today",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 456.21875,
+        "bottom": 568.21875
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 1,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 427,
+        "bottom": 539
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": [
+      {
+        "path": "/api/user/[op]",
+        "op": "practice-session",
+        "resource": null
+      },
+      {
+        "path": "/api/user/[op]",
+        "op": "practice-session",
+        "resource": null
+      }
+    ]
+  },
+  {
+    "id": "profile-dark-1280x800",
+    "scene": "profile",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 485,
+      "route": {
+        "x": 38,
+        "y": -373,
+        "width": 1200,
+        "height": 1530.609375,
+        "bottom": 1157.609375
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 1,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 455,
+      "route": {
+        "x": 64,
+        "y": -343,
+        "width": 1148,
+        "height": 1586.78125,
+        "bottom": 1243.78125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": [
+        {
+          "class": "ss-panel lp-plan-anchor r2-profile-track",
+          "text": "Track and sectionsYour track orders the Web Developer section. Software Engineer"
+        },
+        {
+          "class": "ss-panel sn-card r2-profile-name",
+          "text": "Your nameFriends add you by your sharkname. You can change it once every 30 days"
+        },
+        {
+          "class": "ss-panel r2-profile-account",
+          "text": "AccountAll devicesEnds every session of this account, this browser included. Log"
+        },
+        {
+          "class": "ss-panel r2-profile-advisor",
+          "text": "Study advisorYour weakest areas, from your own results.Not enough data yetAnswer"
+        },
+        {
+          "class": "ss-panel r2-profile-career",
+          "text": "Career levelSuperjunior Frontend DeveloperLevel 1 of 10420XP1,580 XP to Junior F"
+        }
+      ]
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "profile-account-dark-1280x800",
+    "scene": "profile-account",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 1104,
+      "route": {
+        "x": 38,
+        "y": -992,
+        "width": 1200,
+        "height": 1530.609375,
+        "bottom": 538.609375
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 1,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 974,
+      "route": {
+        "x": 64,
+        "y": -862,
+        "width": 1148,
+        "height": 1586.78125,
+        "bottom": 724.78125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": [
+        {
+          "class": "ss-panel lp-plan-anchor r2-profile-track",
+          "text": "Track and sectionsYour track orders the Web Developer section. Software Engineer"
+        },
+        {
+          "class": "ss-panel sn-card r2-profile-name",
+          "text": "Your nameFriends add you by your sharkname. You can change it once every 30 days"
+        },
+        {
+          "class": "ss-panel r2-profile-account",
+          "text": "AccountAll devicesEnds every session of this account, this browser included. Log"
+        },
+        {
+          "class": "ss-panel r2-profile-advisor",
+          "text": "Study advisorYour weakest areas, from your own results.Not enough data yetAnswer"
+        },
+        {
+          "class": "ss-panel r2-profile-career",
+          "text": "Career levelSuperjunior Frontend DeveloperLevel 1 of 10420XP1,580 XP to Junior F"
+        }
+      ]
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "fde-module-dark-1280x800",
+    "scene": "fde-module",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 112,
+        "width": 1200,
+        "height": 616.3125,
+        "bottom": 728.3125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 112,
+        "width": 1148,
+        "height": 671.9375,
+        "bottom": 783.9375
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "coding-track-light-1440x900",
+    "scene": "coding-track",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 118,
+        "y": 112,
+        "width": 1200,
+        "height": 6701.140625,
+        "bottom": 6813.140625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 118,
+        "y": 112,
+        "width": 1200,
+        "height": 1451.625,
+        "bottom": 1563.625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 20,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "workbench-light-1440x900",
+    "scene": "workbench",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript/js-digit-sum",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 118,
+        "y": 16,
+        "width": 1200,
+        "height": 836,
+        "bottom": 852
+      },
+      "editor": {
+        "x": 118,
+        "y": 16,
+        "width": 1200,
+        "height": 836,
+        "bottom": 852
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 118,
+        "y": 108,
+        "width": 1200,
+        "height": 640,
+        "bottom": 748
+      },
+      "editor": {
+        "x": 118,
+        "y": 108,
+        "width": 1200,
+        "height": 640,
+        "bottom": 748
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-results-light-1440x900",
+    "scene": "quiz-results",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 118,
+        "y": 112,
+        "width": 1200,
+        "height": 1736.078125,
+        "bottom": 1848.078125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 118,
+        "y": 112,
+        "width": 1200,
+        "height": 979.203125,
+        "bottom": 1091.203125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [
+      "POST /api/quiz/submit"
+    ],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "profile-light-1440x900",
+    "scene": "profile",
+    "theme": "light",
+    "width": 1440,
+    "height": 900,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 485,
+      "route": {
+        "x": 118,
+        "y": -373,
+        "width": 1200,
+        "height": 1530.609375,
+        "bottom": 1157.609375
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 1,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 455,
+      "route": {
+        "x": 118,
+        "y": -343,
+        "width": 1200,
+        "height": 1586.78125,
+        "bottom": 1243.78125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": [
+        {
+          "class": "ss-panel lp-plan-anchor r2-profile-track",
+          "text": "Track and sectionsYour track orders the Web Developer section. Software Engineer"
+        },
+        {
+          "class": "ss-panel sn-card r2-profile-name",
+          "text": "Your nameFriends add you by your sharkname. You can change it once every 30 days"
+        },
+        {
+          "class": "ss-panel r2-profile-account",
+          "text": "AccountAll devicesEnds every session of this account, this browser included. Log"
+        },
+        {
+          "class": "ss-panel r2-profile-advisor",
+          "text": "Study advisorYour weakest areas, from your own results.Not enough data yetAnswer"
+        },
+        {
+          "class": "ss-panel r2-profile-career",
+          "text": "Career levelSuperjunior Frontend DeveloperLevel 1 of 10420XP1,580 XP to Junior F"
+        }
+      ]
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "workbench-light-1280x680",
+    "scene": "workbench",
+    "theme": "light",
+    "width": 1280,
+    "height": 680,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript/js-digit-sum",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 616,
+        "bottom": 632
+      },
+      "editor": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 616,
+        "bottom": 632
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 58,
+        "width": 1148,
+        "height": 520,
+        "bottom": 578
+      },
+      "editor": {
+        "x": 64,
+        "y": 58,
+        "width": 1148,
+        "height": 520,
+        "bottom": 578
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-active-light-1280x680",
+    "scene": "quiz-active",
+    "theme": "light",
+    "width": 1280,
+    "height": 680,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 609.40625,
+        "bottom": 625.40625
+      },
+      "editor": null,
+      "question": {
+        "x": 198,
+        "y": 16,
+        "width": 880,
+        "height": 609.40625,
+        "bottom": 625.40625
+      },
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 24,
+        "width": 1148,
+        "height": 609.40625,
+        "bottom": 633.40625
+      },
+      "editor": null,
+      "question": {
+        "x": 198,
+        "y": 24,
+        "width": 880,
+        "height": 609.40625,
+        "bottom": 633.40625
+      },
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "coding-track-light-390x844",
+    "scene": "coding-track",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 16,
+        "y": 96,
+        "width": 354,
+        "height": 12846.8125,
+        "bottom": 12942.8125
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 26,
+        "y": 96,
+        "width": 334,
+        "height": 2428.84375,
+        "bottom": 2524.84375
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 20,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "workbench-light-390x844",
+    "scene": "workbench",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript/js-digit-sum",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 16,
+        "y": 12,
+        "width": 354,
+        "height": 879,
+        "bottom": 891
+      },
+      "editor": {
+        "x": 16,
+        "y": 12,
+        "width": 354,
+        "height": 879,
+        "bottom": 891
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 26,
+        "y": 24,
+        "width": 334,
+        "height": 879,
+        "bottom": 903
+      },
+      "editor": {
+        "x": 26,
+        "y": 24,
+        "width": 334,
+        "height": 879,
+        "bottom": 903
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources1"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-setup-light-390x844",
+    "scene": "quiz-setup",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/quiz",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 16,
+        "y": 96,
+        "width": 354,
+        "height": 981.046875,
+        "bottom": 1077.046875
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 1,
+      "rows": 0,
+      "categories": 7,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 26,
+        "y": 96,
+        "width": 334,
+        "height": 1200.859375,
+        "bottom": 1296.859375
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 17,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "quiz-active-light-390x844",
+    "scene": "quiz-active",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 16,
+        "y": 12,
+        "width": 354,
+        "height": 776,
+        "bottom": 788
+      },
+      "editor": null,
+      "question": {
+        "x": 16,
+        "y": 12,
+        "width": 354,
+        "height": 633.578125,
+        "bottom": 645.578125
+      },
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 26,
+        "y": 83.21875,
+        "width": 334,
+        "height": 633.578125,
+        "bottom": 716.796875
+      },
+      "editor": null,
+      "question": {
+        "x": 26,
+        "y": 83.21875,
+        "width": 334,
+        "height": 633.578125,
+        "bottom": 716.796875
+      },
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "profile-light-390x844",
+    "scene": "profile",
+    "theme": "light",
+    "width": 390,
+    "height": 844,
+    "source": "local fictional fixture + previous proposal",
+    "requestedRoute": null,
+    "before": {
+      "overflow": false,
+      "scroll": 506,
+      "route": {
+        "x": 16,
+        "y": -410,
+        "width": 354,
+        "height": 2845.265625,
+        "bottom": 2435.265625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 1,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 475,
+      "route": {
+        "x": 26,
+        "y": -379,
+        "width": 334,
+        "height": 2883.59375,
+        "bottom": 2504.59375
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": [
+        {
+          "class": "ss-panel lp-plan-anchor r2-profile-track",
+          "text": "Track and sectionsYour track orders the Web Developer section. Software Engineer"
+        },
+        {
+          "class": "ss-panel sn-card r2-profile-name",
+          "text": "Your nameFriends add you by your sharkname. You can change it once every 30 days"
+        },
+        {
+          "class": "ss-panel r2-profile-account",
+          "text": "AccountAll devicesEnds every session of this account, this browser included. Log"
+        },
+        {
+          "class": "ss-panel r2-profile-advisor",
+          "text": "Study advisorYour weakest areas, from your own results.Not enough data yetAnswer"
+        },
+        {
+          "class": "ss-panel r2-profile-career",
+          "text": "Career levelSuperjunior Frontend DeveloperLevel 1 of 10420XP1,580 XP to Junior F"
+        }
+      ]
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "evolving-light-1280x800",
+    "scene": "evolving",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript/js-fullstack-links-1",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 740,
+        "bottom": 756
+      },
+      "editor": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 680,
+        "bottom": 696
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources6"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 54,
+        "width": 1148,
+        "height": 648,
+        "bottom": 702
+      },
+      "editor": {
+        "x": 64,
+        "y": 54,
+        "width": 1148,
+        "height": 584,
+        "bottom": 638
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources6"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "evolving-dark-1280x800",
+    "scene": "evolving",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript/js-fullstack-links-1",
+    "before": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 740,
+        "bottom": 756
+      },
+      "editor": {
+        "x": 38,
+        "y": 16,
+        "width": 1200,
+        "height": 680,
+        "bottom": 696
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources6"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 0,
+      "route": {
+        "x": 64,
+        "y": 54,
+        "width": 1148,
+        "height": 648,
+        "bottom": 702
+      },
+      "editor": {
+        "x": 64,
+        "y": 54,
+        "width": 1148,
+        "height": 584,
+        "bottom": 638
+      },
+      "question": null,
+      "tabs": [
+        "Description",
+        "Results",
+        "Console",
+        "Resources6"
+      ],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "coding-track-paths-light-1280x800",
+    "scene": "coding-track-paths",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript",
+    "before": {
+      "overflow": false,
+      "scroll": 278,
+      "route": {
+        "x": 38,
+        "y": -166,
+        "width": 1200,
+        "height": 6701.140625,
+        "bottom": 6535.140625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 965,
+      "route": {
+        "x": 64,
+        "y": -853,
+        "width": 1148,
+        "height": 1451.625,
+        "bottom": 598.625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 20,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  },
+  {
+    "id": "coding-track-paths-dark-1280x800",
+    "scene": "coding-track-paths",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "public read-only data + previous proposal",
+    "requestedRoute": "/coding/javascript",
+    "before": {
+      "overflow": false,
+      "scroll": 278,
+      "route": {
+        "x": 38,
+        "y": -166,
+        "width": 1200,
+        "height": 6701.140625,
+        "bottom": 6535.140625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 0,
+      "categories": 0,
+      "profile": []
+    },
+    "after": {
+      "overflow": false,
+      "scroll": 965,
+      "route": {
+        "x": 64,
+        "y": -853,
+        "width": 1148,
+        "height": 1451.625,
+        "bottom": 598.625
+      },
+      "editor": null,
+      "question": null,
+      "tabs": [],
+      "rootBreadcrumbs": 0,
+      "rows": 20,
+      "categories": 0,
+      "profile": []
+    },
+    "pageErrors": [],
+    "blockedNonReadRequests": [],
+    "localFixtureWrites": [],
+    "optionalFixtureReads": []
+  }
+]
