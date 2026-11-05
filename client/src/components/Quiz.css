@@ -74,14 +74,25 @@
    PageHeader 24px above one panel whose sections are one 20px gap apart. */
 .quiz-setup { width: 100%; max-width: var(--ss-width-task); margin: 0 auto; }
 .quiz-setup > .ss-page-header { margin-bottom: 24px; }
-.quiz-setup__panel { display: flex; flex-direction: column; gap: 20px; padding: 24px; border-radius: var(--radius-container); }
+.quiz-setup__panel { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--ss-card-line); }
 .quiz-setup__error { font-size: var(--ss-type-meta); font-weight: 600; color: var(--ss-error); }
 .quiz-setup__error:empty { display: none; }
-.quiz-setup__settings { display: flex; flex-direction: column; gap: 20px; }
+.quiz-setup__settings { display: flex; flex-direction: column; gap: 0; }
 .quiz-setup__group { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.quiz-setup__start { display: flex; align-items: center; }
+.quiz-setup__topics, .quiz-setup__settings > .quiz-setup__group { padding-block: 20px; border-bottom: 1px solid var(--ss-card-line); }
+.quiz-setup__topic-actions { margin: 0; justify-content: space-between; align-items: center; gap: 8px 16px; }
+.quiz-setup__start { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 20px; }
+.quiz-setup__summary { display: grid; gap: 4px; min-width: 0; }
+.quiz-setup__summary > p { margin: 0; font-size: var(--ss-type-compact); font-weight: 600; }
+.quiz-setup__summary > .quiz-setup__helper { font-weight: 400; }
+.quiz-setup__guest.ss-state-panel--inline { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px; }
+.quiz-setup__guest .ss-state-panel__body { flex: 1; font-size: var(--ss-type-meta); }
+.quiz-setup__guest .ss-state-panel__actions { flex: none; }
+.quiz-setup__guest .astryx-button { background: transparent; border-color: transparent; }
 @media (max-width: 559px) {
-  .quiz-setup__panel { padding: 16px; }
+  .quiz-setup__topics, .quiz-setup__settings > .quiz-setup__group { padding-block: 18px; }
+  .quiz-setup__start { align-items: stretch; flex-direction: column; }
+  .quiz-setup__start > .ss-swim-cta { width: 100%; }
 }
 
 /* Results (UX audit U2, questions-12): the summary fills the route column, so
