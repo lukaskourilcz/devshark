@@ -170,13 +170,13 @@ describe('the Rewards screen', () => {
 
   // UX audit money-08 and money-12: the editorial header of the money pages,
   // and 'Coins' said by the h1 and the number's unit only.
-  it('heads the page like /premium and names the wallet for screen readers only', async () => {
+  it('uses the operational PageHeader and names the wallet for screen readers only', async () => {
     signIn();
     routes();
     await mountShop();
     await screen.findByText('1,240');
-    const header = document.querySelector('.ss-info-page__header')!;
-    expect(header.querySelector('.ss-info-page__kicker')).toHaveTextContent('Rewards');
+    const header = document.querySelector('.ss-page-header')!;
+    expect(header.querySelector('.ss-kicker')).toHaveTextContent('Rewards');
     expect(within(header as HTMLElement).getByRole('heading', { level: 1, name: 'Coins' })).toBeInTheDocument();
     expect(within(header as HTMLElement).getByText('Coins never buy XP or a place on a board.')).toBeInTheDocument();
     expect(screen.queryByText(/Learning earns coins/)).toBeNull();
