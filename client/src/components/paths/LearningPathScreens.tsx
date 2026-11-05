@@ -1042,6 +1042,52 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
   const ctaPending = !target && isAuthenticated && !enrollments.error && !progress.error
     && (enrollments.isPending || (reachable && !progress.data));
 
+  const resultContent = result && !codePassed && (
+<section className={open?.code ? 'lp-section' : 'lp-card lp-section'}>
+              <div className="lp-completion__line">
+                <h2 ref={resultHeading} tabIndex={-1}>{t('paths.result')}</h2>
+                <StateBadge state={result.state} />
+                {result.score !== null && (
+                  <span className="lp-module__meta">
+                    {t('paths.score', { percent: Math.round(result.score * 100) })}
+                  </span>
+                )}
+              </div>
+              {result.replayed && <p className="lp-completion__note">{t('paths.replayed')}</p>}
+              {result.domainScores && (
+                <ul className="lp-list lp-list--plain">
+                  {Object.entries(result.domainScores).map(([domain, share]) => (
+                    <li key={domain}>
+                      {t(`paths.domain.${domain}` as never)}: {Math.round(share * 100)}%
+                      {result.failedDomains?.includes(domain) ? ` — ${t('paths.domainBelow')}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <CriteriaList criteria={result.criteria} />
+              <Feedback feedback={result.feedback} />
+              {/* When the next thing worth doing is this activity again, the way
+                  on is another attempt, not a link back to where the learner
+                  already is. A check offers its own "Try again" above. */}
+              {result.nextActivityId && result.nextActivityId !== open?.activity.id && (
+                <div className="lp-actions lp-actions--end">
+                  <Button variant="primary" onClick={() => {
+                      const nextModule = entry.manifest.modules.find((one) =>
+                        one.activities.some((a) => a.id === result.nextActivityId),
+                      );
+                      if (!nextModule) return;
+                      navigate(activityHref(pathId, nextModule.id, result.nextActivityId!));
+                    }} label={t('paths.action.next')} />
+                </div>
+              )}
+              {result.nextActivityId && result.nextActivityId === open?.activity.id && !open.check && (
+                <div className="lp-actions lp-actions--end">
+                  <Button variant="primary" onClick={retry} label={t('error.tryAgain')} />
+                </div>
+              )}
+            </section>
+  );
+
   return (
     <div className="lp-page">
       {(!open?.code || codePassed) && <Breadcrumb items={[{ label: t('roadmap.title'), href: '/learn' }, { label: entry.manifest.title, href: pathHref(pathId) }, { label: module.title, href: activityId ? moduleHref(pathId, module.id) : undefined }, ...(activityId ? [{ label: shown?.title ?? t('paths.loadingActivity') }] : [])]} />}
@@ -1060,6 +1106,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
             </span>
           </div>
           <h1>{module.title}</h1>
+          {module.outcomes[0] && <p className="lp-lead">{module.outcomes[0]}</p>}
           <details className="lp-objectives"><summary>{t('paths.outcomes')}</summary>
           <ul className="lp-module__outcomes">
             {module.outcomes.map((outcome, index) => (
@@ -1227,6 +1274,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
             <CodeActivity
               key={open.activity.id}
               code={open.code}
+              feedback={resultContent}
               title={titleWithoutKind(shown?.title ?? open.activity.title, t(`paths.kind.${open.activity.kind}` as never))}
               titleRef={activityHeading}
               ancestry={[{ label: t('roadmap.title'), href: '/learn' }, { label: entry.manifest.title, href: pathHref(pathId) }, { label: module.title, href: moduleHref(pathId, module.id) }]}
@@ -1256,51 +1304,8 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
             />
           )}
 
-          {result && !codePassed && (
-            <section className="lp-card lp-section">
-              <div className="lp-completion__line">
-                <h2 ref={resultHeading} tabIndex={-1}>{t('paths.result')}</h2>
-                <StateBadge state={result.state} />
-                {result.score !== null && (
-                  <span className="lp-module__meta">
-                    {t('paths.score', { percent: Math.round(result.score * 100) })}
-                  </span>
-                )}
-              </div>
-              {result.replayed && <p className="lp-completion__note">{t('paths.replayed')}</p>}
-              {result.domainScores && (
-                <ul className="lp-list lp-list--plain">
-                  {Object.entries(result.domainScores).map(([domain, share]) => (
-                    <li key={domain}>
-                      {t(`paths.domain.${domain}` as never)}: {Math.round(share * 100)}%
-                      {result.failedDomains?.includes(domain) ? ` — ${t('paths.domainBelow')}` : ''}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <CriteriaList criteria={result.criteria} />
-              <Feedback feedback={result.feedback} />
-              {/* When the next thing worth doing is this activity again, the way
-                  on is another attempt, not a link back to where the learner
-                  already is. A check offers its own "Try again" above. */}
-              {result.nextActivityId && result.nextActivityId !== open?.activity.id && (
-                <div className="lp-actions lp-actions--end">
-                  <Button variant="primary" onClick={() => {
-                      const nextModule = entry.manifest.modules.find((one) =>
-                        one.activities.some((a) => a.id === result.nextActivityId),
-                      );
-                      if (!nextModule) return;
-                      navigate(activityHref(pathId, nextModule.id, result.nextActivityId!));
-                    }} label={t('paths.action.next')} />
-                </div>
-              )}
-              {result.nextActivityId && result.nextActivityId === open?.activity.id && !open.check && (
-                <div className="lp-actions lp-actions--end">
-                  <Button variant="primary" onClick={retry} label={t('error.tryAgain')} />
-                </div>
-              )}
-            </section>
-          )}
+          {!open?.code && resultContent}
+
         </section>
       )}
     </div>

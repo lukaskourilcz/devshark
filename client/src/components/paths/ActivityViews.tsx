@@ -5,7 +5,7 @@
 // components — and none of them decides anything. Each collects a submission, hands it to the server, and renders
 // the verdict the server sent back.
 
-import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { ComplexityInfo } from '../../coding/CodingCompletion';
 import { Breadcrumb, type BreadcrumbItem } from '../ui/Breadcrumb';
 import { codingFilename } from '../../coding/filename';
@@ -334,10 +334,11 @@ function useDraftQueue<T>(send: (value: T) => void): (value: T) => void {
 
 export function CodeActivity({
   code,
-  title = 'Code exercise',
+  title = pathCopy['paths.code.title'],
   ancestry = [],
   onClose,
   titleRef,
+  feedback,
   fixtureNote,
   draft,
   result,
@@ -352,6 +353,7 @@ export function CodeActivity({
   ancestry?: BreadcrumbItem[];
   onClose?: () => void;
   titleRef?: React.Ref<HTMLHeadingElement>;
+  feedback?: ReactNode;
   /** Says the fixture is deliberately unfamiliar and what "done" means.
    * Shown above the editor. */
   fixtureNote?: string;
@@ -418,6 +420,13 @@ export function CodeActivity({
   const tabId = useId();
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const tabs = ['description', 'results', 'console'] as const;
+  const resultPanel = useRef<HTMLElement>(null);
+  const focusedResult = useRef<SubmitActivityResponse | null>(null);
+  useEffect(() => {
+    if (!result || tab !== 'results' || focusedResult.current === result) return;
+    resultPanel.current?.querySelector<HTMLElement>('h2[tabindex]')?.focus();
+    focusedResult.current = result;
+  }, [result, tab]);
   useEffect(() => { if (result) setTab('results'); }, [result]);
   const verdict = result?.code ?? null;
   const submitUnavailable = busy || submitBlocked || source.trim().length === 0;
@@ -560,8 +569,8 @@ export function CodeActivity({
 
               {code.complexityGuidance?.targetTime && <div className="cd-complexity"><span>{t('coding.complexity.desired', { complexity: code.complexityGuidance.targetTime })}</span><ComplexityInfo guidance={code.complexityGuidance} /></div>}
             </section>
-            <section role="tabpanel" id={`${tabId}-panel-results`} aria-labelledby={`${tabId}-tab-results`} tabIndex={0} hidden={tab !== 'results'}>
-              {result ? <><StateBadge state={result.state} />{result.code && <CriteriaList criteria={result.criteria} />}</> : <p className="cd-note">{pathCopy['paths.code.submitToSee']}</p>}
+            <section ref={resultPanel} role="tabpanel" id={`${tabId}-panel-results`} aria-labelledby={`${tabId}-tab-results`} tabIndex={0} hidden={tab !== 'results'}>
+              {feedback ?? (result ? <><StateBadge state={result.state} />{result.code && <CriteriaList criteria={result.criteria} />}</> : <p className="cd-note">{pathCopy['paths.code.submitToSee']}</p>)}
             {verdict?.codeError && (
               <div className="lp-notice lp-notice--error">
                 <span className="lp-notice__glyph" aria-hidden="true">
