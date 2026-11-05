@@ -31,6 +31,10 @@ Node 24.22.2. API/scripts/tooling types, unused/security, build, public/design c
 
 The first broad browser run passed 81/83: it found inaccessible mobile checks, fixed by keeping feedback available before editor opt-in; a navigation-opacity timing assertion also failed while other browser sweeps ran. The complete 83-case rerun passes without changing that timing assertion. A full client run concurrent with a build timed out waiting for the Learn level loader (1/1,803); the unchanged 46-test Learn-plan suite passes in isolation. No Learn implementation or timeout threshold was changed.
 
-These are local, unmerged results. Required GitHub verify/SQL, the production deployment and guest smoke checks remain release gates; actual release evidence belongs in `docs/release-acceptance.md` after READY. Authenticated production acceptance, physical devices and independent human review are not claimed.
+These local results are complemented by the checked release below. Authenticated production acceptance, physical devices and independent human review are not claimed.
 
 The first GitHub browser job failed in the existing Learn shared-progress test: it sampled text before level counts loaded, comparing the later full progress against the temporary `Premium` label. The test now waits for its existing expected progress pattern before sampling, then compares the same value across sections. No Learn product code or timeout changed. SQL, static and the complete client/server test job passed in that initial run; a new checked head is required for release.
+
+## Release
+
+PR #599 merged at `2ff184bc92e7ae779456c6fa557e563052dcdcf4` after required run `41944079528` passed verify and SQL, including all 187 client files / 1,803 tests. READY production `dpl_GfdFcfzDL1WKLAYSQkZBS1XgSrbp` matches that merge and serves devshark.app. All 12 guest production route/theme/width flows pass: Coding local Run is 6/6 with Description retained, Quiz preserves logo pills and its selected setup summary, and Learn keeps its original section/topic/overview layout. The original wordmark and bottom sharks remain visible, with no overflow, page errors or app API writes. Full evidence and the initial failed checks are in `docs/release-acceptance.md`.
