@@ -35,3 +35,9 @@ A first deep-link check exposed additive scroll-padding and scroll-margin spacin
 Open `index.html` directly, or serve this directory on loopback port 4182. Comments are local to the browser/origin. Export/import JSON to move between devices, browsers or `file://` and localhost. The download contains decisions and comments, not images or credentials. Comments are never sent automatically.
 
 The prototype source is `prototype/after-transform.js`. It is not imported by the application and is a visual transform, not working navigation, grading or persistence. References and scene limitations are explicit in the document. Authenticated production acceptance, physical Safari/phone testing, multiplayer reconnect, admin internals and the full negative-state matrix remain implementation work for approved changes.
+
+## Repository CI follow-up
+
+Required run `41955694136` at initial review head `477cc94b` found one failure in the existing client suite: `quiz.test.tsx` checked the error heading's focus immediately after finding Retry. At that point the DOM could be mounted before the passive focus effect completed. The result was 1,802 passing tests and one failing test in 187 files; the review document's 25 checks remained green. Static, QuickJS and SQL passed. The still-running browser/coding jobs were cancelled after the cause was identified; they are not reported as passing.
+
+The test now waits for the same required focus both on error and on return to setup, using the suite's existing `waitFor`; it neither removes the focus requirement nor raises a timeout. The targeted Quiz suite passes all 61 tests locally on Node 24.22.2. This is a test synchronization correction only; no production component, layout, auth or grading behavior changed. Required CI is rerun on the new frozen head before merge.
