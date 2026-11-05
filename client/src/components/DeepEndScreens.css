@@ -110,3 +110,6 @@
    (social-account-18). :nth-child(n) outranks the desktop rule that makes
    the summary a block. */
 @media (max-width:600px){.de-profile-identity .de-plan-line{grid-template-columns:auto minmax(0,1fr)}.de-profile-identity .de-plan-line__body{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}.de-profile-identity .de-plan-line__body>:nth-child(n){display:inline;white-space:normal}.de-profile-identity .de-plan-line__body>:nth-child(2)::before{content:'\0020\00B7\00A0' / ''}.de-profile-identity .de-plan-line__body,.de-profile-identity .de-plan-line__loading{grid-column:2}.de-profile-identity .de-plan-line__actions{grid-column:1 / -1;justify-self:start}}
+
+.de-profile-saved-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; width: 100%; }
+@media (max-width: 700px) { .de-profile-saved-list { grid-template-columns: 1fr; } }

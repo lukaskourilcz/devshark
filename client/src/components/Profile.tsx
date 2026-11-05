@@ -316,6 +316,7 @@ function ProfileBody({
 
             <AccountDeletionCard />
             <AdvisorCard />
+            <GithubGardenCard />
           </VStack>
           </div>
 
@@ -326,13 +327,17 @@ function ProfileBody({
             />
 
             <SharknameCard focus={focusSharkname} onFocused={() => setFocusSharkname(false)} />
-            <GithubGardenCard />
 
+
+
+          </VStack>
+          </div>
+        </Grid>
             {bookmarkedQuestions.length > 0 && (
               <div className="ss-panel" style={{ padding: 24, width: '100%' }}>
                 <VStack gap={2}>
                   <SectionLabel>{t('profile.bookmarks', { count: bookmarkedQuestions.length })}</SectionLabel>
-                  <VStack gap={1.5}>
+                  <div className="de-profile-saved-list">
                     {bookmarkedQuestions.slice(0, 20).map((q) => (
                       <Card key={q.id} variant="muted" padding={2}>
                         <VStack gap={1}>
@@ -356,14 +361,10 @@ function ProfileBody({
                         {t('profile.showingOf', { total: bookmarkedQuestions.length })}
                       </Text>
                     )}
-                  </VStack>
+                  </div>
                 </VStack>
               </div>
             )}
-
-          </VStack>
-          </div>
-        </Grid>
         </VStack></div>)}
       </VStack>
     </div>

@@ -106,10 +106,10 @@ describe('the Profile columns (social-account-03)', () => {
     expect(learning.parentElement).toBe(account.parentElement);
     expect(await within(learning).findByRole('heading', { name: 'Account' })).toBeInTheDocument();
     const settings = [...learning.querySelectorAll('h2.ss-kicker')].map(h => h.textContent);
-    expect(settings).toEqual(['Track and sections', 'Account', 'Study advisor']);
+    expect(settings).toEqual(['Track and sections', 'Account', 'Study advisor', 'GitHub garden']);
     expect(await within(account).findByRole('heading', { name: 'Career level' })).toBeInTheDocument();
     expect(await within(account).findByRole('heading', { name: 'Your name' })).toBeInTheDocument();
-    expect(await within(account).findByRole('heading', { name: 'GitHub garden' })).toBeInTheDocument();
+    expect(await within(learning).findByRole('heading', { name: 'GitHub garden' })).toBeInTheDocument();
     expect(within(account).queryByRole('heading', { name: 'Account' })).toBeNull();
   });
 });
@@ -126,7 +126,7 @@ describe('the Profile card stock (social-account-17)', () => {
       (card) => !card.parentElement!.closest('.ss-panel'),
     ) as HTMLElement[];
     const titles = cards.map((card) => card.querySelector('h2.ss-kicker')?.textContent);
-    expect(titles).toEqual(['Streaks', 'Track and sections', 'Account', 'Study advisor', 'Career level', 'Your name', 'GitHub garden']);
+    expect(titles).toEqual(['Streaks', 'Track and sections', 'Account', 'Study advisor', 'GitHub garden', 'Career level', 'Your name']);
     for (const card of cards) {
       // Plain surface: no card overrides the panel's background.
       expect(card.style.background).toBe('');
