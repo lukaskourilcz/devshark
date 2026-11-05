@@ -24,7 +24,7 @@ No changes to `App.tsx`, `BrandLogo`, brand geometry/assets, Roadmap or Learn co
 
 Node 24.22.2. API/scripts/tooling types, unused/security, build, public/design contracts, bundle and launch checks pass. Both production dependency audits report zero vulnerabilities. The final source build measures 231,750 initial gzip bytes against 241,651; monitoring 49,500/60,000.
 
-- Initial full client run: 187 files / 1,802 tests pass. The added mobile regression subsequently passes with all 26 narrow/output-tab tests; 47 output/state tests and all 46 isolated Learn-plan tests also pass. A full final run with two workers is being recorded separately.
+- Final full client run: 187 files / 1,803 tests pass with two workers, including the added mobile regression and the unchanged Learn suite. All 26 focused narrow/output-tab tests and 47 output/state tests also pass.
 - Final affected browser run: all 83 Coding workbench/pages/drafts, evolving and navigation cases pass. This covers real editor/runner/React harness behavior using local API fixtures, seven widths across both themes, independent tabs, collapsed output reopening, keyboard resizing, original logo and the ocean.
 - Quiz flow and Learn-reading regression subset: all 22 browser cases pass. Four setup cases also exercise topic logos, keyboard selection, live summary, question start and axe checks in both themes at 360/1280px.
 - Responsive harness: 14 Coding/Quiz route-width cells in light and 14 in dark, widths 360–1440px, zero issues or unprobed cells, including ocean clearance.
@@ -32,3 +32,5 @@ Node 24.22.2. API/scripts/tooling types, unused/security, build, public/design c
 The first broad browser run passed 81/83: it found inaccessible mobile checks, fixed by keeping feedback available before editor opt-in; a navigation-opacity timing assertion also failed while other browser sweeps ran. The complete 83-case rerun passes without changing that timing assertion. A full client run concurrent with a build timed out waiting for the Learn level loader (1/1,803); the unchanged 46-test Learn-plan suite passes in isolation. No Learn implementation or timeout threshold was changed.
 
 These are local, unmerged results. Required GitHub verify/SQL, the production deployment and guest smoke checks remain release gates; actual release evidence belongs in `docs/release-acceptance.md` after READY. Authenticated production acceptance, physical devices and independent human review are not claimed.
+
+The first GitHub browser job failed in the existing Learn shared-progress test: it sampled text before level counts loaded, comparing the later full progress against the temporary `Premium` label. The test now waits for its existing expected progress pattern before sampling, then compares the same value across sections. No Learn product code or timeout changed. SQL, static and the complete client/server test job passed in that initial run; a new checked head is required for release.
