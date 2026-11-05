@@ -13,32 +13,36 @@ The owner authorized implementation of the accepted first-round baseline and sec
 
 ## Delivery checklist
 
-- [ ] SYS-01 — Šířka podle úkolu, společné okraje
-- [ ] SYS-02 — Jedna pracovní typografická škála
-- [ ] SYS-03 — Breadcrumbs jako kontext, ne další velký nadpis
-- [ ] SYS-04 — Společný režim soustředění pro všechny aktivity
-- [ ] SYS-05 — Kompaktnější vzhled bez menších zásahových ploch
-- [ ] COD-01 — Jeden workspace a pravý společný tabstrip
-- [ ] COD-02 — CamelCase název challenge přímo v breadcrumbs editoru
-- [ ] COD-03 — Nahoře nástroje, dole pouze Run · Hint · Submit
-- [ ] COD-04 — Solution pouze po oprávněném serverovém Submit
-- [ ] COD-05 — Desired complexity úplně na konci Description
-- [ ] COD-06 — Stages pod kartou, žádný titul před editorem
-- [ ] COD-07 — Uklidit spodní Coding: formáty oddělit lokální navigací
-- [ ] COD-08 — Next challenge ve světlém režimu dostane čitelný povrch
-- [ ] COD-09 — Jazykový seznam: stabilní filtry a kompaktní řádky
-- [ ] LEA-01 — Témata vlevo, vybraný kurz a Continue vpravo
-- [ ] LEA-02 — Mapa bez druhé konkurenční navigace po partech
-- [ ] QUI-01 — Setup do přehledných skupin; pills s logy beze změny
-- [ ] QUI-02 — Otázka využije prostor bez velkého prázdného bloku
-- [ ] QUI-03 — Výsledky: souhrn nahoře, review v jednom čitelném toku
-- [ ] TOD-01 — Learning paths jako skutečný resume řádek
-- [ ] PRO-01 — Account vlevo přímo pod Track and Sections
-- [ ] PRO-02 — Progress metriky zmenšit na souhrn, nastavení na řádky
-- [ ] PTH-01 — FDE modul: přehled vedle aktivit, cíle na vyžádání
-- [ ] EXT-01 — Challenge, Play, Cards a Typing: stejný vstup a aktivní režim
-- [ ] EXT-02 — Leaderboard a sbírky: pracovní přehled, ne další hero
+- [x] SYS-01 — Šířka podle úkolu, společné okraje
+- [x] SYS-02 — Jedna pracovní typografická škála
+- [x] SYS-03 — Breadcrumbs jako kontext, ne další velký nadpis
+- [x] SYS-04 — Společný režim soustředění pro všechny aktivity
+- [x] SYS-05 — Kompaktnější vzhled bez menších zásahových ploch
+- [x] COD-01 — Jeden workspace a pravý společný tabstrip
+- [x] COD-02 — CamelCase název challenge přímo v breadcrumbs editoru
+- [x] COD-03 — Nahoře nástroje, dole pouze Run · Hint · Submit
+- [x] COD-04 — Solution pouze po oprávněném serverovém Submit
+- [x] COD-05 — Desired complexity úplně na konci Description
+- [x] COD-06 — Stages pod kartou, žádný titul před editorem
+- [x] COD-07 — Uklidit spodní Coding: formáty oddělit lokální navigací
+- [x] COD-08 — Next challenge ve světlém režimu dostane čitelný povrch
+- [x] COD-09 — Jazykový seznam: stabilní filtry a kompaktní řádky
+- [x] LEA-01 — Témata vlevo, vybraný kurz a Continue vpravo
+- [x] LEA-02 — Mapa bez druhé konkurenční navigace po partech
+- [x] QUI-01 — Setup do přehledných skupin; pills s logy beze změny
+- [x] QUI-02 — Otázka využije prostor bez velkého prázdného bloku
+- [x] QUI-03 — Výsledky: souhrn nahoře, review v jednom čitelném toku
+- [x] TOD-01 — Learning paths jako skutečný resume řádek
+- [x] PRO-01 — Account vlevo přímo pod Track and Sections
+- [x] PRO-02 — Progress metriky zmenšit na souhrn, nastavení na řádky
+- [x] PTH-01 — FDE modul: přehled vedle aktivit, cíle na vyžádání
+- [x] EXT-01 — Challenge, Play, Cards a Typing: stejný vstup a aktivní režim
+- [x] EXT-02 — Leaderboard a sbírky: pracovní přehled, ne další hero
 - [x] EXT-03 — Premium, auth a textové stránky mají rozdílný účel (rejected; do not implement)
 - [ ] STA-01 — Společné stavy a implementační pořadí
 
-Product implementation is in progress. Validation and production acceptance will record actual results.
+Product implementation is complete; the final release run is pending. A local read-only fixture sweep covered Quiz setup/active/results, Learn, Today, Profile and an enrolled FDE module at 360, 768, 1280 and 1440 CSS px in light and dark (56 cells, no horizontal overflow or page errors). Axe ran on all 28 phone/notebook cells with no WCAG 2 A/AA, 2.1 AA or 2.2 AA findings. Coding editor checks additionally covered 360–1440 px in both themes, local workers, server submissions, keyboard navigation, drafts and stage handoff. These are local fixtures, not production transactions or a physical-device claim.
+
+The shipped Daily question bank has introductions for all 2,072 questions across the 15 Daily categories. The page reuses those public introductions and a shared category introduction; it never reads pre-grade explanations or raw answer-bearing tags. The legacy default-category subset remains wire-compatible for older clients but its obsolete admin control is removed.
+
+The implementation preserves grading, plan gates, server XP and saved drafts. The only added server read returns the identifiers of passed stages with nonblank, caller-owned saved code, never the code itself. Final CI and production acceptance will record actual outcomes.

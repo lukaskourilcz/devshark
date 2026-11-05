@@ -965,3 +965,6 @@
 .cd-complete .cd-verdict__actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 
 .cd-brief-refresh { min-height: 44px; }
+
+.cd-editor-bar .cd-save { border-color: transparent; }
+.cd-editor-bar .cd-save svg { width: 18px; height: 18px; }
