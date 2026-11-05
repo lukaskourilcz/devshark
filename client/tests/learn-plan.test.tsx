@@ -865,8 +865,8 @@ describe('a level on the shared question parts', () => {
     fireEvent.click(screen.getByRole('radio', { name: /Option A/ }));
     fireEvent.click(await screen.findByRole('button', { name: 'Finish' }));
     await screen.findByRole('heading', { name: 'Level complete' });
-    // The result brings the chrome back.
-    expect(seen[seen.length - 1]).toBe(false);
+    // The result brings the chrome back through the runner's passive effect.
+    await waitFor(() => expect(seen[seen.length - 1]).toBe(false));
   });
 
   it('ends on a result with one primary in the shared action row', async () => {
