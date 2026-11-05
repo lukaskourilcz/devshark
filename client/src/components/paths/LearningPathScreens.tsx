@@ -378,6 +378,7 @@ export function PathOverview({ pathId }: { pathId: LearningPathId }) {
 
   return (
     <div className="lp-page">
+      <Breadcrumb items={[{ label: t('roadmap.title'), href: '/learn' }, { label: entry.manifest.title }]} />
       <header className="lp-head">
         <div className="lp-head__text">
           <p className="lp-kicker">
@@ -1226,7 +1227,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
             <CodeActivity
               key={open.activity.id}
               code={open.code}
-              title={titleWithoutKind(open.activity.title, t(`paths.kind.${open.activity.kind}` as never))}
+              title={titleWithoutKind(shown?.title ?? open.activity.title, t(`paths.kind.${open.activity.kind}` as never))}
               titleRef={activityHeading}
               ancestry={[{ label: t('roadmap.title'), href: '/learn' }, { label: entry.manifest.title, href: pathHref(pathId) }, { label: module.title, href: moduleHref(pathId, module.id) }]}
               onClose={() => { const next = new URLSearchParams(search); next.delete('activity'); setSearch(next, { replace: true }); }}

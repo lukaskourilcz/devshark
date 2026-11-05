@@ -181,7 +181,7 @@ export function CheckActivity({
   return (
     // Its own class: sharing the picker's checkbox-label class dimmed the
     // whole check once its radios were disabled.
-    <div className="lp-check-view">
+    <div className="lp-check-view" data-activity="active">
       <div className="lp-notice">
         <span className="lp-notice__glyph" aria-hidden="true">
           ◉
@@ -412,6 +412,8 @@ export function CodeActivity({
     [hints, approach],
   );
 
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { if (titleRef) headingRef.current?.focus(); }, [titleRef]);
   const [tab, setTab] = useState<'description' | 'results' | 'console'>('description');
   const tabId = useId();
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -427,7 +429,7 @@ export function CodeActivity({
   // ss-wide-page widens the route box to the wide page while it is mounted.
   return (
     <div className="cd-page cd-workbench cd-workbench--activity ss-wide-page">
-      <h1 className="ss-sr-only" ref={titleRef} tabIndex={-1}>{title}</h1>
+      <h1 className="ss-sr-only" ref={node => { headingRef.current = node; if (typeof titleRef === 'function') titleRef(node); else if (titleRef) titleRef.current = node; }} tabIndex={-1}>{title}</h1>
       <div className="cd-workbench__grid">
         <div className="cd-pane cd-pane--editor">
           <div className="cd-editor-bar ss-compact">
@@ -496,7 +498,7 @@ export function CodeActivity({
             <section role="tabpanel" id={`${tabId}-panel-description`} aria-labelledby={`${tabId}-tab-description`} tabIndex={0} hidden={tab !== 'description'}>
               <h2 className="cd-brief__title">{title}</h2>
               <div className="lp-brief cd-prompt"><RichText text={descriptionText(code.prompt)} /></div>
-              {fixtureNote && <div className="lp-notice lp-notice--info"><RichText text={fixtureNote} /></div>}
+              {fixtureNote && <div className="lp-notice lp-notice--info"><div><strong>{pathCopy['paths.code.fixtureNoteTitle']}</strong><RichText text={fixtureNote} /></div></div>}
             {contract.length > 0 && (
               <section className="lp-section">
                 <h3>{t('paths.code.contract')}</h3>
@@ -655,7 +657,7 @@ export function ArtifactActivity({
   };
 
   return (
-    <div className="lp-split">
+    <div className="lp-split" data-activity="active">
       <div className="lp-split__brief">
         <div className="lp-brief lp-card">
           <RichText text={artifact.brief} />

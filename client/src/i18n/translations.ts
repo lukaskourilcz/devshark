@@ -2175,7 +2175,7 @@ export const en = {
   'coding.verdict.graderUnavailable': 'The checker could not run just now, so this Submit was not recorded. Try again in a moment.',
   'error.stageLocked': 'Pass the earlier stages of this challenge first.',
   'coding.design.sessionUsed': 'This walkthrough was already checked. Open it again for a new attempt.',
-  'coding.lesson.solutionShown': 'The reference solution is open in the Solution tab. Showing it ended this level attempt: read it, then finish the level. You can retry the level later.',
+  'coding.lesson.solutionShown': 'The reference solution is shown below. Showing it ended this level attempt: read it, then finish the level. You can retry the level later.',
   'coding.lesson.finishLevel': 'Finish the level',
 
   // Email and password sign-in beside Google (owner decision 3, 1 Oct 2026):
