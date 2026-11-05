@@ -112,28 +112,25 @@ for (const theme of ['light', 'dark'] as const) for (const width of [360, 1280])
     const editor = page.locator('.cm-content');
     await fillEditor(page, 'const digitSum = n => 0;');
     await page.getByRole('button', { name: 'Run', exact: true }).click();
-    const feedback = page.getByRole('region', { name: 'Code feedback', exact: true });
+    const feedback = page.locator('.cd-pane--output');
     await expect(feedback.getByRole('tabpanel', { name: /^Results/ })).toContainText('Fail');
-    await expect(page.getByRole('tabpanel', { name: 'Description' })).toBeVisible();
+    await expect(page.getByRole('tabpanel', { name: 'Description' })).not.toBeVisible();
+    await page.getByRole('tab', { name: 'Description' }).click();
     await expect(page.getByRole('region', { name: 'Examples' })).toContainText('digitSum(493)');
     await page.getByRole('tab', { name: /^Resources/ }).click();
-    await page.getByRole('button', { name: 'Hide output' }).click();
-    await expect(feedback.getByRole('tabpanel', { name: /^Results/ })).not.toBeVisible();
     await editor.press('Control+Enter');
     await expect(feedback.getByRole('tabpanel', { name: /^Results/ })).toBeVisible();
-    await expect(page.getByRole('tab', { name: /^Resources/ })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('tab', { name: /^Results/ })).toHaveAttribute('aria-selected', 'true');
     await expect(editor).toHaveText('const digitSum = n => 0;');
     if (width >= 1024) {
-      const before = await feedback.boundingBox();
-      const resize = page.getByRole('separator', { name: 'Resize the code feedback panel' });
-      await resize.focus();
-      await resize.press('ArrowUp');
-      const after = await feedback.boundingBox();
-      expect(after!.height - before!.height).toBeGreaterThan(20);
-      await resize.press('Enter');
+      const before = await page.locator('.cd-pane--editor').boundingBox();
+      const resize = page.getByRole('separator', { name: 'Resize the editor and task information panes' });
+      await resize.focus(); await resize.press('ArrowRight');
+      const after = await page.locator('.cd-pane--editor').boundingBox();
+      expect(after!.width).toBeGreaterThan(before!.width);
     }
     await page.getByRole('tab', { name: 'Description' }).click();
-    await expect(page.locator('.ss-header-brand svg use').last()).toHaveAttribute('href', /devshark-wordmark.*#shark/);
+    await expect(page.locator('.ss-header')).toBeHidden();
     await expect(page.locator('.ss-fin-drift').first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath(`task-first-${theme}-${width}.png`), fullPage: true });
@@ -171,8 +168,8 @@ for (const theme of ['light', 'dark'] as const) {
       const tab = page.getByRole('tab', { name: 'Description' });
       await tab.focus();
       await page.keyboard.press('ArrowRight');
-      await expect(page.getByRole('tab', { name: /^Resources/ })).toBeFocused();
-      if (width >= 1024) await expect(page.getByRole('tabpanel', { name: /^Results/ })).toBeVisible();
+      await expect(page.getByRole('tab', { name: /^Results/ })).toBeFocused();
+      await expect(page.getByRole('tabpanel', { name: /^Results/ })).toBeVisible();
       await page.keyboard.press('Home');
       await expect(tab).toBeFocused();
       await expect(description).toBeVisible();
@@ -210,23 +207,16 @@ test('React success stays compact, and Run and Submit keep their words at every 
     await expect(run).toBeVisible();
     await expect(run).toContainText('Run');
     await expect(commands.getByRole('button', { name: 'Submit', exact: true })).toContainText('Submit');
-    if (width >= 1024) await expect(commands.getByRole('button', { name: 'Hint', exact: true })).toBeVisible();
-    else {
-      const more = commands.getByRole('button', { name: 'More actions', exact: true });
-      await more.focus();
-      await more.press('Tab');
-      await page.keyboard.press('Shift+Tab');
-      await expect(page.getByRole('tooltip', { name: 'More actions', exact: true })).toBeVisible();
-      await more.press('Escape');
-    }
+    await expect(commands.getByRole('button', { name: 'Hint', exact: true })).toBeVisible();
+    await expect(page.locator('.cd-editor-bar').getByRole('button', { name: 'Reset', exact: true })).toBeVisible();
   }
   await page.setViewportSize({ width: 1219, height: 900 });
   await commands.getByRole('button', { name: 'Submit', exact: true }).click();
   const verdict = page.locator('.cd-verdict');
   await expect(verdict).toContainText('Passed');
   await expect(verdict).toContainText('+25 XP');
-  await expect(page.locator('.cd-complete').getByRole('link', { name: 'Next task' })).toBeVisible();
-  await expect(page.locator('.cd-complete').getByRole('link', { name: 'Back to the list' })).toBeVisible();
+  await expect(page.locator('.cd-verdict').getByRole('link', { name: 'Next task' })).toBeVisible();
+  await expect(page.locator('.cd-verdict').getByRole('link', { name: 'Back to the list' })).toBeVisible();
   await expect(verdict).not.toContainText(/Estimated time|How this estimate works|First pass|Reset the task/);
 });
 

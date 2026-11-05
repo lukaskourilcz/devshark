@@ -64,7 +64,7 @@ describe('BriefZone', () => {
 
   it('caps the body with one token and fixes the frame height from 1024px', () => {
     const css = readFileSync(resolve(__dirname, '../src/coding/Coding.css'), 'utf8');
-    expect(css).toContain("--cd-frame-h: clamp(600px, calc(100dvh - 7rem - 48px), 900px);");
+    expect(css).toContain("--cd-frame-h: clamp(360px, calc(100dvh - 160px), 640px);");
     expect(css).toContain(".cd-brief__body[data-capped='true'] { max-height: var(--cd-brief-cap);");
     expect(css).toMatch(/\.cd-workbench--section \.cd-workbench__grid,\s*\.cd-workbench--lesson \.cd-workbench__grid,\s*\.cd-workbench--activity \.cd-workbench__grid \{ grid-template-rows: var\(--cd-frame-h\); \}/);
   });

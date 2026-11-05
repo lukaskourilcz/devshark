@@ -32,15 +32,14 @@ const result = (extra: Partial<CodingVerdictResponse>): CodingVerdictResponse =>
 // first render, as the task screen and an intent preload do.
 beforeAll(async () => { await loadEditor(); });
 
-it('replaces the workbench with the passed award and two completion actions', async () => {
+it('keeps the workbench and server award after a pass', async () => {
   vi.mocked(submitCoding).mockResolvedValue(result({xpAwarded:25}));
   mount();
   fireEvent.click(screen.getByRole('button',{name:'Submit'}));
-  await waitFor(()=>expect(screen.getByRole('heading',{level:1})).toHaveTextContent('Passed +25 XP'));
+  await waitFor(()=>expect(screen.getByRole('heading',{name:/^Passed/})).toHaveTextContent('Passed +25 XP'));
   expect(screen.queryByText('local form event failed')).toBeNull();
-  expect(screen.queryByLabelText('Test editor')).toBeNull();
-  expect(screen.queryByRole('tab',{name:/Results/})).toBeNull();
-  expect(screen.getByRole('button',{name:'Next task'})).toBeDisabled();
+  expect(screen.getByLabelText('Test editor')).toBeVisible();
+  expect(screen.getByRole('tab',{name:/Results/})).toHaveAttribute('aria-selected','true');
   expect(screen.getByRole('link',{name:'Back to the list'})).toHaveAttribute('href','/coding/react');
   expect(screen.queryByText(/Complexity/)).toBeNull();
 });
@@ -48,16 +47,16 @@ it('shows only known complexity and the server award for an above-target pass', 
   vi.mocked(submitCoding).mockResolvedValue(result({xpAwarded:15,complexity:{time:'O(n^2)',assessment:'above-target',explanation:'Nested scans',assumptions:'',guidance:{targetTime:'O(n)',targetSpace:null,note:''}}}));
   mount();
   fireEvent.click(screen.getByRole('button',{name:'Submit'}));
-  await waitFor(()=>expect(screen.getByRole('heading',{level:1})).toHaveTextContent('Passed +15 XP'));
+  await waitFor(()=>expect(screen.getByRole('heading',{name:/^Passed/})).toHaveTextContent('Passed +15 XP'));
   expect(screen.getByText('Complexity: O(n^2)')).toBeVisible();
-  expect(screen.getByRole('heading',{level:1}).closest('section')).toHaveClass('cd-verdict--warning');
+  expect(screen.getByRole('heading',{name:/^Passed/}).closest('section')).toHaveClass('cd-verdict--warning');
 });
 it('hides unknown complexity completely and displays the actual zero award', async () => {
   vi.mocked(submitCoding).mockResolvedValue(result({complexity:{time:null,assessment:'unknown',explanation:'Cannot determine',assumptions:'',guidance:{targetTime:null,targetSpace:null,note:''}}}));
   mount();
   expect(screen.queryByText(/Desired complexity/)).toBeNull();
   fireEvent.click(screen.getByRole('button',{name:'Submit'}));
-  await waitFor(()=>expect(screen.getByRole('heading',{level:1})).toHaveTextContent('Passed +0 XP'));
+  await waitFor(()=>expect(screen.getByRole('heading',{name:/^Passed/})).toHaveTextContent('Passed +0 XP'));
   expect(screen.queryByText(/Cannot determine|Complexity|Efficiency/)).toBeNull();
 });
 it('shows the server startup error so a learner can understand a failed submission', async () => {

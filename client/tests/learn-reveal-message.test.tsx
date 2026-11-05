@@ -8,7 +8,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { en } from '../src/i18n/translations';
 import { CodingWorkbench } from '../src/coding/CodingWorkbench';
-import { revealCoding } from '../src/coding/api';
+import { revealCoding, submitCoding } from '../src/coding/api';
 import type { PlayableCodingTask } from '../../shared/coding-catalog';
 import { loadEditor } from '../src/coding/loadEditor';
 
@@ -30,7 +30,7 @@ const task: PlayableCodingTask = {
 // first render, as the task screen and an intent preload do.
 beforeAll(async () => { await loadEditor(); });
 
-it('shows a revealed solution under the hints in a level, where the Learn message says it is', async () => {
+it('opens an authorized reveal in the Solution tab and names that location', async () => {
   vi.mocked(revealCoding).mockResolvedValue({ solution: 'const one = () => 1;', reference: null, progress: null });
   render(
     <MemoryRouter>
@@ -45,13 +45,15 @@ it('shows a revealed solution under the hints in a level, where the Learn messag
   fireEvent.click(screen.getByRole('button', { name: 'Hint' }));
   fireEvent.click(screen.getByRole('button', { name: 'Next hint' }));
   clock.mockRestore();
+  vi.mocked(submitCoding).mockResolvedValueOnce({ verdict: 'failed', results: [], hidden: null, check: null, logs: [], codeError: null, progress: null, firstPass: false, xpAwarded: 0, xpForfeited: false, applied: true, github: null, solutions: null } as never);
+  fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+  await screen.findByRole('button', { name: 'Solution' });
   fireEvent.click(screen.getByRole('button', { name: 'Solution' }));
   fireEvent.click(within(screen.getByRole('alertdialog', { name: 'Solution' })).getByRole('button', { name: 'Solution' }));
 
   const solution = await screen.findByText('const one = () => 1;');
-  const hints = screen.getByRole('group', { name: 'Hint' });
-  expect(hints).toContainElement(solution);
-  expect(within(hints).getByText(en['coding.solutionTitle'])).toBeInTheDocument();
-  expect(en['coding.lesson.solutionShown']).toMatch(new RegExp(`^The ${en['coding.solutionTitle'].toLowerCase()} is open under the hints\\.`));
-  expect(screen.queryByRole('tab', { name: /Solution/ })).toBeNull();
+  const panel = screen.getByRole('tabpanel', { name: /^Solution/ });
+  expect(panel).toContainElement(solution);
+  expect(en['coding.lesson.solutionShown']).toContain('shown below');
+  expect(screen.getByRole('tab', { name: /^Solution/ })).toHaveAttribute('aria-selected', 'true');
 });
