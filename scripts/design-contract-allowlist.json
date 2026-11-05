@@ -19,7 +19,6 @@
     { "rule": "small-button", "file": "client/src/components/Today.tsx", "match": "t('today.retry')", "reason": "A Retry inside the offline/error banner: an in-row utility." },
     { "rule": "small-button", "file": "client/src/components/coding/GithubGardenCard.tsx", "match": "t('quiz.retry')", "reason": "A Retry inside the GitHub load-failure banner: an in-row utility." },
     { "rule": "small-button", "file": "client/src/coding/CodingWorkbench.tsx", "match": "t('coding.preview.reload')", "reason": "A Reload inside the preview's timeout note: an in-row utility, like a Retry in a banner." },
-    { "rule": "small-button", "file": "client/src/components/coding/CodingSection.tsx", "match": "size=\"sm\"", "reason": "The evolving task's stage stepper: a compact row of numbered stage links, like pagination; the 44px floor still holds every target." },
 
     { "rule": "small-button", "file": "client/src/components/dev/DevConsole.tsx", "reason": "/dev is the high-density admin console (DESIGN_RULES.md §10, design skill: '/dev high density')." },
     { "rule": "small-button", "file": "client/src/components/dev/DevLogs.tsx", "reason": "/dev is the high-density admin console." },

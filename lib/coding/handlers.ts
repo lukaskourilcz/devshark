@@ -1131,9 +1131,22 @@ export async function handleCodingProgress(req: VercelRequest, res: VercelRespon
       tasks[row.task_id] = toProgress(row);
       if (row.status === 'passed' && CODING_TRACKS.includes(row.track as CodingTrack)) passedByTrack[row.track as CodingTrack] += 1;
     }
+    // A checkmark means both a recorded pass and saved code, not merely a
+    // local draft or an inherited checkpoint pass. Read ids only, bounded to
+    // known passed stages and the verified account; never transfer the code.
+    const passedStages = rows.filter((row) => row.status === 'passed' && evolvingStage(row.task_id)).map((row) => row.task_id);
+    const chunks: string[][] = [];
+    for (let index = 0; index < passedStages.length; index += 128) chunks.push(passedStages.slice(index, index + 128));
+    const saved = await Promise.all(chunks.map(async (ids) => {
+      const { data, error } = await withTimeout(supabase.from('coding_drafts').select('task_id')
+        .eq('user_id', userId).in('task_id', ids).not('code', 'match', '^[[:space:]]*$'));
+      if (error) throw new Error('saved_code_unavailable');
+      return (data ?? []).flatMap((row) => typeof row.task_id === 'string' && ids.includes(row.task_id) ? [row.task_id] : []);
+    }));
+    const stagesWithSavedCode = saved.flat();
     const due: string[] = [];
     res.setHeader('Cache-Control', 'private, no-store');
-    const out: CodingProgressResponse = { tasks, due, javascriptLevelsCleared: cleared, passedByTrack };
+    const out: CodingProgressResponse = { tasks, stagesWithSavedCode, due, javascriptLevelsCleared: cleared, passedByTrack };
     return res.json(out);
   } catch (error) {
     logEvent({ status: 500, kind: 'progress_unavailable', reason: error instanceof Error ? error.message : 'unknown' });

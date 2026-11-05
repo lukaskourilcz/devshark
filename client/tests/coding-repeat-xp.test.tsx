@@ -54,7 +54,7 @@ function mount(signedIn = true, progress: CodingTaskProgress | null = passed) {
 async function submitWith(body: CodingVerdictResponse) {
   vi.mocked(submitCoding).mockResolvedValue(body);
   fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
-  return screen.findByRole('heading', { level: 1, name: /^Passed/ });
+  return screen.findByRole('heading', { name: /^Passed/ });
 }
 
 // CodeMirror is its own chunk (perf baseline #587 C12): load it before the
@@ -70,27 +70,27 @@ it('says when a paid pass can earn the XP again', async () => {
   mount();
   await submitWith(verdict({ availableAt: at, needsReset: true, withheld: null }, { firstPass: true, xpAwarded: 25 }));
   expect(screen.getByText('+25 XP')).toBeVisible();
-  expect(screen.queryByText(/Reset the task to earn/)).toBeNull();
+  expect(screen.getByText(/Reset the task to earn/)).toBeVisible();
 });
 
 it('says a pass without a reset paid nothing, and why', async () => {
   mount();
   await submitWith(verdict({ availableAt: at, needsReset: true, withheld: 'reset' }));
-  expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Passed +0 XP');
-  expect(screen.queryByText(/No XP this time/)).toBeNull();
+  expect(screen.getByRole('heading', { name: /^Passed/ })).toHaveTextContent('+0 XP');
+  expect(screen.getByText(/No XP this time/)).toBeVisible();
 });
 
 it('says a pass inside the hour paid nothing, and when to reset', async () => {
   mount();
   await submitWith(verdict({ availableAt: at, needsReset: true, withheld: 'cooldown' }));
-  expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Passed +0 XP');
-  expect(screen.queryByText(/No XP this time/)).toBeNull();
+  expect(screen.getByRole('heading', { name: /^Passed/ })).toHaveTextContent('+0 XP');
+  expect(screen.getByText(/No XP this time/)).toBeVisible();
 });
 
 it('leaves a pass after a reveal to its own title', async () => {
   mount();
   await submitWith(verdict({ availableAt: at, needsReset: true, withheld: null }, { xpForfeited: true }));
-  expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Passed +0 XP');
+  expect(screen.getByRole('heading', { name: /^Passed/ })).toHaveTextContent('+0 XP');
   expect(screen.queryByText(/Reset the task/)).toBeNull();
 });
 

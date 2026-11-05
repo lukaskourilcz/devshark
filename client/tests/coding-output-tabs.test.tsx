@@ -65,8 +65,8 @@ it('keeps the complete task in Description, without a second brief above the edi
   // Keyboard navigation includes Description and preserves its content.
   const tab = screen.getByRole('tab', { name: 'Description' });
   fireEvent.keyDown(tab, { key: 'ArrowRight' });
-  expect(screen.getByRole('tab', { name: 'Resources' })).toHaveFocus();
-  fireEvent.keyDown(screen.getByRole('tab', { name: 'Resources' }), { key: 'Home' });
+  expect(screen.getByRole('tab', { name: 'Results' })).toHaveFocus();
+  fireEvent.keyDown(screen.getByRole('tab', { name: 'Results' }), { key: 'Home' });
   expect(tab).toHaveFocus();
   expect(description).toBeVisible();
 });
@@ -80,18 +80,18 @@ it('opens Results after a JavaScript Run and keeps Description available', async
   expect(screen.getByRole('tabpanel', { name: 'Description' })).toHaveTextContent('Do it.');
 });
 
-it('keeps reference and feedback tabs in independent groups on every track', () => {
+it('keeps one shared tab order on every track', () => {
   const javascript = mount('javascript');
-  expect(tabNames()).toEqual(['Description', 'Resources', 'Results', 'Console']);
+  expect(tabNames()).toEqual(['Description', 'Results', 'Console', 'Resources']);
   javascript.unmount();
   const typescript = mount('typescript');
-  expect(tabNames()).toEqual(['Description', 'Resources', 'Results', 'Console', 'Types']);
+  expect(tabNames()).toEqual(['Description', 'Results', 'Console', 'Types', 'Resources']);
   typescript.unmount();
   mount('react');
-  expect(tabNames()).toEqual(['Description', 'Resources', 'Results', 'Console', 'Preview']);
+  expect(tabNames()).toEqual(['Description', 'Results', 'Console', 'Preview', 'Resources']);
 });
 
-it('leaves the embedded Learn workbench in its existing single-strip layout', () => {
+it('shares the same single-strip layout with embedded Learn', () => {
   const view = mount('javascript', 'lesson');
   expect(tabNames()).toEqual(['Description', 'Results', 'Console', 'Resources']);
   expect(screen.getAllByRole('tablist')).toHaveLength(1);
@@ -99,36 +99,32 @@ it('leaves the embedded Learn workbench in its existing single-strip layout', ()
   expect(screen.queryByRole('button', { name: 'Hide output' })).toBeNull();
 });
 
-it('keeps resources open while Run restores collapsed feedback and retains the editor', async () => {
+it('selects Results after Run while preserving the editor and other panels', async () => {
   vi.mocked(runCodeTests).mockResolvedValueOnce({ results: [{ pass: true, actual: '1', error: null }], logs: [] } as never);
   mount('javascript');
   const editor = screen.getByLabelText('Test editor');
   fireEvent.click(screen.getByRole('tab', { name: /Resources/ }));
-  fireEvent.click(screen.getByRole('button', { name: 'Hide output' }));
-  expect(screen.queryByRole('tabpanel', { name: 'Results' })).toBeNull();
-  expect(screen.getByRole('button', { name: 'Show output' })).toHaveAttribute('aria-expanded', 'false');
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Run' })); });
-  expect(screen.getByRole('tab', { name: /Resources/ })).toHaveAttribute('aria-selected', 'true');
+  expect(screen.getAllByRole('tablist')).toHaveLength(1);
   expect(screen.getByRole('tabpanel', { name: /Results/ })).toBeVisible();
+  expect(screen.queryByRole('tabpanel', { name: /Resources/ })).toBeNull();
   expect(screen.getByLabelText('Test editor')).toBe(editor);
   fireEvent.click(screen.getByRole('tab', { name: 'Description' }));
   expect(screen.getByRole('tabpanel', { name: 'Description' })).toBeVisible();
-  expect(screen.getByRole('tabpanel', { name: /Results/ })).toBeVisible();
+  expect(screen.queryByRole('tabpanel', { name: /Results/ })).toBeNull();
 });
 
-it('bounds the feedback height and supports arrows, Home, End and reset from the keyboard', () => {
+it('preserves bounded keyboard resizing without a second feedback separator', () => {
   mount('javascript');
-  const resize = screen.getByRole('separator', { name: 'Resize the code feedback panel' });
-  fireEvent.keyDown(resize, { key: 'ArrowUp' });
-  expect(resize).toHaveAttribute('aria-valuenow', '252');
+  const resize = screen.getByRole('separator');
   fireEvent.keyDown(resize, { key: 'Home' });
-  expect(resize).toHaveAttribute('aria-valuenow', '160');
-  fireEvent.keyDown(resize, { key: 'ArrowDown' });
-  expect(resize).toHaveAttribute('aria-valuenow', '160');
+  expect(resize).toHaveAttribute('aria-valuenow', '35');
+  fireEvent.keyDown(resize, { key: 'ArrowRight' });
+  expect(resize).toHaveAttribute('aria-valuenow', '40');
   fireEvent.keyDown(resize, { key: 'End' });
-  expect(resize).toHaveAttribute('aria-valuenow', '400');
+  expect(resize).toHaveAttribute('aria-valuenow', '75');
   fireEvent.keyDown(resize, { key: 'Enter' });
-  expect(resize).toHaveAttribute('aria-valuenow', '220');
+  expect(resize).toHaveAttribute('aria-valuenow', '58');
   localStorage.removeItem('devshark:coding:layout:v1');
 });
 

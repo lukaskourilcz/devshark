@@ -124,14 +124,14 @@ it('keeps the brief in Description and the editor with its actions, with reveale
   clock.mockRestore();
   const run = screen.getByRole('button',{name:'Run'});
   const bar = run.closest('.cd-editor-actions')!;
-  expect(within(bar as HTMLElement).getByRole('button',{name:'Solution'})).toBeInTheDocument();
+  expect(screen.queryByRole('button',{name:'Solution'})).toBeNull();
   expect(within(bar as HTMLElement).getByRole('button',{name:'Next hint'})).toBeInTheDocument();
   // Focus mode is gone: nothing in the bar toggles the layout.
   expect(within(bar as HTMLElement).queryByRole('button',{name:'Focus'})).toBeNull();
-  expect(within(bar as HTMLElement).getByRole('button',{name:/Skip/i})).toBeInTheDocument();
+  expect(screen.getByRole('button',{name:/Skip/i}).closest('.cd-editor-bar')).toBeInTheDocument();
   // Description owns the complete brief; code actions stay beside the editor.
   const pane = bar.closest('.cd-pane--editor')!;
-  const title = screen.getByRole('heading',{level:1,name:'Test task'});
+  const title = screen.getByRole('heading',{level:2,name:'Test task'});
   const description = screen.getByRole('tabpanel', { name: 'Description' });
   expect(description).toContainElement(title);
   expect(title.closest('.cd-pane--editor')).toBeNull();
@@ -155,7 +155,7 @@ it('keeps the brief in Description and the editor with its actions, with reveale
   const grid = bar.closest('.cd-workbench__grid')!;
   expect(pane.parentElement).toBe(grid);
   expect(grid.querySelector('.cd-pane--output')?.parentElement).toBe(grid);
-  expect(screen.getByRole('button',{name:/Report a problem/}).closest('.cd-actions--utility')).toBeInTheDocument();
+  expect(screen.getByRole('button',{name:/Report a problem/}).closest('.cd-editor-bar')).toBeInTheDocument();
 });
 
 it('keeps FullStack routes on real graders and preserves code across the React transition', () => {
@@ -212,7 +212,7 @@ it('keeps a randomized fin stable across button updates without changing its acc
 
 it('names the difficulty in the code pane’s first line, beside the title', () => {
   mount();
-  const title = screen.getByRole('heading', { level: 1, name: 'Test task' });
+  const title = screen.getByRole('heading', { level: 2, name: 'Test task' });
   const line = title.closest('.cd-brief__line')!;
   expect(line).not.toBeNull();
   expect(within(line as HTMLElement).getByText('Easy').closest('.cd-difficulty')).toHaveAttribute('data-difficulty', 'easy');

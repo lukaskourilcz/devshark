@@ -297,6 +297,7 @@ describe('switching activities', () => {
     await mount(A);
     await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
     await type('my solution for A');
+    await press('Close');
     await act(async () => { fireEvent.click(screen.getByRole('link', { name: /Activity B/ })); });
     await waitFor(() => expect(screen.getByText(`prompt ${B}`)).toBeInTheDocument());
     expect(calls.start).toEqual([A, B]);
@@ -309,6 +310,7 @@ describe('switching activities', () => {
     await mount(A);
     await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
     await type('typed just before switching');
+    await press('Close');
     await act(async () => { fireEvent.click(screen.getByRole('link', { name: /Activity B/ })); });
     await waitFor(() => expect(screen.getByText(`prompt ${B}`)).toBeInTheDocument());
     await waitFor(() => expect(calls.drafts.map((one) => [one.activityId, one.code])).toEqual([[A, 'typed just before switching']]));
@@ -323,6 +325,7 @@ describe('a submission that lands after the learner moved on', () => {
     await mount(A);
     await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
     await press('Submit');
+    await press('Close');
     await act(async () => { fireEvent.click(screen.getByRole('link', { name: /Activity B/ })); });
     await waitFor(() => expect(screen.getByText(`prompt ${B}`)).toBeInTheDocument());
     await wait(400); // A's refusal arrives while B is open
@@ -343,6 +346,7 @@ describe('a submission that lands after the learner moved on', () => {
     await mount(A);
     await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
     await press('Submit');
+    await press('Close');
     await act(async () => { fireEvent.click(screen.getByRole('link', { name: /Activity B/ })); });
     await waitFor(() => expect(screen.getByText(`prompt ${B}`)).toBeInTheDocument());
     await wait(400);
@@ -355,6 +359,7 @@ describe('a submission that lands after the learner moved on', () => {
   it('stops opening an activity the learner already left', async () => {
     calls.startDelay = 300;
     await mount(A);
+    await press('Close');
     await act(async () => { fireEvent.click(screen.getByRole('link', { name: /Activity B/ })); });
     expect(calls.start).toEqual([A, B]);
     expect(calls.startSignals[0]?.aborted).toBe(true);
@@ -384,8 +389,9 @@ describe('focus', () => {
     await press('Submit');
     // The check's Submit is gone; focus lands on the verdict, not on nothing.
     await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Result' })));
+    await press('Close');
     await act(async () => { fireEvent.click(screen.getByRole('link', { name: /Activity B/ })); });
-    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Activity B' }));
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Activity B' }));
     await press('Close');
     expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Activities in this module' }));
     // No live region reads the whole activity aloud.
@@ -621,8 +627,8 @@ describe('the content shapes of #497', () => {
     await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
     const label = screen.getByText('Before you start');
     const note = screen.getByText(NOTE_FIRST);
-    expect(label.compareDocumentPosition(editor()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(note.compareDocumentPosition(editor()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole('tabpanel', { name: 'Description' })).toContainElement(label);
+    expect(screen.getByRole('tabpanel', { name: 'Description' })).toContainElement(note);
     await type('an attempt');
     await press('Submit');
     await waitFor(() => expect(calls.submit).toHaveLength(1));
@@ -748,11 +754,11 @@ describe('the hint ladder', () => {
           draft={null} result={null} onSubmit={() => {}} onDraft={() => {}} draftStatus="idle" busy={false} />
       </LanguageProvider>,
     );
-    await press(/Show the next hint \(2 left\)/);
+    await press('Hint');
     expect(document.activeElement?.tagName).toBe('LI');
     expect(document.activeElement).toHaveTextContent('Start at zero.');
-    await press(/Show the next hint \(1 left\)/);
-    expect(screen.queryByRole('button', { name: /Show the next hint/ })).toBeNull();
+    await press('Hint');
+    expect(screen.getByRole('button', { name: 'Hint' })).toBeVisible();
     expect(document.activeElement?.tagName).toBe('LI');
     expect(document.activeElement).toHaveTextContent('Add each value.');
   });

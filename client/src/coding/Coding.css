@@ -41,9 +41,9 @@
 .cd-discovery { gap: 40px; }
 .cd-home-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 20px 40px; }
 /* The next challenge, beside the heading: its name and a way in, nothing else. */
-.cd-next { display: flex; align-items: center; gap: 12px 20px; width: min(100%, 400px); padding: 14px 16px 14px 18px; border-left: 3px solid var(--brand-accent); border-radius: 0 var(--radius-element) var(--radius-element) 0; background: color-mix(in srgb, var(--brand-accent) 7%, var(--color-background-surface)); }
+.cd-next { display: flex; align-items: center; gap: 12px 20px; width: min(100%, 400px); padding: 14px 16px 14px 18px; border: 0; border-radius: var(--radius-element); background: color-mix(in srgb, var(--brand-accent) 23%, var(--color-background-surface)); }
 .cd-next__text { flex: 1; display: grid; gap: 4px; min-width: 0; }
-.cd-page .cd-next__label { margin: 0; font-family: var(--font-family-body); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--color-text-accent); }
+.cd-page .cd-next__label { margin: 0; font-family: var(--font-family-body); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--color-text-primary); }
 .cd-next__title { margin: 0; min-height: 1.3em; font-family: var(--font-family-heading); font-size: 1.1rem; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
 .cd-next__title--error { font-family: var(--font-family-body); font-size: 0.9rem; font-weight: 600; }
 /* Where the title will be while progress loads; still, so reduced motion needs nothing. */
@@ -179,27 +179,43 @@
 .cd-chip[aria-pressed='true'] { background: var(--ss-ink); color: var(--color-background-surface); border-color: var(--ss-ink); }
 .cd-chip:focus-visible { outline: 3px solid var(--ss-focus); outline-offset: 2px; }
 
-/* Track lists: Easy, Medium and Hard (#224), each holding the tiers that
- * project onto it. The band is the heading a learner scans for; the tier is
- * its sub-label and keeps its own lock line. */
-.cd-band { display: flex; flex-direction: column; gap: 14px; padding-top: 16px; border-top: 1px solid var(--ss-card-line); }
-.cd-band__title { margin: 0; font-size: 1.3rem; }
-.cd-tier { display: flex; flex-direction: column; gap: 10px; }
-.cd-tier__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 16px; }
-.cd-tier__head h3 { margin: 0; font-size: 0.95rem; font-weight: 650; color: var(--color-text-secondary); }
-.cd-tier__lock { margin: 0; color: var(--color-text-secondary); font-size: 0.9rem; }
-.cd-rows { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); border-top: 1px solid var(--ss-card-line); }
-/* Two columns of one-line rows from 1024px (UX audit coding-06): a title
-   and its status sit within one 584px column, and the hairline rows are the
-   panel's rows, not a card each. */
-@media (min-width: 1024px) {
-  .cd-tier .cd-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
-}
+
+/* Paged track catalogue: column-major order, ten rows per column. */
+.cd-track-page { gap: 16px; }
+.cd-track-head { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; margin: 0 auto 12px; max-width: var(--ss-width-narrow); }
+.cd-track-head .cd-lead { margin: 4px 0; }
+.cd-track-head > p { font-size: var(--ss-type-compact); }
+.cd-track-progress { width: min(100%, 420px); margin-top: 8px; }
+.cd-path-link { margin: 0; color: var(--color-text-secondary); line-height: 1.5; }
+.cd-path-link a { color: var(--brand-accent); text-underline-offset: 3px; }
+.cd-track-page .cd-search, .cd-track-paths { scroll-margin-top: 8rem; }
+.cd-track-paths { margin-top: 8px; padding-top: 24px; border-top: 1px solid var(--ss-card-line); }
+.cd-rows { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); border-top: 1px solid var(--ss-card-line); align-content: start; }
+.cd-catalogue { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; }
+.cd-catalogue .cd-row__title { font-size: var(--ss-type-compact); }
+.cd-catalogue .cd-row__meta { font-size: var(--ss-type-label); }
+.cd-pagination { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; color: var(--color-text-secondary); font-size: var(--ss-type-meta); }
+.cd-row-item__reason { flex-basis: 100%; margin: 0 8px 12px; color: var(--color-text-secondary); font-size: var(--ss-type-meta); line-height: 1.5; }
+.cd-project-browser { display: grid; gap: 16px; }
+.cd-project-formats { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 20px; border-bottom: 1px solid var(--ss-card-line); }
+.cd-project-formats a { display: flex; align-items: center; min-height: 44px; padding: 4px 0; color: var(--color-text-secondary); text-decoration: none; border-bottom: 2px solid transparent; font-size: var(--ss-type-compact); }
+.cd-project-formats a[aria-current='page'] { color: var(--brand-accent); border-color: var(--brand-accent); font-weight: 650; }
+.cd-project-formats a:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 3px; }
+.cd-project-browser .cd-projects { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.cd-project-browser .cd-projects__intro .cd-lead { margin: 0; }
+.cd-project-browser .cd-projects__rule { max-width: none; margin-top: 8px; }
+.cd-technique-browser { border-top: 1px solid var(--ss-card-line); padding-top: 12px; }
+.cd-technique-browser > summary { cursor: pointer; min-height: 44px; font-weight: 650; }
+.cd-technique-browser > summary:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 3px; }
+@media (max-width: 700px) { .cd-catalogue { grid-template-columns: minmax(0, 1fr); } }
 .cd-row {
   display: flex;
   align-items: center;
   gap: 12px;
   min-height: 48px;
+  width: 100%;
+  font: inherit;
+  text-align: start;
   padding: 6px 8px;
   border: 0;
   border-radius: 0;
@@ -239,7 +255,7 @@
    the frame (what a 600px frame leaves under a capped brief, the editor's
    toolbar and the action bar), which a taller viewport gives far more. */
 :root {
-  --cd-frame-h: clamp(600px, calc(100dvh - 7rem - 48px), 900px);
+  --cd-frame-h: clamp(360px, calc(100dvh - 160px), 640px);
   --cd-editor-min: 280px;
   --cd-brief-cap: 120px;
 }
@@ -536,20 +552,18 @@
   .cd-tab[data-tab='resources'] .cd-tab__badge { display: none; }
 }
 .cd-output-scroll { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.cd-feedback > .cd-output-scroll[hidden] { display: none; }
 .cd-panel { display: flex; flex-direction: column; gap: 10px; min-height: 160px; }
 .cd-panel[hidden] { display: none; }
 
-/* The Coding section's task-first workspace. Learn and embedded workbenches
-   keep their existing panes; the shared ocean overlay belongs to App.tsx. */
-.cd-workbench--section .cd-workbench__grid {
+/* One task-first card in Coding and embedded Learn editors. */
+.cd-workbench:not(.cd-workbench--landing) .cd-workbench__grid {
   gap: 0;
   border: 1px solid var(--ss-card-line);
   border-radius: var(--radius-container);
   background: var(--color-background-surface);
   overflow: clip;
 }
-.cd-workbench--section {
+.cd-workbench:not(.cd-workbench--landing) {
   --cd-editor-bg: var(--color-background-body);
   --cd-editor-fg: var(--color-text-primary);
   --cd-editor-gutter: var(--color-background-body);
@@ -564,48 +578,45 @@
   --cd-syntax-comment: light-dark(#486b31, #a5d98b);
   --cd-syntax-string: light-dark(#914827, #f4bda3);
 }
-.cd-workbench--section .cd-pane { border: 0; border-radius: 0; }
-.cd-workbench--section .cd-pane--editor { padding: 0; gap: 0; }
-.cd-workbench--section .cd-pane--output { padding: 16px 24px 24px; }
-.cd-workbench--section .cd-editor,
-.cd-workbench--section .cm-editor { border: 0; border-radius: 0; }
-.cd-workbench--section .cd-editor-bar { min-height: 52px; margin: 0; padding: 4px 12px; border-bottom: 1px solid var(--ss-card-line); }
-.cd-editor-bar__label { margin-inline-end: auto; align-self: center; font-size: var(--ss-type-meta); color: var(--color-text-secondary); }
-.cd-workbench--section .cd-editor-actions { margin: 0; padding: 12px 16px; border-top: 1px solid var(--ss-card-line); }
-.cd-workbench--section .cd-actions--commands > .ss-swim-cta { margin-inline-start: auto; }
-.cd-workbench--section .cd-actions--utility { margin-inline-start: 0; }
-.cd-workbench--section .cd-brief__title { font-size: clamp(1.5rem, 2vw, 1.8rem); }
-.cd-workbench--section .cd-complexity { padding-block-start: 12px; border-top: 1px solid var(--ss-card-line); }
+
+.cd-workbench:not(.cd-workbench--landing) .cd-pane { border: 0; border-radius: 0; }
+.cd-workbench:not(.cd-workbench--landing) .cd-pane--editor { padding: 0; gap: 0; }
+.cd-workbench:not(.cd-workbench--landing) .cd-pane--output { padding: 0; }
+.cd-workbench:not(.cd-workbench--landing) .cd-pane--output > .cd-tabs { flex: none; min-height: 52px; padding-inline: 12px; flex-wrap: nowrap; overflow-x: auto; }
+.cd-workbench:not(.cd-workbench--landing) .cd-pane--output > .cd-output-scroll { padding: 20px; }
+.cd-workbench:not(.cd-workbench--landing) .cd-pane--output .cd-brief__body[data-capped='false'] { max-height: none; overflow: visible; }
+.cd-workbench:not(.cd-workbench--landing) .cd-editor,
+.cd-workbench:not(.cd-workbench--landing) .cm-editor { border: 0; border-radius: 0; }
+.cd-workbench:not(.cd-workbench--landing) .cm-editor { font-size: var(--ss-type-compact); }
+.cd-workbench:not(.cd-workbench--landing) .cd-editor-bar { min-height: 52px; margin: 0; padding: 4px 12px; border-bottom: 1px solid var(--ss-card-line); align-items: center; flex-wrap: wrap; }
+.cd-editor-bar__path { margin-inline-end: auto; font-family: var(--cd-mono); }
+.cd-editor-bar__path ol { gap: 0 3px; }
+.cd-editor-bar__path li { gap: 3px; }
+.cd-workbench:not(.cd-workbench--landing) .cd-editor-actions { margin: 0; padding: 12px 16px; border-top: 1px solid var(--ss-card-line); }
+.cd-workbench:not(.cd-workbench--landing) .cd-actions--commands > .ss-swim-cta { margin-inline-start: auto; }
+.cd-workbench:not(.cd-workbench--landing) .cd-brief__title { font-size: 1.375rem; }
+.cd-workbench:not(.cd-workbench--landing) .cd-prompt { font-size: var(--ss-type-compact); line-height: 1.65; }
+.cd-prompt-group { display: grid; gap: 12px; }
+.cd-workbench:not(.cd-workbench--landing) .cd-complexity { margin-top: 0; padding-top: 4px; border: 0; font-size: var(--ss-type-meta); }
 .cd-brief-examples { margin-block: 12px; }
 .cd-brief-examples h2 { font-size: var(--ss-type-compact); }
 .cd-brief-examples ul { display: grid; gap: 8px; list-style: none; margin: 12px 0 0; padding: 0; }
 .cd-brief-examples li { font-size: var(--ss-type-meta); overflow-wrap: anywhere; }
 .cd-brief-examples code { font-family: var(--cd-mono); white-space: pre-wrap; }
-.cd-feedback { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; border-top: 1px solid var(--ss-card-line); }
-.cd-feedback__resize { position: absolute; top: -6px; inset-inline: 0; height: 12px; cursor: row-resize; touch-action: none; z-index: 1; }
-.cd-feedback__resize::before { content: ''; position: absolute; height: 2px; inset-inline: 0; top: 5px; background: transparent; }
-.cd-feedback__resize:hover::before, .cd-feedback__resize:focus-visible::before { background: var(--brand-accent); }
-.cd-feedback__resize:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: -2px; }
-.cd-feedback__toolbar { display: flex; align-items: center; gap: 8px; padding-inline: 12px; border-bottom: 1px solid var(--ss-card-line); }
-.cd-feedback__toolbar > .cd-tabs { flex: 1; min-width: 0; border-bottom: 0; }
-.cd-feedback__toggle { flex: none; font-size: var(--ss-type-meta); }
-.cd-feedback > .cd-output-scroll { padding: 16px; }
-.cd-workbench--section .cd-pane--controls { border-top: 1px solid var(--ss-card-line); }
+.cd-workbench:not(.cd-workbench--landing) .cd-tab { position: relative; border: 0; border-radius: 0; background: transparent; box-shadow: none; padding-inline: 10px; font-size: var(--ss-type-compact); flex: none; }
+.cd-workbench:not(.cd-workbench--landing) .cd-tab .ss-fin-hover { display: none; }
+.cd-workbench:not(.cd-workbench--landing) .cd-tab[aria-selected='true']::after { content: ''; position: absolute; inset-inline: 10px; bottom: 4px; height: 6px; background: var(--brand-accent); mask: var(--ss-wave) repeat-x left center / 24px 6px; }
+.cd-workbench:not(.cd-workbench--landing) .cd-pane--controls { border-top: 1px solid var(--ss-card-line); }
 @media (min-width: 1024px) {
-  .cd-workbench--section .cd-workbench__grid { grid-template-rows: minmax(0, calc(var(--cd-frame-h) - var(--cd-feedback-height))) var(--cd-feedback-height); }
-  .cd-workbench--section .cd-pane--output { grid-row: 1 / 3; }
-  .cd-workbench--section .cd-splitter { grid-row: 1 / 3; }
-  .cd-workbench--section .cd-feedback { grid-column: 1; grid-row: 2; contain: size; }
-  .cd-workbench--section .cd-pane--controls { grid-row: 3; }
-  .cd-workbench--section[data-feedback-collapsed='true'] .cd-workbench__grid { grid-template-rows: minmax(0, calc(var(--cd-frame-h) - 52px)) 52px; }
+  .cd-page:has(> .cd-stage-nav) .cd-workbench { --cd-frame-h: clamp(360px, calc(100dvh - 216px), 584px); }
+  .cd-workbench:not(.cd-workbench--landing) .cd-pane--editor { overflow: hidden; }
+  .cd-workbench:not(.cd-workbench--landing) .cd-pane--controls { grid-column: 1 / -1; grid-row: 2; }
 }
 @media (max-width: 1023px) {
-  .cd-workbench--section .cd-pane--output { padding: 12px 16px 20px; }
-  .cd-workbench--section .cd-pane--editor { border-top: 1px solid var(--ss-card-line); }
-  .cd-feedback > .cd-output-scroll { max-height: min(var(--cd-feedback-height), 60dvh); overflow-y: auto; }
-  .cd-feedback__toolbar { gap: 0; padding-inline: 4px; }
-  .cd-feedback__toggle { padding-inline: 8px; }
-  .cd-feedback__resize { display: none; }
+  .cd-workbench:not(.cd-workbench--landing) .cd-pane--output > .cd-output-scroll { max-height: 48dvh; overflow-y: auto; }
+  .cd-workbench:not(.cd-workbench--landing) .cd-pane--editor { border-top: 1px solid var(--ss-card-line); }
+  .cd-workbench:not(.cd-workbench--landing) .cd-editor-bar { padding-inline: 8px; }
+  .cd-editor-bar__path { flex-basis: 100%; }
 }
 /* The React preview while a suite runs under another tab: laid out, so focus
    can move inside the frame, but off-screen, inert to the pointer and hidden
@@ -935,15 +946,14 @@
 .cd-hint-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style-position: inside; }
 .cd-hint-list:empty { display: none; }
 
-/* Keep 10–12 stage controls reachable without pushing the brief below a phone screen. */
-.cd-stage-nav { flex-wrap: nowrap; overflow-x: auto; padding: 4px 2px; }
+.cd-page.ss-focus-page { gap: 12px; }
+/* Level navigation stays below and to the right of the task card. */
+.cd-stage-nav { justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding: 4px 2px; }
+.cd-stage-nav__label { font-size: var(--ss-type-meta); color: var(--color-text-secondary); }
 .cd-stage-nav .astryx-button { flex: 0 0 auto; min-width: 44px; min-height: 44px; justify-content: center; }
-.cd-stage-nav [aria-current='step'] { color: var(--brand-accent); border-color: var(--brand-accent); }
-/* Stages under their difficulty: a text label opens each run of stages. */
-.cd-stage-group { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
-.cd-stage-group + .cd-stage-group { padding-left: 10px; border-left: 1px solid var(--ss-card-line); }
-.cd-stage-group__label { font-size: 0.8rem; font-weight: 650; color: var(--color-text-secondary); white-space: nowrap; }
-
+.cd-stage-nav [aria-current='step'] { color: var(--brand-accent); outline: 2px solid var(--brand-accent); outline-offset: 2px; }
+.cd-stage-nav .cd-stage--complete { color: var(--brand-accent); background: var(--brand-accent-soft); border-color: var(--brand-accent); }
+.cd-task-run { align-self: flex-end; font-size: var(--ss-type-meta); }
 
 /* Compact samples keep every output tab readable instead of clipping labels. */
 .cd-workbench--landing .cd-tabs { flex-wrap: wrap; overflow-x: visible; padding-inline-end: 0; -webkit-mask-image: none; mask-image: none; }
@@ -955,3 +965,10 @@
 .cd-complete .cd-verdict__actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 
 .cd-brief-refresh { min-height: 44px; }
+
+.cd-editor-bar .cd-save { border-color: transparent; }
+.cd-editor-bar .cd-save svg { width: 18px; height: 18px; }
+
+@media (max-width: 1023px) {
+  .cd-workbench--activity .cd-pane--output { order: -1; }
+}

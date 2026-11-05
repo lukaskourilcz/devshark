@@ -99,24 +99,18 @@ describe('the Profile identity banner (social-account-08)', () => {
 });
 
 describe('the Profile columns (social-account-03)', () => {
-  it('puts the learning cards on the left and the advisor, name and account on the right', async () => {
+  it('keeps Account directly after Track in a natural-height settings column', async () => {
     const { container } = await mountProfile();
     const learning = container.querySelector('[data-column="learning"]') as HTMLElement;
     const account = container.querySelector('[data-column="account"]') as HTMLElement;
-    expect(learning).not.toBeNull();
-    expect(account).not.toBeNull();
-    // Both columns are cells of the one grid.
     expect(learning.parentElement).toBe(account.parentElement);
-    expect(await within(learning).findByRole('heading', { name: 'Career level' })).toBeInTheDocument();
-    expect(await within(learning).findByRole('heading', { name: 'Track and sections' })).toBeInTheDocument();
-    expect(await within(learning).findByRole('heading', { name: 'GitHub garden' })).toBeInTheDocument();
-    // The advisor opens the right column, so the two columns end level at
-    // 1280 (the right one ended 411px short with the advisor on the left).
-    expect(await within(account).findByRole('heading', { name: 'Study advisor' })).toBeInTheDocument();
+    expect(await within(learning).findByRole('heading', { name: 'Account' })).toBeInTheDocument();
+    const settings = [...learning.querySelectorAll('h2.ss-kicker')].map(h => h.textContent);
+    expect(settings).toEqual(['Track and sections', 'Account', 'Study advisor', 'GitHub garden']);
+    expect(await within(account).findByRole('heading', { name: 'Career level' })).toBeInTheDocument();
     expect(await within(account).findByRole('heading', { name: 'Your name' })).toBeInTheDocument();
-    expect(within(account).getByRole('heading', { name: 'Account' })).toBeInTheDocument();
-    expect(within(account).queryByRole('heading', { name: 'GitHub garden' })).toBeNull();
-    expect(within(learning).queryByRole('heading', { name: 'Study advisor' })).toBeNull();
+    expect(await within(learning).findByRole('heading', { name: 'GitHub garden' })).toBeInTheDocument();
+    expect(within(account).queryByRole('heading', { name: 'Account' })).toBeNull();
   });
 });
 
@@ -132,7 +126,7 @@ describe('the Profile card stock (social-account-17)', () => {
       (card) => !card.parentElement!.closest('.ss-panel'),
     ) as HTMLElement[];
     const titles = cards.map((card) => card.querySelector('h2.ss-kicker')?.textContent);
-    expect(titles).toEqual(['Streaks', 'Career level', 'Track and sections', 'GitHub garden', 'Study advisor', 'Your name', 'Account']);
+    expect(titles).toEqual(['Streaks', 'Track and sections', 'Account', 'Study advisor', 'GitHub garden', 'Career level', 'Your name']);
     for (const card of cards) {
       // Plain surface: no card overrides the panel's background.
       expect(card.style.background).toBe('');

@@ -149,26 +149,20 @@ describe('keyboard shortcuts', () => {
 });
 
 describe('setup clarity and category selection', () => {
-  it('keeps hidden topic choices when selecting or clearing only the visible topics', async () => {
-    queryClient.setQueryData(['game-config'], {
-      ...DEFAULT_CONFIG,
-      quiz: { ...DEFAULT_CONFIG.quiz, defaultCategoryIds: ['javascript', 'react'] },
-    });
+  it('shows every permitted topic immediately even with a configured default subset', async () => {
     server.use(http.get('*/api/settings', () => HttpResponse.json({
-      ...DEFAULT_CONFIG,
-      quiz: { ...DEFAULT_CONFIG.quiz, defaultCategoryIds: ['javascript', 'react'] },
+      ...DEFAULT_CONFIG, quiz: { ...DEFAULT_CONFIG.quiz, defaultCategoryIds: ['javascript', 'react'] },
     })));
     renderQuiz();
-    fireEvent.click(await screen.findByRole('button', { name: 'Show all categories' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Security' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Show fewer' }));
-    expect(screen.getByText('1 more selected')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Select visible topics' }));
-    expect(JSON.parse(localStorage.getItem('devquiz:quiz-setup:v1')!).categories.sort()).toEqual(['javascript', 'react', 'security']);
-    fireEvent.click(screen.getByRole('button', { name: 'Deselect visible topics' }));
-    expect(JSON.parse(localStorage.getItem('devquiz:quiz-setup:v1')!).categories).toEqual(['security']);
-    fireEvent.click(screen.getByRole('button', { name: 'Show all categories' }));
-    expect(screen.getByRole('button', { name: 'Security' })).toHaveAttribute('aria-pressed', 'true');
+    const security = await screen.findByRole('button', { name: 'Security' });
+    expect(screen.queryByRole('button', { name: 'Show all categories' })).toBeNull();
+    fireEvent.click(security);
+    expect(security).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'Select all' }));
+    expect(screen.getByRole('button', { name: 'React' })).toHaveAttribute('aria-pressed', 'true');
+    expect(security).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'Deselect all' }));
+    expect(JSON.parse(localStorage.getItem('devquiz:quiz-setup:v1')!).categories).toEqual([]);
   });
 
   it('explains the selected difficulty without a tooltip and tells guests before they start', async () => {
@@ -267,7 +261,7 @@ describe('the setup screen (UX audit U2)', () => {
     // The empty error line takes no space until it has something to say.
     const css = readFileSync(new URL('../src/components/Quiz.css', import.meta.url), 'utf8');
     expect(css).toMatch(/\.quiz-setup__error:empty \{ display: none; \}/);
-    expect(css).toMatch(/\.quiz-setup \{[^}]*max-width: var\(--ss-width-task\)/);
+    expect(css).toMatch(/\.quiz-setup__panel \{[^}]*grid-template-columns: minmax\(0, 1.35fr\) minmax\(0, 1fr\)/);
   });
 });
 
@@ -362,10 +356,10 @@ describe('result review priorities and focus', () => {
 });
 
 describe('the question screen (UX audit U2)', () => {
-  it('keeps the 16px phone gutter on /quiz like every other route (questions-18)', () => {
+  it('uses the shared responsive gutter on /quiz like every other route', () => {
     const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
     const padding = app.match(/padding: isDev[\s\S]*?,\n\s*boxSizing/)?.[0] ?? '';
-    expect(padding).toMatch(/: mobile\s*\?\s*'1rem'/);
+    expect(padding).toContain('var(--ss-page-gutter)');
     expect(padding).not.toMatch(/0\.75rem/);
   });
 

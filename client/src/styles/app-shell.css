@@ -334,6 +334,14 @@
    box, so it never moves with the route width (UX audit shell-public-01). */
 .ss-route { width: 100%; max-width: var(--ss-page-width); margin-inline: auto; }
 .ss-route:has(.ss-wide-page) { max-width: var(--ss-width-wide); }
+/* An activity owns its local navigation. Deriving this from mounted content
+   also covers restored/deep-linked questions without a second activity store. */
+@media (min-width: 701px) { :root { --ss-page-gutter: 64px; } }
+.ss-app-root:has(.ss-question, .ss-focus-page, .cd-workbench:not(.cd-workbench--landing), [data-activity='active']) :is(.ss-header, .ss-brand-footer, .ss-consent:not(.ss-consent--compact)) { display: none !important; }
+.ss-route:has(.ss-question, .ss-focus-page, .cd-workbench:not(.cd-workbench--landing), [data-activity='active']) { flex: 0 0 auto !important; margin-block: auto; }
+/* Timed notices grow down from a stable question anchor, so an answer never
+   moves under the learner's pointer when the deadline warning arrives. */
+.ss-route:has(.ss-question):not(:has(.cd-workbench)) { margin-block: max(0px, calc((100dvh - 640px - 2 * var(--ss-focus-inset)) / 2)) auto; }
 .ss-brand-footer {
   box-sizing: border-box;
   width: 100%;
@@ -1019,3 +1027,7 @@
 .ss-topic-pills { display: flex; flex-wrap: wrap; gap: 8px; }
 .challenge-topic-count { --ss-challenge-gold: light-dark(#946000, #f5c364); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; min-width: 28px; min-height: 44px; font-size: var(--ss-type-meta); }
 .challenge-topic-count:focus-visible { outline: 3px solid var(--ss-focus); outline-offset: 2px; border-radius: var(--radius-element); }
+
+/* Same specificity as the Apple chrome offset; mounted activities reserve
+   only their focus inset. Auto margins become zero when content is taller. */
+:root[data-design='apple'] .ss-app-root:has(.ss-question, .ss-focus-page, .cd-workbench:not(.cd-workbench--landing), [data-activity='active']) #main-content { padding-top: var(--ss-focus-inset) !important; }

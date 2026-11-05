@@ -350,20 +350,21 @@ for (const mode of ['daily', 'review']) {
   });
 }
 
-test('Quiz visible-topic bulk actions preserve a hidden selected topic', async ({ page }) => {
+test('Quiz shows all topics immediately and bulk selection applies to the whole permitted list', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 1000 });
   await prepare(page, 'dark');
   await quizAuditFixture(page);
   await page.goto('/quiz');
-  await page.getByRole('button', { name: 'Show all categories', exact: true }).click();
-  await page.getByRole('button', { name: 'Security', exact: true }).click();
-  await page.getByRole('button', { name: 'Show fewer', exact: true }).click();
-  await expect(page.getByText('1 more selected', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Select visible topics', exact: true }).click();
-  await page.getByRole('button', { name: 'Deselect visible topics', exact: true }).click();
-  await page.getByRole('button', { name: 'Show all categories', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Security', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('devquiz:quiz-setup:v1')!).categories)).toEqual(['security']);
+  await expect(page.getByRole('button', { name: 'Show all categories', exact: true })).toHaveCount(0);
+  const security = page.getByRole('button', { name: 'Security', exact: true });
+  await expect(security).toBeVisible();
+  await security.click();
+  await expect(security).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Select all', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'React', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(security).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Deselect all', exact: true }).click();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('devquiz:quiz-setup:v1')!).categories)).toEqual([]);
 });
 
 test('Quiz notices a passed deadline without clearing answers or inventing a grading refusal', async ({ page }) => {

@@ -244,6 +244,47 @@ async function main() {
     assert.deepEqual(reads.filter((read) => read.table === 'roadmap_progress').map((read) => read.columns), [JAVASCRIPT_LEVELS_SELECT], 'coding-progress reads only the JavaScript levels too');
   }
   console.log('Coding task page and coding-progress reads passed: passed ids, the own row and the JavaScript levels only, same answer (#587 item 9).');
+
+  // A pass alone cannot claim a saved solution. The query projects only ids,
+  // belongs to the verified caller, and omits blank or missing stage drafts.
+  {
+    const ids = ['js-fullstack-links-1', 'js-fullstack-links-2', 'js-fullstack-links-3'];
+    const codeRows = [
+      { user_id: 'account-stage-code', task_id: ids[0], code: 'const saved = true;' },
+      { user_id: 'account-stage-code', task_id: ids[1], code: ' \n\t' },
+      { user_id: 'another-account', task_id: ids[2], code: 'const privateCode = true;' },
+    ];
+    const reads: { table: string; columns: string; filters: Record<string, unknown> }[] = [];
+    const db = { from(table: string) {
+      const read = { table, columns: '', filters: {} as Record<string, unknown> };
+      const chain = {
+        select(columns: string) { read.columns = columns; return chain; },
+        eq(column: string, value: unknown) { read.filters[column] = value; return chain; },
+        in(column: string, value: unknown) { read.filters[column] = value; return chain; },
+        not(column: string, operator: string, value: string) { read.filters[column] = [operator, value]; return chain; },
+        maybeSingle: async () => ({ data: { levels: [] }, error: null }),
+        then(resolve: (result: unknown) => unknown) {
+          reads.push(read);
+          const data = table === 'coding_progress'
+            ? ids.map(task_id => ({ task_id, track: 'javascript', status: 'passed', passes: 1, review_stage: 0, reveal_count: 0, best_passed_at: null }))
+            : codeRows.filter(row => row.user_id === read.filters.user_id && (read.filters.task_id as string[]).includes(row.task_id) && row.code.trim()).map(row => ({ task_id: row.task_id }));
+          return resolve({ data, error: null });
+        },
+      };
+      return chain;
+    } };
+    const out = response();
+    await handleCodingProgress({ method: 'GET', headers: { authorization: 'Bearer stand-in-token' }, query: { user_id: 'account-stage-code' } } as never, out as never, db as never);
+    assert.equal(out.statusCode, 200, JSON.stringify(out.body));
+    assert.deepEqual((out.body as { stagesWithSavedCode: string[] }).stagesWithSavedCode, [ids[0]]);
+    const drafts = reads.find(row => row.table === 'coding_drafts')!;
+    assert.equal(drafts.columns, 'task_id');
+    assert.equal(drafts.filters.user_id, 'account-stage-code');
+    assert.deepEqual(drafts.filters.code, ['match', '^[[:space:]]*$']);
+    assert.ok(!JSON.stringify(out.body).includes('const saved'), 'source code is never part of progress');
+  }
+  console.log('Saved stage checkmarks require passed status and caller-owned nonblank code, without transferring source.');
+
   const other = await open('account-b');
   assert.equal(other.draft, null);
   assert.equal(other.draftUpdatedAt, null, 'no draft, no time');

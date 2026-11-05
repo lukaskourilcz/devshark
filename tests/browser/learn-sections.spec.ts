@@ -130,9 +130,9 @@ test.describe('Learn section routes', () => {
     const html = topicCard(page, 'HTML');
     const typescript = topicCard(page, 'TypeScript');
     await html.focus();
-    await page.keyboard.press('ArrowRight'); // CSS
-    await page.keyboard.press('ArrowRight'); // JavaScript
-    await page.keyboard.press('ArrowRight'); // inspect locked TypeScript
+    await page.keyboard.press('ArrowDown'); // CSS
+    await page.keyboard.press('ArrowDown'); // JavaScript
+    await page.keyboard.press('ArrowDown'); // inspect locked TypeScript
     await expect(typescript).toBeFocused();
     await expect(typescript).toHaveAttribute('aria-disabled', 'true');
     await expect(typescript).toHaveAccessibleDescription(/Pass 5 levels in each prerequisite topic to open TypeScript: JavaScript/);

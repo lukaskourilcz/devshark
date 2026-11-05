@@ -34,14 +34,14 @@ beforeAll(() => preloadPath('/coding/javascript'));
 function combineTier(track: string) {
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <MemoryRouter initialEntries={[`/coding/${track}`]}>
+      <MemoryRouter initialEntries={[`/coding/${track}?tier=3`]}>
         <LanguageProvider>
           <Routes><Route path="/coding/:track" element={<CodingTrackScreen />} /></Routes>
         </LanguageProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   );
-  return screen.getByRole('heading', { level: 3, name: 'Combine' }).closest('section') as HTMLElement;
+  return screen.getByRole('region', { name: 'Coding challenges' });
 }
 
 const SWEEP = 'Opens after every task of the first two tiers in this track.';
@@ -57,7 +57,7 @@ describe('the Learn unlock of tier 3', () => {
   for (const track of ['typescript', 'react']) {
     it(`leaves ${track} tier 3 locked behind its own sweep`, () => {
       const tier = combineTier(track);
-      expect(within(tier).getByText(SWEEP)).toBeInTheDocument();
+      expect(within(tier).getAllByText(SWEEP)[0]).toBeInTheDocument();
       expect(within(tier).queryByText(FOUNDATIONS)).toBeNull();
     });
   }

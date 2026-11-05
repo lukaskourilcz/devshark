@@ -33,7 +33,8 @@ it('puts a path code activity in the workbench frame, on the wide page, with the
   const code = grid.querySelector(':scope > .cd-pane--editor')!;
   const beside = grid.querySelector(':scope > .cd-pane--output')!;
   // The code pane: the capped brief, the editor, the actions at its foot.
-  expect(code.firstElementChild).toHaveClass('cd-brief');
+  expect(code.firstElementChild).toHaveClass('cd-editor-bar');
+  expect(screen.getByRole('tabpanel', { name: 'Description' })).toHaveTextContent('Sum it.');
   expect(code.lastElementChild).toHaveClass('cd-editor-actions');
   const editor = await screen.findByRole('textbox', { name: 'Your solution' });
   expect(code).toContainElement(editor);

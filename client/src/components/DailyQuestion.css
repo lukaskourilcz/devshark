@@ -3,7 +3,7 @@
    the shared QuestionShell (components/question/, UX audit U2), so the page is
    the --ss-width-task column that shell draws in, and the header, the
    question and the states share both edges. */
-.ss-daily { max-width: var(--ss-width-task); }
+.ss-daily { max-width: var(--ss-width-question); }
 .ss-daily__card { display: flex; flex-direction: column; gap: 1rem; }
 .ss-daily__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
 .ss-daily__status { margin: 0; font-size: 0.9rem; color: var(--color-text-secondary); overflow-wrap: anywhere; }
@@ -28,3 +28,9 @@
 @media (max-width: 480px) {
   .ss-daily .ss-info-actions > * { flex: 1 1 100%; }
 }
+
+.ss-daily > .ss-info-page__header h1 { font-size: var(--ss-type-page-title); line-height: 1.25; }
+.ss-daily > .ss-info-page__header { margin-bottom: 16px; }
+.ss-daily__context { max-width: 72ch; font-size: var(--ss-type-compact); line-height: 1.6; color: var(--color-text-secondary); }
+.ss-daily__context p { margin: 0 0 8px; font-size: inherit; }
+.ss-daily__context > div { white-space: pre-wrap; }

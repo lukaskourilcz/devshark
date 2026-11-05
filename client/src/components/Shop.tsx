@@ -40,7 +40,7 @@ import { CoinIcon, ShieldIcon } from './ui/icons';
 import { LockedButton } from './ui/LockedButton';
 import { Kicker } from './landing/LandingKit';
 import { ReferralInvite } from './ReferralInvite';
-import { Page } from './PublicInfoPages';
+import { PageHeader } from './ui/PageHeader';
 import { StatePanel } from './ui/StatePanel';
 import { useT } from '../i18n/LanguageContext';
 import type { TranslationKey } from '../i18n/translations';
@@ -641,7 +641,8 @@ function Shop() {
   // The editorial header every money page has (UX audit money-08): fin,
   // kicker, h1. The lead adds what the sections below do not say (money-12).
   return (
-    <Page kicker={t('shop.kicker')} title={t('shop.title')} lead={`${t('shop.subtitle')}${merchOpen ? ` ${t('shop.subtitleMerch')}` : ''}`}>
+    <article className="ss-info-page">
+    <PageHeader kicker={t('shop.kicker')} title={t('shop.title')} lead={`${t('shop.subtitle')}${merchOpen ? ` ${t('shop.subtitleMerch')}` : ''}`} />
     <VStack gap={5} width="100%">
 
       {/* Test mode is for the owner's staging checks; production never shows it. */}
@@ -857,7 +858,7 @@ function Shop() {
         message={toast?.msg ?? ''}
       />
     </VStack>
-    </Page>
+    </article>
   );
 }
 

@@ -182,3 +182,12 @@
   .today-done { align-items: flex-start; }
   .today-card__action-label { display: none; }
 }
+
+.today-columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-items: start; }
+.today-plan { min-width: 0; }
+@media (min-width: 901px) {
+  .today-columns:has(.today-path-section) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.today-path .today-card { flex-wrap: wrap; }
+.today-path .today-card__body { flex-basis: 200px; }
+.today-path .today-card__meta { overflow-wrap: anywhere; }

@@ -57,16 +57,19 @@ const bandHeadings = () => screen.getAllByRole('heading', { level: 2 }).map((hea
   .filter((text) => text === 'Easy' || text === 'Medium' || text === 'Hard');
 
 describe('difficulty labels on a track page', () => {
-  it('groups Easy, Medium and Hard in that order, with the tier as a sub-label', () => {
+  it('paginates twenty tasks as two columns of ten before Paths', () => {
     mount('/coding/javascript', <CodingTrackScreen />, '/coding/:track');
-    expect(bandHeadings()).toEqual(['Easy', 'Medium', 'Hard']);
-    const easy = screen.getByRole('region', { name: 'Easy' });
-    expect(within(easy).getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual(['Foundations', 'Fluency']);
-    const hard = screen.getByRole('region', { name: 'Hard' });
-    expect(within(hard).getByRole('heading', { level: 3, name: 'Interview' })).toBeInTheDocument();
-    // Each challenge sits in the band its index row names, once.
-    const standalone = CODING_INDEX.filter((task) => task.track === 'javascript' && !evolvingStage(task.id));
-    expect(within(easy).getAllByRole('listitem')).toHaveLength(standalone.filter((task) => task.difficulty === 'easy').length);
+    const catalogue = screen.getByRole('region', { name: 'Coding challenges' });
+    const columns = within(catalogue).getAllByRole('list');
+    expect(columns.map(column => within(column).getAllByRole('listitem').length)).toEqual([10, 10]);
+    expect(bandHeadings()).toEqual([]);
+    const first = catalogue.querySelector('.cd-row__title')!.textContent;
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByTestId('search').textContent).toBe('?page=2');
+    expect(catalogue.querySelector('.cd-row__title')!.textContent).not.toBe(first);
+    fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
+    expect(catalogue.querySelector('.cd-row__title')!.textContent).toBe(first);
+    expect(catalogue.compareDocumentPosition(document.querySelector('#cd-track-paths')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('offers the three labels in the difficulty filter and keeps the choice in the URL', () => {
@@ -75,13 +78,15 @@ describe('difficulty labels on a track page', () => {
     expect([...select.options].map((option) => option.textContent)).toEqual(['Any difficulty', 'Easy', 'Medium', 'Hard']);
     fireEvent.change(select, { target: { value: 'medium' } });
     expect(screen.getByTestId('search').textContent).toBe('?difficulty=medium');
-    expect(bandHeadings()).toEqual(['Medium']);
+    const titles = new Set(CODING_INDEX.filter(task => task.track === 'javascript' && task.difficulty === 'medium').map(task => task.title));
+    expect([...document.querySelectorAll('.cd-catalogue .cd-row__title')].every(row => titles.has(row.textContent!))).toBe(true);
   });
 
   it('reads an older tier link as the label that tier projects to', () => {
     mount('/coding/javascript?tier=4', <CodingTrackScreen />, '/coding/:track');
     expect((screen.getByLabelText('Any difficulty') as HTMLSelectElement).value).toBe('hard');
-    expect(bandHeadings()).toEqual(['Hard']);
+    const titles = new Set(CODING_INDEX.filter(task => task.track === 'javascript' && task.difficulty === 'hard').map(task => task.title));
+    expect([...document.querySelectorAll('.cd-catalogue .cd-row__title')].every(row => titles.has(row.textContent!))).toBe(true);
     fireEvent.change(screen.getByLabelText('Any difficulty'), { target: { value: 'easy' } });
     expect(screen.getByTestId('search').textContent).toBe('?difficulty=easy');
   });
@@ -90,7 +95,7 @@ describe('difficulty labels on a track page', () => {
 describe('searching a track', () => {
   // The search reads the title the row shows and the technique tags, nothing
   // a learner cannot see.
-  const rows = () => screen.queryAllByRole('listitem').map((row) => row.textContent ?? '');
+  const rows = () => [...document.querySelectorAll('.cd-catalogue .cd-row-item')].map(row => row.textContent ?? '');
   it('finds a challenge by its title', () => {
     mount('/coding/javascript?q=zip%20two', <CodingTrackScreen />, '/coding/:track');
     expect(rows().some((row) => row.includes('Zip two lists'))).toBe(true);
@@ -132,29 +137,21 @@ describe('the format filter', () => {
     // Every React challenge is graded by tests, so none disappears.
     const standalone = CODING_INDEX.filter((task) => task.track === 'react' && !evolvingStage(task.id));
     expect(standalone.every((task) => task.verify === 'tests')).toBe(true);
-    expect(screen.getAllByRole('listitem').length).toBeGreaterThanOrEqual(standalone.length);
+    expect(within(screen.getByRole('region', { name: 'Coding challenges' })).getAllByRole('listitem')).toHaveLength(20);
+    expect(screen.getByRole('navigation', { name: 'Challenge pages' })).toHaveTextContent(`1–20 of ${standalone.length}`);
   });
 });
 
-describe('difficulty labels on the stage list', () => {
-  const project = EVOLVING_CHALLENGES.find((one) => one.stages.length === 10)!;
-  const fullstack = EVOLVING_CHALLENGES.find((one) => one.stages.length === 12)!;
-  const short = EVOLVING_CHALLENGES.find((one) => one.short && one.stages.length === 5)!;
-
-  // Milestones and path levels read their position; a checkpoint is a
-  // five-minute step and reads Easy wherever it sits (owner decision,
-  // 9 Oct 2026), so it splits the Medium and Hard runs of a long project.
-  it.each([
-    [project.id, project, ['Easy', 'Medium', 'Easy', 'Medium', 'Easy', 'Hard', 'Easy', 'Hard'], [3, 1, 1, 1, 1, 1, 1, 1]],
-    [fullstack.id, fullstack, ['Easy', 'Medium', 'Easy', 'Medium', 'Easy', 'Medium', 'Hard', 'Easy', 'Hard'], [4, 1, 1, 1, 1, 1, 1, 1, 1]],
-    [short.id, short, ['Easy', 'Medium', 'Hard'], [2, 2, 1]],
-  ] as const)('labels the stages of %s: milestones by position, checkpoints Easy', (_id, challenge, labels, sizes) => {
+describe('quiet numbered stage navigation', () => {
+  const projects = [10, 12, 5].map(count => EVOLVING_CHALLENGES.find(one => one.stages.length === count)!);
+  it.each(projects)('keeps every stage of $id available without difficulty headings', challenge => {
     mount(`/coding/javascript/${challenge.stages[0]}`, <CodingTaskScreen />, '/coding/:track/:taskId');
-    const nav = screen.getByRole('navigation');
-    const groups = within(nav).getAllByRole('group');
-    expect(groups.map((group) => within(group).getByText(/^(Easy|Medium|Hard)$/).textContent)).toEqual(labels);
-    expect(groups.map((group) => group.getAttribute('aria-labelledby'))).toEqual(groups.map((group) => group.querySelector('.cd-stage-group__label')!.id));
-    expect(groups.map((group) => within(group).queryAllByRole('link').length + within(group).queryAllByRole('button').length)).toEqual(sizes);
+    const nav = screen.getByRole('navigation', { name: 'Levels' });
+    expect(within(nav).getByText('Level:')).toBeVisible();
+    expect(within(nav).queryByRole('group')).toBeNull();
+    expect(within(nav).queryByText(/^(Easy|Medium|Hard)$/)).toBeNull();
+    expect(within(nav).getAllByRole('link').length + within(nav).getAllByRole('button').length).toBe(challenge.stages.length);
+    expect(within(nav).getByRole('link')).toHaveAttribute('aria-current', 'step');
   });
 });
 

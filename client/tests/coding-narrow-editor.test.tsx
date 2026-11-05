@@ -71,7 +71,8 @@ it('waits for a bigger screen by default in one note with its one button, and ke
   expect(screen.queryByLabelText('Test editor')).toBeNull();
   expect(screen.queryByRole('button', { name: 'Run' })).toBeNull();
   // Hint, Solution and Report wait for the editor.
-  expect(screen.queryByRole('button', { name: /Hint|Solution|More actions|Report/ })).toBeNull();
+  expect(screen.queryByRole('button', { name: /Hint|Solution|More actions/ })).toBeNull();
+  expect(screen.getByRole('button', { name: /Report/ })).toBeVisible();
   expect(document.querySelectorAll('.cd-note')).toHaveLength(1);
 });
 
@@ -82,12 +83,13 @@ it('keeps section task checks readable on a phone before the editor is requested
   expect(screen.queryByLabelText('Test editor')).toBeNull();
   expect(screen.queryByRole('button', { name: 'Run' })).toBeNull();
   expect(screen.getByRole('tabpanel', { name: 'Description' })).toBeVisible();
-  expect(screen.getByRole('tabpanel', { name: /^Results/ })).toBeVisible();
-  expect(screen.getByRole('button', { name: 'Use the editor here' })).toBeVisible();
-  fireEvent.click(screen.getByRole('button', { name: 'Hide output' }));
   expect(screen.queryByRole('tabpanel', { name: /^Results/ })).toBeNull();
-  fireEvent.click(screen.getByRole('button', { name: 'Show output' }));
+  expect(screen.getByRole('button', { name: 'Use the editor here' })).toBeVisible();
+  fireEvent.click(screen.getByRole('tab', { name: /^Results/ }));
   expect(screen.getByRole('tabpanel', { name: /^Results/ })).toBeVisible();
+  expect(screen.queryByRole('tabpanel', { name: 'Description' })).toBeNull();
+  fireEvent.click(screen.getByRole('tab', { name: 'Description' }));
+  expect(screen.getByRole('tabpanel', { name: 'Description' })).toBeVisible();
 });
 
 it('opens the editor with Run and Submit on a narrow screen when the learner asks, and keeps that choice for the session', () => {

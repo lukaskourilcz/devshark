@@ -156,10 +156,10 @@ for (const theme of ['light', 'dark'] as const) {
     await expectNoAxeViolations(page, '.lp-check-view');
   });
 
-  test(`${theme}: a code activity shows its fixture note above the editor`, async ({ page }, info) => {
+  test(`${theme}: a code activity keeps its fixture note in Description beside the editor`, async ({ page }, info) => {
     await setUp(page, theme);
     await page.goto(`/learn/forward-deployed-engineer/path/fde-v1-x01?activity=${drill.id}`);
-    const note = page.locator('.cd-workbench--activity .cd-brief > .lp-notice--info');
+    const note = page.getByRole('tabpanel', { name: 'Description' }).locator('.lp-notice--info');
     await expect(note).toBeVisible();
     await expect(note).toContainText('Before you start');
     await expect(note).toContainText(NOTE_FIRST);
@@ -167,10 +167,14 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(editor).toBeVisible();
     for (const width of [360, 1280]) {
       await page.setViewportSize({ width, height: 900 });
-      expect((await note.boundingBox())!.y, `note above the editor at ${width}`).toBeLessThan((await editor.boundingBox())!.y);
+      const output = await page.locator('.cd-workbench--activity .cd-pane--output').boundingBox();
+      const codePane = await page.locator('.cd-workbench--activity .cd-pane--editor').boundingBox();
+      if (width >= 1024) expect(output!.x).toBeGreaterThan(codePane!.x);
+      else expect(output!.y).toBeLessThan(codePane!.y);
+      await expect(page.locator('.ss-header')).toBeHidden();
     }
-    await expectReflow(page, '.cd-workbench--activity .cd-brief > .lp-notice--info');
+    await expectReflow(page, '.cd-workbench--activity [role="tabpanel"] .lp-notice--info');
     await note.screenshot({ path: info.outputPath(`fixture-note-${theme}.png`) });
-    await expectNoAxeViolations(page, '.cd-workbench--activity .cd-brief > .lp-notice--info');
+    await expectNoAxeViolations(page, '.cd-workbench--activity [role="tabpanel"] .lp-notice--info');
   });
 }

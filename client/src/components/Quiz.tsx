@@ -281,22 +281,6 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   // memos below and the review start's identity new on every render.
   const visibleCategoryOptions = useMemo(() => visibleCategoryOptionsFor(profile.email), [profile.email]);
 
-  // The /dev "default visible categories" setting picks which chips appear on
-  // first sight; the rest unlock when the learner clicks "Show all". Empty
-  // list (or no overlap with what this user can see) means show everything.
-  const defaultCategoryIds = config.quiz.defaultCategoryIds ?? [];
-  const defaultVisibleSet = useMemo(() => new Set(defaultCategoryIds), [defaultCategoryIds]);
-  const collapsedOptions = useMemo(
-    () =>
-      defaultVisibleSet.size > 0
-        ? visibleCategoryOptions.filter((c) => defaultVisibleSet.has(c.value))
-        : visibleCategoryOptions,
-    [defaultVisibleSet, visibleCategoryOptions],
-  );
-  const hasCollapsedSubset =
-    collapsedOptions.length > 0 && collapsedOptions.length < visibleCategoryOptions.length;
-  const [showAllCategories, setShowAllCategories] = useState(false);
-
   // Lookup table for the review-mode result rows. Replaces an O(n) array.find()
   // per question with an O(1) Map.get() — important when the snackbar/report
   // dialog opens and re-renders the whole list of 20–50 questions.
@@ -304,9 +288,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     () => new Map((result?.results ?? []).map((r) => [r.questionId, r])),
     [result],
   );
-  const displayedCategoryOptions = hasCollapsedSubset && !showAllCategories
-    ? collapsedOptions
-    : visibleCategoryOptions;
+  const displayedCategoryOptions = visibleCategoryOptions;
 
   // Hide the app chrome only while actively taking the quiz (and the brief load
   // before it). On the results/review screen ('submitted') the nav + footer come
@@ -619,7 +601,6 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   };
 
   const displayedCategoryIds = displayedCategoryOptions.map((c) => c.value);
-  const hiddenSelectedCount = selectedCategories.filter((category) => !displayedCategoryIds.includes(category)).length;
   const isAllSelected =
     displayedCategoryIds.length > 0 &&
     displayedCategoryIds.every((c) => selectedCategories.includes(c));
@@ -1022,16 +1003,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
               })}
             </div>
             <div className="ss-text-links quiz-setup__topic-actions">
-              {hasCollapsedSubset && <>
-                <button type="button" onClick={() => setShowAllCategories((v) => !v)}>
-                  {showAllCategories ? t('quiz.showFewer') : t('quiz.showAllCategories')}
-                </button>
-                {hiddenSelectedCount > 0 && <span className="quiz-setup__helper">{t('quiz.moreTopicsSelected', { count: hiddenSelectedCount })}</span>}
-              </>}
               <button type="button" onClick={handleSelectAll}>
-                {t(hasCollapsedSubset && !showAllCategories
-                  ? isAllSelected ? 'quiz.deselectVisible' : 'quiz.selectVisible'
-                  : isAllSelected ? 'quiz.deselectAll' : 'quiz.selectAll')}
+                {t(isAllSelected ? 'quiz.deselectAll' : 'quiz.selectAll')}
               </button>
             </div>
             {/* Takes no line until it has something to say, so the next
@@ -1041,9 +1014,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
             </div>
           </div>
 
-          {/* Questions, then Difficulty: each full width, so each is one
-              row of pills under its label (questions-15). Side by side,
-              Difficulty wrapped to two rows in half the panel. */}
+          <div className="quiz-setup__controls">
           <div className="quiz-setup__settings">
             <div className="quiz-setup__group">
               <span id="quiz-count-label" style={labelStyle}>{t('quiz.questionsLegend')}</span>
@@ -1086,6 +1057,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
             {/* aria-disabled, not disabled: with no category it stays in the
                 Tab order, and pressing it names what is missing. */}
             <SwimCta label={t('quiz.startQuiz')} onClick={handleStart} dir={1} unavailable={selectedCategories.length === 0} describedBy={selectedCategories.length === 0 ? attemptedStart ? 'categories-error' : 'quiz-empty-selection' : undefined} size="md" />
+          </div>
           </div>
         </div>
 

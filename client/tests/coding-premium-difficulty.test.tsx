@@ -68,12 +68,9 @@ describe('the stage list on the free plan', () => {
     // The owner's decisions of 9 Oct 2026: the checkpoint and the first
     // milestone (stages 1 and 2), and the checkpoint after them (stage 3).
     expect(screen.getByText('Stages 1, 2 and 3 come with the free plan. Premium opens the stages after them.')).toBeInTheDocument();
-    const nav = screen.getByRole('navigation');
-    const groups = within(nav).getAllByRole('group');
-    // The milestones keep their position bands; every checkpoint (the odd
-    // stages) is a five-minute step and reads Easy wherever it sits.
-    expect(groups.map((group) => within(group).getByText(/^(Easy|Medium|Hard)$/).textContent))
-      .toEqual(['Easy', 'Medium', 'Easy', 'Medium', 'Easy', 'Hard', 'Easy', 'Hard']);
+    const nav = screen.getByRole('navigation', { name: 'Levels' });
+    expect(within(nav).getByText('Level:')).toBeVisible();
+    expect(within(nav).queryByRole('group')).toBeNull();
 
     // Stage one is where the learner is. Stages 2 and 3 are free and wait for
     // the stages before them; the seven after them are Premium.
@@ -95,7 +92,7 @@ describe('the stage list on the free plan', () => {
       fireEvent.click(button);
     }
     expect(screen.getByText('Complete stage 1 to unlock stage 3.', { selector: 'p' })).toHaveAttribute('role', 'status');
-    expect(waiting[0]).toHaveAccessibleName('Evolving · Stage 2 of 10. Complete stage 1 to unlock stage 2.');
+    expect(waiting[0]).toHaveAccessibleName('Level 2 of 10. Complete stage 1 to unlock stage 2.');
     expect(nav).not.toHaveTextContent('Current');
     expect(sheet.open).not.toHaveBeenCalled();
     fireEvent.click(premium[0]);
@@ -111,14 +108,14 @@ describe('the stage list on the free plan', () => {
       progress.tasks = Object.fromEntries(project.stages.slice(0, reached - 1).map((id) => [id, { status: 'passed' as const }]));
       mount(`/coding/javascript/${project.stages[0]}`, <CodingTaskScreen />, '/coding/:track/:taskId');
       const nav = screen.getByRole('navigation');
-      expect(within(nav).getByRole('link', { name: `Evolving · Stage ${reached} of 10` })).toHaveAttribute('href', `/coding/javascript/${project.stages[reached - 1]}`);
+      expect(within(nav).getByRole('link', { name: `Level ${reached} of 10` })).toHaveAttribute('href', `/coding/javascript/${project.stages[reached - 1]}`);
       cleanup();
     }
     progress.tasks = Object.fromEntries(project.stages.slice(0, 3).map((id) => [id, { status: 'passed' as const }]));
     mount(`/coding/javascript/${project.stages[0]}`, <CodingTaskScreen />, '/coding/:track/:taskId');
     const nav = screen.getByRole('navigation');
-    expect(within(nav).getAllByRole('link').map((link) => link.textContent)).toEqual(['✓ 1', '✓ 2', '✓ 3']);
-    fireEvent.click(within(nav).getByRole('button', { name: 'Evolving · Stage 4 of 10, Premium' }));
+    expect(within(nav).getAllByRole('link').map((link) => link.textContent)).toEqual(['1', '2', '3']);
+    fireEvent.click(within(nav).getByRole('button', { name: 'Level 4 of 10, Premium' }));
     expect(sheet.open).toHaveBeenCalledWith({ kind: 'evolving-stage', ref: `${project.id}:4` });
   });
 });
@@ -147,9 +144,9 @@ describe('the project cards on the free plan', () => {
 });
 
 describe('a track page on the free plan', () => {
-  it('shows the Premium state on rows inside their difficulty band', () => {
+  it('shows Premium accurately inside the paged catalogue', () => {
     mount('/coding/javascript', <CodingTrackScreen />, '/coding/:track');
-    const easy = screen.getByRole('heading', { level: 2, name: 'Easy' }).closest('section')!;
+    const easy = screen.getByRole('region', { name: 'Coding challenges' });
     const free = CODING_INDEX.find((task) => task.track === 'javascript' && task.difficulty === 'easy' && task.free && task.tier === 1)!;
     const premium = CODING_INDEX.find((task) => task.track === 'javascript' && task.difficulty === 'easy' && !task.free && task.tier === 1 && !task.id.includes('evolving') && !task.id.includes('-path-'))!;
     const rowOf = (title: string) => within(easy).getByText(title).closest('li')!;
@@ -175,7 +172,7 @@ describe('a track page before the plan is known', () => {
     const refetch = vi.fn();
     plan.value = { ...FREE_PLAN, tier: null, failed: true, refetch };
     mount('/coding/javascript', <CodingTrackScreen />, '/coding/:track');
-    const easy = screen.getByRole('heading', { level: 2, name: 'Easy' }).closest('section')!;
+    const easy = screen.getByRole('region', { name: 'Coding challenges' });
     const row = within(easy).getByText(premiumTask().title).closest('li')!;
     expect(within(row).queryByText('Premium')).toBeNull();
     expect(screen.getByRole('alert')).toHaveTextContent('We could not load your plan, so no challenge here carries the Premium mark.');
@@ -186,7 +183,7 @@ describe('a track page before the plan is known', () => {
   it('draws a Premium row for a signed-out visitor as Premium', () => {
     plan.value = { ...FREE_PLAN, signedIn: false };
     mount('/coding/javascript', <CodingTrackScreen />, '/coding/:track');
-    const easy = screen.getByRole('heading', { level: 2, name: 'Easy' }).closest('section')!;
+    const easy = screen.getByRole('region', { name: 'Coding challenges' });
     const row = within(easy).getByText(premiumTask().title).closest('li')!;
     expect(within(row).getByText('Premium')).toBeInTheDocument();
     const premiumRow = row.querySelector<HTMLButtonElement>('button.cd-row--premium')!;

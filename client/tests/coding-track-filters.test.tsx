@@ -91,3 +91,27 @@ it('filters by the learner’s task type even when debugging tasks are graded by
   expect(screen.getByRole('link', { name: new RegExp(debugging.title) })).toBeInTheDocument();
   expect(screen.queryByRole('link', { name: /Digit sum/ })).toBeNull();
 });
+
+
+it('pages through every task without repeating rows and resets the page when a filter changes', () => {
+  const { container } = mount();
+  const titles = () => [...container.querySelectorAll('.cd-row-item')].map(row => row.textContent);
+  const first = titles();
+  expect(first).toHaveLength(20);
+  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+  expect(screen.getByTestId('search')).toHaveTextContent('?page=2');
+  const second = titles();
+  expect(second).toHaveLength(20);
+  expect(second.filter(title => first.includes(title))).toHaveLength(0);
+  fireEvent.change(screen.getByRole('combobox', { name: 'Any difficulty' }), { target: { value: 'easy' } });
+  expect(screen.getByTestId('search').textContent).not.toContain('page=');
+  expect(screen.getByRole('button', { name: 'Previous' })).toBeDisabled();
+});
+
+it('clamps an oversized page to the final partial page without losing the total', () => {
+  const { container } = mount('/coding/javascript?page=999');
+  const total = CODING_INDEX.filter(task => task.track === 'javascript' && !evolvingStage(task.id)).length;
+  expect(container.querySelectorAll('.cd-row-item')).toHaveLength(total % 20 || 20);
+  expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+  expect(container.querySelector('.cd-pagination')).toHaveTextContent(`of ${total}`);
+});

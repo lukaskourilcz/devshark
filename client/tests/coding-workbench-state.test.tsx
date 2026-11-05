@@ -91,13 +91,13 @@ it('clears the last verdict when a new Submit fails', async () => {
   expect(screen.queryByRole('heading', { level: 3, name: 'Failed' })).toBeNull();
 });
 
-it('replaces the editor with the completion screen after a pass', async () => {
+it('keeps the editor and reports the server pass in the workspace', async () => {
   vi.mocked(submitCoding).mockResolvedValueOnce(verdict({}));
   mount();
   fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
-  expect(await screen.findByRole('heading', { level: 1, name: /^Passed/ })).toBeVisible();
+  expect(await screen.findByRole('heading', { level: 3, name: /^Passed/ })).toBeVisible();
   expect(screen.queryByText(/You changed the code after this check/)).toBeNull();
-  expect(screen.queryByLabelText('Test editor')).toBeNull();
+  expect(screen.getByLabelText('Test editor')).toBeVisible();
   expect(screen.getByRole('link', { name: 'Back to the list' })).toBeVisible();
 });
 
@@ -168,7 +168,7 @@ it('does not call the server’s results about the code just submitted stale', a
   vi.mocked(runCodeTests).mockImplementationOnce(() => new Promise(() => {}));
   vi.mocked(submitCoding).mockResolvedValueOnce(verdict({}));
   fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
-  expect(await screen.findByRole('heading', { level: 1, name: /^Passed/ })).toBeVisible();
+  expect(await screen.findByRole('heading', { level: 3, name: /^Passed/ })).toBeVisible();
   expect(screen.queryByText('The code changed since this run.')).toBeNull();
 });
 
@@ -223,11 +223,11 @@ it('sends Submit without waiting for the browser run, and shows the server run',
   mount();
   fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
   await waitFor(() => expect(submitCoding).toHaveBeenCalledTimes(1));
-  expect(await screen.findByRole('heading', { level: 1, name: /^Passed/ })).toBeVisible();
+  expect(await screen.findByRole('heading', { level: 3, name: /^Passed/ })).toBeVisible();
   // The browser run finishing late does not replace what the server saw.
   await act(async () => { finishLocal(outcome({ codeError: 'late local run' })); });
   expect(screen.queryByText('late local run')).toBeNull();
-  expect(screen.queryByRole('tab', { name: /Results/ })).toBeNull();
+  expect(screen.getByRole('tab', { name: /Results/ })).toHaveAttribute('aria-selected', 'true');
 });
 
 // C3-8: the gate was checked at render time only, so a learner who edited
@@ -350,12 +350,16 @@ function climbTheLadder() {
 
 // C4-5 and C3-15: a signed-out reveal promised the task would "come back
 // later", which nothing does; and its way out said "Try again".
-it('tells a signed-out visitor what a reveal really does, and Keep trying returns focus', () => {
+it('tells a signed-out visitor what a reveal really does after Submit, and Keep trying returns focus', async () => {
   mount({ signedIn: false });
   // UX audit coding-10: the brief carries no sign-in note; a pass says it
   // needs an account, where it matters (the next test).
   expect(screen.queryByText(/Sign in to keep your progress/)).toBeNull();
   climbTheLadder();
+  expect(screen.queryByRole('button', { name: 'Solution' })).toBeNull();
+  vi.mocked(submitCoding).mockResolvedValueOnce(verdict({ verdict: 'failed', progress: progress('in_progress'), xpAwarded: 0, firstPass: false }));
+  fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+  await screen.findByRole('heading', { level: 3, name: 'Failed' });
   const solution = screen.getByRole('button', { name: 'Solution' });
   fireEvent.click(solution);
   const dialog = screen.getByRole('alertdialog', { name: 'Solution' });
@@ -394,6 +398,9 @@ it('lays out a one-line reference solution for reading, and focuses it', async (
   });
   mount();
   climbTheLadder();
+  vi.mocked(submitCoding).mockResolvedValueOnce(verdict({ verdict: 'failed', progress: progress('in_progress'), xpAwarded: 0, firstPass: false }));
+  fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+  await screen.findByRole('heading', { level: 3, name: 'Failed' });
   fireEvent.click(screen.getByRole('button', { name: 'Solution' }));
   fireEvent.click(within(screen.getByRole('alertdialog', { name: 'Solution' })).getByRole('button', { name: 'Solution' }));
   const shown = await screen.findByText(/const countMultiples/, { selector: 'pre' }, { timeout: 10_000 });
@@ -416,7 +423,7 @@ it('opens the challenge offered after a skip inside the app', async () => {
 
 // An accepted arrangement uses the same minimal completion, with its actual
 // zero XP. It still never requests verified-code approach comparisons.
-it('shows the minimal completion for an accepted order without granting XP or requesting approaches', async () => {
+it('keeps an accepted puzzle order distinct from a code pass and requests no approaches', async () => {
   vi.mocked(window.matchMedia).mockImplementation((query: string) => ({
     matches: query === '(max-width: 1023.95px)', media: query, onchange: null,
     addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent() { return true; },
@@ -442,7 +449,7 @@ it('shows the minimal completion for an accepted order without granting XP or re
 // The paths walk (#587): a pass made on the screen shows the completion,
 // which never returns to the tabs, so the approach comparisons it would open
 // are not read; a task passed before still opens them.
-it('reads no approach comparisons for the completion a pass shows, and reads them for a task passed before', async () => {
+it('defers approach comparisons after a pass until requested, and reads them for a task passed before', async () => {
   // A wide screen: the editor shows (the case above left a narrow one).
   vi.mocked(window.matchMedia).mockImplementation((query: string) => ({
     matches: false, media: query, onchange: null,
@@ -453,7 +460,7 @@ it('reads no approach comparisons for the completion a pass shows, and reads the
   vi.mocked(submitCoding).mockResolvedValueOnce(verdict({}));
   const { unmount } = mount();
   fireEvent.click(await screen.findByRole('button', { name: 'Submit' }));
-  expect(await screen.findByRole('heading', { level: 1, name: 'Passed +25 XP' })).toBeVisible();
+  expect(await screen.findByRole('heading', { level: 3, name: 'Passed +25 XP' })).toBeVisible();
   expect(vi.mocked(useCodingApproaches).mock.calls.every(([, enabled]) => enabled === false)).toBe(true);
   unmount();
 
@@ -518,7 +525,7 @@ it('labels Run and Submit at every width and keeps icons with tooltips for the e
   expect(submitCoding).not.toHaveBeenCalled();
   landing.unmount();
   mount();
-  for (const name of ['Run', 'Submit', 'Solution']) {
+  for (const name of ['Run', 'Hint', 'Submit']) {
     expect(screen.getByRole('button', { name })).toHaveTextContent(name);
   }
   // Submit is the row's one filled primary, SwimCta md.
@@ -528,30 +535,19 @@ it('labels Run and Submit at every width and keeps icons with tooltips for the e
   expect(screen.getByRole('button', { name: 'Report a problem with this task' })).toBeVisible();
 });
 
-it('folds Hint, Solution and Report into one More actions menu below 1024px, with Run and Submit still labelled (coding-13)', async () => {
+it('keeps Hint below the editor and Report in its toolbar on narrow screens', async () => {
   vi.mocked(window.matchMedia).mockImplementation((query: string) => ({
     matches: query.includes('1023.95'), media: query, onchange: null,
     addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent() { return true; },
   }) as MediaQueryList);
-  sessionStorage.setItem('devshark:coding:narrow-editor:v1', '1');
   mount();
+  fireEvent.click(screen.getByRole('button', { name: 'Use the editor here' }));
   expect(screen.getByRole('button', { name: 'Run' })).toHaveTextContent('Run');
   expect(screen.getByRole('button', { name: 'Submit' })).toHaveTextContent('Submit');
-  expect(screen.queryByRole('button', { name: 'Hint' })).toBeNull();
-  expect(screen.queryByRole('button', { name: 'Report a problem with this task' })).toBeNull();
-  const more = screen.getByRole('button', { name: 'More actions' });
-  expect(more).toHaveAttribute('aria-haspopup', 'menu');
-  fireEvent.click(more);
-  const menu = await screen.findByRole('menu', { name: 'More actions' });
-  expect(within(menu).getByRole('menuitem', { name: /Hint/ })).toHaveTextContent('Hint');
-  // The reason Hint is unavailable stays, as the item's description.
-  expect(within(menu).getByRole('menuitem', { name: /Hint/ })).toHaveTextContent('Hints open after a minute of editing');
-  expect(within(menu).getByRole('menuitem', { name: /Report a problem/ })).toBeInTheDocument();
-  sessionStorage.clear();
-  vi.mocked(window.matchMedia).mockImplementation((query: string) => ({
-    matches: false, media: query, onchange: null,
-    addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent() { return true; },
-  }) as MediaQueryList);
+  expect(screen.getByRole('button', { name: 'Hint' }).closest('.cd-editor-actions')).not.toBeNull();
+  expect(screen.getByRole('button', { name: 'Report a problem with this task' }).closest('.cd-editor-bar')).not.toBeNull();
+  expect(screen.queryByRole('button', { name: 'More actions' })).toBeNull();
+  expect(screen.queryByRole('tab', { name: /Solution/ })).toBeNull();
 });
 
 it('keeps the draft and requires the latest brief after a stale Submit', async () => {
@@ -611,7 +607,7 @@ it('tells a signed-out visitor at the pass, with Sign in, that it needs an accou
   mount({ signedIn: false });
   expect(screen.queryByText(/Sign in to keep your progress/)).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
-  expect(await screen.findByRole('heading', { level: 1, name: /^Passed/ })).toBeVisible();
+  expect(await screen.findByRole('heading', { level: 3, name: /^Passed/ })).toBeVisible();
   const line = screen.getByText(/^Sign in to record this pass\./);
   const signIn = within(line).getByRole('button', { name: 'Sign in' });
   expect(signIn).toHaveAttribute('aria-haspopup', 'dialog');
@@ -623,6 +619,22 @@ it('says a signed-in pass that was not recorded without offering Sign in', async
   vi.mocked(submitCoding).mockResolvedValueOnce(verdict({ progress: null, firstPass: false, xpAwarded: 0 }));
   mount();
   fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
-  expect(await screen.findByRole('heading', { level: 1, name: /^Passed/ })).toBeVisible();
+  expect(await screen.findByRole('heading', { level: 3, name: /^Passed/ })).toBeVisible();
   expect(screen.queryByRole('button', { name: 'Sign in' })).toBeNull();
+});
+
+it('opens Solution only from an authorized server pass, preserving the editor', async () => {
+  const solutions = { junior: 'const double = list => list.map(n => n * 2);', senior: 'const double = list => Array.from(list, n => n * 2);' };
+  vi.mocked(submitCoding).mockResolvedValueOnce(verdict({ solutions }));
+  mount();
+  const mountedEditor = editor();
+  expect(screen.queryByRole('tab', { name: /Solution/ })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Run' }));
+  await waitFor(() => expect(status()).toHaveTextContent(/passing/));
+  expect(screen.queryByRole('tab', { name: /Solution/ })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+  const solutionTab = await screen.findByRole('tab', { name: /Solution/ });
+  fireEvent.click(solutionTab);
+  expect(screen.getByRole('tabpanel', { name: /Solution/ })).toHaveTextContent(solutions.junior);
+  expect(editor()).toBe(mountedEditor);
 });

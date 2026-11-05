@@ -153,7 +153,7 @@ test.describe('signed in', () => {
       const requirements = page.locator('.cd-previous > summary');
       await expect(requirements).toBeVisible();
       expect((await requirements.boundingBox())!.height).toBeGreaterThanOrEqual(44);
-      const locked = nav.getByRole('button', { name: /Stage 4 of 10\. Complete stage 2 to unlock stage 4\./ });
+      const locked = nav.getByRole('button', { name: /Level 4 of 10\. Complete stage 2 to unlock stage 4\./ });
       await locked.focus();
       await expect(locked).toBeFocused();
       await expect(locked).toHaveAttribute('aria-disabled', 'true');

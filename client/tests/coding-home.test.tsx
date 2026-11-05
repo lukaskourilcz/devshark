@@ -47,8 +47,8 @@ vi.mock('../src/coding/CodingWorkbench', () => ({ CodingWorkbench: () => null })
 
 const client = new QueryClient();
 function LocationProbe() { return <output data-testid="location">{useLocation().pathname}</output>; }
-const tree = () => <QueryClientProvider client={client}><MemoryRouter><LanguageProvider><CodingHome /><LocationProbe /></LanguageProvider></MemoryRouter></QueryClientProvider>;
-const mount = () => render(tree());
+const tree = (path = '/coding') => <QueryClientProvider client={client}><MemoryRouter initialEntries={[path]}><LanguageProvider><CodingHome /><LocationProbe /></LanguageProvider></MemoryRouter></QueryClientProvider>;
+const mount = (path = '/coding') => render(tree(path));
 const card = () => screen.getByRole('region', { name: 'Your next challenge' });
 const passedDigitSum = { tasks: { 'js-digit-sum': { status: 'passed' } }, due: [], javascriptLevelsCleared: 0 } as unknown as CodingProgressResponse;
 
@@ -285,7 +285,7 @@ it('keeps one SwimCta and labels each row Start, Continue or Review by its progr
     ...complete.stages.map((id) => [id, { status: 'passed' }]),
   ]);
   state.progress = { data: { tasks, due: [], javascriptLevelsCleared: 0 } as unknown as CodingProgressResponse, isLoading: false, isError: false, refetch: () => {} };
-  const { container } = mount();
+  const { container } = mount('/coding?projects=debugging');
   expect(container.querySelectorAll('.ss-swim-cta')).toHaveLength(1);
   expect(card().querySelector('.ss-swim-cta')).not.toBeNull();
   const row = (title: string) => screen.getByRole('heading', { level: 3, name: title }).closest('article')!;
@@ -301,7 +301,7 @@ it('keeps one SwimCta and labels each row Start, Continue or Review by its progr
 it('folds a long project list to five rows and opens the rest in place', () => {
   state.progress = { data: passedDigitSum, isLoading: false, isError: false, refetch: () => {} };
   mount();
-  const section = screen.getByRole('region', { name: 'Evolving challenges' });
+  const section = screen.getByRole('region', { name: 'Project challenges' });
   const projects = listedChallenges({});
   expect(projects.length).toBeGreaterThan(5);
   expect(within(section).getAllByRole('article')).toHaveLength(5);

@@ -144,6 +144,8 @@ export type JoinState = { status: 'saving' | 'saved' | 'error'; step?: 'save' | 
  */
 export function SectionHeader({
   section,
+  introduction,
+  topicName,
   name,
   isMember,
   hasPlan,
@@ -160,6 +162,8 @@ export function SectionHeader({
   deviceNote,
 }: {
   section: LearnSectionId;
+  introduction?: string;
+  topicName?: string;
   name: string;
   isMember: boolean;
   hasPlan: boolean;
@@ -246,7 +250,10 @@ export function SectionHeader({
 
   return (
     <div className="rm-section-header" ref={headerRef}>
-      <p className="rm-section-line">{learnText(`learn.section.line.${section}`)}</p>
+      <div className="rm-section-intro">
+        {topicName && <h2>{topicName}</h2>}
+        <p className="rm-section-line">{introduction ?? learnText(`learn.section.line.${section}`)}</p>
+      </div>
       {action && <div className="rm-section-action">{action}</div>}
       {note && <p className="rm-section-note">{note}</p>}
       {failed && joinable && (

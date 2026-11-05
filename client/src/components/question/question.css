@@ -7,7 +7,7 @@
    with the question screens' lazy chunks and the app shell carries none of
    them. */
 :root {
-  --ss-question-block-min: 200px;
+  --ss-question-block-min: 128px;
   --ss-question-block-max: 40vh;
   --ss-answer-row-min: 48px;
   --ss-answer-gap: 8px;
@@ -23,7 +23,7 @@
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  max-width: var(--ss-width-task);
+  max-width: var(--ss-width-question);
   margin: 0 auto;
   min-width: 0;
   /* A runner that opens its next screen at the top (scrollIntoView start)

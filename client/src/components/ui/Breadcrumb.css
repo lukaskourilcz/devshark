@@ -1,0 +1,8 @@
+.ss-breadcrumb { color: var(--color-text-secondary); font-size: var(--ss-type-meta); line-height: 1.4; min-width: 0; }
+.ss-breadcrumb ol { display: flex; align-items: center; flex-wrap: wrap; list-style: none; gap: 0 6px; padding: 0; margin: 0; }
+.ss-breadcrumb li { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.ss-breadcrumb a { display: inline-flex; align-items: center; min-height: var(--ss-control-height); color: inherit; text-decoration: none; }
+.ss-breadcrumb a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.ss-breadcrumb [aria-current='page'] { color: var(--color-text-primary); font-weight: 600; overflow-wrap: anywhere; }
+.ss-breadcrumb a:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 3px; border-radius: var(--radius-inner); }
+.ss-breadcrumb__separator { flex: none; }

@@ -12,6 +12,7 @@ export const en = {
   'publicSection.softwareEngineer': 'Explore algorithms, data structures, databases, testing, security and delivery topics in the Software Engineer section.',
   'publicSection.fde': 'Explore the Forward Deployed Engineer path: customer discovery, integration, evaluation, security, deployment and handoff.',
   // App shell / navigation
+  'nav.breadcrumb': 'Breadcrumb',
   'nav.quiz': 'Quiz',
   'nav.learn': 'Learn',
   'nav.roadmap': 'Career',
@@ -2174,7 +2175,7 @@ export const en = {
   'coding.verdict.graderUnavailable': 'The checker could not run just now, so this Submit was not recorded. Try again in a moment.',
   'error.stageLocked': 'Pass the earlier stages of this challenge first.',
   'coding.design.sessionUsed': 'This walkthrough was already checked. Open it again for a new attempt.',
-  'coding.lesson.solutionShown': 'The reference solution is open under the hints. Showing it ended this level attempt: read it, then finish the level. You can retry the level later.',
+  'coding.lesson.solutionShown': 'The reference solution is shown below. Showing it ended this level attempt: read it, then finish the level. You can retry the level later.',
   'coding.lesson.finishLevel': 'Finish the level',
 
   // Email and password sign-in beside Google (owner decision 3, 1 Oct 2026):

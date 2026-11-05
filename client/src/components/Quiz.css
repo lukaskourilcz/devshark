@@ -18,7 +18,7 @@
 
 .quiz-review-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   /* Paired cards end on one line. */
   align-items: stretch;
   gap: 20px;
@@ -59,7 +59,10 @@
   overflow-x: auto;
 }
 
-@media (max-width: 820px) {
+@media (max-width: 1000px) {
+  .quiz-review-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
   .quiz-review-grid { grid-template-columns: 1fr; gap: 14px; }
 }
 
@@ -72,9 +75,14 @@
 
 /* Setup: the task column and operational header above divided settings.
    TopicPill keeps its existing logo, shape and selection treatment. */
-.quiz-setup { width: 100%; max-width: var(--ss-width-task); margin: 0 auto; }
+.quiz-setup { width: 100%; margin: 0 auto; }
 .quiz-setup > .ss-page-header { margin-bottom: 24px; }
-.quiz-setup__panel { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--ss-card-line); }
+.quiz-setup__panel { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 32px; border-top: 1px solid var(--ss-card-line); }
+.quiz-setup__controls { min-width: 0; }
+.quiz-setup__topics { align-self: start; }
+@media (max-width: 800px) {
+  .quiz-setup__panel { grid-template-columns: 1fr; gap: 0; }
+}
 .quiz-setup__error { font-size: var(--ss-type-meta); font-weight: 600; color: var(--ss-error); }
 .quiz-setup__error:empty { display: none; }
 .quiz-setup__settings { display: flex; flex-direction: column; gap: 0; }

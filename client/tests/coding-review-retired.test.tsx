@@ -67,7 +67,8 @@ it('filters a track by all, open, passed and saved, and offers no review filter'
 it('lists the whole track for an old review-queue link, rather than nothing', () => {
   mount('/coding/javascript?status=due');
   const whole = CODING_INDEX.filter((task) => task.track === 'javascript' && !evolvingStage(task.id)).length;
-  expect(document.querySelectorAll('.cd-rows > li')).toHaveLength(whole);
+  expect(document.querySelectorAll('.cd-rows > li')).toHaveLength(20);
+  expect(screen.getByText(`1–20 of ${whole} · Page 1 of ${Math.ceil(whole / 20)}`)).toBeInTheDocument();
   // Nothing narrows the list, so it does not count it: the header holds the total.
   expect(screen.queryByText(/^Showing \d+ of \d+$/)).toBeNull();
   expect(screen.queryByText('No challenge matches those filters. Clear them to see the rest.')).toBeNull();

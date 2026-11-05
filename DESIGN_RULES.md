@@ -279,22 +279,12 @@ selector under 44px (36px inside `.ss-compact`) and a 'Log in' string in
 nothing fails, so the list only shrinks. `scripts/test-design-contract.mjs`
 proves each rule fails on a bad sample.
 
-- **The shell picks the page width.** `pageMaxWidth` in
-  `client/src/components/ui/pageWidth.ts` gives each route one width: 1000px
-  (`--ss-width-standard`) for home, `/profile` and `/play`; 1200px
-  (`--ss-width-wide`) for `/coding/*`; 800px (`--ss-width-narrow`) for every
-  other route; `/dev` uncapped. A page never sets its own page `max-width`. A
-  part that needs the wide page while mounted puts `ss-wide-page` on its root.
-  A new route goes into the map and its test. The shared page roots
-  (`.de-page`, `.cd-page`, `.lb`) and a page's top stack fill the column; only
-  text keeps a measure (`68ch`).
-  Check: `check:design` (page-width), `client/tests/page-width.test.tsx`,
-  `client/tests/page-own-width.test.ts`.
-- **Task columns are 640px.** Auth, billing and checkout cards, the question
-  column, `StatePanel` and the Play lobby use `--ss-width-task`. No other card
-  width. The lead above a task card wraps at the same 640px.
-  Check: `client/tests/info-page.test.tsx`, `page-own-width.test.ts`,
-  `state-panel.test.tsx`.
+- **The shell picks the page width.** `pageMaxWidth` assigns wide (1200px) to operational learning routes: Coding, Learn, Quiz, Challenge, Today, Profile, Play, Typing, Cards, Collection, Shop, Leaderboard and Career. Public home stays standard (1000px); public/auth/billing and unknown routes stay narrow (800px); `/dev` is uncapped. No page-local max-width. Shared horizontal gutters are 64px above 700px and 26px below, from `--ss-page-gutter`.
+  Check: `check:design`, `client/tests/page-width.test.tsx`, `page-own-width.test.ts`.
+- **Question columns are 880px.** Use `--ss-width-question` inside the wide shell. Auth, billing, checkout, StatePanel and lobbies keep `--ss-width-task` (640px). Longer content scrolls rather than shrinking text.
+  Check: `client/tests/question-shell.test.tsx`, `info-page.test.tsx`.
+- **Active questions keep a stable vertical anchor.** Global navigation is hidden during an activity. Question/answer blocks use the shared 640px reference area for vertical placement; long content grows downward and scrolls. A deadline notice must not recenter the answers. Coding cards retain their bounded frame and safe auto margins.
+  Check: `tests/browser/learning-release.spec.ts` (deadline notice), `coding-workbench.spec.ts`.
 - **The chrome does not move.** The header and footer share
   `--ss-width-chrome` (1168px) on every route.
   Check: `tests/browser/first-load.spec.ts`.
