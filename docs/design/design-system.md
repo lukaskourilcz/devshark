@@ -12,13 +12,14 @@ Set in `astryx-theme.css` (UX audit U1, #573). A page never writes its own page 
 
 | Token | Width | Use |
 |---|---|---|
-| `--ss-width-task` | 640px | The task column inside a page: question screens, the auth (`.ss-auth-page`), billing (`.ss-billing-card`) and checkout (`.ss-checkout-card`) cards, `StatePanel`, the Play lobby and gates, the `/daily` column. Never a route width. |
+| `--ss-width-task` | 640px | Auth, billing, checkout, StatePanel, lobby and gates. Never a route width. |
+| `--ss-width-question` | 880px | Active question/answer blocks and Daily. |
 | `--ss-width-narrow` | 800px | The route default. |
 | `--ss-width-standard` | 1000px | Two-column pages. |
 | `--ss-width-wide` | 1200px | Operational screens with an editor. |
 | `--ss-width-chrome` | 1168px | The floating header and the footer, on every route, so neither moves when the route width changes. |
 
-A component may cap its own text measure (`max-width: 68ch` on a paragraph). Anything that sizes a column inside a page uses `--ss-width-task`.
+A component may cap its own text measure (`max-width: 68ch` on a paragraph). Question columns use `--ss-width-question`; auth and gate columns use `--ss-width-task`.
 
 ### Control heights
 
@@ -33,7 +34,8 @@ The floor in `app-shell.css` is a `min-height`/`min-width` with `!important`, be
 
 | Token | Value | Use |
 |---|---|---|
-| `--ss-space-gutter` | 16px to 32px (`clamp`) | Page side gutter: 16px on a phone, 24px on a tablet, up to 32px on a desktop. |
+| `--ss-page-gutter` | 26px / 64px above 700px | Shared page side gutter; content width is still capped centrally. |
+| `--ss-space-gutter` | 16px to 32px (`clamp`) | Internal/public layout spacing where already used. |
 | `--ss-space-section` | 32px to 64px (`clamp`) | Space between page sections. |
 
 Inside a component the steps are 8px (a header's title and lead, answer rows), 16px (a panel to its action row, rows in a settings list) and 24px (panel padding, a page header to its first panel). The question panel's padding drops to 16px under 560px.
@@ -66,8 +68,8 @@ The route shell in `client/src/App.tsx` reads the one map, `pageMaxWidth` in `cl
 
 | Route | Width |
 |---|---|
-| `/`, `/profile`, `/play`, `/play/:code` | `--ss-width-standard` (1000px) |
-| `/coding` and `/coding/*` | `--ss-width-wide` (1200px) |
+| `/` | `--ss-width-standard` (1000px) |
+| Coding, Learn, Quiz, Challenge, Today, Profile, Play, Typing, Cards, Collection, Shop, Leaderboard, Career | `--ss-width-wide` (1200px) |
 | `/dev` | uncapped |
 | Every other route | `--ss-width-narrow` (800px) |
 
@@ -254,3 +256,7 @@ Use only defined semantic names, and keep factual visualization colours out of t
 - Radio groups use roving focus and Arrow/Home/End. Dialogs and the drawer trap focus, close on Escape, have a close button and restore focus.
 - Status uses text or an icon plus semantic colour; timers announce only meaningful thresholds.
 - Validate at 360px, at 400% reflow and in both themes.
+
+## Accepted activity refinements — 5 November 2026
+
+Breadcrumb renders only when it contains at least two values, including the current leaf. Root sections do not duplicate their title. Mounted QuestionShell, non-landing CodingWorkbench, `.ss-focus-page` or `[data-activity="active"]` hide global chrome and informational footer while preserving local actions and ocean/sharks. The route uses safe auto margins for vertical centering; taller content scrolls from its beginning. Operational h1 uses `--ss-type-page-title` (29px), body 16px; public hero typography is unchanged.

@@ -871,7 +871,7 @@ function PlayRoom() {
   return (
     // The shared task column (--ss-width-task, 640px) inside the route's page,
     // as on Quiz, Learn and Challenge (UX audit social-account-01).
-    <div style={{ maxWidth: 'var(--ss-width-task)', margin: '0 auto', width: '100%' }}>
+    <div data-activity={match.status === 'running' ? 'active' : undefined} style={{ maxWidth: match.status === 'running' ? 'var(--ss-width-question)' : 'var(--ss-width-task)', margin: '0 auto', width: '100%' }}>
       <VStack gap={2}>
         {/* The shared operational header, with the room's code badge as its
             one compact action on the right (social-account-11, -15). */}

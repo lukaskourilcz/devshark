@@ -794,9 +794,7 @@ function App() {
           // questions-07), so a question starts at one y in both.
           padding: isDev
             ? (mobile ? '0.5rem' : '0.5rem 1rem')
-            : mobile
-              ? '1rem'
-              : (isQuiz || isChallenge || (isLearn && quizActive) ? '1rem 1.5rem' : '1.5rem'),
+            : '1.5rem var(--ss-page-gutter)',
           boxSizing: 'border-box',
         }}
       >

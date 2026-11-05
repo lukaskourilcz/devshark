@@ -12,6 +12,7 @@ export const en = {
   'publicSection.softwareEngineer': 'Explore algorithms, data structures, databases, testing, security and delivery topics in the Software Engineer section.',
   'publicSection.fde': 'Explore the Forward Deployed Engineer path: customer discovery, integration, evaluation, security, deployment and handoff.',
   // App shell / navigation
+  'nav.breadcrumb': 'Breadcrumb',
   'nav.quiz': 'Quiz',
   'nav.learn': 'Learn',
   'nav.roadmap': 'Career',

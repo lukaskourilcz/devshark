@@ -1,5 +1,5 @@
 // The shared question shell (UX audit U2, questions-03 and questions-06): one
-// 640px task column, one panel, and a question block of one height so the
+// 880px question column, one panel, and a question block of one height so the
 // answers start at the same y on every question.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
@@ -53,11 +53,11 @@ describe('QuestionShell', () => {
     expect(block).not.toHaveAttribute('tabindex');
   });
 
-  it('is the 640px task column with a block of one reserved height', () => {
+  it('is the 880px question column with a block of one reserved height', () => {
     addSheet();
     render(<QuestionShell questionId="q" question="Q?" />);
     const shell = document.querySelector('.ss-question') as HTMLElement;
-    expect(getComputedStyle(shell).maxWidth).toBe('var(--ss-width-task)');
+    expect(getComputedStyle(shell).maxWidth).toBe('var(--ss-width-question)');
     expect(getComputedStyle(shell).marginLeft).toBe('auto');
     const block = document.getElementById('q')!;
     expect(getComputedStyle(block).minHeight).toBe('var(--ss-question-block-min)');
@@ -65,7 +65,7 @@ describe('QuestionShell', () => {
     expect(getComputedStyle(block).overflowY).toBe('auto');
     // No accent edge on the panel: one surface, the .ss-panel stock.
     expect(css).not.toMatch(/border-top:\s*4px/);
-    expect(css).toMatch(/--ss-question-block-min:\s*200px/);
+    expect(css).toMatch(/--ss-question-block-min:\s*128px/);
     expect(css).toMatch(/--ss-question-block-max:\s*40vh/);
   });
 });

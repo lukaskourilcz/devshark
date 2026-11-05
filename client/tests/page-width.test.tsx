@@ -10,10 +10,18 @@ const token = (width: string) => (width === 'none' ? 'none' : `var(--ss-width-${
 describe('pageMaxWidth: the one route-to-width map', () => {
   it.each([
     ['/', 'standard'],
-    ['/profile', 'standard'],
-    ['/play', 'standard'],
-    ['/play/ABCD', 'standard'],
+    ['/profile', 'wide'],
+    ['/play', 'wide'],
+    ['/play/ABCD', 'wide'],
     ['/coding', 'wide'],
+    ['/learn/web-developer', 'wide'],
+    ['/quiz', 'wide'],
+    ['/today', 'wide'],
+    ['/leaderboard', 'wide'],
+    ['/cards', 'wide'],
+    ['/typing', 'wide'],
+    ['/collection', 'wide'],
+    ['/shop', 'wide'],
     ['/coding/javascript', 'wide'],
     ['/coding/javascript/js-sum', 'wide'],
     ['/dev', 'none'],
@@ -21,9 +29,8 @@ describe('pageMaxWidth: the one route-to-width map', () => {
     expect(pageMaxWidth(path)).toBe(token(width));
   });
 
-  // These used to be 1200px (isWide); every page-based and social route now
-  // shares the 800px column, so its h1 and cards stand at one x.
-  it.each(['/shop', '/premium', '/premium/checkout', '/premium/cancel', '/privacy', '/terms', '/classroom', '/collection', '/leaderboard', '/auth/confirmed', '/learn/web-developer', '/quiz', '/no-such-page'])(
+  // Public, billing and auth keep their existing narrower reading column.
+  it.each(['/premium', '/premium/checkout', '/premium/cancel', '/privacy', '/terms', '/classroom', '/auth/confirmed', '/no-such-page'])(
     'keeps %s in the narrow column',
     (path) => {
       expect(pageMaxWidth(path)).toBe('var(--ss-width-narrow)');

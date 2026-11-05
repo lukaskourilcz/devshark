@@ -11,7 +11,7 @@ export interface QuestionShellProps {
   /** Focus target when a run starts or moves on: the block takes tabIndex -1. */
   focusable?: boolean;
   /**
-   * true (default): the block keeps --ss-question-block-min (200px) and scrolls
+   * true (default): the block keeps --ss-question-block-min (128px) and scrolls
    * past --ss-question-block-max (40vh), so the answers start at one y on every
    * question. false for a single question on its own page (Daily), where
    * nothing follows it.
@@ -31,7 +31,7 @@ export interface QuestionShellProps {
 
 /**
  * One question screen (UX audit U2, questions-03 and questions-06): the
- * --ss-width-task (640px) column, one `.ss-panel` surface with no accent edge,
+ * --ss-width-question (880px) column, one `.ss-panel` surface with no accent edge,
  * and a stable question block above the answers. Quiz, Challenge, Daily, the
  * Learn runner and Shark Cards render inside it instead of their own widths.
  * The ref is the question block, for moving focus to it.

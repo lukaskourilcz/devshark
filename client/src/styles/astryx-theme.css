@@ -23,7 +23,8 @@
   --ss-motion-swim-forward: 3800ms;
   --ss-motion-swim-back: 2600ms;
   --ss-motion-ease: ease-in-out;
-  --ss-type-body: clamp(1rem, 0.9583rem + 0.1852vw, 1.125rem);
+  --ss-type-body: 1rem;
+  --ss-type-page-title: 1.8125rem;
   --ss-type-title: clamp(2rem, 1.6rem + 1.7778vw, 3.2rem);
   --ss-type-display: clamp(2.6rem, 2.3rem + 1.3333vw, 3.5rem);
   /* Four fixed steps for everything smaller than body text (design audit
@@ -33,12 +34,15 @@
   --ss-type-compact: .875rem;
   --ss-type-large: 1.125rem;
   --ss-space-gutter: clamp(1rem, 0.6667rem + 1.4815vw, 2rem);
+  --ss-page-gutter: 26px;
+  --ss-focus-inset: 24px;
   --ss-space-section: clamp(2rem, 1.3333rem + 2.963vw, 4rem);
   /* Page widths (UX audit U1, #573). The route shell in App.tsx picks one per
      route (ROUTE_WIDTHS); a page never sets its own page max-width. The task
      width is the column inside a page: questions, auth, billing and checkout
      cards. */
   --ss-width-task: 640px;
+  --ss-width-question: 880px;
   --ss-width-narrow: 800px;
   --ss-width-standard: 1000px;
   --ss-width-wide: 1200px;

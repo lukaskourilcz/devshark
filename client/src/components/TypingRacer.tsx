@@ -255,7 +255,7 @@ export default function TypingRacer() {
   }
 
   return (
-    <div className="ss-typing ss-pop">
+    <div className="ss-typing ss-pop" data-activity={phase === 'running' ? 'active' : undefined}>
       {header}
 
       {/* Snippet with live per-character state. Readable by assistive tech, so
