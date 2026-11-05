@@ -64,10 +64,10 @@ describe('difficulty labels on a track page', () => {
     expect(columns.map(column => within(column).getAllByRole('listitem').length)).toEqual([10, 10]);
     expect(bandHeadings()).toEqual([]);
     const first = catalogue.querySelector('.cd-row__title')!.textContent;
-    fireEvent.click(screen.getByRole('button', { name: 'Next', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(screen.getByTestId('search').textContent).toBe('?page=2');
     expect(catalogue.querySelector('.cd-row__title')!.textContent).not.toBe(first);
-    fireEvent.click(screen.getByRole('button', { name: 'Previous', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
     expect(catalogue.querySelector('.cd-row__title')!.textContent).toBe(first);
     expect(catalogue.compareDocumentPosition(document.querySelector('#cd-track-paths')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
