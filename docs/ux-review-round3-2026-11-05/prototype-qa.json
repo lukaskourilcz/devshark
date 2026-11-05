@@ -1,0 +1,194 @@
+{
+  "scope": "In-memory visual concepts, not product implementation acceptance",
+  "checks": [
+    {
+      "name": "30 unique matched pairs for 10 distinct findings",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "each proposed scene belongs to one finding",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "all pairs have zero page errors and document overflow",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "final pair capture observed no production non-read attempts",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "selected local fixture scenes have no missing API responses",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Daily content preserved daily-light-1280x680",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Daily four 44px answers and action above ocean daily-light-1280x680",
+      "result": "pass",
+      "detail": {
+        "answers": [
+          {
+            "y": 402.625,
+            "bottom": 446.625,
+            "height": 44
+          },
+          {
+            "y": 450.625,
+            "bottom": 494.625,
+            "height": 44
+          },
+          {
+            "y": 498.625,
+            "bottom": 542.625,
+            "height": 44
+          },
+          {
+            "y": 546.625,
+            "bottom": 590.625,
+            "height": 44
+          }
+        ],
+        "checkBottom": 655.625
+      }
+    },
+    {
+      "name": "Daily content preserved daily-dark-1280x680",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Daily four 44px answers and action above ocean daily-dark-1280x680",
+      "result": "pass",
+      "detail": {
+        "answers": [
+          {
+            "y": 402.625,
+            "bottom": 446.625,
+            "height": 44
+          },
+          {
+            "y": 450.625,
+            "bottom": 494.625,
+            "height": 44
+          },
+          {
+            "y": 498.625,
+            "bottom": 542.625,
+            "height": 44
+          },
+          {
+            "y": 546.625,
+            "bottom": 590.625,
+            "height": 44
+          }
+        ],
+        "checkBottom": 655.625
+      }
+    },
+    {
+      "name": "Daily content preserved daily-light-390x844",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Learn retains ten topics and reveals Continue learn-mobile-light-390x844",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Learn retains ten topics and reveals Continue learn-mobile-dark-390x844",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Learn retains ten topics and reveals Continue learn-mobile-light-360x800",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Editor breadcrumb visible without global header editor-mobile-light-390x844",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Editor breadcrumb visible without global header editor-mobile-dark-390x844",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Editor breadcrumb visible without global header editor-mobile-light-360x800",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Today uses the three authored lesson titles today-light-1280x680",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Today uses the three authored lesson titles today-dark-1280x680",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Today uses the three authored lesson titles today-light-390x844",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "FDE estimate and target match authored data fde-module-light-1280x680",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "FDE estimate and target match authored data fde-module-dark-1280x680",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "FDE estimate and target match authored data fde-module-light-390x844",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "All eleven local results retained results-light-1280x680",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "All eleven local results retained results-dark-1280x680",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "All eleven local results retained results-light-390x844",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Quiz keeps question six and focus mode quiz-jump-light-1280x680",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Quiz keeps question six and focus mode quiz-jump-dark-1280x680",
+      "result": "pass",
+      "detail": null
+    },
+    {
+      "name": "Quiz keeps question six and focus mode quiz-jump-light-390x844",
+      "result": "pass",
+      "detail": null
+    }
+  ],
+  "allPassed": true
+}
