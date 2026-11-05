@@ -325,6 +325,34 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
     setLayout((current) => ({ ...current, split: Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, Math.round(next))) }));
   }, []);
 
+  const setFeedbackHeight = useCallback((next: number) => {
+    setLayout((current) => ({ ...current, feedbackHeight: Math.min(FEEDBACK_MAX, Math.max(FEEDBACK_MIN, Math.round(next))) }));
+  }, []);
+  const onFeedbackResizeKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const next = event.key === 'ArrowUp' ? layout.feedbackHeight + 32
+      : event.key === 'ArrowDown' ? layout.feedbackHeight - 32
+        : event.key === 'Home' ? FEEDBACK_MIN : event.key === 'End' ? FEEDBACK_MAX
+          : event.key === 'Enter' || event.key === ' ' ? FEEDBACK_DEFAULT : null;
+    if (next === null) return;
+    event.preventDefault();
+    setFeedbackHeight(next);
+  };
+  const onFeedbackResizePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const pane = event.currentTarget.parentElement;
+    if (!pane) return;
+    const bottom = pane.getBoundingClientRect().bottom;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    const move = (next: PointerEvent) => setFeedbackHeight(bottom - next.clientY);
+    const stop = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', stop);
+      window.removeEventListener('pointercancel', stop);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', stop);
+    window.addEventListener('pointercancel', stop);
+  };
+
   // The separator is a real one: it takes focus, arrows move it in steps, Home
   // and End go to the limits, and Enter restores the default. Dragging is an
   // addition to that, never the only way.
@@ -1415,6 +1443,10 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
           </section>
 
           {sectionLayout && editorShown && <section className="cd-feedback" aria-label={workbenchCopy('coding.feedback.label')}>
+            {!feedbackCollapsed && <div className="cd-feedback__resize" role="separator" tabIndex={0}
+              aria-orientation="horizontal" aria-label={workbenchCopy('coding.feedback.resize')}
+              aria-valuenow={layout.feedbackHeight} aria-valuemin={FEEDBACK_MIN} aria-valuemax={FEEDBACK_MAX}
+              onKeyDown={onFeedbackResizeKeyDown} onPointerDown={onFeedbackResizePointerDown} />}
             <div className="cd-feedback__toolbar">
               {renderTabs(feedbackTabs, tab, selectTab, workbenchCopy('coding.feedback.label'))}
               <Button variant="ghost" className="cd-feedback__toggle" aria-expanded={!feedbackCollapsed}

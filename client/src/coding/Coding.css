@@ -556,7 +556,11 @@
 .cd-workbench--section .cm-editor { border: 0; border-radius: 0; }
 .cd-workbench--section .cd-editor-bar { min-height: 52px; margin: 0; padding: 4px 12px; border-bottom: 1px solid var(--ss-card-line); }
 .cd-workbench--section .cd-editor-actions { margin: 0; padding: 12px 16px; border-top: 1px solid var(--ss-card-line); }
-.cd-feedback { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-top: 1px solid var(--ss-card-line); }
+.cd-feedback { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; border-top: 1px solid var(--ss-card-line); }
+.cd-feedback__resize { position: absolute; top: -6px; inset-inline: 0; height: 12px; cursor: row-resize; touch-action: none; z-index: 1; }
+.cd-feedback__resize::before { content: ''; position: absolute; height: 2px; inset-inline: 0; top: 5px; background: transparent; }
+.cd-feedback__resize:hover::before, .cd-feedback__resize:focus-visible::before { background: var(--brand-accent); }
+.cd-feedback__resize:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: -2px; }
 .cd-feedback__toolbar { display: flex; align-items: center; gap: 8px; padding-inline: 12px; border-bottom: 1px solid var(--ss-card-line); }
 .cd-feedback__toolbar > .cd-tabs { flex: 1; min-width: 0; border-bottom: 0; }
 .cd-feedback__toggle { flex: none; font-size: var(--ss-type-meta); }
@@ -576,6 +580,7 @@
   .cd-feedback > .cd-output-scroll { max-height: min(var(--cd-feedback-height), 60dvh); overflow-y: auto; }
   .cd-feedback__toolbar { gap: 0; padding-inline: 4px; }
   .cd-feedback__toggle { padding-inline: 8px; }
+  .cd-feedback__resize { display: none; }
 }
 /* The React preview while a suite runs under another tab: laid out, so focus
    can move inside the frame, but off-screen, inert to the pointer and hidden

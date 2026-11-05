@@ -13,6 +13,7 @@ export const workbenchEn = {
   'coding.feedback.label': 'Code feedback',
   'coding.feedback.show': 'Show output',
   'coding.feedback.hide': 'Hide output',
+  'coding.feedback.resize': 'Resize the code feedback panel',
   'coding.brief.showFull': 'Show full brief',
   'coding.brief.showLess': 'Show less',
   'coding.brief.label': 'Task brief',
