@@ -1,0 +1,697 @@
+{
+  "nativeMcpVerified": true,
+  "registeredTools": [
+    "find_ui_references",
+    "find_ui_materials",
+    "get_ui_flow"
+  ],
+  "toolCalls": 19,
+  "uniqueReferencesReturned": 58,
+  "queries": [
+    {
+      "id": "learning-dashboard",
+      "tool": "find_ui_references",
+      "arguments": {
+        "query": "learning platform course dashboard curriculum lesson progress",
+        "platform": "web",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: course, curriculum. Use these for layout and style, and design those parts yourself.",
+      "requestId": "req_22d4e9b0d2d1404dc8871255",
+      "count": 3
+    },
+    {
+      "id": "coding-workspace",
+      "tool": "find_ui_references",
+      "arguments": {
+        "query": "online code editor coding challenge instructions results console split pane toolbar",
+        "platform": "web",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: online, challenge, instruction, split, pane, toolbar. Use these for layout and style, and design those parts yourself.",
+      "requestId": "req_f66b1ddf5aa13c42e953a4b2",
+      "count": 3
+    },
+    {
+      "id": "quiz-focus",
+      "tool": "find_ui_references",
+      "arguments": {
+        "query": "assessment quiz question focus mode progress answer review",
+        "platform": "web",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: assessment, quiz, question, progress, answer. Use these for layout and style, and design those parts yourself.",
+      "requestId": "req_73f6a47f2d886611318711c3",
+      "count": 3
+    },
+    {
+      "id": "breadcrumbs",
+      "tool": "find_ui_references",
+      "arguments": {
+        "query": "developer documentation breadcrumbs sidebar content navigation compact",
+        "platform": "web",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: breadcrumb, compact. Use these for layout and style, and design those parts yourself.",
+      "requestId": "req_b2ed2653c50c17ab9bf033c5",
+      "count": 3
+    },
+    {
+      "id": "learning-flow",
+      "tool": "find_ui_references",
+      "arguments": {
+        "query": "learning lesson quiz answer feedback completion progress",
+        "platform": "ios",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1",
+        "type": "flow"
+      },
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: learning, quiz, completion, progress. Use these for layout and style, and design those parts yourself.",
+      "requestId": "req_69f73833fbf4b5cebee42a5b",
+      "count": 3
+    },
+    {
+      "id": "course-library",
+      "tool": "find_ui_references",
+      "arguments": {
+        "query": "course library curriculum lessons learning catalog",
+        "platform": "web",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: library, curriculum. Use these for layout and style, and design those parts yourself.",
+      "requestId": "req_71cadf7c19a9329ff035a117",
+      "count": 3
+    },
+    {
+      "id": "path-progress",
+      "tool": "find_ui_references",
+      "arguments": {
+        "query": "learning path course progress lesson list",
+        "platform": "web",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Not every result shows the whole request, so check each reason before relying on it.",
+      "requestId": "req_5648646004bb13097be0b40e",
+      "count": 3
+    },
+    {
+      "id": "profile-progress",
+      "tool": "find_ui_references",
+      "arguments": {
+        "query": "profile learning progress achievements activity history dashboard",
+        "platform": "web",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: profile, learning, progress, achievement, activity. Use these for layout and style, and design those parts yourself.",
+      "requestId": "req_c00ac38d37a16e750da5934b",
+      "count": 3
+    },
+    {
+      "id": "classroom-lobby",
+      "tool": "find_ui_references",
+      "arguments": {
+        "query": "collaboration room lobby participants waiting join code",
+        "platform": "web",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: collaboration, room, lobby, participant, waiting, join. Use these for layout and style, and design those parts yourself.",
+      "requestId": "req_15cd8fd78971ab1cc3c973d0",
+      "count": 3
+    },
+    {
+      "id": "pricing",
+      "tool": "find_ui_references",
+      "arguments": {
+        "query": "subscription pricing plan comparison account billing",
+        "platform": "web",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Not every result shows the whole request, so check each reason before relying on it.",
+      "requestId": "req_27f0576128e47ee2f60731fd",
+      "count": 3
+    },
+    {
+      "id": "account-settings",
+      "tool": "find_ui_references",
+      "arguments": {
+        "query": "account settings security profile preferences",
+        "platform": "web",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": "direct",
+      "message": null,
+      "requestId": "req_16bf78a63fcadc4a7ef192ba",
+      "count": 3
+    },
+    {
+      "id": "recovery",
+      "tool": "find_ui_references",
+      "arguments": {
+        "query": "application empty error offline retry state",
+        "platform": "web",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: application, offline, retry. Use these for layout and style, and design those parts yourself.",
+      "requestId": "req_90630520bf13c02da98bca48",
+      "count": 3
+    },
+    {
+      "id": "learning-type",
+      "tool": "find_ui_materials",
+      "arguments": {
+        "query": "readable compact interface typography developer learning dashboard",
+        "kind": "font",
+        "platform": "web",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "materials",
+      "match": null,
+      "message": null,
+      "requestId": "req_c2aa86e86eca604a3c11ce2e",
+      "count": 3
+    },
+    {
+      "id": "workspace-icons",
+      "tool": "find_ui_materials",
+      "arguments": {
+        "query": "outline code editor toolbar format reset skip bookmark flag",
+        "kind": "icon",
+        "platform": "web",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "materials",
+      "match": null,
+      "message": null,
+      "requestId": "req_ce0a6c66c45b268036f8777f",
+      "count": 3
+    },
+    {
+      "id": "duolingo-flow",
+      "tool": "get_ui_flow",
+      "arguments": {
+        "flowId": "capture:9abb2cc3-8c62-4614-93a9-e7838088e8d1",
+        "limit": 12,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": null,
+      "message": null,
+      "requestId": "req_c33076bc97c4ab97458a0ab8",
+      "count": 3
+    },
+    {
+      "id": "khan-flow",
+      "tool": "get_ui_flow",
+      "arguments": {
+        "flowId": "capture:8c6a9a63-c1a8-407b-a212-0e5d9ca64a49",
+        "limit": 12,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": null,
+      "message": null,
+      "requestId": "req_cc72e337668f2518eede2725",
+      "count": 4
+    },
+    {
+      "id": "webflow-sections",
+      "tool": "get_ui_flow",
+      "arguments": {
+        "flowId": "capture:684e7585-335f-4d04-8b62-d7d17479911d",
+        "limit": 12,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": null,
+      "message": null,
+      "requestId": "req_03515fe5aa766b3531b5e61d",
+      "count": 12
+    },
+    {
+      "id": "svelte-sections",
+      "tool": "get_ui_flow",
+      "arguments": {
+        "flowId": "capture:07b06eca-69a1-4867-bac9-41d71d3a617c",
+        "limit": 12,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": null,
+      "message": null,
+      "requestId": "req_486a205ad46e809c319f09cc",
+      "count": 10
+    },
+    {
+      "id": "khan-exact-steps",
+      "tool": "find_ui_references",
+      "arguments": {
+        "selectedIds": [
+          "8c6a9a63-c1a8-407b-a212-0e5d9ca64a49:41e92f4a080887bcb328f5cf",
+          "8c6a9a63-c1a8-407b-a212-0e5d9ca64a49:304c410e0d2d25540d7bf7e1",
+          "8c6a9a63-c1a8-407b-a212-0e5d9ca64a49:f058c66c87745189e27dc865"
+        ],
+        "platform": "ios",
+        "limit": 3,
+        "clientSkillVersion": "1.3.1"
+      },
+      "outcome": "references",
+      "match": "direct",
+      "message": null,
+      "requestId": "req_6aeba562c8dd523fdd090f05",
+      "count": 3
+    }
+  ],
+  "flows": [
+    {
+      "id": "capture:9abb2cc3-8c62-4614-93a9-e7838088e8d1",
+      "title": "Duolingo",
+      "basis": "recorded",
+      "total": 3,
+      "appName": "Duolingo",
+      "platform": "ios",
+      "pageUrl": "https://uizze.com/packs/9abb2cc3-8c62-4614-93a9-e7838088e8d1"
+    },
+    {
+      "id": "capture:8c6a9a63-c1a8-407b-a212-0e5d9ca64a49",
+      "title": "Khan Academy",
+      "basis": "recorded",
+      "total": 4,
+      "appName": "Khan Academy",
+      "platform": "ios",
+      "pageUrl": "https://uizze.com/packs/8c6a9a63-c1a8-407b-a212-0e5d9ca64a49"
+    },
+    {
+      "id": "capture:684e7585-335f-4d04-8b62-d7d17479911d",
+      "title": "Webflow",
+      "basis": "page_sections",
+      "total": 12,
+      "appName": "Webflow",
+      "platform": "web",
+      "pageUrl": "https://uizze.com/packs/684e7585-335f-4d04-8b62-d7d17479911d"
+    },
+    {
+      "id": "capture:07b06eca-69a1-4867-bac9-41d71d3a617c",
+      "title": "Svelte",
+      "basis": "page_sections",
+      "total": 10,
+      "appName": "Svelte",
+      "platform": "web",
+      "pageUrl": "https://uizze.com/packs/07b06eca-69a1-4867-bac9-41d71d3a617c"
+    }
+  ],
+  "materials": [
+    {
+      "id": "martian-signal",
+      "kind": "font",
+      "name": "Martian Signal",
+      "reason": "A width-aware grotesk for technical products where compact hierarchy must remain readable and deliberate."
+    },
+    {
+      "id": "recursive-interface",
+      "kind": "font",
+      "name": "Recursive Interface",
+      "reason": "One family spans proportional UI and mono evidence without forcing unrelated typefaces into developer tools."
+    },
+    {
+      "id": "commissioner-humanist",
+      "kind": "font",
+      "name": "Commissioner Humanist",
+      "reason": "A restrained humanist interface family with Flair and Volume held back for rare display emphasis."
+    },
+    {
+      "id": "lucide-pencil",
+      "kind": "icon",
+      "name": "pencil — Lucide SVG",
+      "reason": "A semantically specific pencil symbol from one consistent 24×24, 2px-stroke icon system."
+    },
+    {
+      "id": "lucide-bookmark",
+      "kind": "icon",
+      "name": "bookmark — Lucide SVG",
+      "reason": "A semantically specific bookmark symbol from one consistent 24×24, 2px-stroke icon system."
+    },
+    {
+      "id": "lucide-code",
+      "kind": "icon",
+      "name": "code — Lucide SVG",
+      "reason": "A semantically specific code symbol from one consistent 24×24, 2px-stroke icon system."
+    }
+  ],
+  "references": [
+    {
+      "id": "9abb2cc3-8c62-4614-93a9-e7838088e8d1:ae4fc572d9ae731faedf31a9",
+      "app": "Duolingo",
+      "title": "Image-choice exercise",
+      "platform": "ios",
+      "pageUrl": "https://uizze.com/packs/9abb2cc3-8c62-4614-93a9-e7838088e8d1",
+      "image": "references/Duolingo-Image-choice-exercise.webp",
+      "flow": {
+        "id": "capture:9abb2cc3-8c62-4614-93a9-e7838088e8d1",
+        "title": "Duolingo",
+        "basis": "recorded",
+        "total": 3,
+        "position": 1,
+        "nextId": "9abb2cc3-8c62-4614-93a9-e7838088e8d1:24f26cb4a88802aad73a1fff"
+      },
+      "inspected": true,
+      "lesson": "During a lesson the app keeps close/progress, question, answers and one action. Transfer the focus boundary and state distinction; not illustration style, gamification or the answer-covering success overlay."
+    },
+    {
+      "id": "9abb2cc3-8c62-4614-93a9-e7838088e8d1:24f26cb4a88802aad73a1fff",
+      "app": "Duolingo",
+      "title": "Selected answer",
+      "platform": "ios",
+      "pageUrl": "https://uizze.com/packs/9abb2cc3-8c62-4614-93a9-e7838088e8d1",
+      "image": "references/Duolingo-Selected-answer.webp",
+      "flow": {
+        "id": "capture:9abb2cc3-8c62-4614-93a9-e7838088e8d1",
+        "title": "Duolingo",
+        "basis": "recorded",
+        "total": 3,
+        "position": 2,
+        "previousId": "9abb2cc3-8c62-4614-93a9-e7838088e8d1:ae4fc572d9ae731faedf31a9",
+        "nextId": "9abb2cc3-8c62-4614-93a9-e7838088e8d1:f15ee81d0d18e98df520187d"
+      },
+      "inspected": true,
+      "lesson": "During a lesson the app keeps close/progress, question, answers and one action. Transfer the focus boundary and state distinction; not illustration style, gamification or the answer-covering success overlay."
+    },
+    {
+      "id": "9abb2cc3-8c62-4614-93a9-e7838088e8d1:f15ee81d0d18e98df520187d",
+      "app": "Duolingo",
+      "title": "Correct-answer feedback",
+      "platform": "ios",
+      "pageUrl": "https://uizze.com/packs/9abb2cc3-8c62-4614-93a9-e7838088e8d1",
+      "image": "references/Duolingo-Correct-answer-feedback.webp",
+      "flow": {
+        "id": "capture:9abb2cc3-8c62-4614-93a9-e7838088e8d1",
+        "title": "Duolingo",
+        "basis": "recorded",
+        "total": 3,
+        "position": 3,
+        "previousId": "9abb2cc3-8c62-4614-93a9-e7838088e8d1:24f26cb4a88802aad73a1fff"
+      },
+      "inspected": true,
+      "lesson": "During a lesson the app keeps close/progress, question, answers and one action. Transfer the focus boundary and state distinction; not illustration style, gamification or the answer-covering success overlay."
+    },
+    {
+      "id": "8c6a9a63-c1a8-407b-a212-0e5d9ca64a49:41e92f4a080887bcb328f5cf",
+      "app": "Khan Academy",
+      "title": "Subject catalogue",
+      "platform": "ios",
+      "pageUrl": "https://uizze.com/packs/8c6a9a63-c1a8-407b-a212-0e5d9ca64a49",
+      "image": "references/Khan-Academy-Subject-catalogue.webp",
+      "flow": {
+        "id": "capture:8c6a9a63-c1a8-407b-a212-0e5d9ca64a49",
+        "title": "Khan Academy",
+        "basis": "recorded",
+        "total": 4,
+        "position": 1,
+        "nextId": "8c6a9a63-c1a8-407b-a212-0e5d9ca64a49:304c410e0d2d25540d7bf7e1"
+      },
+      "inspected": true,
+      "lesson": "The recorded subject → expanded group → course → unit sequence preserves hierarchical context and a clear next item. Transfer disclosure and location cues; not mobile spacing or its visual identity."
+    },
+    {
+      "id": "8c6a9a63-c1a8-407b-a212-0e5d9ca64a49:304c410e0d2d25540d7bf7e1",
+      "app": "Khan Academy",
+      "title": "Expanded course group",
+      "platform": "ios",
+      "pageUrl": "https://uizze.com/packs/8c6a9a63-c1a8-407b-a212-0e5d9ca64a49",
+      "image": "references/Khan-Academy-Expanded-course-group.webp",
+      "flow": {
+        "id": "capture:8c6a9a63-c1a8-407b-a212-0e5d9ca64a49",
+        "title": "Khan Academy",
+        "basis": "recorded",
+        "total": 4,
+        "position": 2,
+        "previousId": "8c6a9a63-c1a8-407b-a212-0e5d9ca64a49:41e92f4a080887bcb328f5cf",
+        "nextId": "8c6a9a63-c1a8-407b-a212-0e5d9ca64a49:f058c66c87745189e27dc865"
+      },
+      "inspected": true,
+      "lesson": "The recorded subject → expanded group → course → unit sequence preserves hierarchical context and a clear next item. Transfer disclosure and location cues; not mobile spacing or its visual identity."
+    },
+    {
+      "id": "8c6a9a63-c1a8-407b-a212-0e5d9ca64a49:f058c66c87745189e27dc865",
+      "app": "Khan Academy",
+      "title": "Algebra course overview",
+      "platform": "ios",
+      "pageUrl": "https://uizze.com/packs/8c6a9a63-c1a8-407b-a212-0e5d9ca64a49",
+      "image": "references/Khan-Academy-Algebra-course-overview.webp",
+      "flow": {
+        "id": "capture:8c6a9a63-c1a8-407b-a212-0e5d9ca64a49",
+        "title": "Khan Academy",
+        "basis": "recorded",
+        "total": 4,
+        "position": 3,
+        "previousId": "8c6a9a63-c1a8-407b-a212-0e5d9ca64a49:304c410e0d2d25540d7bf7e1",
+        "nextId": "8c6a9a63-c1a8-407b-a212-0e5d9ca64a49:ca58a324fbe3b7db05c759f1"
+      },
+      "inspected": true,
+      "lesson": "The recorded subject → expanded group → course → unit sequence preserves hierarchical context and a clear next item. Transfer disclosure and location cues; not mobile spacing or its visual identity."
+    },
+    {
+      "id": "8c6a9a63-c1a8-407b-a212-0e5d9ca64a49:ca58a324fbe3b7db05c759f1",
+      "app": "Khan Academy",
+      "title": "Unit lesson list",
+      "platform": "ios",
+      "pageUrl": "https://uizze.com/packs/8c6a9a63-c1a8-407b-a212-0e5d9ca64a49",
+      "image": "references/Khan-Academy-Unit-lesson-list.webp",
+      "flow": {
+        "id": "capture:8c6a9a63-c1a8-407b-a212-0e5d9ca64a49",
+        "title": "Khan Academy",
+        "basis": "recorded",
+        "total": 4,
+        "position": 4,
+        "previousId": "8c6a9a63-c1a8-407b-a212-0e5d9ca64a49:f058c66c87745189e27dc865"
+      },
+      "inspected": true,
+      "lesson": "The recorded subject → expanded group → course → unit sequence preserves hierarchical context and a clear next item. Transfer disclosure and location cues; not mobile spacing or its visual identity."
+    },
+    {
+      "id": "07b06eca-69a1-4867-bac9-41d71d3a617c:2e88f5317cf5fdf002eb9677",
+      "app": "Svelte",
+      "title": "Editor and result view",
+      "platform": "web",
+      "pageUrl": "https://uizze.com/packs/07b06eca-69a1-4867-bac9-41d71d3a617c",
+      "image": "references/Svelte-Editor-and-result-view.webp",
+      "flow": {
+        "id": "capture:07b06eca-69a1-4867-bac9-41d71d3a617c",
+        "title": "Svelte",
+        "basis": "page_sections",
+        "total": 10,
+        "position": 7,
+        "previousId": "07b06eca-69a1-4867-bac9-41d71d3a617c:88284df7e1be3534d13e29fa",
+        "nextId": "07b06eca-69a1-4867-bac9-41d71d3a617c:8a1fc30ede17341d255d7863"
+      },
+      "inspected": true,
+      "lesson": "The inspected Playground screen uses one workspace, an editor on the left and result/output tabs on the right. Transfer pane grouping and compact utilities; not its global header or promotional banner."
+    },
+    {
+      "id": "1983f755-a03a-480a-b9ad-05f60fa2ec2e:0179a40ee23c58f9c9ec7892",
+      "app": "Hoppscotch",
+      "title": "Request body editor",
+      "platform": "web",
+      "pageUrl": "https://uizze.com/packs/1983f755-a03a-480a-b9ad-05f60fa2ec2e",
+      "image": "references/Hoppscotch-Request-body-editor.webp",
+      "flow": {
+        "id": "capture:1983f755-a03a-480a-b9ad-05f60fa2ec2e",
+        "title": "Hoppscotch",
+        "basis": "page_sections",
+        "total": 7,
+        "position": 2,
+        "previousId": "1983f755-a03a-480a-b9ad-05f60fa2ec2e:53a3d7bac7ab7cd843b08a90",
+        "nextId": "1983f755-a03a-480a-b9ad-05f60fa2ec2e:6a53adc0ae2e9fe6055108be"
+      },
+      "inspected": true,
+      "lesson": "The inspected request editor separates editing, response status, output tabs and utilities with hairlines. Transfer action hierarchy; the owner’s current right-tab layout takes precedence over this vertical response arrangement."
+    },
+    {
+      "id": "f9c7aeeb-0148-41f5-bde2-dfb7aadd7218:b35e624f0735eb04761183b4",
+      "app": "GitBook",
+      "title": "Developer docs quickstart",
+      "platform": "web",
+      "pageUrl": "https://uizze.com/packs/f9c7aeeb-0148-41f5-bde2-dfb7aadd7218",
+      "image": "references/GitBook-Developer-docs-quickstart.webp",
+      "flow": {
+        "id": "capture:f9c7aeeb-0148-41f5-bde2-dfb7aadd7218",
+        "title": "GitBook",
+        "basis": "page_sections",
+        "total": 12,
+        "position": 7,
+        "previousId": "f9c7aeeb-0148-41f5-bde2-dfb7aadd7218:23a097a96b4728953cb7d451",
+        "nextId": "f9c7aeeb-0148-41f5-bde2-dfb7aadd7218:d52e35f2b9694e4629e48d33"
+      },
+      "inspected": true,
+      "lesson": "The inspected Quickstart has breadcrumb context directly above the content and a structured local outline. Transfer parent/current location and content hierarchy, not the busy global header."
+    },
+    {
+      "id": "684e7585-335f-4d04-8b62-d7d17479911d:e24d6689763bee056ce9b907",
+      "app": "Webflow",
+      "title": "Courses and interactive learning",
+      "platform": "web",
+      "pageUrl": "https://uizze.com/packs/684e7585-335f-4d04-8b62-d7d17479911d",
+      "image": "references/Webflow-Courses-and-interactive-learning.webp",
+      "flow": {
+        "id": "capture:684e7585-335f-4d04-8b62-d7d17479911d",
+        "title": "Webflow",
+        "basis": "page_sections",
+        "total": 12,
+        "position": 9,
+        "previousId": "684e7585-335f-4d04-8b62-d7d17479911d:0968aea75227bba1dad3de64",
+        "nextId": "684e7585-335f-4d04-8b62-d7d17479911d:64aa3526f2427c1ef4e80f73"
+      },
+      "inspected": true,
+      "lesson": "The inspected University page separates courses, learning paths and resources in a local navigation and consistent cards. Transfer content-type grouping; its oversized hero is unsuitable for this brief."
+    },
+    {
+      "id": "d07add01-d679-42de-9813-15dee57c0c89:0eed28f1a2cf8883ca13fcce",
+      "app": "Nuxt Dashboard",
+      "title": "Notification settings controls",
+      "platform": "web",
+      "pageUrl": "https://uizze.com/packs/d07add01-d679-42de-9813-15dee57c0c89",
+      "image": "references/Nuxt-Dashboard-Notification-settings-controls.webp",
+      "flow": {
+        "id": "capture:d07add01-d679-42de-9813-15dee57c0c89",
+        "title": "Nuxt Dashboard",
+        "basis": "page_sections",
+        "total": 5,
+        "position": 4,
+        "previousId": "d07add01-d679-42de-9813-15dee57c0c89:7b3cd46eb0f809fac01b6fa0",
+        "nextId": "d07add01-d679-42de-9813-15dee57c0c89:3ae5fc8f2a78df5bb2dea685"
+      },
+      "inspected": true,
+      "lesson": "The inspected notification settings group label, explanation and action in aligned rows. Transfer settings anatomy to Profile; not the two navigation layers or generous margins."
+    },
+    {
+      "id": "8a9b3f78-d827-4301-a13f-9a191dd74fd1:2d91cf4a7676bb63635b79e5",
+      "app": "Sentry",
+      "title": "Pricing plan comparison",
+      "platform": "web",
+      "pageUrl": "https://uizze.com/packs/8a9b3f78-d827-4301-a13f-9a191dd74fd1",
+      "image": "references/Sentry-Pricing-plan-comparison.webp",
+      "flow": {
+        "id": "capture:8a9b3f78-d827-4301-a13f-9a191dd74fd1",
+        "title": "Sentry",
+        "basis": "page_sections",
+        "total": 12,
+        "position": 7,
+        "previousId": "8a9b3f78-d827-4301-a13f-9a191dd74fd1:a185f7246ed020c96263912d",
+        "nextId": "8a9b3f78-d827-4301-a13f-9a191dd74fd1:7cffeca81cd6bf1a160fb0bc"
+      },
+      "inspected": true,
+      "lesson": "The inspected pricing page aligns plan features in consistent columns. Useful only for comparison structure; its large headings, decoration, prices and product claims are not transferred."
+    },
+    {
+      "id": "8089ffd5-1f43-4295-ab41-ab122c010db0:a3e9009740fbaefa584d63ee",
+      "app": "GOV.UK Design System",
+      "title": "Error summary overview",
+      "platform": "web",
+      "pageUrl": "https://uizze.com/packs/8089ffd5-1f43-4295-ab41-ab122c010db0",
+      "image": "references/GOV-UK-Design-System-Error-summary-overview.webp",
+      "flow": {
+        "id": "capture:8089ffd5-1f43-4295-ab41-ab122c010db0",
+        "title": "GOV.UK Design System",
+        "basis": "page_sections",
+        "total": 12,
+        "position": 7,
+        "previousId": "8089ffd5-1f43-4295-ab41-ab122c010db0:829f63c1032704868f827e0d",
+        "nextId": "8089ffd5-1f43-4295-ab41-ab122c010db0:fa9c3216e0dccd38e045a3eb"
+      },
+      "inspected": true,
+      "lesson": "The inspected error-summary example connects a clear error heading to specific input problems. Transfer error/action proximity, not this documentation page’s dimensions."
+    },
+    {
+      "id": "a6e1ec6a-b460-4fcc-ad49-5907ab698793:5ad99c5e48e2dafb1cb6b45a",
+      "app": "Brilliant",
+      "title": "Learning goals onboarding step",
+      "platform": "web",
+      "pageUrl": "https://uizze.com/packs/a6e1ec6a-b460-4fcc-ad49-5907ab698793",
+      "image": "references/Brilliant-Learning-goals-onboarding-step.webp",
+      "flow": {
+        "id": "capture:a6e1ec6a-b460-4fcc-ad49-5907ab698793",
+        "title": "Brilliant",
+        "basis": "page_sections",
+        "total": 5,
+        "position": 2,
+        "previousId": "a6e1ec6a-b460-4fcc-ad49-5907ab698793:4cf94eaa941afdb4351ba37f",
+        "nextId": "a6e1ec6a-b460-4fcc-ad49-5907ab698793:b181c3d00a4fdac21cea8ae2"
+      },
+      "inspected": true,
+      "lesson": "The inspected onboarding step limits chrome to back/progress and one Continue action. Transfer the focus boundary; not the oversized illustrated answer cards."
+    },
+    {
+      "id": "52de9880-ec55-4c3c-97e9-cc3db9a7d6b2:9c5d8e3bb74a1f2f753c0f82",
+      "app": "edX Course Catalog",
+      "title": "Course subject directory",
+      "platform": "web",
+      "pageUrl": "https://uizze.com/packs/52de9880-ec55-4c3c-97e9-cc3db9a7d6b2",
+      "image": "references/edX-Course-Catalog-Course-subject-directory.webp",
+      "flow": {
+        "id": "capture:52de9880-ec55-4c3c-97e9-cc3db9a7d6b2",
+        "title": "edX Course Catalog",
+        "basis": "page_sections",
+        "total": 6,
+        "position": 3,
+        "previousId": "52de9880-ec55-4c3c-97e9-cc3db9a7d6b2:7a218f427c93be0087f7d27c",
+        "nextId": "52de9880-ec55-4c3c-97e9-cc3db9a7d6b2:484238700b605de2298555d1"
+      },
+      "inspected": true,
+      "lesson": "The inspected directory groups subjects, but the broad link cloud does not solve devShark’s task selection. Rejected as a layout direction."
+    },
+    {
+      "id": "1b6a7e75-1f99-4cd3-9f7e-5022d5ecef4e:457603e1efff4d1a52eeeeda",
+      "app": "Super Productivity",
+      "title": "Project and task view options",
+      "platform": "web",
+      "pageUrl": "https://uizze.com/packs/1b6a7e75-1f99-4cd3-9f7e-5022d5ecef4e",
+      "image": "references/Super-Productivity-Project-and-task-view-options.webp",
+      "flow": {
+        "id": "capture:1b6a7e75-1f99-4cd3-9f7e-5022d5ecef4e",
+        "title": "Super Productivity",
+        "basis": "page_sections",
+        "total": 5,
+        "position": 3,
+        "previousId": "1b6a7e75-1f99-4cd3-9f7e-5022d5ecef4e:0018ca7d89d67ca1bb4c38a2",
+        "nextId": "1b6a7e75-1f99-4cd3-9f7e-5022d5ecef4e:9c0894497b7aaa5e4436890f"
+      },
+      "inspected": true,
+      "lesson": "The inspected task view places view options in a contextual menu. It does not establish a learning-progress dashboard; no claims about that state."
+    }
+  ]
+}
