@@ -1,0 +1,30 @@
+{
+  "scope": "Review-only concepts, not product acceptance",
+  "checks": [
+    {
+      "name": "every commented source ID appears exactly once; no uncommented finding",
+      "result": "pass"
+    },
+    {
+      "name": "43 complete pairs cover every proposed scene without page errors or document overflow",
+      "result": "pass"
+    },
+    {
+      "name": "desktop code and question blocks center above ocean; short viewport remains safe",
+      "result": "pass"
+    },
+    {
+      "name": "long question uses intrinsic scroll and keeps the beginning reachable",
+      "result": "pass"
+    },
+    {
+      "name": "catalogue pagination exposes a distinct second page and final partial page",
+      "result": "pass"
+    },
+    {
+      "name": "Paths follows pager and title is not repeated in breadcrumb",
+      "result": "pass"
+    }
+  ],
+  "allPassed": true
+}
