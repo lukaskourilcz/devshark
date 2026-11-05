@@ -42,3 +42,35 @@ Each underlying issue has one decision. Examples in other project formats or Tod
 Use Node 24 and the repository's installed dependencies. `node docs/ux-review-round3-2026-11-05/build-fixture.cjs` builds the unchanged application with the bundle budget's public placeholder environment. Serve the client preview on 127.0.0.1:4184, then run `node docs/ux-review-round3-2026-11-05/capture.cjs`. Production guest reads and every in-memory proposal are captured together; account scenes use the checked-in fictional fixture and public payload snapshots. `SCENES=results` repeats a selected scene. These scripts never submit a production quiz or coding solution.
 
 Run `python3 docs/ux-review-round3-2026-11-05/build-review.py` to rebuild the self-contained HTML. Serve the directory on 127.0.0.1:4185 and run `node docs/ux-review-round3-2026-11-05/qa.cjs` for the document checks. `QA.md` records actual results and their limits. Image data are embedded, so the delivered HTML also works offline.
+
+## Owner decisions and deferred issue handoff
+
+The owner returned `devshark-ux-review-kolo3-komentare.json`, schema `devshark-platform-ux-review-round3-v1`, exported at `2026-11-05T18:22:31.251Z`, against the same `ca5900282d5e4cc2aa115d5d02585ac056a6d58d` baseline. On 5 November 2026 the owner requested GitHub issues only, with implementation deferred. This section supersedes conflicting proposal text and before/after concepts; the original review remains evidence of what was proposed, not an instruction to implement rejected details.
+
+| ID | Owner decision | Deferred work package | Blocked by |
+|---|---|---|---|
+| R3-01 | Accept with comment | Fit Daily answers on a short notebook viewport; description at most two lines; remove the entire daily.lead paragraph | None |
+| R3-02 | Reject | No mobile Learn disclosure change | Not scheduled |
+| R3-03 | Reject original, replace through comment | Mobile Coding displays only the owner's desktop-only informational notice | None |
+| R3-04 | Accept | Show project Premium badges for the actual target stage | None |
+| R3-05 | Accept | Show authored difficulty and estimated minutes in Coding catalogue rows | None |
+| R3-06 | Accept | Present failed Coding tests as Input, Expected and Received | None |
+| R3-07 | Accept | Use authored lesson titles in Today plan cards | None |
+| R3-08 | Reject | No Profile section-anchor change | Not scheduled |
+| R3-09 | Accept | Show FDE module total estimates and name the next activity action | None |
+| R3-10 | Accept | Add an optional direct question navigator to Quiz | None |
+
+Seven original proposals were accepted, two rejected without replacement, and one rejected with a replacement request. The resulting eight work packages are independent. Shared Coding files may require coordinating implementation branches; this is not a functional dependency. Dependencies block merges, not commits.
+
+### Comment overrides
+
+- **R3-01:** The owner requests a description of at most two lines and removal of the sentence referred to as “One question a day from a different track, nothing is recorded”. The current `daily.lead` is “One question a day from a different track. No account needed; nothing is recorded.” Remove the whole paragraph in the shared header, including static fallback. Preserve concise category/concept context and never truncate essential question, answer, code or explanation content. The original prototype's separate practice paragraph is superseded.
+- **R3-03:** Do not implement the proposed mobile breadcrumb relocation. Instead, mobile Coding shows only this exact owner-provided message: “This section only works in desktop apps. Apologies, but coding on phone is painful and we dont want to cause no harm.” The request replaces the mobile Coding catalogue/editor/puzzle/opt-in flow, including direct Coding challenge routes. Desktop web behavior stays available; this wording does not authorize native/Expo application development. Preserve drafts across layout changes, normal navigation away from the notice, and the ocean/sharks.
+- **R3-02 and R3-08:** Rejected with no comment. Do not create implementation issues for the mobile Learn picker or Profile anchors.
+
+### Shared implementation boundaries
+
+Issues are deferred backlog, not implementation performed or authorized now. Preserve the approved logo, Quiz pills/topic logos, ocean/sharks, shared widths/type/control tokens, focus mode and desktop workspace. Keep grading, XP, saved progress, entitlements and unlocks server-authoritative. Do not reopen rejected reading/no-XP notices, Skip to questions, placement-restart copy, End/Cancel confirmations or other earlier owner exceptions. Apply each underlying fix once across its affected instances rather than creating duplicate findings.
+
+The audit's original captures remain proposal evidence. Future implementation must follow the owner overrides and the issue acceptance checks, with meaningful local/dedicated fixtures and no writes to the owner's production learning state.
+
