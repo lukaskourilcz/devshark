@@ -625,3 +625,5 @@
   .rm-section-header { grid-template-columns: 1fr; }
   .rm-section-action { grid-column: 1; justify-self: start; }
 }
+
+.rm-journey-heading .ss-section-title { font-size: var(--ss-type-page-title); }

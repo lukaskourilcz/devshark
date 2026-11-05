@@ -1099,13 +1099,14 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   // result. The card is not a dialog and does not trap anything: it takes focus
   // once, and Tab carries on from there.
   const verdictCard = verdict && (
-    <section className={`cd-verdict cd-verdict--${puzzleAccepted ? 'puzzle' : verdict.verdict}`} ref={verdictRef} tabIndex={-1}>
+    <section className={`cd-verdict cd-verdict--${puzzleAccepted ? 'puzzle' : verdict.verdict}${verdict.complexity?.assessment === 'above-target' ? ' cd-verdict--warning' : ''}`} ref={verdictRef} tabIndex={-1}>
       <h3 className="cd-verdict__title">
         <span>{verdictLabel}</span>{' '}
-        {(verdict.xpAwarded > 0 || (isReact && verdict.verdict === 'passed' && !verdictStale)) && <span className="cd-verdict__xp">{t('coding.verdict.xp', { xp: verdict.xpAwarded })}</span>}
+        {(verdict.xpAwarded > 0 || (verdict.verdict === 'passed' && !verdictStale)) && <span className="cd-verdict__xp">{t('coding.verdict.xp', { xp: verdict.xpAwarded })}</span>}
       </h3>
       {!(isReact && verdict.verdict === 'passed' && !verdictStale) && <RepeatXpNote verdict={verdict} />}
       {verdict.complexity?.time && <p className="cd-verdict__row">{t('coding.complexity.result', { complexity: verdict.complexity.time })}</p>}
+      {verdict.complexity?.time && verdict.complexity.explanation && <p className="cd-verdict__row">{verdict.complexity.explanation}</p>}
       {verdictStale && <p className="cd-verdict__row">{t('coding.verdict.stale')}</p>}
       {verdict.verdict === 'failed' && verdict.hidden && verdict.hidden.passed < verdict.hidden.total && visiblePassed && <p className="cd-verdict__row">{t('coding.verdict.hiddenFailed')}</p>}
       {verdict.puzzle ? (

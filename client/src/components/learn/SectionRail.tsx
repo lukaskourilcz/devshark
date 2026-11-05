@@ -12,6 +12,7 @@
 // record wherever it appears. How many topics are still locked, and how to
 // open them, is said once, beside the skill check (`LockedNote`).
 
+import { useMediaQuery } from '../../lib/useMediaQuery';
 import type { CSSProperties } from 'react';
 import { Button } from '@astryxdesign/core/Button';
 import { Skeleton } from '@astryxdesign/core/Skeleton';
@@ -74,6 +75,7 @@ export function SectionRail({
   progress: VerifiedProgress;
   t: TFn;
 }) {
+  const narrow = useMediaQuery('(max-width: 800px)');
   if (loading) {
     return (
       <div className="rm-topic-rail" aria-busy="true" style={railStyle(loadingCount)}>
@@ -90,7 +92,7 @@ export function SectionRail({
           assistive technology announces "N of M selected". */}
       {/* Only an open topic reads as chosen: with nothing open in the
           section, no card is checked. */}
-      <RadioCardGroup value={entries.some((entry) => entry.topic === value && entry.state === 'open') ? value : null} onChange={(next) => onSelect(String(next))} label={t('roadmap.topicsAria')} orientation="horizontal" className="rm-topic-rail" style={railStyle(entries.length)}>
+      <RadioCardGroup value={entries.some((entry) => entry.topic === value && entry.state === 'open') ? value : null} onChange={(next) => onSelect(String(next))} label={t('roadmap.topicsAria')} orientation={narrow ? 'horizontal' : 'vertical'} className="rm-topic-rail" style={railStyle(entries.length)}>
         {entries.map((entry, index) => {
           const { topic, state, premium } = entry;
           const color = getCategoryHexColor(topic);

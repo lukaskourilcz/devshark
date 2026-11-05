@@ -222,7 +222,7 @@ export default function TypingRacer() {
   const header = (
     <header style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <Kicker><BrandCase text={t('typing.kicker')} /></Kicker>
-      <h1 style={{ margin: 0, fontFamily: 'var(--font-family-heading)', fontWeight: 800, fontSize: 'clamp(1.9rem, 4vw, 2.4rem)', letterSpacing: '-0.02em' }}>
+      <h1 style={{ margin: 0, fontFamily: 'var(--font-family-heading)', fontWeight: 800, fontSize: 'var(--ss-type-page-title)', letterSpacing: '-0.02em' }}>
         {t('typing.title')}
       </h1>
       <p style={{ margin: 0, fontSize: '1rem', color: 'var(--color-text-secondary)', maxWidth: '60ch' }}>{t('typing.subtitle')}</p>
