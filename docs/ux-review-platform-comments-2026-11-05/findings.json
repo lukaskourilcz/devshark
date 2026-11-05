@@ -1,0 +1,275 @@
+[
+  {
+    "id": "R2-01",
+    "area": "Soustředění",
+    "priority": "P1",
+    "title": "Jedno centrování pro editor i otázky",
+    "sourceIds": [
+      "SYS-05",
+      "COD-01",
+      "QUI-02"
+    ],
+    "scenes": [
+      "workbench",
+      "quiz-active"
+    ],
+    "scene": "workbench",
+    "before": "Karta začíná těsně pod horním okrajem. Editor vyplní skoro celou výšku; aktivní tab má zakulacenou spodní linku.",
+    "after": "Celý pracovní blok vycentrovat ve zbývající výšce nad oceánem. Editor má omezenou výšku a víc místa nahoře i dole. Aktivní pravý tab podtrhuje pouze zelená vlnovka. Stejné bezpečné centrování platí pro Quiz, Daily, Challenge i Learn otázky.",
+    "reason": "U dlouhé otázky se blok přirozeně protáhne a stránka scrolluje; centrování nesmí schovat začátek ani akce.",
+    "evidence": "Připomínky vlastníka: SYS-05, COD-01, QUI-02. Prijimam, ale at je cela karta vertikalne zarovnana na stred, ted je pripnuta k vrchu, coz nevypada hezky / Prijimam, ale at je cela karta zarovnana vertikalne na stred a je tam trochu vetsi padding od vrchu a od spodu, at neni tak roztahnuta. Pak taky to zvyrazneni spodniho borderu u Description / Results / Console / Resources - nevypada to hezky, at je to jen podtrhnute zelenou vlnovkou (random vlnovkou, jak ma zbytek aplikace) / prijimam, ale cely panel musi byt vycentrovany vertikalne",
+    "ownerComments": [
+      "Prijimam, ale at je cela karta vertikalne zarovnana na stred, ted je pripnuta k vrchu, coz nevypada hezky",
+      "Prijimam, ale at je cela karta zarovnana vertikalne na stred a je tam trochu vetsi padding od vrchu a od spodu, at neni tak roztahnuta. Pak taky to zvyrazneni spodniho borderu u Description / Results / Console / Resources - nevypada to hezky, at je to jen podtrhnute zelenou vlnovkou (random vlnovkou, jak ma zbytek aplikace)",
+      "prijimam, ale cely panel musi byt vycentrovany vertikalne"
+    ],
+    "reference": "",
+    "checks": "1280×800 a 1280×680; dlouhý popis scrolluje uvnitř, Run/Hint/Submit zůstávají nad oceánem. Na mobilu přirozený tok.",
+    "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují.",
+    "basis": "Komentář: SYS-05, COD-01, QUI-02"
+  },
+  {
+    "id": "R2-02",
+    "area": "Coding",
+    "priority": "P2",
+    "title": "Level navigace vpravo, bez obtížností",
+    "sourceIds": [
+      "COD-02",
+      "COD-06"
+    ],
+    "scenes": [
+      "evolving"
+    ],
+    "scene": "evolving",
+    "before": "Pod editorem stále zbývá řada Easy / 1 / 2 / Medium / 3 / 4 / Hard / 5.",
+    "after": "Pod kartou zarovnat doprava jedinou řadu Level: 1 2 3 4 5. Všechny dokončené úrovně zelené a s fajfkou; otevřená úroveň má odlišný obrys. Žádné slovo Current ani štítky obtížností.",
+    "reason": "Jedno pravidlo pro evolving, FullStack i ostatní vícestupňové úlohy. Čísla zůstávají mimo pracovní prostor.",
+    "evidence": "Připomínky vlastníka: COD-02, COD-06. Prijimam, ale Easy 1 2 Medium 3 4 Hard 5 at jsou na prave strane, a at je tam na zacatku napsane jen Level: a pak ty cisla bez popisku Easy, Medium, Hard. Kazdy dokonceny level musi svitit zelene.",
+    "ownerComments": [
+      "Prijimam, ale Easy 1 2 Medium 3 4 Hard 5 at jsou na prave strane, a at je tam na zacatku napsane jen Level: a pak ty cisla bez popisku Easy, Medium, Hard. Kazdy dokonceny level musi svitit zelene."
+    ],
+    "reference": "",
+    "checks": "Ukázka používá explicitně fiktivní stav: dokončeno 1 a 2, otevřena 3, zamčeno 4 a 5. Zelená není jediná informace o dokončení.",
+    "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují.",
+    "basis": "Komentář: COD-02, COD-06"
+  },
+  {
+    "id": "R2-03",
+    "area": "Coding",
+    "priority": "P1",
+    "title": "Katalog: 20 úloh před Paths",
+    "sourceIds": [
+      "SYS-03",
+      "COD-09"
+    ],
+    "scenes": [
+      "coding-track",
+      "coding-track-paths"
+    ],
+    "scene": "coding-track",
+    "before": "JavaScript se opakuje v breadcrumbu a titulku. Paths předchází seznamu, úlohy jsou rozdělené do dlouhých obtížnostních sekcí.",
+    "after": "JavaScript s vlnovkou, popis i stávající progress vycentrovat. Hned pod nimi filtry a stránkovaný seznam: dva sloupce po 10 řádcích. Paths až za seznamem; krátké vysvětlení s odkazem v úvodu posune uživatele k Paths.",
+    "reason": "Počet passed a progress vlna zůstávají skutečnými daty účtu. Veřejná ukázka má 0 z 222; tvoje 48 z 222 by zůstalo 48, nepřepočítáváme je. Duplicitní název řeší společné pravidlo R2-09.",
+    "evidence": "Připomínky vlastníka: SYS-03, COD-09. Napis Javascript s vlnovkou by mohl byt zarovnany na stred i s description pod nim, ted jsou dva duplicitni nazvy Javascript hned nad seboou (je hned nad nim v breadcrumbs). 48 of 222 passed vcetne progress vlnovky tam musi zustat, ale hned pod tim by se mela ukazat tabulka se vsema cvicenima (a filter toolbar) - tabulka by mela byt pagination, aby byli videt dva sloupce po 10 radku cvicenich a Paths by mely byt az pod tou tabulkou. V description by mel byt zaroven odkaz a kratke description o Paths, ktere cloveka odscrolluje dolu.",
+    "ownerComments": [
+      "Napis Javascript s vlnovkou by mohl byt zarovnany na stred i s description pod nim, ted jsou dva duplicitni nazvy Javascript hned nad seboou (je hned nad nim v breadcrumbs). 48 of 222 passed vcetne progress vlnovky tam musi zustat, ale hned pod tim by se mela ukazat tabulka se vsema cvicenima (a filter toolbar) - tabulka by mela byt pagination, aby byli videt dva sloupce po 10 radku cvicenich a Paths by mely byt az pod tou tabulkou. V description by mel byt zaroven odkaz a kratke description o Paths, ktere cloveka odscrolluje dolu."
+    ],
+    "reference": "",
+    "checks": "20 položek na stránku, všechny úlohy dosažitelné přes pagination. Mobil jeden sloupec; filtry zachované, Paths až za pagerem.",
+    "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují.",
+    "basis": "Komentář: SYS-03, COD-09"
+  },
+  {
+    "id": "R2-04",
+    "area": "Coding",
+    "priority": "P2",
+    "title": "Next challenge bez rámečku",
+    "sourceIds": [
+      "COD-08"
+    ],
+    "scenes": [
+      "coding-home"
+    ],
+    "scene": "coding-home",
+    "before": "Předchozí návrh odlišuje banner obvodovým i levým zeleným okrajem.",
+    "after": "Oba okraje odstranit. Silnější zelené pozadí s klidnou sytostí, kontrastní text a jedno Continue. Světlá varianta má být rozpoznatelná i na světlém povrchu.",
+    "reason": "Barva zvýrazňuje další krok, aniž přidává další čáry do katalogu. Logo, rozměry úvodu i čtyři tracky zůstávají.",
+    "evidence": "Připomínky vlastníka: COD-08. ten border at tam neni, jen at je ta zelena trochu vyraznejsi",
+    "ownerComments": [
+      "ten border at tam neni, jen at je ta zelena trochu vyraznejsi"
+    ],
+    "reference": "",
+    "checks": "Světlé/tmavé téma; text i tlačítko čitelné. Název je poslední rozpracovaná úloha, žádný selektor.",
+    "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují.",
+    "basis": "Komentář: COD-08"
+  },
+  {
+    "id": "R2-05",
+    "area": "Otázky",
+    "priority": "P2",
+    "title": "Daily vysvětlí téma místo provozních textů",
+    "sourceIds": [
+      "SYS-02",
+      "SYS-04"
+    ],
+    "scenes": [
+      "daily"
+    ],
+    "scene": "daily",
+    "before": "Pod názvem je One question a day… a pod otázkou Tomorrow’s question is about…",
+    "after": "Oba texty odstranit. Pod nadpisem stručný kontext k aktuálnímu tématu, maximálně dva řádky: například TypeScript adds static types to JavaScript. Generics make typed code reusable.",
+    "reason": "Kontext patří k otázce, neslibuje zítřejší téma a neprozrazuje správnou odpověď. Sdílené centrování viz R2-01.",
+    "evidence": "Připomínky vlastníka: SYS-02, SYS-04. nedavat napis \"Tomorrows question is about Git.\" at tam zadny takovy napis neni. A stejne tak at tam neni \"One question a day.....\" text, ale misto toho je vzdy vysvetleni na dva radky max, co to je TypeScript (nebo ty generics - proste jednoduche vysvetleni te otazky).",
+    "ownerComments": [
+      "nedavat napis \"Tomorrows question is about Git.\" at tam zadny takovy napis neni. A stejne tak at tam neni \"One question a day.....\" text, ale misto toho je vzdy vysvetleni na dva radky max, co to je TypeScript (nebo ty generics - proste jednoduche vysvetleni te otazky)."
+    ],
+    "reference": "",
+    "checks": "Žádná informace o zítřku. Krátký ručně psaný text; nepoužívat line-clamp, který by usekl vysvětlení.",
+    "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují.",
+    "basis": "Komentář: SYS-02, SYS-04"
+  },
+  {
+    "id": "R2-06",
+    "area": "Learn",
+    "priority": "P2",
+    "title": "Úvod popíše vybrané téma",
+    "sourceIds": [
+      "LEA-02"
+    ],
+    "scenes": [
+      "learn"
+    ],
+    "scene": "learn",
+    "before": "Úvodní text popisuje celou oblast Web Developer, i když je vybráno konkrétní HTML.",
+    "after": "Dva až tři stručné řádky o vybraném tématu. HTML vysvětlí strukturu stránky, CSS vzhled a layout, JavaScript chování a interakce. Text se změní spolu s tématem.",
+    "reason": "Pouze zpřesnění již navrženého úvodu. Zachované logo tématu, výběr, Continue, mapa a stávající pravidla přístupu.",
+    "evidence": "Připomínky vlastníka: LEA-02. Prijimam, ale to prvni description vzdy musi byt nejake 2 - 3 radkove description the dane learning path, at clovek vi co je ve zkratce HTML, CSS, JavaScript, atp.",
+    "ownerComments": [
+      "Prijimam, ale to prvni description vzdy musi byt nejake 2 - 3 radkove description the dane learning path, at clovek vi co je ve zkratce HTML, CSS, JavaScript, atp."
+    ],
+    "reference": "",
+    "checks": "Ukázka HTML, další navržené copy uvedené v podkladech. Žádný optional-reading warning ani Skip to questions.",
+    "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují.",
+    "basis": "Komentář: LEA-02"
+  },
+  {
+    "id": "R2-07",
+    "area": "Systém",
+    "priority": "P1",
+    "title": "Všechny Quiz kategorie a společné větší okraje",
+    "sourceIds": [
+      "QUI-01"
+    ],
+    "scenes": [
+      "quiz-setup"
+    ],
+    "scene": "quiz-setup",
+    "before": "Část kategorií je schovaná za Show all categories. Předchozí návrh má úzké okraje.",
+    "after": "Všechny kategorie zobrazit hned, zachovat původní pills s logy. Jeden společný minimální vodorovný gutter 64 px na desktopu; na telefonu 26 px. Oproti předchozím 24/16 px jde nejméně o +60 %. Pravidlo platí pro všechny stránky, ne jen Quiz.",
+    "reason": "64 px je minimální viditelný okraj, ne další padding uvnitř již centrovaného kontejneru. Čtecí sloupec může zůstat užší. Toto je jediný bod, kde se schvalují společné gutters.",
+    "evidence": "Připomínky vlastníka: QUI-01. At to vzdy ukazuje vsechny kategorie, takhle se tam vlezou jednoduse. Ten padding od leve/prave strany ale at je trochu vetsi (aspon o 60 procent vetsi, nez je ted) - tenhle padding ma pak platit na kazdou stranku.",
+    "ownerComments": [
+      "At to vzdy ukazuje vsechny kategorie, takhle se tam vlezou jednoduse. Ten padding od leve/prave strany ale at je trochu vetsi (aspon o 60 procent vetsi, nez je ted) - tenhle padding ma pak platit na kazdou stranku."
+    ],
+    "reference": "",
+    "checks": "1280/1440/390 px; žádné horizontální přetékání. Pills s logy beze změny. Na 320 CSS px reflow bez zmenšování fontů.",
+    "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují.",
+    "basis": "Komentář: QUI-01"
+  },
+  {
+    "id": "R2-08",
+    "area": "Quiz",
+    "priority": "P2",
+    "title": "Výsledek uprostřed, review po trojicích",
+    "sourceIds": [
+      "QUI-03"
+    ],
+    "scenes": [
+      "quiz-results"
+    ],
+    "scene": "quiz-results",
+    "before": "Souhrn výsledku je zarovnaný vlevo a review otázky tvoří jeden dlouhý sloupec.",
+    "after": "Quiz complete, skóre a podpůrný text opět vycentrovat. Review na notebooku tři karty vedle sebe; na úzké šířce dvě nebo jedna. Pořadí otázek zůstává zachované.",
+    "reason": "Pro srozumitelnou ukázku mřížky mají obě strany stejných šest fiktivních odpovědí a výsledek 3/6. Skóre 1/2 z prvního reportu není vydáváno za nová data.",
+    "evidence": "Připomínky vlastníka: QUI-03. Prijimam, ale at se ty karty skladaj vedle sebe aspon po trojicich. Quiz Complete 1 / 2 i s textem podtim chci mit vycentrovano, tak jak to bylo Pred.",
+    "ownerComments": [
+      "Prijimam, ale at se ty karty skladaj vedle sebe aspon po trojicich. Quiz Complete 1 / 2 i s textem podtim chci mit vycentrovano, tak jak to bylo Pred."
+    ],
+    "reference": "",
+    "checks": "Šest otázek ukáže dva plné řádky. Bez serverového receipt zůstává viditelný pravdivý lokální stav neuloženého výsledku.",
+    "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují.",
+    "basis": "Komentář: QUI-03"
+  },
+  {
+    "id": "R2-09",
+    "area": "Navigace",
+    "priority": "P2",
+    "title": "Breadcrumb jen tam, kde dává návrat",
+    "sourceIds": [
+      "TOD-01"
+    ],
+    "scenes": [
+      "today"
+    ],
+    "scene": "today",
+    "before": "Kořenová stránka má Today v breadcrumbu a hned pod ním znovu jako nadpis.",
+    "after": "Na nulté úrovni breadcrumb vůbec nevykreslovat: Today, Coding, Quiz, Learn, Profile a další rooty mají jediný název. U vnořené stránky ukázat skutečné klikací rodiče; název, který už stojí jako h1, neopakovat hned nad ním.",
+    "reason": "Jedno společné pravidlo i pro JavaScript katalog. V editoru zůstává plná cesta coding / javascript / digitSum.js, protože nahrazuje samostatný nadpis.",
+    "evidence": "Připomínky vlastníka: TOD-01. Vrchni napis je duplicitni. Udelej z toho pravidlo, ze pokud ty breadcrumbs jsou na nultem levelu, tak at se tam neukazujou. Neni potreba ukazovat dvakrat \"today\" nebo dvakrat jakekoliv jine slovo hned pod sebou.",
+    "ownerComments": [
+      "Vrchni napis je duplicitni. Udelej z toho pravidlo, ze pokud ty breadcrumbs jsou na nultem levelu, tak at se tam neukazujou. Neni potreba ukazovat dvakrat \"today\" nebo dvakrat jakekoliv jine slovo hned pod sebou."
+    ],
+    "reference": "",
+    "checks": "Kořeny bez prázdného breadcrumb nav; vnořené stránky se skutečnými href. Žádné dvojité Today ani JavaScript.",
+    "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují.",
+    "basis": "Komentář: TOD-01"
+  },
+  {
+    "id": "R2-10",
+    "area": "Profile",
+    "priority": "P2",
+    "title": "Nastavení srovnat do společných řad",
+    "sourceIds": [
+      "PRO-02"
+    ],
+    "scenes": [
+      "profile"
+    ],
+    "scene": "profile",
+    "before": "Account je správně pod Track and Sections, ale nezávislé sloupce mají nesourodé začátky a příliš volného místa.",
+    "after": "Track and Sections vlevo a Sharkname vpravo začínají na stejné řádce. Account zůstává přímo pod Track vlevo. Doplňující Advisor pod hlavním nastavením jako krátká celá řada, bez vysoké prázdné karty.",
+    "reason": "Srovnat okraje, vnitřní odsazení i výšku prvního páru. Netahat destruktivní akce výš a nedoplňovat prázdné karty jen kvůli symetrii.",
+    "evidence": "Připomínky vlastníka: PRO-02. Hlavne at je to poskladane tak, aby to bylo co nejvic srovnane.",
+    "ownerComments": [
+      "Hlavne at je to poskladane tak, aby to bylo co nejvic srovnane."
+    ],
+    "reference": "",
+    "checks": "Fiktivní Test Learner. Dlouhý e-mail/jméno nesmí rozbít grid; mobil zachová pořadí Track → Account → Sharkname → Advisor. Žádná account akce se nespouští.",
+    "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují.",
+    "basis": "Komentář: PRO-02"
+  },
+  {
+    "id": "R2-11",
+    "area": "Learning paths",
+    "priority": "P2",
+    "title": "Další aktivita bez levého proužku",
+    "sourceIds": [
+      "PTH-01"
+    ],
+    "scenes": [
+      "fde-module"
+    ],
+    "scene": "fde-module",
+    "before": "Next activity označuje výrazný levý inset border.",
+    "after": "Levý proužek odstranit. Celý řádek jemně tónovat, přidat krátký stav Next a směrovou šipku u akce. Ostatní aktivity zůstanou neutrální.",
+    "reason": "Stejný vzor pro vybranou/další aktivitu napříč paths. Stav má textový význam, nespoléhá pouze na zelenou.",
+    "evidence": "Připomínky vlastníka: PTH-01. Prijimam, ale ten levy highlighted border je skaredy zpusob, jak neco oznacit. Navrhni to lip.",
+    "ownerComments": [
+      "Prijimam, ale ten levy highlighted border je skaredy zpusob, jak neco oznacit. Navrhni to lip."
+    ],
+    "reference": "",
+    "checks": "Světlé/tmavé téma, klávesnice a čitelné stavy. Nemění se pořadí aktivit, zámky, enrollment ani časové odhady.",
+    "dependency": "Vizuální návrh druhého kola. Ostatní přijaté změny tvoří baseline a znovu se neschvalují.",
+    "basis": "Komentář: PTH-01"
+  }
+]
