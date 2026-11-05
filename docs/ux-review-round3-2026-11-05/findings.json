@@ -1,0 +1,101 @@
+[
+ {
+  "id":"R3-01","area":"Daily","priority":"P1","title":"Daily: všechny odpovědi na první obrazovce notebooku",
+  "basis":"Nové pozorování aktuální Daily po doplnění kontextu tématu.",
+  "before":"Na 1280 × 680 začíná karta otázky přibližně v polovině obrazovky. U dnešní krátké otázky jsou vidět jen první dvě ze čtyř odpovědí; tlačítko Check answer je ještě níž.",
+  "after":"Zachovat oba úvodní texty i informaci, že se Daily nezaznamenává. Spojit je s otázkou menšími svislými mezerami a kompaktním nadpisem. Odpovědi a akce zachovají nejméně 44px zásahovou plochu.",
+  "reason":"Uživatel má porovnat všechny možnosti, aniž by se krátká otázka rozpadla mezi dvě obrazovky. Nejde o další plošné zmenšování aplikace.",
+  "evidence":"Aktuální /daily, 5. 11. 2026, obě témata, 1280 × 680. DailyHeader v DailyStaticArticle.tsx a QuestionShell v DailyQuestionPage.tsx; obsah je skutečná veřejná otázka.",
+  "dependency":"Ponechat přijatý kontext TypeScriptu i aktuálního pojmu a practice informaci. Dlouhé otázky dál přirozeně scrollují; nikde neskrývat část odpovědi.",
+  "checks":"U krátké referenční otázky se musí vejít všechny čtyři možnosti i Check answer nad spodní oceán. Ověřit dlouhý kód, dlouhé odpovědi, chybu a vysvětlení, 200% text, mobil a obě témata; žádné pevné ořezávání obsahu.",
+  "scenes":["daily"],"reference":""
+ },
+ {
+  "id":"R3-02","area":"Learn","priority":"P1","title":"Na mobilu se dostat k lekci dřív než přes celý seznam témat",
+  "basis":"Responzivní problém; přijatý levý panel na desktopu zůstává.",
+  "before":"Na telefonu 390 × 844 zabere volba tří sekcí a deset dlaždic témat většinu první obrazovky. HTML a jeho úvod jsou až dole; Continue není vidět.",
+  "after":"Na mobilu ukázat zvolenou sekci a téma ve dvou kompaktních ovladačích. Ostatní sekce a témata otevřít na vyžádání, včetně jejich log, postupu a přesných důvodů zamčení. Úvod a Continue se dostanou nad mapu hned na první obrazovce.",
+  "reason":"Při návratu do Learn je hlavní úkol pokračovat ve zvoleném tématu. Úplný katalog má zůstat rychle dostupný, ale nemusí být pokaždé celý otevřený.",
+  "evidence":"Aktuální /learn/web-developer?topic=html, 390 × 844. SectionSwitcher.tsx skládá tři řádky a SectionRail.tsx deset témat před .rm-section-content.",
+  "dependency":"Desktopové uspořádání, URL tématu, klávesnice, loga, stav Premium a podmínky otevření zachovat. Žádný automatický výběr jiné sekce nebo tématu.",
+  "checks":"Otevřít výběr sekce i tématu klávesnicí, vrátit fokus po zavření, prohlédnout zamčené téma, zachovat volbu po reloadu. Continue musí být dostupné na 360 a 390 px; ověřit načítání i chybu témat.",
+  "scenes":["learn-mobile"],"reference":"Khan Academy"
+ },
+ {
+  "id":"R3-03","area":"Coding","priority":"P1","title":"Mobilní editor potřebuje návratovou cestu nad zadáním",
+  "basis":"Orientace v režimu soustředění; desktopový workspace zůstává.",
+  "before":"Na telefonu jde Description před editorem. Breadcrumb coding / javascript / digitSum.js je až pod vysokým zadáním, zatímco hlavní navigace je správně skrytá. Na začátku stránky tak není vidět žádná cesta zpět.",
+  "after":"V úzkém zobrazení přesunout stejný breadcrumb do prvního pruhu celé pracovní karty, nad informační záložky. Ponechat ho při čtení dostupný. Ve spodní liště editoru ho už neopakovat.",
+  "reason":"Režim soustředění potřebuje dobře dohledatelný lokální návrat. Nepřidává se další navigační panel ani nadpis před editorem.",
+  "evidence":"Aktuální /coding/javascript/js-digit-sum na 390 × 844. .cd-editor-bar se na mobilu vykreslí až po informačním panelu; hlavní header je skrytý.",
+  "dependency":"Použít původní ancestor odkazy a zachovat filtry i stránku katalogu při návratu. Kód, koncept mobilního opt-in a camelCase název souboru zůstávají.",
+  "checks":"Návrat bez scrollování, čitelný dlouhý název a viditelný fokus na 360 px; žádná kopie breadcrumbu. Odchod nevymaže draft. Sticky pruh nesmí překrýt záložky ani editor při zoomu.",
+  "scenes":["editor-mobile"],"reference":"Hoppscotch"
+ },
+ {
+  "id":"R3-04","area":"Coding","priority":"P2","title":"Premium označit podle cílové stage, ne podle celého projektu",
+  "basis":"Srozumitelnost přístupu v hotovém projektovém seznamu.",
+  "before":"Seznam vysvětluje, že první tři stages jsou zdarma, ale u každého nezačatého evolving projektu současně ukazuje Premium a tlačítko Start. Krátké Paths mají stejný rozpor s bezplatným prvním levelem.",
+  "after":"U bezplatného začátku odstranit Premium badge z řádku a ponechat jednou jasné pravidlo přístupu nad seznamem. Premium v řádku ukázat až tehdy, když akce skutečně vede na stage vyžadující Premium.",
+  "reason":"Štítek má vysvětlovat důsledek konkrétní akce. Dnešní kombinace může vyvolat dojem, že ani začátek projektu není přístupný.",
+  "evidence":"Aktuální /coding, Project challenges → Evolving challenges. EvolvingGallery v CodingSection.tsx používá laterLockedIn(challenge), zatímco tlačítko otevírá resumeId.",
+  "dependency":"Rozsah Free ani serverové gate se nemění. Badge zachovat pro skutečně placený resumeId a v zamčených stages. Stejné pravidlo použít na Debugging a FullStack; jde o jeden společný nález.",
+  "checks":"Host, Free a Premium; nezačatý projekt, rozpracovaný projekt před i za hranicí Free, dokončený projekt a neznámý stav přístupu. Ponechat fokusovatelný lock a konkrétní vysvětlení.",
+  "scenes":["projects"],"reference":""
+ },
+ {
+  "id":"R3-05","area":"Coding","priority":"P2","title":"V katalogu ukázat obtížnost a odhad času přímo u úlohy",
+  "basis":"Lepší rozhodnutí před otevřením; stránkování a kompaktní řádky zůstávají.",
+  "before":"Seznam uvádí název, Level a dostupnost. Obtížnost a délku lze filtrovat, ale při běžném procházení u konkrétní úlohy vidět nejsou.",
+  "after":"Ve stejném řádku zobrazit například Easy · 5 min ze stávajících difficulty a estimatedMinutes. Vazbu na Learn level ponechat v detailu zadání. Zachovat dvacet úloh na stránku, dva sloupce a existující filtry.",
+  "reason":"Člověk s pěti nebo deseti minutami si vybere vhodnou úlohu bez otevírání několika detailů. Nevzniká nový filtr ani další karta.",
+  "evidence":"Aktuální /coding/javascript. TaskRow zobrazuje Learn level; CODING_INDEX už pro Digit sum obsahuje easy a estimatedMinutes: 5.",
+  "dependency":"Odhad je autorský údaj, nikoli měřený osobní čas. Text Level se týká vazby na Learn; nejde o přesouvání stages evolving editoru. Stavy Open, Passed, Saved a Premium zachovat.",
+  "checks":"Dlouhé názvy a obě témata, mobilní zalamování bez zmenšení ovladačů, keyboard pořadí, stavové a Saved filtry, návrat na stejnou stránku a správné údaje pro každý typ úlohy.",
+  "scenes":["catalogue"],"reference":"The Met Collection"
+ },
+ {
+  "id":"R3-06","area":"Coding","priority":"P2","title":"Neúspěšný test číst jako Input / Expected / Received",
+  "basis":"Čitelnost výsledku uvnitř už přijaté pravé záložky Results.",
+  "before":"Volání, očekávaný objekt a skutečná hodnota jsou spojené šipkou a textem got. U Link shortener se jeden test rozpadne do několika řádků a rozdíl objekt vs. null se hledá v dlouhém toku znaků.",
+  "after":"Přidat stručný souhrn Passed / Failed. První neúspěšný test otevřít s oddělenými popisky Input, Expected a Received, ostatní případy ponechat rozbalitelné. Úspěšné testy musí zůstat dostupné v jedné skupině.",
+  "reason":"Výsledek má pomáhat najít konkrétní rozdíl. Není třeba měnit rozložení workspace ani přesouvat Results pod editor.",
+  "evidence":"Skutečný guest lokální Run starteru Link shortener: 8 z 11 kontrol prošlo, tři selhaly. CodingWorkbench.tsx codeRow spojuje volání a obě hodnoty v jedné řádce.",
+  "dependency":"Zobrazovat jen již dostupné veřejné nebo serverem vrácené výsledky. Run dál neodemkne Solution. Zachovat rozlišení lokálního běhu a Submit, chyby kompilace, timeouty a informaci o zastaralém výsledku.",
+  "checks":"Objekt vs. null, dlouhé a víceřádkové hodnoty, výjimka, timeout, všechny testy prošly i první běh bez výsledku. Rozbalení klávesnicí a fokus; zachovat pořadí a vazbu na konkrétní test.",
+  "scenes":["results"],"reference":"Hoppscotch"
+ },
+ {
+  "id":"R3-07","area":"Today","priority":"P2","title":"Today má říkat, co se budu učit, nejen číslo levelu",
+  "basis":"Konkrétnost položek denního plánu; opravené Learning paths zůstávají.",
+  "before":"Tři položky New material se jmenují například HTML · Level 1, CSS · Level 1 a JavaScript · Level 1. Skutečné téma první lekce se dozvím až po otevření.",
+  "after":"Jako hlavní název použít existující název lekce, například Structure & Semantics. Jazyk a Level ponechat jako menší kontext. Start here a pořadí plánu zůstanou stejné.",
+  "reason":"Denní plán pak nabízí srozumitelný učební cíl. Stejný vzor platí pro pokračování a opakování; nález se nepřidává znovu pro každou variantu karty.",
+  "evidence":"Aktuální TodayCard v Today.tsx sestavuje pouze today.itemMeta z tématu a čísla. Veřejná roadmap structure již obsahuje názvy odpovídajících levelů.",
+  "dependency":"Použít existující titul z autoritativní struktury, ne generovaný název nebo nový požadavek pro každý řádek. Nedostupný titul má ponechat dnešní fallback. Není to změna serverového doporučení ani FDE resume karty.",
+  "checks":"Nová látka, rozpracovaný level, opakování, part test, chybějící titul a dlouhý název na telefonu. Zachovat deep-link, Start here, denní reset i existující důvody doporučení.",
+  "scenes":["today"],"reference":"Framer"
+ },
+ {
+  "id":"R3-08","area":"Profile","priority":"P2","title":"Rychlé odkazy na části dlouhého Profile",
+  "basis":"Dohledatelnost nastavení bez nového přeskládávání karet.",
+  "before":"První obrazovku tvoří identita a streak. Account je správně pod Track and Sections, ale na konkrétní nastavení se musí hledat scrollováním mezi více kartami.",
+  "after":"Vedle Overview / Friends přidat klidné odkazy Study plan, Account a Name. Odkaz posune na existující sekci a předá fokus jejímu nadpisu. Na mobilu použít jeden přehledný výběr části.",
+  "reason":"Přímý skok pomáhá cílené návštěvě Profile. Přirozené výšky karet i už odsouhlasené umístění Account zůstanou zachované.",
+  "evidence":"Aktuální Profile.tsx: Overview má dlouhý obsah, LearningPathsCard už používá #learning-plan, další části nemají společný přímý rozcestník. Ukázka používá pouze lokální fiktivní účet.",
+  "dependency":"Nejde o další úroveň tabs ani breadcrumb na kořeni. Použít obyčejné kotvy, existující hash plánovače a minimum nových ID. Žádné přepínání obsahu, natahování karet či změna Account akcí.",
+  "checks":"Hash po reloadu a tlačítko Zpět, fokus nadpisu, nezakrytí cíle fixním headerem, dlouhá jména a mobil. Skryté nebo nedostupné sekce nenabízet. Destruktivní akci skok nikdy neprovede.",
+  "scenes":["profile"],"reference":"Nuxt Dashboard"
+ },
+ {
+  "id":"R3-09","area":"FDE","priority":"P2","title":"FDE modul předem vyčíslit jako celek i nejbližší krok",
+  "basis":"Plánování času v přijatém dvousloupcovém přehledu modulu.",
+  "before":"Customer discovery ukazuje Start module a délku každé aktivity zvlášť. Součet pěti aktivit — 180 minut — si uživatel musí dopočítat a není zřejmé, jak velký závazek tlačítko představuje.",
+  "after":"Pod úvod doplnit Estimated total: 3h · 5 activities, vypočtené ze stávajícího katalogu. Primární akci pojmenovat podle jejího skutečného cíle, zde Start reading · 25 min. Seznam a jeho Next stav zůstávají.",
+  "reason":"Je jasné, že modul lze rozdělit do konkrétních aktivit a první krok není celý tříhodinový blok. Odhad není garance osobního času ani úprava požadavků na dokončení.",
+  "evidence":"První aktuální FDE modul má pět aktivit s odhady 25, 35, 15, 75 a 30 minut. ModuleWorkspace v LearningPathScreens.tsx tyto hodnoty zobrazuje jednotlivě.",
+  "dependency":"Zdroj dat zůstává manifest; cíl CTA dál určuje existující nextActivityId a gate. Nezavádět nový text o nepovinném čtení ani Skip to questions. U locku ponechat jeho konkrétní Premium vysvětlení.",
+  "checks":"Nový, rozpracovaný, dokončený i volitelný modul; další krok Read, Check, Code nebo Write; odhad nedostupný; více než hodina a správné plurály. Změna času nikdy nesmí změnit postup, XP ani odemčení.",
+  "scenes":["fde-module"],"reference":"Framer"
+ }
+]

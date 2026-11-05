@@ -1,0 +1,11 @@
+[
+ {"id":"daily","title":"Daily · aktuální TypeScript otázka","note":"Před je skutečná veřejná Daily z 5. 11. 2026. Po zachovává oba úvody, otázku, všechny odpovědi a practice informaci; mění jejich svislé uspořádání. Na mobilu zůstává přirozené scrollování."},
+ {"id":"learn-mobile","title":"Learn · mobilní návrat do HTML","note":"Před je aktuální Learn. Po ponechává stejné sekce a deset témat v rozbalovacích výběrech; HTML a Continue jsou dostupné dřív. Desktopový levý panel se nemění."},
+ {"id":"editor-mobile","title":"Coding · mobilní breadcrumb nad zadáním","note":"Stejný guest editor a stejný draft. Po přesouvá jediný existující breadcrumb do prvního pruhu karty; hlavní navigace zůstává skrytá a mobilní opt-in se nemění."},
+ {"id":"projects","title":"Coding · přístup do evolving projektů","note":"Stejné nezačaté projekty, žádný vymyšlený postup. Po odstraňuje Premium z řádků, jejichž Start vede na bezplatnou stage. Pravidlo přístupu zůstává nad seznamem."},
+ {"id":"catalogue","title":"Coding · metadata v seznamu úloh","note":"Stejných dvacet úloh a stejné filtry. Po používá skutečné difficulty a estimatedMinutes z aktuálního CODING_INDEX; jde o odhad, nikoli měření výkonu uživatele."},
+ {"id":"results","title":"Coding · výsledky lokálního Run","note":"Obě strany zobrazují skutečný lokální běh starteru Link shortener: 8 prošlých a 3 neúspěšné kontroly. Po mění pouze čtení existujících hodnot. Nebyl proveden produkční Submit."},
+ {"id":"today","title":"Today · konkrétní názvy lekcí","note":"Lokální fiktivní Test Learner. Na obou stranách je stejný plán a stejné FDE pokračování. Po doplňuje veřejné názvy příslušných levelů; nejde o nové doporučení."},
+ {"id":"profile","title":"Profile · skok na nastavení","note":"Lokální fiktivní Test Learner, nikoli skutečný účet. Po přidává pouze rozcestník na existující části. Account je dál vlevo pod Track and Sections a karty si drží přirozené výšky."},
+ {"id":"fde-module","title":"FDE · rozsah modulu Customer discovery","note":"Lokální fiktivní enrollment, skutečný veřejný obsah modulu. Po sčítá existující odhady 25 + 35 + 15 + 75 + 30 minut a upřesňuje cíl prvního tlačítka. Žádný krok nebyl zapsán do produkce."}
+]
