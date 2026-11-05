@@ -16,7 +16,7 @@ export interface GameConfig {
     countOptions: number[];
     maxCount: number;
     defaultDifficulty: string;
-    /** Category ids shown by default on the quiz home; empty = show all. */
+    /** Legacy category subset, retained on the wire for older clients. The current picker shows all permitted categories. */
     defaultCategoryIds: string[];
   };
   daily: { count: number };

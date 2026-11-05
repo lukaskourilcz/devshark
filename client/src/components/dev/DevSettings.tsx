@@ -13,8 +13,6 @@ import { getAdminSettings, saveAdminSettings, type GameSettings } from '../../li
 
 const SETTINGS_KEY = ['admin', 'settings'] as const;
 import { RANK_TITLES, setRankThresholds } from '../../lib/leveling';
-import { CATEGORY_OPTIONS, onCategoryColorText } from '../../lib/categories';
-import { useActiveSubject } from '../../lib/subjects';
 
 const DIFFICULTY_MODES = ['basics', 'easy', 'zero-to-hero', 'advanced', 'mixed'];
 
@@ -239,7 +237,6 @@ function SelectField({
 }
 
 export default function DevSettings() {
-  const activeSubject = useActiveSubject();
   const settingsQuery = useQuery({ queryKey: SETTINGS_KEY, queryFn: getAdminSettings });
   const base = settingsQuery.data?.settings ?? null;
   const [form, setForm] = useState<FormState | null>(null);
@@ -278,15 +275,6 @@ export default function DevSettings() {
 
   const setShopPrice = (id: string, value: string) =>
     setForm((f) => (f ? { ...f, shopPrices: { ...f.shopPrices, [id]: value } } : f));
-
-  const toggleDefaultCategory = (id: string) =>
-    setForm((f) => {
-      if (!f) return f;
-      const next = f.quizDefaultCategoryIds.includes(id)
-        ? f.quizDefaultCategoryIds.filter((c) => c !== id)
-        : [...f.quizDefaultCategoryIds, id];
-      return { ...f, quizDefaultCategoryIds: next };
-    });
 
   const handleSave = async () => {
     setSaving(true);
@@ -359,47 +347,6 @@ export default function DevSettings() {
           size="sm"
           style={{ flex: 1, minWidth: 200 }}
         />
-      </Section>
-
-      <Section title="Quiz — default visible categories">
-        <span style={{ ...captionStyle, width: '100%', marginBottom: 4 }}>
-          Shown on the quiz home by default; the rest appear when the learner clicks "Show all".
-          Select none to show every category by default.
-        </span>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, width: '100%' }}>
-          {CATEGORY_OPTIONS.filter((cat) => activeSubject.categories.includes(cat.value)).map((cat) => {
-            const selected = form.quizDefaultCategoryIds.includes(cat.value);
-            return (
-              <button
-                key={cat.value}
-                type="button"
-                aria-pressed={selected}
-                onClick={() => toggleDefaultCategory(cat.value)}
-                style={{
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: '3px 10px',
-                  fontSize: '0.75rem',
-                  borderRadius: 999,
-                  backgroundColor: selected ? cat.color : 'var(--color-background-surface)',
-                  color: selected ? onCategoryColorText(cat.value) : 'var(--color-text-secondary)',
-                  border: '1px solid',
-                  borderColor: selected ? cat.color : 'var(--color-border)',
-                  borderLeft: `3px solid ${cat.color}`,
-                  fontWeight: selected ? 600 : 500,
-                }}
-              >
-                {cat.label}
-              </button>
-            );
-          })}
-        </div>
-        <span style={{ ...captionStyle, width: '100%', marginTop: 4 }}>
-          {form.quizDefaultCategoryIds.length === 0
-            ? 'All categories visible by default'
-            : `${form.quizDefaultCategoryIds.length} category(ies) visible by default`}
-        </span>
       </Section>
 
       <Section title="Daily challenge">{num('dailyCount', 'Question count')}</Section>
