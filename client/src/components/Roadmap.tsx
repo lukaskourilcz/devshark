@@ -575,6 +575,8 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
    * dropped, so a ?topic of the section left behind cannot send the learner
    * back. */
   const switchSection = (id: LearnSectionId, nextTopic?: RoadmapTopic) => {
+    // Persist the explicit choice before navigating or a fast page reload.
+    writeString(SECTION_KEY, id);
     setLockReason(null);
     lateDeepLink.current = null;
     if (nextTopic) landOn(nextTopic, id);
