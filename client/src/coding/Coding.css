@@ -536,8 +536,47 @@
   .cd-tab[data-tab='resources'] .cd-tab__badge { display: none; }
 }
 .cd-output-scroll { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.cd-feedback > .cd-output-scroll[hidden] { display: none; }
 .cd-panel { display: flex; flex-direction: column; gap: 10px; min-height: 160px; }
 .cd-panel[hidden] { display: none; }
+
+/* The Coding section's task-first workspace. Learn and embedded workbenches
+   keep their existing panes; the shared ocean overlay belongs to App.tsx. */
+.cd-workbench--section .cd-workbench__grid {
+  gap: 0;
+  border: 1px solid var(--ss-card-line);
+  border-radius: var(--radius-container);
+  background: var(--color-background-surface);
+  overflow: clip;
+}
+.cd-workbench--section .cd-pane { border: 0; border-radius: 0; }
+.cd-workbench--section .cd-pane--editor { padding: 0; gap: 0; }
+.cd-workbench--section .cd-pane--output { padding: 16px 24px 24px; }
+.cd-workbench--section .cd-editor,
+.cd-workbench--section .cm-editor { border: 0; border-radius: 0; }
+.cd-workbench--section .cd-editor-bar { min-height: 52px; margin: 0; padding: 4px 12px; border-bottom: 1px solid var(--ss-card-line); }
+.cd-workbench--section .cd-editor-actions { margin: 0; padding: 12px 16px; border-top: 1px solid var(--ss-card-line); }
+.cd-feedback { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-top: 1px solid var(--ss-card-line); }
+.cd-feedback__toolbar { display: flex; align-items: center; gap: 8px; padding-inline: 12px; border-bottom: 1px solid var(--ss-card-line); }
+.cd-feedback__toolbar > .cd-tabs { flex: 1; min-width: 0; border-bottom: 0; }
+.cd-feedback__toggle { flex: none; font-size: var(--ss-type-meta); }
+.cd-feedback > .cd-output-scroll { padding: 16px; }
+.cd-workbench--section .cd-pane--controls { border-top: 1px solid var(--ss-card-line); }
+@media (min-width: 1024px) {
+  .cd-workbench--section .cd-workbench__grid { grid-template-rows: minmax(0, calc(var(--cd-frame-h) - var(--cd-feedback-height))) var(--cd-feedback-height); }
+  .cd-workbench--section .cd-pane--output { grid-row: 1 / 3; }
+  .cd-workbench--section .cd-splitter { grid-row: 1 / 3; }
+  .cd-workbench--section .cd-feedback { grid-column: 1; grid-row: 2; contain: size; }
+  .cd-workbench--section .cd-pane--controls { grid-row: 3; }
+  .cd-workbench--section[data-feedback-collapsed='true'] .cd-workbench__grid { grid-template-rows: minmax(0, calc(var(--cd-frame-h) - 52px)) 52px; }
+}
+@media (max-width: 1023px) {
+  .cd-workbench--section .cd-pane--output { padding: 12px 16px 20px; }
+  .cd-workbench--section .cd-pane--editor { border-top: 1px solid var(--ss-card-line); }
+  .cd-feedback > .cd-output-scroll { max-height: min(var(--cd-feedback-height), 60dvh); overflow-y: auto; }
+  .cd-feedback__toolbar { gap: 0; padding-inline: 4px; }
+  .cd-feedback__toggle { padding-inline: 8px; }
+}
 /* The React preview while a suite runs under another tab: laid out, so focus
    can move inside the frame, but off-screen, inert to the pointer and hidden
    from assistive tech (the workbench sets aria-hidden and takes the frame out
