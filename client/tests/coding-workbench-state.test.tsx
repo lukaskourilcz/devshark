@@ -285,7 +285,7 @@ it('ends a splitter drag the browser cancels', () => {
   // jsdom has no pointer capture.
   Object.defineProperty(HTMLElement.prototype, 'setPointerCapture', { value: () => {}, configurable: true });
   mount();
-  const separator = screen.getByRole('separator');
+  const separator = screen.getByRole('separator', { name: 'Resize the editor and task information panes' });
   vi.spyOn(separator.parentElement!, 'getBoundingClientRect').mockReturnValue({ left: 0, width: 1000 } as DOMRect);
   fireEvent.pointerDown(separator, { pointerId: 1 });
   act(() => { window.dispatchEvent(new MouseEvent('pointermove', { clientX: 400 })); });

@@ -199,6 +199,9 @@ describe('starting', () => {
     const start = await screen.findByRole('button', { name: /start quiz/i });
     expect(start).not.toBeDisabled();
     expect(start).toHaveAttribute('aria-disabled', 'true');
+    expect(start).toHaveAccessibleDescription('Choose at least one topic.');
+    expect(screen.getByText('0 selected')).toBeVisible();
+    expect(screen.getByText('10 questions · Mixed')).toBeVisible();
     start.focus();
     expect(document.activeElement).toBe(start);
     fireEvent.click(start);

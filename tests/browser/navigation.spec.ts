@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 // A navigation keeps the current page on screen until the next one can draw
 // whole. Before, every first visit to a section blanked the content area,
@@ -12,6 +13,51 @@ const HOLD_MS = 600;
 // The signed-out centre row (design audit P0.6); Today, Collection and Career
 // are not in it for a visitor without a session.
 const SECTIONS = ['/coding', '/quiz', '/learn', '/challenge', '/play', '/premium'];
+
+for (const theme of ['light', 'dark'] as const) for (const width of [360, 1280]) {
+  test(`Quiz task-first setup preserves topic logos and ocean at ${width}px in ${theme}`, async ({ page }, info) => {
+    await prepare(page, width);
+    await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+    await page.addInitScript((theme) => {
+      localStorage.setItem('devquiz:color-mode', theme);
+      localStorage.setItem('devquiz:quiz-setup:v1', JSON.stringify({ count: 10, difficulty: 'zero-to-hero', categories: [] }));
+      localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+    }, theme);
+    let starts = 0;
+    await page.route('**/api/quiz/questions*', (route) => {
+      starts++;
+      return route.fulfill({ json: { sessionId: 'quiz-setup-fixture', questions: [{ id: 'quiz-setup-1', question: 'Which declaration is block scoped?', options: ['let', 'var'], category: 'javascript', difficulty: 1, introduction: '' }] } });
+    });
+    await page.goto('/quiz');
+    const start = page.getByRole('button', { name: 'Start quiz', exact: true });
+    await expect(start).toHaveAccessibleDescription('Choose at least one topic.');
+    await expect(start).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.getByText('0 selected', { exact: true })).toBeVisible();
+    const topics = page.getByRole('group', { name: 'Topics', exact: true });
+    const pills = topics.locator('button.ss-topic-pill');
+    expect(await pills.count()).toBeGreaterThan(0);
+    for (const pill of await pills.all()) await expect(pill.locator(':scope > [aria-hidden]').first()).toBeVisible();
+    const javascript = topics.getByRole('button', { name: 'JavaScript', exact: true });
+    await javascript.focus();
+    await javascript.press('Space');
+    await expect(javascript).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByText('1 selected', { exact: true })).toBeVisible();
+    await expect(start).not.toHaveAttribute('aria-disabled', 'true');
+    await page.getByRole('radio', { name: '20 questions', exact: true }).click();
+    await page.getByRole('radio', { name: 'Difficulty: Mixed', exact: true }).click();
+    await expect(page.getByText('20 questions · Mixed', { exact: true })).toBeVisible();
+    await expect(page.locator('.ss-header-brand svg use').last()).toHaveAttribute('href', /devshark-wordmark.*#shark/);
+    await expect(page.locator('.ss-fin-drift').first()).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const findings = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+    expect(findings.violations.map((item) => item.id)).toEqual([]);
+    await page.screenshot({ path: info.outputPath(`quiz-task-first-${theme}-${width}.png`), fullPage: true });
+    await start.click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Quiz · Question 1 of 1');
+    expect(starts).toBe(1);
+    await expect(page.locator('.ss-fin-drift').first()).toBeVisible();
+  });
+}
 
 /** One animation frame of the content area. */
 type Frame = { t: number; route: boolean; kids: number; busy: string | null; opacity: number; h1: string | null; root: number; active: string | null; scrollTop: number };

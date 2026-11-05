@@ -110,13 +110,19 @@ const SPLIT_MIN = 35;
 const SPLIT_MAX = 75;
 const SPLIT_DEFAULT = 58;
 const SPLIT_STEP = 5;
-interface WorkbenchLayout { split: number }
+const FEEDBACK_MIN = 160;
+const FEEDBACK_MAX = 400;
+const FEEDBACK_DEFAULT = 220;
+interface WorkbenchLayout { split: number; feedbackHeight: number }
 const readLayout = (): WorkbenchLayout => {
   const stored = readJSON<Partial<WorkbenchLayout>>(LAYOUT_KEY, {});
   const split = typeof stored.split === 'number' && Number.isFinite(stored.split)
     ? Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, Math.round(stored.split)))
     : SPLIT_DEFAULT;
-  return { split };
+  const feedbackHeight = typeof stored.feedbackHeight === 'number' && Number.isFinite(stored.feedbackHeight)
+    ? Math.min(FEEDBACK_MAX, Math.max(FEEDBACK_MIN, Math.round(stored.feedbackHeight)))
+    : FEEDBACK_DEFAULT;
+  return { split, feedbackHeight };
 };
 
 // A narrow screen waits for a bigger one by default, but the learner may take
@@ -215,8 +221,16 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   // The last Run or Submit kept the code on this device only.
   const [draftTooLarge, setDraftTooLarge] = useState(false);
-  // Read the task first; Run still opens the checks (or the first React preview).
-  const [tab, setTab] = useState<Tab>('description');
+  // Coding keeps the brief open beside feedback. Embedded Learn/landing
+  // workbenches retain their single strip and existing layout.
+  const sectionLayout = mode === 'section';
+  const [tab, setTab] = useState<Tab>(sectionLayout ? 'results' : 'description');
+  const [referenceTab, setReferenceTab] = useState<Tab>('description');
+  const [feedbackCollapsed, setFeedbackCollapsed] = useState(false);
+  const selectTab = useCallback((next: Tab) => {
+    setTab(next);
+    setFeedbackCollapsed(false);
+  }, []);
   const previewShown = useRef(false);
   const [hintsTaken, setHintsTaken] = useState(0);
   const [confirming, setConfirming] = useState<'reset' | 'reveal' | null>(null);
@@ -224,6 +238,8 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const [checked, setChecked] = useState<boolean[]>(() => (task.checklist ?? []).map(() => false));
   const [formatError, setFormatError] = useState<string | null>(null);
   const [layout, setLayout] = useState<WorkbenchLayout>(readLayout);
+  const feedbackDragStop = useRef<(() => void) | null>(null);
+  useEffect(() => () => feedbackDragStop.current?.(), []);
   const [skipping, setSkipping] = useState(false);
   const [skipSubmitting, setSkipSubmitting] = useState(false);
   const [skipReason, setSkipReason] = useState<SkipReason>('later');
@@ -311,6 +327,37 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
     setLayout((current) => ({ ...current, split: Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, Math.round(next))) }));
   }, []);
 
+  const setFeedbackHeight = useCallback((next: number) => {
+    setLayout((current) => ({ ...current, feedbackHeight: Math.min(FEEDBACK_MAX, Math.max(FEEDBACK_MIN, Math.round(next))) }));
+  }, []);
+  const onFeedbackResizeKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const next = event.key === 'ArrowUp' ? layout.feedbackHeight + 32
+      : event.key === 'ArrowDown' ? layout.feedbackHeight - 32
+        : event.key === 'Home' ? FEEDBACK_MIN : event.key === 'End' ? FEEDBACK_MAX
+          : event.key === 'Enter' || event.key === ' ' ? FEEDBACK_DEFAULT : null;
+    if (next === null) return;
+    event.preventDefault();
+    setFeedbackHeight(next);
+  };
+  const onFeedbackResizePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const pane = event.currentTarget.parentElement;
+    if (!pane) return;
+    const bottom = pane.getBoundingClientRect().bottom;
+    feedbackDragStop.current?.();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    const move = (next: PointerEvent) => setFeedbackHeight(bottom - next.clientY);
+    const stop = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', stop);
+      window.removeEventListener('pointercancel', stop);
+      feedbackDragStop.current = null;
+    };
+    feedbackDragStop.current = stop;
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', stop);
+    window.addEventListener('pointercancel', stop);
+  };
+
   // The separator is a real one: it takes focus, arrows move it in steps, Home
   // and End go to the limits, and Enter restores the default. Dragging is an
   // addition to that, never the only way.
@@ -360,6 +407,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
     setDraftTooLarge(onDraft?.(code) === 'tooLarge');
     localRun.current?.abort();
     setPhase('running');
+    setFeedbackCollapsed(false);
     wantCompiler();
     setServerChecked(false);
     setFormatError(null);
@@ -373,7 +421,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
         const rendered = outcome.status === 'done' && !outcome.previewError;
         const firstRender = rendered && !previewShown.current;
         if (rendered) previewShown.current = true;
-        setTab(firstRender || !task.suite ? 'preview' : 'results');
+        selectTab(firstRender || !task.suite ? 'preview' : 'results');
       } else {
         // Leaving the task stops the run (the unmount below aborts it), so a
         // loop or a first compile does not keep a worker busy for nothing.
@@ -389,7 +437,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
         // A runner that never loaded is not an attempt, so it opens no hint.
         if (!outcome.runnerUnavailable && !runPassed(outcome)) setFailedRun(true);
         const typesBroken = outcome.check && (outcome.check.codeErrors.length > 0 || outcome.check.typeTests.some((one) => !one.pass));
-        setTab(outcome.codeError ? 'results' : typesBroken ? 'types' : 'results');
+        selectTab(outcome.codeError ? 'results' : typesBroken ? 'types' : 'results');
       }
       setStale(false);
       setRunCount((n) => n + 1);
@@ -397,7 +445,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       setRunPhase(null);
       setPhase('idle');
     }
-  }, [phase, isReact, harness, files, task.suite, task.tests, task.typeTests, codeTrack, code, onDraft]);
+  }, [phase, isReact, harness, files, task.suite, task.tests, task.typeTests, codeTrack, code, onDraft, selectTab]);
 
   /** What a failed request says: the server's reason in the learner's words.
    * Only a request that never arrived is a connection problem. */
@@ -414,6 +462,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       return;
     }
     setPhase('submitting');
+    setFeedbackCollapsed(false);
     wantCompiler();
     setSubmitError(null);
     setFormatError(null);
@@ -442,7 +491,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
           if (!(outcome.status === 'done' && outcome.total > 0 && outcome.failed === 0)) setFailedRun(true);
           setStale(false);
           setRunCount((n) => n + 1);
-          setTab('results');
+          selectTab('results');
           result = await submitCoding({ session, code, runCount: runCount + 1, hintsUsed: taken, durationMs });
           setServerChecked(true);
         }
@@ -470,7 +519,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
         setStale(false);
         setServerChecked(true);
         const typesBroken = result.check && (result.check.codeErrors.length > 0 || result.check.typeTests.some((one) => !one.pass));
-        setTab(result.codeError ? 'results' : typesBroken ? 'types' : 'results');
+        selectTab(result.codeError ? 'results' : typesBroken ? 'types' : 'results');
       }
       // The grader itself could not run. Nothing was recorded and nothing
       // was said about the code, so it reads as a problem to retry, not as a
@@ -500,7 +549,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       setRunPhase(null);
       setPhase('idle');
     }
-  }, [phase, session, isReact, checklist, checked, code, runCount, taken, harness, files, codeTrack, task.tests, task.typeTests, onVerdict, onDraft, t, submitFailure]);
+  }, [phase, session, isReact, checklist, checked, code, runCount, taken, harness, files, codeTrack, task.tests, task.typeTests, onVerdict, onDraft, t, submitFailure, selectTab]);
 
   const format = useCallback(async () => {
     try {
@@ -745,6 +794,13 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   // a recorded earlier one — and from nowhere else.
   const solutions: CodingSolutionPair | null = verdict?.solutions ?? approaches.data?.solutions ?? null;
   const suiteCases = useMemo(() => suiteCaseNames(task.suite), [task.suite]);
+  // Public, authored calls only. Large fixtures still belong in Results;
+  // they would turn the short examples into a second scrolling test suite.
+  const publicExamples = useMemo(() => (task.tests ?? []).flatMap((test) => {
+    const call = test.shown ?? test.call;
+    const expected = JSON.stringify(test.expected);
+    return call.length <= 180 && expected !== undefined && expected.length <= 180 ? [{ call, expected }] : [];
+  }).slice(0, 3), [task.tests]);
 
   // What went wrong, said once, in the learner's language.
   //
@@ -799,17 +855,20 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   ];
 
   // Arrow/Home/End across the tab strip, per the ARIA tabs pattern.
-  const onTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  const referenceTabs = tabs.filter((one) => ['description', 'resources', 'solution', 'approaches'].includes(one.key));
+  const feedbackTabs = tabs.filter((one) => !referenceTabs.includes(one));
+  const selectedReference = referenceTabs.some((one) => one.key === referenceTab) ? referenceTab : 'description';
+  const onTabKeyDown = (event: KeyboardEvent<HTMLDivElement>, available: typeof tabs, selected: Tab, select: (key: Tab) => void) => {
     const keys: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1 };
-    const index = tabs.findIndex((one) => one.key === tab);
+    const index = available.findIndex((one) => one.key === selected);
     let next = -1;
-    if (event.key in keys) next = (index + keys[event.key] + tabs.length) % tabs.length;
+    if (event.key in keys) next = (index + keys[event.key] + available.length) % available.length;
     else if (event.key === 'Home') next = 0;
-    else if (event.key === 'End') next = tabs.length - 1;
+    else if (event.key === 'End') next = available.length - 1;
     if (next < 0) return;
     event.preventDefault();
-    const key = tabs[next].key;
-    setTab(key);
+    const key = available[next].key;
+    select(key);
     tabRefs.current[key]?.focus();
   };
 
@@ -1181,6 +1240,16 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       after={locked && <p className="cd-note cd-note--warn">{t('coding.lockedTask')} {t(`coding.lock.${locked}` as never)}</p>}
     >
       <Prompt className="cd-prompt" text={descriptionText(task.prompt)} />
+      {sectionLayout && publicExamples.length > 0 && <section className="cd-brief-examples" aria-labelledby={`${baseId}-examples`}>
+        <h2 id={`${baseId}-examples`}>{workbenchCopy('coding.brief.examples')}</h2>
+        <ul>
+          {publicExamples.map((test, index) => <li key={index}>
+            <code>{test.call}</code>
+            <span aria-hidden="true"> → </span><span className="cd-visually-hidden"> {t('coding.results.expected')} </span>
+            <code>{test.expected}</code>
+          </li>)}
+        </ul>
+      </section>}
       {complexity.targetTime && <div className="cd-complexity">
         <span>{t('coding.complexity.desired', { complexity: complexity.targetTime })}</span>
         <ComplexityInfo guidance={complexity} />
@@ -1211,6 +1280,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   // and their names as tooltips (UX audit coding-02).
   const editorBar = (
     <div className="cd-editor-bar ss-compact">
+      {sectionLayout && <code className="cd-editor-bar__label">{isReact ? 'App.js' : isTypeScript ? 'solution.ts' : 'solution.js'}</code>}
       <Button variant="ghost" isIconOnly icon={<FormatCodeIcon />} tooltip={t('coding.format')} onClick={() => void format()} isDisabled={formatDisabled} label={t('coding.format')} />
       <Button variant="ghost" ref={resetRef} isIconOnly icon={<ResetIcon />} tooltip={t('coding.reset')} onClick={() => setConfirming('reset')} isDisabled={resetDisabled} label={t('coding.reset')} />
     </div>
@@ -1224,6 +1294,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const hintLabel = taken === 0 ? t('coding.hint') : t('coding.hintNext');
   const showReveal = mode !== 'landing' && Boolean(session) && !solution && !solutions;
   const showSkip = signedIn && mode === 'section' && !skipResult;
+  const submitAction = mode !== 'landing' && <SwimCta dir={1} onClick={() => { if (!submitDisabled) void submit(); }} unavailable={submitDisabled} label={phase === 'submitting' ? t('coding.submitting') : t('coding.submit')} />;
   const actionBar = (
     <div className="cd-editor-actions" onPointerEnter={reachForRun} onFocus={reachForRun}>
       <div className="cd-actions cd-actions--commands">
@@ -1231,7 +1302,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
         {/* Busy, not disabled: the button that was pressed keeps the focus
             (a disabled one hands it to the page), and a press does nothing. */}
         <Button className="ss-action" variant="secondary" onClick={() => void runLocal()} isDisabled={busy} tooltip={busy ? t('coding.status.working') : undefined} label={phase === 'running' ? (runPhase === 'compiling' ? t('coding.compiling') : t('coding.running')) : t('coding.run')} />
-        {mode !== 'landing' && <SwimCta dir={1} onClick={() => { if (!submitDisabled) void submit(); }} unavailable={submitDisabled} label={phase === 'submitting' ? t('coding.submitting') : t('coding.submit')} />}
+        {!sectionLayout && submitAction}
         </>}
 
         {!menuCommands && <>
@@ -1242,6 +1313,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
           )}
           {showSkip && <Button variant="ghost" onClick={() => setSkipping((open) => !open)} aria-expanded={skipping} label={t('coding.skip.action')} />}
         </>}
+        {sectionLayout && !puzzleMode && !pendingOnDesktop && submitAction}
         <div className="cd-actions cd-actions--utility">
           {mode !== 'landing' && !locked && saveAction}
           {menuCommands ? (
@@ -1286,6 +1358,44 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const refreshAction = taskChanged && onRefreshTask && <Button className="cd-brief-refresh" variant="secondary" isDisabled={busy || !online} onClick={() => void refreshTask()} label={t('coding.verdict.reloadBrief')} />;
   const notesOpen = hintsOpen || confirming === 'reset' || !online || draftTooLarge || formatError !== null || (submitError !== null && !puzzleMode);
 
+  const renderTabs = (available: typeof tabs, selected: Tab, select: (key: Tab) => void, label: string) => (
+    <div className="cd-tabs" role="tablist" aria-label={label} onKeyDown={(event) => onTabKeyDown(event, available, selected, select)}>
+      {available.map((one) => (
+        <FinButton key={one.key} type="button" role="tab" id={`${baseId}-tab-${one.key}`}
+          aria-selected={selected === one.key} aria-controls={`${baseId}-panel-${one.key}`}
+          tabIndex={selected === one.key ? 0 : -1} ref={(node) => { tabRefs.current[one.key] = node; }}
+          className="cd-tab" data-tab={one.key} onClick={() => select(one.key)}>
+          {one.label}
+          {one.badge && <span className={`cd-tab__badge${one.good === true ? ' cd-tab__badge--good' : one.good === false ? ' cd-tab__badge--bad' : ''}`}>{one.badge}</span>}
+        </FinButton>
+      ))}
+    </div>
+  );
+  const renderPanels = (available: typeof tabs, selected: Tab) => available.map((one) => {
+    // A suite's focus checks need a laid-out frame even while Results shows.
+    const parked = one.key === 'preview' && selected !== 'preview' && busy;
+    return <div key={one.key} role="tabpanel" tabIndex={selected === one.key ? 0 : -1}
+      id={`${baseId}-panel-${one.key}`} aria-labelledby={`${baseId}-tab-${one.key}`}
+      className={`cd-panel${parked ? ' cd-panel--parked' : ''}`}
+      hidden={selected !== one.key && !parked} aria-hidden={parked || undefined}>
+      {one.key === 'description' && brief}
+      {one.key === 'results' && renderResults()}
+      {one.key === 'types' && renderTypes()}
+      {one.key === 'console' && renderConsole()}
+      {one.key === 'preview' && renderPreview()}
+      {one.key === 'resources' && renderResources()}
+      {one.key === 'solution' && renderSolution()}
+      {one.key === 'approaches' && renderApproaches()}
+    </div>;
+  });
+  const feedbackNotes = <>
+    {verdictCard}
+    {tab === 'results' && shownHint && <div className="cd-hint cd-hint--failure" role="status">
+      <strong className="cd-hint__label">{t(`coding.failure.${shownHint.category}` as never)}</strong>
+      <Prompt text={shownHint.body} />
+    </div>}
+  </>;
+
   if (completionShown && verdict) {
     return <div className={`cd-workbench cd-workbench--${mode}`}><CodingCompletion
       xp={verdict.xpAwarded} complexity={verdict.complexity} sectionRef={verdictRef}
@@ -1297,66 +1407,16 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   return (
     <div
       className={`cd-workbench cd-workbench--${mode}`}
+      data-feedback-collapsed={sectionLayout ? feedbackCollapsed : undefined}
       onKeyDown={onKeyDown}
     >
       <span className="cd-visually-hidden" role="status" aria-live="polite">{announcement}</span>
-      <div className="cd-workbench__grid" style={{ ['--cd-split' as string]: `${layout.split}%` }}>
-        <section className="cd-pane cd-pane--output" aria-label={workbenchCopy('coding.output.label')}>
-          <div className="cd-tabs" role="tablist" onKeyDown={onTabKeyDown}>
-            {tabs.map((one) => (
-              <FinButton
-                key={one.key}
-                type="button"
-                role="tab"
-                id={`${baseId}-tab-${one.key}`}
-                aria-selected={tab === one.key}
-                aria-controls={`${baseId}-panel-${one.key}`}
-                // Roving tab stop: Tab reaches the strip once, arrows move
-                // within it, which is what `role="tab"` promises a reader.
-                tabIndex={tab === one.key ? 0 : -1}
-                ref={(node) => { tabRefs.current[one.key] = node; }}
-                className="cd-tab"
-                data-tab={one.key}
-                onClick={() => setTab(one.key)}
-              >
-                {one.label}
-                {one.badge && <span className={`cd-tab__badge${one.good === true ? ' cd-tab__badge--good' : one.good === false ? ' cd-tab__badge--bad' : ''}`}>{one.badge}</span>}
-              </FinButton>
-            ))}
-          </div>
-          {/* Everything under the tab strip scrolls as one: the panel, the
-              verdict and the failure hint. On the two-column layout the pane is
-              exactly as tall as the editor beside it (see Coding.css), so this
-              is where a long list of checks goes instead of below Run. */}
+      <div className="cd-workbench__grid" style={{ ['--cd-split' as string]: `${layout.split}%`, ['--cd-feedback-height' as string]: `${layout.feedbackHeight}px` }}>
+        <section className="cd-pane cd-pane--output" aria-label={workbenchCopy(sectionLayout ? 'coding.reference.label' : 'coding.output.label')}>
+          {renderTabs(sectionLayout ? referenceTabs : tabs, sectionLayout ? selectedReference : tab, sectionLayout ? setReferenceTab : selectTab, workbenchCopy(sectionLayout ? 'coding.reference.label' : 'coding.output.label'))}
           <div className="cd-output-scroll">
-          {tabs.map((one) => {
-            // A suite that moves focus needs the preview's document laid out,
-            // and a hidden panel has none: every focus check failed once Run
-            // had switched to Results. While a suite runs, the preview panel
-            // is parked off-screen instead, out of reading and tab order.
-            const parked = one.key === 'preview' && tab !== 'preview' && busy;
-            return (
-            // The panel takes focus itself: its content is often plain text,
-            // so without this a keyboard user tabs straight past the results.
-            <div key={one.key} role="tabpanel" tabIndex={tab === one.key ? 0 : -1} id={`${baseId}-panel-${one.key}`} aria-labelledby={`${baseId}-tab-${one.key}`} className={`cd-panel${parked ? ' cd-panel--parked' : ''}`} hidden={tab !== one.key && !parked} aria-hidden={parked || undefined}>
-              {one.key === 'description' && brief}
-              {one.key === 'results' && renderResults()}
-              {one.key === 'types' && renderTypes()}
-              {one.key === 'console' && renderConsole()}
-              {one.key === 'preview' && renderPreview()}
-              {one.key === 'resources' && renderResources()}
-              {one.key === 'solution' && renderSolution()}
-              {one.key === 'approaches' && renderApproaches()}
-            </div>
-            );
-          })}
-          {verdictCard}
-          {tab === 'results' && shownHint && (
-            <div className="cd-hint cd-hint--failure" role="status">
-              <strong className="cd-hint__label">{t(`coding.failure.${shownHint.category}` as never)}</strong>
-              <Prompt text={shownHint.body} />
-            </div>
-          )}
+            {renderPanels(sectionLayout ? referenceTabs : tabs, sectionLayout ? selectedReference : tab)}
+            {!sectionLayout && feedbackNotes}
           </div>
         </section>
           {puzzleMode && task.puzzle && (
@@ -1408,6 +1468,23 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
             </div>
             {!puzzleMode && !pendingOnDesktop && actionBar}
           </section>
+
+          {sectionLayout && <section className="cd-feedback" aria-label={workbenchCopy('coding.feedback.label')}>
+            {!feedbackCollapsed && <div className="cd-feedback__resize" role="separator" tabIndex={0}
+              aria-orientation="horizontal" aria-label={workbenchCopy('coding.feedback.resize')}
+              aria-valuenow={layout.feedbackHeight} aria-valuemin={FEEDBACK_MIN} aria-valuemax={FEEDBACK_MAX}
+              onKeyDown={onFeedbackResizeKeyDown} onPointerDown={onFeedbackResizePointerDown} />}
+            <div className="cd-feedback__toolbar">
+              {renderTabs(feedbackTabs, tab, selectTab, workbenchCopy('coding.feedback.label'))}
+              <Button variant="ghost" className="cd-feedback__toggle" aria-expanded={!feedbackCollapsed}
+                aria-controls={`${baseId}-feedback`} onClick={() => setFeedbackCollapsed((value) => !value)}
+                label={workbenchCopy(feedbackCollapsed ? 'coding.feedback.show' : 'coding.feedback.hide')} />
+            </div>
+            <div id={`${baseId}-feedback`} className="cd-output-scroll" hidden={feedbackCollapsed}>
+              {renderPanels(feedbackTabs, tab)}
+              {feedbackNotes}
+            </div>
+          </section>}
 
           {notesOpen && (
             <div className="cd-pane cd-pane--controls">
@@ -1515,7 +1592,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
           role="separator"
           tabIndex={0}
           aria-orientation="vertical"
-          aria-label={t('coding.layout.splitter')}
+          aria-label={sectionLayout ? workbenchCopy('coding.reference.resize') : t('coding.layout.splitter')}
           aria-valuenow={layout.split}
           aria-valuemin={SPLIT_MIN}
           aria-valuemax={SPLIT_MAX}

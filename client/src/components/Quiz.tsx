@@ -1006,18 +1006,12 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         {/* The one operational page header (UX audit U2, questions-19). */}
         <PageHeader title={t('quiz.buildTitle')} lead={t('quiz.buildSubtitle')} titleRef={setupHeadingRef} />
 
-        <div className="ss-panel quiz-setup__panel">
+        <div className="quiz-setup__panel">
           {/* Categories as accent pills. */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, position: 'relative' }}>
+          <div className="quiz-setup__group quiz-setup__topics">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span id="quiz-categories-label" style={labelStyle}>{t('quiz.categories')}</span>
-              <span className="ss-text-links" style={{ margin: 0 }}>
-                <button type="button" onClick={handleSelectAll}>
-                  {t(hasCollapsedSubset && !showAllCategories
-                    ? isAllSelected ? 'quiz.deselectVisible' : 'quiz.selectVisible'
-                    : isAllSelected ? 'quiz.deselectAll' : 'quiz.selectAll')}
-                </button>
-              </span>
+              <span id="quiz-categories-label" style={labelStyle}>{t('quiz.topicsLabel')}</span>
+              <span className="quiz-setup__helper" role="status">{t('quiz.selectedTopics', { count: selectedCategories.length })}</span>
             </div>
             <div role="group" aria-labelledby="quiz-categories-label" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {displayedCategoryOptions.map((cat) => {
@@ -1027,14 +1021,19 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
                 );
               })}
             </div>
-            {hasCollapsedSubset && (
-              <span className="ss-text-links" style={{ margin: 0, alignSelf: 'flex-start' }}>
+            <div className="ss-text-links quiz-setup__topic-actions">
+              {hasCollapsedSubset && <>
                 <button type="button" onClick={() => setShowAllCategories((v) => !v)}>
                   {showAllCategories ? t('quiz.showFewer') : t('quiz.showAllCategories')}
                 </button>
                 {hiddenSelectedCount > 0 && <span className="quiz-setup__helper">{t('quiz.moreTopicsSelected', { count: hiddenSelectedCount })}</span>}
-              </span>
-            )}
+              </>}
+              <button type="button" onClick={handleSelectAll}>
+                {t(hasCollapsedSubset && !showAllCategories
+                  ? isAllSelected ? 'quiz.deselectVisible' : 'quiz.selectVisible'
+                  : isAllSelected ? 'quiz.deselectAll' : 'quiz.selectAll')}
+              </button>
+            </div>
             {/* Takes no line until it has something to say, so the next
                 section is the panel's one 20px gap below (questions-15). */}
             <div id="categories-error" role="alert" className="quiz-setup__error">
@@ -1075,14 +1074,18 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           </div>
 
           {!authLoading && !isAuthenticated && (
-            <StatePanel inline body={t('quiz.guestSetup')} signIn={{ emphasis: 'secondary' }} />
+            <StatePanel className="quiz-setup__guest" inline body={t('quiz.guestSetup')} signIn={{ emphasis: 'secondary' }} />
           )}
 
           {/* Start: the screen's one primary, SwimCta md. */}
           <div className="quiz-setup__start">
+            <div className="quiz-setup__summary">
+              <p>{t('quiz.setupSummary', { count: questionCount, difficulty: t(`difficulty.${difficultyMode}` as TranslationKey) })}</p>
+              {!attemptedStart && selectedCategories.length === 0 && <p id="quiz-empty-selection" className="quiz-setup__helper">{t('quiz.chooseTopic')}</p>}
+            </div>
             {/* aria-disabled, not disabled: with no category it stays in the
                 Tab order, and pressing it names what is missing. */}
-            <SwimCta label={t('quiz.startQuiz')} onClick={handleStart} dir={1} unavailable={selectedCategories.length === 0} describedBy="categories-error" size="md" />
+            <SwimCta label={t('quiz.startQuiz')} onClick={handleStart} dir={1} unavailable={selectedCategories.length === 0} describedBy={selectedCategories.length === 0 ? attemptedStart ? 'categories-error' : 'quiz-empty-selection' : undefined} size="md" />
           </div>
         </div>
 

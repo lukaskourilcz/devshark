@@ -318,11 +318,13 @@ test.describe('A Frontend learner and Software Engineer', () => {
     await prepare(page);
     await stand(page, 'frontend');
     await page.goto('/learn/web-developer');
-    const onWeb = (await topicCard(page, 'Git').locator('.rm-topic-progress').textContent()) ?? '';
+    const webProgress = topicCard(page, 'Git').locator('.rm-topic-progress');
+    // The topic renders before its level counts finish loading.
+    await expect(webProgress).toHaveText(/^Premium1 \/ \d+ levels$/);
+    const onWeb = (await webProgress.textContent()) ?? '';
     await switcherItem(page, 'Software Engineer').click();
     await expect(page).toHaveURL(/\/learn\/software-engineer$/);
     await expect(topicCard(page, 'Git').locator('.rm-topic-progress')).toHaveText(onWeb);
-    expect(onWeb).toMatch(/^Premium1 \/ \d+ levels$/);
   });
 });
 
