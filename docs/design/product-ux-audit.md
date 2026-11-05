@@ -4,6 +4,12 @@ The route and state inventory design and QA work starts from, the standing rule 
 
 Every route follows the Epic U system (`DESIGN_RULES.md` §10–11, `docs/design/design-system.md`). The route shell sets the width: 1000px for `/`, `/profile`, `/play` and `/play/:code`, 1200px for `/coding/*`, uncapped for `/dev`, and 800px for every other route. Every control is 44px, one `SwimCta` md is the primary, and empty, gate and signed-out states are `StatePanel`. The "Keep / check" column names the shared parts each route draws through.
 
+## Full-platform proposal review — 5 November 2026
+
+The owner requested a new density, hierarchy and focus review after the Coding/Quiz redesign #599. The [interactive before/after HTML](../ux-review-platform-2026-11-05/index.html) contains 27 stable decisions, per-change comments and accept/revise/reject choices. [Research and scope](../ux-review-platform-2026-11-05/REVIEW.md) records native Uizze evidence, measured guest routes and labelled local fixtures; [QA](../ux-review-platform-2026-11-05/QA.md) distinguishes document validation from product acceptance.
+
+These are proposals, not changes to the width/control contract above. The owner-approved Coding first fold is the calibration; original logo, Quiz topic pills/logos and the ocean/sharks stay. Review decisions must precede implementation. Detailed findings live in the linked review, not a second backlog here.
+
 ## Route and state inventory
 
 | Route | Auth | Primary goal and action | Major states | Component | Keep / check |

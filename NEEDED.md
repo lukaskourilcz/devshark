@@ -23,6 +23,10 @@ Task format: `- [ ] **Title** — desc. [imp:1-5] [owner:me|ai] [time:30m] [kind
 - [ ] **Decide React grading's cost and the function settings** — every React Submit starts a Vercel Sandbox VM and uploads the 2 MB grader bundle (#590 reads the bundle once per instance and sends the VM's stop call after the verdict). Baking the bundle into the snapshot with a hash check, and a verdict cache for an exact resubmission, would cut that; both change how grading runs, so they are your call. `vercel.json` also sets no function memory and gives every `api/quiz/roadmap.ts` resource 45 s, where only grading needs it. Say whether to set memory and shorter budgets per resource. [imp:2] [owner:me] [time:15m] [kind:decision]
 - [ ] **Optional: escalate vercel/vercel#16109** — the Node 24 DEP0169 `url.parse` warning on `/api/quiz/roadmap` comes from Vercel's launcher, not devShark code (#477, closed). React to or add a reproduction to the upstream issue if you want it fixed sooner. It changes no behaviour. [imp:1] [owner:me] [time:5m] [kind:decision]
 
+## Full-platform design review
+
+- [ ] **Comment on the whole-platform redesign proposals** — open [the interactive before/after review](docs/ux-review-platform-2026-11-05/index.html), decide on the 27 stable findings and export the comments JSON. This is a new proposal review; #599 remains live. Coding's approved first fold, original logo, Quiz topic pills/logos and ocean/sharks are preserved. [imp:4] [owner:me] [time:45m] [kind:decision]
+
 ## Email sign-in (Supabase Auth)
 
 The code for email and password sign-in is done (`client/src/lib/emailAuth.ts`). These Supabase settings live outside the repo and must be in place before anyone signs up with an email. Nobody checked them against the dashboard on 22 October, so look before you change.
@@ -104,6 +108,7 @@ Stripe resources, prices and every gate before sales open are in `STRIPE_INTEGRA
 
 An agent can do these without you.
 
+- [x] **Prepare the full-platform Uizze design review** — 27 independently commentable decisions, 33 matched before/after pairs across 16 scenes, 19 native MCP calls and 17 inspected reference images. The standalone HTML supports local autosave and validated JSON import/export; 25 document checks passed. See `docs/ux-review-platform-2026-11-05/REVIEW.md` and `QA.md`. This changes review artifacts only; product implementation awaits decisions. [imp:4] [owner:ai] [time:done] [kind:content]
 - [x] **Implement the approved Coding and Quiz redesign** — #599 is merged and READY in Production. Independent Coding reference/feedback panels and clearer Quiz setup are live; the original logo, Quiz topic pills/logos, Learn and the bottom waterline/sharks are preserved. Required CI passed, as did 12 actual guest production route/theme/width flows with no page errors or API writes. See “Coding workspace and Quiz setup redesign — 5 November 2026” in `docs/release-acceptance.md`. [imp:2] [owner:ai] [time:2h] [kind:deploy]
 
 - [ ] **Make the coin purchases safe under a race in migration 067** — the rewards audit (#568) found two routines to tighten: `purchase_streak_protection` (047) debits coins before an UPDATE of `user_streak_freezes` that matches no row if `refresh_streak_freezes` did not create one, which would charge without granting (use INSERT … ON CONFLICT); `purchase_cosmetic` checks ownership before it takes the wallet lock, so two tabs both pass the check (the handler now answers the loser as owned; lock the wallet first or re-check after the lock). Add SQL tests for both. [imp:3] [owner:ai] [time:2h] [kind:deploy]

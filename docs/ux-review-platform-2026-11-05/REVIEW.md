@@ -32,4 +32,14 @@ Primary guidance: [W3C breadcrumbs](https://www.w3.org/WAI/ARIA/apg/patterns/bre
 - Today: `client/src/components/paths/PathResumeSection.tsx:59` emits `today-item*`, while the supplied styling is `today-card*` in `Today.css:111`; no `today-item` selectors exist. This explains the supplied unstyled-link state. Reuse the existing card styling rather than introduce another row system.
 - Profile: `client/src/components/Profile.tsx:315` defines the two columns; AccountDeletionCard currently appears in the right column at line 372, while LearningPathsCard is in the left column.
 
-The HTML and detailed decision cards are in progress. No product CSS, route, auth, grading, server, schema, reward or access rule is changed by this review branch.
+## Deliverable and decisions
+
+Open [the standalone interactive review](index.html). It contains 27 independently commentable decisions, 33 matched screenshot pairs across 16 scenes, the inspected Uizze reference gallery and explicit coverage limits. Each decision has stable ID, evidence, proposed behavior, dependencies and an implementation check. Confirmed defects, owner requests, design proposals and verification conditions are labelled separately.
+
+The full-size editor concept uses `coding / fullstack / linkShortener1.js` with linked real parents, a common right tab strip and a stage row below the card. The following level's display-name rule is camelCase plus the stage number, for example `linkShortener2.js`; native TypeScript contexts retain their corresponding `.ts` label. These are display names, not changes to grading entrypoints. Classic JavaScript uses `digitSum.js`.
+
+The default Coding first fold remains the scale reference. The lower catalogue, focus contract, Today path styling, Profile Account placement, Learn topic hierarchy and Quiz grouping are separate decisions so they can be accepted or revised independently. Original logo, Quiz topic pills/logos and ocean/sharks remain intact. No “Current” stage word, optional-reading warning, Skip to questions or placement-recovery change is proposed.
+
+Comments and decisions autosave in this browser/origin only. Export/import JSON is the transfer mechanism; no automatic message or backend write occurs. An HTML refresh keeps the same storage key and finding IDs. [QA.md](QA.md) records the 25 document checks, screenshot method and limitations; `review-qa.json` binds the results to the HTML SHA-256.
+
+No product CSS, route, auth, grading, server, schema, reward or access rule is changed by this review branch. Implementation starts from the owner's decisions, not from treating these concepts as already approved.
