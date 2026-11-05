@@ -70,8 +70,8 @@
 .quiz-hint__text { flex: 1; min-width: 0; padding-block-start: 5px; font-size: 0.82rem; line-height: 1.6; overflow-wrap: anywhere; }
 .quiz-hint > .astryx-button { flex: none; margin-block-start: -4px; margin-inline-end: -6px; }
 
-/* Setup (UX audit U2, questions-15): the task column, the operational
-   PageHeader 24px above one panel whose sections are one 20px gap apart. */
+/* Setup: the task column and operational header above divided settings.
+   TopicPill keeps its existing logo, shape and selection treatment. */
 .quiz-setup { width: 100%; max-width: var(--ss-width-task); margin: 0 auto; }
 .quiz-setup > .ss-page-header { margin-bottom: 24px; }
 .quiz-setup__panel { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--ss-card-line); }
