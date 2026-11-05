@@ -239,7 +239,7 @@
    the frame (what a 600px frame leaves under a capped brief, the editor's
    toolbar and the action bar), which a taller viewport gives far more. */
 :root {
-  --cd-frame-h: clamp(600px, calc(100dvh - 7rem - 48px), 900px);
+  --cd-frame-h: clamp(360px, calc(100dvh - 160px), 640px);
   --cd-editor-min: 280px;
   --cd-brief-cap: 120px;
 }
@@ -536,20 +536,18 @@
   .cd-tab[data-tab='resources'] .cd-tab__badge { display: none; }
 }
 .cd-output-scroll { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.cd-feedback > .cd-output-scroll[hidden] { display: none; }
 .cd-panel { display: flex; flex-direction: column; gap: 10px; min-height: 160px; }
 .cd-panel[hidden] { display: none; }
 
-/* The Coding section's task-first workspace. Learn and embedded workbenches
-   keep their existing panes; the shared ocean overlay belongs to App.tsx. */
-.cd-workbench--section .cd-workbench__grid {
+/* One task-first card in Coding and embedded Learn editors. */
+.cd-workbench:not(.cd-workbench--landing) .cd-workbench__grid {
   gap: 0;
   border: 1px solid var(--ss-card-line);
   border-radius: var(--radius-container);
   background: var(--color-background-surface);
   overflow: clip;
 }
-.cd-workbench--section {
+.cd-workbench:not(.cd-workbench--landing) {
   --cd-editor-bg: var(--color-background-body);
   --cd-editor-fg: var(--color-text-primary);
   --cd-editor-gutter: var(--color-background-body);
@@ -564,48 +562,45 @@
   --cd-syntax-comment: light-dark(#486b31, #a5d98b);
   --cd-syntax-string: light-dark(#914827, #f4bda3);
 }
-.cd-workbench--section .cd-pane { border: 0; border-radius: 0; }
-.cd-workbench--section .cd-pane--editor { padding: 0; gap: 0; }
-.cd-workbench--section .cd-pane--output { padding: 16px 24px 24px; }
-.cd-workbench--section .cd-editor,
-.cd-workbench--section .cm-editor { border: 0; border-radius: 0; }
-.cd-workbench--section .cd-editor-bar { min-height: 52px; margin: 0; padding: 4px 12px; border-bottom: 1px solid var(--ss-card-line); }
-.cd-editor-bar__label { margin-inline-end: auto; align-self: center; font-size: var(--ss-type-meta); color: var(--color-text-secondary); }
-.cd-workbench--section .cd-editor-actions { margin: 0; padding: 12px 16px; border-top: 1px solid var(--ss-card-line); }
-.cd-workbench--section .cd-actions--commands > .ss-swim-cta { margin-inline-start: auto; }
-.cd-workbench--section .cd-actions--utility { margin-inline-start: 0; }
-.cd-workbench--section .cd-brief__title { font-size: clamp(1.5rem, 2vw, 1.8rem); }
-.cd-workbench--section .cd-complexity { padding-block-start: 12px; border-top: 1px solid var(--ss-card-line); }
+
+.cd-workbench:not(.cd-workbench--landing) .cd-pane { border: 0; border-radius: 0; }
+.cd-workbench:not(.cd-workbench--landing) .cd-pane--editor { padding: 0; gap: 0; }
+.cd-workbench:not(.cd-workbench--landing) .cd-pane--output { padding: 0; }
+.cd-workbench:not(.cd-workbench--landing) .cd-pane--output > .cd-tabs { flex: none; min-height: 52px; padding-inline: 12px; flex-wrap: nowrap; overflow-x: auto; }
+.cd-workbench:not(.cd-workbench--landing) .cd-pane--output > .cd-output-scroll { padding: 20px; }
+.cd-workbench:not(.cd-workbench--landing) .cd-pane--output .cd-brief__body[data-capped='false'] { max-height: none; overflow: visible; }
+.cd-workbench:not(.cd-workbench--landing) .cd-editor,
+.cd-workbench:not(.cd-workbench--landing) .cm-editor { border: 0; border-radius: 0; }
+.cd-workbench:not(.cd-workbench--landing) .cm-editor { font-size: var(--ss-type-compact); }
+.cd-workbench:not(.cd-workbench--landing) .cd-editor-bar { min-height: 52px; margin: 0; padding: 4px 12px; border-bottom: 1px solid var(--ss-card-line); align-items: center; flex-wrap: wrap; }
+.cd-editor-bar__path { margin-inline-end: auto; font-family: var(--cd-mono); }
+.cd-editor-bar__path ol { gap: 0 3px; }
+.cd-editor-bar__path li { gap: 3px; }
+.cd-workbench:not(.cd-workbench--landing) .cd-editor-actions { margin: 0; padding: 12px 16px; border-top: 1px solid var(--ss-card-line); }
+.cd-workbench:not(.cd-workbench--landing) .cd-actions--commands > .ss-swim-cta { margin-inline-start: auto; }
+.cd-workbench:not(.cd-workbench--landing) .cd-brief__title { font-size: 1.375rem; }
+.cd-workbench:not(.cd-workbench--landing) .cd-prompt { font-size: var(--ss-type-compact); line-height: 1.65; }
+.cd-prompt-group { display: grid; gap: 12px; }
+.cd-workbench:not(.cd-workbench--landing) .cd-complexity { margin-top: 0; padding-top: 4px; border: 0; font-size: var(--ss-type-meta); }
 .cd-brief-examples { margin-block: 12px; }
 .cd-brief-examples h2 { font-size: var(--ss-type-compact); }
 .cd-brief-examples ul { display: grid; gap: 8px; list-style: none; margin: 12px 0 0; padding: 0; }
 .cd-brief-examples li { font-size: var(--ss-type-meta); overflow-wrap: anywhere; }
 .cd-brief-examples code { font-family: var(--cd-mono); white-space: pre-wrap; }
-.cd-feedback { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; border-top: 1px solid var(--ss-card-line); }
-.cd-feedback__resize { position: absolute; top: -6px; inset-inline: 0; height: 12px; cursor: row-resize; touch-action: none; z-index: 1; }
-.cd-feedback__resize::before { content: ''; position: absolute; height: 2px; inset-inline: 0; top: 5px; background: transparent; }
-.cd-feedback__resize:hover::before, .cd-feedback__resize:focus-visible::before { background: var(--brand-accent); }
-.cd-feedback__resize:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: -2px; }
-.cd-feedback__toolbar { display: flex; align-items: center; gap: 8px; padding-inline: 12px; border-bottom: 1px solid var(--ss-card-line); }
-.cd-feedback__toolbar > .cd-tabs { flex: 1; min-width: 0; border-bottom: 0; }
-.cd-feedback__toggle { flex: none; font-size: var(--ss-type-meta); }
-.cd-feedback > .cd-output-scroll { padding: 16px; }
-.cd-workbench--section .cd-pane--controls { border-top: 1px solid var(--ss-card-line); }
+.cd-workbench:not(.cd-workbench--landing) .cd-tab { position: relative; border: 0; border-radius: 0; background: transparent; box-shadow: none; padding-inline: 10px; font-size: var(--ss-type-compact); flex: none; }
+.cd-workbench:not(.cd-workbench--landing) .cd-tab .ss-fin-hover { display: none; }
+.cd-workbench:not(.cd-workbench--landing) .cd-tab[aria-selected='true']::after { content: ''; position: absolute; inset-inline: 10px; bottom: 4px; height: 6px; background: var(--brand-accent); mask: var(--ss-wave) repeat-x left center / 24px 6px; }
+.cd-workbench:not(.cd-workbench--landing) .cd-pane--controls { border-top: 1px solid var(--ss-card-line); }
 @media (min-width: 1024px) {
-  .cd-workbench--section .cd-workbench__grid { grid-template-rows: minmax(0, calc(var(--cd-frame-h) - var(--cd-feedback-height))) var(--cd-feedback-height); }
-  .cd-workbench--section .cd-pane--output { grid-row: 1 / 3; }
-  .cd-workbench--section .cd-splitter { grid-row: 1 / 3; }
-  .cd-workbench--section .cd-feedback { grid-column: 1; grid-row: 2; contain: size; }
-  .cd-workbench--section .cd-pane--controls { grid-row: 3; }
-  .cd-workbench--section[data-feedback-collapsed='true'] .cd-workbench__grid { grid-template-rows: minmax(0, calc(var(--cd-frame-h) - 52px)) 52px; }
+  .cd-page:has(> .cd-stage-nav) .cd-workbench { --cd-frame-h: clamp(360px, calc(100dvh - 216px), 584px); }
+  .cd-workbench:not(.cd-workbench--landing) .cd-pane--editor { overflow: hidden; }
+  .cd-workbench:not(.cd-workbench--landing) .cd-pane--controls { grid-column: 1 / -1; grid-row: 2; }
 }
 @media (max-width: 1023px) {
-  .cd-workbench--section .cd-pane--output { padding: 12px 16px 20px; }
-  .cd-workbench--section .cd-pane--editor { border-top: 1px solid var(--ss-card-line); }
-  .cd-feedback > .cd-output-scroll { max-height: min(var(--cd-feedback-height), 60dvh); overflow-y: auto; }
-  .cd-feedback__toolbar { gap: 0; padding-inline: 4px; }
-  .cd-feedback__toggle { padding-inline: 8px; }
-  .cd-feedback__resize { display: none; }
+  .cd-workbench:not(.cd-workbench--landing) .cd-pane--output > .cd-output-scroll { max-height: 48dvh; overflow-y: auto; }
+  .cd-workbench:not(.cd-workbench--landing) .cd-pane--editor { border-top: 1px solid var(--ss-card-line); }
+  .cd-workbench:not(.cd-workbench--landing) .cd-editor-bar { padding-inline: 8px; }
+  .cd-editor-bar__path { flex-basis: 100%; }
 }
 /* The React preview while a suite runs under another tab: laid out, so focus
    can move inside the frame, but off-screen, inert to the pointer and hidden
