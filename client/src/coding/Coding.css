@@ -968,3 +968,7 @@
 
 .cd-editor-bar .cd-save { border-color: transparent; }
 .cd-editor-bar .cd-save svg { width: 18px; height: 18px; }
+
+@media (max-width: 1023px) {
+  .cd-workbench--activity .cd-pane--output { order: -1; }
+}
