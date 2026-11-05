@@ -1,0 +1,172 @@
+[
+  {
+    "id": "profile-fixture-light-1280",
+    "name": "profile",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "current built UI with local fictional account/API fixtures",
+    "error": null,
+    "pageErrors": [],
+    "unknownReads": [],
+    "localFixtureWrites": []
+  },
+  {
+    "id": "today-fixture-light-1280",
+    "name": "today",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "current built UI with local fictional account/API fixtures",
+    "error": null,
+    "pageErrors": [],
+    "unknownReads": [
+      {
+        "path": "/api/user/[op]",
+        "op": "practice-session",
+        "resource": null
+      },
+      {
+        "path": "/api/user/[op]",
+        "op": "practice-session",
+        "resource": null
+      }
+    ],
+    "localFixtureWrites": []
+  },
+  {
+    "id": "quiz-active-fixture-light-1280",
+    "name": "quiz-active",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "current built UI with local fictional account/API fixtures",
+    "error": null,
+    "pageErrors": [],
+    "unknownReads": [],
+    "localFixtureWrites": []
+  },
+  {
+    "id": "quiz-result-fixture-light-1280",
+    "name": "quiz-result",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "current built UI with local fictional account/API fixtures",
+    "error": null,
+    "pageErrors": [],
+    "unknownReads": [],
+    "localFixtureWrites": [
+      "POST /api/quiz/submit"
+    ]
+  },
+  {
+    "id": "challenge-active-fixture-light-1280",
+    "name": "challenge-active",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "current built UI with local fictional account/API fixtures",
+    "error": null,
+    "pageErrors": [],
+    "unknownReads": [],
+    "localFixtureWrites": []
+  },
+  {
+    "id": "fde-module-fixture-light-1280",
+    "name": "fde-module",
+    "theme": "light",
+    "width": 1280,
+    "height": 800,
+    "source": "current built UI with local fictional account/API fixtures",
+    "error": null,
+    "pageErrors": [],
+    "unknownReads": [],
+    "localFixtureWrites": []
+  },
+  {
+    "id": "profile-fixture-dark-1280",
+    "name": "profile",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "current built UI with local fictional account/API fixtures",
+    "error": null,
+    "pageErrors": [],
+    "unknownReads": [],
+    "localFixtureWrites": []
+  },
+  {
+    "id": "today-fixture-dark-1280",
+    "name": "today",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "current built UI with local fictional account/API fixtures",
+    "error": null,
+    "pageErrors": [],
+    "unknownReads": [
+      {
+        "path": "/api/user/[op]",
+        "op": "practice-session",
+        "resource": null
+      },
+      {
+        "path": "/api/user/[op]",
+        "op": "practice-session",
+        "resource": null
+      }
+    ],
+    "localFixtureWrites": []
+  },
+  {
+    "id": "quiz-active-fixture-dark-1280",
+    "name": "quiz-active",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "current built UI with local fictional account/API fixtures",
+    "error": null,
+    "pageErrors": [],
+    "unknownReads": [],
+    "localFixtureWrites": []
+  },
+  {
+    "id": "quiz-result-fixture-dark-1280",
+    "name": "quiz-result",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "current built UI with local fictional account/API fixtures",
+    "error": null,
+    "pageErrors": [],
+    "unknownReads": [],
+    "localFixtureWrites": [
+      "POST /api/quiz/submit"
+    ]
+  },
+  {
+    "id": "challenge-active-fixture-dark-1280",
+    "name": "challenge-active",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "current built UI with local fictional account/API fixtures",
+    "error": null,
+    "pageErrors": [],
+    "unknownReads": [],
+    "localFixtureWrites": []
+  },
+  {
+    "id": "fde-module-fixture-dark-1280",
+    "name": "fde-module",
+    "theme": "dark",
+    "width": 1280,
+    "height": 800,
+    "source": "current built UI with local fictional account/API fixtures",
+    "error": null,
+    "pageErrors": [],
+    "unknownReads": [],
+    "localFixtureWrites": []
+  }
+]

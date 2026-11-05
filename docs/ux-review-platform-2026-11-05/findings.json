@@ -11,7 +11,8 @@
     "evidence": "client/src/components/ui/pageWidth.ts:21; observations.json: learn-dark-1280, coding-dark-1280, quiz-dark-1280.",
     "reference": "GitBook",
     "checks": "Ověřit 1280×800, 1440×900, 390 px a reflow při 320 CSS px. Měnit sdílený route token, ne přidávat page max-width na každou stránku.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Požadavek vlastníka"
   },
   {
     "id": "SYS-02",
@@ -25,7 +26,8 @@
     "evidence": "client/src/styles/astryx-theme.css:28; client/src/components/DailyQuestionPage.tsx:67; měřené fonty v observations.json.",
     "reference": "Svelte",
     "checks": "Zachovat uživatelské zvětšení textu, ověřit 200 % a dlouhý obsah. Velikost textu nesmí určovat velikost klikací plochy.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Požadavek vlastníka"
   },
   {
     "id": "SYS-03",
@@ -39,7 +41,8 @@
     "evidence": "client/src/components/coding/CodingSection.tsx:574; client/src/components/paths/LearningPathScreens.tsx; dosavadní route titulky.",
     "reference": "GitBook",
     "checks": "nav aria-label, oddělovače skryté asistivním technologiím, aria-current=page, wrapping. Návrat zachová filtr nebo téma v URL.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Požadavek vlastníka"
   },
   {
     "id": "SYS-04",
@@ -53,7 +56,8 @@
     "evidence": "client/src/App.tsx:562; public guest Coding/Daily a lokální aktivní Quiz/Challenge.",
     "reference": "Duolingo",
     "checks": "Návrat obnoví chrome. Ověřit reload, Back, expired/offline, obnovení draftu a každé spuštění aktivity. Skrývání nesmí měnit hodnocení, čas ani progress.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Požadavek vlastníka"
   },
   {
     "id": "SYS-05",
@@ -67,7 +71,8 @@
     "evidence": "DESIGN_RULES.md §10; client/src/components/question/question.css; W3C reflow, contrast a enhanced targets.",
     "reference": "GOV.UK Design System",
     "checks": "Klávesnice, čtečka, hover/focus tooltip, 200 % text, 320 CSS px, reduced motion, kontrast obou témat. 44 px je zde produktový kontrakt; W3C enhanced target criterion je AAA.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Podmínka ověření"
   },
   {
     "id": "COD-01",
@@ -81,7 +86,8 @@
     "evidence": "client/src/coding/CodingWorkbench.tsx:1414; client/src/coding/Coding.css:545; produkční /coding/javascript/js-digit-sum.",
     "reference": "Svelte",
     "checks": "Jeden ARIA tablist, šipky/Home/End, správné tabpanely a focus. Na úzké obrazovce obsah logicky skládat bez slepého zmenšení dvou sloupců.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Požadavek vlastníka"
   },
   {
     "id": "COD-02",
@@ -95,7 +101,8 @@
     "evidence": "client/src/coding/CodingWorkbench.tsx:1282; client/src/components/coding/CodingSection.tsx:1044; explicitní poslední zadání vlastníka.",
     "reference": "GitBook",
     "checks": "Ověřit deterministické camelCase názvy, čísla levelů, znaky a dlouhé tituly. FullStack vede /coding/fullstack, klasické cvičení do jazyka, debugging do skutečné galerie. Žádný nadpis před kartou.",
-    "dependency": "Použít existující task/stage metadata; názvy a kontext odvodit na jednom místě. UI label nesmí měnit sandbox kontrakt."
+    "dependency": "Použít existující task/stage metadata; názvy a kontext odvodit na jednom místě. UI label nesmí měnit sandbox kontrakt.",
+    "basis": "Požadavek vlastníka"
   },
   {
     "id": "COD-03",
@@ -109,7 +116,8 @@
     "evidence": "client/src/coding/CodingWorkbench.tsx:1282–1358; actionBar a editorBar.",
     "reference": "Hoppscotch",
     "checks": "Všechny dostupné funkce zůstávají dosažitelné klávesnicí; tooltip při hover i focus, alespoň 44px zásah. Žádná nová potvrzovací vrstva pro běžný Skip.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Požadavek vlastníka"
   },
   {
     "id": "COD-04",
@@ -123,7 +131,8 @@
     "evidence": "client/src/coding/CodingWorkbench.tsx:1294; stávající solution/reveal/session pravidla; požadavek vlastníka.",
     "reference": "Svelte",
     "checks": "Pokrýt bez Submit, lokální Run pass/fail, server fail/pass, neplatný/expirující session a guest/free/locked varianty. Žádné načítání answer payloadu před oprávněním.",
-    "dependency": "Existující serverové podmínky přístupu mají přednost. Audit nepovoluje změnu gradingu, reveal pravidel ani endpointů."
+    "dependency": "Existující serverové podmínky přístupu mají přednost. Audit nepovoluje změnu gradingu, reveal pravidel ani endpointů.",
+    "basis": "Požadavek vlastníka"
   },
   {
     "id": "COD-05",
@@ -137,7 +146,8 @@
     "evidence": "client/src/coding/CodingWorkbench.tsx:1253; client/src/coding/Coding.css:578; client/src/coding/description.ts již odstraňuje Target při zobrazení.",
     "reference": "Hoppscotch",
     "checks": "Pokrýt classic/evolving/FullStack/React/TS, žádná komplexita za glossary. Neodstranit věcná omezení nebo požadavky, které jsou pouze uvnitř původního Target textu.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Požadavek vlastníka"
   },
   {
     "id": "COD-06",
@@ -151,7 +161,8 @@
     "evidence": "client/src/components/coding/CodingSection.tsx:1044; StageNav; dodaný snímek 2.47.25.",
     "reference": "Khan Academy",
     "checks": "aria-current=step, přístupný text pro vybraný/dokončený stav a konkrétní podmínka zamčení. Zachovat stage draft a return. Přesun nemění Premium ani prerequisite pravidla.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Požadavek vlastníka"
   },
   {
     "id": "COD-07",
@@ -165,7 +176,8 @@
     "evidence": "client/src/components/coding/CodingSection.tsx:517; .cd-projects, .cd-fullstack-feature a .cd-techniques v Coding.css.",
     "reference": "Webflow",
     "checks": "Volbu uložit do URL, zajistit Back a deep link. Klávesnicí projít všechny formáty, Show all a techniky. Nezměnit počty, pořadí doporučené challenge ani unlock pravidla.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Požadavek vlastníka"
   },
   {
     "id": "COD-08",
@@ -179,7 +191,8 @@
     "evidence": "client/src/coding/Coding.css:44; owner screenshot 2.36.05 a light production capture.",
     "reference": "Khan Academy",
     "checks": "Porovnat v obou tématech; textový kontrast ověřit skutečným měřením při implementaci. Loading/error nenahrazovat náhodnou jinou challenge. Pořadí doporučení zachovat.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Požadavek vlastníka"
   },
   {
     "id": "COD-09",
@@ -193,7 +206,8 @@
     "evidence": "client/src/components/coding/CodingSection.tsx:588; existing query/status/difficulty/format/saved filters.",
     "reference": "Super Productivity",
     "checks": "Empty/no match/reset filters, Premium, stale progress, long title, keyboard row actions a návrat z challenge se stejnými filtry.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Designový návrh"
   },
   {
     "id": "LEA-01",
@@ -207,7 +221,8 @@
     "evidence": "client/src/components/Roadmap.tsx:1057; client/src/components/learn/SectionRail.tsx; rm-overview-card a rm-path-canvas.",
     "reference": "Khan Academy",
     "checks": "Zachovat šipky a focus na zamčené téma s důvodem, stejná data a prerequisity. Dlouhá mapa se může scrollovat; nesmí být zmenšena do nečitelna. Jde o nový návrh, ne změnu již schválené Learn implementace.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Designový návrh"
   },
   {
     "id": "LEA-02",
@@ -221,7 +236,8 @@
     "evidence": "client/src/components/Roadmap.tsx:1130–1260; existující rm-part-nav, MasteryLegend a mapa.",
     "reference": "Khan Academy",
     "checks": "Ověřit shodu part jump a mapových uzlů před odebráním. Zachovat Placement recovery beze změny; nepřidávat dříve odmítnutý text ani tlačítko.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Designový návrh"
   },
   {
     "id": "QUI-01",
@@ -235,7 +251,8 @@
     "evidence": "client/src/components/Quiz.tsx:1005; client/src/components/Quiz.css:80; TopicPill se nemění.",
     "reference": "Brilliant",
     "checks": "0 témat, skrytá vybraná témata, difficulty gate, změna počtu, obnovené preference, loading/offline. Start pouze jednou, souhrn přesně odráží výběr.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Designový návrh"
   },
   {
     "id": "QUI-02",
@@ -249,7 +266,8 @@
     "evidence": "client/src/components/question/question.css:12–57; client/src/components/Quiz.tsx:1380; lokální fixture typeof null.",
     "reference": "Duolingo",
     "checks": "Dlouhá/multiline otázka a odpovědi, 1–4/Enter, Previous, report, timer expiry a retry po offline Submit. Výšku měnit stabilně po načtení otázky, ne při kliknutí na odpověď.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Designový návrh"
   },
   {
     "id": "QUI-03",
@@ -263,7 +281,8 @@
     "evidence": "client/src/components/Quiz.tsx:1136–1260; client/src/components/Quiz.css:16,115; lokální výsledek 1/2 je smyšlený fixture.",
     "reference": "Duolingo",
     "checks": "Save pending/failed/confirmed, žádné duplicitní XP, chybějící/retired otázky, all-correct/none-correct, filtr chyb a scroll/focus na první chybu.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Designový návrh"
   },
   {
     "id": "TOD-01",
@@ -277,7 +296,8 @@
     "evidence": "client/src/components/paths/PathResumeSection.tsx:59; client/src/components/Today.css:111; owner screenshot 2.44.01; lokální enrolled fixture reprodukuje chybu.",
     "reference": "Khan Academy",
     "checks": "Každá aktivní enrollment má pouze serverem určenou next activity. Loading/empty/paused/completed nesmějí ukazovat falešnou náhradu. Premium continue zachová existující gate.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Potvrzená chyba"
   },
   {
     "id": "PRO-01",
@@ -291,7 +311,8 @@
     "evidence": "client/src/components/Profile.tsx:315–372; vlastník screenshot 2.41.44.",
     "reference": "Nuxt Dashboard",
     "checks": "DOM pořadí odpovídá vizuálnímu pořadí. Žádné volání logout/delete v review. Implementace musí zachovat focus po zrušení, chybové stavy a potvrzení odstranění.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Požadavek vlastníka"
   },
   {
     "id": "PRO-02",
@@ -305,7 +326,8 @@
     "evidence": "client/src/components/Profile.tsx:300–378; StreakCard a CareerCard; lokální Test Learner fixture.",
     "reference": "Nuxt Dashboard",
     "checks": "Bez ztráty nulových, unavailable a dlouhých názvů. Sharkname cooldown a nezávislá identita Friends/Leaderboard zůstávají. Žádná změna XP, hodností nebo streak ochrany.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Designový návrh"
   },
   {
     "id": "PTH-01",
@@ -319,7 +341,8 @@
     "evidence": "client/src/components/paths/LearningPathScreens.tsx; lp-head / lp-section; lokální enrolled FDE m01 fixture.",
     "reference": "Webflow",
     "checks": "Availability/withdrawn/entry gate, enrollment pending, resumable next activity, Read/Check/Code/Artifact rozdíly. Aktivní code/question přechází do společného focus mode.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Designový návrh"
   },
   {
     "id": "EXT-01",
@@ -333,7 +356,8 @@
     "evidence": "observations.json: challenge, play, play-room, cards, typing; lokální Challenge active fixture.",
     "reference": "Brilliant",
     "checks": "Před implementací autentizované fixture pro host/join/reconnect/finished Play a Cards. Nezakládat reálné rooms, výsledky nebo skóre kvůli review. End/Cancel run zůstává v jednom řádku s Completed challenges stay saved., bez nové potvrzovací vrstvy.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Designový návrh"
   },
   {
     "id": "EXT-02",
@@ -347,7 +371,8 @@
     "evidence": "client/src/components/ui/pageWidth.ts; observations.json: leaderboard, shop, collection, cards, roadmap.",
     "reference": "Nuxt Dashboard",
     "checks": "Empty/error/loading, privacy identity, sezóna vs overall, long nickname, pagination. Premium a kosmetika nesmějí ovlivnit score/XP/ranking.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Designový návrh"
   },
   {
     "id": "EXT-03",
@@ -361,7 +386,8 @@
     "evidence": "observations.json: premium, checkout, auth/confirmed, reset-password, privacy, terms, guide, not-found, classroom. Neověřuje placený checkout ani admin UI.",
     "reference": "Sentry",
     "checks": "Při implementaci ceny a billing copy beze změny bez výslovného zadání. Accessible auth errors, expired link a recovery. /dev pouze autorizovaný fixture audit; guest gate není audit admin rozhraní.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Designový návrh"
   },
   {
     "id": "STA-01",
@@ -375,6 +401,7 @@
     "evidence": "AGENTS.md screen-state contract; docs/release-acceptance.md; existující StatePanel/QuestionShell/CodingWorkbench.",
     "reference": "GOV.UK Design System",
     "checks": "Před merge cílené browser ověření změněných toků a required verify + sql. Samostatně schválit návrhy v tomto review; audit nic z toho automaticky neimplementuje.",
-    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny."
+    "dependency": "Sdílené Astryx / Deep End tokeny a existující komponenty. Bez nové UI knihovny.",
+    "basis": "Podmínka ověření"
   }
 ]

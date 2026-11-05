@@ -1,0 +1,98 @@
+[
+  {
+    "id": "coding-home",
+    "title": "Coding · schválený úvod",
+    "note": "Mění se pouze odlišení Next challenge. Šířka, čtyři tracky, fonty, logo a oceán zůstávají měřítkem.",
+    "source": "guest"
+  },
+  {
+    "id": "coding-discovery",
+    "title": "Coding · spodní katalog",
+    "note": "Před: spodní část po scrollu. Po: Evolving jako vybraný formát v lokální navigaci; ostatní formáty zůstávají v menu. Statická ukázka navigace.",
+    "source": "guest"
+  },
+  {
+    "id": "coding-track",
+    "title": "Coding · JavaScript katalog",
+    "note": "Zachované filtry a řádky; kontext sjednocen do breadcrumbs.",
+    "source": "guest"
+  },
+  {
+    "id": "workbench",
+    "title": "Coding · Description a editor",
+    "note": "Stejná Digit sum úloha a starter. Po: navigace skrytá, jeden workspace, společný pravý tabstrip, utility nahoře. Mobilní Před je původní nabídka desktopového editoru; Po ukazuje zvolený Use the editor here, nic se neodesílá.",
+    "source": "guest"
+  },
+  {
+    "id": "workbench-results",
+    "title": "Coding · vybraný Results tab",
+    "note": "Návrh polohy Results ještě před Run: stejné veřejné testy, žádný vymyšlený pass. Solution se nezobrazuje. Nejde o skutečně spuštěný běh.",
+    "source": "guest"
+  },
+  {
+    "id": "evolving",
+    "title": "FullStack · Link shortener, level 1",
+    "note": "Po: coding / fullstack / linkShortener1.js; skutečný rodič je FullStack. Level navigace je pod kartou, bez vnějšího názvu nad editorem. Dlouhý Description má vlastní scroll.",
+    "source": "guest"
+  },
+  {
+    "id": "learn",
+    "title": "Learn · téma HTML",
+    "note": "Stejná témata, loga, uzamčení, Continue a mapa. Po: topic rail vlevo, obsah vpravo; na telefonu rail nad obsahem.",
+    "source": "guest"
+  },
+  {
+    "id": "quiz-setup",
+    "title": "Quiz · nastavení",
+    "note": "Pills s logy zůstávají přesně současné. Po: přeskupení Topics / Questions / Difficulty a jedna Start akce.",
+    "source": "guest"
+  },
+  {
+    "id": "quiz-active",
+    "title": "Quiz · aktivní otázka",
+    "note": "Smyšlený lokální účet, dvě fixture otázky. Před již správně skrývá navigaci. Po mění šířku a prázdný minimální blok, žádná správná odpověď není předem odhalena.",
+    "source": "fixture"
+  },
+  {
+    "id": "quiz-results",
+    "title": "Quiz · výsledky a review",
+    "note": "Smyšlený lokální výsledek 1/2. API odpovědi jsou zachycené na zařízení, bez serverového receipt; stav „could not be saved“ je ponechán pravdivě. Žádný reálný výsledek ani XP se neukládá.",
+    "source": "fixture"
+  },
+  {
+    "id": "daily",
+    "title": "Daily · jedna otázka",
+    "note": "Stejná veřejná otázka, bez kontroly odpovědi. Po: pracovní nadpis, lokální návrat a žádná globální navigace.",
+    "source": "guest"
+  },
+  {
+    "id": "today",
+    "title": "Today · plán a Learning paths",
+    "note": "Smyšlené enrollment FDE a lokální next activity. Před reprodukuje neostylovaný odkaz; Po používá existující Today card anatomii.",
+    "source": "fixture"
+  },
+  {
+    "id": "profile",
+    "title": "Profile · Track and Sections → Account",
+    "note": "Smyšlený Test Learner, XP/streaky a sharkname jsou fixture. Obě obrazovky jsou posunuté do oblasti nastavení. Po: celá Account karta vlevo přímo po Track and Sections. Žádná destruktivní akce nebyla spuštěna.",
+    "source": "fixture"
+  },
+  {
+    "id": "fde-module",
+    "title": "FDE · Customer discovery",
+    "note": "Stejný veřejný manifest a smyšlená lokální enrollment. Po: přehled + rozbalitelné cíle vlevo, současné aktivity vpravo.",
+    "source": "fixture"
+  },
+  {
+    "id": "leaderboard",
+    "title": "Leaderboard · kontext a šířka",
+    "note": "Ukázka pouze společného shellu a pracovního kontextu; žádná změna rankingu, identity nebo dat.",
+    "source": "guest"
+  },
+  {
+    "id": "premium",
+    "title": "Premium · širší porovnání",
+    "note": "Vizuální koncept společné šířky a typografie. Ceny, nabídka a billing chování se nemění; nejde o návrh nového obchodního modelu.",
+    "source": "guest"
+  }
+]
