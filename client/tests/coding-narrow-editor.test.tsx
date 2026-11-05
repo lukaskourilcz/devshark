@@ -75,6 +75,21 @@ it('waits for a bigger screen by default in one note with its one button, and ke
   expect(document.querySelectorAll('.cd-note')).toHaveLength(1);
 });
 
+it('keeps section task checks readable on a phone before the editor is requested', () => {
+  render(<MemoryRouter><LanguageProvider>
+    <CodingWorkbench task={task} initialCode={null} session="s" locked={null} signedIn mode="section" />
+  </LanguageProvider></MemoryRouter>);
+  expect(screen.queryByLabelText('Test editor')).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Run' })).toBeNull();
+  expect(screen.getByRole('tabpanel', { name: 'Description' })).toBeVisible();
+  expect(screen.getByRole('tabpanel', { name: /^Results/ })).toBeVisible();
+  expect(screen.getByRole('button', { name: 'Use the editor here' })).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Hide output' }));
+  expect(screen.queryByRole('tabpanel', { name: /^Results/ })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Show output' }));
+  expect(screen.getByRole('tabpanel', { name: /^Results/ })).toBeVisible();
+});
+
 it('opens the editor with Run and Submit on a narrow screen when the learner asks, and keeps that choice for the session', () => {
   mount();
   fireEvent.click(screen.getByRole('button', { name: 'Use the editor here' }));

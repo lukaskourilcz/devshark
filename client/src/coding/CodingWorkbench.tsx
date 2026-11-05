@@ -1469,7 +1469,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
             {!puzzleMode && !pendingOnDesktop && actionBar}
           </section>
 
-          {sectionLayout && editorMounted && <section className="cd-feedback" hidden={!editorShown} aria-label={workbenchCopy('coding.feedback.label')}>
+          {sectionLayout && <section className="cd-feedback" aria-label={workbenchCopy('coding.feedback.label')}>
             {!feedbackCollapsed && <div className="cd-feedback__resize" role="separator" tabIndex={0}
               aria-orientation="horizontal" aria-label={workbenchCopy('coding.feedback.resize')}
               aria-valuenow={layout.feedbackHeight} aria-valuemin={FEEDBACK_MIN} aria-valuemax={FEEDBACK_MAX}

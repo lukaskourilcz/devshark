@@ -582,7 +582,6 @@
 .cd-brief-examples li { font-size: var(--ss-type-meta); overflow-wrap: anywhere; }
 .cd-brief-examples code { font-family: var(--cd-mono); white-space: pre-wrap; }
 .cd-feedback { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; border-top: 1px solid var(--ss-card-line); }
-.cd-feedback[hidden] { display: none; }
 .cd-feedback__resize { position: absolute; top: -6px; inset-inline: 0; height: 12px; cursor: row-resize; touch-action: none; z-index: 1; }
 .cd-feedback__resize::before { content: ''; position: absolute; height: 2px; inset-inline: 0; top: 5px; background: transparent; }
 .cd-feedback__resize:hover::before, .cd-feedback__resize:focus-visible::before { background: var(--brand-accent); }
