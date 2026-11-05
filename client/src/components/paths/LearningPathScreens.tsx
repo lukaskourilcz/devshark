@@ -1107,13 +1107,13 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
           </div>
           <h1>{module.title}</h1>
           {module.outcomes[0] && <p className="lp-lead">{module.outcomes[0]}</p>}
-          <details className="lp-objectives"><summary>{t('paths.outcomes')}</summary>
+          {module.outcomes.length > 1 && <details className="lp-objectives"><summary>{t('paths.outcomes')}</summary>
           <ul className="lp-module__outcomes">
-            {module.outcomes.map((outcome, index) => (
+            {module.outcomes.slice(1).map((outcome, index) => (
               <li key={index}>{outcome}</li>
             ))}
           </ul>
-          </details>
+          </details>}
         </div>
         {!activityId && (target || ctaPending) && (
           <div className="lp-head__actions" aria-busy={!target || undefined}>

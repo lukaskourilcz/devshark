@@ -570,20 +570,8 @@ export function LessonRunner({
     // wide page (1200px), so the workbench has the same frame and editor size
     // as on /coding (UX audit coding-03). Reading and quiz phases stay narrow.
     return (
-      <div className="cd-page ss-wide-page" style={{ flex: 1, minHeight: 0, overflowY: 'auto', gap: 12, paddingBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <AxButton isIconOnly icon={<CloseIcon size={18} />} variant="ghost" size="md" label={t('roadmap.exit')} onClick={onExit} />
-          <span style={{ fontWeight: 700, backgroundColor: `${accent}22`, color: 'var(--color-text-primary)', borderRadius: 999, padding: '2px 10px', fontSize: '0.8125rem', display: 'inline-block' }}>
-            {`${t('roadmap.levelLabel', { n: playable.ref })} · ${playable.title}`}
-          </span>
-          <Kicker style={{ marginLeft: 'auto' }}>{t('coding.lesson.kicker')} · {t('coding.lesson.counter', { n: codingIndex + 1, total: codingTasks.length })}</Kicker>
-        </div>
-        <p ref={codingIntroRef} tabIndex={-1} style={{ margin: 0, color: 'var(--color-text-secondary)' }}>{t('coding.lesson.intro')} {t('coding.lesson.giveUpNote')}</p>
-        <div className="cd-actions">
-          <a className="cd-link" target="_blank" rel="noopener noreferrer" href={`/coding/${current.task.track}/${current.task.id}#learn=${encodeURIComponent(current.session)}`}>{t('coding.lesson.openTab')}</a>
-          {user && <AxButton variant="secondary" label={t('coding.lesson.checkCompletion')} onClick={() => void checkCoding()} isDisabled={completing} />}
-        </div>
-        {answerError && <div role="alert" className="cd-note cd-note--error">{answerError}</div>}
+      <div className="cd-page ss-wide-page" data-activity="active" style={{ flex: 1, minHeight: 0, overflowY: 'auto', gap: 12, paddingBottom: 24 }}>
+        <p ref={codingIntroRef} tabIndex={-1} className="cd-visually-hidden">{t('coding.lesson.intro')} {t('coding.lesson.giveUpNote')}</p>
         <LessonCodingTask
           key={current.task.id}
           task={current.task}
@@ -596,6 +584,18 @@ export function LessonRunner({
             else void complete();
           }}
         />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <AxButton isIconOnly icon={<CloseIcon size={18} />} variant="ghost" size="md" label={t('roadmap.exit')} onClick={onExit} />
+          <span style={{ fontWeight: 700, backgroundColor: `${accent}22`, color: 'var(--color-text-primary)', borderRadius: 999, padding: '2px 10px', fontSize: '0.8125rem', display: 'inline-block' }}>
+            {`${t('roadmap.levelLabel', { n: playable.ref })} · ${playable.title}`}
+          </span>
+          <Kicker style={{ marginLeft: 'auto' }}>{t('coding.lesson.kicker')} · {t('coding.lesson.counter', { n: codingIndex + 1, total: codingTasks.length })}</Kicker>
+        </div>
+        <div className="cd-actions">
+          <a className="cd-link" target="_blank" rel="noopener noreferrer" href={`/coding/${current.task.track}/${current.task.id}#learn=${encodeURIComponent(current.session)}`}>{t('coding.lesson.openTab')}</a>
+          {user && <AxButton variant="secondary" label={t('coding.lesson.checkCompletion')} onClick={() => void checkCoding()} isDisabled={completing} />}
+        </div>
+        {answerError && <div role="alert" className="cd-note cd-note--error">{answerError}</div>}
         {/* The solution the learner asked for stays on screen: the attempt
             ends when they finish the level, not the moment it opens. */}
         {solutionShown && (
