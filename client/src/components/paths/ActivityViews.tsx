@@ -7,7 +7,9 @@
 
 import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { ComplexityInfo } from '../../coding/CodingCompletion';
-import { BriefZone } from '../../coding/BriefZone';
+import { Breadcrumb, type BreadcrumbItem } from '../ui/Breadcrumb';
+import { codingFilename } from '../../coding/filename';
+import { waveVariantClass, waveVariantFor } from '../../lib/waveBank';
 import { descriptionText } from '../../coding/description';
 import { workbenchCopy } from '../../i18n/translations.workbench';
 import { useT } from '../../i18n/LanguageContext';
@@ -332,6 +334,10 @@ function useDraftQueue<T>(send: (value: T) => void): (value: T) => void {
 
 export function CodeActivity({
   code,
+  title = 'Code exercise',
+  ancestry = [],
+  onClose,
+  titleRef,
   fixtureNote,
   draft,
   result,
@@ -342,6 +348,10 @@ export function CodeActivity({
   submitBlocked = false,
 }: {
   code: PathCodePayload;
+  title?: string;
+  ancestry?: BreadcrumbItem[];
+  onClose?: () => void;
+  titleRef?: React.Ref<HTMLHeadingElement>;
   /** Says the fixture is deliberately unfamiliar and what "done" means.
    * Shown above the editor. */
   fixtureNote?: string;
@@ -402,6 +412,11 @@ export function CodeActivity({
     [hints, approach],
   );
 
+  const [tab, setTab] = useState<'description' | 'results' | 'console'>('description');
+  const tabId = useId();
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const tabs = ['description', 'results', 'console'] as const;
+  useEffect(() => { if (result) setTab('results'); }, [result]);
   const verdict = result?.code ?? null;
   const submitUnavailable = busy || submitBlocked || source.trim().length === 0;
 
@@ -412,29 +427,14 @@ export function CodeActivity({
   // ss-wide-page widens the route box to the wide page while it is mounted.
   return (
     <div className="cd-page cd-workbench cd-workbench--activity ss-wide-page">
+      <h1 className="ss-sr-only" ref={titleRef} tabIndex={-1}>{title}</h1>
       <div className="cd-workbench__grid">
         <div className="cd-pane cd-pane--editor">
-          {/* The fixture note says what "done" means, so it sits under the
-              capped prompt and is never cut off by the cap. */}
-          <BriefZone
-            label={workbenchCopy('coding.brief.label')}
-            after={fixtureNote !== undefined && (
-              <div className="lp-notice lp-notice--info">
-                <span className="lp-notice__glyph" aria-hidden="true">
-                  ℹ
-                </span>
-                <div className="lp-brief">
-                  <strong>{pathCopy['paths.code.fixtureNoteTitle']}</strong>
-                  <RichText text={fixtureNote} />
-                </div>
-              </div>
-            )}
-          >
-            <div className="lp-brief">
-              <RichText text={descriptionText(code.prompt)} />
-            </div>
-            {code.complexityGuidance?.targetTime && <div className="cd-complexity"><span>{t('coding.complexity.desired', { complexity: code.complexityGuidance.targetTime })}</span><ComplexityInfo guidance={code.complexityGuidance} /></div>}
-          </BriefZone>
+          <div className="cd-editor-bar ss-compact">
+            <Breadcrumb className="cd-editor-bar__path" items={[...ancestry, { label: codingFilename({ id: 'path-activity', title, track: code.language === 'typescript' ? 'typescript' : 'javascript' }) }]} />
+            {onClose && <Button variant="ghost" onClick={onClose} label={t('paths.action.close')} />}
+            <Button variant="ghost" ref={resetButton} onClick={() => (source === code.starter ? reset() : setConfirmingReset(true))} isDisabled={busy} label={t('paths.code.reset')} />
+          </div>
 
           <div className="cd-editor-slot">
             <Suspense fallback={<div className="cd-note" role="status" style={{ minHeight: 'var(--cd-editor-min, 280px)' }}>{t('common.loading')}</div>}>
@@ -461,7 +461,7 @@ export function CodeActivity({
                   Unavailable, not disabled: the pressed button keeps focus
                   while the submission is busy, and a press then does nothing. */}
               <SwimCta dir={1} onClick={() => { if (!submitUnavailable) onSubmit(source); }} unavailable={submitUnavailable} label={busy ? t('paths.action.submitting') : t('paths.action.submit')} />
-              <Button variant="ghost" ref={resetButton} onClick={() => (source === code.starter ? reset() : setConfirmingReset(true))} isDisabled={busy} label={t('paths.code.reset')} />
+              {ladder.length > 0 && <Button variant="ghost" label={t('coding.hint')} onClick={() => { setTab('description'); revealed.current = true; setHintsShown(n => Math.min(n + 1, ladder.length)); }} /> }
               <span className="lp-actions__status cd-actions--utility" aria-live="polite">
                 {t(`paths.draft.${draftStatus}` as never)}
               </span>
@@ -484,7 +484,19 @@ export function CodeActivity({
         {/* What the brief allows, the hint ladder and what a submission
             showed, beside the code; it scrolls inside the frame. */}
         <div className="cd-pane cd-pane--output">
+          <div className="cd-tabs" role="tablist" aria-label={workbenchCopy('coding.output.label')} onKeyDown={event => {
+            const index = tabs.indexOf(tab);
+            const next = event.key === 'ArrowRight' ? (index + 1) % tabs.length : event.key === 'ArrowLeft' ? (index + tabs.length - 1) % tabs.length : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : -1;
+            if (next < 0) return;
+            event.preventDefault(); setTab(tabs[next]); tabRefs.current[next]?.focus();
+          }}>
+            {tabs.map((key, index) => <button key={key} type="button" role="tab" id={`${tabId}-tab-${key}`} aria-controls={`${tabId}-panel-${key}`} aria-selected={tab === key} tabIndex={tab === key ? 0 : -1} ref={node => { tabRefs.current[index] = node; }} className={`cd-tab ${waveVariantClass(waveVariantFor(`${tabId}-${index}`))}`} onClick={() => setTab(key)}>{key === 'description' ? workbenchCopy('coding.tab.description') : t(key === 'results' ? 'coding.tab.results' : 'coding.tab.console')}</button>)}
+          </div>
           <div className="cd-output-scroll">
+            <section role="tabpanel" id={`${tabId}-panel-description`} aria-labelledby={`${tabId}-tab-description`} tabIndex={0} hidden={tab !== 'description'}>
+              <h2 className="cd-brief__title">{title}</h2>
+              <div className="lp-brief cd-prompt"><RichText text={descriptionText(code.prompt)} /></div>
+              {fixtureNote && <div className="lp-notice lp-notice--info"><RichText text={fixtureNote} /></div>}
             {contract.length > 0 && (
               <section className="lp-section">
                 <h3>{t('paths.code.contract')}</h3>
@@ -503,12 +515,6 @@ export function CodeActivity({
                     <li key={index} tabIndex={-1}>{rung.text}</li>
                   ))}
                 </ol>
-                {hintsShown < ladder.length && (
-                  <Button variant="ghost" onClick={() => {
-                    revealed.current = true;
-                    setHintsShown((n) => Math.min(n + 1, ladder.length));
-                  }} label={t('paths.code.nextHint', { remaining: ladder.length - hintsShown })} />
-                )}
                 {code.skeleton && hintsShown >= ladder.length && (
                   <details>
                     <summary>{t('paths.code.skeleton')}</summary>
@@ -550,6 +556,10 @@ export function CodeActivity({
               </section>
             )}
 
+              {code.complexityGuidance?.targetTime && <div className="cd-complexity"><span>{t('coding.complexity.desired', { complexity: code.complexityGuidance.targetTime })}</span><ComplexityInfo guidance={code.complexityGuidance} /></div>}
+            </section>
+            <section role="tabpanel" id={`${tabId}-panel-results`} aria-labelledby={`${tabId}-tab-results`} tabIndex={0} hidden={tab !== 'results'}>
+              {result ? <><StateBadge state={result.state} />{result.code && <CriteriaList criteria={result.criteria} />}</> : <p className="cd-note">{pathCopy['paths.code.submitToSee']}</p>}
             {verdict?.codeError && (
               <div className="lp-notice lp-notice--error">
                 <span className="lp-notice__glyph" aria-hidden="true">
@@ -558,12 +568,10 @@ export function CodeActivity({
                 <span>{verdict.codeError}</span>
               </div>
             )}
-            {verdict && verdict.logs.length > 0 && (
-              <details>
-                <summary>{t('paths.code.console')}</summary>
-                <pre className="lp-console">{verdict.logs.join('\n')}</pre>
-              </details>
-            )}
+            </section>
+            <section role="tabpanel" id={`${tabId}-panel-console`} aria-labelledby={`${tabId}-tab-console`} tabIndex={0} hidden={tab !== 'console'}>
+              <pre className="lp-console">{verdict?.logs.join('\n') || pathCopy['paths.code.submitToSee']}</pre>
+            </section>
           </div>
         </div>
       </div>

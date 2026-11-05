@@ -200,7 +200,8 @@ a.lp-activity:focus-visible { outline: 3px solid var(--ss-focus); outline-offset
 .lp-activity__state--verified_pass { color: var(--ss-success-strong); font-weight: 700; }
 /* The module's next activity, the one its primary opens: a 3px accent edge
    inside the row, so nothing shifts (UX audit learn-13). */
-.lp-activity--next { box-shadow: inset 3px 0 0 var(--brand-accent); }
+.lp-activity--next { background: color-mix(in srgb, var(--brand-accent) 10%, var(--ss-card-bg)); }
+.lp-activity__next { font-size: var(--ss-type-meta); font-weight: 700; color: var(--color-text-primary); }
 /* On the hub a row is one 48px line: kind · title · minutes. */
 .lp-activity--compact { flex-wrap: nowrap; min-height: 48px; padding-block: 8px; }
 .lp-activity--compact .lp-activity__title { flex: 1 1 auto; overflow-wrap: anywhere; }
@@ -818,3 +819,13 @@ details[open] > .lp-evidence__row > .lp-evidence__summary { white-space: normal;
 
 .lp-portfolio-export__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-block: 12px; }
 .lp-portfolio-export__actions .astryx-button { min-height: 44px; }
+
+.lp-page h1 { font-size: var(--ss-type-page-title); line-height: 1.25; }
+.lp-module-layout { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 32px; align-items: start; }
+.lp-module-overview { min-width: 0; display: grid; gap: 16px; }
+.lp-objectives { margin-top: 16px; font-size: var(--ss-type-compact); }
+.lp-objectives summary { min-height: 44px; align-content: center; cursor: pointer; font-weight: 600; }
+.lp-objectives summary:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 3px; }
+.lp-objectives .lp-module__outcomes { margin-top: 8px; }
+.lp-module-activities { min-width: 0; }
+@media (max-width: 800px) { .lp-module-layout { grid-template-columns: 1fr; gap: 24px; } }

@@ -71,6 +71,7 @@ import type {
 import type { ActivitySummary, EvidenceState, LearningPathId, ModuleShelf, ModuleSummary } from '../../../../shared/learning-paths';
 import './LearningPaths.css';
 import { Button } from '@astryxdesign/core/Button';
+import { Breadcrumb } from '../ui/Breadcrumb';
 
 /* ── shared hooks ──────────────────────────────────────────────────────── */
 
@@ -160,6 +161,7 @@ function ActivityRow({
     <>
       <span className="lp-activity__kind">{kind}</span>
       <span className="lp-activity__title" id={next ? NEXT_TITLE_ID : undefined}>{titleWithoutKind(activity.title, kind)}</span>
+      {next && <span className="lp-activity__next">{pathCopy['paths.activity.next']} <span aria-hidden="true">→</span></span>}
       <span className="lp-activity__minutes">{t('paths.minutes', { minutes: activity.estimatedMinutes })}</span>
       {/* 'Not started' is every row's default and goes unsaid; any other
           state is a glyph beside the minutes, its words read aloud. */}
@@ -1041,12 +1043,11 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
 
   return (
     <div className="lp-page">
+      {(!open?.code || codePassed) && <Breadcrumb items={[{ label: t('roadmap.title'), href: '/learn' }, { label: entry.manifest.title, href: pathHref(pathId) }, { label: module.title, href: activityId ? moduleHref(pathId, module.id) : undefined }, ...(activityId ? [{ label: shown?.title ?? t('paths.loadingActivity') }] : [])]} />}
+      {!(activityId && enrollmentId) && <div className="lp-module-layout"><div className="lp-module-overview">
       <header className="lp-head">
         <div className="lp-head__text">
           <div className="lp-head__kicker-row">
-            <p className="lp-kicker">
-              <Link to={pathHref(pathId)}>{entry.manifest.title}</Link>
-            </p>
             <span className="lp-head__status">
               {/* An off-loop module never completes, so "In progress" would
                   read as unfinished for good. A module with no recorded
@@ -1058,11 +1059,13 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
             </span>
           </div>
           <h1>{module.title}</h1>
+          <details className="lp-objectives"><summary>{t('paths.outcomes')}</summary>
           <ul className="lp-module__outcomes">
             {module.outcomes.map((outcome, index) => (
               <li key={index}>{outcome}</li>
             ))}
           </ul>
+          </details>
         </div>
         {!activityId && (target || ctaPending) && (
           <div className="lp-head__actions" aria-busy={!target || undefined}>
@@ -1118,7 +1121,8 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
         </div>
       )}
 
-      <section className="lp-section">
+      </div>
+      <section className="lp-section lp-module-activities">
         <h2 ref={listHeading} tabIndex={-1}>{t('paths.activities')}</h2>
         <ul className="lp-activities">
           {module.activities.map((one) => (
@@ -1136,16 +1140,18 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
         </ul>
       </section>
 
+      </div>}
+
       {activityId && enrollmentId && (
         // No live region here: it would read the whole activity (a lesson, the
         // editor) aloud on every change. Errors are alerts, the draft status
         // is its own live region, and focus carries the rest.
         <section className="lp-workspace">
-          <div className="lp-head">
+          {(!open?.code || codePassed) && <div className="lp-head">
             <div className="lp-head__text">
               {/* An activity linked from another module (an old link, or one
                   that moved between versions) still gets its own name. */}
-              <h2 ref={activityHeading} tabIndex={-1}>{shown?.title ?? ''}</h2>
+              <h1 ref={activityHeading} tabIndex={-1}>{shown?.title ?? ''}</h1>
               {shown && <p className="lp-lead">{shown.summary}</p>}
             </div>
             <div className="lp-head__actions">
@@ -1155,7 +1161,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
                   setSearch(next, { replace: true });
                 }} label={t('paths.action.close')} />
             </div>
-          </div>
+          </div>}
 
           {error && (
             <div className="lp-notice lp-notice--error" role="alert">
@@ -1220,6 +1226,10 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
             <CodeActivity
               key={open.activity.id}
               code={open.code}
+              title={titleWithoutKind(open.activity.title, t(`paths.kind.${open.activity.kind}` as never))}
+              titleRef={activityHeading}
+              ancestry={[{ label: t('roadmap.title'), href: '/learn' }, { label: entry.manifest.title, href: pathHref(pathId) }, { label: module.title, href: moduleHref(pathId, module.id) }]}
+              onClose={() => { const next = new URLSearchParams(search); next.delete('activity'); setSearch(next, { replace: true }); }}
               fixtureNote={open.activity.fixtureNote}
               submitBlocked={briefChanged}
               draft={draft}
