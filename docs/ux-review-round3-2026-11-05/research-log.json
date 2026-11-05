@@ -1,0 +1,181 @@
+{
+  "nativeConnection": {
+    "verified": true,
+    "tools": [
+      "find_ui_references",
+      "find_ui_materials",
+      "get_ui_flow"
+    ]
+  },
+  "results": [
+    {
+      "id": "r3-course-navigation",
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: lesson, curriculum, progress. Use these for layout and style, and design those parts yourself.",
+      "returned": 3,
+      "inlineImages": 3,
+      "referenceIds": [
+        "684e7585-335f-4d04-8b62-d7d17479911d:e24d6689763bee056ce9b907",
+        "629dff83-ef28-4d32-abca-0a48f2057c8b:193ee2dc8af9f10ceaf3e490",
+        "faef8b76-0642-41b2-9d8e-4f245d4c1449:d66dd6807f497f0322749bd4"
+      ],
+      "flow": null
+    },
+    {
+      "id": "r3-editor-feedback",
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: expected, failed, assertions. Use these for layout and style, and design those parts yourself.",
+      "returned": 3,
+      "inlineImages": 3,
+      "referenceIds": [
+        "1983f755-a03a-480a-b9ad-05f60fa2ec2e:0179a40ee23c58f9c9ec7892",
+        "50b0aaeb-119e-4513-90e8-67d54fb9f57c:638335a5dbad47f57e6d7c92",
+        "c844f5f2-ec2e-4ac2-b300-cc2d0e7d9ea2:366eb44d59ed5355dc9e2272"
+      ],
+      "flow": null
+    },
+    {
+      "id": "r3-empty-search",
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: empty state, clear. Use these for layout and style, and design those parts yourself.",
+      "returned": 3,
+      "inlineImages": 3,
+      "referenceIds": [
+        "1dfc504a-7bd4-4348-8985-668def285a5a:02896edc72d2e3c69e2f8da4",
+        "e937ed84-a98d-44fb-a269-f25f1b4708d8:240f6491476824a771be3b86",
+        "514583db-9c34-4061-93b0-c49defe6cead:21bde0b7f9e451d2736e4522"
+      ],
+      "flow": null
+    },
+    {
+      "id": "r3-hoppscotch-context",
+      "outcome": "references",
+      "match": null,
+      "message": null,
+      "returned": 7,
+      "inlineImages": 3,
+      "referenceIds": [
+        "1983f755-a03a-480a-b9ad-05f60fa2ec2e:53a3d7bac7ab7cd843b08a90",
+        "1983f755-a03a-480a-b9ad-05f60fa2ec2e:0179a40ee23c58f9c9ec7892",
+        "1983f755-a03a-480a-b9ad-05f60fa2ec2e:6a53adc0ae2e9fe6055108be",
+        "1983f755-a03a-480a-b9ad-05f60fa2ec2e:17ed1ccf3d3ba3e0f20502dd",
+        "1983f755-a03a-480a-b9ad-05f60fa2ec2e:68088f4fc143836d213d3cec",
+        "1983f755-a03a-480a-b9ad-05f60fa2ec2e:817ce5006dd78f47a1142e2f",
+        "1983f755-a03a-480a-b9ad-05f60fa2ec2e:5e2e0686ba2a3865fc2ba6dd"
+      ],
+      "flow": {
+        "id": "capture:1983f755-a03a-480a-b9ad-05f60fa2ec2e",
+        "title": "Hoppscotch",
+        "basis": "page_sections",
+        "total": 7,
+        "appName": "Hoppscotch",
+        "platform": "web",
+        "pageUrl": "https://uizze.com/packs/1983f755-a03a-480a-b9ad-05f60fa2ec2e"
+      }
+    },
+    {
+      "id": "r3-khan-curriculum",
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: unit. Use these for layout and style, and design those parts yourself.",
+      "returned": 3,
+      "inlineImages": 3,
+      "referenceIds": [
+        "2a232634-28d8-4b24-8050-fdc2599c1080:6a9e2f051586cf8f54f9c52d",
+        "9154b81c-1e01-4d92-8326-918a90fafc6f:fad02d88659415f76c65cb57",
+        "d5ca743a-ce51-4779-a78d-51a1c70accc2:4821a31b6d93fc762203755d"
+      ],
+      "flow": null
+    },
+    {
+      "id": "r3-learning-resume",
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: resume, study. Use these for layout and style, and design those parts yourself.",
+      "returned": 3,
+      "inlineImages": 3,
+      "referenceIds": [
+        "a490e9b8-89ad-4a34-8d9f-59aa2172968d:7ab4157de3a06901455b9e9e",
+        "a20ef243-067d-4770-8c6f-8a90b94974ea:8565e3aba1770ce28444e3b3",
+        "36d22879-1291-4d20-8152-67196b85388f:2f916e28c829cee57eaffb21"
+      ],
+      "flow": null
+    },
+    {
+      "id": "r3-playground-retry",
+      "outcome": "none",
+      "match": "none",
+      "message": "Uizze reference search is temporarily unavailable. Please retry once. This is a service error, not an empty search.",
+      "returned": 0,
+      "inlineImages": 0,
+      "referenceIds": [],
+      "flow": null
+    },
+    {
+      "id": "r3-playground",
+      "outcome": "none",
+      "match": "none",
+      "message": "Uizze reference search is temporarily unavailable. Please retry once. This is a service error, not an empty search.",
+      "returned": 0,
+      "inlineImages": 0,
+      "referenceIds": [],
+      "flow": null
+    },
+    {
+      "id": "r3-quiz-review",
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: quiz, incorrect. Use these for layout and style, and design those parts yourself.",
+      "returned": 3,
+      "inlineImages": 3,
+      "referenceIds": [
+        "9b6fa43b-62e9-475d-ae91-14a949a3cf86:6a0c170f752941210c5ef4fb",
+        "22a0622d-94d5-4f6d-9836-1dc75f2d0fd0:23f73cbf940b1b305bcf976b",
+        "94f924a5-c101-4df4-9c48-291ba06acb56:4d21150f58ffa3c6ed527e7b"
+      ],
+      "flow": null
+    },
+    {
+      "id": "r3-settings-context",
+      "outcome": "references",
+      "match": null,
+      "message": null,
+      "returned": 5,
+      "inlineImages": 3,
+      "referenceIds": [
+        "d07add01-d679-42de-9813-15dee57c0c89:ec4c02ace1d638b31c25e03d",
+        "d07add01-d679-42de-9813-15dee57c0c89:6bab3d2635a57025922cc3c7",
+        "d07add01-d679-42de-9813-15dee57c0c89:7b3cd46eb0f809fac01b6fa0",
+        "d07add01-d679-42de-9813-15dee57c0c89:0eed28f1a2cf8883ca13fcce",
+        "d07add01-d679-42de-9813-15dee57c0c89:3ae5fc8f2a78df5bb2dea685"
+      ],
+      "flow": {
+        "id": "capture:d07add01-d679-42de-9813-15dee57c0c89",
+        "title": "Nuxt Dashboard",
+        "basis": "page_sections",
+        "total": 5,
+        "appName": "Nuxt Dashboard",
+        "platform": "web",
+        "pageUrl": "https://uizze.com/packs/d07add01-d679-42de-9813-15dee57c0c89"
+      }
+    },
+    {
+      "id": "r3-settings-navigation",
+      "outcome": "references",
+      "match": "closest",
+      "message": "Closest matches only. Nothing here shows: profile, grouped, preferences. Use these for layout and style, and design those parts yourself.",
+      "returned": 3,
+      "inlineImages": 3,
+      "referenceIds": [
+        "d07add01-d679-42de-9813-15dee57c0c89:0eed28f1a2cf8883ca13fcce",
+        "1b6a7e75-1f99-4cd3-9f7e-5022d5ecef4e:457603e1efff4d1a52eeeeda",
+        "f99f292d-502e-4c88-8de8-eed668f2eda8:b0afa450aef607431650ee08"
+      ],
+      "flow": null
+    }
+  ],
+  "note": "Closest references are inspiration, not proof of missing interactions. Web flows are page sections, not navigation journeys. Native inline images are used; CDN URLs refused unauthenticated download."
+}
