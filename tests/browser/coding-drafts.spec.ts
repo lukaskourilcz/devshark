@@ -200,7 +200,8 @@ test('another account signing in on that device never sees the kept code (decisi
 
   await page.getByRole('button', { name: 'Sign in', exact: true }).first().click();
   await signInWithPassword(page, OTHER_USER.email);
-  await expect(page.getByRole('button', { name: /^Account menu for/ })).toBeVisible({ timeout: 15_000 });
+  await expect.poll(async () => JSON.parse(await stored(page, sessionKey) ?? 'null')?.user?.id).toBe(OTHER_USER.id);
+  await expect(page.locator('.ss-header')).toBeHidden();
   expect(await stored(page, KEPT)).toBeNull();
   await expect.poll(() => shown(page), { timeout: 30_000 }).toContain(STARTER.split('\n')[0]);
   expect(await shown(page)).not.toContain('twenty minutes');
