@@ -177,6 +177,9 @@ const API_FIXTURES = [
 
 API_FIXTURES.push(
   { method: 'GET', match: (url) => url.pathname === ROADMAP && !url.searchParams.has('resource'), body: () => SERVER.roadmapStructure() },
+  // Career checks for account progress even for a guest. The real endpoint
+  // requires sign-in; answer that known read without inventing progress.
+  { method: 'GET', status: 401, match: (url) => url.pathname === ROADMAP && url.searchParams.get('resource') === 'progress', body: () => ({ error: { code: 'unauthorized', message: 'Authentication required' } }) },
   { method: 'GET', match: (url) => url.pathname === ROADMAP && url.searchParams.get('resource') === 'learning-path-catalog', body: () => SERVER.pathCatalog() },
   {
     method: 'GET',
@@ -192,7 +195,7 @@ API_FIXTURES.push(
 
 function apiFixture(method, url) {
   const fixture = API_FIXTURES.find((one) => one.method === method && one.match(url));
-  return fixture ? { status: 200, body: fixture.body(url) } : null;
+  return fixture ? { status: fixture.status ?? 200, body: fixture.body(url) } : null;
 }
 
 // A route under /not-found-… is there to measure the not-found page itself.
