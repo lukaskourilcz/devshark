@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
 const slug = 'javascript-closures';
 for (const theme of ['light', 'dark']) {
   test(`${theme}: guide, keyboard practice and accessible content`, async ({ page }, testInfo) => {
@@ -80,11 +81,11 @@ test('retired guide addresses show the app not-found page without an English red
   await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
 });
 
-test('all three Learn sections have public previews without JavaScript', async ({ browser }) => {
+test('published Learn sections have public previews without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
   try {
     const page = await context.newPage();
-    for (const [id, name] of [['web-developer', 'Web Developer'], ['software-engineer', 'Software Engineer'], ['forward-deployed-engineer', 'Forward Deployed Engineer']]) {
+    for (const [id, name] of [['web-developer', 'Web Developer'], ['software-engineer', 'Software Engineer'], ...(FDE_SECTION_VISIBLE ? [['forward-deployed-engineer', 'Forward Deployed Engineer']] : [])]) {
       await page.goto(`${process.env.TEST_BASE_URL || 'http://localhost:4173'}/learn/${id}`);
       await expect(page).toHaveTitle(`${name} · devShark`);
       await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible();
@@ -96,4 +97,13 @@ test('all three Learn sections have public previews without JavaScript', async (
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
   } finally { await context.close(); }
+});
+
+test('the held FDE section has no public preview or sitemap listing', async ({ request }) => {
+  test.skip(FDE_SECTION_VISIBLE, 'FDE is published only after the owner reopens it.');
+  const sitemap = await (await request.get('/sitemap.xml')).text();
+  expect(sitemap).not.toContain('/learn/forward-deployed-engineer');
+  const html = await (await request.get('/learn/forward-deployed-engineer')).text();
+  expect(html).not.toContain('<title>Forward Deployed Engineer · devShark</title>');
+  expect(html).not.toContain('href="https://devshark.app/learn/forward-deployed-engineer"');
 });
