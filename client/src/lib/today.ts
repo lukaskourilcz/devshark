@@ -1,3 +1,4 @@
+import { isLearnTopicVisible } from '../../../shared/learn-sections';
 // Today queue — the auto-built daily plan for one subject. PURE and offline:
 // it composes the plan entirely from existing roadmap progress + the shared
 // spaced-mastery rules, with no network. Priority is (1) unfinished work,
@@ -165,7 +166,7 @@ export function buildToday(
   const extra = opts.extraUnlocks ?? [];
   const liveTopics = topicsForSubject(subject);
   const topics = [...new Set([...(opts.topicOrder ?? []), ...liveTopics])]
-    .filter((topic): topic is RoadmapTopic => liveTopics.includes(topic as RoadmapTopic));
+    .filter((topic): topic is RoadmapTopic => liveTopics.includes(topic as RoadmapTopic) && isLearnTopicVisible(topic));
 
   const unfinished: TodayItem[] = [];
   const review: TodayItem[] = [];

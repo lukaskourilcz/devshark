@@ -28,6 +28,7 @@ import { CURRENT_PRODUCT } from '../lib/products';
 import { SUBJECT_SCOPE_CATALOG } from '../../../shared/subject-catalog';
 import { LaunchOfferBanner } from './LaunchOffer';
 import ComparisonTable from './landing/ComparisonTable';
+import { FDE_SECTION_VISIBLE } from '../../../shared/learn-section-ids';
 import { FdePathFeature } from './landing/FdePathFeature';
 import './landing/landingSections.css';
 
@@ -286,7 +287,7 @@ export default function Home() {
       {/* ── Roadmap preview ── */}
       {selected && <RoadmapPreview topic={selected} onStart={() => { captureActivation('learning_cta_clicked', { product: CURRENT_PRODUCT.id, source: 'home', category: selected.id }); navigate(learnTopicHref(selected.id)); }} />}
 
-      <FdePathFeature />
+      {FDE_SECTION_VISIBLE && <FdePathFeature />}
 
       {/* ── Everything-else feature strip (no hover) ── */}
       <section aria-label={t('home.moreKicker')} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>

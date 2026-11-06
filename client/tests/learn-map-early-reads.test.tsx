@@ -1,3 +1,13 @@
+// Exercise the retained FDE implementation as a future opt-in. Shipping
+// defaults and the owner hold are covered in fde-visibility.test.tsx and
+// the browser's fde-positioning.spec.ts.
+vi.mock('../../shared/learn-section-ids', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../../shared/learn-section-ids')>();
+  return { ...original, FDE_SECTION_VISIBLE: true,
+    isLearnSectionVisible: original.isLearnSectionId,
+    VISIBLE_LEARN_SECTION_IDS: original.LEARN_SECTION_IDS };
+});
+
 // The Learn map's own reads start beside its first-data hold, not after its
 // first draw (perf baseline #587 C07): the account's progress and XP, and on
 // the FDE section the path catalogue and the account's enrollments. The map

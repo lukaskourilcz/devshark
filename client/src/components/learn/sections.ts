@@ -12,7 +12,7 @@
 
 import {
   LEARN_SECTIONS,
-  isLearnSectionId,
+  isLearnSectionVisible,
   sectionsForTopic,
   type LearnSectionId,
 } from '../../../../shared/learn-sections';
@@ -58,12 +58,12 @@ export function resolveSection(
   stored: string | null,
 ): { section: LearnSectionId; canonical: string | null } {
   const topic = new URLSearchParams(search).get('topic');
-  const homes = topic ? sectionsForTopic(topic) : [];
-  if (isLearnSectionId(param)) {
+  const homes = topic ? sectionsForTopic(topic).filter(isLearnSectionVisible) : [];
+  if (isLearnSectionVisible(param)) {
     if (homes.length > 0 && !homes.includes(param)) return { section: homes[0], canonical: `/learn/${homes[0]}${search}` };
     return { section: param, canonical: null };
   }
-  const section = homes[0] ?? (isLearnSectionId(stored) ? stored : DEFAULT_SECTION);
+  const section = homes[0] ?? (isLearnSectionVisible(stored) ? stored : DEFAULT_SECTION);
   return { section, canonical: `/learn/${section}${search}` };
 }
 
@@ -196,7 +196,7 @@ export function sectionGate(
     prereq = deeper;
   }
   if (!prereq) return null;
-  const homes = sectionsForTopic(prereq);
+  const homes = sectionsForTopic(prereq).filter(isLearnSectionVisible);
   const prereqSection = homes.find((home) => members.includes(home)) ?? homes[0] ?? DEFAULT_SECTION;
   return { prereq, topic: first.topic, prereqSection };
 }

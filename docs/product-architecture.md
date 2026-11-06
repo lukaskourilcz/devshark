@@ -898,6 +898,26 @@ code question drew.
 
 ## Learn sections
 
+**Owner hold, 6 November 2026:** only Web Developer and Software Engineer
+are published. `FDE_SECTION_VISIBLE` in `shared/learn-section-ids.ts` is false;
+`VISIBLE_LEARN_SECTIONS` drives discovery, and hidden or stale FDE URLs return
+to Web Developer. Home, Premium, Profile and Today do not advertise or resume
+FDE, including when cached settings still say it is available. The production
+`LEARNING_PATH_FDE_ENABLED` switch is false, so the existing server gates
+refuse enrollment, activity starts and submission. The complete registry,
+curriculum, saved specialization, enrollments, drafts and results are retained.
+Editing the visible track/section choices never pauses the hidden enrollment.
+FDE-only Learn topics have no Today recommendation or hidden section link;
+shared foundation topics remain in their visible sections. The FDE preview is
+out of the sitemap and has no static rewrite. Reopening needs an explicit
+owner decision, the visibility flag, the server switch, and restoration of its
+public preview rewrite with the public-page checks. The retained FDE unit
+regressions use an explicit visibility-on fixture; current-default browser and
+unit checks assert the hold and preservation behavior.
+
+The matrix below describes the retained authored curriculum, including FDE,
+rather than the published choices during this hold.
+
 `shared/learn-sections.ts` groups the Learn topics and the FDE path into three
 sections (`LEARN_SECTION_IDS`, `LEARN_SECTIONS`):
 
@@ -1049,9 +1069,10 @@ its module table.
 
 **Availability.** `LEARNING_PATH_FDE_ENABLED=true` switches the path on; a
 path opens only when its switch is on, its content validates and migration
-026 is installed. Production does not set the variable today, so the path is
-previewable and reports `disabled`. Switching it on is an owner item in
-`NEEDED.md`.
+026 is installed. The owner's 6 November 2026 hold sets the Production
+switch to false and `FDE_SECTION_VISIBLE` to false. The path reports
+`disabled` and its preview/discovery UI is hidden. Reopening is an explicit
+owner decision in `NEEDED.md`.
 
 ### What the path holds
 
@@ -2291,8 +2312,9 @@ and `PRODUCT_SUBJECT=webdev`, or leave them unset: both resolve to devShark.
 Any other value fails the build in `resolveCatalogProductId`. Optional
 switches and integrations:
 
-- `LEARNING_PATH_FDE_ENABLED=true` opens the FDE path; Production does not set
-  it today ("Learning paths").
+- `LEARNING_PATH_FDE_ENABLED=true` opens the FDE execution gate; Production
+  sets it to false during the owner's 6 November 2026 hold. The separate
+  `FDE_SECTION_VISIBLE` discovery switch is false too ("Learning paths").
 - The Stripe variables of "Tiers and billing"; billing is off.
 - `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, `GITHUB_APP_PRIVATE_KEY`,
   `GITHUB_APP_CLIENT_ID` and `GITHUB_APP_CLIENT_SECRET` for the GitHub garden,

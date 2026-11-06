@@ -102,7 +102,7 @@ export const en = {
 
   // Home / landing page
   'home.title': 'Lessons, quizzes and coding tasks for web developers.',
-  'home.subtitle': 'Explore Web Developer, Software Engineer and Forward Deployed Engineer in Learn. Practice with lessons, quizzes and graded coding tasks. HTML, CSS and JavaScript are free for every account.',
+  'home.subtitle': 'Explore Web Developer and Software Engineer in Learn. Practice with lessons, quizzes and graded coding tasks. HTML, CSS and JavaScript are free for every account.',
   'home.fde.kicker': 'New path',
   'home.fde.title': 'Forward Deployed Engineer',
   'home.fde.body': 'Practice discovery, make eval-driven decisions, plan deployment in the customer’s environment, and codify reusable patterns. Work through TypeScript exercises and authored customer scenarios. Practice reading Python.',

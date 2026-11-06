@@ -38,7 +38,7 @@ import { useTrack, trackTopics, rankLabelKeyFor, trackLabelKey, trackBlurbKey, T
 import { preferredLearningOf, saveLearningPreference } from '../lib/trackPref';
 import { eligibilityKeys, useInPlan, useLearnerSections } from '../lib/eligibility';
 import { useContentLocks } from '../lib/contentLocks';
-import { LEARN_SECTIONS } from '../../../shared/learn-sections';
+import { VISIBLE_LEARN_SECTIONS as LEARN_SECTIONS } from '../../../shared/learn-sections';
 import { railEntries, sectionProgress } from './learn/sections';
 import { useFdeOpenInSettings, useFdePathSteps } from './learn/useFdePathSteps';
 import { learnText } from '../i18n/translations.learn';

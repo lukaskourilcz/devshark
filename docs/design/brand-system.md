@@ -24,6 +24,10 @@ Concise, direct, active, specific, encouraging, honest, technically accurate, an
 
 ## Freemium rule
 
+Forward Deployed Engineer is hidden during the owner's 6 November 2026 hold.
+Its content and tier rules remain for a future release; current discovery and
+Premium feature lists show only the available sections.
+
 devShark is freemium. `shared/tiers.ts` sets what every account opens (HTML, CSS and JavaScript in full, React levels 1 to 12, DSA levels 1 to 5, the opening stages of every project and short path, a starter set of coding challenges, and the FDE diagnostic and first module) and what Premium opens for 4.99 EUR a month or 59.88 EUR a year. Copy states the price before VAT and says VAT is added at checkout and never calls devShark free for everyone; "Free to start" is the claim. A lock reads "Premium" in text, so colour or an icon never carries it alone.
 
 Premium decides which content a learner may start, and coins buy cosmetics and streak protection. None of them changes explanations, grading, XP amounts, scores, ranks, leaderboards, matching or accounts; a streak protection changes a streak's day count and nothing else. Merchandise is paused behind `MERCH_ENABLED`. Voluntary support is retired: `/support` redirects to `/premium`.

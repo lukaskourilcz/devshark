@@ -1,3 +1,4 @@
+import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
@@ -60,3 +61,6 @@ for (const theme of ['light', 'dark'] as const) {
     expect(writes).toEqual([]);expect(errors).toEqual([]);
   });
 }
+
+// Owner hold: keep these end-to-end checks for the future FDE release.
+test.skip(!FDE_SECTION_VISIBLE, 'FDE is hidden until the owner reopens it');

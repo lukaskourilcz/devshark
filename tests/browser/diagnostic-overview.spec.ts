@@ -1,3 +1,4 @@
+import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
 import {test,expect} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import {storeFakeSession,localAuth} from './fake-session';
@@ -43,3 +44,6 @@ for(const theme of ['light','dark'] as const) test(`${theme}: diagnostic report 
   const findings=await new AxeBuilder({page}).include('section[aria-labelledby="path-diagnostic-title"]').withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']).analyze();
   expect(findings.violations.map(v=>v.id)).toEqual([]);
 });
+
+// Owner hold: keep these end-to-end checks for the future FDE release.
+test.skip(!FDE_SECTION_VISIBLE, 'FDE is hidden until the owner reopens it');

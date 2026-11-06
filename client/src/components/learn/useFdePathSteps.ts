@@ -16,6 +16,7 @@
 // Career page used to read them for a figure that then ignored them. The
 // FDE section still reads the catalogue for its path shelf, which shows it.
 
+import { FDE_SECTION_VISIBLE } from '../../../../shared/learn-section-ids';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth';
 import { GAME_CONFIG_KEY, type GameConfig } from '../../lib/gameConfig';
@@ -31,6 +32,7 @@ export type FdeSettingsVerdict = 'open' | 'closed' | 'asking' | 'unknown';
 
 export function useFdeOpenInSettings(): FdeSettingsVerdict {
   const settings = useQuery<GameConfig>({ queryKey: GAME_CONFIG_KEY, enabled: false });
+  if (!FDE_SECTION_VISIBLE) return 'closed';
   const capability = settings.data?.learningPaths;
   if (capability) return capability.paths.fde?.enabled === true ? 'open' : 'closed';
   if (settings.data) return 'unknown';

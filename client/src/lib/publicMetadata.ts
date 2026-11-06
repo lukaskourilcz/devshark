@@ -1,3 +1,4 @@
+import { FDE_SECTION_VISIBLE } from '../../../shared/learn-section-ids';
 import { TOPIC_LANDINGS, type TopicLandingDefinition } from './topicCatalog';
 import { PREMIUM_PRICE } from '../../../shared/tiers';
 export const PUBLIC_ORIGIN = 'https://devshark.app';
@@ -16,7 +17,7 @@ export function topicSchema(title: string, description: string, url: string) {
  * (#222). The build prerenders them (vite.config.ts), the app shell sets the
  * same canonical and description at runtime, and check:public reads them back
  * from the sitemap. Descriptions are translation keys, resolved by the caller. */
-export const PUBLIC_PAGES = [
+const ALL_PUBLIC_PAGES = [
   { path: '/learn/web-developer', titleKey: 'title.learnWebDeveloper', descriptionKey: 'publicSection.webDeveloper', schema: null },
   { path: '/learn/software-engineer', titleKey: 'title.learnSoftwareEngineer', descriptionKey: 'publicSection.softwareEngineer', schema: null },
   { path: '/learn/forward-deployed-engineer', titleKey: 'title.learnFde', descriptionKey: 'publicSection.fde', schema: null },
@@ -26,6 +27,7 @@ export const PUBLIC_PAGES = [
   // their own static heads, outside the sitemap).
   { path: '/daily', titleKey: 'title.daily', descriptionKey: 'daily.description', schema: null },
 ] as const;
+export const PUBLIC_PAGES = ALL_PUBLIC_PAGES.filter(page => FDE_SECTION_VISIBLE || page.path !== '/learn/forward-deployed-engineer');
 export type PublicPage = (typeof PUBLIC_PAGES)[number];
 export const publicPage = (pathname: string): PublicPage | null =>
   PUBLIC_PAGES.find((page) => page.path === pathname.replace(/(.)\/$/, '$1')) ?? null;

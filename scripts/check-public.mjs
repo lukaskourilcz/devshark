@@ -7,10 +7,11 @@ const sitemap = new JSDOM(readFileSync(`${dir}/sitemap.xml`, 'utf8'), { contentT
 const urls = [...sitemap.window.document.querySelectorAll('loc')].map(node => new URL(node.textContent));
 assert(!urls.some(url => url.pathname.startsWith('/cs/')), 'retired guide URLs stay out of the sitemap');
 assert(!existsSync(`${dir}/cs`), 'no retired guide HTML is emitted');
-assert.equal(urls.length, 18, 'Home, five English guides, three Learn sections, /premium, /premium/cancel, /daily, /coding and its five track pages');
+assert.equal(urls.length, 17, 'Home, five English guides, two published Learn sections, /premium, /premium/cancel, /daily, /coding and its five track pages');
+assert(!urls.some(url => url.pathname.includes('forward-deployed-engineer')), 'the paused FDE section is absent from the sitemap');
 // The app pages with public HTML (#222, #239). /premium/success stays out: a
 // Stripe return means nothing to anyone else, and the app marks it noindex.
-const LEARN_SECTION_PAGES = ['/learn/web-developer', '/learn/software-engineer', '/learn/forward-deployed-engineer'];
+const LEARN_SECTION_PAGES = ['/learn/web-developer', '/learn/software-engineer'];
 const APP_PAGES = [...LEARN_SECTION_PAGES, '/premium', '/premium/cancel', '/daily'];
 assert.deepEqual(urls.filter(url => APP_PAGES.includes(url.pathname)).map(url => url.pathname), APP_PAGES);
 // The Coding home and its track pages (owner decision, 9 Oct 2026). The task

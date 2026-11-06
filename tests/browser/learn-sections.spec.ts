@@ -1,3 +1,4 @@
+import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
@@ -261,7 +262,7 @@ test.describe('Learn section routes', () => {
 
     await page.keyboard.press('ArrowRight');
     await page.keyboard.press('Space');
-    await expect(page).toHaveURL(/\/learn\/forward-deployed-engineer$/);
+    await expect(page).toHaveURL(FDE_SECTION_VISIBLE ? /\/learn\/forward-deployed-engineer$/ : /\/learn\/web-developer$/);
 
     await page.keyboard.press('Home');
     await page.keyboard.press('Enter');
@@ -370,6 +371,7 @@ test.describe('Learn section states', () => {
   });
 
   test('a free account joins the FDE taster while other Premium topics stay gated', async ({ page }) => {
+    test.skip(!FDE_SECTION_VISIBLE, 'FDE is hidden until the owner reopens it');
     await prepare(page);
     const state = await stand(page, 'frontend', { catalogEnabled: true });
     await page.goto('/learn/forward-deployed-engineer');
@@ -462,7 +464,7 @@ test.describe('Learn sections across widths and themes', () => {
     await expect(page.locator('.rm-section-body')).toBeVisible();
     expect(await page.locator('.rm-section-body').evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
     const durations = await page.locator('.rm-section-switcher .astryx-segmented-control-item').evaluateAll((items) => items.map((el) => getComputedStyle(el).transitionDuration));
-    expect(durations.length).toBe(3);
+    expect(durations.length).toBe(FDE_SECTION_VISIBLE ? 3 : 2);
     for (const duration of durations) expect(duration).toBe('0s');
 
     await page.emulateMedia({ reducedMotion: 'no-preference' });
@@ -471,11 +473,11 @@ test.describe('Learn sections across widths and themes', () => {
 });
 
 test.describe('The switcher on a narrow screen', () => {
-  // Under 640px the three sections are a vertical list (UX audit learn-20):
-  // all three show without scrolling, and Up and Down browse as Left and
+  // Under 640px the published sections are a vertical list (UX audit learn-20):
+  // all published choices show without scrolling, and Up and Down browse as Left and
   // Right do, moving focus only.
   for (const width of [360, 390]) {
-    test(`lists all three sections as full-width 44px rows at ${width}px`, async ({ page }) => {
+    test(`lists the published sections as full-width 44px rows at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
       await prepare(page);
       await stand(page, 'guest');
@@ -485,14 +487,14 @@ test.describe('The switcher on a narrow screen', () => {
       expect(await scroller.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
       const box = (await scroller.boundingBox())!;
       const rows = await page.locator('.rm-section-switcher [role="radio"]').evaluateAll((els) => els.map((el) => el.getBoundingClientRect()).map(({ left, right, top, height }) => ({ left, right, top, height })));
-      expect(rows).toHaveLength(3);
+      expect(rows).toHaveLength(FDE_SECTION_VISIBLE ? 3 : 2);
       for (const [index, row] of rows.entries()) {
         expect(row.height, `row ${index} height`).toBeGreaterThanOrEqual(44);
         expect(row.left, `row ${index} left`).toBeGreaterThanOrEqual(box.x - 1);
         expect(row.right, `row ${index} right`).toBeLessThanOrEqual(box.x + box.width + 1);
         if (index > 0) expect(row.top, `row ${index} below row ${index - 1}`).toBeGreaterThan(rows[index - 1].top);
       }
-      await expect(switcherItem(page, 'Forward Deployed Engineer')).toBeInViewport();
+      await expect(switcherItem(page, FDE_SECTION_VISIBLE ? 'Forward Deployed Engineer' : 'Software Engineer')).toBeInViewport();
 
       await switcherItem(page, 'Web Developer').focus();
       await page.keyboard.press('ArrowDown');
@@ -500,7 +502,7 @@ test.describe('The switcher on a narrow screen', () => {
       await expect(switcherItem(page, 'Web Developer')).toHaveAttribute('aria-checked', 'true');
       await expect(page).toHaveURL(/\/learn\/web-developer$/);
       await page.keyboard.press('ArrowDown');
-      await expect(switcherItem(page, 'Forward Deployed Engineer')).toBeFocused();
+      await expect(switcherItem(page, FDE_SECTION_VISIBLE ? 'Forward Deployed Engineer' : 'Web Developer')).toBeFocused();
       await page.keyboard.press('ArrowUp');
       await page.keyboard.press('Enter');
       await expect(page).toHaveURL(/\/learn\/software-engineer$/);
@@ -550,7 +552,7 @@ test.describe('FDE routes and Career sections', () => {
     await prepare(page);
     await stand(page, 'guest');
     await page.goto('/roadmap/specializations/fde/fde-v1-m01?activity=fde-v1-m01-l1-read#lesson');
-    await expect(page).toHaveURL(/\/learn\/forward-deployed-engineer\/path\/fde-v1-m01\?activity=fde-v1-m01-l1-read#lesson$/);
+    await expect(page).toHaveURL(FDE_SECTION_VISIBLE ? /\/learn\/forward-deployed-engineer\/path\/fde-v1-m01\?activity=fde-v1-m01-l1-read#lesson$/ : /\/learn\/web-developer$/);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });
 
@@ -571,11 +573,15 @@ test.describe('FDE routes and Career sections', () => {
     await prepare(page);
     await stand(page, 'guest', { catalogEnabled: true });
     await page.goto('/roadmap');
-    for (const [id, name] of [['web-developer', 'Web Developer'], ['software-engineer', 'Software Engineer'], ['forward-deployed-engineer', 'Forward Deployed Engineer']]) {
+    for (const [id, name] of [['web-developer', 'Web Developer'], ['software-engineer', 'Software Engineer'], ...(FDE_SECTION_VISIBLE ? [['forward-deployed-engineer', 'Forward Deployed Engineer']] : [])]) {
       const heading = page.getByRole('heading', { name, exact: true });
       await expect(heading.getByRole('link')).toHaveAttribute('href', `/learn/${id}`);
     }
     await expect(page.locator('.lp-module')).toHaveCount(0);
+    if (!FDE_SECTION_VISIBLE) {
+      await expect(page.getByRole('heading', { name: 'Forward Deployed Engineer', exact: true })).toHaveCount(0);
+      return;
+    }
     await page.getByRole('heading', { name: 'Forward Deployed Engineer', exact: true }).getByRole('link').click();
     await expect(page).toHaveURL(/\/learn\/forward-deployed-engineer$/);
     const shelf = page.getByRole('region', { name: 'Learning paths' });

@@ -1,3 +1,4 @@
+import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { storeFakeSession, localAuth } from './fake-session';
@@ -178,3 +179,6 @@ for (const theme of ['light', 'dark'] as const) {
     await expectNoAxeViolations(page, '.cd-workbench--activity [role="tabpanel"] .lp-notice--info');
   });
 }
+
+// Owner hold: keep these end-to-end checks for the future FDE release.
+test.skip(!FDE_SECTION_VISIBLE, 'FDE is hidden until the owner reopens it');

@@ -1,3 +1,4 @@
+import { FDE_SECTION_VISIBLE } from '../../../shared/learn-section-ids';
 import { planTopics } from '../../../shared/progression';
 import { learnerProfileOf } from '../lib/trackPref';
 import { useCallback, useMemo, type ReactNode } from 'react';
@@ -51,7 +52,7 @@ type TFn = (key: TranslationKey, vars?: Record<string, string | number>) => stri
 const ConceptDue = lazyPart(() => import('./ConceptDueSection').then((m) => m.ConceptDueSection));
 const ChallengeRun = lazyPart(() => import('./coding/ChallengeRunSection').then((m) => m.ChallengeRunSection));
 const PathResume = lazyPart(() => import('./paths/PathResumeSection').then((m) => m.PathResumeSection));
-const SIGNED_IN_PARTS = [ConceptDue, ChallengeRun, PathResume];
+const SIGNED_IN_PARTS = [ConceptDue, ChallengeRun, ...(FDE_SECTION_VISIBLE ? [PathResume] : [])];
 
 // The plan is priority-ordered; render it grouped under these headings.
 const SECTION_ORDER: TodayKind[] = ['unfinished', 'review', 'new'];
@@ -165,7 +166,7 @@ function useTodayFirstData() {
 /** The settings the app read as it started say no learning path is open.
  * Not yet in, or without the capability: not closed, as before. */
 const pathsClosed = (config: GameConfig | undefined): boolean =>
-  config?.learningPaths ? !anyLearningPathOpen(config) : false;
+  !FDE_SECTION_VISIBLE || (config?.learningPaths ? !anyLearningPathOpen(config) : false);
 
 export default function Today() {
   useTodayFirstData();
@@ -286,7 +287,7 @@ export default function Today() {
 
       {isAuthenticated && <><ConceptDue.Part /><ChallengeRun.Part /></>}
       </div>
-      {isAuthenticated && <PathResume.Part />}
+      {FDE_SECTION_VISIBLE && isAuthenticated && <PathResume.Part />}
       </div>
     </TodayShell>
   );

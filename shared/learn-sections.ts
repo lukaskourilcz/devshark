@@ -10,12 +10,12 @@
  *
  * Keep this module pure: browser and server both read it. */
 
-import { SOFTWARE_ENGINEER, type LearnSection, type LearnSectionId } from './learn-section-ids';
+import { SOFTWARE_ENGINEER, isLearnSectionVisible, type LearnSection, type LearnSectionId } from './learn-section-ids';
 
 // The ids, the section shape, Software Engineer and the opt-in list live in
 // `./learn-section-ids`, the slice the browser's initial bundle carries. This
 // module re-exports them, so the server and lazy code import one place.
-export { LEARN_SECTION_IDS, OPT_IN_SECTIONS, SOFTWARE_ENGINEER, isLearnSectionId } from './learn-section-ids';
+export { LEARN_SECTION_IDS, VISIBLE_LEARN_SECTION_IDS, FDE_SECTION_VISIBLE, OPT_IN_SECTIONS, SOFTWARE_ENGINEER, isLearnSectionId, isLearnSectionVisible } from './learn-section-ids';
 export type { LearnSection, LearnSectionId } from './learn-section-ids';
 
 /** The membership matrix the owner approved on 21 October 2026 (plan
@@ -39,10 +39,17 @@ const FORWARD_DEPLOYED_ENGINEER: LearnSection = {
 
 export const LEARN_SECTIONS: readonly LearnSection[] = [WEB_DEVELOPER, SOFTWARE_ENGINEER, FORWARD_DEPLOYED_ENGINEER];
 
+/** Published choices, without deleting the complete curriculum registry. */
+export const VISIBLE_LEARN_SECTIONS = LEARN_SECTIONS.filter((section) => isLearnSectionVisible(section.id));
+
 /** Sections that list `topic`, in section order. A topic in more than one is
  * shared: the rail shows it in each, with the same progress. */
 export const sectionsForTopic = (topic: string): LearnSectionId[] =>
   LEARN_SECTIONS.filter((section) => section.topics.includes(topic)).map((section) => section.id);
+
+/** A topic with only a paused section has no visible Learn destination. */
+export const isLearnTopicVisible = (topic: string): boolean =>
+  sectionsForTopic(topic).some(isLearnSectionVisible);
 
 /** The sections a learner belongs to. Web Developer comes with every base
  * track; Forward Deployed Engineer comes with the `fde` specialization, which
@@ -62,6 +69,6 @@ export function learnerSections(profile: { specialization: string | null; sectio
 /** Canonical entry for a topic shared by multiple sections: the first owner
  * in the registry, matching Learn's legacy-query resolution. */
 export function learnTopicHref(topic: string): string {
-  const section = sectionsForTopic(topic)[0] ?? 'web-developer';
-  return `/learn/${section}?topic=${encodeURIComponent(topic)}`;
+  const section = sectionsForTopic(topic).find(isLearnSectionVisible);
+  return section ? `/learn/${section}?topic=${encodeURIComponent(topic)}` : '/learn/web-developer';
 }

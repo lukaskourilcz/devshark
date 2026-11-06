@@ -6,6 +6,7 @@
 // English dictionary into the static HTML of /premium and /premium/cancel, so a
 // crawler or a visitor without JavaScript reads the same terms. Nothing here
 // may reach for a hook, the router or the network.
+import { FDE_SECTION_VISIBLE } from '../../../shared/learn-section-ids';
 import type { ReactNode } from 'react';
 import type { TranslationKey } from '../i18n/translations';
 import { FREE_LEARN_LEVELS, PREMIUM_PRICE } from '../../../shared/tiers';
@@ -49,7 +50,8 @@ export const PREMIUM_INCLUDES = [
  * paused (MERCH_ENABLED, owner decision 10). The static page never knows, so
  * it leaves the line out. */
 export const premiumIncludes = (redemptionOpen: boolean) =>
-  PREMIUM_INCLUDES.filter((key) => (MERCH_ENABLED && redemptionOpen) || key !== 'premium.sheet.include6');
+  PREMIUM_INCLUDES.filter((key) => (FDE_SECTION_VISIBLE || key !== 'premium.sheet.include5')
+    && ((MERCH_ENABLED && redemptionOpen) || key !== 'premium.sheet.include6'));
 
 export function PremiumIncludes({ t, headingId, redemptionOpen = false }: { t: Translate; headingId: string; redemptionOpen?: boolean }) {
   const vars = premiumVars();

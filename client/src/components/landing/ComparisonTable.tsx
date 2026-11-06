@@ -1,3 +1,4 @@
+import { FDE_SECTION_VISIBLE } from '../../../../shared/learn-section-ids';
 // The plan table: what every account gets next to what Premium opens. It sits
 // on the landing and on /premium. The free column mirrors `shared/tiers.ts`
 // (the three free topics, React up to FREE_LEARN_LEVELS.react, a starter set
@@ -101,7 +102,7 @@ export default function ComparisonTable({ startHref = '/learn', onStart, showCta
   const { isAuthenticated } = useAuth();
   const headingId = useId();
   const config = useGameConfig();
-  const open = { paths: anyLearningPathOpen(config), redemption: redemptionOpen(config) };
+  const open = { paths: FDE_SECTION_VISIBLE && anyLearningPathOpen(config), redemption: redemptionOpen(config) };
   const rows = PLAN_ROWS.filter((row) => !row.when || open[row.when]);
   const vars = {
     topics: SUBJECT_SCOPE_CATALOG.webdev.topics.length,
