@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
 import { pathCatalog, roadmapStructure } from '../../scripts/responsive-fixtures';
-import { fakeUser, localAuth, storeFakeSession } from './fake-session';
+import { fakeSession, fakeUser, localAuth, sessionKey } from './fake-session';
 import { pathInventory } from '../../shared/learning-paths';
 
 const settings = JSON.parse(readFileSync('tests/fixtures/api-settings.json', 'utf8'));
@@ -72,7 +72,8 @@ for (const [theme, width] of [['light', 360], ['dark', 1280]] as const) {
     page.on('pageerror', error => errors.push(error.message));
     await page.route('**/api/**', route => {
       const request = route.request(), url = new URL(request.url());
-      const resource = url.searchParams.get('resource'), op = url.searchParams.get('op');
+      const resource = url.searchParams.get('resource');
+      const op = url.searchParams.get('op') ?? (url.pathname.startsWith('/api/user/') ? url.pathname.split('/').pop() : null);
       if (request.method() !== 'GET') writes.push(request.method() + ' ' + url.pathname);
       if (resource === 'learning-path-catalog' || op?.startsWith('learning-path-')) pathReads.push(resource ?? op!);
       // Even stale settings that advertise FDE cannot reopen its UI.
@@ -107,12 +108,17 @@ for (const [theme, width] of [['light', 360], ['dark', 1280]] as const) {
     await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
     let profile = { schemaVersion: 2, baseTrack: 'frontend', specialization: 'fde', sections: [] as string[], goals: ['level-up'], experience: 'some', studyTime: '30-60', updatedAt: null as string | null };
     const user = () => ({ ...fakeUser, user_metadata: { full_name: 'Test Learner', devquiz_track: profile.baseTrack, devquiz_learning_preference_v1: { schemaVersion: 1, baseTrack: profile.baseTrack, specialization: profile.specialization }, devquiz_learner_profile_v2: profile } });
-    await storeFakeSession(page, user());
+    await page.addInitScript(({ key, session, theme }) => {
+      if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(session));
+      localStorage.setItem('devquiz:color-mode', theme);
+      localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+    }, { key: sessionKey, session: fakeSession(user()), theme });
     await localAuth(page, { user });
     const saves: Record<string, unknown>[] = [], pathWrites: string[] = [];
     await page.route('**/api/**', route => {
       const request = route.request(), url = new URL(request.url());
-      const op = url.searchParams.get('op'), resource = url.searchParams.get('resource');
+      const resource = url.searchParams.get('resource');
+      const op = url.searchParams.get('op') ?? (url.pathname.startsWith('/api/user/') ? url.pathname.split('/').pop() : null);
       if (op?.startsWith('learning-path-') && request.method() !== 'GET') pathWrites.push(op);
       if (url.pathname === '/api/settings') return route.fulfill({ json: settings });
       if (op === 'learning-preference' && request.method() === 'PUT') {
@@ -121,6 +127,7 @@ for (const [theme, width] of [['light', 360], ['dark', 1280]] as const) {
         return route.fulfill({ json: { preference: { schemaVersion: 1, baseTrack: profile.baseTrack, specialization: profile.specialization }, legacyTrack: profile.baseTrack, profile, missingProfileFields: [] } });
       }
       if (op === 'entitlement') return route.fulfill({ json: { tier: 'premium', source: 'stripe', currentPeriodEnd: null, cancelAtPeriodEnd: false, inGrace: false, validUntil: null } });
+      if (op === 'stats') return route.fulfill({ json: { data: { id: 'test-stats', user_id: fakeUser.id, email: null, name: 'Test Learner', picture: null, total_quizzes: 0, total_correct: 0, total_questions: 0, current_streak: 0, longest_streak: 0, last_quiz_date: null, created_at: '2026-11-06T00:00:00Z', updated_at: '2026-11-06T00:00:00Z' } } });
       if (op === 'learning-path-enrollment') return route.fulfill({ json: { enrollments: [{ enrollmentId: 'LOCALHOLD00000000001', pathId: 'fde', status: 'active', curriculumVersion: 1 }] } });
       if (resource === 'learning-path-catalog') return route.fulfill({ json: pathCatalog({ enabled: true }) });
       if (resource === 'progress') return route.fulfill({ json: { data: {}, extra: { unlocked: [] } } });

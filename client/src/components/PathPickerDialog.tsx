@@ -270,59 +270,59 @@ export default function PathPickerDialog({
           </CheckCard>
 
           {FDE_SECTION_VISIBLE && (
-          <RadioCardGroup
-            value={role}
-            onChange={(value) => setRole(value as RoleChoice)}
-            labelledBy={roleLegendId}
-            style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}
-          >
-            <span id={roleLegendId} className="lp-sections__legend">{pickerCopy('paths.picker.specializationLegend')}</span>
-            {ROLE_ORDER.map((option) => {
-              const selected = option === role;
-              const label = pickerCopy(option === 'none' ? 'paths.picker.noneLabel' : 'profile.section.forward-deployed-engineer');
-              const isCurrent = option === (currentSpecialization ?? 'none');
-              const premium = option === 'fde' && fdeLocked;
-              const entry = option === 'fde' && fdeEntryRequirement ? fdeEntryRequirement : null;
-              const part = roleIds(option);
-              // `label` names the card, so its marks and lines are wired in as
-              // the description: the Premium mark is heard before the choice.
-              const describedBy = [
-                isCurrent && part.current,
-                premium && part.premium,
-                part.blurb,
-                entry && part.entry,
-              ].filter(Boolean).join(' ');
-              return (
-                <RadioCard
-                  key={option}
-                  value={option}
-                  index={ROLE_ORDER.indexOf(option)}
-                  label={label}
-                  describedBy={describedBy}
-                  width="100%"
-                  style={selected ? { background: 'var(--brand-accent-soft)' } : undefined}
-                >
-                  <VStack gap={1}>
-                    <HStack gap={1} align="center" justify="between">
-                      <Heading level={4}>{label}</Heading>
-                      {isCurrent && (
-                        <span id={part.current}><Badge variant="cyan" label={pickerCopy('home.pathCurrent')} /></span>
-                      )}
-                      {premium && <span id={part.premium} className="ss-premium-label">{t('premium.badge')}</span>}
-                    </HStack>
-                    <Text type="supporting" color="secondary" id={part.blurb}>
-                      {pickerCopy(option === 'none' ? 'paths.picker.noneBlurb' : 'paths.picker.fdeBlurb')}
-                    </Text>
-                    {entry && (
-                      <Text type="supporting" size="xsm" color="secondary" id={part.entry}>
-                        {pickerCopy('paths.picker.fdeEntry', { requirement: entry })}
+            <RadioCardGroup
+              value={role}
+              onChange={(value) => setRole(value as RoleChoice)}
+              labelledBy={roleLegendId}
+              style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}
+            >
+              <span id={roleLegendId} className="lp-sections__legend">{pickerCopy('paths.picker.specializationLegend')}</span>
+              {ROLE_ORDER.map((option) => {
+                const selected = option === role;
+                const label = pickerCopy(option === 'none' ? 'paths.picker.noneLabel' : 'profile.section.forward-deployed-engineer');
+                const isCurrent = option === (currentSpecialization ?? 'none');
+                const premium = option === 'fde' && fdeLocked;
+                const entry = option === 'fde' && fdeEntryRequirement ? fdeEntryRequirement : null;
+                const part = roleIds(option);
+                // `label` names the card, so its marks and lines are wired in as
+                // the description: the Premium mark is heard before the choice.
+                const describedBy = [
+                  isCurrent && part.current,
+                  premium && part.premium,
+                  part.blurb,
+                  entry && part.entry,
+                ].filter(Boolean).join(' ');
+                return (
+                  <RadioCard
+                    key={option}
+                    value={option}
+                    index={ROLE_ORDER.indexOf(option)}
+                    label={label}
+                    describedBy={describedBy}
+                    width="100%"
+                    style={selected ? { background: 'var(--brand-accent-soft)' } : undefined}
+                  >
+                    <VStack gap={1}>
+                      <HStack gap={1} align="center" justify="between">
+                        <Heading level={4}>{label}</Heading>
+                        {isCurrent && (
+                          <span id={part.current}><Badge variant="cyan" label={pickerCopy('home.pathCurrent')} /></span>
+                        )}
+                        {premium && <span id={part.premium} className="ss-premium-label">{t('premium.badge')}</span>}
+                      </HStack>
+                      <Text type="supporting" color="secondary" id={part.blurb}>
+                        {pickerCopy(option === 'none' ? 'paths.picker.noneBlurb' : 'paths.picker.fdeBlurb')}
                       </Text>
-                    )}
-                  </VStack>
-                </RadioCard>
-              );
-            })}
-          </RadioCardGroup>
+                      {entry && (
+                        <Text type="supporting" size="xsm" color="secondary" id={part.entry}>
+                          {pickerCopy('paths.picker.fdeEntry', { requirement: entry })}
+                        </Text>
+                      )}
+                    </VStack>
+                  </RadioCard>
+                );
+              })}
+            </RadioCardGroup>
           )}
         </div>
       )}
