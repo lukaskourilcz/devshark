@@ -181,10 +181,6 @@
       "destination": "/learn/software-engineer/index.html"
     },
     {
-      "source": "/learn/forward-deployed-engineer",
-      "destination": "/learn/forward-deployed-engineer/index.html"
-    },
-    {
       "source": "/((?!api/|assets/|ingest/|sandbox/|topics/).*)",
       "destination": "/index.html"
     }

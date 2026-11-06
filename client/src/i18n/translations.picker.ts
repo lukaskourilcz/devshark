@@ -1,3 +1,5 @@
+import { FDE_SECTION_VISIBLE } from '../../../shared/learn-section-ids';
+
 // The learning-path picker (components/PathPickerDialog.tsx) and the Profile
 // card that opens it (components/paths/LearningPathsCard.tsx). English only,
 // like translations.ts. Only the Profile chunk reads these words, and the app
@@ -15,7 +17,7 @@ export const pickerEn = {
   // Step 2: the sections beside the track. Software Engineer is free to join;
   // the Forward Deployed Engineer card keeps the Premium mark on a free plan.
   'paths.picker.sectionsTitle': 'Add a section?',
-  'paths.picker.sectionsSubtitle': 'Web Developer comes with your track. Both of these are optional.',
+  'paths.picker.sectionsSubtitle': FDE_SECTION_VISIBLE ? 'Web Developer comes with your track. Both of these are optional.' : 'Web Developer comes with your track. Software Engineer is optional.',
   'paths.picker.seBlurb': 'Data structures, algorithms, system design, DevOps and security, beside your track.',
   'paths.picker.seFree': 'Free to join. Each topic keeps its own free and Premium levels.',
   'paths.picker.specializationLegend': 'Specialization',
@@ -25,7 +27,7 @@ export const pickerEn = {
   // The requirement itself is the FDE manifest's `entryRequirement`, the text
   // the path page shows, so the two cannot drift apart.
   'paths.picker.fdeEntry': 'Before you start: {requirement}',
-  'paths.picker.sectionsFootnote': 'Leave a section later and its topics drop out of your plan, while every level you passed stays passed. Removing the specialization pauses its path and keeps your work.',
+  'paths.picker.sectionsFootnote': 'Leave a section later and its topics drop out of your plan, while every level you passed stays passed.' + (FDE_SECTION_VISIBLE ? ' Removing the specialization pauses its path and keeps your work.' : ''),
 
   'paths.picker.continue': 'Continue',
   'paths.picker.back': 'Back',
@@ -60,7 +62,7 @@ export const pickerEn = {
 
   // The Profile card.
   'profile.pathTitle': 'Track and sections',
-  'profile.pathHelp': 'Your track orders the Web Developer section. Software Engineer and Forward Deployed Engineer are optional sections beside it.',
+  'profile.pathHelp': FDE_SECTION_VISIBLE ? 'Your track orders the Web Developer section. Software Engineer and Forward Deployed Engineer are optional sections beside it.' : 'Your track orders the Web Developer section. Software Engineer is an optional section beside it.',
   'profile.pathChoose': 'Choose your path',
   'profile.completePrompt': 'A few answers are missing, so your daily plan is not sized to you yet.',
   'profile.completeAction': 'Finish your profile',

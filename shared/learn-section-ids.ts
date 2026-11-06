@@ -12,6 +12,17 @@ import type { LearningPathId } from './learning-paths';
 export const LEARN_SECTION_IDS = ['web-developer', 'software-engineer', 'forward-deployed-engineer'] as const;
 export type LearnSectionId = (typeof LEARN_SECTION_IDS)[number];
 
+/** Owner hold, 6 November 2026. Keep FDE content, ids and saved preferences
+ * intact for a later release. Discovery is separate from the server's
+ * LEARNING_PATH_FDE_ENABLED execution switch, which must stay off too. */
+export const FDE_SECTION_VISIBLE: boolean = false;
+
+export const isLearnSectionVisible = (value: unknown): value is LearnSectionId =>
+  isLearnSectionId(value) && (FDE_SECTION_VISIBLE || value !== 'forward-deployed-engineer');
+
+export const VISIBLE_LEARN_SECTION_IDS: readonly LearnSectionId[] =
+  LEARN_SECTION_IDS.filter(isLearnSectionVisible);
+
 export const isLearnSectionId = (value: unknown): value is LearnSectionId =>
   typeof value === 'string' && (LEARN_SECTION_IDS as readonly string[]).includes(value);
 

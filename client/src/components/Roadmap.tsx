@@ -72,7 +72,7 @@ import { NO_PENDING, useInPlan, useLearnerSections, type PendingJoin } from '../
 import { entryFor, isOpen, useEnrollments, usePathCatalog } from '../lib/learningPaths';
 import { openSignIn } from '../lib/signInDialog';
 import { learnerProfileOf } from '../lib/trackPref';
-import { LEARN_SECTIONS, LEARN_SECTION_IDS, type LearnSectionId } from '../../../shared/learn-sections';
+import { VISIBLE_LEARN_SECTIONS as LEARN_SECTIONS, VISIBLE_LEARN_SECTION_IDS as LEARN_SECTION_IDS, type LearnSectionId } from '../../../shared/learn-sections';
 import {
   SECTION_KEY,
   SECTION_TOPIC_KEY,

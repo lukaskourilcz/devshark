@@ -1,3 +1,4 @@
+import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
 import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Routes, Route, Link, Navigate, useLocation, useNavigate, useNavigationType, useParams } from 'react-router-dom';
 import { Button } from '@astryxdesign/core/Button';
@@ -97,7 +98,7 @@ const loadTyping = routeChunk(exact('/typing'), () => import('./components/Typin
 const loadCoding = routeChunk(routes('/coding/:track?', '/coding/:track/:taskId'), () => import('./components/coding/CodingSection'));
 const loadGithubSettings = routeChunk(exact('/settings/github'), () => import('./components/coding/GithubSettingsPage'));
 // Only the FDE path's own pages: /roadmap/paths/* now only redirects to Learn.
-const loadPaths = routeChunk(routes(FDE_PATH, `${FDE_PATH}/:moduleId`), () => import('./components/paths/LearningPathScreens'));
+const loadPaths = routeChunk((pathname) => FDE_SECTION_VISIBLE && routes(FDE_PATH, `${FDE_PATH}/:moduleId`)(pathname), () => import('./components/paths/LearningPathScreens'));
 const loadPremium = routeChunk(exact('/premium'), () => import('./components/PremiumPage'));
 const loadBilling = routeChunk(exact('/premium/checkout', '/premium/success', '/premium/cancel'), () => import('./components/PremiumBillingPages'));
 const loadDaily = routeChunk(routes('/daily/:date?'), () => import('./components/DailyQuestionPage'));
@@ -896,8 +897,9 @@ function App() {
                       addresses redirect. E5 (#496) retired the DSA Foundations
                       path: its old addresses land on the DSA topic of Software
                       Engineer, as vercel.json's 308 does for crawlers. */}
-                  <Route path={FDE_PATH} element={<FdeOverview />} />
-                  <Route path={`${FDE_PATH}/:moduleId`} element={<FdeModule />} />
+                  <Route path={FDE_PATH} element={FDE_SECTION_VISIBLE ? <FdeOverview /> : <Navigate to="/learn/web-developer" replace />} />
+                  <Route path={`${FDE_PATH}/:moduleId`} element={FDE_SECTION_VISIBLE ? <FdeModule /> : <Navigate to="/learn/web-developer" replace />} />
+                  {!FDE_SECTION_VISIBLE && <Route path="/learn/forward-deployed-engineer/*" element={<Navigate to="/learn/web-developer" replace />} />}
                   <Route path="/roadmap/specializations/fde/*" element={<OldFdePathRedirect />} />
                   <Route path="/roadmap/paths/dsa-foundations/*" element={<Navigate to="/learn/software-engineer?topic=dsa" replace />} />
                   <Route path="/profile" element={<Profile />} />

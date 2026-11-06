@@ -42,7 +42,7 @@ import {
   usePathCatalog,
 } from '../../lib/learningPaths';
 import type { LearningPathId } from '../../../../shared/learning-paths';
-import { learnerSections, type LearnSectionId } from '../../../../shared/learn-sections';
+import { FDE_SECTION_VISIBLE, isLearnSectionVisible, learnerSections, type LearnSectionId } from '../../../../shared/learn-sections';
 import type { PathCatalogEntry } from '../../../../shared/learning-path-api';
 import { MERCH_ENABLED } from '../../../../shared/rewards';
 import './LearningPaths.css';
@@ -60,8 +60,8 @@ export default function LearningPathsCard() {
   const { user, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [track, setTrack] = useTrack();
-  const catalog = usePathCatalog();
-  const enrollments = useEnrollments(isAuthenticated ? user?.id : undefined);
+  const catalog = usePathCatalog(FDE_SECTION_VISIBLE);
+  const enrollments = useEnrollments(FDE_SECTION_VISIBLE && isAuthenticated ? user?.id : undefined);
 
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -101,7 +101,7 @@ export default function LearningPathsCard() {
   // here too, so saving the picker does not pause it.
   const fdeActive = enrollmentFor('fde')?.status === 'active';
   const specialization = preference?.specialization ?? (fdeActive ? 'fde' : null);
-  const sections = learnerSections({ specialization, sections: profile?.sections });
+  const sections = learnerSections({ specialization, sections: profile?.sections }).filter(isLearnSectionVisible);
 
   const apply = useCallback(
     async (result: PathPickerResult) => {
@@ -156,7 +156,7 @@ export default function LearningPathsCard() {
         }
       };
       try {
-        await follow('fde', fdeEntry, result.specialization === 'fde', specialization === 'fde', result.track);
+        if (FDE_SECTION_VISIBLE) await follow('fde', fdeEntry, result.specialization === 'fde', specialization === 'fde', result.track);
         await queryClient.invalidateQueries({ queryKey: learningPathKeys.enrollments(user?.id) });
       } catch (error) {
         setBusy(false);
@@ -206,7 +206,7 @@ export default function LearningPathsCard() {
     [barred, enrollmentFor, fdeEntry, preference, queryClient, setTrack, specialization, subject, t, user?.id],
   );
 
-  const activePaths = [fdeEntry].filter(Boolean).map((entry) => {
+  const activePaths = (FDE_SECTION_VISIBLE ? [fdeEntry] : []).filter(Boolean).map((entry) => {
     const manifest = entry!.manifest;
     const enrollment = enrollmentFor(manifest.id);
     return { manifest, entry: entry!, enrollment };

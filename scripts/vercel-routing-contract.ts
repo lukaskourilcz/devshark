@@ -143,7 +143,7 @@ export function vercelRoutingContracts(): void {
     assert.ok(route.continue === true && route.headers && !route.dest && route.status === undefined, `${route.src} runs before the filesystem check and must only add headers`);
   }
   // Public Learn previews must reach their own HTML before the SPA fallback.
-  for (const id of ['web-developer', 'software-engineer', 'forward-deployed-engineer']) {
+  for (const id of ['web-developer', 'software-engineer']) {
     const source = `/learn/${id}`;
     const rewrite = (config.rewrites ?? []).find(one => one.source === source);
     assert.equal(rewrite?.destination, `${source}/index.html`, `${source} serves its public preview`);

@@ -1,3 +1,4 @@
+import { FDE_SECTION_VISIBLE } from '../../../shared/learn-section-ids';
 // The learning-path picker: choose a base track, then the Learn sections
 // beside it, then the profile answers that let the product describe a plan
 // instead of a catalogue.
@@ -268,6 +269,7 @@ export default function PathPickerDialog({
             </VStack>
           </CheckCard>
 
+          {FDE_SECTION_VISIBLE && (
           <RadioCardGroup
             value={role}
             onChange={(value) => setRole(value as RoleChoice)}
@@ -321,6 +323,7 @@ export default function PathPickerDialog({
               );
             })}
           </RadioCardGroup>
+          )}
         </div>
       )}
       {step === 'profile' && (
