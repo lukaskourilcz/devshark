@@ -1,3 +1,13 @@
+// Exercise the retained FDE implementation as a future opt-in. Shipping
+// defaults and the owner hold are covered in fde-visibility.test.tsx and
+// the browser's fde-positioning.spec.ts.
+vi.mock('../../shared/learn-section-ids', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../../shared/learn-section-ids')>();
+  return { ...original, FDE_SECTION_VISIBLE: true,
+    isLearnSectionVisible: original.isLearnSectionId,
+    VISIBLE_LEARN_SECTION_IDS: original.LEARN_SECTION_IDS };
+});
+
 // The Career page draws once its structure is in (perf baseline #587 C25):
 // the FDE group's figure fills in its own line when the path catalogue and
 // the enrollments land, and while the settings say the path is closed

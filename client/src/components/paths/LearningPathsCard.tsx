@@ -193,7 +193,7 @@ export default function LearningPathsCard() {
       setBusy(false);
       setOpen(false);
       const added = learnerSections({ specialization: savedSpecialization, sections: result.sections })
-        .filter((id) => id !== 'web-developer');
+        .filter((id) => id !== 'web-developer' && isLearnSectionVisible(id));
       const savedLine = t('profile.pathSaved', {
         track: t(trackLabelKey(subject, result.track)),
         role: added.map((id) => ` + ${sectionName(id)}`).join(''),

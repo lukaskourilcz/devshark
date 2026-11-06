@@ -1,3 +1,4 @@
+import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { storeFakeSession, localAuth } from './fake-session';
@@ -93,3 +94,6 @@ for (const theme of ['light', 'dark'] as const) {
     await page.screenshot({ path: info.outputPath(`fde-hub-${theme}.png`), fullPage: false });
   });
 }
+
+// Owner hold: keep these end-to-end checks for the future FDE release.
+test.skip(!FDE_SECTION_VISIBLE, 'FDE is hidden until the owner reopens it');

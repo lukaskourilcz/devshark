@@ -1,3 +1,4 @@
+import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
 // The Profile path picker (#490): the Sections step in a real browser, light
 // on a 360px touch screen and dark at desktop width with a mouse. Arrow keys
 // browse without advancing, Continue advances, Back keeps the choices, the
@@ -106,13 +107,18 @@ for (const [theme, width, touch] of [['light', 360, true], ['dark', 1280, false]
     const none = dialog.getByRole('radio', { name: 'Continue without a specialization' });
     const fde = dialog.getByRole('radio', { name: 'Forward Deployed Engineer' });
     await expect(se).toHaveAccessibleDescription(/Free to join\./);
+    await expectTarget(se, 'the Software Engineer toggle');
+    if (FDE_SECTION_VISIBLE) {
     // The entry requirement is the manifest's own text, the one the path page
     // shows, and a screen reader hears it with the flagship description.
     await expect(dialog.getByText(`Before you start: ${fdePath.entryRequirement}`, { exact: true })).toBeVisible();
     await expect(fde).toHaveAccessibleDescription(new RegExp(`^devShark’s flagship section.*Before you start: ${fdePath.entryRequirement.slice(0, 40)}`));
-    await expectTarget(se, 'the Software Engineer toggle');
     await expectTarget(none, 'no specialization');
     await expectTarget(fde, 'Forward Deployed Engineer');
+    } else {
+      await expect(dialog.getByRole('radiogroup', { name: 'Specialization' })).toHaveCount(0);
+      await expect(fde).toHaveCount(0);
+    }
     await buttons(dialog, ['Back', 'Cancel', 'Continue']);
     expect(await noSidewaysScroll(page), `${theme}/${width} sections step`).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`sections-${theme}-${width}.png`), fullPage: false });
@@ -120,20 +126,26 @@ for (const [theme, width, touch] of [['light', 360, true], ['dark', 1280, false]
     await se.focus();
     await page.keyboard.press('Space');
     await expect(se).not.toBeChecked();
+    if (FDE_SECTION_VISIBLE) {
     await none.focus();
     await page.keyboard.press('ArrowDown');
     await expect(fde).toHaveAttribute('aria-checked', 'true');
     await expect(dialog.getByRole('heading', { name: 'Add a section?' })).toBeVisible();
+
+    }
 
     // Back keeps both steps' choices.
     await dialog.getByRole('button', { name: 'Back' }).click();
     await expect(backend).toHaveAttribute('aria-checked', 'true');
     await dialog.getByRole('button', { name: 'Continue' }).click();
     await expect(se).not.toBeChecked();
+    if (FDE_SECTION_VISIBLE) {
     await expect(fde).toHaveAttribute('aria-checked', 'true');
     await fde.focus();
     await page.keyboard.press('ArrowUp');
     await expect(none).toHaveAttribute('aria-checked', 'true');
+
+    }
 
     // Step 3 keeps the saved answers; Save sends the empty section list.
     await dialog.getByRole('button', { name: 'Continue' }).click();

@@ -53,7 +53,7 @@ describe('resolveSection', () => {
   it('opens the first section that lists a deep-linked topic, keeping the query', () => {
     expect(resolveSection(undefined, '?topic=dsa', 'forward-deployed-engineer')).toEqual({ section: 'software-engineer', canonical: '/learn/software-engineer?topic=dsa' });
     expect(resolveSection(undefined, '?topic=git', null).section).toBe('web-developer');
-    expect(resolveSection(undefined, '?topic=ai&level=3', null)).toEqual({ section: 'forward-deployed-engineer', canonical: '/learn/forward-deployed-engineer?topic=ai&level=3' });
+    expect(resolveSection(undefined, '?topic=ai&level=3', null)).toEqual({ section: 'web-developer', canonical: '/learn/web-developer?topic=ai&level=3' });
   });
 
   it('falls back to the stored section for a topic no section lists', () => {
@@ -68,7 +68,7 @@ describe('resolveSection', () => {
   it('moves a section URL to the section of its topic, and leaves a matching one alone', () => {
     expect(resolveSection('software-engineer', '?topic=react&level=3', null)).toEqual({ section: 'web-developer', canonical: '/learn/web-developer?topic=react&level=3' });
     expect(resolveSection('software-engineer', '?topic=git', null)).toEqual({ section: 'software-engineer', canonical: null });
-    expect(resolveSection('forward-deployed-engineer', '', 'web-developer')).toEqual({ section: 'forward-deployed-engineer', canonical: null });
+    expect(resolveSection('forward-deployed-engineer', '', 'web-developer')).toEqual({ section: 'web-developer', canonical: '/learn/web-developer' });
   });
 });
 

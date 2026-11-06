@@ -1,3 +1,13 @@
+// Exercise the retained FDE implementation as a future opt-in. Shipping
+// defaults and the owner hold are covered in fde-visibility.test.tsx and
+// the browser's fde-positioning.spec.ts.
+vi.mock('../../shared/learn-section-ids', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../../shared/learn-section-ids')>();
+  return { ...original, FDE_SECTION_VISIBLE: true,
+    isLearnSectionVisible: original.isLearnSectionId,
+    VISIBLE_LEARN_SECTION_IDS: original.LEARN_SECTION_IDS };
+});
+
 // The Learn page's sections (#488): a level stays open while the address
 // moves to another section, and a section's single action joins it, asks a
 // visitor to sign in, or sends an account with no plan to choose one.

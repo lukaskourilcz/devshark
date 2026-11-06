@@ -1,3 +1,4 @@
+import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
@@ -261,7 +262,7 @@ test.describe('Learn section routes', () => {
 
     await page.keyboard.press('ArrowRight');
     await page.keyboard.press('Space');
-    await expect(page).toHaveURL(/\/learn\/forward-deployed-engineer$/);
+    await expect(page).toHaveURL(FDE_SECTION_VISIBLE ? /\/learn\/forward-deployed-engineer$/ : /\/learn\/web-developer$/);
 
     await page.keyboard.press('Home');
     await page.keyboard.press('Enter');
@@ -370,6 +371,7 @@ test.describe('Learn section states', () => {
   });
 
   test('a free account joins the FDE taster while other Premium topics stay gated', async ({ page }) => {
+    test.skip(!FDE_SECTION_VISIBLE, 'FDE is hidden until the owner reopens it');
     await prepare(page);
     const state = await stand(page, 'frontend', { catalogEnabled: true });
     await page.goto('/learn/forward-deployed-engineer');
@@ -550,7 +552,7 @@ test.describe('FDE routes and Career sections', () => {
     await prepare(page);
     await stand(page, 'guest');
     await page.goto('/roadmap/specializations/fde/fde-v1-m01?activity=fde-v1-m01-l1-read#lesson');
-    await expect(page).toHaveURL(/\/learn\/forward-deployed-engineer\/path\/fde-v1-m01\?activity=fde-v1-m01-l1-read#lesson$/);
+    await expect(page).toHaveURL(FDE_SECTION_VISIBLE ? /\/learn\/forward-deployed-engineer\/path\/fde-v1-m01\?activity=fde-v1-m01-l1-read#lesson$/ : /\/learn\/web-developer$/);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });
 
@@ -571,11 +573,15 @@ test.describe('FDE routes and Career sections', () => {
     await prepare(page);
     await stand(page, 'guest', { catalogEnabled: true });
     await page.goto('/roadmap');
-    for (const [id, name] of [['web-developer', 'Web Developer'], ['software-engineer', 'Software Engineer'], ['forward-deployed-engineer', 'Forward Deployed Engineer']]) {
+    for (const [id, name] of [['web-developer', 'Web Developer'], ['software-engineer', 'Software Engineer'], ...(FDE_SECTION_VISIBLE ? [['forward-deployed-engineer', 'Forward Deployed Engineer']] : [])]) {
       const heading = page.getByRole('heading', { name, exact: true });
       await expect(heading.getByRole('link')).toHaveAttribute('href', `/learn/${id}`);
     }
     await expect(page.locator('.lp-module')).toHaveCount(0);
+    if (!FDE_SECTION_VISIBLE) {
+      await expect(page.getByRole('heading', { name: 'Forward Deployed Engineer', exact: true })).toHaveCount(0);
+      return;
+    }
     await page.getByRole('heading', { name: 'Forward Deployed Engineer', exact: true }).getByRole('link').click();
     await expect(page).toHaveURL(/\/learn\/forward-deployed-engineer$/);
     const shelf = page.getByRole('region', { name: 'Learning paths' });

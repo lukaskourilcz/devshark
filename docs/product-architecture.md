@@ -898,6 +898,26 @@ code question drew.
 
 ## Learn sections
 
+**Owner hold, 6 November 2026:** only Web Developer and Software Engineer
+are published. `FDE_SECTION_VISIBLE` in `shared/learn-section-ids.ts` is false;
+`VISIBLE_LEARN_SECTIONS` drives discovery, and hidden or stale FDE URLs return
+to Web Developer. Home, Premium, Profile and Today do not advertise or resume
+FDE, including when cached settings still say it is available. The production
+`LEARNING_PATH_FDE_ENABLED` switch is false, so the existing server gates
+refuse enrollment, activity starts and submission. The complete registry,
+curriculum, saved specialization, enrollments, drafts and results are retained.
+Editing the visible track/section choices never pauses the hidden enrollment.
+FDE-only Learn topics have no Today recommendation or hidden section link;
+shared foundation topics remain in their visible sections. The FDE preview is
+out of the sitemap and has no static rewrite. Reopening needs an explicit
+owner decision, the visibility flag, the server switch, and restoration of its
+public preview rewrite with the public-page checks. The retained FDE unit
+regressions use an explicit visibility-on fixture; current-default browser and
+unit checks assert the hold and preservation behavior.
+
+The matrix below describes the retained authored curriculum, including FDE,
+rather than the published choices during this hold.
+
 `shared/learn-sections.ts` groups the Learn topics and the FDE path into three
 sections (`LEARN_SECTION_IDS`, `LEARN_SECTIONS`):
 
