@@ -1069,9 +1069,10 @@ its module table.
 
 **Availability.** `LEARNING_PATH_FDE_ENABLED=true` switches the path on; a
 path opens only when its switch is on, its content validates and migration
-026 is installed. Production does not set the variable today, so the path is
-previewable and reports `disabled`. Switching it on is an owner item in
-`NEEDED.md`.
+026 is installed. The owner's 6 November 2026 hold sets the Production
+switch to false and `FDE_SECTION_VISIBLE` to false. The path reports
+`disabled` and its preview/discovery UI is hidden. Reopening is an explicit
+owner decision in `NEEDED.md`.
 
 ### What the path holds
 
@@ -2311,8 +2312,9 @@ and `PRODUCT_SUBJECT=webdev`, or leave them unset: both resolve to devShark.
 Any other value fails the build in `resolveCatalogProductId`. Optional
 switches and integrations:
 
-- `LEARNING_PATH_FDE_ENABLED=true` opens the FDE path; Production does not set
-  it today ("Learning paths").
+- `LEARNING_PATH_FDE_ENABLED=true` opens the FDE execution gate; Production
+  sets it to false during the owner's 6 November 2026 hold. The separate
+  `FDE_SECTION_VISIBLE` discovery switch is false too ("Learning paths").
 - The Stripe variables of "Tiers and billing"; billing is off.
 - `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, `GITHUB_APP_PRIVATE_KEY`,
   `GITHUB_APP_CLIENT_ID` and `GITHUB_APP_CLIENT_SECRET` for the GitHub garden,
