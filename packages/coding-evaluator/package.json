@@ -18,7 +18,7 @@
   "engines": { "node": ">=20" },
   "scripts": {
     "build": "node build.mjs",
-    "test": "node --test test/"
+    "test": "node --test test/*.test.mjs"
   },
   "keywords": ["coding-exercises", "evaluator", "deep-equal", "education", "devshark"],
   "author": "Lukáš Kouřil",
