@@ -1,0 +1,35 @@
+{
+  "name": "@lukaskourilcz/coding-evaluator",
+  "version": "0.1.0",
+  "description": "The JavaScript evaluator behind devShark's coding exercises: runs learner code against call expressions, compares results by deep equality, caps console output and classifies failures.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "sideEffects": false,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test test/"
+  },
+  "keywords": ["coding-exercises", "evaluator", "deep-equal", "education", "devshark"],
+  "author": "Lukáš Kouřil",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lukaskourilcz/react-express-app.git",
+    "directory": "packages/coding-evaluator"
+  },
+  "homepage": "https://github.com/lukaskourilcz/react-express-app/tree/main/packages/coding-evaluator#readme",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}
