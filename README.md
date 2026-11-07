@@ -86,6 +86,8 @@ lib/github-app.ts            GitHub App JWT, installation tokens, garden commits
 shared/                      product and subject registry, coding catalogue types and browser index
 supabase/supabase-schema*.sql         baseline plus migrations through 066
 docs/                        product architecture, release acceptance, runbooks, content audits
+packages/coding-evaluator/   the Run-button evaluator, published as an npm package (docs/packages.md)
+docker/                      the Node server and handler bundler behind the container image
 scripts/test-launch-contracts.ts
 scripts/test-coding-content.ts        content contract: solutions proven, payloads answer-free, difficulty labels, Easy-band coverage matrix
 scripts/test-harness.ts               React sandbox protocol check, driven in a real browser
@@ -118,6 +120,13 @@ git diff --check
 ```
 
 Before merging, run the CI checks locally with `npm run ci:parity` (`--fast`, `--only <steps>`, `--list`). `main` merges only through a pull request with the `verify` and `sql` jobs of `.github/workflows/quality.yml` green.
+
+### Docker and packages
+
+The same product runs in one container: `docker build -t devshark .` then
+`docker run -p 3000:3000 -e SESSION_SECRET=<32+ characters> devshark`. The image and the
+`@lukaskourilcz/coding-evaluator` npm package are published to GitHub Packages;
+[docs/packages.md](docs/packages.md) covers both, including a local Supabase.
 
 ## Required configuration
 
