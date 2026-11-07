@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+client/storybook-static
+.git
+.vercel
+.env
+.env.*
+!.env.example
+artifacts
+playwright-report
+test-results
+lib/coding/generated
+media
+*.log
