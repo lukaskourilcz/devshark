@@ -764,7 +764,8 @@
 
 /* Saved challenges, collections, filters and short sessions. */
 .cd-row-item { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; border-bottom: 1px solid var(--ss-card-line); }
-.cd-row-item .cd-row { flex: 1 1 auto; }
+/* The row shares its line with the star: basis 0, or its width: 100% pushes the star under it. */
+.cd-row-item .cd-row { flex: 1 1 0; min-width: 0; }
 .cd-row-item__error { flex-basis: 100%; margin: 0 0 8px; color: var(--color-text-primary); font-size: 0.875rem; }
 .cd-save {
   flex: none;
