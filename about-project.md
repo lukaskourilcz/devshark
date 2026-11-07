@@ -29,6 +29,7 @@ Content counts come from `shared/subject-catalog.ts`, `shared/coding-index.ts` a
 - **Node.js 24**: the supported runtime, used by CI.
 - **Vercel**: hosts the client and the twelve serverless functions (region `arn1`) and deploys from `main`.
 - **Astryx** (`@astryxdesign/core` 0.1.6): the design system; the product's CSS tokens live in `client/src/styles/astryx-theme.css`.
+- **Docker** and **GitHub Packages**: `ghcr.io/lukaskourilcz/devshark` runs the client and the twelve handlers in one Node container for local demos and self-hosting, and `@lukaskourilcz/coding-evaluator` publishes the Run-button evaluator to npm (`docs/packages.md`).
 - **QuickJS**: a WebAssembly sandbox that runs submitted JavaScript and TypeScript on the server.
 - **Vercel Sandbox**: an isolated VM, restored from a snapshot with no network, that runs React challenges in the self-hosted React harness.
 - **CodeMirror**: the code editor in the browser.
