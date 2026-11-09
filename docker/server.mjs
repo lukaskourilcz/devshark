@@ -167,10 +167,15 @@ async function runApi(req, res, url) {
   // Path parameters fill the query only where the query has no value: the
   // client calls /api/user/[op]?op=x, and the explicit op must win.
   const query = { ...found.params, ...queryOf(url) };
+  // Vercel sets these headers itself. A Docker client can send any value,
+  // so rate limits here use the peer address on the socket.
+  const headers = { ...req.headers };
+  delete headers['x-forwarded-for'];
+  delete headers['x-real-ip'];
   // A fresh stream over the same bytes, so a handler that verifies a raw body
   // (the Stripe webhook in lib/billing/stripe.ts) can still read it.
   const request = Object.assign(Readable.from(raw.length ? [raw] : []), {
-    method: req.method, url: req.url, headers: req.headers, query, socket: req.socket,
+    method: req.method, url: req.url, headers, query, socket: req.socket,
     body: parseBody(raw, String(req.headers['content-type'] ?? '')),
   });
   try {
