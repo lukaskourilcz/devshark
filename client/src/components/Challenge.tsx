@@ -758,7 +758,8 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
   useEffect(() => {
     if (phase !== 'playing' || !current || dialogOpen) return;
     const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      const target = e.target instanceof Element ? e.target : null;
       if (target?.closest('input, textarea, select, button, a, [contenteditable="true"], [role="textbox"], [role="radio"], [role="checkbox"], [role="dialog"], [role="alertdialog"]')) return;
       if (lastResult) {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -769,6 +770,7 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
       }
       if (timeLeft <= 0) return;
       if (/^[1-9]$/.test(e.key)) {
+        if (!target || !questionRef.current?.closest('.ss-question')?.contains(target)) return;
         const idx = parseInt(e.key, 10) - 1;
         if (idx < current.options.length) {
           e.preventDefault();

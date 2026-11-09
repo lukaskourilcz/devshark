@@ -100,9 +100,11 @@ async function startQuiz(questions = [Q('a'), Q('b')], extra: object = {}) {
   await questionOnScreen();
 }
 
+const pressDigit = (key: string) => fireEvent.keyDown(document.querySelector('.ss-question__block') ?? document.body, { key });
+
 function answerAll(count: number) {
   for (let i = 0; i < count; i++) {
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     if (i < count - 1) fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
   }
 }
@@ -122,6 +124,16 @@ beforeEach(() => {
 });
 
 describe('keyboard shortcuts', () => {
+  it('leaves number keys alone outside the question', async () => {
+    await startQuiz();
+    fireEvent.keyDown(document.body, { key: '1' });
+    expect(checked()).toEqual([false, false, false, false]);
+    const question = document.querySelector<HTMLElement>('.ss-question__block')!;
+    question.focus();
+    fireEvent.keyDown(question, { key: '1' });
+    expect(checked()).toEqual([true, false, false, false]);
+  });
+
   it('keep working after a click leaves focus on an answer or a button, and leave Enter on a button to the browser', async () => {
     let submits = 0;
     server.use(http.post('*/api/quiz/submit', () => { submits++; return HttpResponse.json(graded([Q('a'), Q('b')])); }));
@@ -269,7 +281,7 @@ describe('the results screen (UX audit U2)', () => {
   it('keeps the summary and the review on one column, with h1 then h2, and the shared action row', async () => {
     server.use(http.post('*/api/quiz/submit', () => HttpResponse.json(graded([Q('a')]))));
     await startQuiz([Q('a')]);
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     await screen.findByText('1 / 1');
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('1 / 1');
@@ -393,10 +405,10 @@ describe('the question screen (UX audit U2)', () => {
   it('says what the keys do, and that Enter submits on the last question once all are answered', async () => {
     await startQuiz();
     expect(screen.getByText('Press 1–4 to select · Enter to continue')).toBeInTheDocument();
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
     expect(screen.getByText('Press 1–4 to select')).toBeInTheDocument();
-    fireEvent.keyDown(document.body, { key: '2' });
+    pressDigit('2');
     expect(screen.getByText('Press 1–4 to select · Enter to submit')).toBeInTheDocument();
   });
 
@@ -404,7 +416,7 @@ describe('the question screen (UX audit U2)', () => {
     await startQuiz([Q('a'), Q('b'), Q('c')]);
     fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
     fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     const submit = screen.getByRole('button', { name: 'Review unanswered (2)' });
     expect(submit).not.toBeDisabled();
     expect(submit).not.toHaveAttribute('aria-disabled');
@@ -462,7 +474,7 @@ describe('Shark Cards from the review (owner decision 12)', () => {
       }),
     );
     await startQuiz([Q('a')]);
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     const save = await screen.findByRole('button', { name: 'Save as a Shark Card' });
     expect(save).toHaveAttribute('aria-pressed', 'false');
@@ -488,7 +500,7 @@ describe('Shark Cards from the review (owner decision 12)', () => {
       results: [{ questionId: 'a', selectedIndex: 0, correctAnswer: 2, isCorrect: false, explanation: 'Why a' }],
     })));
     await startQuiz([Q('a')]);
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     await screen.findByText('Why a');
     expect(screen.queryByRole('button', { name: /Shark Card/ })).toBeNull();
@@ -523,7 +535,7 @@ describe('the daily challenge', () => {
     renderQuiz();
     fireEvent.click(await screen.findByRole('button', { name: /today’s challenge/i }));
     await questionOnScreen();
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     expect(await screen.findByText(`Today’s challenge complete. The next one starts at ${localDayChangeTime()} your time.`)).toBeInTheDocument();
   });
@@ -556,7 +568,7 @@ describe('the daily challenge', () => {
     renderQuiz();
     fireEvent.click(await screen.findByRole('button', { name: /today’s challenge/i }));
     await questionOnScreen();
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
 
     expect(await screen.findByText('You’ve played today’s challenge')).toBeInTheDocument();
@@ -679,12 +691,12 @@ describe('submitting', () => {
       return HttpResponse.json(graded([Q('a')]));
     }));
     await startQuiz([Q('a')]);
-    fireEvent.keyDown(document.body, { key: '2' });
+    pressDigit('2');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
 
     expect(await screen.findByText(/can’t be changed now/)).toBeInTheDocument();
     expect(answerCards().every((radio) => radio.hasAttribute('disabled'))).toBe(true);
-    fireEvent.keyDown(document.body, { key: '4' });
+    pressDigit('4');
     expect(checked()).toEqual([false, true, false, false]);
 
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
@@ -696,7 +708,7 @@ describe('submitting', () => {
     let submits = 0;
     server.use(http.post('*/api/quiz/submit', () => { submits++; return HttpResponse.json(graded([Q('a')])); }));
     await startQuiz([Q('a')]);
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     const submit = screen.getByRole('button', { name: /submit quiz/i });
     // Both presses land before React renders the busy button.
     act(() => {
@@ -714,7 +726,7 @@ describe('submitting', () => {
       answer = () => resolve(HttpResponse.json(graded([Q('a')])));
     })));
     await startQuiz([Q('a')]);
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     await waitFor(() => expect(answer).toBeDefined());
     fireEvent.click(screen.getByRole('button', { name: /exit quiz/i }));
@@ -723,7 +735,7 @@ describe('submitting', () => {
     fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
     expect(await screen.findByText('Question n?')).toBeInTheDocument();
     await questionOnScreen();
-    fireEvent.keyDown(document.body, { key: '2' });
+    pressDigit('2');
 
     await act(async () => { answer!(); await new Promise((resolve) => setTimeout(resolve, 20)); });
     expect(screen.getByText('Question n?')).toBeInTheDocument();
@@ -782,7 +794,7 @@ describe('quiz orientation and deadline', () => {
     expect(screen.getByText('0 of 3 answered')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /review unanswered/i })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     expect(screen.getByText('1 of 3 answered')).toBeInTheDocument();
     const review = screen.getByRole('button', { name: 'Review unanswered (2)' });
     review.focus();
@@ -799,7 +811,7 @@ describe('quiz orientation and deadline', () => {
     await startQuiz([Q('a')], { expiresAt: deadline });
     expect(document.querySelector('time')).toHaveAttribute('datetime', new Date(deadline).toISOString());
     expect(screen.getByText('Submit soon to finish before this quiz expires.')).toBeInTheDocument();
-    fireEvent.keyDown(document.body, { key: '2' });
+    pressDigit('2');
     now += 5 * 60_000;
     fireEvent(window, new Event('focus'));
     expect(screen.getByText(/This quiz’s submit deadline has passed/)).toBeInTheDocument();
@@ -841,7 +853,7 @@ describe('an expired quiz session', () => {
     renderQuiz();
     await questionOnScreen();
     expect(JSON.parse(sessionStorage.getItem(PROGRESS_KEY)!).hinted).toEqual(['a']);
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     await screen.findByText('2 / 2');
     expect(bodies[0].hinted).toEqual(['a']);
@@ -880,7 +892,7 @@ describe('an expired quiz session', () => {
     renderQuiz();
     fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
     await questionOnScreen();
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
 
     expect(await screen.findByText('This quiz expired')).toBeInTheDocument();
@@ -998,7 +1010,7 @@ describe('saving a result to the account', () => {
     renderQuiz();
     fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
     await questionOnScreen();
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     expect(await screen.findByText('Waiting to sync. We’ll retry when you reconnect or reopen devShark.')).toBeInTheDocument();
     await waitFor(() => expect(Object.values(pendingStore()).map((pending) => pending.receipt)).toEqual(['receipt-1']));
@@ -1006,7 +1018,7 @@ describe('saving a result to the account', () => {
     fireEvent.click(screen.getByRole('button', { name: /^new quiz$/i }));
     fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
     await questionOnScreen();
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     // The second failure is kept beside the first, not over it.
     await waitFor(() => expect(Object.values(pendingStore()).map((pending) => pending.receipt).sort()).toEqual(['receipt-1', 'receipt-2']));
@@ -1018,7 +1030,7 @@ describe('saving a result to the account', () => {
     await waitFor(() => expect(sessionStorage.getItem(PROGRESS_KEY)).not.toBeNull());
     act(() => { clearAccountData(); });
     expect(sessionStorage.getItem(PROGRESS_KEY)).toBeNull();
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
     await act(async () => {});
     expect(sessionStorage.getItem(PROGRESS_KEY)).toBeNull();
@@ -1035,7 +1047,7 @@ describe('saving a result to the account', () => {
       http.post('*/api/user/stats', () => { recorded++; return HttpResponse.json({ data: null, xp: null, applied: true }); }),
     );
     await startQuiz([Q('a')]);
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     await waitFor(() => expect(answer).toBeDefined());
     clearAccountData();
@@ -1053,7 +1065,7 @@ describe('saving a result to the account', () => {
       http.post('*/api/user/stats', () => HttpResponse.json({ error: { code: 'invalid_receipt', message: 'Quiz result receipt expired or invalid' } }, { status: 400 })),
     );
     await startQuiz([Q('a')]);
-    fireEvent.keyDown(document.body, { key: '1' });
+    pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     expect(await screen.findByText('This result could not be saved to your account.')).toBeInTheDocument();
     expect(pendingStore()).toEqual({});

@@ -558,9 +558,12 @@ describe('a level whose session cannot be used', () => {
     await mountAt('/learn', <Roadmap />);
     fireEvent.click(await screen.findByRole('button', { name: 'Continue', description: /^Level 1 of \d+ · Level 1 title$/ }));
     fireEvent.click(await screen.findByRole('button', { name: 'Start the level' }, { timeout: 3000 }));
+    fireEvent.keyDown(document.body, { key: '2' });
+    const question = document.querySelector<HTMLElement>('.ss-question__block')!;
+    question.focus();
     act(() => {
-      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: '1', bubbles: true }));
-      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: '2', bubbles: true }));
+      question.dispatchEvent(new KeyboardEvent('keydown', { key: '1', bubbles: true }));
+      question.dispatchEvent(new KeyboardEvent('keydown', { key: '2', bubbles: true }));
     });
     expect(await screen.findByText('Because it is first.')).toBeInTheDocument();
     await act(async () => { await new Promise((resolve) => setTimeout(resolve, 50)); });

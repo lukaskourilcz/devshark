@@ -910,6 +910,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           handleNext();
         }
       } else if (/^[1-9]$/.test(e.key)) {
+        if (!target || !questionTextRef.current?.closest('.ss-question')?.contains(target)) return;
         const idx = parseInt(e.key, 10) - 1;
         if (idx < currentQuestion.options.length && !answersLocked) {
           e.preventDefault();
