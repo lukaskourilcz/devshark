@@ -267,8 +267,8 @@ describe('a returning visitor with a stored session', () => {
     // (another tab holding it): the boot deadline must not sign the page out.
     localStorage.setItem(KEY, JSON.stringify(STORED));
     const original = sb.createClient.getMockImplementation()!;
-    sb.createClient.mockImplementationOnce((url: string, key: string) => {
-      const client = original(url, key);
+    sb.createClient.mockImplementationOnce((url, key, options) => {
+      const client = original(url, key, options);
       client.auth.getSession.mockImplementation(() => new Promise(() => {}));
       return client;
     });
