@@ -10,9 +10,11 @@ filter that opens every link (Microsoft 365's Safe Links does, and schools use
 it) would use up a `{{ .ConfirmationURL }}` link before the learner sees it.
 These pages verify the link only when the learner presses the button
 (`client/src/components/auth/AuthPages.tsx`). The default
-`{{ .ConfirmationURL }}` still works if a template keeps it; it also brings the
-learner back to the page they signed up on, which the token links do not (they
-continue to the home page).
+`{{ .ConfirmationURL }}` works in the browser that requested the email. It
+exchanges a code using that browser's stored PKCE verifier and can bring the
+learner back to the page they signed up on. Token-hash links work across
+devices and continue to the home page. Request a new email if a link issued
+before the PKCE rollout returns a bearer token.
 
 Links work once and expire after Supabase's "Email OTP expiration" (one hour by
 default; Authentication → Sign In / Providers → Email).

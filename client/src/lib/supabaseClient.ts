@@ -71,9 +71,8 @@ function redirectParams(href: string): Record<string, string> {
   return params;
 }
 
-/** An OAuth return that `detectSessionInUrl` acts on, by the tests in
- * GoTrueClient._initialize: an implicit grant or its error, or a PKCE `code`
- * whose verifier this browser stored when the sign-in started. */
+/** An OAuth error, or a PKCE code whose verifier this browser stored
+ * when the sign-in started. Bearer tokens in the URL never open a session. */
 function hasAuthRedirect(key: string): boolean {
   let params: Record<string, string>;
   try {
@@ -81,7 +80,7 @@ function hasAuthRedirect(key: string): boolean {
   } catch {
     return false;
   }
-  if (params.access_token || params.error || params.error_description || params.error_code) return true;
+  if (params.error || params.error_description || params.error_code) return true;
   return Boolean(params.code && readStorage(`${key}-code-verifier`));
 }
 
@@ -189,9 +188,9 @@ export function loadSupabase(): Promise<SupabaseClient | null> {
   if (!loading) {
     loading = import('@supabase/supabase-js')
       .then(({ createClient }) => {
-        // Google OAuth sign-in, session persistence in localStorage and the
-        // OAuth redirect callback, all on supabase-js's defaults.
-        const created = createClient(supabaseUrl, supabaseAnonKey);
+        // Require proof that this browser started the redirect. Keep the
+        // default storage key so existing signed-in sessions still restore.
+        const created = createClient(supabaseUrl, supabaseAnonKey, { auth: { flowType: 'pkce' } });
         client = created;
         // Attach waiting subscribers in this same tick: supabase-js starts
         // initializing inside createClient and announces a stored session a

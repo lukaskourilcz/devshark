@@ -1775,6 +1775,12 @@ Do not rename the schema. The browser keeps no coin balance of its own; old
 
 ## Sign-in, caching and limits
 
+Browser sign-in redirects use PKCE. Supabase exchanges an authorization code
+with the verifier saved by the browser that started the request. Stored
+sessions keep their existing storage key. The default confirmation and
+recovery links also need that browser. The token-hash templates below support
+opening the email on a different device.
+
 - **Two ways in.** Every "Log in" and "Sign
   in" opens one dialog (`openSignIn` in `client/src/lib/signInDialog.ts`,
   rendered by `components/auth/SignInDialogHost.tsx` in the shell, its code

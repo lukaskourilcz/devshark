@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { test, expect, type Page } from '@playwright/test';
 import { fakeSession, localAuth, projectUrl, sessionKey, storeFakeSession } from './fake-session';
 
@@ -46,6 +47,21 @@ async function offlineApi(page: Page) {
     return route.fulfill({ status: 503, json: { error: { code: 'offline', message: 'offline' } } });
   });
   return signInReports;
+}
+
+// Stub only the Supabase exchange. The actual SDK must send the verifier
+// behind the S256 challenge from the authorization request.
+const challengeFor = (verifier: string) => createHash('sha256').update(verifier).digest('base64url');
+const CALLBACK_CODE = 'provider-callback-code';
+
+async function localExchange(page: Page, challenge: string) {
+  await page.route('**/auth/v1/token?grant_type=pkce', (route) => {
+    const { auth_code, code_verifier } = route.request().postDataJSON();
+    if (auth_code !== CALLBACK_CODE || typeof code_verifier !== 'string' || challengeFor(code_verifier) !== challenge) {
+      return route.fulfill({ status: 400, json: { error: 'bad_code_verifier' } });
+    }
+    return route.fulfill({ json: fakeSession() });
+  });
 }
 
 async function desktop(page: Page) {
@@ -110,6 +126,8 @@ test('signing in downloads supabase-js on the Google press, then leaves for the 
   const authorize = new URL(page.url());
   expect(authorize.pathname).toBe('/auth/v1/authorize');
   expect(authorize.searchParams.get('provider')).toBe('google');
+  expect(authorize.searchParams.get('code_challenge_method')).toBe('s256');
+  expect(authorize.searchParams.get('code_challenge')).toMatch(/^[A-Za-z0-9_-]{43}$/);
   expect(await libraryRequests(page, seen.chunks)).toHaveLength(1);
 });
 
@@ -155,25 +173,46 @@ test('a second sign-in press after a failed download reloads, leaves for the pro
   expect(documents).toEqual(reloaded ? ['/premium', '/premium', '/auth/v1/authorize'] : ['/premium', '/auth/v1/authorize']);
 
   // Back from the provider, the account arrives on the page that asked.
-  const session = fakeSession();
-  await page.goto(`/#access_token=${session.access_token}&expires_in=3600&expires_at=${session.expires_at}&refresh_token=fake-refresh-token&token_type=bearer&provider_token=fake`);
+  const authorize = new URL(page.url());
+  expect(authorize.searchParams.get('code_challenge_method')).toBe('s256');
+  await localExchange(page, authorize.searchParams.get('code_challenge')!);
+  await page.goto(`/?code=${CALLBACK_CODE}`);
   await expect(page.getByRole('button', { name: 'Account menu for Test' })).toBeVisible();
   await expect(page).toHaveURL(/\/premium#voucher$/);
 });
 
-test('an OAuth return is read by supabase-js and reported as a sign-in', async ({ page }) => {
+test('an OAuth return with a local verifier is exchanged and reported as a sign-in', async ({ page }) => {
   await desktop(page);
   const signInReports = await offlineApi(page);
   await localAuth(page);
   const session = fakeSession();
+  const verifier = 'this-browser-verifier';
+  await page.addInitScript(({ key, verifier }) => localStorage.setItem(`${key}-code-verifier`, JSON.stringify(verifier)), { key: sessionKey, verifier });
+  await localExchange(page, challengeFor(verifier));
   const seen = watch(page);
-  await page.goto(`/#access_token=${session.access_token}&expires_in=3600&expires_at=${session.expires_at}&refresh_token=fake-refresh-token&token_type=bearer&provider_token=fake`);
+  await page.goto(`/?code=${CALLBACK_CODE}`);
   await expect(page.getByRole('button', { name: 'Account menu for Test' })).toBeVisible();
   expect(await libraryRequests(page, seen.chunks)).toHaveLength(1);
-  // supabase-js verified the token with Auth (answered locally), stored the
-  // session under its default key and cleared the fragment.
-  expect(seen.project).toContain('GET /auth/v1/user');
-  expect(new URL(page.url()).hash).toBe('');
+  // The exchange stored the session under its default key and removed the code.
+  expect(seen.project).toContain('POST /auth/v1/token');
+  expect(new URL(page.url()).search).toBe('');
   expect(JSON.parse(await page.evaluate((key) => localStorage.getItem(key) ?? 'null', sessionKey))).toMatchObject({ access_token: session.access_token });
   await expect.poll(() => signInReports).toEqual([`Bearer ${session.access_token}`]);
+});
+
+test('an unsolicited authorization code or bearer fragment cannot sign in', async ({ page }) => {
+  await desktop(page);
+  const signInReports = await offlineApi(page);
+  await localAuth(page);
+  const seen = watch(page);
+  await page.goto(`/?code=${CALLBACK_CODE}`);
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true }).first()).toBeVisible();
+
+  const session = fakeSession();
+  await page.goto(`/#access_token=${session.access_token}&expires_in=3600&expires_at=${session.expires_at}&refresh_token=fake-refresh-token&token_type=bearer&provider_token=fake`);
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true }).first()).toBeVisible();
+  await page.waitForLoadState('networkidle');
+  expect(seen.project).toEqual([]);
+  expect(await page.evaluate((key) => localStorage.getItem(key), sessionKey)).toBeNull();
+  expect(signInReports).toEqual([]);
 });

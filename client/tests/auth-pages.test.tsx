@@ -19,9 +19,12 @@ const calls = (path: string) => seen.filter((one) => one.path === path);
 
 const USER = emailUser();
 const SESSION = sessionFor(USER, 'link-access-token');
-/** The fragment a confirmation or reset link lands with (implicit flow). */
-const linkFragment = (type: 'signup' | 'recovery') =>
-  `#access_token=${SESSION.access_token}&expires_at=${SESSION.expires_at}&expires_in=3600&refresh_token=${SESSION.refresh_token}&token_type=bearer&type=${type}`;
+const INJECTED_FRAGMENT = `#access_token=${SESSION.access_token}&expires_at=${SESSION.expires_at}&expires_in=3600&refresh_token=${SESSION.refresh_token}&token_type=bearer&type=signup`;
+
+function emailReturn(path: string, recovery = false): string {
+  localStorage.setItem(`${STORAGE_KEY}-code-verifier`, JSON.stringify(recovery ? 'test-verifier/recovery' : 'test-verifier'));
+  return `${path}${path.includes('?') ? '&' : '?'}code=test-code`;
+}
 const EXPIRED = '#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired';
 
 // supabase-js tells other tabs about a sign-in over a BroadcastChannel. Node
@@ -57,6 +60,13 @@ beforeEach(() => {
     http.get(`${AUTH}/user`, ({ request }) => request.headers.get('authorization') === `Bearer ${SESSION.access_token}`
       ? gotrueOk(USER)
       : authError(401, 'bad_jwt', 'invalid JWT')),
+    http.post(`${AUTH}/token`, async ({ request }) => {
+      const { auth_code, code_verifier } = await request.json() as Record<string, unknown>;
+      return new URL(request.url).searchParams.get('grant_type') === 'pkce'
+        && auth_code === 'test-code' && code_verifier === 'test-verifier'
+        ? gotrueOk(SESSION)
+        : authError(400, 'bad_code_verifier', 'invalid code or verifier');
+    }),
     http.post('*/api/user/authevent', () => HttpResponse.json({ ok: true, kind: 'register' })),
   );
 });
@@ -118,23 +128,34 @@ const status = (text: RegExp) => screen.findByText((_, element) => element?.getA
 const h1 = () => screen.findByRole('heading', { level: 1 });
 const type = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
 
+describe('auth redirect binding', () => {
+  it('does not adopt bearer tokens delivered in an unsolicited URL fragment', async () => {
+    await openPage(`/auth/confirmed${INJECTED_FRAGMENT}`);
+    expect(await h1()).toHaveTextContent('Confirm your email');
+    expect(calls('/user')).toHaveLength(0);
+    expect(calls('/api/user/authevent')).toHaveLength(0);
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+  });
+});
+
 describe('/auth/confirmed', () => {
   it('signs the learner in from the link, says so, and goes back to the page that asked', async () => {
-    await openPage(`/auth/confirmed?next=%2Fplay%2FK7Q2AB${linkFragment('signup')}`);
+    await openPage(emailReturn('/auth/confirmed?next=%2Fplay%2FK7Q2AB'));
     expect(await h1()).toHaveTextContent('Your email is confirmed');
     expect(screen.getByText('You’re signed in as ada@example.com.')).toBeInTheDocument();
     // The usual first sign-in follows: the server hears of it like any other.
     await waitFor(() => expect(calls('/api/user/authevent')).toHaveLength(1));
     expect(calls('/api/user/authevent')[0].authorization).toBe(`Bearer ${SESSION.access_token}`);
-    // supabase-js took the token out of the address bar.
-    expect(window.location.hash).toBe('');
+    // The code exchange used this browser’s verifier and removed the code from the URL.
+    expect(calls('/token')[0].body).toEqual({ auth_code: 'test-code', code_verifier: 'test-verifier' });
+    expect(new URLSearchParams(window.location.search).has('code')).toBe(false);
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')).toMatchObject({ access_token: SESSION.access_token });
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
     expect(screen.getByTestId('where')).toHaveTextContent('/play/K7Q2AB');
   });
 
   it('never continues to another site', async () => {
-    await openPage(`/auth/confirmed?next=%2F%2Fevil.example%2Fx${linkFragment('signup')}`);
+    await openPage(emailReturn('/auth/confirmed?next=%2F%2Fevil.example%2Fx'));
     expect(await h1()).toHaveTextContent('Your email is confirmed');
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
     expect(screen.getByTestId('where')).toHaveTextContent(/^\/$/);
@@ -207,7 +228,7 @@ describe('/reset-password', () => {
       }),
       http.post(`${AUTH}/logout`, () => new HttpResponse(null, { status: 204 })),
     );
-    await openPage(`/reset-password${linkFragment('recovery')}`);
+    await openPage(emailReturn('/reset-password', true));
     expect(await screen.findByRole('heading', { level: 1, name: 'Set a new password' })).toBeInTheDocument();
     expect(screen.getByText('Choose a new password for ada@example.com.')).toBeInTheDocument();
     expect(screen.getByLabelText('New password')).toHaveAttribute('autocomplete', 'new-password');
@@ -241,9 +262,13 @@ describe('/reset-password', () => {
     server.use(
       http.put(`${AUTH}/user`, () => gotrueOk({ ...USER, updated_at: '2026-10-01T09:05:00Z' })),
       http.post(`${AUTH}/logout`, () => new HttpResponse(null, { status: 204 })),
-      http.post(`${AUTH}/token`, () => gotrueOk(sessionFor(OTHER, 'other-access-token'))),
+      http.post(`${AUTH}/token`, ({ request }) => {
+        if (new URL(request.url).searchParams.get('grant_type') === 'password') {
+          return gotrueOk(sessionFor(OTHER, 'other-access-token'));
+        }
+      }),
     );
-    await openPage(`/reset-password${linkFragment('recovery')}`);
+    await openPage(emailReturn('/reset-password', true));
     await screen.findByRole('heading', { level: 1, name: 'Set a new password' });
     type('New password', 'a much longer passphrase');
     type('Confirm new password', 'a much longer passphrase');
@@ -260,7 +285,7 @@ describe('/reset-password', () => {
 
   it('says so when the new password is the old one', async () => {
     server.use(http.put(`${AUTH}/user`, () => authError(422, 'same_password', 'New password should be different from the old password.')));
-    await openPage(`/reset-password${linkFragment('recovery')}`);
+    await openPage(emailReturn('/reset-password', true));
     await h1();
     type('New password', 'a much longer passphrase');
     type('Confirm new password', 'a much longer passphrase');
@@ -348,7 +373,7 @@ describe('a press that lands twice on an email-link page', () => {
       http.put(`${AUTH}/user`, () => gotrueOk({ ...USER, updated_at: '2026-10-01T09:05:00Z' })),
       http.post(`${AUTH}/logout`, () => new HttpResponse(null, { status: 204 })),
     );
-    await openPage(`/reset-password${linkFragment('recovery')}`);
+    await openPage(emailReturn('/reset-password', true));
     await screen.findByRole('heading', { level: 1, name: 'Set a new password' });
     type('New password', 'a much longer passphrase');
     type('Confirm new password', 'a much longer passphrase');
@@ -402,14 +427,14 @@ describe('where the app shell sends a learner from an email link', () => {
   it('opens the new-password form when a reset link lands on the home page', async () => {
     // Supabase sends the link to the Site URL when /reset-password is not on
     // its redirect allow-list.
-    await openPage(`/${linkFragment('recovery')}`);
+    await openPage(emailReturn('/', true));
     expect(await screen.findByRole('heading', { level: 1, name: 'Set a new password' })).toBeInTheDocument();
     expect(screen.getByTestId('where')).toHaveTextContent('/reset-password');
   });
 
   it('keeps the learner on the confirmation page, whatever an older sign-in meant to return to', async () => {
     sessionStorage.setItem('devshark:auth-return', JSON.stringify({ path: '/premium', at: Date.now() }));
-    await openPage(`/auth/confirmed${linkFragment('signup')}`);
+    await openPage(emailReturn('/auth/confirmed'));
     expect(await h1()).toHaveTextContent('Your email is confirmed');
     await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
     expect(screen.getByTestId('where')).toHaveTextContent('/auth/confirmed');
