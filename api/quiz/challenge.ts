@@ -121,7 +121,12 @@ async function handleQuestionBatch(req: VercelRequest, res: VercelResponse) {
     throw error;
   }
   const run = assessment ? null : suppliedRunToken ? decodeChallengeRun(suppliedRunToken)
-    : createChallengeRun(true, scope.subject, { topics, allTopics: available.length === topics.length && available.every(topic => topics.includes(topic)), userId: auth?.sub ?? null });
+    : createChallengeRun(true, scope.subject, {
+        topics,
+        allTopics: available.length === topics.length && available.every(topic => topics.includes(topic)),
+        userId: auth?.sub ?? null,
+        gradingVersion: 2,
+      });
   if (!assessment && (!run || run.subject !== scope.subject || !run.ranked)) return jsonError(res, 400, 'invalid_run', 'Challenge run expired or invalid');
   if (run && 'userId' in run && run.userId !== (auth?.sub ?? null)) return jsonError(res, 400, 'invalid_run', 'Challenge run belongs to another session');
   if (suppliedRunToken && run && run.topics && (run.topics.length !== topics.length || run.topics.some(topic => !topics.includes(topic)))) {
@@ -163,6 +168,7 @@ async function handleQuestionBatch(req: VercelRequest, res: VercelResponse) {
         // question from being re-graded through a freshly issued batch.
         attemptId: run!.runId,
         userId: auth?.sub ?? null,
+        gradingVersion: run!.gradingVersion,
       });
   res.setHeader('Cache-Control', 'private, no-store');
   logEvent({ status: 200, kind: assessment ? 'assessment' : 'batch', count: questions.length, excluded: excludeSet.size });
@@ -189,7 +195,9 @@ async function handleCompleteRun(req: VercelRequest, res: VercelResponse) {
   for (const value of body.proofs) {
     if (typeof value !== 'string') return jsonError(res, 400, 'invalid_proof', 'Invalid score proof');
     const proof = decodeScoreProof(value);
-    if (!proof || proof.runId !== run.runId || proof.subject !== run.subject) return jsonError(res, 400, 'invalid_proof', 'Invalid score proof');
+    if (!proof || proof.runId !== run.runId || proof.subject !== run.subject || proof.gradingVersion !== run.gradingVersion) {
+      return jsonError(res, 400, 'invalid_proof', 'Invalid score proof');
+    }
     if (seen.has(proof.questionId)) continue;
     seen.add(proof.questionId);
     outcomes.push({ questionId: proof.questionId, isCorrect: proof.isCorrect });

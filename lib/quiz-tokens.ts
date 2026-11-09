@@ -32,6 +32,7 @@ interface SessionPayload {
   questions: { questionId: string; correctAnswer: number }[];
   scope?: 'challenge' | 'daily' | 'roadmap' | 'assessment' | 'qotd';
   runId?: string;
+  gradingVersion?: 2;
   subject?: ScopeSubjectId;
   date?: string;
   topic?: string;
@@ -59,6 +60,7 @@ interface ChallengeRunPayload {
   topics?: string[];
   allTopics?: boolean;
   userId?: string | null;
+  gradingVersion?: 2;
   iat: number;
   exp: number;
 }
@@ -69,6 +71,7 @@ interface ScoreProofPayload {
   questionId: string;
   subject: ScopeSubjectId;
   isCorrect: boolean;
+  gradingVersion?: 2;
   iat: number;
   exp: number;
 }
@@ -232,7 +235,7 @@ function validLifetime(payload: { iat?: unknown; exp?: unknown }, maxTtl: number
 
 type SessionContext =
   | { subject: ScopeSubjectId }
-  | { scope: 'challenge'; runId: string; subject: ScopeSubjectId; attemptId?: string; userId?: string | null }
+  | { scope: 'challenge'; runId: string; subject: ScopeSubjectId; attemptId?: string; userId?: string | null; gradingVersion?: 2 }
   // A daily fetched signed in names its account (`userId`), and only that
   // account may submit it (api/quiz/submit.ts).
   | { scope: 'daily'; date: string; subject: ScopeSubjectId; attemptId?: string; startedAt?: number; userId?: string | null }
@@ -257,6 +260,8 @@ export interface DecodedQuizSession {
   questions: { questionId: string; correctAnswer: number }[];
   scope?: 'challenge' | 'daily' | 'roadmap' | 'assessment' | 'qotd';
   runId?: string;
+  /** Version 2 records strikes before returning a score proof. */
+  gradingVersion?: 2;
   subject?: ScopeSubjectId;
   date?: string;
   topic?: string;
@@ -299,7 +304,10 @@ export function decodeSessionEnvelope(token: string): DecodedQuizSession | null 
     if (typeof payload.runId !== 'string' || !/^[A-Za-z0-9_-]{16,64}$/.test(payload.runId) || !payload.subject) return null;
     const owner = payload.userId;
     if (owner !== undefined && owner !== null && (typeof owner !== 'string' || owner.length === 0 || owner.length > 128)) return null;
-    return { ...base, scope: 'challenge', runId: payload.runId, ...(owner !== undefined ? { userId: owner } : {}) };
+    const gradingVersion = payload.gradingVersion;
+    if (gradingVersion !== undefined && (gradingVersion !== 2 || owner === undefined || payload.attemptId !== payload.runId)) return null;
+    return { ...base, scope: 'challenge', runId: payload.runId, ...(owner !== undefined ? { userId: owner } : {}),
+      ...(gradingVersion !== undefined ? { gradingVersion } : {}) };
   }
   if (payload.scope === 'daily') {
     if (!payload.subject || typeof payload.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(payload.date)) return null;
@@ -359,31 +367,35 @@ export function stableAttemptId(...parts: string[]): string {
   return createHmac('sha256', TOKEN_KEY).update(parts.join('\u001f'), 'utf8').digest('base64url').slice(0, 32);
 }
 
-export function createChallengeRun(ranked = true, subject: ScopeSubjectId = 'webdev', evidence?: { topics: string[]; allTopics: boolean; userId: string | null }) {
+export function createChallengeRun(ranked = true, subject: ScopeSubjectId = 'webdev', evidence?: { topics: string[]; allTopics: boolean; userId: string | null; gradingVersion?: 2 }) {
   const now = Date.now();
   const runId = b64url(randomBytes(18));
   return { runId, ranked, subject, ...evidence, runToken: sealToken({ kind: 'challenge-run', runId, ranked, subject, ...evidence, iat: now, exp: now + CHALLENGE_TTL_MS }) };
 }
 
-export function decodeChallengeRun(token: string): { runId: string; ranked: boolean; subject: ScopeSubjectId; topics: string[] | null; allTopics: boolean | null; userId?: string | null } | null {
+export function decodeChallengeRun(token: string): { runId: string; ranked: boolean; subject: ScopeSubjectId; topics: string[] | null; allTopics: boolean | null; userId?: string | null; gradingVersion?: 2 } | null {
   const payload = openToken(token) as Partial<ChallengeRunPayload> | null;
   if (!payload || payload.kind !== 'challenge-run' || !validLifetime(payload, CHALLENGE_TTL_MS) || typeof payload.runId !== 'string' || !/^[A-Za-z0-9_-]{16,64}$/.test(payload.runId) || typeof payload.ranked !== 'boolean' || !isScopeSubject(payload.subject)) return null;
   const topics = Array.isArray(payload.topics) && payload.topics.length > 0 && payload.topics.every(topic => typeof topic === 'string') ? payload.topics : null;
   if ((topics !== null) !== (typeof payload.allTopics === 'boolean')) return null;
   if (payload.userId !== undefined && payload.userId !== null && typeof payload.userId !== 'string') return null;
+  if (payload.gradingVersion !== undefined && (payload.gradingVersion !== 2 || payload.userId === undefined)) return null;
   return { runId: payload.runId, ranked: payload.ranked, subject: payload.subject, topics, allTopics: topics ? payload.allTopics! : null,
-    ...(payload.userId !== undefined ? { userId: payload.userId } : {}) };
+    ...(payload.userId !== undefined ? { userId: payload.userId } : {}),
+    ...(payload.gradingVersion !== undefined ? { gradingVersion: payload.gradingVersion } : {}) };
 }
 
-export function encodeScoreProof(runId: string, questionId: string, subject: ScopeSubjectId, isCorrect: boolean): string {
+export function encodeScoreProof(runId: string, questionId: string, subject: ScopeSubjectId, isCorrect: boolean, gradingVersion?: 2): string {
   const now = Date.now();
-  return sealToken({ kind: 'score-proof', runId, questionId, subject, isCorrect, iat: now, exp: now + CHALLENGE_TTL_MS });
+  return sealToken({ kind: 'score-proof', runId, questionId, subject, isCorrect, gradingVersion, iat: now, exp: now + CHALLENGE_TTL_MS });
 }
 
-export function decodeScoreProof(token: string): { runId: string; questionId: string; subject: ScopeSubjectId; isCorrect: boolean } | null {
+export function decodeScoreProof(token: string): { runId: string; questionId: string; subject: ScopeSubjectId; isCorrect: boolean; gradingVersion?: 2 } | null {
   const payload = openToken(token) as Partial<ScoreProofPayload> | null;
   if (!payload || payload.kind !== 'score-proof' || !validLifetime(payload, CHALLENGE_TTL_MS) || typeof payload.runId !== 'string' || !/^[A-Za-z0-9_-]{16,64}$/.test(payload.runId) || typeof payload.questionId !== 'string' || payload.questionId.length === 0 || payload.questionId.length > 64 || !isScopeSubject(payload.subject) || typeof payload.isCorrect !== 'boolean') return null;
-  return { runId: payload.runId, questionId: payload.questionId, subject: payload.subject, isCorrect: payload.isCorrect };
+  if (payload.gradingVersion !== undefined && payload.gradingVersion !== 2) return null;
+  return { runId: payload.runId, questionId: payload.questionId, subject: payload.subject, isCorrect: payload.isCorrect,
+    ...(payload.gradingVersion !== undefined ? { gradingVersion: payload.gradingVersion } : {}) };
 }
 
 export interface QuizResultReceipt {

@@ -2447,7 +2447,9 @@ async function challengeAnswerClaimContracts() {
   // Another batch in the same run can re-deal this question with the same
   // selected index now correct. Only the original deal may replay its grade.
   const context = { scope: 'challenge', runId: session.runId!, subject: 'webdev', attemptId: session.attemptId! } as const;
-  const redealt = encodeSession([{ questionId: question.questionId, correctAnswer: wrongPick }], { ...context, userId: learner });
+  const redealt = encodeSession([{ questionId: question.questionId, correctAnswer: wrongPick }], {
+    ...context, userId: learner, gradingVersion: session.gradingVersion,
+  });
   const first = await submit(opened.sessionId);
   assert.equal(first.statusCode, 200, JSON.stringify(first.body));
   assert.equal((first.body as { correctAnswers: number }).correctAnswers, 0);
@@ -2477,6 +2479,58 @@ async function challengeAnswerClaimContracts() {
   const legacy = encodeSession([question], { ...context, runId: legacyRun.runId, attemptId: legacyRun.runId });
   assert.equal((await submit(legacy)).statusCode, 200, 'an in-flight legacy batch can finish');
   assert.equal((await submit(legacy)).statusCode, 200, 'an in-flight legacy retry can finish');
+}
+
+async function challengeStrikeContracts() {
+  const categories = 'javascript';
+  const batch = mockResponse();
+  await challengeHandler(quizRequest('GET', { categories }), batch as never);
+  assert.equal(batch.statusCode, 200, JSON.stringify(batch.body));
+  const { sessionId, runToken } = batch.body as { sessionId: string; runToken: string };
+  const session = decodeSessionEnvelope(sessionId)!;
+  const run = decodeChallengeRun(runToken)!;
+  const submit = async (questionId: string, pick: number, token = sessionId) => {
+    const response = mockResponse();
+    await submitHandler(quizRequest('POST', {}, { sessionId: token, answers: { [questionId]: pick } }), response as never);
+    return response;
+  };
+  const wrong = (question: { questionId: string; correctAnswer: number }) => submit(question.questionId, (question.correctAnswer + 1) % 2);
+  const proof = (response: ReturnType<typeof mockResponse>) => (response.body as { results: { scoreProof: string }[] }).results[0].scoreProof;
+  const [first, second, last, late] = session.questions;
+  const strikes = [await wrong(first), await wrong(second)];
+  const retiredId = 'retired-while-open';
+  const retired = encodeSession([{ questionId: retiredId, correctAnswer: 0 }], {
+    scope: 'challenge', runId: run.runId, attemptId: run.runId, subject: 'webdev', userId: null, gradingVersion: run.gradingVersion,
+  });
+  const voided = await submit(retiredId, -1, retired);
+  assert.equal(voided.statusCode, 200);
+  assert.deepEqual((voided.body as { voided: string[] }).voided, [retiredId]);
+  strikes.push(await submit(last.questionId, -1));
+  assert.deepEqual(strikes.map((response) => response.statusCode), [200, 200, 200], 'an unanswered question counts as the third strike, a void does not');
+
+  const after = await submit(late.questionId, late.correctAnswer);
+  assert.equal(after.statusCode, 409, 'a fourth new answer cannot add a score proof after the third strike');
+  assert.equal((after.body as { error: { code: string } }).error.code, 'challenge_finished');
+  const retry = await submit(last.questionId, -1);
+  assert.equal(retry.statusCode, 200, 'the terminal strike itself can be retried');
+  assert.equal((retry.body as { correctAnswers: number }).correctAnswers, 0);
+  assert.equal((await submit(last.questionId, last.correctAnswer)).statusCode, 409, 'a changed terminal answer stays a conflict');
+
+  const complete = async (proofs: string[]) => {
+    const response = mockResponse();
+    await challengeHandler(quizRequest('POST', { resource: 'complete' }, { runToken, proofs }), response as never);
+    return response;
+  };
+  assert.equal((await complete(strikes.map(proof))).statusCode, 200, 'three server-recorded strikes can complete the run');
+  const legacyProof = encodeScoreProof(run.runId, last.questionId, 'webdev', false);
+  assert.equal((await complete([...strikes.slice(0, 2).map(proof), legacyProof])).statusCode, 400, 'a new run cannot use a proof from the old grading path');
+
+  const legacy = createChallengeRun(true, 'webdev', { topics: [categories], allTopics: false, userId: null });
+  const refill = mockResponse();
+  await challengeHandler(quizRequest('GET', { categories, runToken: legacy.runToken }), refill as never);
+  assert.equal(refill.statusCode, 200, 'a legacy run can still get a refill');
+  const refilled = decodeSessionEnvelope((refill.body as { sessionId: string }).sessionId);
+  assert.equal(refilled?.gradingVersion, undefined, 'a refill keeps its original grading rules');
 }
 
 /** A class behind one school address (review round 3: SEC-1, QUIZ-2, PLAY-3,
@@ -6433,6 +6487,7 @@ async function main() {
   await guestChallengeLimitContracts();
   await challengeSelectionContracts();
   await challengeAnswerClaimContracts();
+  await challengeStrikeContracts();
   await dailyIntegrityContracts();
   await dailyOwnerContracts();
   seededShuffleContracts();

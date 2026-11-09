@@ -192,12 +192,34 @@ async function main() {
   const writes: Call[] = [];
   const server = await startStandIn(calls, writes);
   try {
-    const [{ default: leaderboard }, { default: challenge }, tokens, access] = await Promise.all([
+    const [{ default: leaderboard }, { default: challenge }, tokens, access, { default: submit }] = await Promise.all([
       import('../api/leaderboard'),
       import('../api/quiz/challenge'),
       import('../lib/quiz-tokens'),
       import('../lib/access'),
+      import('../api/quiz/submit'),
     ]);
+
+    // A new Challenge run cannot fall back to unbounded grading when 069 is missing.
+    const batch = mockResponse();
+    await challenge({ method: 'GET', headers: {}, query: { categories: 'javascript' } } as never, batch as never);
+    assert.equal(batch.statusCode, 200, JSON.stringify(batch.body));
+    const question = tokens.decodeSessionEnvelope(batch.body.sessionId)!.questions[0];
+    const grade = { method: 'POST', headers: {}, query: {}, body: { sessionId: batch.body.sessionId, answers: { [question.questionId]: question.correctAnswer } } };
+    calls.length = 0;
+    INSTALLED.claim_quiz_submission = 'claimed';
+    const missingStrikeClaim = mockResponse();
+    await submit(grade as never, missingStrikeClaim as never);
+    assert.deepEqual([missingStrikeClaim.statusCode, missingStrikeClaim.body?.error?.code], [503, 'migration_required']);
+    assert.deepEqual(calls.map((call) => call.name), ['claim_challenge_answer'], 'a new run never asks the old routine for a claim');
+    assert.equal(calls[0].args.p_verdict, 'correct');
+    INSTALLED.claim_challenge_answer = { status: 'claimed', verdict: 'correct' };
+    const graded = mockResponse();
+    await submit(grade as never, graded as never);
+    assert.equal(graded.statusCode, 200, JSON.stringify(graded.body));
+    assert.equal(tokens.decodeScoreProof(graded.body.results[0].scoreProof)?.gradingVersion, 2);
+    delete INSTALLED.claim_challenge_answer;
+    delete INSTALLED.claim_quiz_submission;
 
     // The 30-day board before 040: 503 rpc_missing, which the Leaderboard
     // screen answers with the all-time board and a note, never a 500.
