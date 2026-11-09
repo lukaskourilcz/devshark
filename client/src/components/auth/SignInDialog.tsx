@@ -79,7 +79,10 @@ export default function SignInDialog({ request }: { request: SignInRequest }) {
   // is gone (a link that switched the view, or the form that was sent).
   const focusNext = useRef<'email' | 'sent' | null>(null);
   const mounted = useRef(true);
-  useEffect(() => () => { mounted.current = false; }, []);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
   useEffect(() => {
     const target = focusNext.current;
     focusNext.current = null;
