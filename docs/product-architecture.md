@@ -152,7 +152,8 @@ ranks only that attempt: a daily fetched signed out and submitted signed in is
 graded as practice, with no receipt. The recorded time runs from the first
 time the learner got the day's questions, kept as a `daily-start:<attempt>`
 marker row in `quiz_submissions` and sealed into every later session of the
-day, so fetching again just before submitting does not shorten it. The same
+day. Concurrent starts read the same committed marker. A ranked start returns
+503 if the marker cannot be read, and guest practice needs no marker. The same
 lookup tells the client the day is already played. The response is
 `private, no-store`, because the session inside it belongs to one caller.
 `/quiz?mode=daily` starts the daily challenge once the sign-in is known and
@@ -1255,8 +1256,10 @@ answers 409 `draft_conflict`.
 
 The browser keeps an unsaved draft on the device too
 (`client/src/lib/learningPathWorkspace.ts`), with the server revision it was
-typed on; once the server has moved past that revision, the server's copy
-wins. Starting an activity returns its draft in the same request, and
+typed on. When the server holds different work at a different revision, the
+editor keeps the unsent device edits visible and reports the conflict. Neither
+copy replaces the other. A confirmed absence can take a new draft.
+Starting an activity returns its draft in the same request, and
 `draftUnavailable: true` when the server could not read it: the device copy
 then stays for the next save to settle. Switching activity, leaving the view
 or a change of account writes what is waiting first (`beforeAccountChange`).

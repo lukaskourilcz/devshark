@@ -125,6 +125,8 @@ const RETIRED_REPORTED = 'rm-js-21';
 /** While true, the one-time quiz claim fails as an unreachable database would. */
 let claimFails = false;
 let healthReadFails = false;
+let dailyMarker: { grade_key: string; created_at: string } | null = null;
+let dailyMarkerUnavailable = false;
 /** Token checks Supabase Auth answered, so a test can count a request's. */
 let authChecks = 0;
 /** How a read of the auth event log answers: normally, failing, or as a
@@ -239,9 +241,19 @@ async function startStandIns() {
     const filters = Object.fromEntries([...url.searchParams.entries()].filter(([, value]) => value.startsWith('eq.')).map(([key, value]) => [key, value.slice(3)]));
     seen.push({ method: req.method ?? 'GET', path: url.pathname, filters, body });
     if (healthReadFails && url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key') return send(500, { code: '42501', message: 'permission denied for table quiz_submissions' });
+    if (url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key,created_at') {
+      if (dailyMarkerUnavailable) return send(500, { code: '08006', message: 'stand-in: start marker unavailable' });
+      return send(200, dailyMarker ? [dailyMarker] : []);
+    }
     const rpc = /^\/rest\/v1\/rpc\/([a-z0-9_]+)$/.exec(url.pathname)?.[1];
     if (rpc) {
       if (rpc === 'claim_quiz_submission' && claimFails) return send(500, { code: '08006', message: 'stand-in: connection failure' });
+      if (rpc === 'claim_quiz_submission' && typeof (body as Row | undefined)?.p_grade_key === 'string' &&
+          String((body as Row).p_grade_key).startsWith('daily-start:')) {
+        // Another instance won the insert between this request's read and its claim.
+        dailyMarker = { grade_key: String((body as Row).p_grade_key), created_at: new Date(Date.now() - 10_000).toISOString() };
+        return send(200, 'replay');
+      }
       if (rpc === 'allocate_shark_name') return send(200, { handle: 'sleepySharkie17', ordinal: '17', base: 'sleepySharkie' });
       if (rpc === 'referral_summary') return send(200, { code: 'ab234567' });
       // Migration 064 raises for a run already saved with another score.
@@ -427,6 +439,22 @@ async function main() {
     assert.equal(authChecks, 0, 'opening a guest level does not ask Supabase Auth');
     assert.equal((reads('/rest/v1/roadmap_attempts').find((row) => row.method === 'POST')?.body as Row)?.user_id, null);
     console.log('PASS verified caller: GETs that write account rows ask Auth fresh, and guest starts still work');
+
+    const startedDaily = await call(daily as Handler, { account: A });
+    assert.equal(startedDaily.statusCode, 200, JSON.stringify(startedDaily.body));
+    const dailySession = tokens.decodeSessionEnvelope((startedDaily.body as { sessionId: string }).sessionId);
+    assert.ok(dailyMarker);
+    assert.equal(dailySession?.startedAt, Date.parse(dailyMarker.created_at), 'a concurrent daily start uses the winning database marker');
+    dailyMarkerUnavailable = true;
+    try {
+      const unknownStart = await call(daily as Handler, { account: A });
+      assert.equal(unknownStart.statusCode, 503, JSON.stringify(unknownStart.body));
+      assert.equal(errorCode(unknownStart), 'daily_start_unavailable');
+      assert.equal(await call(daily as Handler, {}).then((response) => response.statusCode), 200, 'guests do not depend on the ranked start marker');
+    } finally {
+      dailyMarkerUnavailable = false;
+    }
+    console.log('PASS verified caller: a ranked daily uses the stored start even when another request won the insert');
 
     // Leaderboard identity is independent of friends and cannot publish a full email.
     seen.length = 0;
