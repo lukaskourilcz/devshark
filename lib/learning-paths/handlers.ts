@@ -99,7 +99,7 @@ import type {
   SubmitActivityRequest,
   SubmitActivityResponse,
 } from '../../shared/learning-path-api';
-import { PATH_LIMITS } from '../../shared/learning-path-api';
+import { isPathDraftContent, PATH_LIMITS } from '../../shared/learning-path-api';
 import { LEARN_SECTION_IDS, isLearnSectionId } from '../../shared/learn-section-ids';
 import { MAX_ADDRESS_FIELD, MERCH_ENABLED, SHIRT_SIZES, validateAddress } from '../../shared/rewards';
 
@@ -1562,8 +1562,8 @@ export async function handlePathDraft(req: VercelRequest, res: VercelResponse, s
       return jsonError(res, 400, 'bad_request', 'expectedRevision must be a whole number');
     }
     const content = body.content;
-    if (!content || typeof content !== 'object' || Array.isArray(content)) {
-      return jsonError(res, 400, 'bad_request', 'content is required');
+    if (!isPathDraftContent(content)) {
+      return jsonError(res, 400, 'bad_request', 'Draft content must contain code or writing.');
     }
     const serialized = JSON.stringify(content);
     if (Buffer.byteLength(serialized, 'utf8') > PATH_LIMITS.payloadBytes) {

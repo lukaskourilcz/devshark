@@ -556,6 +556,13 @@ export async function handlerContracts(fail: Fail): Promise<void> {
       await handlePathDraft(request('PUT', `draft-bounds-${stamp}`, { ...draft, expectedRevision: 0, content: { code: 'const nul = "\\u0000";' } }), res as never,
         fakeSupabase({ rpc: () => ({ data: { revision: 1, updated_at: new Date().toISOString() } }) }));
       if (res.statusCode === 400) fail('code that spells \\u0000 out as text was refused as a NUL');
+      for (const content of [{ code: 42 }, { artifact: ['not fields'] }, { artifact: { decision: { text: 'nested' } } }, { artifact: { notes: ['valid', 3] } }]) {
+        called.length = 0;
+        res = response();
+        await handlePathDraft(request('PUT', `draft-bounds-${stamp}`, { ...draft, expectedRevision: 0, content }), res as never,
+          fakeSupabase({ rpc: (name) => { called.push(name); return { data: { ok: true, revision: 1 } }; } }));
+        if (res.statusCode !== 400 || called.length > 0) fail(`a malformed draft was sent to storage: ${JSON.stringify(content)}, status ${res.statusCode}, calls ${called.length}`);
+      }
     }
 
     /* ── every off-loop decision goes through one helper ──────────────── */

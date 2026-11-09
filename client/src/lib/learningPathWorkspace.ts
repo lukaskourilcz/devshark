@@ -9,7 +9,7 @@ import { queryClient } from './queryClient';
 import { routeChunk } from './routePreload';
 import { freshStoredAccessToken, storedSessionUserId } from './supabaseClient';
 import { enrollmentsQuery, pathCatalogQuery } from './learningPaths';
-import type { EnrollmentListResponse, PathDraft } from '../../../shared/learning-path-api';
+import { isPathDraftContent, type EnrollmentListResponse, type PathDraft } from '../../../shared/learning-path-api';
 
 /* ── the path pages' first reads ───────────────────────────────────────── */
 
@@ -76,22 +76,6 @@ export function forgetLocalDraft(enrollmentId: string, activityId: string): void
   removeStored(localDraftKey(enrollmentId, activityId));
 }
 
-const isPlainObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-
-/** A stored copy has the shape a save sends: code as text, or artifact fields
- * as text or lists of text. Anything else (an older format, a hand-edited or
- * truncated entry) would only be refused by the server on every keystroke. */
-function isDraftContent(value: unknown): value is PathDraft['content'] {
-  if (!isPlainObject(value)) return false;
-  const { code, artifact } = value;
-  if (code === undefined && artifact === undefined) return false;
-  if (code !== undefined && typeof code !== 'string') return false;
-  if (artifact === undefined) return true;
-  return isPlainObject(artifact) && Object.values(artifact).every((field) =>
-    typeof field === 'string' || (Array.isArray(field) && field.every((one) => typeof one === 'string')));
-}
-
 /** Unsaved device work, at its own base revision. The caller checks for a
  * conflict before using that revision to save. */
 export function localDraftOver(
@@ -102,7 +86,7 @@ export function localDraftOver(
 ): PathDraft | null {
   const kept = readJSON<{ baseRevision?: unknown; content?: unknown } | null>(localDraftKey(enrollmentId, activityId), null);
   if (!kept) return null;
-  if (!isDraftContent(kept.content)) {
+  if (!isPathDraftContent(kept.content)) {
     forgetLocalDraft(enrollmentId, activityId);
     return null;
   }
