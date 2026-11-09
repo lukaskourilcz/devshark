@@ -58,6 +58,9 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     if (!scope.ok) {
       return jsonError(res, 400, 'invalid_subject_scope', 'Categories must belong to this deployment and one subject');
     }
+    // Shared responses stay cacheable, but varied query strings can miss the
+    // CDN. Give those reads the same address backstop as the other boards.
+    if (!(await enforceRateLimit(req, res, RATE_LIMITS.readAddress))) return;
     try {
       const board = await getChallengeLeaderboard(scope.subject, 10);
       res.setHeader('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=60');

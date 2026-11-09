@@ -485,6 +485,27 @@ async function main() {
     assert.equal(errorCode(busyFriend), 'friendship_busy');
     console.log('PASS verified caller: a friendship lock timeout is retryable');
 
+    const publicChallenge = await call(challenge as Handler, { query: { resource: 'leaderboard' } });
+    assert.equal(publicChallenge.statusCode, 200, JSON.stringify(publicChallenge.body));
+    assert.match(publicChallenge.headers['cache-control'] ?? '', /^public,/);
+    const exhaustedBoardAddress = nextAddress();
+    const boardClock = Date.now;
+    const frozenBoardTime = boardClock();
+    Date.now = () => frozenBoardTime;
+    try {
+      const boardRequest = { headers: { 'x-forwarded-for': exhaustedBoardAddress } } as never;
+      for (let i = 0; i < rateLimit.RATE_LIMITS.readAddress.capacity; i++) {
+        assert.ok(rateLimit.checkRateLimit(boardRequest, mockResponse() as never, rateLimit.RATE_LIMITS.readAddress));
+      }
+      const before = reads('/rest/v1/rpc/challenge_leaderboard').length;
+      const busyBoard = await call(challenge as Handler, { from: exhaustedBoardAddress, query: { resource: 'leaderboard', nonce: 'cache-miss' } });
+      assert.equal(busyBoard.statusCode, 429, 'a Challenge board cache miss respects the public board address limit');
+      assert.equal(reads('/rest/v1/rpc/challenge_leaderboard').length, before, 'a rejected cache miss does no database work');
+    } finally {
+      Date.now = boardClock;
+    }
+    console.log('PASS verified caller: Challenge leaderboard cache misses are rate-limited before SQL');
+
     // Leaderboard identity is independent of friends and cannot publish a full email.
     seen.length = 0;
     const preference = await user('leaderboard-name', { method: 'PUT', account: EMAIL, body: { mode: 'account', accountName: 'spoof@example.com', user_id: B.id } });
