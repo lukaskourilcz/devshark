@@ -3,6 +3,9 @@
 -- by the previous deployment stay available, with their original behavior.
 BEGIN;
 
+-- Leave the serving database available if a grading transaction holds the table.
+SET LOCAL lock_timeout = '5s';
+
 DO $$
 BEGIN
   IF to_regprocedure('public.claim_quiz_submission(text,text,text,text,text)') IS NULL THEN
