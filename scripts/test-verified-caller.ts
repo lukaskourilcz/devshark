@@ -378,11 +378,15 @@ async function main() {
     ]);
 
     type Handler = (req: never, res: never) => unknown;
-    const call = async (handler: Handler, input: { method?: string; query?: Record<string, string>; body?: unknown; account?: Account; from?: string }) => {
+    const call = async (handler: Handler, input: { method?: string; query?: Record<string, string>; body?: unknown; account?: Account; from?: string; authorization?: string | string[] }) => {
       const res = mockResponse();
       await handler({
         method: input.method ?? 'GET',
-        headers: { ...(input.account ? { authorization: `Bearer ${input.account.token}` } : {}), 'x-forwarded-for': input.from ?? nextAddress() },
+        headers: {
+          ...(input.account ? { authorization: `Bearer ${input.account.token}` } : {}),
+          ...(input.authorization !== undefined ? { authorization: input.authorization } : {}),
+          'x-forwarded-for': input.from ?? nextAddress(),
+        },
         query: input.query ?? {},
         url: '/api',
         body: input.body,
@@ -455,6 +459,23 @@ async function main() {
       dailyMarkerUnavailable = false;
     }
     console.log('PASS verified caller: a ranked daily uses the stored start even when another request won the insert');
+
+    const guestDaily = await call(daily as Handler, {});
+    assert.equal(guestDaily.statusCode, 200, 'no Authorization header still starts guest practice');
+    const guestToken = (guestDaily.body as { sessionId: string }).sessionId;
+    const guestQuiz = tokens.decodeSessionEnvelope(guestToken)!;
+    const guestAnswers = Object.fromEntries(guestQuiz.questions.map(({ questionId, correctAnswer }) => [questionId, correctAnswer]));
+    const authBeforeMalformed = authChecks;
+    seen.length = 0;
+    for (const authorization of ['', 'Bearer', 'Bearer wrong token', 'Basic invalid', ['Bearer first', 'Bearer second']]) {
+      const start = await call(daily as Handler, { authorization });
+      assert.equal(start.statusCode, 401, `daily start refuses malformed credentials: ${JSON.stringify(authorization)}`);
+      const grade = await call(submit as Handler, { method: 'POST', body: { sessionId: guestToken, answers: guestAnswers }, authorization });
+      assert.equal(grade.statusCode, 401, 'quiz grading must not silently submit malformed credentials as a guest');
+    }
+    assert.equal(authChecks, authBeforeMalformed, 'locally malformed credentials need no upstream Auth request');
+    assert.equal(reads('/rest/v1/rpc/claim_quiz_submission').length, 0, 'malformed credentials must not spend a grading claim');
+    console.log('PASS verified caller: optional Auth distinguishes a guest from malformed credentials');
 
     // Leaderboard identity is independent of friends and cannot publish a full email.
     seen.length = 0;
