@@ -2961,9 +2961,9 @@ async function dailySwitchContracts() {
  * time they were handed the day's questions. */
 async function dailyIntegrityContracts() {
   const learner = 'daily-contract-learner-01';
-  const fetchDaily = async (user?: string) => {
+  const fetchDaily = async (user?: string, query: Record<string, string> = {}) => {
     const response = mockResponse();
-    await dailyHandler(quizRequest('GET', {}, undefined, user), response as never);
+    await dailyHandler(quizRequest('GET', query, undefined, user), response as never);
     assert.equal(response.statusCode, 200, JSON.stringify(response.body));
     return response;
   };
@@ -2993,12 +2993,19 @@ async function dailyIntegrityContracts() {
 
   // Fetching again just before submitting does not restart the clock.
   await new Promise((resolve) => setTimeout(resolve, 60));
-  const again = await fetchDaily(learner);
-  const firstSession = decodeSessionEnvelope((first.body as { sessionId: string }).sessionId)!;
-  const againSession = decodeSessionEnvelope((again.body as { sessionId: string }).sessionId)!;
+  type DailyBody = { sessionId: string; questions: { category: string }[] };
+  const firstBody = first.body as DailyBody;
+  // A valid category subset that excludes a question already dealt must
+  // still get the same ranked challenge, with the same option order.
+  const subset = deliveryCategories('webdev').find((category) => category !== firstBody.questions[0].category)!;
+  const again = await fetchDaily(learner, { categories: subset });
+  const againBody = again.body as DailyBody;
+  assert.deepEqual(againBody.questions, firstBody.questions, 'topic filters cannot change the ranked daily questions');
+  const firstSession = decodeSessionEnvelope(firstBody.sessionId)!;
+  const againSession = decodeSessionEnvelope(againBody.sessionId)!;
   assert.equal(againSession.attemptId, firstSession.attemptId, 'one attempt a day');
   assert.equal(againSession.startedAt, firstSession.startedAt, 'the start is the first fetch of the day');
-  const ranked = await submitAll((again.body as { sessionId: string }).sessionId, learner);
+  const ranked = await submitAll(againBody.sessionId, learner);
   const receipt = decodeQuizResultReceipt(ranked.resultReceipt!);
   assert.equal(receipt?.purpose, 'daily');
   assert.ok((receipt?.daily?.durationMs ?? 0) >= 60, `the time runs from the first fetch, got ${receipt?.daily?.durationMs} ms`);

@@ -9,7 +9,7 @@ import { enforceClassRateLimit, RATE_LIMITS } from '../../lib/rate-limit';
 import { defaultDeploymentCategories, validateCategoryScope } from '../../lib/product-scope';
 import { AuthError } from '../../lib/auth';
 import { dailySeededShuffle, handleQuestionOfTheDay } from '../../lib/daily-question';
-import type { ScopeSubjectId } from '../../shared/subject-catalog';
+import { deliveryCategories, type ScopeSubjectId } from '../../shared/subject-catalog';
 
 // Daily challenge: deterministic per-UTC-date selection (one question per
 // difficulty bucket). Same set for every user on the same day, so leaderboards
@@ -103,10 +103,8 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     return jsonError(res, 400, 'bad_request', 'date out of range');
   }
 
-  // Pick one question per difficulty bucket, deterministically per date.
-  // Optional subject scoping: the client sends the active subject's categories
-  // so the daily mix stays within one subject. Old clients default to the
-  // deployment's first subject; they never fall through to another product.
+  // The optional category list identifies the subject. Everyone competing
+  // on its board gets the draw from the subject's full pool.
   const catRaw = typeof req.query.categories === 'string' ? req.query.categories : '';
   const requested = catRaw
     ? catRaw.split(',').map((s) => s.trim()).filter(Boolean)
@@ -115,7 +113,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   if (!scope.ok) {
     return jsonError(res, 400, 'invalid_subject_scope', 'Categories must belong to this deployment and one subject');
   }
-  const catSet = new Set(scope.categories);
+  const catSet = new Set(deliveryCategories(scope.subject));
 
   let auth;
   try {
