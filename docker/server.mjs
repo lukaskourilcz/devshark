@@ -110,13 +110,23 @@ function readRaw(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
     let size = 0;
-    req.on('data', (chunk) => {
+    const onEnd = () => resolve(Buffer.concat(chunks));
+    const onData = (chunk) => {
       size += chunk.length;
-      if (size > MAX_BODY) { reject(Object.assign(new Error('payload too large'), { status: 413 })); req.destroy(); return; }
-      chunks.push(chunk);
-    });
-    req.on('end', () => resolve(Buffer.concat(chunks)));
-    req.on('error', reject);
+      if (size <= MAX_BODY) {
+        chunks.push(chunk);
+        return;
+      }
+      // Discard the rest while the 413 is written. Destroying the request
+      // here would also destroy the socket before the client gets a response.
+      req.off('data', onData);
+      req.off('end', onEnd);
+      req.resume();
+      reject(Object.assign(new Error('payload too large'), { status: 413 }));
+    };
+    req.on('data', onData);
+    req.once('end', onEnd);
+    req.once('error', reject);
   });
 }
 
@@ -162,7 +172,10 @@ async function runApi(req, res, url) {
   if (!found) { res.statusCode = 404; res.setHeader('Content-Type', 'application/json'); res.end('{"error":"not_found"}'); return; }
   let raw;
   try { raw = await readRaw(req); } catch (error) {
-    res.statusCode = error.status ?? 400; res.end(); return;
+    res.statusCode = error.status ?? 400;
+    if (res.statusCode === 413) res.setHeader('Connection', 'close');
+    res.end();
+    return;
   }
   // Path parameters fill the query only where the query has no value: the
   // client calls /api/user/[op]?op=x, and the explicit op must win.
