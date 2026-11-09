@@ -67,6 +67,8 @@ const tableReads: string[] = [];
 let streakRoutineMissing = false;
 /** Answer complete_verified_roadmap_attempt_v2 as a database before 060 does. */
 let repeatRoutineMissing = false;
+/** Hold the backend beyond the request's 5 s upstream deadline. */
+let stallLearn = false;
 /** Migration 060's user_learn_step_xp (when each step last paid, ms) and the
  * repeat awards it paid, by award id. */
 const stepPaidAt = new Map<string, number>();
@@ -205,6 +207,10 @@ async function startStandIn() {
       if (rpc[1] === 'advance_verified_streak' && streakRoutineMissing) {
         return send(404, { code: 'PGRST202', message: 'Could not find the function public.advance_verified_streak(p_user_id) in the schema cache' });
       }
+      if (stallLearn && rpc[1] === 'record_roadmap_answer_v2') {
+        await new Promise((resolve) => setTimeout(resolve, 5500));
+        return send(504, { message: 'late test fixture' });
+      }
       if (rpc[1] === 'record_roadmap_answer_v2') { const out = recordAnswer(args); return send(out.status, out.body); }
       if (rpc[1] === 'complete_verified_roadmap_attempt') { const out = completeAttempt(args); return send(out.status, out.body); }
       if (rpc[1] === 'complete_verified_roadmap_attempt_v2') {
@@ -220,6 +226,10 @@ async function startStandIn() {
     }
     const table = /^\/rest\/v1\/([a-z_]+)$/.exec(url.pathname)?.[1];
     if (table) {
+      if (stallLearn && (table === 'roadmap_progress' || table === 'roadmap_attempts')) {
+        await new Promise((resolve) => setTimeout(resolve, 5500));
+        return send(504, { message: 'late test fixture' });
+      }
       const filters = filtersOf(url);
       // A database blip for one account's progress row.
       if (table === 'roadmap_progress' && filters.some(([key, value]) => key === 'user_id' && value === BROKEN.id)) {
@@ -378,6 +388,19 @@ async function main() {
     assert.equal(ownAnswer.statusCode, 200, `the account itself answers (${JSON.stringify(ownAnswer.body)})`);
     assert.equal(ownAnswer.body.isCorrect, true);
     assert.equal(ownAnswer.body.explanation, englishById.get(firstQuestion.questionId)!.explanation, 'a stray lang still gets the English explanation');
+    stallLearn = true;
+    try {
+      const stalled = await Promise.all([
+        call('POST', { resource: 'answer' }, LEARNER.token, { sessionId: own.body.sessionId, questionId: firstQuestion.questionId, selectedIndex: firstQuestion.correctAnswer }),
+        call('POST', { resource: 'complete' }, LEARNER.token, { sessionId: own.body.sessionId }),
+        call('GET', { resource: 'progress' }, LEARNER.token),
+      ]);
+      assert.deepEqual(stalled.map((res) => [res.statusCode, res.body?.error?.code]), [
+        [503, 'upstream_timeout'], [503, 'upstream_timeout'], [503, 'upstream_timeout'],
+      ], 'Learn answers, completion and progress report retryable upstream timeouts');
+    } finally {
+      stallLearn = false;
+    }
     // A guest keeps playing a guest session.
     const guestLevel = await call('GET', { topic: 'html', level: '1' });
     const guestStatuses = await answerAll(guestLevel.body.sessionId);
