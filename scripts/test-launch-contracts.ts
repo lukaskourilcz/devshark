@@ -3583,7 +3583,47 @@ async function identityContracts() {
   assert.deepEqual(friendCalls, [], 'and nothing is answered or removed');
 }
 
+async function practiceRunTransitionContracts() {
+  const learner = 'practice-learner-0001';
+  const sessionId = 'practice-session-0001';
+  const call = async (storedStatus: 'active' | 'abandoned', position?: number) => {
+    const calls: { name: string; args: Record<string, unknown> }[] = [];
+    const query = {
+      select: () => query,
+      eq: () => query,
+      maybeSingle: async () => ({ data: { session_id: sessionId, status: storedStatus, position }, error: null }),
+    };
+    const db = {
+      from: () => query,
+      rpc: async (name: string, args: Record<string, unknown>) => {
+        calls.push({ name, args });
+        return { data: name === 'begin_scheduled_practice_session' ? true : null, error: null };
+      },
+    };
+    const req = {
+      method: 'PUT', headers: { authorization: 'Bearer stand-in-token', 'x-forwarded-for': '198.51.100.82' },
+      query: {}, body: { sessionId, user_id: learner, status: 'active', position },
+    };
+    const res = mockResponse();
+    await handlePracticeSession(req as never, res as never, db as never);
+    return { res, calls };
+  };
+
+  const began = await call('active');
+  assert.equal(began.res.statusCode, 200);
+  assert.deepEqual(began.calls.map(({ name }) => name), ['begin_scheduled_practice_session'], 'activation does not send a second status write');
+  const combined = await call('active', 1);
+  assert.equal(combined.res.statusCode, 200);
+  assert.deepEqual(combined.calls[1], {
+    name: 'advance_practice_session',
+    args: { p_session_id: sessionId, p_user_id: learner, p_position: 1, p_status: null },
+  }, 'a caller can begin with a position without setting active twice');
+  const replaced = await call('abandoned');
+  assert.equal(replaced.res.statusCode, 409, 'a start response cannot direct the learner back to a replaced run');
+}
+
 async function main() {
+  await practiceRunTransitionContracts();
   codingBoardContracts();
   await codingFetchContracts();
   complexityContracts();
