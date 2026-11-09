@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { withServerTiming, timedSupabaseFetch } from '../lib/request-timing';
 import type { VercelResponse } from '../lib/vercel-types';
 const fetch = globalThis.fetch;
@@ -31,3 +32,6 @@ await (await import('./cold-start-contracts')).runIsolated('scripts/test-prelude
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-learn-round-trips.ts');
 // The served question set's refresh (#587), in a process of its own.
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-questions-cache.ts');
+
+// The self-host adapter's IP and body-size boundaries, on a local fixture.
+execFileSync(process.execPath, ['--test', 'docker/server.test.mjs'], { stdio: 'inherit' });
