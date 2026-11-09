@@ -292,14 +292,15 @@ it('keeps the launch campaign label on a /premium link', async () => {
 it('keeps only approved campaign labels in real PostHog events and person properties', async () => {
   window.history.replaceState(null, '', '/?utm_source=Threads&utm_campaign=audit%40example.com&utm_content=private-note&gclid=synthetic-click-id&fbclid=synthetic-facebook-id');
   vi.spyOn(document, 'referrer', 'get').mockReturnValue('https://www.google.com/?q=learner%40example.com');
-  vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200 })));
+  const requests = vi.fn(async (_url: string, _options?: RequestInit) => new Response('{}', { status: 200 }));
+  vi.stubGlobal('fetch', requests);
   try {
     const { PostHog } = await vi.importActual<typeof import('posthog-js')>('posthog-js');
     const { posthogConfig } = await import('../src/lib/posthogClient');
     const ph = new PostHog().init('phc_campaign_test', {
       ...posthogConfig('https://posthog.invalid'),
-      advanced_disable_flags: true,
       disable_external_dependency_loading: true,
+      disable_compression: true,
     }, 'campaign-test')!;
     ph.opt_in_capturing({ captureEventName: false });
     const events: NonNullable<ReturnType<typeof ph.capture>>[] = [];
@@ -324,6 +325,13 @@ it('keeps only approved campaign labels in real PostHog events and person proper
       utm_source: 'threads',
       utm_campaign: 'launch-55',
     });
+
+    // The SDK's flags request includes raw initial person properties and
+    // bypasses before_send. Let any debounced reload reach the stub too.
+    ph.reloadFeatureFlags();
+    await vi.waitFor(() => expect(requests).toHaveBeenCalled());
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    expect(requests.mock.calls.filter(([url]) => /\/flags\/|\/array\//.test(url))).toEqual([]);
   } finally {
     vi.unstubAllGlobals();
   }

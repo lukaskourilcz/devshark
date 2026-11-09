@@ -65,6 +65,9 @@ export function posthogConfig(apiHost: string): Partial<PostHogConfig> {
     // session and initial properties, so before_send filters those too.
     save_campaign_params: false,
     mask_personal_data_properties: true,
+    // devShark uses explicit analytics events. The optional flags endpoint
+    // sends initial person properties without passing through before_send.
+    advanced_disable_flags: true,
     // A fragment can carry a token (a cancel confirmation, an OAuth return);
     // PostHog leaves it out of the URLs it records itself.
     disable_capture_url_hashes: true,
