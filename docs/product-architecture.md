@@ -263,10 +263,15 @@ answers 409 `run_already_saved`, and the browser drops it from the results it
 still has to send. The board shows a count of the run's topics with the
 topics in a tooltip, or a gold fin for a run over every available topic.
 
-A known limit: a run submits its answer proofs from the client
-(`api/quiz/challenge.ts`), and without a server-side append-only attempt
-ledger a determined client can still leave out earlier proof batches. Do not
-claim the record is complete; a full fix has to fit an existing handler.
+New runs seal the grading version in each batch and proof. Migration 069
+serializes grading per run and records the first verdict for each question.
+The third wrong answer or timeout closes grading for the run. A void question
+costs no strike. Retrying the original batch and pick returns the recorded
+verdict, including after closure. Runs issued before deployment keep their
+original rules until their three-hour run tokens expire.
+
+The browser still controls when questions are shown and sends the proofs for
+completion. It can leave earlier correct answers out of the final score.
 
 ### XP again for a replayed Learn step
 
