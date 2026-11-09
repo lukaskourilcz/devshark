@@ -62,9 +62,9 @@ export function withChangedEnrollments(
 }
 
 /* A copy of an unsaved draft on this device, so a draft the server has not
- * taken yet (offline, or a failed save) survives a reload. It records the
- * server revision it was typed on: once the server has moved past that,
- * another device saved since, and the server's copy wins, as a save would. */
+ * taken yet (offline, or a failed save) survives a reload. The base revision
+ * identifies the version these edits were made against. A different server
+ * revision alone does not prove that the server has these edits. */
 
 const localDraftKey = (enrollmentId: string, activityId: string) => `devshark:path:draft:${enrollmentId}:${activityId}`;
 
@@ -92,8 +92,8 @@ function isDraftContent(value: unknown): value is PathDraft['content'] {
     typeof field === 'string' || (Array.isArray(field) && field.every((one) => typeof one === 'string')));
 }
 
-/** The copy kept on this device when it is newer than the server's draft,
- * shaped as a draft at the server's revision; otherwise null. */
+/** Unsaved device work, at its own base revision. The caller checks for a
+ * conflict before using that revision to save. */
 export function localDraftOver(
   enrollmentId: string,
   activityId: string,
@@ -106,21 +106,18 @@ export function localDraftOver(
     forgetLocalDraft(enrollmentId, activityId);
     return null;
   }
-  // The server could not read its draft, so nothing proves this copy stale:
-  // keep it, at the revision it was based on, for the next save to settle.
-  if (serverUnknown) {
-    const base = typeof kept.baseRevision === 'number' && Number.isInteger(kept.baseRevision) && kept.baseRevision >= 0 ? kept.baseRevision : 0;
-    return { activityId, revision: base, content: kept.content, updatedAt: new Date().toISOString() };
-  }
-  const revision = server?.revision ?? 0;
-  if (kept.baseRevision !== revision || JSON.stringify(kept.content) === JSON.stringify(server?.content ?? null)) {
+  if (!serverUnknown && JSON.stringify(kept.content) === JSON.stringify(server?.content ?? null)) {
     forgetLocalDraft(enrollmentId, activityId);
     return null;
   }
+  const base = typeof kept.baseRevision === 'number' && Number.isInteger(kept.baseRevision) && kept.baseRevision >= 0
+    ? kept.baseRevision : 0;
   return {
     activityId,
-    revision,
+    // A confirmed absence (for example after retention) can take a new
+    // draft. A failed read cannot establish that absence.
+    revision: server || serverUnknown ? base : 0,
     content: kept.content,
-    updatedAt: server?.updatedAt ?? new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 }

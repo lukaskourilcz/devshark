@@ -2045,7 +2045,7 @@ export const en = {
   'paths.draft.saving': 'Saving…',
   'paths.draft.saved': 'Draft saved',
   'paths.draft.error': 'Draft not saved. It is still here on this device.',
-  'paths.draft.conflict': 'A newer draft was saved on another device, so this one was not saved. Copy anything you want to keep, then reload to see the newer one.',
+  'paths.draft.conflict': 'A different draft is saved to your account. These edits are kept on this device and have not replaced it.',
   'paths.draft.offline': 'Offline. Kept on this device; it will save when you reconnect.',
   'paths.domain.complexity': 'Complexity',
   'paths.domain.structures': 'Data structures',

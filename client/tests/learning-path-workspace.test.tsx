@@ -539,14 +539,30 @@ describe('the draft autosave', () => {
     await waitFor(() => expect(calls.drafts.map((one) => [one.expected, one.code])).toEqual([[3, 'unsaved, from here']]));
   });
 
-  it('prefers the server\'s draft when another device saved after the copy on this one', async () => {
-    localStorage.setItem(`devshark:path:draft:${ENROLLMENT}:${A}`, JSON.stringify({ baseRevision: 1, content: { code: 'older, from here' } }));
+  it('keeps newer unsent edits when the preceding save reached the server but its response was lost', async () => {
+    const key = `devshark:path:draft:${ENROLLMENT}:${A}`;
+    localStorage.setItem(key, JSON.stringify({ baseRevision: 1, content: { code: 'newer unsent work' } }));
     calls.serverRevision = 2;
-    calls.serverDraft = { activityId: A, revision: 2, content: { code: 'newer, from the laptop' }, updatedAt: '' };
+    calls.serverDraft = { activityId: A, revision: 2, content: { code: 'earlier save from this device' }, updatedAt: '' };
     await mount(A);
-    await waitFor(() => expect(editor().value).toBe('newer, from the laptop'));
+    await waitFor(() => expect(editor().value).toBe('newer unsent work'));
+    expect(status()).toContain('kept on this device');
     expect(calls.drafts).toHaveLength(0);
-    expect(localStorage.getItem(`devshark:path:draft:${ENROLLMENT}:${A}`)).toBeNull();
+    await type('more unsent work');
+    await waitFor(() => expect(localStorage.getItem(key)).toContain('more unsent work'));
+    expect(calls.drafts).toHaveLength(0);
+    await act(async () => { cleanup(); });
+    await mount(A);
+    await waitFor(() => expect(editor().value).toBe('more unsent work'));
+    expect(calls.drafts).toHaveLength(0);
+  });
+
+  it('restores an unsent draft when the account no longer holds one', async () => {
+    const key = `devshark:path:draft:${ENROLLMENT}:${A}`;
+    localStorage.setItem(key, JSON.stringify({ baseRevision: 3, content: { code: 'unsent after retention' } }));
+    await mount(A);
+    await waitFor(() => expect(editor().value).toBe('unsent after retention'));
+    await waitFor(() => expect(calls.drafts.map((one) => [one.expected, one.code])).toEqual([[0, 'unsent after retention']]));
   });
 });
 
