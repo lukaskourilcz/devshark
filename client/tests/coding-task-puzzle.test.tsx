@@ -8,6 +8,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { CodingTaskScreen } from '../src/components/coding/CodingSection';
+import type { CodingWorkbenchProps } from '../src/coding/CodingWorkbench';
 import type { CodingTaskProgress, CodingVerdictResponse } from '../../shared/coding-api';
 import type { PlayableCodingTask } from '../../shared/coding-catalog';
 
@@ -48,11 +49,14 @@ const base: CodingVerdictResponse = {
   verdict: 'passed', results: [], hidden: null, check: null, logs: [], codeError: null, design: null, designReference: null,
   failureHint: null, puzzle: null, progress: null, firstPass: false, xpAwarded: 0, xpForfeited: false, applied: false, github: null, solutions: null,
 };
+const passed = { ...base, progress, firstPass: true, xpAwarded: 25, applied: true };
+const submitted = 'const sum = (list) => list.reduce((a, b) => a + b, 0);';
 vi.mock('../src/coding/CodingWorkbench', () => ({
-  CodingWorkbench: ({ onVerdict }: { onVerdict: (verdict: CodingVerdictResponse, code?: string) => void }) => (
+  CodingWorkbench: ({ onVerdict }: Pick<CodingWorkbenchProps, 'onVerdict'>) => (
     <>
-      <button type="button" onClick={() => onVerdict({ ...base, puzzle: { accepted: true, competencies: ['sequence'], claim: 'Arranged.' } })}>Accepted order</button>
-      <button type="button" onClick={() => onVerdict({ ...base, progress, firstPass: true, xpAwarded: 25, applied: true }, 'const sum = (list) => list.reduce((a, b) => a + b, 0);')}>Real pass</button>
+      <button type="button" onClick={() => onVerdict?.({ ...base, puzzle: { accepted: true, competencies: ['sequence'], claim: 'Arranged.' } })}>Accepted order</button>
+      <button type="button" onClick={() => onVerdict?.(passed, submitted)}>Real pass</button>
+      <button type="button" onClick={() => onVerdict?.(passed, submitted, true)}>Pass for earlier code</button>
     </>
   ),
 }));
@@ -83,4 +87,13 @@ it('moves the run on and lets the device draft go after a real pass', async () =
   fireEvent.click(await screen.findByRole('button', { name: 'Real pass' }));
   expect(mocks.advance).toHaveBeenCalledWith({ sessionId: 'run-1', position: 1 });
   expect(localStorage.getItem(draft)).toBeNull();
+});
+
+it('moves the run on and keeps the newer device draft after a pass for earlier code', async () => {
+  const newer = 'const sum = (list) => { /* still editing */ };';
+  localStorage.setItem(draft, newer);
+  mount();
+  fireEvent.click(await screen.findByRole('button', { name: 'Pass for earlier code' }));
+  expect(mocks.advance).toHaveBeenCalledWith({ sessionId: 'run-1', position: 1 });
+  expect(localStorage.getItem(draft)).toBe(newer);
 });

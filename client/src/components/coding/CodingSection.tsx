@@ -966,7 +966,7 @@ function CodingTaskView({ track, taskId }: { track: CodingTrack; taskId: string 
     if (!authLoading && fetchedSignedIn !== undefined && fetchedSignedIn !== isAuthenticated) void refetchTask();
   }, [authLoading, fetchedSignedIn, isAuthenticated, refetchTask]);
 
-  const onVerdict = useCallback((verdict: CodingVerdictResponse, submittedCode?: string) => {
+  const onVerdict = useCallback((verdict: CodingVerdictResponse, submittedCode?: string, sourceChanged = false) => {
     if (verdict.progress) void queryClient.invalidateQueries({ queryKey: codingKeys.progress() });
     // An accepted order comes back as "passed" about the arrangement. The task
     // itself stays open for the code (the server records no progress), so it
@@ -980,11 +980,11 @@ function CodingTaskView({ track, taskId }: { track: CodingTrack; taskId: string 
       const stage = evolvingStage(taskId);
       if (stage) {
         // Capture the submitted snapshot synchronously, before Next can navigate
-        // and before the account save started by Submit settles. Never seed
-        // over a next-stage draft.
-        if (submittedCode !== undefined) keepDeviceDraft(taskId, submittedCode, draftBase, draftEpoch);
+        // and before the account save started by Submit settles. Keep a
+        // device draft with newer edits in place.
+        if (!sourceChanged && submittedCode !== undefined) keepDeviceDraft(taskId, submittedCode, draftBase, draftEpoch);
         if (stage.next) queryClient.removeQueries({queryKey:codingKeys.task(stage.next), exact:true, type:'inactive'});
-      } else forgetDeviceDraft(taskId, draftEpoch);
+      } else if (!sourceChanged) forgetDeviceDraft(taskId, draftEpoch);
     }
     // An evolving stage's Submit stored its code as the stage draft: the next
     // save from here builds on that time.

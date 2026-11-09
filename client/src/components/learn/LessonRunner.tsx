@@ -183,9 +183,9 @@ function LessonCodingTask({ task, session, signedIn, onPassed, onRevealed, onCon
             mode="lesson"
             onDraft={(code) => saveDraft(task.id, code, { signedIn, base, epoch })}
             onEdit={(code) => autosaveDraft(task.id, code, base, epoch)}
-            onVerdict={(verdict) => {
+            onVerdict={(verdict, _submittedCode, sourceChanged) => {
               if (verdict.verdict === 'passed') {
-                forgetDeviceDraft(task.id, epoch);
+                if (!sourceChanged) forgetDeviceDraft(task.id, epoch);
                 onPassed();
               }
             }}
