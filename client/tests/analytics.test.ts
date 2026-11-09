@@ -289,6 +289,46 @@ it('keeps the launch campaign label on a /premium link', async () => {
   expect(analytics.scrubUrl(link, true)).toBe('https://devshark.app/premium?utm_source=instagram&utm_medium=post&utm_campaign=launch-55');
 });
 
+it('keeps only approved campaign labels in real PostHog events and person properties', async () => {
+  window.history.replaceState(null, '', '/?utm_source=Threads&utm_campaign=audit%40example.com&utm_content=private-note&gclid=synthetic-click-id&fbclid=synthetic-facebook-id');
+  vi.spyOn(document, 'referrer', 'get').mockReturnValue('https://www.google.com/?q=learner%40example.com');
+  vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200 })));
+  try {
+    const { PostHog } = await vi.importActual<typeof import('posthog-js')>('posthog-js');
+    const { posthogConfig } = await import('../src/lib/posthogClient');
+    const ph = new PostHog().init('phc_campaign_test', {
+      ...posthogConfig('https://posthog.invalid'),
+      advanced_disable_flags: true,
+      disable_external_dependency_loading: true,
+    }, 'campaign-test')!;
+    ph.opt_in_capturing({ captureEventName: false });
+    const events: NonNullable<ReturnType<typeof ph.capture>>[] = [];
+    ph.on('eventCaptured', (event) => events.push(event));
+    ph.capture('$pageview', { utm_source: 'threads' });
+    ph.capture('quiz_started', { $set: { $initial_wbraid: 'old-click-id', utm_medium: ' POST ' } });
+    ph.identify('campaign-test-user', undefined, { utm_campaign: 'launch-55' });
+
+    const view = events.find(({ event }) => event === '$pageview');
+    const quiz = events.find(({ event }) => event === 'quiz_started');
+    const signedIn = events.find(({ event }) => event === '$identify');
+    const payload = JSON.stringify(events);
+    expect(payload).not.toMatch(/audit@example.com|learner@example.com|synthetic-click-id|synthetic-facebook-id|old-click-id|private-note/);
+    expect(view?.properties.utm_source).toBe('threads');
+    expect(quiz?.properties).not.toHaveProperty('utm_source');
+    expect(quiz?.properties).toMatchObject({
+      $session_entry_utm_source: 'threads',
+      $set: { utm_medium: 'post' },
+    });
+    expect(signedIn?.$set_once).toMatchObject({
+      $initial_utm_source: 'threads',
+      utm_source: 'threads',
+      utm_campaign: 'launch-55',
+    });
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});
+
 it('sends nothing after a withdrawal, not even an event captured just before it', async () => {
   // The real posthog-js with the app's settings: an event must leave when it
   // is captured, because neither reset() nor an opt-out empties PostHog's

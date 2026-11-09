@@ -3,23 +3,37 @@
 // and the URL scrubber travel in one lazy chunk and never in the shell.
 
 import posthog, { type PostHog, type PostHogConfig } from 'posthog-js';
-import { scrubUrl } from './analytics';
+import { CAMPAIGN_KEYS, campaignLabel, scrubUrl } from './analytics';
 
 /** A URL or referrer property as analytics may see it. PostHog's `$direct`
  * (no referrer) is a label, not an address, and stays. */
 const scrubUrlValue = (value: string): string => (value === '$direct' ? value : scrubUrl(value, true));
 
-/** Every event PostHog sends passes here: URLs lose every parameter but the
- * campaign labels, so no code, id or address reaches analytics. That covers
- * every property PostHog fills from an address on its own (`$current_url`,
- * `$session_entry_url`, `$referrer`, `$session_entry_referrer`, their
- * `$initial_` copies) and the `u`/`r` pair in `$initial_person_info`. */
+const CAMPAIGN_LABELS = new Set<string>(CAMPAIGN_KEYS);
+// PostHog also extracts click ids, ad/mail fields and search text from URLs
+// into separate properties. They have no role in devShark's attribution.
+const OTHER_ATTRIBUTION = new Set([
+  'gclid', 'gclsrc', 'dclid', 'gbraid', 'wbraid', 'fbclid', 'fbc', 'msclkid',
+  'twclid', 'li_fat_id', 'igshid', 'ttclid', 'rdt_cid', 'epik', 'qclid',
+  'sccid', 'irclid', '_kx', 'gad_source', 'mc_cid', 'ph_keyword',
+]);
+
+/** Keep only approved campaign labels in URL and attribution fields,
+ * including those the SDK extracts for the session and the person. */
 function scrubEvent<T extends { properties?: Record<string, unknown>; $set?: Record<string, unknown>; $set_once?: Record<string, unknown> } | null>(event: T): T {
   if (!event) return event;
   for (const bag of [event.properties, event.$set, event.$set_once, event.properties?.$set as Record<string, unknown> | undefined, event.properties?.$set_once as Record<string, unknown> | undefined]) {
     if (!bag || typeof bag !== 'object') continue;
     for (const key of Object.keys(bag)) {
       const value = bag[key];
+      const field = key.replace(/^\$?(?:(?:initial|session_entry)_)*\$?/, '');
+      if (CAMPAIGN_LABELS.has(field)) {
+        const label = campaignLabel(value);
+        if (label) bag[key] = label;
+        else delete bag[key];
+      } else if (field.startsWith('utm_') || OTHER_ATTRIBUTION.has(field)) {
+        delete bag[key];
+      }
       if (/(_url|referrer)$/.test(key) && typeof value === 'string') bag[key] = scrubUrlValue(value);
       if (key === '$initial_person_info' && value && typeof value === 'object') {
         const info = value as { u?: unknown; r?: unknown };
@@ -47,6 +61,10 @@ export function posthogConfig(apiHost: string): Partial<PostHogConfig> {
     autocapture: false,
     disable_session_recording: true,
     capture_dead_clicks: false,
+    // devShark supplies its own campaign labels. PostHog still derives
+    // session and initial properties, so before_send filters those too.
+    save_campaign_params: false,
+    mask_personal_data_properties: true,
     // A fragment can carry a token (a cancel confirmation, an OAuth return);
     // PostHog leaves it out of the URLs it records itself.
     disable_capture_url_hashes: true,
