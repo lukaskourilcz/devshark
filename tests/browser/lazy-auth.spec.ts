@@ -54,13 +54,13 @@ async function offlineApi(page: Page) {
 const challengeFor = (verifier: string) => createHash('sha256').update(verifier).digest('base64url');
 const CALLBACK_CODE = 'provider-callback-code';
 
-async function localExchange(page: Page, challenge: string) {
+async function localExchange(page: Page, challenge: string, session = fakeSession()) {
   await page.route('**/auth/v1/token?grant_type=pkce', (route) => {
     const { auth_code, code_verifier } = route.request().postDataJSON();
     if (auth_code !== CALLBACK_CODE || typeof code_verifier !== 'string' || challengeFor(code_verifier) !== challenge) {
       return route.fulfill({ status: 400, json: { error: 'bad_code_verifier' } });
     }
-    return route.fulfill({ json: fakeSession() });
+    return route.fulfill({ json: session });
   });
 }
 
@@ -188,7 +188,7 @@ test('an OAuth return with a local verifier is exchanged and reported as a sign-
   const session = fakeSession();
   const verifier = 'this-browser-verifier';
   await page.addInitScript(({ key, verifier }) => localStorage.setItem(`${key}-code-verifier`, JSON.stringify(verifier)), { key: sessionKey, verifier });
-  await localExchange(page, challengeFor(verifier));
+  await localExchange(page, challengeFor(verifier), session);
   const seen = watch(page);
   await page.goto(`/?code=${CALLBACK_CODE}`);
   await expect(page.getByRole('button', { name: 'Account menu for Test' })).toBeVisible();
