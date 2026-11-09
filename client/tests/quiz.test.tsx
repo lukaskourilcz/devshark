@@ -685,15 +685,33 @@ describe('submitting', () => {
   it('locks the answers once a submit was sent, and a retry sends the same ones', async () => {
     const bodies: { answers: Record<string, number> }[] = [];
     let fail = true;
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
     server.use(http.post('*/api/quiz/submit', async ({ request }) => {
       bodies.push(await request.json() as { answers: Record<string, number> });
-      if (fail) { fail = false; return HttpResponse.json({ error: { code: 'upstream', message: 'Grading is busy' } }, { status: 503 }); }
+      if (fail) {
+        fail = false;
+        await pending;
+        return HttpResponse.json({ error: { code: 'upstream', message: 'Grading is busy' } }, { status: 503 });
+      }
       return HttpResponse.json(graded([Q('a')]));
     }));
     await startQuiz([Q('a')]);
     pressDigit('2');
-    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    const submit = screen.getByRole('button', { name: /submit quiz/i });
+    submit.focus();
+    fireEvent.click(submit);
+    try {
+      expect(submit).toHaveFocus();
+      expect(submit).toHaveAttribute('aria-disabled', 'true');
+      expect(submit).not.toBeDisabled();
+      fireEvent.click(submit);
+    } finally {
+      release();
+    }
 
+    expect(await screen.findByText('Server error. Try again in a moment.')).toBeInTheDocument();
+    expect(submit).toHaveFocus();
     expect(await screen.findByText(/can’t be changed now/)).toBeInTheDocument();
     expect(answerCards().every((radio) => radio.hasAttribute('disabled'))).toBe(true);
     pressDigit('4');

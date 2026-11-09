@@ -1432,7 +1432,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
                   ? {
                     label: submitting ? t('quiz.submitting') : allAnswered ? t('quiz.submitQuiz') : t('quiz.reviewUnanswered', { count: remaining }),
                     onClick: submitPressed,
-                    disabled: submitting,
+                    unavailable: submitting,
                     describedBy: !allAnswered ? 'quiz-submit-why' : undefined,
                   }
                   : { label: t('quiz.next'), onClick: handleNext }
