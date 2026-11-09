@@ -184,18 +184,15 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     if (error instanceof AuthError) return jsonError(res, error.status, error.code, error.message);
     throw error;
   }
-  // A session issued to an account (a daily fetched signed in) is graded for
-  // that account only. Graded as a guest's, a submit that arrived without the
-  // token would spend the attempt's one-time claim under nobody's name, and
-  // every retry after it would be refused as already graded. Nothing is
-  // claimed here, so the same answers can be sent again signed in.
-  if (session.userId && !signedIn) {
+  // Challenge batches bind guests as well as accounts. A daily opened as a
+  // guest can still be submitted as unranked practice after sign-in.
+  const owner = session.scope === 'challenge' ? session.userId : session.userId ?? undefined;
+  if (owner && !signedIn) {
     logEvent({ status: 401, reason: 'owner_signed_out', scope: session.scope, latency_ms: Date.now() - started });
     return jsonError(res, 401, 'sign_in_required', 'Sign in again to submit this. It was started signed in.');
   }
-  // Another account's session is refused as a Learn step is: graded as
-  // practice, it would still spend its owner's claim for the day.
-  if (session.userId && signedIn && signedIn.sub !== session.userId) {
+  // Refuse before spending a claim that belongs to another caller.
+  if (owner !== undefined && owner !== (signedIn?.sub ?? null)) {
     logEvent({ status: 409, reason: 'session_owner_mismatch', scope: session.scope, latency_ms: Date.now() - started });
     return jsonError(res, 409, 'session_owner_mismatch', 'This was started under a different sign-in. Start it again.');
   }
@@ -223,7 +220,13 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     session.attemptId !== stableAttemptId('daily', signedIn.sub, subject, session.date ?? '');
   const auth = session.scope === 'qotd' || dailyPractice ? null : signedIn;
   const canonicalAnswers = [...validated].sort((a, b) => a.questionId.localeCompare(b.questionId));
-  const answerHash = createHash('sha256').update(JSON.stringify(canonicalAnswers)).digest('hex');
+  // The same index can refer to a different option in a new Challenge batch.
+  // Only the original deal may replay the claim. Pre-deploy batches lack an
+  // owner field and keep the old hash for retries until their tokens expire.
+  const claimContent = session.scope === 'challenge' && owner !== undefined
+    ? [body.sessionId, canonicalAnswers]
+    : canonicalAnswers;
+  const answerHash = createHash('sha256').update(JSON.stringify(claimContent)).digest('hex');
   const gradeKey = session.scope === 'challenge'
     ? `${session.attemptId}:${validated[0].questionId}`
     : session.attemptId;

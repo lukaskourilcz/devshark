@@ -44,8 +44,8 @@ interface SessionPayload {
   requiredLevelEnd?: number;
   /** Learn levels with coding tasks: the ids the completion gate checks. */
   codingTaskIds?: string[];
-  /** Learn and daily sessions: the account the session was issued to, or
-   * null for a guest. Only the issuer may answer, complete or submit it. */
+  /** The account a Learn, daily or Challenge session was issued to, or
+   * null for a guest. */
   userId?: string | null;
   iat: number;
   exp: number;
@@ -232,7 +232,7 @@ function validLifetime(payload: { iat?: unknown; exp?: unknown }, maxTtl: number
 
 type SessionContext =
   | { subject: ScopeSubjectId }
-  | { scope: 'challenge'; runId: string; subject: ScopeSubjectId; attemptId?: string }
+  | { scope: 'challenge'; runId: string; subject: ScopeSubjectId; attemptId?: string; userId?: string | null }
   // A daily fetched signed in names its account (`userId`), and only that
   // account may submit it (api/quiz/submit.ts).
   | { scope: 'daily'; date: string; subject: ScopeSubjectId; attemptId?: string; startedAt?: number; userId?: string | null }
@@ -268,8 +268,8 @@ export interface DecodedQuizSession {
   requiredLevelStart?: number;
   requiredLevelEnd?: number;
   codingTaskIds?: string[];
-  /** Learn and daily sessions: who the session was issued to (null: a guest,
-   * or a session sealed before the owner was recorded). */
+  /** Who the session was issued to. Challenge batches use null for a guest
+   * and omit the field on batches sealed before the owner was recorded. */
   userId?: string | null;
   issuedAt: number;
 }
@@ -297,7 +297,9 @@ export function decodeSessionEnvelope(token: string): DecodedQuizSession | null 
   const base: DecodedQuizSession = { questions: payload.questions, subject: payload.subject, attemptId: payload.attemptId, issuedAt: payload.iat };
   if (payload.scope === 'challenge') {
     if (typeof payload.runId !== 'string' || !/^[A-Za-z0-9_-]{16,64}$/.test(payload.runId) || !payload.subject) return null;
-    return { ...base, scope: 'challenge', runId: payload.runId };
+    const owner = payload.userId;
+    if (owner !== undefined && owner !== null && (typeof owner !== 'string' || owner.length === 0 || owner.length > 128)) return null;
+    return { ...base, scope: 'challenge', runId: payload.runId, ...(owner !== undefined ? { userId: owner } : {}) };
   }
   if (payload.scope === 'daily') {
     if (!payload.subject || typeof payload.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(payload.date)) return null;

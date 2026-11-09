@@ -162,6 +162,7 @@ async function handleQuestionBatch(req: VercelRequest, res: VercelResponse) {
         // All batches in a run share one claim namespace, preventing the same
         // question from being re-graded through a freshly issued batch.
         attemptId: run!.runId,
+        userId: auth?.sub ?? null,
       });
   res.setHeader('Cache-Control', 'private, no-store');
   logEvent({ status: 200, kind: assessment ? 'assessment' : 'batch', count: questions.length, excluded: excludeSet.size });

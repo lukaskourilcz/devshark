@@ -2429,6 +2429,56 @@ async function challengeSelectionContracts() {
   assert.equal(legacy.allTopics, null);
 }
 
+async function challengeAnswerClaimContracts() {
+  const learner = 'challenge-claim-owner';
+  const batch = mockResponse();
+  await challengeHandler(quizRequest('GET', { categories: 'javascript' }, undefined, learner), batch as never);
+  assert.equal(batch.statusCode, 200, JSON.stringify(batch.body));
+  const opened = batch.body as { sessionId: string; questions: { options: string[] }[] };
+  const session = decodeSessionEnvelope(opened.sessionId)!;
+  const question = session.questions[0];
+  const wrongPick = (question.correctAnswer + 1) % opened.questions[0].options.length;
+  const submit = async (sessionId: string, user: string | null = learner, pick = wrongPick, questionId = question.questionId) => {
+    const response = mockResponse();
+    await submitHandler(quizRequest('POST', {}, { sessionId, answers: { [questionId]: pick } }, user ?? undefined), response as never);
+    return response;
+  };
+
+  // Another batch in the same run can re-deal this question with the same
+  // selected index now correct. Only the original deal may replay its grade.
+  const context = { scope: 'challenge', runId: session.runId!, subject: 'webdev', attemptId: session.attemptId! } as const;
+  const redealt = encodeSession([{ questionId: question.questionId, correctAnswer: wrongPick }], { ...context, userId: learner });
+  const first = await submit(opened.sessionId);
+  assert.equal(first.statusCode, 200, JSON.stringify(first.body));
+  assert.equal((first.body as { correctAnswers: number }).correctAnswers, 0);
+  const changed = await submit(redealt);
+  assert.equal(changed.statusCode, 409, 're-dealing the same question cannot turn a wrong pick into a point');
+  assert.equal((changed.body as { error: { code: string } }).error.code, 'attempt_already_graded');
+  const retry = await submit(opened.sessionId);
+  assert.equal(retry.statusCode, 200, 'a retry of the original deal still works');
+  assert.equal((retry.body as { correctAnswers: number }).correctAnswers, 0);
+  assert.equal((await submit(opened.sessionId, learner, question.correctAnswer)).statusCode, 409, 'changing the original pick remains a conflict');
+
+  assert.equal(session.userId, learner, 'a new signed-in batch names its account');
+  assert.equal((await submit(opened.sessionId, 'challenge-other-user')).statusCode, 409, 'another account cannot submit this batch');
+  assert.equal((await submit(opened.sessionId, null)).statusCode, 401, 'a signed-in batch still needs the session on submit');
+
+  const guestBatch = mockResponse();
+  await challengeHandler(quizRequest('GET', { categories: 'javascript' }), guestBatch as never);
+  assert.equal(guestBatch.statusCode, 200, JSON.stringify(guestBatch.body));
+  const guestToken = (guestBatch.body as { sessionId: string }).sessionId;
+  const guestSession = decodeSessionEnvelope(guestToken)!;
+  assert.equal(guestSession.userId, null, 'a new guest batch explicitly belongs to a guest');
+  const guestQuestion = guestSession.questions[0];
+  assert.equal((await submit(guestToken, learner, guestQuestion.correctAnswer, guestQuestion.questionId)).statusCode, 409, 'a signed-in submit cannot take a guest batch');
+  assert.equal((await submit(guestToken, null, guestQuestion.correctAnswer, guestQuestion.questionId)).statusCode, 200, 'the guest can still submit it');
+
+  const legacyRun = createChallengeRun(true, 'webdev');
+  const legacy = encodeSession([question], { ...context, runId: legacyRun.runId, attemptId: legacyRun.runId });
+  assert.equal((await submit(legacy)).statusCode, 200, 'an in-flight legacy batch can finish');
+  assert.equal((await submit(legacy)).statusCode, 200, 'an in-flight legacy retry can finish');
+}
+
 /** A class behind one school address (review round 3: SEC-1, QUIZ-2, PLAY-3,
  * CODE-8, PROF-7). Each route below charged one person's budget to the whole
  * address, so the pupil past it got 429: a quiz, the due list, the daily
@@ -2765,7 +2815,7 @@ async function quizSubmitScopeContracts() {
 
   // A Biggest Shark Challenge batch, one answer at a time.
   const batch = mockResponse();
-  await challengeHandler(quizRequest('GET', { categories: deliveryCategories('webdev').join(',') }), batch as never);
+  await challengeHandler(quizRequest('GET', { categories: deliveryCategories('webdev').join(',') }, undefined, learner), batch as never);
   assert.equal(batch.statusCode, 200, JSON.stringify(batch.body));
   const batchSession = decodeSessionEnvelope((batch.body as { sessionId: string }).sessionId)!;
   const one = batchSession.questions[0];
@@ -6382,6 +6432,7 @@ async function main() {
   englishOnlyContracts();
   await guestChallengeLimitContracts();
   await challengeSelectionContracts();
+  await challengeAnswerClaimContracts();
   await dailyIntegrityContracts();
   await dailyOwnerContracts();
   seededShuffleContracts();
