@@ -22,6 +22,13 @@ function literal(value: string): string {
   const fence = '`'.repeat(Math.max(3, longest + 1));
   return `${fence}text\n${value}\n${fence}`;
 }
+/** Old draft writes allowed non-text fields. Preserve their data in the same
+ * literal fence so one legacy field cannot stop the entire export. */
+function savedText(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value) && value.every((item) => typeof item === 'string')) return value.join('\n');
+  return JSON.stringify(value) ?? '';
+}
 /** Draft field keys are caller-authored too; keep them on one escaped heading line. */
 function fieldLabel(id: string): string {
   return id.replace(/-/g, ' ').replace(/[\r\n]/g, ' ').replace(/[\\`*_{}\[\]<>#+.!|]/g, '\\$&');
@@ -35,7 +42,7 @@ export function portfolioMarkdown(manifest: LearningPathManifest, entries: Portf
       `Recorded state: ${stateLabel(entry.recordedState)}`, `Saved revision: ${entry.saved?.revision ?? 'none'}`,
       `Saved at: ${entry.saved?.updatedAt ?? 'not saved'}`, '',
       ...(entry.saved?.content.artifact ? Object.entries(entry.saved.content.artifact).flatMap(([id, value]) => [
-        `### ${fieldLabel(id)}`, '', literal(Array.isArray(value) ? value.join('\n') : value), '',
+        `### ${fieldLabel(id)}`, '', literal(savedText(value)), '',
       ]) : ['No saved writing for this activity.', '']),
     ]),
   ].join('\n');
