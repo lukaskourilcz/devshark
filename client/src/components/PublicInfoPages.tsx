@@ -2,20 +2,26 @@
 // invitation and the not-found page. The Terms and the privacy policy live in
 // LegalPages.tsx; the voluntary-support page is retired (#222) and /support
 // redirects to /premium.
-import { useEffect } from 'react';
+import { useEffect, type Ref } from 'react';
 import { Button } from '@astryxdesign/core/Button';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useT } from '../i18n/LanguageContext';
 import { SwimmingFin } from './SharkFin';
 
-export function Page({ kicker, title, lead, children }: { kicker?: string; title: string; lead: string; children: React.ReactNode }) {
+export function Page({ kicker, title, lead, children, titleRef }: {
+  kicker?: string;
+  title: string;
+  lead: string;
+  children: React.ReactNode;
+  titleRef?: Ref<HTMLHeadingElement>;
+}) {
   return <article className="ss-info-page">
     <header className="ss-info-page__header">
       <SwimmingFin size={26} />
       {/* The kicker line is always drawn, empty when there is none, so the
           h1 sits at one y on every Page (UX audit shell-public-13). */}
       <span className="ss-info-page__kicker" aria-hidden={kicker ? undefined : true}>{kicker}</span>
-      <h1>{title}</h1>
+      <h1 ref={titleRef} tabIndex={titleRef ? -1 : undefined}>{title}</h1>
       <p>{lead}</p>
     </header>
     {children}

@@ -246,8 +246,10 @@ describe('/reset-password', () => {
     expect(calls('/user').filter((one) => one.method === 'PUT')).toEqual([]);
 
     type('Confirm new password', 'a much longer passphrase');
-    fireEvent.click(screen.getByRole('button', { name: 'Save new password' }));
-    expect(await screen.findByRole('heading', { level: 1, name: 'Your password is changed' })).toBeInTheDocument();
+    const save = screen.getByRole('button', { name: 'Save new password' });
+    save.focus();
+    fireEvent.click(save);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Your password is changed' })).toHaveFocus();
     expect(screen.getByText('Any other device that was signed in to this account is now signed out.')).toBeInTheDocument();
     const update = calls('/user').find((one) => one.method === 'PUT')!;
     expect(update.body).toMatchObject({ password: 'a much longer passphrase' });

@@ -15,7 +15,7 @@
 // the link. The button shows where another account is signed in too: the link
 // is for the account it was sent to. Neither page is a new API handler: both
 // talk to Supabase Auth.
-import { useRef, useState, type FormEvent } from 'react';
+import { useCallback, useRef, useState, type FormEvent } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@astryxdesign/core/Button';
 import { useT } from '../../i18n/LanguageContext';
@@ -332,12 +332,18 @@ export function ResetPasswordPage() {
   // Whose password was set: another account signing in on this page has
   // changed nothing yet.
   const [done, setDone] = useState<{ userId: string; otherDevicesSignedOut: boolean } | null>(null);
+  const focusSuccess = useCallback((heading: HTMLHeadingElement | null) => { heading?.focus(); }, []);
 
   if (isLoading) return <LoadingScreen label={t('authPage.resetLoading')} />;
 
   if (user && done?.userId === user.id) {
     return (
-      <Page kicker={t('authPage.kicker')} title={t('authPage.setDoneTitle')} lead={t('authPage.setDoneLead', { email: user.email ?? '' })}>
+      <Page
+        kicker={t('authPage.kicker')}
+        title={t('authPage.setDoneTitle')}
+        lead={t('authPage.setDoneLead', { email: user.email ?? '' })}
+        titleRef={focusSuccess}
+      >
         {done.otherDevicesSignedOut && <p className="ss-auth__note">{t('authPage.setDoneOthers')}</p>}
         <div className="ss-info-actions" style={{ marginTop: 0 }}>
           <Button variant="primary" label={t('authPage.continue')} onClick={() => navigate('/', { replace: true })} />
