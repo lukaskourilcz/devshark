@@ -7,7 +7,7 @@ import { getEffectiveQuestions } from '../../lib/questions-store';
 import { getGameSettings } from '../../lib/settings-store';
 import { enforceClassRateLimit, RATE_LIMITS } from '../../lib/rate-limit';
 import { defaultDeploymentCategories, validateCategoryScope } from '../../lib/product-scope';
-import { AuthError } from '../../lib/auth';
+import { AuthError, requireFreshAuth } from '../../lib/auth';
 import { dailySeededShuffle, handleQuestionOfTheDay } from '../../lib/daily-question';
 import { deliveryCategories, type ScopeSubjectId } from '../../shared/subject-catalog';
 
@@ -76,6 +76,9 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   // The public question of the day (#239) shares this function so the
   // handler count stays at twelve: GET /api/quiz/daily?qotd=<date|today>.
   if (req.query.qotd !== undefined) return handleQuestionOfTheDay(req, res);
+  // A signed-in start can create a marker row. Mark it before the rate
+  // limiter verifies the token; a guest still starts without an Auth call.
+  requireFreshAuth(req);
   if (!(await enforceClassRateLimit(req, res, RATE_LIMITS.quizSessionAddress, RATE_LIMITS.quizSession))) return;
 
   const settings = await getGameSettings();

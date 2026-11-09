@@ -140,13 +140,12 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   return jsonError(res, 404, 'unknown_op', `Unknown user op: ${op}`);
 }
 
-/** Ops that ask Supabase Auth on every request instead of trusting a token
- * this instance accepted in the last minute (lib/auth.ts, "Accepted
- * tokens"): ending an account, the admin fulfilment desk, the ops that move
- * money, and the wallet, whose GET settles coin grants before it reads. Every
- * other write asks Auth anyway (only GET and HEAD trust an acceptance). A
- * session ended elsewhere is refused here at once. */
-const FRESH_AUTH_OPS: ReadonlySet<string> = new Set(['delete-account', 'fulfilment', 'billing-checkout', 'billing-portal', 'billing-cancel', 'voucher', 'wallet']);
+/** Mark privileged operations and GETs that may write account data before
+ * the rate limit checks the caller. Other writes already ask Auth directly. */
+const FRESH_AUTH_OPS: ReadonlySet<string> = new Set([
+  'delete-account', 'fulfilment', 'billing-checkout', 'billing-portal', 'billing-cancel', 'voucher',
+  'wallet', 'badges', 'freezes', 'friends-handle', 'leaderboard-name', 'referral',
+]);
 
 /**
  * The rate limit every write here takes, in two tiers as play's routes do.

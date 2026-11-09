@@ -89,7 +89,8 @@ const JWT_ADMIN = jwtAccount(4, 3600, { appMetadata: { role: 'admin' } });
 const JWT_DELETED = jwtAccount(5);
 const JWT_OUTAGE = jwtAccount(6);
 const JWT_WRITER = jwtAccount(7);
-const JWT_ACCOUNTS = [JWT_LEARNER, JWT_TOGETHER, JWT_SHORT, JWT_ADMIN, JWT_DELETED, JWT_OUTAGE, JWT_WRITER];
+const JWT_GET_WRITER = jwtAccount(8);
+const JWT_ACCOUNTS = [JWT_LEARNER, JWT_TOGETHER, JWT_SHORT, JWT_ADMIN, JWT_DELETED, JWT_OUTAGE, JWT_WRITER, JWT_GET_WRITER];
 // An account whose saved learner profile Supabase Auth returns with the
 // token check, as it returns every account's user_metadata.
 const PROFILED: Account = {
@@ -229,6 +230,7 @@ async function startStandIns() {
     if (rpc) {
       if (rpc === 'claim_quiz_submission' && claimFails) return send(500, { code: '08006', message: 'stand-in: connection failure' });
       if (rpc === 'allocate_shark_name') return send(200, { handle: 'sleepySharkie17', ordinal: '17', base: 'sleepySharkie' });
+      if (rpc === 'referral_summary') return send(200, { code: 'ab234567' });
       // Migration 064 raises for a run already saved with another score.
       if (rpc === 'save_completed_challenge_score' && (body as Row).p_score === CONFLICTING_CHALLENGE_SCORE) return send(400, { code: 'P0001', message: 'challenge_score_conflict' });
       if (rpc === 'save_completed_challenge_score') return send(200, { id: 'score-17', name: 'sleepySharkie17', score: (body as Row).p_score, selected_topics: (body as Row).p_topics, all_topics: (body as Row).p_all_topics, created_at: new Date().toISOString() });
@@ -322,6 +324,7 @@ async function main() {
       reportsStore,
       questionsStore,
       { default: adminOps },
+      { default: daily },
     ] = await Promise.all([
       import('../api/user/[op]'),
       import('../api/quiz/roadmap'),
@@ -339,6 +342,7 @@ async function main() {
       import('../lib/reports-store'),
       import('../lib/questions-store'),
       import('../api/admin/[op]'),
+      import('../api/quiz/daily'),
     ]);
 
     type Handler = (req: never, res: never) => unknown;
@@ -357,6 +361,52 @@ async function main() {
       call(userOps as Handler, { ...input, query: { op, ...(input.query ?? {}) } });
     const reads = (path: string) => seen.filter((one) => one.path === path);
     const errorCode = (res: Response) => (res.body as { error?: { code?: string } } | undefined)?.error?.code;
+
+    // These GETs can write account rows, so a warm token must still be
+    // refused before the write when Supabase has ended the session.
+    const writer = JWT_GET_WRITER;
+    const writeOnRead = [
+      ['badges', () => user('badges', { account: writer, query: { subject: 'webdev' } }), '/rest/v1/rpc/sync_user_badges'],
+      ['freezes', () => user('freezes', { account: writer }), '/rest/v1/rpc/refresh_streak_freezes'],
+      ['friends-handle', () => user('friends-handle', { account: writer }), '/rest/v1/rpc/allocate_shark_name'],
+      ['leaderboard-name', () => user('leaderboard-name', { account: writer }), '/rest/v1/rpc/allocate_shark_name'],
+      ['referral', () => user('referral', { account: writer }), '/rest/v1/rpc/referral_summary'],
+      ['daily', () => call(daily as Handler, { account: writer }), '/rest/v1/rpc/claim_quiz_submission'],
+      ['Learn coding level', () => call(roadmap as Handler, { account: writer, query: { topic: 'dsa', level: '1' } }), '/rest/v1/roadmap_attempts'],
+    ] as const;
+    for (const [label, read, writePath] of writeOnRead) {
+      assert.equal((await user('identity', { account: writer })).statusCode, 200);
+      revokedTokens.add(writer.token);
+      try {
+        seen.length = 0;
+        authChecks = 0;
+        const refused = await read();
+        assert.equal(refused.statusCode, 401, `${label} refuses a revoked token even after a successful read`);
+        assert.equal(errorCode(refused), 'invalid_token');
+        assert.equal(authChecks, 1, `${label} checks Auth once`);
+        assert.ok(!reads(writePath).some((row) => row.method === 'POST'), `${label} writes nothing after refusal`);
+      } finally {
+        revokedTokens.delete(writer.token);
+      }
+      assert.equal((await user('identity', { account: writer })).statusCode, 200);
+      seen.length = 0;
+      authChecks = 0;
+      const accepted = await read();
+      assert.equal(accepted.statusCode, 200, `${label} works for an active session (${JSON.stringify(accepted.body)})`);
+      assert.equal(authChecks, 1, `${label} checks even an active cached token`);
+      assert.ok(reads(writePath).some((row) => row.method === 'POST'), `${label} can write for an active account`);
+    }
+    seen.length = 0;
+    authChecks = 0;
+    const guestDaily = await call(daily as Handler, {});
+    assert.equal(guestDaily.statusCode, 200, 'a guest may still start the daily challenge');
+    assert.equal(authChecks, 0, 'a guest does not ask Supabase Auth');
+    assert.equal(reads('/rest/v1/rpc/claim_quiz_submission').length, 0, 'a guest daily writes no start marker');
+    const guestLevel = await call(roadmap as Handler, { query: { topic: 'dsa', level: '1' } });
+    assert.equal(guestLevel.statusCode, 200, 'a guest may still start a free coding level');
+    assert.equal(authChecks, 0, 'opening a guest level does not ask Supabase Auth');
+    assert.equal((reads('/rest/v1/roadmap_attempts').find((row) => row.method === 'POST')?.body as Row)?.user_id, null);
+    console.log('PASS verified caller: GETs that write account rows ask Auth fresh, and guest starts still work');
 
     // Leaderboard identity is independent of friends and cannot publish a full email.
     seen.length = 0;
