@@ -24,7 +24,7 @@
 
 import { isIP } from 'node:net';
 import type { VercelRequest, VercelResponse } from './vercel-types.js';
-import { jsonError, ServiceUnavailableError, verifiedCallerId } from './http';
+import { jsonError, logEvent, ServiceUnavailableError, verifiedCallerId } from './http';
 import { getBearer } from './auth';
 
 interface Bucket {
@@ -351,6 +351,7 @@ export function checkRateLimit(
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const LIMITER_DEADLINE_MS = 500;
 
 /** `true` when the distributed limiter has been configured via env vars. */
 export function isDistributedRateLimitEnabled(): boolean {
@@ -377,7 +378,14 @@ async function getUpstashLimiter(config: RateLimitConfig): Promise<UpstashLimite
     const Redis = ((await import('@upstash/redis')) as any).Redis;
 
     if (redisClient === undefined) {
-      redisClient = new Redis({ url: UPSTASH_URL as string, token: UPSTASH_TOKEN as string });
+      redisClient = new Redis({
+        url: UPSTASH_URL as string,
+        token: UPSTASH_TOKEN as string,
+        // Abort the fetch as well as the caller's wait. A disconnected
+        // response can be ambiguous, so never retry a bucket mutation.
+        signal: () => AbortSignal.timeout(LIMITER_DEADLINE_MS),
+        retry: { retries: 0 },
+      });
     }
 
     // Map the token-bucket config onto a sliding window: `capacity` requests
@@ -389,6 +397,7 @@ async function getUpstashLimiter(config: RateLimitConfig): Promise<UpstashLimite
       limiter: Ratelimit.slidingWindow(config.capacity, `${windowSeconds} s`),
       prefix: `rl:${config.key}`,
       analytics: false,
+      timeout: 0, // Use our deadline and local fallback for every failure.
     }) as UpstashLimiter;
 
     limiterCache.set(config.key, limiter);
@@ -400,13 +409,13 @@ async function getUpstashLimiter(config: RateLimitConfig): Promise<UpstashLimite
   }
 }
 
-async function withLimiterDeadline<T>(promise: Promise<T>, timeoutMs = 500): Promise<T> {
+async function withLimiterDeadline<T>(promise: Promise<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
       promise,
       new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new Error('rate_limit_timeout')), timeoutMs);
+        timer = setTimeout(() => reject(new Error('rate_limit_timeout')), LIMITER_DEADLINE_MS);
       }),
     ]);
   } finally {
@@ -452,7 +461,11 @@ export async function enforceRateLimit(
   } catch {
     // Redis unreachable mid-request — never hard-fail on the limiter; fall back
     // to the in-memory bucket so the endpoint stays available.
-    limiterPausedUntil = Date.now() + LIMITER_PAUSE_MS;
+    const now = Date.now();
+    if (now >= limiterPausedUntil) {
+      limiterPausedUntil = now + LIMITER_PAUSE_MS;
+      logEvent('rate-limit', { level: 'warn', reason: 'distributed_fallback' });
+    }
     return checkRateLimit(req, res, config, identity);
   }
 }
