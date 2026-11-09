@@ -45,10 +45,11 @@ const KNOWN: Record<string, { status: number; code: string; message: string }> =
   no_handle: { status: 409, code: 'no_handle', message: 'Choose a sharkname first' },
 };
 
-function rpcError(res: VercelResponse, error: { message?: string } | null, fallback: string, migration = '033') {
+function rpcError(res: VercelResponse, error: { code?: string; message?: string } | null, fallback: string, migration = '033') {
   // A sharkname allocation that timed out (lib/http.ts) is the database busy
   // for a moment, which the client may retry: 503, never a 500.
   if (error instanceof ServiceUnavailableError) return jsonError(res, 503, error.code, error.message);
+  if (error?.code === '55P03') return jsonError(res, 503, 'friendship_busy', 'A friendship update is in progress. Try again in a moment.');
   const raised = Object.keys(KNOWN).find((key) => error?.message?.includes(key));
   if (raised) {
     const known = KNOWN[raised];

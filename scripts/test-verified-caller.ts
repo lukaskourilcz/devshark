@@ -256,6 +256,9 @@ async function startStandIns() {
       }
       if (rpc === 'allocate_shark_name') return send(200, { handle: 'sleepySharkie17', ordinal: '17', base: 'sleepySharkie' });
       if (rpc === 'referral_summary') return send(200, { code: 'ab234567' });
+      if (rpc === 'request_friend' && (body as Row | undefined)?.p_handle === 'locked-friend') {
+        return send(500, { code: '55P03', message: 'canceling statement due to lock timeout' });
+      }
       // Migration 064 raises for a run already saved with another score.
       if (rpc === 'save_completed_challenge_score' && (body as Row).p_score === CONFLICTING_CHALLENGE_SCORE) return send(400, { code: 'P0001', message: 'challenge_score_conflict' });
       if (rpc === 'save_completed_challenge_score') return send(200, { id: 'score-17', name: 'sleepySharkie17', score: (body as Row).p_score, selected_topics: (body as Row).p_topics, all_topics: (body as Row).p_all_topics, created_at: new Date().toISOString() });
@@ -476,6 +479,11 @@ async function main() {
     assert.equal(authChecks, authBeforeMalformed, 'locally malformed credentials need no upstream Auth request');
     assert.equal(reads('/rest/v1/rpc/claim_quiz_submission').length, 0, 'malformed credentials must not spend a grading claim');
     console.log('PASS verified caller: optional Auth distinguishes a guest from malformed credentials');
+
+    const busyFriend = await user('friends-request', { method: 'POST', account: A, body: { handle: 'locked-friend' } });
+    assert.equal(busyFriend.statusCode, 503, JSON.stringify(busyFriend.body));
+    assert.equal(errorCode(busyFriend), 'friendship_busy');
+    console.log('PASS verified caller: a friendship lock timeout is retryable');
 
     // Leaderboard identity is independent of friends and cannot publish a full email.
     seen.length = 0;
