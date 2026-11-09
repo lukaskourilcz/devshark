@@ -724,9 +724,9 @@ async function answer(req: VercelRequest, res: VercelResponse) {
     // A failed read is no missing room: a 404 tells the player the room is gone.
     if (matchError) return jsonError(res, 503, 'backend_unavailable', 'Match state is temporarily unavailable');
     if (!match) return jsonError(res, 404, 'not_found', 'Match not found');
-    if (match.status !== 'running')
+    if (match.status !== 'running' && match.status !== 'finished')
       return jsonError(res, 409, 'bad_state', 'Match is not in progress');
-    if (body.question_idx !== match.current_index)
+    if (body.question_idx > (match.current_index ?? 0))
       return jsonError(res, 409, 'wrong_question', 'That is not the current question');
 
     const matchQuestions = match.questions as MatchQuestion[];
@@ -785,6 +785,11 @@ async function answer(req: VercelRequest, res: VercelResponse) {
     // keep swapping options after seeing is_correct.
     if (existingError) return jsonError(res, 503, 'backend_unavailable', 'Could not verify existing answer');
     if (existing) return res.json(reply(existing, false));
+
+    // A response can be lost after the stored answer advances or finishes the
+    // match. Replay it above, but never insert a new answer for a closed round.
+    if (match.status !== 'running') return jsonError(res, 409, 'bad_state', 'Match is not in progress');
+    if (body.question_idx !== match.current_index) return jsonError(res, 409, 'wrong_question', 'That is not the current question');
 
     const questionStartMs = match.question_started_at
       ? new Date(match.question_started_at).getTime()

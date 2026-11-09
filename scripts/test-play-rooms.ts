@@ -369,7 +369,16 @@ async function main() {
       const reads = await Promise.all((['one', 'two', 'host'] as const).map((who) => call(who, 'GET', 'state', { code })));
       assert.deepEqual(reads.map((read) => read.body.match.current_index), [1, 1, 1], 'every read at the expiry sees the next question');
       assert.equal(room(code).current_index, 1, 'the room moved on once');
+      const previous = { code, question_idx: 0, selected_idx: (correctIndex(code, 0) + 1) % 4 };
+      const lostAck = await call('two', 'POST', 'answer', previous);
+      assert.equal(lostAck.statusCode, 200, 'a lost acknowledgement is replayed after the room moves on');
+      assert.equal(lostAck.body.is_correct, true, 'the replay keeps the first answer even when the retried option differs');
+      const newLateAnswer = await call('host', 'POST', 'answer', previous);
+      assert.equal(newLateAnswer.statusCode, 409, 'the old question still rejects a new answer');
+      assert.equal(newLateAnswer.body.error.code, 'wrong_question');
       assert.equal((await call('host', 'POST', 'control', { code, action: 'finish' })).statusCode, 200);
+      assert.equal((await call('two', 'POST', 'answer', previous)).statusCode, 200, 'a finished room can still acknowledge a stored answer');
+      assert.equal((await call('three', 'POST', 'answer', previous)).statusCode, 403, 'a nonparticipant cannot replay an answer');
       const after = await call('host', 'GET', 'distribution', { code, q: '0' });
       assert.equal(after.statusCode, 200, 'the host reads the distribution after the end');
       assert.equal(after.body.buckets.length, 2);
