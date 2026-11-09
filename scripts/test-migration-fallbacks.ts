@@ -371,6 +371,37 @@ async function main() {
       import('../api/user/[op]'),
       import('../api/admin/[op]'),
     ]);
+    {
+      const save = async () => {
+        calls.length = 0;
+        const response = mockResponse();
+        await userOps({
+          method: 'PUT',
+          headers: { authorization: `Bearer ${TOKEN}`, 'x-forwarded-for': '10.20.0.20' },
+          query: { op: 'learning-path-draft' },
+          url: '/api/user/learning-path-draft',
+          body: { enrollmentId: 'draft-enroll-0001', activityId: 'code-activity', expectedRevision: 0, content: { code: 'first' } },
+        } as never, response as never);
+        return response;
+      };
+      const routines = () => calls.filter((call) => call.name.startsWith('save_learning_path_draft'));
+      INSTALLED.save_learning_path_draft = { ok: true, revision: 1 };
+      const before070 = await save();
+      assert.equal(before070.statusCode, 200, JSON.stringify(before070.body));
+      assert.deepEqual(routines().map((call) => call.name), ['save_learning_path_draft_v2', 'save_learning_path_draft']);
+      assert.deepEqual(routines()[0]?.args, routines()[1]?.args, 'a missing 070 falls back with the same revision and content');
+      INSTALLED.save_learning_path_draft_v2 = { ok: true, revision: 1 };
+      assert.equal((await save()).statusCode, 200);
+      assert.deepEqual(routines().map((call) => call.name), ['save_learning_path_draft_v2']);
+      RPC_ERRORS.save_learning_path_draft_v2 = { status: 500, body: { code: '55P03', message: 'canceling statement due to lock timeout' } };
+      const busy = await save();
+      assert.deepEqual([busy.statusCode, busy.body?.error?.code], [503, 'draft_busy']);
+      assert.deepEqual(routines().map((call) => call.name), ['save_learning_path_draft_v2'], 'contention never bypasses the lock through v1');
+      delete RPC_ERRORS.save_learning_path_draft_v2;
+      delete INSTALLED.save_learning_path_draft_v2;
+      delete INSTALLED.save_learning_path_draft;
+    }
+
     calls.length = 0;
     const redeem = mockResponse();
     await userOps({
