@@ -207,7 +207,9 @@ answers this time: you can earn it again from 14:32, an hour after you last
 earned it."). The awarded XP is kept on the receipt row
 (`quiz_attempts.quest_xp`), and the stats handler credits coins for that
 amount once per attempt, also when a retry finds the result already
-recorded.
+recorded. Migration 068 records fully held Challenge runs in the grading
+claims ledger so replaying a finished run after the cooldown cannot earn XP
+or advance a streak.
 
 **This month** (`period=month`) ranks the current calendar month (UTC) by the
 verified XP each learner earned in it; the month's top three are paid coins
@@ -1285,6 +1287,11 @@ published curriculum version). Merchandise is paused ("Merchandise"), so
 `learning-path-reward` answers 404 `merch_unavailable` today.
 
 ## Practice, scheduling and what the product claims about it
+
+Migration 067 enforces one open coding practice run per learner. Starting
+a replacement retires the previous active or scheduled run. Retrying a
+scheduled start keeps its original start time, and a delayed update cannot
+reopen a closed run or move its position backward.
 
 Four shared modules each own one job.
 
