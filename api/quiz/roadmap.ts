@@ -1618,6 +1618,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
       if (resource === 'learning-path-submit') return await handleActivitySubmit(req, res, supabase);
       return jsonError(res, 404, 'not_found', 'Unknown learning-path resource');
     } catch (error) {
+      if (error instanceof ServiceUnavailableError) throw error;
       logEvent({ status: 500, kind: 'learning_path_error', resource, category: error instanceof Error ? error.name : 'unknown' });
       return jsonError(res, 500, 'internal_error', 'Could not handle the learning-path request');
     }

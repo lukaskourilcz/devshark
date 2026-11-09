@@ -135,6 +135,10 @@ const SLOW_REPORT = 'stand-in: answer after the timeout';
 const SLOW_QUESTION = 'stand-in: save after the timeout';
 // A topic board asked with this minimum answers after the timeout too.
 const SLOW_BOARD_MIN_ATTEMPTS = 97;
+const SLOW_PATH_PROGRESS = 'slow-path-progress';
+const SLOW_PATH_OPEN = 'slow-path-open-attempt';
+const SLOW_PATH_ACCEPT = 'slow-path-accept-result';
+let fdeFixtureVersion: number | undefined;
 const upstashCommands: string[] = [];
 // A Challenge run saved with this score finds the run already on the board
 // with another one.
@@ -217,6 +221,15 @@ async function startStandIns() {
       setTimeout(() => send(200, []), 5_500);
       return;
     }
+    if (url.pathname === '/rest/v1/learning_path_progress' && url.searchParams.get('enrollment_id') === `eq.${SLOW_PATH_PROGRESS}`) {
+      setTimeout(() => send(200, []), 5_500);
+      return;
+    }
+    if ((url.pathname === '/rest/v1/rpc/open_learning_path_attempt' && (body as Row | undefined)?.p_enrollment_id === SLOW_PATH_OPEN)
+        || (url.pathname === '/rest/v1/rpc/accept_learning_path_result' && (body as Row | undefined)?.p_attempt_id === SLOW_PATH_ACCEPT)) {
+      setTimeout(() => send(200, null), 5_500);
+      return;
+    }
     if (url.pathname === '/rest/v1/rpc/category_leaderboard' && (body as Row | undefined)?.p_min_attempts === SLOW_BOARD_MIN_ATTEMPTS) {
       setTimeout(() => send(200, []), 5_500);
       return;
@@ -244,6 +257,13 @@ async function startStandIns() {
     }
     if (url.pathname.startsWith('/rest/v1/')) {
       const single = String(req.headers.accept ?? '').includes('vnd.pgrst.object');
+      if (url.pathname === '/rest/v1/learning_path_enrollments' && filters.user_id === A.id
+          && [SLOW_PATH_PROGRESS, SLOW_PATH_OPEN, SLOW_PATH_ACCEPT].includes(filters.enrollment_id)) {
+        return send(200, {
+          enrollment_id: filters.enrollment_id, user_id: A.id, path_id: 'fde',
+          status: 'active', curriculum_version: fdeFixtureVersion,
+        });
+      }
       if (url.pathname === '/rest/v1/user_handles' && req.method === 'GET' && filters.user_id === HANDLES_DOWN.id) return send(500, { code: '08006', message: 'stand-in: connection failure' });
       if (url.pathname === '/rest/v1/user_handles' && req.method === 'GET') return send(200, single ? { leaderboard_name_mode: 'nickname' } : []);
       if (req.method === 'POST' || req.method === 'PATCH') {
@@ -829,13 +849,55 @@ async function main() {
     assert.equal(errorCode(slowBoard), 'upstream_timeout');
     console.log('PASS verified caller: a timed-out leaderboard answers 503');
 
-    // So do the account ops whose own catch used to answer 500.
-    const slowOps = await Promise.all(['streak', 'xp', 'stats', 'leaderboard-visibility', 'identity', 'friends-handle'].map(async (op) => [op, await user(op, { account: SLOW })] as const));
-    for (const [op, res] of slowOps) {
-      assert.equal(res.statusCode, 503, `op=${op} whose read timed out answers 503 (${JSON.stringify(res.body)})`);
-      assert.equal(errorCode(res), 'upstream_timeout');
+    // The account ops and learning-path routes keep the same retryable
+    // error, including the path handler's enrollment and progress catches.
+    {
+      const { pathById } = await import('../lib/learning-paths/catalog');
+      const path = pathById('fde')!;
+      const lesson = path.modules.filter((module) => !module.requiresAtLeast)
+        .flatMap((module) => module.activities).find((activity) => activity.kind === 'lesson')!;
+      const oldSwitch = process.env.LEARNING_PATH_FDE_ENABLED;
+      process.env.LEARNING_PATH_FDE_ENABLED = 'true';
+      fdeFixtureVersion = path.version;
+      const pathStart = (account: Account, enrollmentId: string) => call(roadmap as Handler, {
+        account, method: 'POST', query: { resource: 'learning-path-start' },
+        body: { enrollmentId, activityId: lesson.id },
+      });
+      const pathSubmit = (account: Account, enrollmentId: string) => call(roadmap as Handler, {
+        account, method: 'POST', query: { resource: 'learning-path-submit' },
+        body: {
+          session: tokens.encodeLearningPathSession({
+            attemptId: enrollmentId, enrollmentId, userId: account.id, pathId: path.id,
+            activityId: lesson.id, activityKind: lesson.kind, purpose: lesson.purpose,
+            curriculumVersion: path.version, rubricVersion: path.rubric.version,
+          }).token,
+          idempotencyKey: 'test-slow-path-submit', acknowledged: true,
+        },
+      });
+      try {
+        const accountReads = ['streak', 'xp', 'stats', 'leaderboard-visibility', 'identity', 'friends-handle'];
+        const slowResponses = await Promise.all([
+          ...accountReads.map(async (op) => [op, await user(op, { account: SLOW })] as const),
+          ...['learning-path-enrollment', 'learning-path-progress', 'learning-path-draft'].map(async (op) => [
+            op, await user(op, { account: SLOW, query: { enrollmentId: 'slow-path-enrollment', activityId: lesson.id } }),
+          ] as const),
+          pathStart(SLOW, 'slow-path-enrollment').then((res) => ['path start enrollment', res] as const),
+          pathSubmit(SLOW, 'slow-path-enrollment').then((res) => ['path submit enrollment', res] as const),
+          pathSubmit(A, SLOW_PATH_PROGRESS).then((res) => ['path submit progress', res] as const),
+          pathStart(A, SLOW_PATH_OPEN).then((res) => ['path start attempt write', res] as const),
+          pathSubmit(A, SLOW_PATH_ACCEPT).then((res) => ['path submit result write', res] as const),
+        ]);
+        for (const [label, res] of slowResponses) {
+          assert.equal(res.statusCode, 503, `${label} times out with 503 (${JSON.stringify(res.body)})`);
+          assert.equal(errorCode(res), 'upstream_timeout', `${label} reports an upstream timeout`);
+        }
+      } finally {
+        if (oldSwitch === undefined) delete process.env.LEARNING_PATH_FDE_ENABLED;
+        else process.env.LEARNING_PATH_FDE_ENABLED = oldSwitch;
+        fdeFixtureVersion = undefined;
+      }
+      console.log('PASS verified caller: account and learning-path operations that time out answer 503 upstream_timeout');
     }
-    console.log('PASS verified caller: account ops whose read timed out answer 503');
 
     // ── this month's XP board (migration 056) ───────────────────────────
     // Shared and cached for a minute without a session; with one it is the
