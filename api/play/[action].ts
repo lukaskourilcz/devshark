@@ -462,15 +462,17 @@ async function state(req: VercelRequest, res: VercelResponse) {
     if (match.status === 'running' || match.status === 'lobby') {
       const ref = match.last_heartbeat_at ?? match.started_at;
       if (ref && Date.now() - new Date(ref).getTime() > STALE_MATCH_MS) {
-        const { data: updated } = await withTimeout(
-          supabase!
-            .from('matches')
-            .update({ status: 'finished', ended_at: new Date().toISOString() })
-            .eq('id', match.id)
-            .eq('status', match.status)
-            .select(STATE_COLUMNS)
-            .single(),
-        );
+        const finish = supabase!
+          .from('matches')
+          .update({ status: 'finished', ended_at: new Date().toISOString() })
+          .eq('id', match.id)
+          .eq('status', match.status);
+        // A heartbeat can arrive after the read without changing the status.
+        // Close only the version whose heartbeat we found stale.
+        const unchanged = match.last_heartbeat_at == null
+          ? finish.is('last_heartbeat_at', null)
+          : finish.eq('last_heartbeat_at', match.last_heartbeat_at);
+        const { data: updated } = await withTimeout(unchanged.select(STATE_COLUMNS).maybeSingle());
         if (updated) match = updated;
       }
     }
