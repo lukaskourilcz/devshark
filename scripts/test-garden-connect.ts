@@ -75,6 +75,7 @@ let oauthAnswer: 'normal' | 'server_error' = 'normal';
 // How the repository listing answers: as GitHub does, with an outage page
 // from a proxy in front of it, or not before our timer aborts the call.
 let reposAnswer: 'normal' | 'html' | 'timeout' = 'normal';
+let onRepoList: (() => void) | undefined;
 // The stranger's installation on "All repositories" of an account with 101.
 let manyRepos = false;
 const calls: string[] = [];
@@ -119,6 +120,7 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
     return json(200, found);
   }
   if (url.pathname === '/installation/repositories') {
+    onRepoList?.();
     if (reposAnswer === 'html') return new Response('<html><body>502 Bad Gateway</body></html>', { status: 502, headers: { 'content-type': 'text/html' } });
     if (reposAnswer === 'timeout') throw new DOMException('This operation was aborted', 'AbortError');
     const id = Number(/ghs_installation_(\d+)/.exec(headers.get('authorization') ?? '')?.[1]);
@@ -209,8 +211,9 @@ function query(name: string) {
       return { data: null, error: null };
     }
     if (updateValues) {
-      for (const row of table.values()) if (filters.every((filter) => filter(row))) Object.assign(row, updateValues);
-      return { data: null, error: null };
+      const matching = [...table.values()].filter((row) => filters.every((filter) => filter(row)));
+      for (const row of matching) Object.assign(row, updateValues);
+      return { data: single ? matching[0] ?? null : null, error: null };
     }
     if (deleting) {
       for (const row of [...table.values()]) if (filters.every((filter) => filter(row))) table.delete(row.user_id);
@@ -402,6 +405,17 @@ async function main() {
   assert.equal((listed.body as { repositories?: unknown[] }).repositories?.length, 101, 'the picker lists repositories past the first page');
   assert.equal(picked.statusCode, 200, `a repository on the second page can be picked (${JSON.stringify(picked.body)})`);
   assert.equal(table.get(accountD)?.repo_full_name, `${STRANGER.login}/garden-100`);
+  // The old installation can finish answering after the learner reconnects.
+  const replacement = { ...table.get(accountD)!, installation_id: OWNER_INSTALLATION, account_id: OWNER.id, account_login: OWNER.login, repo_full_name: null, default_branch: null, status: 'pending_repo' };
+  onRepoList = () => table.set(accountD, replacement);
+  try {
+    const stalePick = await call('github-repo', accountD, 'POST', { repoFullName: `${STRANGER.login}/garden` });
+    assert.equal(stalePick.statusCode, 409, 'a stale repository response cannot change a newer installation');
+    assert.equal(errorCode(stalePick.body), 'connection_changed');
+    assert.equal(table.get(accountD)?.repo_full_name, null);
+  } finally {
+    onRepoList = undefined;
+  }
   table.delete(accountD);
 
   // 15. Rate limits are each learner's own, with an address backstop that
