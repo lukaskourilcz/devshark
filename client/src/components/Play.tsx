@@ -471,6 +471,7 @@ function PlayRoom() {
   const [scoreboard, setScoreboard] = useState<ScoreboardEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [joining, setJoining] = useState(true);
+  const [canReadRoom, setCanReadRoom] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [controlPending, setControlPending] = useState(false);
@@ -522,44 +523,31 @@ function PlayRoom() {
   // so the first click is the one that counts.
   const submitLockRef = useRef(false);
 
-  // Initial join + state load. Keyed by the account's id, not the user
-  // object: every session refresh hands over a new object for the same
-  // account, and joining again mid-round would redraw the room from scratch.
+  // Join once per account. The room reader loads the first full state after
+  // this, so a join snapshot or parallel read can't put the room back a step.
   const userId = user?.id;
   useEffect(() => {
     if (!isAuthenticated || !userId || !code || !playOn) return;
     let cancelled = false;
     (async () => {
       try {
-        let joined: Match | null = null;
-        let sentAt = Date.now();
+        const sentAt = Date.now();
         try {
-          const { server_now: serverNow, ...room } = await joinMatch({
-            code,
-            user_id: userId,
-          });
+          const { server_now: serverNow, ...room } = await joinMatch({ code, user_id: userId });
+          if (cancelled) return;
           noteServerClock(serverNow, sentAt);
-          joined = room;
+          setMatch(room);
         } catch (err) {
           // A finished room takes no new players, but its results are still
           // there to read: reopening it shows them instead of an error.
           if (!(err instanceof ApiError && err.code === 'finished')) throw err;
         }
-        if (cancelled) return;
-        if (joined) setMatch(joined);
-        sentAt = Date.now();
-        const state = await fetchMatchState(code, userId);
-        if (cancelled) return;
-        noteServerClock(state.server_now, sentAt);
-        if (!joined) setMatch(state.match);
-        setParticipants(state.participants);
-        setScoreboard(state.scoreboard);
+        if (!cancelled) setCanReadRoom(true);
       } catch (err) {
         if (cancelled) return;
         if (isPlayOff(err)) setPlayOff(true);
         else setError(friendlyError(err));
-      } finally {
-        if (!cancelled) setJoining(false);
+        setJoining(false);
       }
     })();
     return () => {
@@ -576,14 +564,17 @@ function PlayRoom() {
 
   // Realtime broadcast wiring.
   useEffect(() => {
-    if (!code || !user?.id || !playOn) return;
+    if (!code || !user?.id || !playOn || !canReadRoom) return;
     const userId = user.id;
     // Cleared on unmount or when the match changes, so a read still in
     // flight for this match writes nothing afterwards.
     let active = true;
     let realtimeReady = false;
+    let firstRead = true;
     handledRef.current = null;
     const reader = coalesceReads(async () => {
+      const initial = firstRead;
+      firstRead = false;
       try {
         const sentAt = Date.now();
         const state = await fetchMatchState(code, userId);
@@ -614,8 +605,11 @@ function PlayRoom() {
           setPlayOff(true);
           return;
         }
+        if (initial) setError(friendlyError(err));
         refreshFailures.current += 1;
         setConnectionState(refreshFailures.current >= 3 ? 'stale' : 'polling');
+      } finally {
+        if (active && initial) setJoining(false);
       }
     });
     readerRef.current = reader;
@@ -654,6 +648,7 @@ function PlayRoom() {
     const fallback = window.setInterval(() => {
       if (!realtimeReady) void refresh();
     }, POLL_FALLBACK_MS);
+    void refresh();
 
     return () => {
       active = false;
@@ -665,7 +660,7 @@ function PlayRoom() {
       stopStatus();
       channel.unsubscribe();
     };
-  }, [code, user?.id, refresh, playOn, noteServerClock, announce]);
+  }, [code, user?.id, refresh, playOn, canReadRoom, noteServerClock, announce]);
 
   // Read the room once just after a timed question's clock (and the server's
   // expiry grace) runs out: a multiplayer room moves on without waiting for
@@ -855,6 +850,7 @@ function PlayRoom() {
               onClick={() => {
                 setError(null);
                 setJoining(true);
+                setCanReadRoom(false);
                 setJoinAttempt((n) => n + 1);
               }}
             />
