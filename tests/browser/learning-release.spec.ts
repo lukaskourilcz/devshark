@@ -323,7 +323,7 @@ for (const theme of ['light', 'dark'] as const) for (const width of [360, 390, 4
     await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Quiz · Question 1 of 3');
     await expect(page.getByText('0 of 3 answered', { exact: true })).toBeVisible();
-    await expect(page.locator('time')).toContainText('Submit before');
+    await expect(page.getByText(/Submit before|Press 1–4 to select/)).toHaveCount(0);
     await expect(page.locator('#question-text-quiz-ux-code pre')).toBeVisible();
     if (width === 1280) {
       const card = page.locator('.ss-question__panel');
@@ -408,7 +408,7 @@ test('Quiz shows all topics immediately and bulk selection applies to the whole 
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('devquiz:quiz-setup:v1')!).categories)).toEqual([]);
 });
 
-test('Quiz notices a passed deadline without clearing answers or inventing a grading refusal', async ({ page }) => {
+test('standard Quiz keeps its answers without a deadline or key hint', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 1000 });
   await page.clock.install();
   await prepare(page, 'dark');
@@ -419,7 +419,8 @@ test('Quiz notices a passed deadline without clearing answers or inventing a gra
   const answersTop = (await page.getByRole('radiogroup').boundingBox())!.y;
   await page.clock.fastForward(61 * 60_000);
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
-  await expect(page.getByText(/This quiz’s submit deadline has passed/)).toBeVisible();
+  await expect(page.getByText(/Submit before|This quiz’s submit deadline has passed/)).toHaveCount(0);
+  await expect(page.getByText(/Press 1–4 to select/)).toHaveCount(0);
   expect(Math.abs((await page.getByRole('radiogroup').boundingBox())!.y - answersTop)).toBeLessThan(1);
   await expect(page.getByRole('radio', { name: 'object', exact: true })).toBeChecked();
   expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('devquiz:in-progress')!).answers)).toEqual({ 'quiz-ux-code': 0 });
