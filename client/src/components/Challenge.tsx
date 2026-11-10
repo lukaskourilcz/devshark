@@ -32,6 +32,7 @@ import type { QuestionXpHeld } from '../../../shared/repeat-xp';
 import { SwimCta } from './landing/LandingKit';
 import { readJSON, writeJSON, removeStored } from '../lib/storage';
 import { accountEpoch } from '../lib/accountData';
+import { staleProfileStats } from '../lib/queryClient';
 import './Challenge.css';
 import {
   AnswerOptionList,
@@ -110,15 +111,17 @@ const dropPendingReward = (runToken: string) =>
  * whose question paid XP less than an hour ago (migration 060), with the time
  * the last of them pays again. The sending stops when the account signs
  * out: the rest are no longer this browser's to send. */
-async function sendPendingRewards(userId: string | null): Promise<{ kept: number; xp: number; held: QuestionXpHeld | null }> {
+async function sendPendingRewards(userId: string | null): Promise<{ kept: number; xp: number; held: QuestionXpHeld | null; accountSaved: boolean }> {
   const epoch = accountEpoch();
   let kept = 0;
+  let accountSaved = false;
   let xp = 0;
   let held = null as QuestionXpHeld | null;
   for (const run of readPendingRewards().filter((one) => one.userId === userId)) {
     if (accountEpoch() !== epoch) break;
     try {
       const res = await completeChallengeRun({ runToken: run.runToken, proofs: run.proofs });
+      if (userId && res.score > 0) accountSaved = true;
       if (userId && res.awarded) xp += res.xp ?? 0;
       if (res.xpHeld) {
         held = {
@@ -139,7 +142,7 @@ async function sendPendingRewards(userId: string | null): Promise<{ kept: number
       if (err instanceof ApiError && (err.status === 0 || err.status === 429)) break;
     }
   }
-  return { kept, xp, held };
+  return { kept, xp, held, accountSaved };
 }
 
 /** The batch session that issued the question can no longer grade it: it
@@ -308,17 +311,18 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
   const syncRewards = useCallback((userId: string | null) => {
     rewardSync.current = rewardSync.current.then(async () => {
       const epoch = accountEpoch();
-      const { kept, xp, held } = await sendPendingRewards(userId);
+      const { kept, xp, held, accountSaved } = await sendPendingRewards(userId);
       // Signed out while the runs were on their way: what they earned is not
       // news for whoever is here now, and its rank marker is not theirs.
       if (accountEpoch() !== epoch) return;
       if (xp > 0) announceVerifiedQuestXp(xp);
       if (held) announceXpHeld({ on: 'questions', count: held.questions, availableAt: held.availableAt });
-      if (xp > 0) {
-        // The gain first, then the rank it crosses, in Quiz's order. The
-        // run's XP exists only on the server until this sync, so the sync
-        // announces the rank-up; a silent one marked it seen unannounced.
-        await syncXpWithServer({ announceRankUp: true });
+      if (accountSaved) {
+        // A replay can confirm an award committed before the connection failed.
+        // Refresh the account without announcing the same gain twice.
+        staleProfileStats();
+        await syncXpWithServer({ announceRankUp: xp > 0 });
+        if (accountEpoch() !== epoch) return;
       }
       if (kept > 0) setSnack(t('challenge.rewardPending'));
       else void boardQuery.refetch();

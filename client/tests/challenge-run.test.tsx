@@ -3,8 +3,9 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
-import { onXpToast, primeRankMarker, type XpToast } from '../src/lib/xp';
+import { getTotalXp, onXpToast, primeRankMarker, type XpToast } from '../src/lib/xp';
 import { clearAccountData } from '../src/lib/accountData';
+import { queryClient } from '../src/lib/queryClient';
 
 // The Biggest Shark Challenge against a small stand-in for the three endpoints
 // it calls: the batch (GET /api/quiz/challenge), grading (POST
@@ -28,6 +29,7 @@ const api = vi.hoisted(() => ({
   gradeSignals: [] as (AbortSignal | null)[],
   completions: [] as { runToken: string; proofs: string[]; status: number }[],
   completeStatus: (_runToken: string): { status: number; code?: string } => ({ status: 200 }),
+  alreadyAwarded: new Set<string>(),
   /** Run completions wait for this when it is set. */
   holdComplete: null as null | Promise<void>,
   auth: { user: null as null | { id: string; email?: string; user_metadata?: Record<string, unknown> }, isAuthenticated: false, isLoading: false },
@@ -112,7 +114,7 @@ vi.mock('../src/lib/api', async (importOriginal) => {
       if (outcome.status !== 200) return fail(outcome.status, outcome.code ?? 'error');
       const score = body.proofs.filter((proof) => proof.endsWith(':true')).length;
       const held = api.held ? Math.min(api.held.questions, score) : 0;
-      return { ok: true, awarded: score - held > 0, score, xp: (score - held) * 5, ...(api.held ? { xpHeld: api.held } : {}) };
+      return { ok: true, awarded: score - held > 0 && !api.alreadyAwarded.has(body.runToken), score, xp: (score - held) * 5, ...(api.held ? { xpHeld: api.held } : {}) };
     }
     if (parsed.pathname === '/api/quiz/challenge' && opts.method === 'POST' && !parsed.searchParams.has('resource')) {
       const body = JSON.parse(String(opts.body)) as { name: string; runToken: string };
@@ -196,6 +198,7 @@ beforeEach(() => {
   api.gradeSignals.length = 0;
   api.completions.length = 0;
   api.completeStatus = () => ({ status: 200 });
+  api.alreadyAwarded.clear();
   api.holdComplete = null;
   api.auth = { user: null, isAuthenticated: false, isLoading: false };
   api.batchRefusal = null;
@@ -408,6 +411,27 @@ describe('the run reward', () => {
     await strikeOut(1);
     await waitFor(() => expect(localStorage.getItem(PENDING)).toBeNull());
     expect(api.completions.map(({ runToken, status }) => [runToken, status])).toEqual([['RUN-1', 429], ['RUN-1', 200], ['RUN-2', 200]]);
+  });
+
+  it('refreshes XP and profile stats when a replay confirms a previously credited run', async () => {
+    const gains: number[] = [];
+    const stop = onXpToast((toast) => { if (toast.kind === 'gain') gains.push(toast.amount); });
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+    try {
+      api.auth = SIGNED_IN;
+      api.accountXp = 15;
+      api.alreadyAwarded.add('CREDITED');
+      localStorage.setItem(PENDING, JSON.stringify([{ userId: SIGNED_IN.user.id, runToken: 'CREDITED', proofs: ['right:true'] }]));
+      await mount();
+      await waitFor(() => expect(localStorage.getItem(PENDING)).toBeNull());
+      await waitFor(() => expect(getTotalXp()).toBe(15));
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['profile-stats'] });
+      expect(gains).toEqual([]);
+      expect(api.completions.map(({ runToken }) => runToken)).toEqual(['CREDITED']);
+    } finally {
+      invalidate.mockRestore();
+      stop();
+    }
   });
 
   it('drops a saved run the server can never credit, and keeps one it only turned away for now', async () => {
