@@ -284,6 +284,30 @@ describe('a returning visitor with a stored session', () => {
     }
   });
 
+  it('does not restore a stale boot snapshot after a newer account event', async () => {
+    localStorage.setItem(KEY, JSON.stringify(STORED));
+    const original = sb.createClient.getMockImplementation()!;
+    let finishBoot!: () => void;
+    sb.createClient.mockImplementationOnce((url, key, options) => {
+      const client = original(url, key, options);
+      client.auth.getSession.mockImplementationOnce(() => new Promise((resolve) => {
+        finishBoot = () => resolve({ data: { session: STORED }, error: null });
+      }));
+      return client;
+    });
+    recordSignInReports();
+    await mountAuth();
+    await waitFor(() => expect(finishBoot).toBeTypeOf('function'));
+    const next = sb.sessionFor('next-access-token', 'user-next');
+    await act(async () => {
+      localStorage.setItem(KEY, JSON.stringify(next));
+      sb.clients[0].emit('SIGNED_IN', next);
+    });
+    expect(screen.getByTestId('auth')).toHaveTextContent('user:user-next');
+    await act(async () => { finishBoot(); });
+    expect(screen.getByTestId('auth')).toHaveTextContent('user:user-next');
+  });
+
   it('restores the user when the client loaded before the provider mounted', async () => {
     localStorage.setItem(KEY, JSON.stringify(STORED));
     const reports = recordSignInReports();

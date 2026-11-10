@@ -258,11 +258,11 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
     // for that same sign-in is not reported. An OAuth return's INITIAL_SESSION
     // is the new sign-in itself, so nothing is remembered for it.
     let restored: string | null = null;
-    // Whether supabase-js has said anything yet: after that its events, not
-    // a session read that missed the boot deadline, say who is here.
-    let heard = false;
+    // Once the provider hears an Auth event, the boot read can no longer
+    // replace the session, even if the older snapshot eventually succeeds.
+    let bootCurrent = true;
     const unsubscribe = onSupabaseAuthStateChange((event, session) => {
-      heard = true;
+      bootCurrent = false;
       if (session?.user) signedIn(session.user.id);
       setUser(session?.user ?? null);
       setIsLoading(false);
@@ -304,15 +304,21 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
     // out, like a stalled session read always has.
     void withDeadline(getSupabaseSession(), AUTH_BOOT_TIMEOUT_MS)
       .then((session) => {
+        if (!bootCurrent) return;
         if (session?.user) signedIn(session.user.id);
         setUser(session?.user ?? null);
       })
       .catch(() => {
-        if (!heard) setUser(null);
+        if (bootCurrent) setUser(null);
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        if (bootCurrent) setIsLoading(false);
+      });
 
-    return unsubscribe;
+    return () => {
+      bootCurrent = false;
+      unsubscribe();
+    };
   }, []);
 
   // An account is here. Drafts an involuntary sign-out kept for another
