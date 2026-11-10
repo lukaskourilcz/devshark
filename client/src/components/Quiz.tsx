@@ -319,9 +319,11 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   }, [state, onActiveChange]);
 
   useEffect(() => onPendingReceiptResolution(({ attemptKey, userId, outcome }) => {
-    setResultSave((current) => current && current.attemptKey === attemptKey && current.userId === userId && current.epoch === accountEpoch()
-      ? { ...current, status: outcome }
-      : current);
+    setResultSave((current) => {
+      if (!current || current.attemptKey !== attemptKey || current.userId !== userId || current.epoch !== accountEpoch()) return current;
+      if (current.status === 'saved' || current.status === outcome) return current;
+      return { ...current, status: outcome };
+    });
   }), []);
 
   // Restore in-progress quiz on mount
@@ -770,7 +772,13 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
             if (isReceiptRefused(writeError)) {
               resolvePendingReceipt(attemptKey, user.id, 'refused');
             } else {
-              if (screen === screenRef.current) setResultSave({ attemptKey, userId: user.id, epoch, status: 'pending' });
+              // A reconnect may already have confirmed this receipt while
+              // the first write was still waiting for its response.
+              if (screen === screenRef.current) setResultSave((current) =>
+                current?.attemptKey === attemptKey && current.status === 'saving'
+                  ? { ...current, status: 'pending' }
+                  : current,
+              );
             }
           }
         }

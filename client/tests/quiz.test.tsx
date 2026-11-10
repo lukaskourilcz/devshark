@@ -1054,6 +1054,36 @@ describe('persistent result save status', () => {
     expect(localStorage.getItem(PENDING_KEY)).toBeNull();
   });
 
+  it.each([[503, 'offline'], [400, 'invalid_receipt']])('keeps a confirmed background save when the earlier request returns %i', async (status, code) => {
+    signIn();
+    let writes = 0;
+    let failFirst!: () => void;
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      server.use(
+        http.post('*/api/quiz/submit', () => HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'overlapping-save-receipt' })),
+        http.post('*/api/user/stats', () => ++writes === 1
+          ? new Promise<Response>((resolve) => {
+              failFirst = () => resolve(HttpResponse.json({ error: { code, message: 'Could not save' } }, { status }));
+            })
+          : HttpResponse.json({ data: null, applied: false, questXp: 0 })),
+      );
+      await startQuiz([Q('a')]);
+      answerAll(1);
+      fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+      await waitFor(() => expect(failFirst).toBeDefined());
+      fireEvent(window, new Event('online'));
+      await screen.findByText('Saved to your account');
+      await act(async () => { failFirst(); });
+      await waitFor(() => expect(log).toHaveBeenCalledWith('Stat write failed:', expect.anything()));
+      expect(screen.getByText('Saved to your account')).toBeInTheDocument();
+      expect(screen.queryByText(/Waiting to sync/)).not.toBeInTheDocument();
+      expect(localStorage.getItem(PENDING_KEY)).toBeNull();
+    } finally {
+      log.mockRestore();
+    }
+  });
+
   it('keeps a permanent refusal visible after replay and does not say Saved', async () => {
     signIn();
     let writes = 0;
