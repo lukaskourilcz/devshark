@@ -195,7 +195,14 @@ for (const theme of ['light', 'dark'] as const) {
       }
       if (url.pathname === '/api/quiz/roadmap' && url.searchParams.get('level')) {
         attempts++;
-        return route.fulfill({ json: { kind: 'level', topic: 'dsa', ref: 1, title: 'Complexity Basics', passPct: 75, sessionId: 'fixture-attempt', questions: [{ id: 'fixture-q', category: 'dsa', difficulty: 1, question: 'Which count grows with the input?', options: ['n', '1'], introduction: '', tags: [] }] } });
+        const base = { category: 'dsa', difficulty: 1, introduction: '', tags: [], options: ['n', '1', '0', 'undefined'] };
+        return route.fulfill({ json: { kind: 'level', topic: 'dsa', ref: 1, title: 'Complexity Basics', passPct: 75, sessionId: 'fixture-attempt', questions: [
+          { ...base, id: 'fixture-q', question: 'Which count grows with the input?\n\n```js\nconst count = names.length;\n```' },
+          { ...base, id: 'fixture-q2', question: 'Which count grows with the input?\n\n```js\nconst count = items.length;\n```' },
+        ] } });
+      }
+      if (url.pathname === '/api/quiz/roadmap' && url.searchParams.get('resource') === 'answer') {
+        return route.fulfill({ json: { selectedIndex: 1, correctAnswer: 0, isCorrect: false, explanation: 'The number of elements grows with the input. The length is n, not a constant.' } });
       }
       return route.fulfill({ status: 503, json: { error: { code: 'offline', message: 'local fixture' } } });
     });
@@ -210,10 +217,30 @@ for (const theme of ['light', 'dark'] as const) {
     const findings = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
     expect(findings.violations.map(v => v.id)).toEqual([]);
     const start = page.getByRole('button', { name: 'Start the questions' });
+    await page.setViewportSize({ width: 1280, height: 733 });
     await start.focus();
     await page.keyboard.press('Enter');
-    await expect(page.getByText('Which count grows with the input?')).toBeVisible();
+    await expect(page.getByText('Which count grows with the input?', { exact: true })).toBeVisible();
     expect(attempts).toBe(1);
+    await page.getByRole('radio', { name: '1', exact: true }).click();
+    const card = page.locator('.ss-question__panel');
+    const next = card.getByRole('button', { name: 'Continue', exact: true });
+    await expect(next).toBeFocused();
+    const counter = card.getByText('Question 1 of 2', { exact: true });
+    const report = card.getByRole('button', { name: 'Flag this question as wrong or misleading' });
+    await expect(card.locator('.ss-question-header__row').first().getByRole('button', { name: 'Exit lesson' })).toBeVisible();
+    const [cardBox, reportBox, counterBox, nextBox] = await Promise.all([
+      card.boundingBox(), report.boundingBox(), counter.boundingBox(), next.boundingBox(),
+    ]);
+    expect(cardBox!.y).toBeGreaterThanOrEqual(0);
+    expect(cardBox!.y + cardBox!.height).toBeLessThan(733);
+    expect(reportBox!.x).toBeLessThan(counterBox!.x);
+    expect(counterBox!.x).toBeLessThan(nextBox!.x);
+    expect(Math.abs(reportBox!.y - nextBox!.y)).toBeLessThan(2);
+    const content = card.locator('.ss-question__content');
+    expect(await content.evaluate(el => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(1);
+    await next.click();
+    await expect(card.getByText('Question 2 of 2', { exact: true })).toBeVisible();
   });
 }
 
@@ -277,7 +304,7 @@ async function finishQuizAudit(page: Page) {
 
 for (const theme of ['light', 'dark'] as const) for (const width of [360, 390, 430, 768, 1024, 1280, 1440]) {
   test(`${theme} ${width}px: Quiz setup, unanswered navigation and mistake review stay usable`, async ({ page }, info) => {
-    await page.setViewportSize({ width, height: 1000 });
+    await page.setViewportSize({ width, height: width === 1280 ? 733 : 1000 });
     await prepare(page, theme);
     const fixture = await quizAuditFixture(page);
     await page.goto('/quiz');
@@ -287,10 +314,17 @@ for (const theme of ['light', 'dark'] as const) for (const width of [360, 390, 4
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (width === 360 || width === 1440) await page.screenshot({ path: info.outputPath(`quiz-setup-${theme}-${width}.png`), fullPage: true });
     await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Quiz · Question 1 of 3');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Quiz · Question 1 of 3');
     await expect(page.getByText('0 of 3 answered', { exact: true })).toBeVisible();
     await expect(page.locator('time')).toContainText('Submit before');
     await expect(page.locator('#question-text-quiz-ux-code pre')).toBeVisible();
+    if (width === 1280) {
+      const card = page.locator('.ss-question__panel');
+      const next = card.getByRole('button', { name: 'Next', exact: true });
+      await expect(next).toBeVisible();
+      const bounds = (await card.boundingBox())!;
+      expect(bounds.y + bounds.height).toBeLessThan(733);
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (width === 360 || width === 1440) await page.screenshot({ path: info.outputPath(`quiz-active-${theme}-${width}.png`), fullPage: true });
     await finishQuizAudit(page);
@@ -343,7 +377,7 @@ for (const mode of ['daily', 'review']) {
     await localAuth(page);
     await quizAuditFixture(page);
     await page.goto(`/quiz?mode=${mode}`);
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(`${mode === 'daily' ? 'Today’s challenge' : 'Review'} · Question 1 of 3`);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName(`${mode === 'daily' ? 'Today’s challenge' : 'Review'} · Question 1 of 3`);
     await expect(page.getByText('0 of 3 answered', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Next', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Review unanswered (3)', exact: true })).toBeVisible();

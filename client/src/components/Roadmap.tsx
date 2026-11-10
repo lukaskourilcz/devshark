@@ -1875,6 +1875,8 @@ function SkillCheckRunner({
   const roundLabel = learnText('placement.roundOf', { n: round, total: totalRounds });
   return (
     <QuestionShell
+      compact
+      contentKey={current.id}
       ref={questionRef}
       questionId="placement-question"
       header={
@@ -1882,9 +1884,8 @@ function SkillCheckRunner({
           run={learnText('placement.kicker')}
           title={roundLabel}
           progress={{ value: progressPct, label: roundLabel }}
-          status={<Text type="supporting" color="secondary">{qIndex + 1}/{roundSize}</Text>}
           meta={<CategoryTag category={current.category} />}
-          tools={placementExit}
+          exit={placementExit}
         />
       }
       question={
@@ -1902,7 +1903,12 @@ function SkillCheckRunner({
           {renderQuestion(current.question)}
         </>
       }
-      actions={<QuestionActions primary={{ label: primaryLabel, onClick: onPrimary, disabled: primaryDisabled }} />}
+      actions={
+        <QuestionActions
+          counter={t('roadmap.question', { current: qIndex + 1, total: roundSize })}
+          primary={{ label: primaryLabel, onClick: onPrimary, disabled: primaryDisabled }}
+        />
+      }
     >
       <AnswerOptionList
         options={current.options}

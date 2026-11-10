@@ -800,11 +800,11 @@ describe('a level on the shared question parts', () => {
     expect(screen.getByText('Before you start')).toBeInTheDocument();
     expect(swimCtas()).toHaveLength(1);
     const exitOnIntro = screen.getByRole('button', { name: 'Exit lesson' });
-    expect(exitOnIntro.closest('.ss-question-header__tools')).not.toBeNull();
+    expect(exitOnIntro.closest('.ss-question-header__exit')).not.toBeNull();
     fireEvent.click(start);
     const question = document.getElementById('lesson-question')!;
     expect(question.closest('.ss-question')).not.toBeNull();
-    expect(screen.getByRole('button', { name: 'Exit lesson' }).closest('.ss-question-header__tools')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Exit lesson' }).closest('.ss-question-header__exit')).not.toBeNull();
     // Nothing to press before an answer: a press grades at once.
     expect(swimCtas()).toHaveLength(0);
   });
@@ -831,7 +831,8 @@ describe('a level on the shared question parts', () => {
     // The one primary is the action row's SwimCta, and it takes focus.
     const next = screen.getByRole('button', { name: 'Finish' });
     expect(swimCtas()).toHaveLength(1);
-    expect(next.closest('.ss-question-actions')).not.toBeNull();
+    expect(next.closest('.ss-question__panel')).toBe(feedback.closest('.ss-question__panel'));
+    expect(screen.getByRole('button', { name: 'Flag this question as wrong or misleading' }).closest('.ss-question-actions__secondary')).not.toBeNull();
     await waitFor(() => expect(next).toHaveFocus());
   });
 
@@ -847,7 +848,7 @@ describe('a level on the shared question parts', () => {
     await screen.findByText('Placement question 1?', {}, { timeout: 3000 });
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Find your level · Round 1 of 4');
     expect(screen.getByRole('radiogroup').classList.contains('ss-answer-list')).toBe(true);
-    expect(screen.getByRole('button', { name: 'Cancel' }).closest('.ss-question-header__tools')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Cancel' }).closest('.ss-question-header__exit')).not.toBeNull();
     expect(swimCtas()).toHaveLength(1);
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: 'I don’t know yet' }));

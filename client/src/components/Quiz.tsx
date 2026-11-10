@@ -1281,6 +1281,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const remaining = questions.length - answered;
   const isLast = currentIndex === questions.length - 1;
   const questionId = `question-text-${currentQuestion.id}`;
+  const counter = t('quiz.questionCounter', { current: currentIndex + 1, total: questions.length });
+  const runTitle = t(mode === 'daily' ? 'quiz.todaysChallenge' : mode === 'review' ? 'quiz.reviewMode' : 'nav.quiz');
   const hintOpen = !!revealedHints[currentQuestion.id];
   const hasEarlierUnanswered = questions.slice(0, currentIndex).some((question) => answers[question.id] === undefined);
   const expired = expiresAt !== null && sessionNow >= expiresAt;
@@ -1346,11 +1348,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
 
   return (
     <>
-      {/* One question screen from the shared parts (UX audit U2): the 640px
-          shell, the run's h1 in the header, a question block of one height
-          so the answers start at the same y on every question, and the
-          action row under the panel. */}
       <QuestionShell
+        compact
         className="quiz-run"
         ref={questionTextRef}
         questionId={questionId}
@@ -1369,8 +1368,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         }
         header={
           <QuestionHeader
-            run={t(mode === 'daily' ? 'quiz.todaysChallenge' : mode === 'review' ? 'quiz.reviewMode' : 'nav.quiz')}
-            title={t('quiz.questionCounter', { current: currentIndex + 1, total: questions.length })}
+            title={runTitle}
+            titleLabel={`${runTitle} · ${counter}`}
             progress={{ value: progress, label: t('quiz.progressAria') }}
             status={
               <div className="quiz-run-status">
@@ -1380,17 +1379,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
             }
             meta={<CategoryTag category={currentQuestion.category} />}
             difficulty={currentQuestion.difficulty}
-            tools={
-              <>
-                {hintTool}
-                <QuestionIconButton
-                  label={t('quiz.reportAria')}
-                  icon={<ReportFlagIcon />}
-                  onClick={() => setReportTarget({ id: currentQuestion.id, version: currentQuestion.review?.version })}
-                />
-                <QuestionIconButton label={t('quiz.exitQuiz')} icon={<ExitIcon />} onClick={handleAbandon} />
-              </>
-            }
+            tools={hintTool}
+            exit={<QuestionIconButton label={t('quiz.exitQuiz')} icon={<ExitIcon />} onClick={handleAbandon} />}
           />
         }
         question={
@@ -1414,8 +1404,14 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         actions={
           <>
             <QuestionActions
+              counter={counter}
               secondary={
                 <>
+                  <QuestionIconButton
+                    label={t('quiz.reportAria')}
+                    icon={<ReportFlagIcon />}
+                    onClick={() => setReportTarget({ id: currentQuestion.id, version: currentQuestion.review?.version })}
+                  />
                   <Button
                     variant="secondary"
                     label={t('quiz.previous')}

@@ -1,4 +1,4 @@
-import { forwardRef, type ReactNode } from 'react';
+import { forwardRef, useLayoutEffect, useRef, type ReactNode } from 'react';
 import './question.css';
 
 export interface QuestionShellProps {
@@ -17,6 +17,10 @@ export interface QuestionShellProps {
    * nothing follows it.
    */
   stable?: boolean;
+  /** An active run keeps the header and actions inside a viewport-sized card. */
+  compact?: boolean;
+  /** Reset the compact card's scroll position when a new item is shown. */
+  contentKey?: string | number;
   /** Under the block, inside the panel: AnswerOptionList, QuestionHint, QuestionFeedback. */
   children?: ReactNode;
   /** The QuestionActions row, 16px under the panel. */
@@ -37,26 +41,36 @@ export interface QuestionShellProps {
  * The ref is the question block, for moving focus to it.
  */
 export const QuestionShell = forwardRef<HTMLDivElement, QuestionShellProps>(function QuestionShell(
-  { header, question, questionId, focusable = true, stable = true, children, actions, notice, className, labelledBy },
+  { header, question, questionId, focusable = true, stable = true, compact = false, contentKey, children, actions, notice, className, labelledBy },
   ref,
 ) {
+  const scrollArea = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (scrollArea.current) scrollArea.current.scrollTop = 0;
+  }, [questionId, contentKey]);
+  const content = (
+    <>
+      <div
+        id={questionId}
+        ref={ref}
+        tabIndex={focusable ? -1 : undefined}
+        className="ss-question__block"
+        data-stable={stable ? 'true' : 'false'}
+      >
+        {question}
+      </div>
+      {children != null && <div className="ss-question__body">{children}</div>}
+    </>
+  );
   return (
-    <section className={className ? `ss-question ${className}` : 'ss-question'} aria-labelledby={labelledBy}>
+    <section className={['ss-question', compact && 'ss-question--compact', className].filter(Boolean).join(' ')} aria-labelledby={labelledBy}>
       {notice}
       <div className="ss-panel ss-question__panel">
         {header}
-        <div
-          id={questionId}
-          ref={ref}
-          tabIndex={focusable ? -1 : undefined}
-          className="ss-question__block"
-          data-stable={stable ? 'true' : 'false'}
-        >
-          {question}
-        </div>
-        {children != null && <div className="ss-question__body">{children}</div>}
+        {compact ? <div className="ss-question__content" ref={scrollArea}>{content}</div> : content}
+        {compact && actions && <div className="ss-question__footer">{actions}</div>}
       </div>
-      {actions}
+      {!compact && actions}
     </section>
   );
 });

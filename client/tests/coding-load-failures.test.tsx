@@ -162,10 +162,15 @@ it('serializes track bookmark writes so older full-set responses cannot overwrit
   const starFor = (name: RegExp) => within(screen.getByRole('link', { name }).closest('li')!).getByRole('button', { name: /Save this challenge/ });
   const first = starFor(/Digit sum/), second = starFor(/Count multiples/);
   await act(async () => { fireEvent.click(first); fireEvent.click(second); });
-  expect(writes).toBe(1);
-  expect(first).toHaveAttribute('aria-disabled', 'true');
-  expect(second).toHaveAttribute('aria-disabled', 'true');
-  await act(async () => { finish(); });
+  try {
+    await waitFor(() => {
+      expect(writes).toBe(1);
+      expect(first).toHaveAttribute('aria-disabled', 'true');
+      expect(second).toHaveAttribute('aria-disabled', 'true');
+    });
+  } finally {
+    await act(async () => { finish(); });
+  }
   await waitFor(() => expect(first).toHaveAttribute('aria-pressed', 'true'));
   expect(second).toHaveAttribute('aria-pressed', 'false');
 });

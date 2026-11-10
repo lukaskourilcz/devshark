@@ -82,8 +82,8 @@ function renderQuiz(path = '/quiz') {
   return render(quizTree(path));
 }
 
-/** The counter is the run's h1, "Quiz · Question 2 of 5"; this reads its count. */
-const counter = () => screen.getByRole('heading', { level: 1 }).textContent!.replace(/^Quiz · /, '');
+/** The visible counter sits between the two sides of the in-card action row. */
+const counter = () => screen.getByText(/^Question \d+ of \d+$/).textContent;
 /** The answer cards of the question on screen (the setup screen has radios too). */
 const answerCards = () => screen.getAllByRole('radio').filter((radio) => radio.closest('.ss-answer-list'));
 const checked = () => answerCards().map((radio) => radio.getAttribute('aria-checked') === 'true');
@@ -245,13 +245,17 @@ describe('focus', () => {
 });
 
 describe('touch targets', () => {
-  it('gives the hint, report and exit buttons in the question header 44px', async () => {
+  it('keeps 44px targets for hint, report and exit in their new slots', async () => {
     await startQuiz([Q('a', { introduction: 'Think about types.' })]);
-    for (const name of ['Show hint', 'Report this question', 'Exit quiz']) {
+    for (const [name, slot] of [
+      ['Show hint', '.ss-question-header__tools'],
+      ['Report this question', '.ss-question-actions__secondary'],
+      ['Exit quiz', '.ss-question-header__exit'],
+    ]) {
       const button = screen.getByRole('button', { name });
       expect(button.style.width).toBe('44px');
       expect(button.style.height).toBe('44px');
-      expect(button.closest('.ss-question-header__tools')).not.toBeNull();
+      expect(button.closest(slot)).not.toBeNull();
     }
   });
 });
@@ -376,12 +380,11 @@ describe('the question screen (UX audit U2)', () => {
     expect(padding).not.toMatch(/0\.75rem/);
   });
 
-  it('names the run in one h1 that is also the counter, and shows the difficulty', async () => {
+  it('names the run in one heading, shows the counter in the card footer and keeps the difficulty', async () => {
     await startQuiz([Q('a', { difficulty: 3 }), Q('b')]);
     const headings = screen.getAllByRole('heading', { level: 1 });
     expect(headings).toHaveLength(1);
-    expect(headings[0]).toHaveTextContent('Quiz · Question 1 of 2');
-    // Said once: no hidden legend repeats the counter.
+    expect(headings[0]).toHaveAccessibleName('Quiz · Question 1 of 2');
     expect(screen.getAllByText(/Question 1 of 2/)).toHaveLength(1);
     expect(screen.getByText('Difficulty 3')).toBeInTheDocument();
   });
@@ -395,11 +398,14 @@ describe('the question screen (UX audit U2)', () => {
     expect(document.querySelectorAll('.ss-swim-cta')).toHaveLength(1);
     expect(screen.getByRole('button', { name: /^next$/i })).toHaveClass('ss-swim-cta--md');
     expect(screen.getByRole('button', { name: /^previous$/i }).closest('.ss-question-actions__secondary')).not.toBeNull();
-    // The question block is the same element from question to question, so
-    // the answers under it start at one y.
+    // The scroll area is retained, but a new question resets its position.
     const block = document.querySelector('.ss-question__block');
+    const scrollArea = document.querySelector<HTMLElement>('.ss-question__content')!;
+    scrollArea.scrollTop = 100;
+    expect(screen.getByRole('button', { name: /^next$/i }).closest('.ss-question__panel')).toBe(block?.closest('.ss-question__panel'));
     fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
     expect(document.querySelector('.ss-question__block')).toBe(block);
+    expect(scrollArea.scrollTop).toBe(0);
     expect(block).toHaveAttribute('data-stable', 'true');
   });
 
@@ -614,7 +620,7 @@ describe('the daily challenge', () => {
     expect(await screen.findByText('Nobody has finished today’s daily challenge yet.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Today’s challenge' }));
     expect(await screen.findByText('Question d1?')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Today’s challenge · Question');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveAccessibleName(/^Today’s challenge · Question/);
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/quiz$/);
     await act(async () => {});
     expect(hits).toEqual(['daily']);
@@ -677,7 +683,7 @@ describe('the review linked from Today', () => {
     expect(await screen.findByText('Question r1?')).toBeInTheDocument();
     await act(async () => { await new Promise((resolve) => setTimeout(resolve, 20)); });
     expect(asked).toEqual(['review']);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Review · Question');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveAccessibleName(/^Review · Question/);
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/quiz$/);
   });
 });

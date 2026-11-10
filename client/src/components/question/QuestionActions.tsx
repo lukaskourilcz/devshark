@@ -20,6 +20,8 @@ export interface QuestionActionsProps {
    * Astryx `variant="secondary"` or `"ghost"` buttons at the default 44px.
    */
   secondary?: ReactNode;
+  /** The current position, centred between the secondary and primary actions. */
+  counter?: string;
   /**
    * When this turns true, focus moves to the primary: after grading, so the
    * next Tab or Enter continues (the Learn runner's Continue). The page
@@ -38,7 +40,7 @@ export interface QuestionActionsProps {
  * 560px the primary is the last row at full width, in the thumb zone, and the
  * secondaries share a two-column row above it.
  */
-export function QuestionActions({ primary, secondary, focusPrimary, label, className }: QuestionActionsProps) {
+export function QuestionActions({ primary, secondary, counter, focusPrimary, label, className }: QuestionActionsProps) {
   const primaryRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!focusPrimary) return;
@@ -50,15 +52,19 @@ export function QuestionActions({ primary, secondary, focusPrimary, label, class
     // (UX audit learn-02).
     button?.focus({ preventScroll: true });
     button?.scrollIntoView?.({ block: 'nearest' });
-    primaryRef.current?.closest('.ss-question')?.querySelector<HTMLElement>('.ss-answer-list')?.scrollIntoView?.({ block: 'nearest' });
+    const shell = primaryRef.current?.closest('.ss-question');
+    if (!shell?.classList.contains('ss-question--compact')) {
+      shell?.querySelector<HTMLElement>('.ss-answer-list')?.scrollIntoView?.({ block: 'nearest' });
+    }
   }, [focusPrimary]);
   return (
     <div
-      className={className ? `ss-question-actions ${className}` : 'ss-question-actions'}
+      className={['ss-question-actions', counter && 'ss-question-actions--counted', className].filter(Boolean).join(' ')}
       role={label ? 'group' : undefined}
       aria-label={label}
     >
       <div className="ss-question-actions__secondary">{secondary}</div>
+      {counter && <p className="ss-question-actions__counter">{counter}</p>}
       {primary && (
         <div className="ss-question-actions__primary" ref={primaryRef}>
           <SwimCta

@@ -63,6 +63,8 @@ export const QuestionIconButton = forwardRef<HTMLButtonElement, QuestionIconButt
 export interface QuestionHeaderProps {
   /** The h1's own words, e.g. "Question 3 of 10" or "Level 1 · Values & Math". */
   title: ReactNode;
+  /** Accessible heading when the question counter is shown in the footer. */
+  titleLabel?: string;
   /** The run's name before the title ("Quiz"), set off by a middle dot. */
   run?: string;
   /** Focus target on the h1 (tabIndex -1), e.g. when a level opens. */
@@ -71,6 +73,8 @@ export interface QuestionHeaderProps {
   progress?: { value: number; label: string };
   /** Run status on the right of the first row: timer, fins or hearts. */
   status?: ReactNode;
+  /** Exit control beside the status on the first row. */
+  exit?: ReactNode;
   /** Tags on the left of the second row: the CategoryTag, a level pill. */
   meta?: ReactNode;
   /** The question's difficulty (1–5); drawn as one neutral badge after the meta. */
@@ -85,12 +89,12 @@ export interface QuestionHeaderProps {
  * on the right. Row 2: tags and difficulty on the left, 44px icon buttons on
  * the right. The question text and code below then span the whole panel.
  */
-export function QuestionHeader({ title, run, titleRef, progress, status, meta, difficulty, tools }: QuestionHeaderProps) {
+export function QuestionHeader({ title, titleLabel, run, titleRef, progress, status, exit, meta, difficulty, tools }: QuestionHeaderProps) {
   const hasSecondRow = meta != null || difficulty != null || tools != null;
   return (
     <div className="ss-question-header">
       <div className="ss-question-header__row">
-        <h1 className="ss-question-header__title" ref={titleRef} tabIndex={titleRef ? -1 : undefined}>
+        <h1 className="ss-question-header__title" aria-label={titleLabel} ref={titleRef} tabIndex={titleRef ? -1 : undefined}>
           {run && <span className="ss-question-header__run">{run} · </span>}
           {title}
         </h1>
@@ -100,6 +104,7 @@ export function QuestionHeader({ title, run, titleRef, progress, status, meta, d
           </div>
         )}
         {status != null && <div className="ss-question-header__status">{status}</div>}
+        {exit != null && <div className="ss-question-header__exit">{exit}</div>}
       </div>
       {hasSecondRow && (
         // A tag and the difficulty badge can wrap to two lines beside three
