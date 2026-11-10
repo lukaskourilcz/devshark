@@ -125,6 +125,8 @@ const RETIRED_REPORTED = 'rm-js-21';
 /** While true, the one-time quiz claim fails as an unreachable database would. */
 let claimFails = false;
 let healthReadFails = false;
+let healthReadHangs = false;
+let closedHealthReads = 0;
 let dailyMarker: { grade_key: string; created_at: string } | null = null;
 let dailyMarkerUnavailable = false;
 /** Token checks Supabase Auth answered, so a test can count a request's. */
@@ -241,6 +243,10 @@ async function startStandIns() {
     const filters = Object.fromEntries([...url.searchParams.entries()].filter(([, value]) => value.startsWith('eq.')).map(([key, value]) => [key, value.slice(3)]));
     seen.push({ method: req.method ?? 'GET', path: url.pathname, filters, body });
     if (healthReadFails && url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key') return send(500, { code: '42501', message: 'permission denied for table quiz_submissions' });
+    if (healthReadHangs && url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key') {
+      res.once('close', () => { if (!res.writableEnded) closedHealthReads++; });
+      return;
+    }
     if (url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key,created_at') {
       if (dailyMarkerUnavailable) return send(500, { code: '08006', message: 'stand-in: start marker unavailable' });
       return send(200, dailyMarker ? [dailyMarker] : []);
@@ -821,6 +827,20 @@ async function main() {
     }
     console.log('PASS verified caller: health probes that arrive together share one check');
 
+    healthReadHangs = true;
+    try {
+      const timedOutHealth = await call(health as Handler, {});
+      assert.equal(timedOutHealth.statusCode, 503, 'a stalled dependency still fails readiness');
+      for (let wait = 0; wait < 20 && closedHealthReads === 0; wait++) {
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+      assert.equal(closedHealthReads, 1, 'the deadline cancels the stalled HTTP request, not only the caller’s wait');
+    } finally {
+      healthReadHangs = false;
+    }
+    assert.equal((await call(health as Handler, {})).statusCode, 200, 'the next health probe can recover');
+    console.log('PASS verified caller: a timed-out health probe aborts its stalled request');
+
     // ── the retired progress PUT ─────────────────────────────────────────
     // It answered with the progress read and wrote nothing; the server writes
     // progress itself on each completion. Retired, it reads nothing either.
@@ -1316,7 +1336,10 @@ async function main() {
 
     console.log('Verified-caller contracts passed: a token acts for its own account whatever user_id says, admin by confirmed address or role, private caching by default, read limits, and one-time claims that fail closed.');
   } finally {
-    for (const server of servers) server.close();
+    for (const server of servers) {
+      server.close();
+      server.closeAllConnections();
+    }
   }
 }
 
