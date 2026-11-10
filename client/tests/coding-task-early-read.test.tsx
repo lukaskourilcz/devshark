@@ -5,8 +5,8 @@
 // A free task asks for its brief and the caller's part apart (#587 C23),
 // both as the chunk evaluates; a Premium task asks for the combined answer.
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { Link, MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { server } from './mocks/server';
@@ -88,4 +88,42 @@ it('asks for nothing on a hidden track or a list', async () => {
   await firstPage('/coding/javascript');
   await act(async () => { await new Promise((resolve) => setTimeout(resolve, 50)); });
   expect(asked).toEqual([]);
+});
+
+
+it('uses the second task’s saved Learn session when navigating between task routes', async () => {
+  const nextId = 'js-double-numbers';
+  const sealed = 'lesson-session-for-second-task';
+  sessionStorage.setItem(`devshark:learn-coding:${nextId}`, sealed);
+  const linkedReads: unknown[] = [];
+  server.use(http.post('*/api/quiz/roadmap', async ({ request }) => {
+    const url = new URL(request.url);
+    linkedReads.push({ resource: url.searchParams.get('resource'), taskId: url.searchParams.get('id'), body: await request.json() });
+    return HttpResponse.json({
+      task: { id: nextId, track: 'javascript', level: 1, tier: 1, difficulty: 'easy', focus: [], title: 'Learn double numbers', prompt: 'p', starter: '', hints: [], verify: 'tests', estimatedMinutes: 5, tests: [] },
+      session: sealed, locked: null, signedIn: false, draft: null, draftUpdatedAt: null, progress: null,
+    });
+  }));
+  const first = '/coding/javascript/js-palindrome';
+  const { section, queryClient, LanguageProvider } = await firstPage(first);
+  try {
+    await act(async () => {
+      render(<QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[first]}>
+          <LanguageProvider>
+            <Link to={`/coding/javascript/${nextId}`}>Open linked task</Link>
+            <Routes><Route path="/coding/:track/:taskId" element={<section.CodingTaskScreen />} /></Routes>
+          </LanguageProvider>
+        </MemoryRouter>
+      </QueryClientProvider>);
+    });
+    await screen.findByText('workbench for Double numbers');
+    fireEvent.click(screen.getByRole('link', { name: 'Open linked task' }));
+    await screen.findByText('workbench for Learn double numbers');
+    expect(linkedReads).toEqual([{ resource: 'coding-task', taskId: nextId, body: { session: sealed } }]);
+    expect(asked.some((read) => read.endsWith(nextId))).toBe(false);
+  } finally {
+    queryClient.clear();
+    sessionStorage.removeItem(`devshark:learn-coding:${nextId}`);
+  }
 });
