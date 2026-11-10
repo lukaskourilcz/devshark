@@ -58,6 +58,16 @@ describe('Learn lesson reading', () => {
     expect(reads).toEqual(['reading', 'attempt', 'attempt']);
   });
 
+  it('returns keyboard focus to the lesson button when leaving the reading', async () => {
+    mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Complexity Basics' }));
+    await screen.findByRole('heading', { name: 'Complexity Basics', level: 1 });
+    const back = screen.getByRole('button', { name: 'Big O introduction' });
+    back.focus();
+    fireEvent.click(back);
+    expect(screen.getByRole('button', { name: 'Complexity Basics' })).toHaveFocus();
+  });
+
   it('names where Back goes and ends on one row with the only primary (learn-05)', async () => {
     mount();
     fireEvent.click(screen.getByRole('button', { name: 'Complexity Basics' }));
