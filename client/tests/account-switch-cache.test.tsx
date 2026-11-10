@@ -83,7 +83,7 @@ describe('an account change empties the query cache before the next account draw
       expect(settleOther).toHaveBeenCalledOnce();
       expect(accountEpoch()).toBeGreaterThan(oldEpoch);
       expect(localStorage.getItem('devshark:coding:draft:html-1')).toBeNull();
-      expect(drawn.at(-1)).toEqual(['bob', undefined]);
+      expect(drawn[drawn.length - 1]).toEqual(['bob', undefined]);
     } finally {
       stopOther();
       stopBroken();
