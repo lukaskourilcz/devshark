@@ -2067,11 +2067,13 @@ opening the email on a different device.
   is inserted only once the gate let the session through, so a refused
   session writes nothing (its reads are spent). The coding rows are read
   whether or not the questions passed, and a failed read still answers only
-  when they did. After the completion routine, the progress reload (then the
-  first pass's coin and referral credits, together), the milestone
-  settlement and the concept reviews run at once instead of one after
-  another; each is idempotent under its own event id and the answer waits
-  for all of them. One difference on a failure path: when the reload fails
+  when they did. Migration 076 settles first-pass coins in the same
+  transaction as completion. It also records the streak in the transaction
+  that closes a last-heart attempt. A failed reward write rolls back its
+  completion so the same request can retry. The previous routines remain a
+  fallback while the new entrypoints are missing. The progress reload,
+  milestone settlement and concept reviews then run together. First-pass
+  referral follows the reload, and the response waits for each branch. One difference on a failure path: when the reload fails
   (500 "Progress saved but could not be reloaded"), the settlement and the
   concept reviews have already run, where they used to be skipped.
   `npm run test:performance` (`scripts/test-learn-round-trips.ts`) pins the

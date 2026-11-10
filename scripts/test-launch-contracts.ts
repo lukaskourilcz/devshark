@@ -3433,10 +3433,21 @@ function monthlyXpContracts() {
   assert.match(repeat.body, /AND last_xp_at <= NOW\(\) - INTERVAL '60 minutes'/, 'an hour after the step last paid');
   assert.match(repeat.body, /public\.record_verified_activity_xp\(p_user_id, 'learn-repeat:' \|\| p_attempt_id, v_attempt\.subject, v_xp\)/,
     'under the attempt\'s own award id, into the balance and the month');
+  const atomic = newest.get('complete_verified_roadmap_attempt_v3')!;
+  assert.equal(atomic.file, 'supabase-schema-076.sql');
+  assert.match(atomic.body, /v_result := public\.complete_verified_roadmap_attempt_v2\(p_user_id, p_attempt_id, p_coding_task_ids\);/);
+  assert.match(atomic.body, /IF v_result->'firstPass' = 'true'::JSONB THEN[\s\S]+PERFORM public\.credit_verified_xp_tokens\(/,
+    'the first-pass coin receipt is part of the completion transaction');
+  const hearts = newest.get('complete_roadmap_attempt_on_hearts')!;
+  assert.equal(hearts.file, 'supabase-schema-076.sql');
+  assert.match(hearts.body, /UPDATE public\.roadmap_attempts[\s\S]+PERFORM public\.advance_verified_streak\(p_user_id\)/,
+    'losing the last heart closes the level and records the streak together');
   const roadmapHandler = read('api/quiz/roadmap.ts');
-  assert.match(roadmapHandler, /supabase\.rpc\('complete_verified_roadmap_attempt_v2', completion\)/, 'the Learn completion asks 060 first');
-  assert.match(roadmapHandler, /if \(isRpcMissing\(completed\.error\)\) \{\s+completed = await withTimeout\(supabase\.rpc\('complete_verified_roadmap_attempt', completion\)\);/,
-    'and completes as before on a database without it');
+  assert.match(roadmapHandler, /let completed = await withTimeout\(supabase\.rpc\('complete_verified_roadmap_attempt_v3',/);
+  assert.match(roadmapHandler, /const legacyCompletion = completed\.error\?\.code === 'PGRST202';[\s\S]+if \(legacyCompletion\) \{\s+completed = await withTimeout\(supabase\.rpc\('complete_verified_roadmap_attempt_v2', completion\)\);/,
+    'only a missing atomic entrypoint permits 060');
+  assert.match(roadmapHandler, /if \(completed\.error\?\.code === 'PGRST202'\) \{\s+if \(passed\) passedBefore = await stepPassed\(userId, session\);\s+completed = await withTimeout\(supabase\.rpc\('complete_verified_roadmap_attempt', completion\)\);/,
+    'a database without 060 still completes as before');
   // learn_step_xp is shared/progression.ts in SQL.
   const progression = read('shared/progression.ts');
   assert.match(progression, /export const LEVEL_XP_PER_DIFFICULTY = 50;/);
