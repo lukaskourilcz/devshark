@@ -890,13 +890,14 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     const handler = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
       const target = e.target instanceof Element ? e.target : null;
+      if (!target || !questionTextRef.current?.closest('.ss-question')?.contains(target)) return;
       // Typing, or working in a dialog (report, leave): the keys are theirs.
-      if (target?.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"], [role="dialog"], [role="alertdialog"]')) return;
+      if (target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"], [role="dialog"], [role="alertdialog"]')) return;
       // The shortcuts keep working after a click has left focus on an answer
       // or a button. Only Enter on a button or link is left alone: the
       // browser already activates it, and acting as well would act twice.
-      const onAnswer = !!target?.closest('[role="radio"]');
-      const onControl = !onAnswer && !!target?.closest('button, a[href], [role="button"]');
+      const onAnswer = !!target.closest('[role="radio"]');
+      const onControl = !onAnswer && !!target.closest('button, a[href], [role="button"]');
 
       if (e.key === 'ArrowRight') {
         e.preventDefault();
@@ -917,7 +918,6 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           handleNext();
         }
       } else if (/^[1-9]$/.test(e.key)) {
-        if (!target || !questionTextRef.current?.closest('.ss-question')?.contains(target)) return;
         const idx = parseInt(e.key, 10) - 1;
         if (idx < currentQuestion.options.length && !answersLocked) {
           e.preventDefault();

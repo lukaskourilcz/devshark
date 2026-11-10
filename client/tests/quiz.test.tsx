@@ -126,14 +126,20 @@ beforeEach(() => {
 });
 
 describe('keyboard shortcuts', () => {
-  it('leaves number keys alone outside the question', async () => {
+  it('leaves quiz keys alone outside the question card', async () => {
     await startQuiz();
-    fireEvent.keyDown(document.body, { key: '1' });
+    expect(fireEvent.keyDown(document.body, { key: '1' })).toBe(true);
+    expect(fireEvent.keyDown(document.body, { key: 'ArrowRight' })).toBe(true);
+    expect(fireEvent.keyDown(document.body, { key: 'Enter' })).toBe(true);
+    expect(counter()).toBe('Question 1 of 2');
     expect(checked()).toEqual([false, false, false, false]);
+
     const question = document.querySelector<HTMLElement>('.ss-question__block')!;
     question.focus();
     fireEvent.keyDown(question, { key: '1' });
     expect(checked()).toEqual([true, false, false, false]);
+    fireEvent.keyDown(question, { key: 'ArrowRight' });
+    expect(counter()).toBe('Question 2 of 2');
   });
 
   it('keep working after a click leaves focus on an answer or a button, and leave Enter on a button to the browser', async () => {
@@ -739,7 +745,7 @@ describe('submitting', () => {
     // Both presses land before React renders the busy button.
     act(() => {
       fireEvent.click(submit);
-      fireEvent.keyDown(document.body, { key: 'Enter' });
+      pressDigit('Enter');
     });
     await screen.findByText('1 / 1');
     await new Promise((resolve) => setTimeout(resolve, 20));
