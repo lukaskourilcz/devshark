@@ -1682,6 +1682,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     try {
       return await handleSkillCheck(req, res);
     } catch (error) {
+      if (error instanceof ServiceUnavailableError) throw error;
       logEvent({ status: 500, kind: 'skill_check_error', category: error instanceof Error ? error.name : 'unknown' });
       return jsonError(res, 500, 'internal_error', 'Could not apply assessment unlocks');
     }

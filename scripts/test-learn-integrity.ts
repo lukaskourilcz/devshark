@@ -32,6 +32,7 @@ import assert from 'node:assert/strict';
 import { createServer, type IncomingMessage } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { learnCheckpointXp, learnLevelXp } from '../shared/progression';
+import { ASSESSMENT_QUESTION_COUNT } from '../shared/assessment';
 
 const LEARNER = { id: '5a0e7c1e-2f7a-4c3d-9a61-5d2f0c9e8a41', email: 'learner@example.invalid', token: 'learn-contract-learner' };
 const OTHER = { id: '9b1f3a2e-5b6d-4e8f-9a0b-1c2d3e4f5a6b', email: 'other@example.invalid', token: 'learn-contract-other' };
@@ -211,7 +212,7 @@ async function startStandIn() {
       if (rpc[1] === 'advance_verified_streak' && streakRoutineMissing) {
         return send(404, { code: 'PGRST202', message: 'Could not find the function public.advance_verified_streak(p_user_id) in the schema cache' });
       }
-      if (stallLearn && rpc[1] === 'record_roadmap_answer_v2') {
+      if (stallLearn && (rpc[1] === 'record_roadmap_answer_v2' || rpc[1] === 'apply_verified_skill_check')) {
         await new Promise((resolve) => setTimeout(resolve, 5500));
         return send(504, { message: 'late test fixture' });
       }
@@ -405,16 +406,25 @@ async function main() {
     assert.equal(ownAnswer.statusCode, 200, `the account itself answers (${JSON.stringify(ownAnswer.body)})`);
     assert.equal(ownAnswer.body.isCorrect, true);
     assert.equal(ownAnswer.body.explanation, englishById.get(firstQuestion.questionId)!.explanation, 'a stray lang still gets the English explanation');
+    const resultReceipt = tokens.encodeQuizResultReceipt({
+      userId: LEARNER.id, subject: 'webdev', purpose: 'assessment', questXp: 0,
+      correct: 0, total: ASSESSMENT_QUESTION_COUNT,
+      breakdown: { html: { correct: 0, total: ASSESSMENT_QUESTION_COUNT } },
+      outcomes: Array.from({ length: ASSESSMENT_QUESTION_COUNT }, (_, index) => ({
+        questionId: `assessment-fixture-${index}`, category: 'html', isCorrect: false,
+      })),
+    });
     stallLearn = true;
     try {
       const stalled = await Promise.all([
         call('POST', { resource: 'answer' }, LEARNER.token, { sessionId: own.body.sessionId, questionId: firstQuestion.questionId, selectedIndex: firstQuestion.correctAnswer }),
         call('POST', { resource: 'complete' }, LEARNER.token, { sessionId: own.body.sessionId }),
         call('GET', { resource: 'progress' }, LEARNER.token),
+        call('POST', { resource: 'skill-check' }, LEARNER.token, { resultReceipt }),
       ]);
       assert.deepEqual(stalled.map((res) => [res.statusCode, res.body?.error?.code]), [
-        [503, 'upstream_timeout'], [503, 'upstream_timeout'], [503, 'upstream_timeout'],
-      ], 'Learn answers, completion and progress report retryable upstream timeouts');
+        [503, 'upstream_timeout'], [503, 'upstream_timeout'], [503, 'upstream_timeout'], [503, 'upstream_timeout'],
+      ], 'Learn answers, completion, progress and skill checks report retryable upstream timeouts');
     } finally {
       stallLearn = false;
     }
