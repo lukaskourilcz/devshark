@@ -429,6 +429,25 @@ describe('the draft autosave', () => {
     expect(localStorage.getItem(`devshark:path:draft:${ENROLLMENT}:${A}`)).toBeNull();
   });
 
+  it.each(['visibilitychange', 'pagehide'])('keeps the last keystrokes when the browser sends %s before the debounce', async (event) => {
+    const key = `devshark:path:draft:${ENROLLMENT}:${A}`;
+    await mount(A);
+    await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
+    Object.defineProperty(window.navigator, 'onLine', { value: false, configurable: true });
+    await type('typed just before hiding the document');
+    expect(localStorage.getItem(key)).toBeNull();
+    const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+    try {
+      await act(async () => {
+        (event === 'visibilitychange' ? document : window).dispatchEvent(new Event(event));
+      });
+      expect(localStorage.getItem(key)).toContain('typed just before hiding the document');
+      expect(calls.drafts).toHaveLength(0);
+    } finally {
+      visibility.mockRestore();
+    }
+  });
+
   it('sends the last keystrokes when the learner leaves the page before the debounce', async () => {
     await mount(A);
     await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
