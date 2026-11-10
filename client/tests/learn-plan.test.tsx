@@ -494,7 +494,7 @@ describe('a level whose session cannot be used', () => {
       },
     });
     await openLevelAndAnswer();
-    const next = await screen.findByRole('button', { name: 'Continue', exact: true });
+    const next = await screen.findByRole('button', { name: 'Continue' });
     act(() => {
       next.click();
       next.click();
