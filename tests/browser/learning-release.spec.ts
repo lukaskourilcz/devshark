@@ -195,10 +195,10 @@ for (const theme of ['light', 'dark'] as const) {
       }
       if (url.pathname === '/api/quiz/roadmap' && url.searchParams.get('level')) {
         attempts++;
-        const base = { category: 'dsa', difficulty: 1, introduction: '', tags: [] };
+        const base = { category: 'dsa', difficulty: 1, introduction: '', tags: [], options: ['n', '1', '0', 'undefined'] };
         return route.fulfill({ json: { kind: 'level', topic: 'dsa', ref: 1, title: 'Complexity Basics', passPct: 75, sessionId: 'fixture-attempt', questions: [
-          { ...base, id: 'fixture-q', question: 'Which count grows with the input?\n\n```js\nconst count = names.length;\n```', options: ['n', '1', '0', 'undefined'] },
-          { ...base, id: 'fixture-q2', question: 'Which count stays constant?', options: ['n', '1'] },
+          { ...base, id: 'fixture-q', question: 'Which count grows with the input?\n\n```js\nconst count = names.length;\n```' },
+          { ...base, id: 'fixture-q2', question: 'Which count grows with the input?\n\n```js\nconst count = items.length;\n```' },
         ] } });
       }
       if (url.pathname === '/api/quiz/roadmap' && url.searchParams.get('resource') === 'answer') {
