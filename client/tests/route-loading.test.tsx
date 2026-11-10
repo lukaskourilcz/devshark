@@ -171,6 +171,35 @@ describe('intent preloading', () => {
     expect(load).toHaveBeenCalledTimes(1);
   });
 
+  it('cancels a hover that leaves the window before showing intent', () => {
+    vi.useFakeTimers();
+    const load = vi.fn(async () => ({}));
+    routeChunk((path) => path === '/intent-window-exit', load);
+    uninstall = installIntentPreloading();
+    const anchor = link('/intent-window-exit');
+    anchor.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse' }));
+    vi.advanceTimersByTime(25);
+    anchor.dispatchEvent(new PointerEvent('pointerout', { bubbles: true, pointerType: 'mouse', relatedTarget: null }));
+    vi.advanceTimersByTime(100);
+    expect(load).not.toHaveBeenCalled();
+  });
+
+  it('keeps the hover delay while the mouse moves within the same link', () => {
+    vi.useFakeTimers();
+    const load = vi.fn(async () => ({}));
+    routeChunk((path) => path === '/intent-nested-link', load);
+    uninstall = installIntentPreloading();
+    const anchor = link('/intent-nested-link');
+    const icon = document.createElement('span');
+    anchor.append(icon);
+    anchor.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse' }));
+    vi.advanceTimersByTime(45);
+    anchor.dispatchEvent(new PointerEvent('pointerout', { bubbles: true, pointerType: 'mouse', relatedTarget: icon }));
+    icon.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse', relatedTarget: anchor }));
+    vi.advanceTimersByTime(30);
+    expect(load).toHaveBeenCalledTimes(1);
+  });
+
   it('loads nothing on intent for a visitor who asked the browser to save data', () => {
     vi.useFakeTimers();
     const load = vi.fn(async () => ({}));
