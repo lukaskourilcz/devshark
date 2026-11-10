@@ -269,6 +269,7 @@ function FindFriend({ ownHandle, onChanged }: { ownHandle: string; onChanged: ()
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abort = useRef<AbortController | null>(null);
+  useEffect(() => () => abort.current?.abort(), []);
 
   const look = async () => {
     const handle = query.trim();
@@ -289,13 +290,15 @@ function FindFriend({ ownHandle, onChanged }: { ownHandle: string; onChanged: ()
 
   const asking = useInFlight();
   const ask = (handle: string) => asking.run(handle, async () => {
+    const lookup = abort.current;
+    const stillCurrent = () => abort.current === lookup && !lookup?.signal.aborted;
     setError(null);
     try {
       const { state } = await requestFriend(handle);
-      setResult({ found: true, handle, state });
+      if (stillCurrent()) setResult((current) => current?.handle === handle ? { ...current, state } : current);
       onChanged();
     } catch (err) {
-      setError(friendlyError(err));
+      if (stillCurrent()) setError(friendlyError(err));
     }
   });
 
