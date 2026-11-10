@@ -24,6 +24,8 @@ const api = vi.hoisted(() => ({
   submits: [] as { sessionId: string; questionId: string; selected: number; status: number }[],
   /** Replaces the default grade for one submit when it returns a response. */
   grade: null as Grade | null,
+  holdGrade: null as null | Promise<void>,
+  gradeSignals: [] as (AbortSignal | null)[],
   completions: [] as { runToken: string; proofs: string[]; status: number }[],
   completeStatus: (_runToken: string): { status: number; code?: string } => ({ status: 200 }),
   /** Run completions wait for this when it is set. */
@@ -81,6 +83,8 @@ vi.mock('../src/lib/api', async (importOriginal) => {
     if (parsed.pathname === '/api/quiz/submit') {
       const body = JSON.parse(String(opts.body)) as Body;
       const [questionId, selected] = Object.entries(body.answers)[0];
+      api.gradeSignals.push(opts.signal ?? null);
+      if (api.holdGrade) await api.holdGrade;
       const override = api.grade?.(body, questionId, selected) ?? null;
       const record = (status: number) => api.submits.push({ sessionId: body.sessionId, questionId, selected, status });
       if (override) {
@@ -188,6 +192,8 @@ beforeEach(() => {
   api.batchSignals.length = 0;
   api.submits.length = 0;
   api.grade = null;
+  api.holdGrade = null;
+  api.gradeSignals.length = 0;
   api.completions.length = 0;
   api.completeStatus = () => ({ status: 200 });
   api.holdComplete = null;
@@ -902,6 +908,30 @@ describe('focus mode', () => {
     await settle();
     expect(api.completions).toEqual([]);
     expect(localStorage.getItem(PENDING)).toBeNull();
+  });
+
+  it('keeps a late grade from an exited run out of the next run', async () => {
+    let release!: () => void;
+    api.holdGrade = new Promise<void>((resolve) => { release = resolve; });
+    await mount();
+    await start();
+    fireEvent.click(screen.getByRole('radio', { name: 'right' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    await waitFor(() => expect(api.gradeSignals).toHaveLength(1));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exit run' }));
+    fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Leave run' }));
+    await start();
+    expect(shownQuestion()).toBe('Batch 2 question 1?');
+    api.holdGrade = null;
+    release();
+    await settle();
+
+    expect(screen.queryByText('Correct')).toBeNull();
+    expect(api.gradeSignals[0]?.aborted).toBe(true);
+    await answer('wrong');
+    expect(screen.getByText('Wrong')).toBeInTheDocument();
+    expect(api.submits[1]).toMatchObject({ sessionId: 'S2', questionId: 'b2-q1' });
   });
 
   it('ends on the run’s action row, with Play again as the one SwimCta', async () => {
