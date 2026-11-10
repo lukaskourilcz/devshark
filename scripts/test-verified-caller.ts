@@ -131,6 +131,7 @@ let dailyMarker: { grade_key: string; created_at: string } | null = null;
 let dailyMarkerUnavailable = false;
 /** Token checks Supabase Auth answered, so a test can count a request's. */
 let authChecks = 0;
+let authDeleteError: { status: number; code: string } | null = null;
 /** How a read of the auth event log answers: normally, failing, or as a
  * table the migration has not created yet. */
 let authEventsRead: 'ok' | 'down' | 'missing' = 'ok';
@@ -194,6 +195,10 @@ async function startStandIns() {
     const adminUser = /^\/auth\/v1\/admin\/users\/([\w-]+)$/.exec(url.pathname);
     if (adminUser && req.method === 'DELETE') {
       seen.push({ method: 'DELETE', path: url.pathname, filters: {}, body: await readBody(req).then((raw) => raw ? JSON.parse(raw) as unknown : undefined) });
+      if (authDeleteError) {
+        res.setHeader('X-Supabase-Api-Version', '2024-01-01');
+        return send(authDeleteError.status, { code: authDeleteError.code, message: 'stand-in: identity deletion' });
+      }
       return send(200, {});
     }
     // The admin API saving an account's user_metadata (a learning preference).
@@ -319,7 +324,7 @@ async function startStandIns() {
     GITHUB_APP_CLIENT_ID: 'Iv1.verified-caller',
     GITHUB_APP_CLIENT_SECRET: 'verified-caller-secret',
   });
-  for (const key of ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY', 'NODE_ENV', 'VERCEL_ENV', 'VERCEL', 'DEV_PASSWORD', 'ALLOW_LEGACY_DEV_PASSWORD', 'OWNER_EMAIL']) {
+  for (const key of ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY', 'NODE_ENV', 'VERCEL_ENV', 'VERCEL', 'DEV_PASSWORD', 'ALLOW_LEGACY_DEV_PASSWORD', 'OWNER_EMAIL', 'STRIPE_SECRET_KEY']) {
     delete process.env[key];
   }
   return [supabase, upstash];
@@ -1219,6 +1224,25 @@ async function main() {
     assert.deepEqual(reads('/rest/v1/rpc/delete_user_data').map((one) => (one.body as Row).p_user_id), [EMAIL.id, EMAIL.id], 'its data is erased, before and after the identity');
     assert.equal(seen.filter((one) => one.method === 'DELETE' && one.path === `/auth/v1/admin/users/${EMAIL.id}`).length, 1, 'and its sign-in identity is deleted');
     console.log('PASS verified caller: an email and password account signs in, stays unnamed on boards, and deletes');
+
+    try {
+      seen.length = 0;
+      authDeleteError = { status: 404, code: 'user_not_found' };
+      const goneAlready = await user('delete-account', { method: 'DELETE', account: A, body: { confirmation: 'DELETE' } });
+      assert.equal(goneAlready.statusCode, 200, 'another request already deleting the identity is a successful deletion');
+      assert.deepEqual(goneAlready.body, { ok: true });
+      assert.equal(reads('/rest/v1/rpc/delete_user_data').length, 2, 'the confirmed-absent identity still gets the final cleanup');
+
+      seen.length = 0;
+      authDeleteError = { status: 500, code: 'unexpected_failure' };
+      const unknownDelete = await user('delete-account', { method: 'DELETE', account: B, body: { confirmation: 'DELETE' } });
+      assert.equal(unknownDelete.statusCode, 500, 'an unknown identity outcome cannot be reported as deleted');
+      assert.equal(errorCode(unknownDelete), 'auth_delete_failed');
+      assert.equal(reads('/rest/v1/rpc/delete_user_data').length, 1, 'final cleanup is reserved for a confirmed identity deletion');
+    } finally {
+      authDeleteError = null;
+    }
+    console.log('PASS verified caller: only a confirmed missing identity makes deletion idempotent');
 
     // A sign-in report while Supabase Auth is down says so; 401 would say the
     // session ended.
