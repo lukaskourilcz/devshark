@@ -125,6 +125,7 @@ const RETIRED_REPORTED = 'rm-js-21';
 /** While true, the one-time quiz claim fails as an unreachable database would. */
 let claimFails = false;
 let untimedQuizAttempt: string | undefined;
+let reviewRows: Row[] | undefined;
 let healthReadFails = false;
 let healthReadHangs = false;
 let closedHealthReads = 0;
@@ -249,6 +250,7 @@ async function startStandIns() {
     if (url.pathname === '/rest/v1/auth_events' && req.method === 'GET' && authEventsRead === 'missing') return send(404, { code: 'PGRST205', message: "Could not find the table 'public.auth_events' in the schema cache" });
     const filters = Object.fromEntries([...url.searchParams.entries()].filter(([, value]) => value.startsWith('eq.')).map(([key, value]) => [key, value.slice(3)]));
     seen.push({ method: req.method ?? 'GET', path: url.pathname, filters, body });
+    if (reviewRows && url.pathname === '/rest/v1/concept_reviews' && filters.user_id === A.id) return send(200, reviewRows);
     if (cardWriteError && url.pathname === '/rest/v1/flashcards' && req.method === 'POST') return send(409, cardWriteError);
     if (healthReadFails && url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key') return send(500, { code: '42501', message: 'permission denied for table quiz_submissions' });
     if (healthReadHangs && url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key') {
@@ -1151,6 +1153,36 @@ async function main() {
     assert.equal(refusedToken.statusCode, 401, 'a token Supabase refuses is still 401');
     assert.equal(errorCode(refusedToken), 'unauthorized');
     console.log('PASS verified caller: Today\'s due list and a review keep 503 when Supabase Auth is down, unreachable or throttled, and 401 for a refused token');
+
+    // A scoped review caps its due queue only after limiting it to concepts
+    // that the selected categories can actually serve.
+    const { CONCEPT_IDS, conceptById, conceptOf } = await import('../shared/concepts');
+    const reviewQuery = { resource: 'review', count: '2', categories: 'javascript' };
+    const baseReview = await call(questions as Handler, { account: A, query: reviewQuery });
+    assert.equal(baseReview.statusCode, 200, JSON.stringify(baseReview.body));
+    const bank = await questionsStore.getEffectiveQuestionsById('webdev');
+    const baseQuestions = (baseReview.body as { questions: { id: string }[] }).questions;
+    const baseConcepts = new Set(baseQuestions.map(({ id }) => conceptOf(bank.get(id) ?? {})));
+    const dueItem = [...bank.values()].find((question) =>
+      question.category === 'javascript' && conceptOf(question) !== null && !baseConcepts.has(conceptOf(question)));
+    assert.ok(dueItem, 'the curated bank has a JavaScript concept outside the baseline review');
+    const dueConcept = conceptOf(dueItem)!;
+    const overdueRow = (conceptId: string, days: number): Row => ({
+      concept_id: conceptId, stage: 1, due_at: new Date(Date.now() - days * 86_400_000).toISOString(),
+      streak: 0, last_item_id: null, reviews: 1,
+    });
+    const elsewhere = CONCEPT_IDS.filter((id) => conceptById(id)?.topic !== 'javascript').slice(0, 12);
+    assert.equal(elsewhere.length, 12);
+    reviewRows = [...elsewhere.map((id) => overdueRow(id, 2)), overdueRow(dueConcept, 1)];
+    try {
+      const scoped = await call(questions as Handler, { account: A, query: reviewQuery });
+      assert.equal(scoped.statusCode, 200, JSON.stringify(scoped.body));
+      assert.ok(scoped.body.questions.some((question: Row) => conceptOf(bank.get(String(question.id)) ?? {}) === dueConcept),
+        'older concepts outside the selected pool do not hide its due concept');
+    } finally {
+      reviewRows = undefined;
+    }
+    console.log('PASS scoped review applies the due queue cap after selecting eligible concepts');
 
     // ── a quiz submit whose one-time claim cannot be taken ───────────────
     claimFails = true;

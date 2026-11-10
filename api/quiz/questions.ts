@@ -217,14 +217,17 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     // says what order they arrive in. None of them widens the pool: `pool` is
     // already scoped by the same eligibility and plan filters as everything
     // else, so review can never unlock a level or resurrect retired material.
-    const due = dueFor(states, () => true, Date.now());
+    const poolConcepts = new Map(states.length > 0 ? pool.map((q) => [q.id, conceptOf(q)] as const) : []);
+    const conceptForQuestion = (q: Question) => poolConcepts.get(q.id) ?? null;
+    const servedConcepts = new Set(poolConcepts.values());
+    const due = dueFor(states, (conceptId) => servedConcepts.has(conceptId), Date.now());
     const dueSet = new Set(due.map((one) => one.conceptId));
     // Prefer a *different* item for a due concept than the one last used, so a
     // review tests the objective rather than the memory of one question.
     const lastItems = new Set(due.map((one) => one.lastItemId).filter(Boolean) as string[]);
     const duePool = dueSet.size > 0
       ? pool.filter((q) => {
-          const concept = conceptOf(q);
+          const concept = conceptForQuestion(q);
           return concept !== null && dueSet.has(concept);
         })
       : [];
@@ -235,7 +238,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     // the only arrangement the ranking cannot undo. One slot is always left
     // for the ranking, so a review is never only a drill.
     const dueLimit = Math.min(duePool.length, Math.max(0, Math.min(count - 1, Math.round(count * DUE_SHARE))));
-    const dueItems = selectDueItems(duePool, due.map((one) => one.conceptId), conceptOf, lastItems, dueLimit);
+    const dueItems = selectDueItems(duePool, due.map((one) => one.conceptId), conceptForQuestion, lastItems, dueLimit);
     const dueIds = new Set(dueItems.map((q) => q.id));
 
     const plan = selectPersonalizedReview(
