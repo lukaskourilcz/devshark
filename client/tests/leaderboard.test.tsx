@@ -40,12 +40,12 @@ afterEach(() => {
 // data for five minutes (lib/queryClient.ts), so here it is never dropped:
 // each test has a client of its own.
 let visits = 0;
-async function mount() {
+async function mount(search = '') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
   const key = `visit-${++visits}`;
   const tree = () => (
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[{ pathname: '/leaderboard', key }]}>
+      <MemoryRouter initialEntries={[{ pathname: '/leaderboard', search, key }]}>
         <LanguageProvider><Leaderboard /></LanguageProvider>
       </MemoryRouter>
     </QueryClientProvider>
@@ -487,19 +487,22 @@ it('ranks this month by XP, shows tied ranks as shared and says what it counts',
   expect(screen.queryByLabelText('Topic')).toBeNull();
 });
 
-it('opens on this month from ?tab=month', async () => {
-  const seen = monthBoard(monthData);
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
-  await act(async () => render(
-    <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[{ pathname: '/leaderboard', search: '?tab=month', key: `visit-${++visits}` }]}>
-        <LanguageProvider><Leaderboard /></LanguageProvider>
-      </MemoryRouter>
-    </QueryClientProvider>,
-  ));
-  expect(await screen.findByText('Night owl')).toBeVisible();
-  expect(screen.getByRole('radio', { name: 'This month' })).toBeChecked();
-  expect(last(seen).get('period')).toBe('month');
+it.each([
+  ['month', 'month', 'This month', 'Night owl'],
+  ['today', 'daily', 'Today', 'Early riser'],
+])('opens on the linked %s board in its first frame and only fetches that board', async (tab, period, radio, name) => {
+  const restore = stretchFirstDataWait();
+  try {
+    const seen = monthBoard(monthData);
+    const drawn = firstDraw('h1', () => screen.queryByText(name) !== null);
+    await mount(`?tab=${tab}`);
+    expect(await screen.findByText(name)).toBeVisible();
+    expect(screen.getByRole('radio', { name: radio })).toBeChecked();
+    expect(seen.map((params) => params.get('period'))).toEqual([period]);
+    expect(drawn()).toBe(true);
+  } finally {
+    restore();
+  }
 });
 
 it('pins the learner’s own month line, with their XP, below the list', async () => {
