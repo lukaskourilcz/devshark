@@ -8,7 +8,7 @@ import { recordQuizResult, type UserStats } from './supabase';
 
 // The replay under way. Coming back online while one runs started a second
 // that sent every waiting result again.
-let replaying: { userId: string; run: Promise<{ recorded: number; refused: number }> } | null = null;
+let replaying: { userId: string; epoch: number; run: Promise<{ recorded: number; refused: number }> } | null = null;
 
 /** Send every waiting result of this learner again. Recorded ones and ones
  * the server refuses leave the queue; anything else (offline, a server
@@ -20,9 +20,10 @@ export function replayPendingReceipts(
   userId: string,
   onRecorded?: (data: UserStats | null) => void,
 ): Promise<{ recorded: number; refused: number }> {
-  if (replaying?.userId === userId) return replaying.run.then(() => ({ recorded: 0, refused: 0 }));
-  const run = sendPending(userId, onRecorded);
-  const entry = { userId, run };
+  const epoch = accountEpoch();
+  if (replaying?.userId === userId && replaying.epoch === epoch) return replaying.run.then(() => ({ recorded: 0, refused: 0 }));
+  const run = sendPending(userId, epoch, onRecorded);
+  const entry = { userId, epoch, run };
   replaying = entry;
   const done = () => { if (replaying === entry) replaying = null; };
   run.then(done, done);
@@ -31,9 +32,9 @@ export function replayPendingReceipts(
 
 async function sendPending(
   userId: string,
+  epoch: number,
   onRecorded?: (data: UserStats | null) => void,
 ): Promise<{ recorded: number; refused: number }> {
-  const epoch = accountEpoch();
   let recorded = 0;
   let refused = 0;
   for (const [key, pending] of pendingReceiptsFor(userId)) {
