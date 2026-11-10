@@ -53,7 +53,7 @@ function answerLevelAfter(ms: number) {
   );
 }
 
-async function openLevelOne(): Promise<{ clickedAt: number; quoteSeen: () => boolean }> {
+async function prepareLevelOne() {
   await act(async () => render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })}>
       <MemoryRouter initialEntries={['/learn']}>
@@ -62,12 +62,14 @@ async function openLevelOne(): Promise<{ clickedAt: number; quoteSeen: () => boo
     </QueryClientProvider>,
   ));
   const node = await screen.findByRole('button', { name: /^Level 1: Level 1 title/ });
-  let seen = false;
-  const observer = new MutationObserver(() => { if (document.body.textContent?.includes(QUOTE)) seen = true; });
-  observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-  const clickedAt = Date.now();
-  fireEvent.click(node);
-  return { clickedAt, quoteSeen: () => { observer.disconnect(); return seen; } };
+  return () => {
+    let seen = false;
+    const observer = new MutationObserver(() => { if (document.body.textContent?.includes(QUOTE)) seen = true; });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    const clickedAt = Date.now();
+    fireEvent.click(node);
+    return { clickedAt, quoteSeen: () => { observer.disconnect(); return seen; } };
+  };
 }
 
 describe('the loader of a Learn level', () => {
@@ -82,16 +84,23 @@ describe('the loader of a Learn level', () => {
 
   it('opens a fast level at once and never draws the loader', async () => {
     answerLevelAfter(0);
-    const { clickedAt, quoteSeen } = await openLevelOne();
-    await screen.findByRole('button', { name: 'Start the level' });
-    // The old minimum alone was 1200 ms.
-    expect(Date.now() - clickedAt).toBeLessThan(MIN_LOADING_MS);
-    expect(quoteSeen()).toBe(false);
+    const open = await prepareLevelOne();
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+    const { quoteSeen } = open();
+    try {
+      // Let immediate network and rendering work finish before the loader delay.
+      await act(async () => { await vi.advanceTimersByTimeAsync(LOADER_DELAY_MS - 1); });
+      expect(screen.getByRole('button', { name: 'Start the level' })).toBeInTheDocument();
+      expect(quoteSeen()).toBe(false);
+    } finally {
+      quoteSeen();
+      vi.useRealTimers();
+    }
   });
 
   it('shows the loader for a slow level and keeps it up for the beat', async () => {
     answerLevelAfter(LOADER_DELAY_MS + 50);
-    const { clickedAt, quoteSeen } = await openLevelOne();
+    const { clickedAt, quoteSeen } = (await prepareLevelOne())();
     expect(await screen.findByText(QUOTE)).toBeInTheDocument();
     await screen.findByRole('button', { name: 'Start the level' });
     expect(Date.now() - clickedAt).toBeGreaterThanOrEqual(LOADER_DELAY_MS + LOADER_MIN_SHOWN_MS - 5);
