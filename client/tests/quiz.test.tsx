@@ -941,6 +941,17 @@ describe('an expired quiz session', () => {
     expect(checked()).toEqual([false, false, false, false]);
   });
 
+  it('discards a locked saved quiz when one of its submitted answers is missing', async () => {
+    sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({
+      sessionId: sessionFor('partial-submit'), questions: [Q('a'), Q('b')],
+      answers: { a: 1 }, currentIndex: 1, mode: 'standard', locked: true,
+      expiresAt: Date.now() + 600_000,
+    }));
+    renderQuiz();
+    expect(await screen.findByRole('button', { name: /start quiz/i })).toBeInTheDocument();
+    expect(sessionStorage.getItem(PROGRESS_KEY)).toBeNull();
+  });
+
   it('drops a saved quiz whose questions this build cannot show, instead of failing', async () => {
     sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({
       sessionId: sessionFor('broken'), questions: [{ id: 'a', question: 'Question a?' }], answers: {}, currentIndex: 0, mode: 'standard',

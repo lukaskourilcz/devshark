@@ -152,6 +152,9 @@ function restoredProgress(raw: unknown): RestoredProgress | null {
       if (Number.isInteger(pick) && (pick as number) >= 0 && (pick as number) < question.options.length) answers[question.id] = pick as number;
     }
   }
+  // A locked run may already be graded. If a pick was lost, the original
+  // submit cannot be retried and changing the remaining picks would not help.
+  if (raw.locked === true && Object.keys(answers).length !== questions.length) return null;
   const index = Number.isInteger(raw.currentIndex) ? Math.min(Math.max(raw.currentIndex as number, 0), questions.length - 1) : 0;
   return {
     sessionId: raw.sessionId,
