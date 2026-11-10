@@ -298,7 +298,7 @@ try {
     const reload = made.find((call) => call.name === 'GET roadmap_progress' && call.start >= completion.end)!;
     assert.ok(reload, 'the progress is reloaded after the completion');
     assert.equal(made.filter((call) => call.name === 'rpc:settle_coin_milestones').length, 0, 'a free account skips settle_coin_milestones, which credits only Premium accounts');
-    const reviews = made.filter((call) => call.name === 'rpc:record_concept_review');
+    const reviews = made.filter((call) => call.name === 'rpc:record_concept_review_v2');
     assert.ok(reviews.length > 0, 'the concepts the level graded are recorded');
     for (const follower of reviews) {
       assert.ok(follower.start >= completion.end, `${follower.name} waits for the completion`);

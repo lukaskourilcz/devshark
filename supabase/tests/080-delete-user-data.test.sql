@@ -48,7 +48,7 @@ BEGIN
   PERFORM public.record_coding_skip(v_gone, 'js-hard-task', 'too-hard', 'later', 1);
   PERFORM public.record_coding_puzzle(v_gone, 'js-double-numbers', '["loops"]', TRUE);
   PERFORM public.start_practice_session_v2('erasesession00000001', v_gone, 'webdev', 15, NULL, '["js-double-numbers"]', 'random', 3, NOW() + INTERVAL '1 day');
-  PERFORM public.record_concept_review(v_gone, 'closures', 'webdev', 'erase-event-1', 1::SMALLINT, NOW() + INTERVAL '1 day', 1, 'q1', 'v1', 'independent', TRUE, 1);
+  PERFORM public.record_concept_review_v2(v_gone, 'closures', 'webdev', 'erase-event-1', 1::SMALLINT, NOW() + INTERVAL '1 day', 1, 'q1', 'v1', 'independent', TRUE, 1, 0);
   PERFORM public.record_challenge_completion(v_gone, 'eraserun000000000001', 'webdev', 30, '{"javascript":{"correct":4,"total":7}}');
   PERFORM public.grant_daily_queue_cards(v_gone, 'webdev', v_today, '["card-a"]');
   PERFORM public.activate_streak_shield(v_gone);

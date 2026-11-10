@@ -3,7 +3,7 @@
 // The policy itself is pure and lives in shared/spaced-practice.ts, with the
 // clock injected, so the intervals are testable without a database and without
 // a fake now. This module is the boundary: it loads the rows, calls the policy,
-// and writes the result through the idempotent routine in migration 030.
+// and writes it through a version-checked, idempotent routine (migration 072).
 //
 // Correctness is derived from the server's own grading. The one thing the
 // client contributes is which questions had a hint open, and that is safe to
@@ -15,7 +15,7 @@
 // correctness itself and treats anything it is told about hints as a reason to
 // be more conservative.
 
-import { createLogger, withTimeout } from './http';
+import { createLogger, isRpcMissing, withTimeout } from './http';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { conceptOf } from '../shared/concepts';
 import {
@@ -38,14 +38,18 @@ interface ReviewRow {
   due_at: string | null;
   streak: number;
   last_item_id: string | null;
+  reviews: number;
 }
 
-const toState = (row: ReviewRow): ReviewState => ({
+type StoredReviewState = ReviewState & { reviews: number };
+
+const toState = (row: ReviewRow): StoredReviewState => ({
   conceptId: row.concept_id,
   stage: Number(row.stage ?? 0),
   dueAt: row.due_at,
   streak: Number(row.streak ?? 0),
   lastItemId: row.last_item_id,
+  reviews: Number(row.reviews ?? 0),
 });
 
 /**
@@ -61,13 +65,13 @@ export async function loadReviewStates(
   supabase: SupabaseClient | null,
   userId: string,
   subject: ScopeSubjectId,
-): Promise<ReviewState[] | null> {
+): Promise<StoredReviewState[] | null> {
   if (!supabase) return [];
   try {
     const { data, error } = await withTimeout(
       supabase
         .from('concept_reviews')
-        .select('concept_id,stage,due_at,streak,last_item_id')
+        .select('concept_id,stage,due_at,streak,last_item_id,reviews')
         .eq('user_id', userId)
         .eq('subject', subject),
     );
@@ -135,7 +139,7 @@ export async function recordConceptReviews(
     eventId: string;
     items: readonly GradedItem[];
   },
-  states: readonly ReviewState[] | null,
+  states: readonly StoredReviewState[] | null,
   now = Date.now(),
 ): Promise<void> {
   if (!supabase) return;
@@ -176,15 +180,14 @@ export async function recordConceptReviews(
       kind: item.kind,
       itemId: item.itemId,
     };
-    const next = nextReviewState(byConcept.get(conceptId) ?? null, outcome, now, DEFAULT_INTERVAL_HOURS);
+    let current = byConcept.get(conceptId) ?? null;
     try {
-      const { error } = await withTimeout(
-        supabase.rpc('record_concept_review', {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const next = nextReviewState(current, outcome, now, DEFAULT_INTERVAL_HOURS);
+        const params = {
           p_user_id: input.userId,
           p_concept_id: conceptId,
           p_subject: input.subject,
-          // One event per concept per attempt, so a retry of the whole submit
-          // is recognised row by row.
           p_event_id: `${input.eventId}:${conceptId}`,
           p_stage: next.stage,
           p_due_at: next.dueAt,
@@ -194,11 +197,24 @@ export async function recordConceptReviews(
           p_kind: item.kind,
           p_correct: item.correct,
           p_policy_version: SCHEDULING_POLICY_VERSION,
-        }),
-      );
-      if (error) {
-        logEvent({ status: 200, reason: 'record_failed', concept: conceptId, error: error.message });
+        };
+        let result = await withTimeout(
+          supabase.rpc('record_concept_review_v2', { ...params, p_expected_reviews: current?.reviews ?? 0 }),
+        );
+        if (isRpcMissing(result.error)) {
+          result = await withTimeout(supabase.rpc('record_concept_review', params));
+        }
+        if (result.error) {
+          logEvent({ status: 200, reason: 'record_failed', concept: conceptId, error: result.error.message });
+          return;
+        }
+        const saved = result.data as (Omit<StoredReviewState, 'conceptId'> & { state?: string }) | null;
+        if (saved?.state !== 'stale') return;
+        // Compute again from the row that won the write. Only a conflict
+        // incurs another request, and a burst cannot hold up grading forever.
+        current = { ...saved, conceptId };
       }
+      logEvent({ status: 200, reason: 'record_skipped', concept: conceptId, detail: 'concurrent_reviews' });
     } catch (err) {
       logEvent({
         status: 200,

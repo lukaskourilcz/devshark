@@ -5768,6 +5768,31 @@ async function main() {
         items: [{ itemId: 'map-1', category: 'javascript', tags: ['map'], correct: true, kind: 'independent' }],
       }, [], t0);
       assert.equal(writes.length, 1, 'a learner with no states yet still records the first review');
+
+      const attempts: Array<{ name: string; args: Record<string, unknown> }> = [];
+      const input = {
+        userId: 'review-reader', subject: 'webdev' as const, eventId: 'event-3',
+        items: [{ itemId: 'map-1', category: 'javascript', tags: ['map'], correct: true, kind: 'independent' as const }],
+      };
+      const racing = { rpc: async (name: string, args: Record<string, unknown>) => {
+        attempts.push({ name, args });
+        if (attempts.length === 1) return { data: { state: 'stale', reviews: 3, stage: 2, dueAt: null, streak: 2, lastItemId: 'other' }, error: null };
+        return { data: { applied: true }, error: null };
+      } } as never;
+      await recordConceptReviews(racing, input, [], t0);
+      assert.deepEqual(attempts.map(({ name, args }) => [name, args.p_expected_reviews, args.p_stage, args.p_streak]), [
+        ['record_concept_review_v2', 0, 1, 1], ['record_concept_review_v2', 3, 3, 3],
+      ], 'a raced review recomputes the pure transition against the newer row');
+      assert.equal(attempts[0].args.p_event_id, attempts[1].args.p_event_id, 'the retry uses the same receipt');
+
+      attempts.length = 0;
+      const before072 = { rpc: async (name: string, args: Record<string, unknown>) => {
+        attempts.push({ name, args });
+        return name.endsWith('_v2') ? { error: { code: 'PGRST202' } } : { data: { applied: true }, error: null };
+      } } as never;
+      await recordConceptReviews(before072, input, [], t0);
+      assert.deepEqual(attempts.map(({ name }) => name), ['record_concept_review_v2', 'record_concept_review']);
+      assert.equal('p_expected_reviews' in attempts[1].args, false, 'the compatibility call uses the original signature');
     }
 
     // A due concept must reach the session, not merely be preferred in a list
