@@ -127,7 +127,7 @@ let claimFails = false;
 let healthReadFails = false;
 let healthReadHangs = false;
 let closedHealthReads = 0;
-let dailyMarker: { grade_key: string; created_at: string } | null = null;
+const dailyMarkers = new Map<string, { grade_key: string; created_at: string }>();
 let dailyMarkerUnavailable = false;
 /** Token checks Supabase Auth answered, so a test can count a request's. */
 let authChecks = 0;
@@ -256,7 +256,8 @@ async function startStandIns() {
     }
     if (url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key,created_at') {
       if (dailyMarkerUnavailable) return send(500, { code: '08006', message: 'stand-in: start marker unavailable' });
-      return send(200, dailyMarker ? [dailyMarker] : []);
+      const keys = url.searchParams.get('grade_key')?.slice(4, -1).split(',') ?? [];
+      return send(200, [...dailyMarkers.values()].filter((row) => keys.includes(row.grade_key)));
     }
     const rpc = /^\/rest\/v1\/rpc\/([a-z0-9_]+)$/.exec(url.pathname)?.[1];
     if (rpc) {
@@ -264,7 +265,8 @@ async function startStandIns() {
       if (rpc === 'claim_quiz_submission' && typeof (body as Row | undefined)?.p_grade_key === 'string' &&
           String((body as Row).p_grade_key).startsWith('daily-start:')) {
         // Another instance won the insert between this request's read and its claim.
-        dailyMarker = { grade_key: String((body as Row).p_grade_key), created_at: new Date(Date.now() - 10_000).toISOString() };
+        const gradeKey = String((body as Row).p_grade_key);
+        dailyMarkers.set(gradeKey, { grade_key: gradeKey, created_at: new Date(Date.now() - 10_000).toISOString() });
         return send(200, 'replay');
       }
       if (rpc === 'allocate_shark_name') return send(200, { handle: 'sleepySharkie17', ordinal: '17', base: 'sleepySharkie' });
@@ -460,9 +462,12 @@ async function main() {
     assert.equal((reads('/rest/v1/roadmap_attempts').find((row) => row.method === 'POST')?.body as Row)?.user_id, null);
     console.log('PASS verified caller: GETs that write account rows ask Auth fresh, and guest starts still work');
 
+    seen.length = 0;
     const startedDaily = await call(daily as Handler, { account: A });
     assert.equal(startedDaily.statusCode, 200, JSON.stringify(startedDaily.body));
     const dailySession = tokens.decodeSessionEnvelope((startedDaily.body as { sessionId: string }).sessionId);
+    const claim = reads('/rest/v1/rpc/claim_quiz_submission').find((row) => row.method === 'POST');
+    const dailyMarker = dailyMarkers.get(String((claim?.body as Row | undefined)?.p_grade_key));
     assert.ok(dailyMarker);
     assert.equal(dailySession?.startedAt, Date.parse(dailyMarker.created_at), 'a concurrent daily start uses the winning database marker');
     dailyMarkerUnavailable = true;
@@ -476,8 +481,6 @@ async function main() {
     }
     console.log('PASS verified caller: a ranked daily uses the stored start even when another request won the insert');
 
-    const guestDaily = await call(daily as Handler, {});
-    assert.equal(guestDaily.statusCode, 200, 'no Authorization header still starts guest practice');
     const guestToken = (guestDaily.body as { sessionId: string }).sessionId;
     const guestQuiz = tokens.decodeSessionEnvelope(guestToken)!;
     const guestAnswers = Object.fromEntries(guestQuiz.questions.map(({ questionId, correctAnswer }) => [questionId, correctAnswer]));

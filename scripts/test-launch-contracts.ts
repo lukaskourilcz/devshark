@@ -5056,7 +5056,8 @@ async function main() {
     // and the coins and the XP the learner is told follow what was awarded.
     const complete = bodyOf(challengeSource, 'handleCompleteRun');
     assert.match(complete, /creditVerifiedXp\(supabase, \{[^\n]*xp: awardedXp \}\)/, 'coins follow the XP the run was awarded');
-    assert.match(complete, /xp: data === true \? awardedXp : xp/, 'the learner is told the XP the run was awarded');
+    assert.match(complete, /const awarded = data === true;/, 'only a new award is announced');
+    assert.match(complete, /xp: awarded \? awardedXp : xp/, 'the learner is told the XP the run was awarded');
     assert.match(bodyOf(challengeSource, 'runAnswers'), /xp: outcome\.isCorrect \? challengeRunXp\(1\) : 0/, 'each answer carries its XP to the routine');
   }
 
