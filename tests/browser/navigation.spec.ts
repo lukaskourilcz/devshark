@@ -59,6 +59,34 @@ for (const theme of ['light', 'dark'] as const) for (const width of [360, 1280])
   });
 }
 
+test('standalone state cards stay vertically centred across viewports', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'dark' });
+  await page.addInitScript(() => {
+    localStorage.setItem('devquiz:color-mode', 'dark');
+    localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+  });
+  const panel = page.locator('.ss-route > .ss-state-panel');
+  for (const path of ['/play', '/play/ABC123', '/cards', '/settings/github']) {
+    await page.goto(path);
+    await expect(panel.getByRole('heading', { level: 1 })).toBeVisible();
+    for (const width of [360, 390, 430, 768, 1024, 1280, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      const { top, bottom, fits } = await panel.evaluate((el) => {
+        const route = el.parentElement!.getBoundingClientRect();
+        const card = el.getBoundingClientRect();
+        return { top: card.top - route.top, bottom: route.bottom - card.bottom, fits: card.left >= 0 && card.right <= innerWidth };
+      });
+      expect(Math.abs(top - bottom), `${path} at ${width}px`).toBeLessThanOrEqual(2);
+      expect(fits, `${path} at ${width}px`).toBe(true);
+    }
+  }
+  await page.setViewportSize({ width: 360, height: 320 });
+  await page.goto('/play');
+  const signIn = panel.getByRole('button', { name: 'Sign in', exact: true });
+  await signIn.scrollIntoViewIfNeeded();
+  await expect(signIn).toBeInViewport();
+});
+
 /** One animation frame of the content area. */
 type Frame = { t: number; route: boolean; kids: number; busy: string | null; opacity: number; h1: string | null; root: number; active: string | null; scrollTop: number };
 type Recorder = { __nav: { frames: Frame[]; done: boolean }; __navArm: (ms: number) => void };
