@@ -755,7 +755,7 @@ export const en = {
   'quiz.accountChangedTitle': 'Sign-in changed',
   'quiz.accountChangedBody': 'Start a new quiz to continue with your current sign-in.',
   'quiz.expiredTitle': 'This quiz expired',
-  'quiz.expiredBody': 'A quiz can be submitted for an hour after it starts, so these answers can no longer be graded.',
+  'quiz.expiredBody': 'These answers can no longer be graded.',
   'quiz.resumeExpired': 'Your unfinished quiz was more than an hour old, so it could no longer be graded and was cleared.',
   'quiz.alreadyGradedTitle': 'These answers were already graded',
   'quiz.alreadyGradedBody': 'A quiz is graded once, and its answers can’t be changed afterwards.',

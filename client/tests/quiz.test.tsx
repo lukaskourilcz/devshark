@@ -416,14 +416,16 @@ describe('the question screen (UX audit U2)', () => {
     expect(block).toHaveAttribute('data-stable', 'true');
   });
 
-  it('says what the keys do, and that Enter submits on the last question once all are answered', async () => {
+  it('keeps number and Enter shortcuts without showing the instruction line', async () => {
+    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json(graded([Q('a'), Q('b')]))));
     await startQuiz();
-    expect(screen.getByText('Press 1–4 to select · Enter to continue')).toBeInTheDocument();
+    expect(screen.queryByText(/Press 1–4 to select/)).toBeNull();
     pressDigit('1');
-    fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
-    expect(screen.getByText('Press 1–4 to select')).toBeInTheDocument();
+    pressDigit('Enter');
+    expect(screen.getByText('Question b?')).toBeInTheDocument();
     pressDigit('2');
-    expect(screen.getByText('Press 1–4 to select · Enter to submit')).toBeInTheDocument();
+    pressDigit('Enter');
+    expect(await screen.findByText('2 / 2')).toBeInTheDocument();
   });
 
   it('names the last-step navigation Review unanswered, then focuses the first open question', async () => {
@@ -874,12 +876,17 @@ describe('quiz orientation and deadline', () => {
     expect(checked()).toEqual([false, false, false, false]);
   });
 
-  it('uses the actual deadline, warns on wake, and keeps answers available for a server-accepted submit', async () => {
+  it('uses the Daily deadline, warns on wake, and keeps answers available for a server-accepted submit', async () => {
     let now = Date.now();
     vi.spyOn(Date, 'now').mockImplementation(() => now);
     const deadline = now + 4 * 60_000;
-    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json(graded([Q('a')]))));
-    await startQuiz([Q('a')], { expiresAt: deadline });
+    server.use(
+      http.get('*/api/quiz/daily', () => HttpResponse.json({ date: '2026-11-10', sessionId: sessionFor('daily'), questions: [Q('a')], expiresAt: deadline })),
+      http.post('*/api/quiz/submit', () => HttpResponse.json(graded([Q('a')]))),
+    );
+    renderQuiz();
+    fireEvent.click(await screen.findByRole('button', { name: /today’s challenge/i }));
+    await questionOnScreen();
     expect(document.querySelector('time')).toHaveAttribute('datetime', new Date(deadline).toISOString());
     expect(screen.getByText('Submit soon to finish before this quiz expires.')).toBeInTheDocument();
     pressDigit('2');
@@ -892,23 +899,34 @@ describe('quiz orientation and deadline', () => {
     expect(await screen.findByText('1 / 1')).toBeInTheDocument();
   });
 
-  it('does not invent a deadline for a session whose server response has none', async () => {
-    await startQuiz([Q('a')], { expiresAt: undefined });
+  it('does not show a standard deadline even with a cached older response', async () => {
+    await startQuiz([Q('a')]);
     expect(document.querySelector('time')).toBeNull();
     expect(screen.queryByText(/Submit before/)).not.toBeInTheDocument();
   });
 });
 
 describe('an expired quiz session', () => {
-  it('is dropped on return instead of resumed', async () => {
+  it('drops an expired Daily session on return', async () => {
     sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({
-      sessionId: sessionFor('old'), questions: [Q('a')], answers: {}, currentIndex: 0, mode: 'standard', expiresAt: Date.now() - 1000,
+      sessionId: sessionFor('old'), questions: [Q('a')], answers: {}, currentIndex: 0, mode: 'daily', expiresAt: Date.now() - 1000,
     }));
     renderQuiz();
     expect(await screen.findByRole('button', { name: /start quiz/i })).toBeInTheDocument();
     expect(screen.queryByText('Question a?')).not.toBeInTheDocument();
     expect(await screen.findByText(/more than an hour old/)).toBeInTheDocument();
     expect(sessionStorage.getItem(PROGRESS_KEY)).toBeNull();
+  });
+
+  it('resumes a standard quiz after the old one-hour deadline with its answers', async () => {
+    sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({
+      sessionId: sessionFor('old-standard'), questions: [Q('a')], answers: { a: 1 },
+      currentIndex: 0, mode: 'standard', expiresAt: Date.now() - 60_000,
+    }));
+    renderQuiz();
+    expect(await screen.findByText('Question a?')).toBeInTheDocument();
+    expect(checked()).toEqual([false, true, false, false]);
+    expect(document.querySelector('time')).toBeNull();
   });
 
   it('resumes with the hints that were opened, so they are reported', async () => {

@@ -58,7 +58,6 @@ import {
   HintIcon,
   QuestionActions,
   QuestionHeader,
-  QuestionHint,
   QuestionIconButton,
   QuestionShell,
   ReportFlagIcon,
@@ -156,13 +155,14 @@ function restoredProgress(raw: unknown): RestoredProgress | null {
   // submit cannot be retried and changing the remaining picks would not help.
   if (raw.locked === true && Object.keys(answers).length !== questions.length) return null;
   const index = Number.isInteger(raw.currentIndex) ? Math.min(Math.max(raw.currentIndex as number, 0), questions.length - 1) : 0;
+  const mode = QUIZ_MODES.includes(raw.mode as string) ? raw.mode as QuizMode : 'standard';
   return {
     sessionId: raw.sessionId,
     questions,
     answers,
     currentIndex: index,
-    mode: QUIZ_MODES.includes(raw.mode as string) ? raw.mode as QuizMode : 'standard',
-    expiresAt: typeof raw.expiresAt === 'number' && Number.isFinite(raw.expiresAt) ? raw.expiresAt : null,
+    mode,
+    expiresAt: mode !== 'standard' && typeof raw.expiresAt === 'number' && Number.isFinite(raw.expiresAt) ? raw.expiresAt : null,
     hinted: Array.isArray(raw.hinted) ? raw.hinted.filter((id): id is string => typeof id === 'string') : [],
     locked: raw.locked === true,
     start: savedStart(raw.start),
@@ -334,8 +334,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         sessionStorage.removeItem(PROGRESS_KEY);
         return;
       }
-      // Past its hour the server would refuse every answer: say so now rather
-      // than after the learner has answered the rest.
+      // A timed mode past its hour would refuse every answer. A standard
+      // quiz resumes even when its old snapshot carried that deadline.
       if (saved.expiresAt !== null && Date.now() >= saved.expiresAt) {
         sessionStorage.removeItem(PROGRESS_KEY);
         setSnack(t('quiz.resumeExpired'));
@@ -424,7 +424,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           difficulty,
           categories: categories.join(','),
         });
-        const data = await apiFetch<{ sessionId: string; expiresAt?: number; questions: Question[]; hardestAvailable?: boolean }>(
+        const data = await apiFetch<{ sessionId: string; questions: Question[]; hardestAvailable?: boolean }>(
           `/api/quiz/questions?${params}`,
           { signal: controller.signal },
         );
@@ -443,7 +443,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         setQuestions(data.questions);
         setAnswers({});
         setHintedIds([]);
-        setExpiresAt(data.expiresAt ?? null);
+        setExpiresAt(null);
         setAnswersLocked(false);
         setReviewPlan([]);
         setHardestAvailable(data.hardestAvailable === true);
@@ -782,9 +782,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     } catch (err) {
       // The learner left this quiz: the screen is another one's now.
       if (screen !== screenRef.current) return;
-      // An hour past its start the session is gone, and an answer set that
-      // was already graded cannot be graded again. Neither improves with
-      // another submit, so the quiz stops and says what happened.
+      // An unavailable session or an answer set already graded with other
+      // picks cannot be recovered by submitting again.
       if (err instanceof ApiError && (err.code === 'invalid_session' || err.code === 'attempt_already_graded')) {
         clearProgress(sessionId);
         setStop(err.code === 'invalid_session' ? 'expired' : mode === 'daily' ? 'daily-done' : 'graded');
@@ -1479,9 +1478,11 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
             )}
             {/* A clock-driven notice stays after the actions, so it never
                 moves the question or answer rows while the learner reads. */}
-            <p role="status" className="quiz-expiry-note">
-              {expired ? t('quiz.deadlinePassed') : expiresSoon ? t('quiz.expiresSoon') : ''}
-            </p>
+            {expiresAt !== null && (
+              <p role="status" className="quiz-expiry-note">
+                {expired ? t('quiz.deadlinePassed') : expiresSoon ? t('quiz.expiresSoon') : ''}
+              </p>
+            )}
           </>
         }
       >
@@ -1491,11 +1492,6 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           onChange={(index) => handleAnswer(currentQuestion.id, index)}
           labelledBy={questionId}
           disabled={answersLocked}
-        />
-        <QuestionHint
-          max={currentQuestion.options.length}
-          verb="select"
-          next={!isLast ? 'continue' : allAnswered ? 'submit' : undefined}
         />
       </QuestionShell>
 
