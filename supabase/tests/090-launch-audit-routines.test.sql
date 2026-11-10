@@ -13,21 +13,19 @@ DO $$
 DECLARE
   v_dora CONSTANT TEXT := 'aaaaaaaa-0000-4000-8000-000000000901';
   v_eve  CONSTANT TEXT := 'aaaaaaaa-0000-4000-8000-000000000902';
-  v_blocker TEXT;
-  v_lifted BOOLEAN;
 BEGIN
   PERFORM public.set_user_handle(v_dora, 'dora-090');
   PERFORM public.set_user_handle(v_eve, 'eve-090');
   PERFORM public.remove_friend(v_dora, 'eve-090', TRUE);
 
   PERFORM public.remove_friend(v_eve, 'dora-090', TRUE);
-  SELECT blocked_by INTO v_blocker FROM public.friendships WHERE v_dora IN (user_low, user_high);
-  ASSERT v_blocker = v_dora, format('blocking back leaves the block with the account that set it, got %s', v_blocker);
+  ASSERT (SELECT count(*) FROM public.friendships WHERE v_dora IN (user_low, user_high) AND state = 'blocked') = 2,
+    'blocking back preserves both directional blocks';
 
-  v_lifted := public.remove_friend(v_eve, 'dora-090', FALSE);
-  ASSERT v_lifted IS FALSE, 'the blocked account cannot lift the block';
-  ASSERT EXISTS (SELECT 1 FROM public.friendships WHERE v_dora IN (user_low, user_high) AND state = 'blocked'),
-    'the block is still there';
+  ASSERT public.remove_friend(v_eve, 'dora-090', FALSE), 'Eve can lift her own block';
+  ASSERT NOT public.remove_friend(v_eve, 'dora-090', FALSE), 'Eve cannot lift Dora’s block';
+  ASSERT EXISTS (SELECT 1 FROM public.friendships WHERE v_dora IN (user_low, user_high) AND blocked_by = v_dora),
+    'Dora’s block is still there';
 END;
 $$;
 
