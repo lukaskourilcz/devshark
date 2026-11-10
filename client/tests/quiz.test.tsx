@@ -799,7 +799,16 @@ describe('submitting', () => {
     await questionOnScreen();
     pressDigit('2');
 
-    await act(async () => { answer!(); await new Promise((resolve) => setTimeout(resolve, 20)); });
+    let backgroundGrade = false;
+    const unsubscribe = onXpToast((toast) => {
+      if (toast.kind === 'gain' && toast.source === 'quiz') backgroundGrade = true;
+    });
+    try {
+      await act(async () => { answer!(); });
+      await waitFor(() => expect(backgroundGrade).toBe(true));
+    } finally {
+      unsubscribe();
+    }
     expect(JSON.parse(sessionStorage.getItem(PROGRESS_KEY)!)).toMatchObject({
       sessionId: sessionFor('new-route'),
       answers: { n: 1 },
@@ -1084,6 +1093,64 @@ describe('saving a result to the account', () => {
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     // The second failure is kept beside the first, not over it.
     await waitFor(() => expect(Object.values(pendingStore()).map((pending) => pending.receipt).sort()).toEqual(['receipt-1', 'receipt-2']));
+  });
+
+  it.each(['standard', 'daily', 'review'])('discards a %s question set still loading when a different account signs in', async (mode) => {
+    signIn();
+    const endpoint = mode === 'daily' ? '*/api/quiz/daily' : '*/api/quiz/questions';
+    const path = mode === 'standard' ? '/quiz' : `/quiz?mode=${mode}`;
+    let deal: (() => void) | undefined;
+    let loadingRequest: Request | undefined;
+    server.use(http.get(endpoint, ({ request }) => new Promise<Response>((resolve) => {
+      loadingRequest = request;
+      deal = () => resolve(HttpResponse.json({ sessionId: sessionFor('old-account'), questions: [Q('old-account')] }));
+    })));
+    const view = renderQuiz(path);
+    if (mode === 'standard') fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
+    await waitFor(() => expect(deal).toBeDefined());
+
+    act(() => {
+      clearAccountData();
+      auth.value = { user: { ...LEARNER, id: 'next-quiz-learner', email: 'next@example.test' }, isAuthenticated: true, isLoading: false };
+    });
+    view.rerender(quizTree(path));
+    await waitFor(() => expect(loadingRequest?.signal.aborted).toBe(true));
+    await act(async () => { deal!(); });
+    expect(screen.queryByText('Question old-account?')).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Sign-in changed' })).toHaveFocus();
+    expect(sessionStorage.getItem(PROGRESS_KEY)).toBeNull();
+
+    server.use(http.get(endpoint, () => HttpResponse.json({
+      sessionId: sessionFor('next-account'), questions: [Q('next-account')],
+    })));
+    fireEvent.click(screen.getByRole('button', { name: /new quiz, same settings/i }));
+    await questionOnScreen();
+    pressDigit('1');
+    expect(JSON.parse(sessionStorage.getItem(PROGRESS_KEY)!)).toMatchObject({
+      sessionId: sessionFor('next-account'),
+      answers: { 'next-account': 0 },
+    });
+  });
+
+  it('does not submit a quiz dealt before the account changed', async () => {
+    signIn();
+    let submits = 0;
+    server.use(http.post('*/api/quiz/submit', () => {
+      submits++;
+      return HttpResponse.json(graded([Q('a')]));
+    }));
+    const view = await startQuiz([Q('a')]);
+    pressDigit('1');
+    act(() => {
+      clearAccountData();
+      auth.value = { user: { ...LEARNER, id: 'next-quiz-learner', email: 'next@example.test' }, isAuthenticated: true, isLoading: false };
+    });
+    view.rerender(quizTree());
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+
+    expect(await screen.findByRole('heading', { name: 'Sign-in changed' })).toHaveFocus();
+    expect(submits).toBe(0);
+    expect(sessionStorage.getItem(PROGRESS_KEY)).toBeNull();
   });
 
   it('does not write a quiz on screen back to the tab once the account signed out', async () => {

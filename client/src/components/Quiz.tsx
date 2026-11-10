@@ -15,7 +15,7 @@ import { SegmentedControl, SegmentedControlItem } from '@astryxdesign/core/Segme
 import { AppToast } from './ui/AppToast';
 import { CloseIcon } from './ui/icons';
 import { useAuth, getUserProfile } from '../lib/auth';
-import { accountEpoch } from '../lib/accountData';
+import { accountEpoch, beforeAccountChange } from '../lib/accountData';
 import type { Question, QuizResult, QuizState, DifficultyMode, CategoryType } from '../types/quiz';
 import {
   visibleCategoryOptionsFor,
@@ -88,7 +88,7 @@ type StartSpec =
   | { mode: 'review' };
 
 /** Why a quiz stopped on the error screen without a result. */
-type StopReason = 'expired' | 'graded' | 'daily-done';
+type StopReason = 'expired' | 'graded' | 'daily-done' | 'account-changed';
 type ResultSaveStatus = 'saving' | 'saved' | 'pending' | 'refused' | 'practice';
 interface ResultSave { attemptKey: string; userId: string; epoch: number; status: ResultSaveStatus }
 
@@ -257,6 +257,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const reviewHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const questionTextRef = useRef<HTMLDivElement | null>(null);
   const fetchAbortRef = useRef<AbortController | null>(null);
+  // A saved run belongs to the account epoch that received it, even when
+  // React renders after the sign-in changes.
+  const progressEpochRef = useRef(accountEpoch());
   // One submit at a time. `submitting` reaches the next handler only after a
   // render, and a second Enter or click in that gap sent the answer set
   // twice: the result was recorded, announced and counted twice.
@@ -275,6 +278,19 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     submittingRef.current = false;
     setSubmitting(false);
   }, []);
+
+  const stopForAccountChange = useCallback(() => {
+    setError(null);
+    setStop('account-changed');
+    setState('error');
+  }, []);
+
+  useEffect(() => beforeAccountChange(() => {
+    if (!fetchAbortRef.current) return;
+    fetchAbortRef.current.abort();
+    fetchAbortRef.current = null;
+    stopForAccountChange();
+  }), [stopForAccountChange]);
 
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   // The saved plan, used only to say whether this topic is part of it.
@@ -322,6 +338,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         setSnack(t('quiz.resumeExpired'));
         return;
       }
+      progressEpochRef.current = accountEpoch();
       setSessionId(saved.sessionId);
       setQuestions(saved.questions);
       setAnswers(saved.answers);
@@ -341,14 +358,6 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     // Once, on mount; `t` only words the notice.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // The account epoch the quiz on screen was dealt or restored under. A sign-
-  // out clears the saved progress (clearAccountData); the quiz stays on
-  // screen, but its next answer must not write it back for the next account.
-  const progressEpochRef = useRef(accountEpoch());
-  useEffect(() => {
-    progressEpochRef.current = accountEpoch();
-  }, [sessionId]);
 
   // Persist in-progress state
   useEffect(() => {
@@ -397,6 +406,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     ) => {
       fetchAbortRef.current?.abort();
       const controller = new AbortController();
+      const epoch = accountEpoch();
       fetchAbortRef.current = controller;
       leaveScreen();
 
@@ -416,7 +426,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           { signal: controller.signal },
         );
         await holdLoadingScreen(startedAt);
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted || accountEpoch() !== epoch) return;
         // Guard against an empty question set (e.g. a difficulty/category combo
         // the server can't fill). Rendering 'in-progress' with no questions
         // would leave the learner staring at a blank screen.
@@ -425,6 +435,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           setState('error');
           return;
         }
+        progressEpochRef.current = epoch;
         setSessionId(data.sessionId);
         setQuestions(data.questions);
         setAnswers({});
@@ -437,9 +448,11 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         setMode('standard');
         setState('in-progress');
       } catch (err) {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted || accountEpoch() !== epoch) return;
         setError(friendlyError(err));
         setState('error');
+      } finally {
+        if (fetchAbortRef.current === controller) fetchAbortRef.current = null;
       }
     },
     [leaveScreen, t],
@@ -448,6 +461,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const startDailyChallenge = useCallback(async () => {
     fetchAbortRef.current?.abort();
     const controller = new AbortController();
+    const epoch = accountEpoch();
     fetchAbortRef.current = controller;
     leaveScreen();
     setLastStart({ mode: 'daily' });
@@ -459,7 +473,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     try {
       const data = await getDailyChallenge(controller.signal);
       await holdLoadingScreen(startedAt);
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted || accountEpoch() !== epoch) return;
       // Already submitted today: the grader would refuse a second run.
       if (data.completed) {
         setStop('daily-done');
@@ -471,6 +485,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         setState('error');
         return;
       }
+      progressEpochRef.current = epoch;
       setSessionId(data.sessionId);
       setQuestions(data.questions as Question[]);
       setAnswers({});
@@ -481,15 +496,18 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       setMode('daily');
       setState('in-progress');
     } catch (err) {
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted || accountEpoch() !== epoch) return;
       setError(friendlyError(err));
       setState('error');
+    } finally {
+      if (fetchAbortRef.current === controller) fetchAbortRef.current = null;
     }
   }, [leaveScreen, t]);
 
   const startPersonalizedReview = useCallback(async () => {
     fetchAbortRef.current?.abort();
     const controller = new AbortController();
+    const epoch = accountEpoch();
     fetchAbortRef.current = controller;
     leaveScreen();
     setLastStart({ mode: 'review' });
@@ -513,8 +531,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         interleaved?: { contrasted: string[] };
       }>(`/api/quiz/questions?${params}`, { signal: controller.signal });
       await holdLoadingScreen(startedAt);
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted || accountEpoch() !== epoch) return;
       if (!data.questions?.length) throw new Error(t('quiz.noQuestions'));
+      progressEpochRef.current = epoch;
       setSessionId(data.sessionId);
       setQuestions(data.questions);
       setAnswers({});
@@ -528,9 +547,11 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       capture('quiz_started', { mode: 'review', question_count: data.questions.length });
       setState('in-progress');
     } catch (error) {
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted || accountEpoch() !== epoch) return;
       setError(friendlyError(error));
       setState('error');
+    } finally {
+      if (fetchAbortRef.current === controller) fetchAbortRef.current = null;
     }
   }, [config.quiz.maxCount, leaveScreen, t, visibleCategoryOptions]);
 
@@ -651,6 +672,11 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
 
   const handleSubmit = useCallback(async () => {
     if (submittingRef.current) return;
+    if (accountEpoch() !== progressEpochRef.current) {
+      clearProgress(sessionId);
+      stopForAccountChange();
+      return;
+    }
     submittingRef.current = true;
     const screen = screenRef.current;
     // The account the quiz was submitted under. Signed out elsewhere while
@@ -769,7 +795,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         setSubmitting(false);
       }
     }
-  }, [answers, clearProgress, isAuthenticated, sessionId, user, t, questions, mode, hintedIds]);
+  }, [answers, clearProgress, isAuthenticated, sessionId, stopForAccountChange, user, t, questions, mode, hintedIds]);
 
   const handleRestart = () => {
     fetchAbortRef.current?.abort();
@@ -962,7 +988,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         ? { status: 'error' as const, title: t('quiz.expiredTitle'), description: t('quiz.expiredBody') }
         : stop === 'graded'
           ? { status: 'error' as const, title: t('quiz.alreadyGradedTitle'), description: t('quiz.alreadyGradedBody') }
-          : { status: 'error' as const, title: error || t('error.somethingWrong') };
+          : stop === 'account-changed'
+            ? { status: 'info' as const, title: t('quiz.accountChangedTitle'), description: t('quiz.accountChangedBody') }
+            : { status: 'error' as const, title: error || t('error.somethingWrong') };
     // The task column, the message, and the shared action row: back to the
     // settings on the left, the one way on as the primary on the right.
     return (

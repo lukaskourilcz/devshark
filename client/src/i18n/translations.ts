@@ -752,6 +752,8 @@ export const en = {
   'quiz.retry': 'Retry',
   'quiz.backToSettings': 'Back to settings',
   'quiz.startAgainSame': 'New quiz, same settings',
+  'quiz.accountChangedTitle': 'Sign-in changed',
+  'quiz.accountChangedBody': 'Start a new quiz to continue with your current sign-in.',
   'quiz.expiredTitle': 'This quiz expired',
   'quiz.expiredBody': 'A quiz can be submitted for an hour after it starts, so these answers can no longer be graded.',
   'quiz.resumeExpired': 'Your unfinished quiz was more than an hour old, so it could no longer be graded and was cleared.',
