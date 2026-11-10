@@ -308,6 +308,23 @@ describe('a returning visitor with a stored session', () => {
     expect(screen.getByTestId('auth')).toHaveTextContent('user:user-next');
   });
 
+  it('forgets a deleted account without signing out a replacement session', async () => {
+    localStorage.setItem(KEY, JSON.stringify(STORED));
+    const { current } = await mountAuth();
+    await waitFor(() => expect(screen.getByTestId('auth')).toHaveTextContent('user:user-stored'));
+    const replacement = sb.sessionFor('next-access-token', 'user-next');
+    localStorage.setItem(KEY, JSON.stringify(replacement));
+    expect(current().forgetDeletedAccount('user-stored')).toBe(false);
+    expect(JSON.parse(localStorage.getItem(KEY)!)).toEqual(replacement);
+    expect(sb.clients[0].auth.signOut).not.toHaveBeenCalled();
+
+    localStorage.setItem(KEY, JSON.stringify(STORED));
+    act(() => expect(current().forgetDeletedAccount('user-stored')).toBe(true));
+    expect(localStorage.getItem(KEY)).toBeNull();
+    expect(screen.getByTestId('auth')).toHaveTextContent('signed-out');
+    expect(sb.clients[0].auth.signOut).not.toHaveBeenCalled();
+  });
+
   it('restores the user when the client loaded before the provider mounted', async () => {
     localStorage.setItem(KEY, JSON.stringify(STORED));
     const reports = recordSignInReports();
@@ -355,6 +372,17 @@ describe('a returning visitor with a stored session', () => {
     await expect(apiFetch('/api/test')).resolves.toEqual({ ok: true });
     expect(authorization).toEqual(['Bearer stored-access-token']);
     expect(sb.createClient).not.toHaveBeenCalled();
+  });
+
+  it('sends account-bound requests only with the named account’s token', async () => {
+    localStorage.setItem(KEY, JSON.stringify(STORED));
+    const authorization = recordAuthorization();
+    const { apiFetch } = await import('../src/lib/api');
+    await expect(apiFetch('/api/test', { expectedUserId: 'user-stored' })).resolves.toEqual({ ok: true });
+    await expect(apiFetch('/api/test', { expectedUserId: 'user-other' })).rejects.toMatchObject({ code: 'cancelled' });
+    localStorage.removeItem(KEY);
+    await expect(apiFetch('/api/test', { expectedUserId: 'user-stored' })).rejects.toMatchObject({ code: 'cancelled' });
+    expect(authorization).toEqual(['Bearer stored-access-token']);
   });
 
   it('reads the stored token only while supabase-js would hand it out unchanged', async () => {

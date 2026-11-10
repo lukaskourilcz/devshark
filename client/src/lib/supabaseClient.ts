@@ -124,10 +124,11 @@ export const TOKEN_EXPIRY_MARGIN_MS = 90_000;
  * the caller then asks supabase-js, which refreshes or removes the session.
  * The server verifies the token on every request either way.
  */
-export function freshStoredAccessToken(now: number = Date.now()): string | null {
+export function freshStoredAccessToken(now: number = Date.now(), expectedUserId?: string): string | null {
   if (!sessionKey || openedOnAuthRedirect) return null;
   try {
-    const stored = JSON.parse(readStorage(sessionKey) || 'null') as { access_token?: unknown; refresh_token?: unknown; expires_at?: unknown } | null;
+    const stored = JSON.parse(readStorage(sessionKey) || 'null') as { access_token?: unknown; refresh_token?: unknown; expires_at?: unknown; user?: { id?: unknown } } | null;
+    if (expectedUserId && stored?.user?.id !== expectedUserId) return null;
     const token = stored?.access_token;
     return typeof token === 'string' && token && typeof stored!.refresh_token === 'string' && typeof stored!.expires_at === 'number'
       && stored!.expires_at * 1000 - now > TOKEN_EXPIRY_MARGIN_MS ? token : null;

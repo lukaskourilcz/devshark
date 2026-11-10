@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { http, HttpResponse } from 'msw';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -7,17 +7,29 @@ import { MemoryRouter } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { AccountDeletionCard } from '../src/components/Profile';
 import { server } from './mocks/server';
+import { clearAccountData } from '../src/lib/accountData';
 
 // Deleting an account ends a paid subscription at once without a refund
 // (review finding product-4): the card and the confirmation say so.
 const auth = vi.hoisted(() => ({
+  session: { access_token: 'token-1', user: { id: 'user-1' } },
   value: {
     user: { id: 'user-1' } as { id: string } | null, isAuthenticated: true, isLoading: false,
     signOut: vi.fn(async (_scope?: 'local' | 'global') => undefined),
+    forgetDeletedAccount: vi.fn(() => { clearAccountData(); return true; }),
   },
 }));
 vi.mock('../src/lib/auth', () => ({ useAuth: () => auth.value, getUserProfile: () => ({}) }));
-afterEach(() => { auth.value = { ...auth.value, user: { id: 'user-1' }, isAuthenticated: true }; });
+vi.mock('../src/lib/supabaseClient', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/lib/supabaseClient')>()),
+  mayHaveSession: () => true,
+  getSupabaseSession: async () => auth.session,
+}));
+afterEach(() => {
+  auth.session = { access_token: 'token-1', user: { id: 'user-1' } };
+  auth.value = { ...auth.value, user: { id: 'user-1' }, isAuthenticated: true };
+  auth.value.forgetDeletedAccount.mockClear();
+});
 
 // jsdom has no modal dialogs; the confirmation opens one.
 const proto = HTMLDialogElement.prototype as unknown as { showModal?: () => void; close?: () => void };
@@ -84,6 +96,48 @@ describe('deleting an account', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Delete my account' }));
     expect(await screen.findByText(/This action cannot be undone\.$/)).toBeInTheDocument();
     expect(screen.queryByText(GITHUB_LINE, { exact: false })).toBeNull();
+  });
+
+  it('does not delete the account whose session replaced an open confirmation', async () => {
+    plan(FREE);
+    const sent: Array<string | null> = [];
+    server.use(http.delete('*/api/user/*', ({ request }) => {
+      sent.push(request.headers.get('authorization'));
+      return HttpResponse.json({ ok: true });
+    }));
+    renderCard(<AccountDeletionCard />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete my account' }));
+    const dialog = await screen.findByRole('alertdialog');
+    // Storage in another tab can change before this provider hears the event.
+    auth.session = { access_token: 'token-2', user: { id: 'user-2' } };
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete my account' }));
+    await waitFor(() => expect(dialog).not.toHaveAttribute('open'));
+    expect(sent).toEqual([]);
+    expect(auth.value.forgetDeletedAccount).not.toHaveBeenCalled();
+  });
+
+  it('keeps the new account’s data when the old deletion finishes after a switch', async () => {
+    plan(FREE);
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const sent: Array<string | null> = [];
+    server.use(http.delete('*/api/user/*', async ({ request }) => {
+      sent.push(request.headers.get('authorization'));
+      await gate;
+      return HttpResponse.json({ ok: true });
+    }));
+    renderCard(<AccountDeletionCard />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete my account' }));
+    const dialog = await screen.findByRole('alertdialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete my account' }));
+    await waitFor(() => expect(sent).toEqual(['Bearer token-1']));
+    clearAccountData();
+    auth.session = { access_token: 'token-2', user: { id: 'user-2' } };
+    localStorage.setItem('devshark:coding:draft:html-1', '// new account');
+    await act(async () => { release(); });
+    await waitFor(() => expect(dialog).not.toHaveAttribute('open'));
+    expect(localStorage.getItem('devshark:coding:draft:html-1')).toBe('// new account');
+    expect(auth.value.forgetDeletedAccount).not.toHaveBeenCalled();
   });
 
   it('forgets the account’s data on this device after the deletion and keeps the device’s settings', async () => {

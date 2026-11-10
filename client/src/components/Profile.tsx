@@ -45,7 +45,7 @@ import PlanLine from './PlanLine';
 import { leaderboardVisibilityQuery } from '../lib/leaderboardVisibility';
 import SharknameCard from './SharknameCard';
 import { useEntitlement } from '../lib/entitlement';
-import { clearAccountData } from '../lib/accountData';
+import { accountEpoch } from '../lib/accountData';
 import { useGithubConnection } from '../coding/api';
 import './DeepEndScreens.css';
 
@@ -752,7 +752,7 @@ function AdvisorCard() {
 
 export function AccountDeletionCard() {
   const t = useT();
-  const { isAuthenticated, signOut } = useAuth();
+  const { user, isAuthenticated, signOut, forgetDeletedAccount } = useAuth();
   const navigate = useNavigate();
   const plan = useEntitlement();
   const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
@@ -776,6 +776,9 @@ export function AccountDeletionCard() {
   const githubInstalled = github?.available === true && github.status !== 'not_connected';
 
   const requestDeletion = () => {
+    const userId = user?.id;
+    if (!userId) return;
+    const epoch = accountEpoch();
     setConfirm({
       title: t('profile.deleteTitle'),
       description: [
@@ -786,17 +789,17 @@ export function AccountDeletionCard() {
       actionLabel: t('profile.deleteAction'),
       destructive: true,
       onConfirm: async () => {
+        if (accountEpoch() !== epoch) return;
         try {
           await apiFetch<{ ok: true }>('/api/user/delete-account', {
             method: 'DELETE',
             body: JSON.stringify({ confirmation: 'DELETE' }),
             timeoutMs: 20_000,
+            expectedUserId: userId,
           });
-          clearAccountData();
-          await signOut().catch(() => undefined);
-          navigate('/', { replace: true });
+          if (accountEpoch() === epoch && forgetDeletedAccount(userId)) navigate('/', { replace: true });
         } catch (error) {
-          setMessage(friendlyError(error));
+          if (accountEpoch() === epoch) setMessage(friendlyError(error));
         }
       },
     });

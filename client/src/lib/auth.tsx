@@ -150,6 +150,8 @@ interface AuthContextValue {
    * supabase-js announces SIGNED_OUT here, which forgets the account's data
    * on this device. */
   signOut: (scope?: SignOutScope) => Promise<void>;
+  /** Forget a server-deleted account only while it still owns this browser session. */
+  forgetDeletedAccount: (userId: string) => boolean;
   /** A sign-in pressed before a reload failed when this document finished it
    * (there is no button of that press left to say so). */
   signInResumeFailed: boolean;
@@ -173,6 +175,7 @@ const AuthContext = createContext<AuthContextValue>({
     throw new Error('useAuth must be used within an AuthProvider');
   },
   signOut: async () => {},
+  forgetDeletedAccount: () => false,
   signInResumeFailed: false,
   passwordRecovery: false,
   draftsKept: false,
@@ -367,6 +370,16 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
     setUser(null);
   };
 
+  function forgetDeletedAccount(userId: string): boolean {
+    // The browser's stored session can change before this tab receives the
+    // Auth event. The server has already removed the old account, so there
+    // is no need for an SDK sign-out that might later pick up a new session.
+    const storedUserId = storedSessionUserId();
+    if (signedInAccount() !== userId || (storedUserId && storedUserId !== userId)) return false;
+    forgetSessionHere();
+    return true;
+  }
+
   // supabase-js signs out every device by default. Log out means this
   // browser; signing out everywhere is its own, explicit action.
   //
@@ -395,7 +408,7 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, isLoading, signInWithGoogle, signOut, signInResumeFailed, passwordRecovery, draftsKept, dismissDraftsKept: () => setDraftsKept(false) }}
+      value={{ user, isAuthenticated: !!user, isLoading, signInWithGoogle, signOut, forgetDeletedAccount, signInResumeFailed, passwordRecovery, draftsKept, dismissDraftsKept: () => setDraftsKept(false) }}
     >
       {children}
     </AuthContext.Provider>
