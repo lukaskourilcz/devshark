@@ -15,7 +15,6 @@ import {
   QuestionActions,
   QuestionFeedback,
   QuestionHeader,
-  QuestionHint,
   QuestionIconButton,
   QuestionShell,
   ReportFlagIcon,
@@ -718,6 +717,7 @@ export function LessonRunner({
     <>
       <QuestionShell
         compact
+        className="rm-lesson-question"
         contentKey={qIndex}
         ref={questionRef}
         questionId="lesson-question"
@@ -764,9 +764,6 @@ export function LessonRunner({
           disabled={revealed || grading}
           grade={revealed && grade ? { correct: grade.correctAnswer, picked: selected } : null}
         />
-
-        {/* Feedback replaces the keyboard hint below the answers. */}
-        <QuestionHint max={question.options.length} verb="answer" hidden={revealed || !!answerError} />
 
         {/* The verdict, under the answers it explains. The Banner is a status
             (or an alert for a failed send), so it is read out; focus goes to

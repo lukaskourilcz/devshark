@@ -222,7 +222,14 @@ for (const theme of ['light', 'dark'] as const) {
     await page.keyboard.press('Enter');
     await expect(page.getByText('Which count grows with the input?', { exact: true })).toBeVisible();
     expect(attempts).toBe(1);
-    await page.getByRole('radio', { name: '1', exact: true }).click();
+    const stem = page.locator('#lesson-question');
+    const answer = page.getByRole('radio', { name: '1', exact: true });
+    const size = (el: Element) => parseFloat(getComputedStyle(el).fontSize) / parseFloat(getComputedStyle(document.documentElement).fontSize);
+    expect(await stem.evaluate(size)).toBeCloseTo(0.85 * 1.15, 3);
+    expect(await stem.locator('pre code').evaluate(size)).toBeCloseTo(0.6375 * 1.15, 3);
+    expect(await answer.evaluate(size)).toBeCloseTo(0.85 * 1.15, 3);
+    await expect(page.getByText(/Press 1.4 to answer/)).toHaveCount(0);
+    await stem.press('2');
     const card = page.locator('.ss-question__panel');
     const next = card.getByRole('button', { name: 'Continue', exact: true });
     await expect(next).toBeFocused();
