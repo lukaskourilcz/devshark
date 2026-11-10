@@ -132,6 +132,7 @@ let dailyMarkerUnavailable = false;
 /** Token checks Supabase Auth answered, so a test can count a request's. */
 let authChecks = 0;
 let authDeleteError: { status: number; code: string } | null = null;
+let cardWriteError: { code: string; message: string } | null = null;
 /** How a read of the auth event log answers: normally, failing, or as a
  * table the migration has not created yet. */
 let authEventsRead: 'ok' | 'down' | 'missing' = 'ok';
@@ -247,6 +248,7 @@ async function startStandIns() {
     if (url.pathname === '/rest/v1/auth_events' && req.method === 'GET' && authEventsRead === 'missing') return send(404, { code: 'PGRST205', message: "Could not find the table 'public.auth_events' in the schema cache" });
     const filters = Object.fromEntries([...url.searchParams.entries()].filter(([, value]) => value.startsWith('eq.')).map(([key, value]) => [key, value.slice(3)]));
     seen.push({ method: req.method ?? 'GET', path: url.pathname, filters, body });
+    if (cardWriteError && url.pathname === '/rest/v1/flashcards' && req.method === 'POST') return send(409, cardWriteError);
     if (healthReadFails && url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key') return send(500, { code: '42501', message: 'permission denied for table quiz_submissions' });
     if (healthReadHangs && url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key') {
       res.once('close', () => { if (!res.writableEnded) closedHealthReads++; });
@@ -490,6 +492,21 @@ async function main() {
     assert.equal(authChecks, authBeforeMalformed, 'locally malformed credentials need no upstream Auth request');
     assert.equal(reads('/rest/v1/rpc/claim_quiz_submission').length, 0, 'malformed credentials must not spend a grading claim');
     console.log('PASS verified caller: optional Auth distinguishes a guest from malformed credentials');
+
+    const cardBody = { subject: 'webdev', question_id: guestQuiz.questions[0].questionId, question: 'Synthetic question', correct_answer: 'Synthetic answer' };
+    try {
+      cardWriteError = { code: '23503', message: 'flashcard_account_missing' };
+      const erasedCard = await call(flashcards as Handler, { method: 'POST', account: A, body: cardBody });
+      assert.equal(erasedCard.statusCode, 401, 'a card write rejected by the deleted-account guard requires sign-in');
+      assert.equal(errorCode(erasedCard), 'invalid_token');
+      cardWriteError = { code: '55P03', message: 'canceling statement due to lock timeout' };
+      const busyCard = await call(flashcards as Handler, { method: 'POST', account: A, body: cardBody });
+      assert.equal(busyCard.statusCode, 503, 'a card that waits behind erasure may be retried');
+      assert.equal(errorCode(busyCard), 'flashcard_busy');
+    } finally {
+      cardWriteError = null;
+    }
+    console.log('PASS verified caller: a card write distinguishes erasure from a busy owner lock');
 
     const busyFriend = await user('friends-request', { method: 'POST', account: A, body: { handle: 'locked-friend' } });
     assert.equal(busyFriend.statusCode, 503, JSON.stringify(busyFriend.body));
