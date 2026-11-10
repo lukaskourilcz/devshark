@@ -31,7 +31,7 @@ export interface ChallengeLeaderboard {
   champion: ChallengeScore | null;
 }
 
-export function fetchChallengeBatch(opts: { exclude?: string[]; runToken?: string; ranked?: boolean; assessment?: boolean; categories?: string[] } = {}): Promise<ChallengeBatch> {
+export function fetchChallengeBatch(opts: { exclude?: string[]; runToken?: string; ranked?: boolean; assessment?: boolean; categories?: string[]; signal?: AbortSignal } = {}): Promise<ChallengeBatch> {
   const params = new URLSearchParams();
   if (opts.exclude && opts.exclude.length > 0) {
     // Cap the exclude payload — the server caps too, but no need to send more.
@@ -44,7 +44,7 @@ export function fetchChallengeBatch(opts: { exclude?: string[]; runToken?: strin
   // section in the list gets the whole request refused.
   params.set('categories', (opts.categories ?? deliveryCategoriesForSubject(getSubject())).join(','));
   const qs = params.toString();
-  return apiFetch<ChallengeBatch>(`/api/quiz/challenge${qs ? `?${qs}` : ''}`);
+  return apiFetch<ChallengeBatch>(`/api/quiz/challenge${qs ? `?${qs}` : ''}`, { signal: opts.signal });
 }
 
 export function getChallengeLeaderboard(): Promise<ChallengeLeaderboard> {

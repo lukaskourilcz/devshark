@@ -257,10 +257,18 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
   // A refill in flight resolves to null when its batch landed, or to the
   // message of the error that stopped it.
   const topupInFlight = useRef<Promise<string | null> | null>(null);
+  const topupAbort = useRef<AbortController | null>(null);
   // Bumped by every new run. A refill that returns after its run ended ("Play
   // again" pressed while it was in flight) carries the old run's token and
   // questions, and is dropped.
   const runGeneration = useRef(0);
+  const cancelBatch = useCallback(() => {
+    runGeneration.current += 1;
+    topupAbort.current?.abort();
+    topupAbort.current = null;
+    topupInFlight.current = null;
+  }, []);
+  useEffect(() => cancelBatch, [cancelBatch]);
   // Set when the queue ran dry and the refill failed: the run is kept, and
   // Retry asks for the batch again under the same run.
   const [refillError, setRefillError] = useState<string | null>(null);
@@ -372,17 +380,17 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
   const [leaveOpen, setLeaveOpen] = useState(false);
   const leaveRun = useCallback(() => {
     setLeaveOpen(false);
-    runGeneration.current += 1;
-    topupInFlight.current = null;
+    cancelBatch();
     buffer.current = null;
     clearStrikeRetry();
     setCurrent(null);
     setSelected(null);
     setLastResult(null);
     setRefillError(null);
+    setRefilling(false);
     setDeadline(0);
     setPhase('intro');
-  }, [clearStrikeRetry]);
+  }, [cancelBatch, clearStrikeRetry]);
 
   // Report a question from the run, as from the Quiz.
   const [reportTarget, setReportTarget] = useState<{ id: string; version?: string } | null>(null);
@@ -408,12 +416,15 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
     async (excluded: string[]): Promise<string | null> => {
       if (topupInFlight.current) return topupInFlight.current;
       const generation = runGeneration.current;
+      const controller = new AbortController();
+      topupAbort.current = controller;
       const p = (async (): Promise<string | null> => {
         try {
           const batch = await fetchChallengeBatch({
             exclude: excluded,
             runToken: runTokenRef.current || undefined,
             categories: runTopics.current,
+            signal: controller.signal,
           });
           if (generation !== runGeneration.current) return null;
           runTokenRef.current = batch.runToken;
@@ -446,7 +457,10 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
       try {
         return await p;
       } finally {
-        if (topupInFlight.current === p) topupInFlight.current = null;
+        if (topupInFlight.current === p) {
+          topupInFlight.current = null;
+          topupAbort.current = null;
+        }
       }
     },
     [],
@@ -480,13 +494,13 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
   const startRun = useCallback(async () => {
     if (topics.length === 0) return;
     runTopics.current = [...topics];
-    runGeneration.current += 1;
-    const generation = runGeneration.current;
     // A refill still in flight belongs to the run that ended.
-    topupInFlight.current = null;
+    cancelBatch();
+    const generation = runGeneration.current;
     setPhase('loading');
     setError(null);
     setRefillError(null);
+    setRefilling(false);
     setScore(0);
     setLivesLost(0);
     setSeenIds([]);
@@ -512,7 +526,7 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
     showQuestion(next);
     setSeenIds([next.question.id]);
     setPhase('playing');
-  }, [ensureBufferTopUp, popNext, showQuestion, t, topics]);
+  }, [cancelBatch, ensureBufferTopUp, popNext, showQuestion, t, topics]);
 
   const advance = useCallback(
     async (becameGameOver: boolean) => {
@@ -523,8 +537,8 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
       if (advancingRef.current) return;
       advancingRef.current = true;
       let moved = false;
+      const generation = runGeneration.current;
       try {
-        const generation = runGeneration.current;
         // Eagerly refill so the next question is ready before we render it.
         const remaining = buffer.current?.queue.length ?? 0;
         if (remaining <= LOW_BATCH_THRESHOLD && !topupInFlight.current) {
@@ -539,7 +553,7 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
           try {
             failure = await ensureBufferTopUp([...seenIds, ...queuedIds(buffer.current)]);
           } finally {
-            setRefilling(false);
+            if (generation === runGeneration.current) setRefilling(false);
           }
           if (generation !== runGeneration.current) return;
           next = popNext();
@@ -562,7 +576,7 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
         setSelected(null);
         setLastResult(null);
       } finally {
-        if (!moved) advancingRef.current = false;
+        if (!moved && generation === runGeneration.current) advancingRef.current = false;
       }
     },
     [ensureBufferTopUp, popNext, seenIds, showQuestion, t],

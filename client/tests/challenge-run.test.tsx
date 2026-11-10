@@ -20,6 +20,7 @@ const api = vi.hoisted(() => ({
   runs: 0,
   sessions: new Map<string, Set<string>>(),
   batchRequests: [] as URLSearchParams[],
+  batchSignals: [] as (AbortSignal | null)[],
   submits: [] as { sessionId: string; questionId: string; selected: number; status: number }[],
   /** Replaces the default grade for one submit when it returns a response. */
   grade: null as Grade | null,
@@ -54,6 +55,7 @@ vi.mock('../src/lib/api', async (importOriginal) => {
     if (parsed.pathname === '/api/quiz/challenge' && (opts.method ?? 'GET') === 'GET') {
       if (parsed.searchParams.get('resource') === 'leaderboard') return { top: [], champion: null };
       api.batchRequests.push(parsed.searchParams);
+      api.batchSignals.push(opts.signal ?? null);
       const request = api.batchRequests.length;
       const refusal = api.batchRefusal?.(request) ?? null;
       if (refusal) return fail(refusal.status, refusal.code);
@@ -183,6 +185,7 @@ beforeEach(() => {
   api.runs = 0;
   api.sessions.clear();
   api.batchRequests.length = 0;
+  api.batchSignals.length = 0;
   api.submits.length = 0;
   api.grade = null;
   api.completions.length = 0;
@@ -222,6 +225,23 @@ describe('the question buffer', () => {
     // The refill asked to skip what was seen and what was still queued.
     expect(api.batchRequests[1].get('exclude')?.split(',').sort()).toEqual(['b1-q1', 'b1-q2', 'b1-q3', 'b1-q4', 'b1-q5', 'b1-q6']);
     expect(screen.getByLabelText('3 shark fins left')).toBeInTheDocument();
+  });
+
+  it('cancels a held question refill when the run’s route unmounts', async () => {
+    api.holdBatch = 2;
+    const view = await mount();
+    await start();
+    for (let n = 0; n < 2; n += 1) {
+      await answer('right');
+      await next();
+    }
+    await waitFor(() => expect(api.release).not.toBeNull());
+    view.unmount();
+    try {
+      expect(api.batchSignals[1]?.aborted).toBe(true);
+    } finally {
+      await act(async () => { api.release?.(); });
+    }
   });
 
   it('lets a question whose batch session expired go without a strike, and moves on to a fresh batch', async () => {
