@@ -101,7 +101,7 @@
       "handle": "filesystem"
     },
     {
-      "src": "^/(?:sandbox/)?assets/.*$",
+      "src": "^/(?:(?:sandbox/)?assets|brand|og)/.*$",
       "status": 404,
       "headers": {
         "Cache-Control": "no-store"
@@ -188,7 +188,7 @@
       "destination": "/learn/software-engineer/index.html"
     },
     {
-      "source": "/((?!api/|assets/|ingest/|sandbox/|topics/).*)",
+      "source": "/((?!api/|assets/|ingest/|sandbox/|topics/|brand/|og/).*)",
       "destination": "/index.html"
     }
   ]
