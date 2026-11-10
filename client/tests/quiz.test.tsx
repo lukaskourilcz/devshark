@@ -96,9 +96,10 @@ const questionOnScreen = async () => {
 
 async function startQuiz(questions = [Q('a'), Q('b')], extra: object = {}) {
   server.use(http.get('*/api/quiz/questions', () => HttpResponse.json({ sessionId: sessionFor('standard'), expiresAt: Date.now() + 3_600_000, questions, ...extra })));
-  renderQuiz();
+  const view = renderQuiz();
   fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
   await questionOnScreen();
+  return view;
 }
 
 const pressDigit = (key: string) => fireEvent.keyDown(document.querySelector('.ss-question__block') ?? document.body, { key });
@@ -767,6 +768,36 @@ describe('submitting', () => {
     expect(screen.queryByText('1 / 1')).not.toBeInTheDocument();
     expect(JSON.parse(sessionStorage.getItem(PROGRESS_KEY)!)).toMatchObject({ sessionId: sessionFor('second'), answers: { n: 1 } });
     expect(screen.getByRole('button', { name: /submit quiz/i })).toBeEnabled();
+  });
+
+  it('keeps progress of a new quiz when a submit from an unmounted route completes', async () => {
+    let answer: (() => void) | undefined;
+    server.use(http.post('*/api/quiz/submit', () => new Promise<Response>((resolve) => {
+      answer = () => resolve(HttpResponse.json(graded([Q('a')])));
+    })));
+    const first = await startQuiz([Q('a')]);
+    pressDigit('1');
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    await waitFor(() => expect(answer).toBeDefined());
+
+    first.unmount();
+    renderQuiz();
+    await questionOnScreen();
+    fireEvent.click(screen.getByRole('button', { name: /exit quiz/i }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Leave quiz' }));
+    server.use(http.get('*/api/quiz/questions', () => HttpResponse.json({
+      sessionId: sessionFor('new-route'), questions: [Q('n')],
+    })));
+    fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
+    await screen.findByText('Question n?');
+    await questionOnScreen();
+    pressDigit('2');
+
+    await act(async () => { answer!(); await new Promise((resolve) => setTimeout(resolve, 20)); });
+    expect(JSON.parse(sessionStorage.getItem(PROGRESS_KEY)!)).toMatchObject({
+      sessionId: sessionFor('new-route'),
+      answers: { n: 1 },
+    });
   });
 
   it('says when advanced was asked of topics that have none', async () => {

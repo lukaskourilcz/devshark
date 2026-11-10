@@ -257,8 +257,6 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const reviewHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const questionTextRef = useRef<HTMLDivElement | null>(null);
   const fetchAbortRef = useRef<AbortController | null>(null);
-  // Leaving the page drops a quiz, review or daily set still loading.
-  useEffect(() => () => fetchAbortRef.current?.abort(), []);
   // One submit at a time. `submitting` reaches the next handler only after a
   // render, and a second Enter or click in that gap sent the answer set
   // twice: the result was recorded, announced and counted twice.
@@ -268,6 +266,10 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   // a new quiz) drew its result over the new screen and cleared the new quiz's
   // saved progress. Its result is still recorded to the account.
   const screenRef = useRef(0);
+  useEffect(() => () => {
+    screenRef.current += 1;
+    fetchAbortRef.current?.abort();
+  }, []);
   const leaveScreen = useCallback(() => {
     screenRef.current += 1;
     submittingRef.current = false;
@@ -375,11 +377,15 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     } satisfies SavedSetup);
   }, [questionCount, difficultyMode, selectedCategories]);
 
-  const clearProgress = useCallback(() => {
+  const clearProgress = useCallback((expectedSessionId?: string) => {
     try {
+      if (expectedSessionId !== undefined) {
+        const saved: unknown = JSON.parse(sessionStorage.getItem(PROGRESS_KEY) ?? 'null');
+        if (!isRecord(saved) || saved.sessionId !== expectedSessionId) return;
+      }
       sessionStorage.removeItem(PROGRESS_KEY);
     } catch {
-      // ignore
+      // Storage may be disabled or contain an unreadable copy.
     }
   }, []);
 
@@ -676,9 +682,10 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
           : null);
         setReviewFilter(data.results.some((item) => !item.isCorrect) ? 'incorrect' : 'all');
         setState('submitted');
-        clearProgress();
         playComplete();
       }
+      // A grade can finish after navigation. Clear only its own saved run.
+      if (sameAccount) clearProgress(sessionId);
       // Bottom of the quiz funnel. Pairs with 'quiz_started' for conversion and
       // score-distribution analysis. No-op unless PostHog is configured.
       capture('quiz_submitted', {
@@ -750,7 +757,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       // was already graded cannot be graded again. Neither improves with
       // another submit, so the quiz stops and says what happened.
       if (err instanceof ApiError && (err.code === 'invalid_session' || err.code === 'attempt_already_graded')) {
-        clearProgress();
+        clearProgress(sessionId);
         setStop(err.code === 'invalid_session' ? 'expired' : mode === 'daily' ? 'daily-done' : 'graded');
         setState('error');
       } else {
