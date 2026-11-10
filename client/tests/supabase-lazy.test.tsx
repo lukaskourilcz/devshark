@@ -325,6 +325,41 @@ describe('a returning visitor with a stored session', () => {
     expect(sb.clients[0].auth.signOut).not.toHaveBeenCalled();
   });
 
+  it('forgets the deleted session in a second tab without clearing its replacement', async () => {
+    localStorage.setItem(KEY, JSON.stringify(STORED));
+    await mountAuth();
+    await waitFor(() => expect(screen.getByTestId('auth')).toHaveTextContent('user:user-stored'));
+    const replacement = sb.sessionFor('next-access-token', 'user-next');
+    const removed = (oldValue: string) => window.dispatchEvent(new window.StorageEvent('storage', {
+      storageArea: localStorage,
+      key: KEY,
+      oldValue,
+      newValue: null,
+    }));
+
+    // A delayed deletion event cannot discard a newer persisted session.
+    localStorage.setItem(KEY, JSON.stringify(replacement));
+    act(() => { removed(JSON.stringify(STORED)); });
+    expect(localStorage.getItem(KEY)).toBe(JSON.stringify(replacement));
+    expect(screen.getByTestId('auth')).toHaveTextContent('user:user-stored');
+    recordSignInReports();
+    await act(async () => { sb.clients[0].emit('SIGNED_IN', replacement); });
+    expect(screen.getByTestId('auth')).toHaveTextContent('user:user-next');
+
+    // With storage now empty, a stale event for the old account still cannot
+    // wipe this tab. Only the event for the active account can finish it.
+    localStorage.removeItem(KEY);
+    localStorage.setItem('devshark:coding:draft:html-1', '// current account draft');
+    act(() => { removed(JSON.stringify(STORED)); });
+    expect(screen.getByTestId('auth')).toHaveTextContent('user:user-next');
+    expect(localStorage.getItem('devshark:coding:draft:html-1')).not.toBeNull();
+    localStorage.setItem('devshark:signed-out-by-choice', String(Date.now()));
+    act(() => { removed(JSON.stringify(replacement)); });
+    expect(screen.getByTestId('auth')).toHaveTextContent('signed-out');
+    expect(localStorage.getItem('devshark:coding:draft:html-1')).toBeNull();
+    expect(localStorage.getItem('devshark:coding:kept:v1')).toBeNull();
+  });
+
   it('restores the user when the client loaded before the provider mounted', async () => {
     localStorage.setItem(KEY, JSON.stringify(STORED));
     const reports = recordSignInReports();

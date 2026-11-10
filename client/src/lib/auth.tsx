@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import type { SupabaseClient, User } from '@supabase/supabase-js';
+import type { AuthChangeEvent, Session, SupabaseClient, User } from '@supabase/supabase-js';
 import {
   forgetStoredSession,
   getSupabaseSession,
@@ -7,6 +7,7 @@ import {
   loadSupabase,
   mayHaveSession,
   onSupabaseAuthStateChange,
+  onSupabaseSessionRemoved,
   openedOnAuthRedirect,
   storedSessionUserId,
   supabaseForSession,
@@ -264,7 +265,7 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
     // Once the provider hears an Auth event, the boot read can no longer
     // replace the session, even if the older snapshot eventually succeeds.
     let bootCurrent = true;
-    const unsubscribe = onSupabaseAuthStateChange((event, session) => {
+    const handleAuthChange = (event: AuthChangeEvent, session: Session | null) => {
       bootCurrent = false;
       if (session?.user) signedIn(session.user.id);
       setUser(session?.user ?? null);
@@ -288,7 +289,16 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
         accountSignedIn = false;
         accountId = null;
       }
+    };
+    const stopAuthEvents = onSupabaseAuthStateChange(handleAuthChange);
+    const stopSessionRemoval = onSupabaseSessionRemoved((userId) => {
+      if (signedInAccount() === userId) handleAuthChange('SIGNED_OUT', null);
     });
+    const unsubscribe = () => {
+      bootCurrent = false;
+      stopAuthEvents();
+      stopSessionRemoval();
+    };
 
     if (!mayHaveSession()) {
       setIsLoading(false);
@@ -318,10 +328,7 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
         if (bootCurrent) setIsLoading(false);
       });
 
-    return () => {
-      bootCurrent = false;
-      unsubscribe();
-    };
+    return unsubscribe;
   }, []);
 
   // An account is here. Drafts an involuntary sign-out kept for another
@@ -376,6 +383,7 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
     // is no need for an SDK sign-out that might later pick up a new session.
     const storedUserId = storedSessionUserId();
     if (signedInAccount() !== userId || (storedUserId && storedUserId !== userId)) return false;
+    chooseSignOut();
     forgetSessionHere();
     return true;
   }

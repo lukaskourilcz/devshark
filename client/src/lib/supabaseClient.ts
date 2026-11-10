@@ -137,15 +137,34 @@ export function freshStoredAccessToken(now: number = Date.now(), expectedUserId?
   }
 }
 
-/** The account of the session stored in this browser, current or expired,
- * read before supabase-js removes one it can no longer refresh. */
-export function storedSessionUserId(): string | null {
+function sessionUserId(raw: string | null): string | null {
   try {
-    const id = (JSON.parse((sessionKey && readStorage(sessionKey)) || 'null') as { user?: { id?: unknown } } | null)?.user?.id;
+    const id = (JSON.parse(raw || 'null') as { user?: { id?: unknown } } | null)?.user?.id;
     return typeof id === 'string' ? id : null;
   } catch {
     return null;
   }
+}
+
+/** The account of the session stored in this browser, current or expired,
+ * read before supabase-js removes one it can no longer refresh. */
+export function storedSessionUserId(): string | null {
+  return sessionUserId(sessionKey && readStorage(sessionKey));
+}
+
+/** A browser-only session removal has no Supabase broadcast. Notify other
+ * tabs while the key is still empty and report which account was removed. */
+export function onSupabaseSessionRemoved(listener: (userId: string) => void): () => void {
+  if (!sessionKey || typeof window === 'undefined') return () => {};
+  let storage: Storage;
+  try { storage = window.localStorage; } catch { return () => {}; }
+  const onRemoved = (event: StorageEvent) => {
+    if (event.storageArea !== storage || event.key !== sessionKey || event.newValue !== null || hasStoredSession()) return;
+    const userId = sessionUserId(event.oldValue);
+    if (userId) listener(userId);
+  };
+  window.addEventListener('storage', onRemoved);
+  return () => window.removeEventListener('storage', onRemoved);
 }
 
 /**
