@@ -249,6 +249,26 @@ it('does not show the previous tab’s board under a tab picked while offline', 
   }
 });
 
+it('does not show yesterday’s Daily scores as today’s when midnight passes offline', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  try {
+    vi.setSystemTime(new Date('2026-10-23T23:59:30Z'));
+    server.use(leaderboardHandlers.populated);
+    await mount();
+    fireEvent.click(screen.getByRole('radio', { name: 'Today' }));
+    await screen.findByText('Early riser');
+    expect(localStorage.getItem('devshark:leaderboard:v1:daily:')).toContain('2026-10-23');
+    onlineManager.setOnline(false);
+    vi.setSystemTime(new Date('2026-10-24T00:00:30Z'));
+    act(() => { document.dispatchEvent(new Event('visibilitychange')); });
+    expect(await screen.findByRole('alert')).toHaveTextContent(/You’re offline. Reconnect and try again./);
+    expect(screen.queryByText('Early riser')).toBeNull();
+  } finally {
+    onlineManager.setOnline(true);
+    vi.useRealTimers();
+  }
+});
+
 it('says so when offline with nothing cached', async () => {
   server.use(leaderboardHandlers.offline); await mount();
   expect(await screen.findByRole('alert')).toHaveTextContent(/You’re offline. Reconnect and try again./);

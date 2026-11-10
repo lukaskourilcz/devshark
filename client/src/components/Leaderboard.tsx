@@ -97,12 +97,13 @@ function withoutViewer(data: LeaderboardResponse): LeaderboardResponse {
   return { ...board, entries: entries as unknown as LeaderboardResponse['entries'] };
 }
 
-function readCachedBoard(key: string): CachedBoard | null {
+function readCachedBoard(key: string, dailyDate?: string): CachedBoard | null {
   try {
     const raw = window.localStorage.getItem(CACHE_PREFIX + key);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<CachedBoard>;
     if (typeof parsed?.savedAt !== 'number' || !parsed.data || !Array.isArray(parsed.data.entries)) return null;
+    if (dailyDate !== undefined && (parsed.data.period !== 'daily' || parsed.data.date !== dailyDate)) return null;
     return { savedAt: parsed.savedAt, data: withoutViewer(parsed.data) };
   } catch {
     return null;
@@ -212,7 +213,7 @@ function Leaderboard() {
   const stale: CachedBoard | null = offline
     ? data && !heldOver
       ? { savedAt: dataUpdatedAt, data }
-      : readCachedBoard(cacheKey)
+      : readCachedBoard(cacheKey, request.period === 'daily' ? request.date : undefined)
     : null;
   const board: LeaderboardResponse | null = offline ? stale?.data ?? null : error ? null : data ?? null;
   const me = !error && !offline && (drawTab === '30d' || drawTab === 'month') ? data?.me ?? null : null;
