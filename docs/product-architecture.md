@@ -315,6 +315,12 @@ nothing. The Friends tab says what friends add you by and links to the card.
 Remove asks first ("Remove <name>?"), because it ends the friendship on both
 sides and only a new request undoes it.
 
+Each account owns its own block. A request to someone who blocked the sender
+still appears as outgoing to the sender and counts toward the request limit.
+The other account sees no incoming request and cannot accept it. Unblocking
+discards the hidden pending request. The same rules apply to lookup, the
+request list and authenticated table reads (migration 075).
+
 What friends see is two switches on `user_handles`, both off by default, set
 through `op=identity` (GET/PUT, signed in, PUT on the per-account write
 limit): `show_real_name` (friends see the Google name instead of the
