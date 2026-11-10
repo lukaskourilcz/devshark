@@ -1,8 +1,9 @@
 import { beforeEach, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { ChallengeRunPlanner } from '../src/components/coding/ChallengeRunPlanner';
+import { ChallengeRunSection } from '../src/components/coding/ChallengeRunSection';
 import type { PracticeSession } from '../../shared/coding-api';
 
 // Design audit P1.6: on the Coding home the planner is one row until opened,
@@ -124,4 +125,23 @@ it('sends one transition when the run actions are pressed before the request set
   settle?.();
   fireEvent.click(cancel);
   expect(practice.advance.mock.calls.map(([input]) => input.status)).toEqual(['active', 'abandoned']);
+});
+
+
+it.each([60_000, 60 * 86_400_000])('marks a scheduled run due on both screens after %i ms', (delay) => {
+  vi.useFakeTimers();
+  try {
+    const now = new Date('2026-11-11T10:00:00Z');
+    vi.setSystemTime(now);
+    practice.session = { sessionId: 'run-1', status: 'scheduled', queue: ['js-digit-sum'], position: 0, minutes: 10, topic: null, estimatedMinutes: 5, order: 'sequential', count: 1, scheduledFor: new Date(now.getTime() + delay).toISOString() };
+    mount();
+    render(<MemoryRouter><LanguageProvider><ChallengeRunSection /></LanguageProvider></MemoryRouter>);
+    expect(screen.queryByText(/Due now/)).toBeNull();
+    act(() => { vi.advanceTimersByTime(delay); });
+    expect(screen.getByText(/Due now\./)).toHaveAttribute('role', 'status');
+    expect(screen.getByRole('button', { name: /^Start:/ })).toHaveAttribute('data-start-here');
+    expect(practice.advance).not.toHaveBeenCalled();
+  } finally {
+    vi.useRealTimers();
+  }
 });

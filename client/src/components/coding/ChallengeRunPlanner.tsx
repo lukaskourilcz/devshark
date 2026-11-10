@@ -5,7 +5,7 @@
 // One run at a time. While a run is open — active, or planned for later —
 // the planner shows that run instead of a form: where it stands, when it is
 // due, and the way to continue, start, cancel, or put it in a calendar.
-import { useId, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useId, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
 import type { TranslationKey } from '../../i18n/translations';
@@ -28,6 +28,32 @@ export const taskHref = (taskId: string): string => {
 /** The task the run is on, or null once every queued task is done. */
 export const currentRunTask = (session: PracticeSession): string | null =>
   session.queue[Math.min(session.position, session.queue.length)] ?? null;
+
+/** Update once at the planned time, and recheck on return from a sleeping tab. */
+export function usePracticeRunDue(scheduledFor: string | null): boolean {
+  const at = scheduledFor ? Date.parse(scheduledFor) : NaN;
+  const due = useCallback(() => Number.isFinite(at) && Date.now() >= at, [at]);
+  const subscribe = useCallback((notify: () => void) => {
+    if (!Number.isFinite(at)) return () => {};
+    let timer = 0;
+    const refresh = () => {
+      window.clearTimeout(timer);
+      const remaining = at - Date.now();
+      // The 60-day scheduling horizon can exceed a browser timer's range.
+      if (remaining > 0) timer = window.setTimeout(refresh, Math.min(remaining, 0x7fffffff));
+      notify();
+    };
+    refresh();
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', refresh);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [at]);
+  return useSyncExternalStore(subscribe, due, () => false);
+}
 
 export function formatWhen(iso: string): string {
   const date = new Date(iso);
@@ -75,7 +101,7 @@ function RunCard({ session, onDone, resumeInPrimary = false }: { session: Practi
   const transitioning = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const scheduled = session.status === 'scheduled';
-  const due = scheduled && Boolean(session.scheduledFor) && new Date(session.scheduledFor!).getTime() <= Date.now();
+  const due = usePracticeRunDue(scheduled ? session.scheduledFor : null);
   const current = currentRunTask(session);
   const finished = !scheduled && current === null;
   const done = Math.min(session.position, session.queue.length);
