@@ -99,6 +99,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   // it needs the subject scope and nothing else: no question bank is loaded and
   // no session is issued, so Today can ask cheaply and often.
   if (resource === 'due') {
+    res.setHeader('Cache-Control', 'private, no-store');
     let dueAuth;
     try {
       dueAuth = await tryAuthOnce(req);
@@ -107,11 +108,9 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     }
     // A signed-out visitor owes nothing, because nothing has been recorded for
     // them. That is an empty list, not an error.
-    if (!dueAuth) {
-      res.setHeader('Cache-Control', 'private, no-store');
-      return res.json({ due: [], estimatedMinutes: 0 });
-    }
-    const states = (await loadReviewStates(supabase, dueAuth.sub, scope.subject)) ?? [];
+    if (!dueAuth) return res.json({ due: [], estimatedMinutes: 0 });
+    const states = await loadReviewStates(supabase, dueAuth.sub, scope.subject);
+    if (states === null) return jsonError(res, 503, 'review_unavailable', 'Could not load your due reviews. Try again.');
     // Eligibility is the deployment scope the request already resolved: a
     // concept whose topic is not being served here is not due here.
     const servedTopics = new Set(selectedCategories as string[]);
@@ -123,7 +122,6 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
       },
       Date.now(),
     );
-    res.setHeader('Cache-Control', 'private, no-store');
     logEvent({ status: 200, resource, count: due.length, latency_ms: Date.now() - started });
     return res.json({ due, estimatedMinutes: estimatedMinutes(due.length) });
   }

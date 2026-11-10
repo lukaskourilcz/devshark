@@ -126,6 +126,7 @@ const RETIRED_REPORTED = 'rm-js-21';
 let claimFails = false;
 let untimedQuizAttempt: string | undefined;
 let reviewRows: Row[] | undefined;
+let reviewStorageDown = false;
 let healthReadFails = false;
 let healthReadHangs = false;
 let closedHealthReads = 0;
@@ -250,7 +251,10 @@ async function startStandIns() {
     if (url.pathname === '/rest/v1/auth_events' && req.method === 'GET' && authEventsRead === 'missing') return send(404, { code: 'PGRST205', message: "Could not find the table 'public.auth_events' in the schema cache" });
     const filters = Object.fromEntries([...url.searchParams.entries()].filter(([, value]) => value.startsWith('eq.')).map(([key, value]) => [key, value.slice(3)]));
     seen.push({ method: req.method ?? 'GET', path: url.pathname, filters, body });
-    if (reviewRows && url.pathname === '/rest/v1/concept_reviews' && filters.user_id === A.id) return send(200, reviewRows);
+    if (url.pathname === '/rest/v1/concept_reviews' && filters.user_id === A.id) {
+      if (reviewStorageDown) return send(503, { code: '08006', message: 'stand-in: concept review connection unavailable' });
+      if (reviewRows) return send(200, reviewRows);
+    }
     if (cardWriteError && url.pathname === '/rest/v1/flashcards' && req.method === 'POST') return send(409, cardWriteError);
     if (healthReadFails && url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key') return send(500, { code: '42501', message: 'permission denied for table quiz_submissions' });
     if (healthReadHangs && url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key') {
@@ -1183,6 +1187,31 @@ async function main() {
       reviewRows = undefined;
     }
     console.log('PASS scoped review applies the due queue cap after selecting eligible concepts');
+
+    const dueQuery = { resource: 'due', categories: 'javascript' };
+    reviewStorageDown = true;
+    try {
+      const unavailable = await call(questions as Handler, { account: A, query: dueQuery });
+      assert.equal(unavailable.statusCode, 503, 'an unreadable due list does not replace the last known list with an empty result');
+      assert.equal(errorCode(unavailable), 'review_unavailable');
+      assert.match(unavailable.headers['cache-control'], /private, no-store/);
+      const guest = await call(questions as Handler, { query: dueQuery });
+      assert.equal(guest.statusCode, 200);
+      assert.deepEqual(guest.body, { due: [], estimatedMinutes: 0 });
+      const practice = await call(questions as Handler, { account: A, query: reviewQuery });
+      assert.equal(practice.statusCode, 200, 'personalized practice can still use stats and history');
+    } finally {
+      reviewStorageDown = false;
+    }
+    reviewRows = [overdueRow(dueConcept, 1)];
+    try {
+      const recovered = await call(questions as Handler, { account: A, query: dueQuery });
+      assert.equal(recovered.statusCode, 200);
+      assert.equal(recovered.body.due[0].conceptId, dueConcept);
+    } finally {
+      reviewRows = undefined;
+    }
+    console.log('PASS due list keeps a failed storage read distinct from empty and recovers');
 
     // ── a quiz submit whose one-time claim cannot be taken ───────────────
     claimFails = true;
