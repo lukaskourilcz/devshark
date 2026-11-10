@@ -26,6 +26,7 @@ import { useT } from '../i18n/LanguageContext';
 import { categoryLabelKey } from '../lib/categories';
 import { checkDailyAnswer, dailyQuestionQuery, qotdProblem, type QotdProblem, type QotdResult } from '../lib/dailyQuestion';
 import { CURRENT_PRODUCT } from '../lib/products';
+import { useUtcDay } from '../lib/utcDay';
 import { captureShare, canWebShare, copyText, shareLink } from '../lib/share';
 import { isIsoDate, qotdAvailability, qotdPath, qotdTrack, utcToday, type QotdResponse } from '../../../shared/daily-question';
 import type { CategoryType } from '../types/quiz';
@@ -47,11 +48,11 @@ type ShareStatus = 'idle' | 'shared' | 'copied' | 'failed';
 export default function DailyQuestionPage() {
   const t = useT();
   const { date: dateParam } = useParams<{ date?: string }>();
-  const today = utcToday();
+  const today = useUtcDay(utcToday);
   const date = dateParam ?? today;
   const valid = isIsoDate(date);
   const availability = valid ? qotdAvailability(date, today) : 'before-start';
-  const query = useQuery({ ...dailyQuestionQuery(dateParam ?? 'today'), enabled: valid && availability === 'open' });
+  const query = useQuery({ ...dailyQuestionQuery(date), enabled: valid && availability === 'open' });
   // "Load it again" after a claimed or expired session starts the question
   // over once the fresh session is here. Counted rather than left to the
   // session id, so the expired banner cannot outlive a reload.

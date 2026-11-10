@@ -1,7 +1,7 @@
 // The public question of the day (#239). Invented question
 // fixtures; the wire shapes are the real ones.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
@@ -86,7 +86,7 @@ describe('/daily', () => {
     expect(screen.getAllByText(day)).toHaveLength(1);
     const options = await screen.findAllByRole('radio');
     expect(options).toHaveLength(4);
-    expect(asked).toEqual(['?qotd=today']);
+    expect(asked).toEqual([`?qotd=${today}`]);
     const check = screen.getByRole('button', { name: 'Check answer' });
     expect(check).toBeDisabled();
     fireEvent.click(options[1]);
@@ -109,6 +109,32 @@ describe('/daily', () => {
 
     fireEvent.click(screen.getByRole('button', { name: `Practice ${trackName(today)} questions` }));
     expect(await screen.findByText(`At /quiz?category=${qotdTrack(today)}`)).toBeInTheDocument();
+  });
+
+  it('opens the new UTC day’s question when an overnight tab becomes visible', async () => {
+    const before = '2026-11-09';
+    const after = '2026-11-10';
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      vi.setSystemTime(new Date(`${before}T23:59:30Z`));
+      server.use(http.get('*/api/quiz/daily', ({ request }) => {
+        const requested = new URL(request.url).searchParams.get('qotd');
+        const date = requested && requested !== 'today' ? requested : utcToday();
+        const track = qotdTrack(date);
+        return HttpResponse.json({
+          ...QUESTION, date, track, sessionId: `session-${date}`,
+          question: { ...QUESTION.question, question: `Question for ${date}`, category: track },
+        });
+      }));
+      renderAt('/daily');
+      expect(await screen.findByText(`Question for ${before}`)).toBeVisible();
+      vi.setSystemTime(new Date(`${after}T00:00:30Z`));
+      act(() => { document.dispatchEvent(new Event('visibilitychange')); });
+      expect(await screen.findByText(`Question for ${after}`)).toBeVisible();
+      expect(screen.queryByText(`Question for ${before}`)).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('marks a wrong pick in words, not colour alone', async () => {
