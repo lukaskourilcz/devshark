@@ -356,7 +356,10 @@ presses "Reveal answer" (migration 056).
 The button is a `control` action, `reveal`: the server stores the question in
 `matches.revealed_idx` and `answer` then refuses it with 409
 `question_closed` (a retry of an answer that landed before the reveal still
-replays it). A classroom answer is only acknowledged (`{ ok, accepted,
+replays it). Migration 074 checks the current Classroom question again in
+the insert transaction. Pupils can answer concurrently under shared row
+locks. Reveal, Next and Finish wait for those answers to commit and prevent
+any later insert against the closed question. A classroom answer is only acknowledged (`{ ok, accepted,
 advanced: false }`), its retry included: no `is_correct` or speed bonus comes
 back, so a pupil learns whether they scored from the scoreboard once the
 question closes, and nobody can read the right option off their own reply

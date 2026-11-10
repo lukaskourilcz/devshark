@@ -20,7 +20,7 @@ DECLARE
   v_count INTEGER;
 BEGIN
   INSERT INTO public.matches (code, mode, host_id, status, questions, current_index)
-  VALUES ('CLOSE1', 'classroom', v_host, 'running', '[{"id":"q0"},{"id":"q1"},{"id":"q2"}]', 1)
+  VALUES ('CLOSE1', 'classroom', v_host, 'running', '[{"id":"q0"},{"id":"q1"},{"id":"q2"}]', 0)
   RETURNING id INTO v_match;
   INSERT INTO public.match_participants (match_id, user_id, display_name)
   VALUES (v_match, v_host, 'Teacher'), (v_match, v_ada, 'Ada'), (v_match, v_bo, 'Bo');
@@ -28,8 +28,10 @@ BEGIN
   -- Bo has just answered it right (bonus 90), which would put him on top.
   INSERT INTO public.match_answers (match_id, user_id, question_id, question_idx, selected_idx, is_correct, duration_ms, speed_bonus)
   VALUES (v_match, v_ada, 'q0', 0, 1, TRUE, 3000, 40),
-         (v_match, v_bo, 'q0', 0, 2, FALSE, 2000, 0),
-         (v_match, v_bo, 'q1', 1, 0, TRUE, 1000, 90);
+         (v_match, v_bo, 'q0', 0, 2, FALSE, 2000, 0);
+  UPDATE public.matches SET current_index = 1 WHERE id = v_match;
+  INSERT INTO public.match_answers (match_id, user_id, question_id, question_idx, selected_idx, is_correct, duration_ms, speed_bonus)
+  VALUES (v_match, v_bo, 'q1', 1, 0, TRUE, 1000, 90);
 
   -- Every answer, as before 056: Bo leads on the open question.
   SELECT string_agg(format('%s:%s/%s', display_name, score, correct), ' ' ORDER BY score DESC, total_ms ASC)

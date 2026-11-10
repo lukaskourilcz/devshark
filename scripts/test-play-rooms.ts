@@ -58,7 +58,7 @@ let beforeMatchPatch: (() => void) | undefined;
 /** Errors the database answers once each: the next request with this method
  * and path gets the status and body instead of its rows. A 500, because
  * supabase-js retries a read that met a 503. */
-const faults: Array<{ method: string; path: string; status: number; body: Row; delayMs?: number }> = [];
+const faults: Array<{ method: string; path: string; status: number; body: Row | Row[]; delayMs?: number }> = [];
 const DB_DOWN = { code: 'XX000', details: null, hint: null, message: 'the database could not answer' };
 /** The arguments of every match_scoreboard call, in order. */
 const scoreboardCalls: Row[] = [];
@@ -509,6 +509,31 @@ async function main() {
       const pupilReveal = await call('two', 'POST', 'control', { code, action: 'reveal' });
       assert.equal(pupilReveal.statusCode, 403, 'a pupil cannot reveal');
       assert.equal(room(code).revealed_idx ?? null, null);
+      // The HTTP read may see the old match just before the database closes
+      // it. The guard error must stay a 409, with no answer or grade exposed.
+      const rejected = { code: 'PT409', details: null, hint: null, message: 'question_closed' };
+      faults.push({ method: 'POST', path: '/rest/v1/match_answers', status: 409, body: rejected });
+      const rejectedByGuard = await call('host', 'POST', 'answer', { code, question_idx: 0, selected_idx: 0 });
+      assert.equal(rejectedByGuard.statusCode, 409);
+      assert.equal(rejectedByGuard.body.error.code, 'question_closed');
+      assert.equal(tables.match_answers.filter((a) => a.user_id === USERS.host.id).length, 0);
+
+      // A stored first answer still replays if it appeared after the initial
+      // read. The follow-up lookup is limited to the signed-in pupil and round.
+      faults.push({ method: 'GET', path: '/rest/v1/match_answers', status: 200, body: [] });
+      faults.push({ method: 'POST', path: '/rest/v1/match_answers', status: 409, body: rejected });
+      const replayByGuard = await call('two', 'POST', 'answer', { code, question_idx: 0, selected_idx: 0 });
+      assert.equal(replayByGuard.statusCode, 200);
+      assert.deepEqual(replayByGuard.body, ACK);
+
+      faults.push({
+        method: 'POST', path: '/rest/v1/match_answers', status: 500,
+        body: { code: '55P03', details: null, hint: null, message: 'canceling statement due to lock timeout' },
+      });
+      const busy = await call('host', 'POST', 'answer', { code, question_idx: 0, selected_idx: 0 });
+      assert.equal(busy.statusCode, 503);
+      assert.equal(busy.body.error.code, 'backend_unavailable');
+
       const reveal = await call('one', 'POST', 'control', { code, action: 'reveal' });
       assert.equal(reveal.statusCode, 200, `the presenter reveals (${JSON.stringify(reveal.body)})`);
       assert.deepEqual(reveal.body, { ok: true, status: 'running', current_index: 0, revealed_idx: 0 });

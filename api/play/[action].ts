@@ -850,7 +850,9 @@ async function answer(req: VercelRequest, res: VercelResponse) {
     );
 
     if (error) {
-      if (error.code === '23505') {
+      if (error.code === '23505' || error.code === 'PT409') {
+        // A second request may have stored this answer after our initial
+        // read, even if the question closed before this insert (migration 074).
         const replay = await withTimeout(
           supabase!
             .from('match_answers')
@@ -858,10 +860,17 @@ async function answer(req: VercelRequest, res: VercelResponse) {
             .eq('match_id', match.id)
             .eq('user_id', sub)
             .eq('question_idx', body.question_idx)
-            .single(),
+            .maybeSingle(),
         );
-        if (!replay.error && replay.data) return res.json(reply(replay.data, false));
+        if (replay.error) return jsonError(res, 503, 'backend_unavailable', 'Could not verify existing answer');
+        if (replay.data) return res.json(reply(replay.data, false));
       }
+      if (error.code === 'PT409') {
+        if (error.message === 'question_closed') return jsonError(res, 409, 'question_closed', 'The teacher closed this question');
+        if (error.message === 'wrong_question') return jsonError(res, 409, 'wrong_question', 'That is not the current question');
+        if (error.message === 'bad_state') return jsonError(res, 409, 'bad_state', 'Match is not in progress');
+      }
+      if (error.code === '55P03') return jsonError(res, 503, 'backend_unavailable', 'The match is updating. Try again.');
       logEvent('play/answer', { status: 500, error: error.message });
       return jsonError(res, 500, 'db_error', 'Could not record answer');
     }
