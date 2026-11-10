@@ -438,6 +438,18 @@ describe('the classroom presenter screen', () => {
   const tone = (name: string) => screen.getByRole('radio', { name }).getAttribute('data-tone');
   const histogramKey = () => document.querySelectorAll('[data-correct]');
 
+  it('presents answer choices without allowing the teacher to select or submit them', async () => {
+    presenting({ question_duration_s: 0 });
+    await mount();
+    const option = await screen.findByRole('radio', { name: 'alpha' });
+
+    expect(option).toBeDisabled();
+    expect(option).toHaveAttribute('aria-checked', 'false');
+    fireEvent.click(option);
+    expect(option).toHaveAttribute('aria-checked', 'false');
+    expect(api.submitMatchAnswer).not.toHaveBeenCalled();
+  });
+
   it('keeps an untimed question’s answer hidden until the teacher reveals it, and the reveal closes the question', async () => {
     presenting({ question_duration_s: 0 });
     await mount();

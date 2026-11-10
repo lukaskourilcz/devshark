@@ -1294,7 +1294,7 @@ function RunningQuestion({
                   index={i}
                   label={opt}
                   padding={2}
-                  disabled={submitted || timeUp || closedByTeacher}
+                  disabled={!isPlayer || submitted || timeUp || closedByTeacher}
                   tone={isCorrect ? 'success' : 'default'}
                 >
                   <Text>{opt}</Text>
