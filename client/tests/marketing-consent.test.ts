@@ -155,6 +155,18 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
   expect(JSON.stringify(thrown)).not.toContain('oauth-code-123');
   expect(JSON.stringify(thrown)).not.toContain('synthetic-otp');
 
+  const privateDetails = options.beforeSend!({
+    request: { url: 'https://alice:fixture-password@devshark.app/auth/callback?code=oauth-code-123' },
+    extra: { componentStack: 'at Page', response: { token: 'fixture-response-token' }, password: 'fixture-form-password' },
+    breadcrumbs: [{ data: { headers: { Authorization: 'fixture-header-token' }, method: 'GET' } }],
+  });
+  const serialized = JSON.stringify(privateDetails);
+  for (const secret of ['fixture-password', 'fixture-response-token', 'fixture-form-password', 'fixture-header-token']) {
+    expect(serialized).not.toContain(secret);
+  }
+  expect(privateDetails.request).toEqual({ url: 'https://devshark.app/auth/callback' });
+  expect(privateDetails.extra).toEqual({ componentStack: 'at Page' });
+
   const trace = options.beforeSendTransaction!({
     transaction: '/settings/github',
     request: { url: 'https://devshark.app/settings/github?code=gh-code' },

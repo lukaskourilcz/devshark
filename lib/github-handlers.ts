@@ -191,8 +191,11 @@ export async function handleGithub(op: string, req: VercelRequest, res: VercelRe
       const repos = await listInstallationRepos(await installationToken(row.installation_id));
       const chosen = repos.find((repo) => repo.full_name === body.repoFullName);
       if (!chosen || chosen.fork || chosen.owner.id !== row.account_id) return jsonError(res, 400, 'bad_repo', 'Pick a repository you own that the app is installed on');
-      const update = await withTimeout(supabase.from('github_connections').update({ repo_full_name: chosen.full_name, default_branch: chosen.default_branch, status: 'active', last_error: null, updated_at: new Date().toISOString() }).eq('user_id', userId));
+      // GitHub may answer after a reconnect. Apply the choice only to the
+      // installation whose repository list the learner was working with.
+      const update = await withTimeout(supabase.from('github_connections').update({ repo_full_name: chosen.full_name, default_branch: chosen.default_branch, status: 'active', last_error: null, updated_at: new Date().toISOString() }).eq('user_id', userId).eq('installation_id', row.installation_id).select('installation_id').maybeSingle());
       if (update.error) return jsonError(res, 500, 'db_error', 'Could not save the repository');
+      if (!update.data) return jsonError(res, 409, 'connection_changed', 'Your GitHub connection changed. Choose a repository again.');
       return res.json(describe(await readConnection(supabase, userId), await queuedCount(supabase, userId)));
     }
 

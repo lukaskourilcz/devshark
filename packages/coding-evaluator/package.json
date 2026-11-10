@@ -8,9 +8,14 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     }
   },
   "files": ["dist", "README.md", "LICENSE"],
@@ -18,7 +23,7 @@
   "engines": { "node": ">=20" },
   "scripts": {
     "build": "node build.mjs",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs && tsc --strict --noEmit --module node16 test/types-consumer.mts"
   },
   "keywords": ["coding-exercises", "evaluator", "deep-equal", "education", "devshark"],
   "author": "Lukáš Kouřil",

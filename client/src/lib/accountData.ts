@@ -76,7 +76,9 @@ export function beforeAccountChange(settle: () => void): () => void {
   settlers.add(settle);
   return () => { settlers.delete(settle); };
 }
-const settle = () => settlers.forEach((one) => one());
+const settle = () => settlers.forEach((one) => {
+  try { one(); } catch { /* A failed draft flush must never prevent the account wipe. */ }
+});
 
 // A device copy, its time and a copy set aside, per task (coding/drafts.ts),
 // and where an involuntary sign-out keeps them: the account's id and the

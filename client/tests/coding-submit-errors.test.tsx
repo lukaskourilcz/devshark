@@ -23,9 +23,13 @@ vi.mock('../src/coding/runner/run-tests', async (importOriginal) => ({
   ...await importOriginal<typeof import('../src/coding/runner/run-tests')>(),
   runCodeTests: vi.fn(async () => ({ results: [{ pass: true, actual: '1', error: null }], logs: [], codeError: null, check: null, timedOut: false })),
 }));
+const reactPreview = vi.hoisted(() => ({ stuck: false }));
 vi.mock('../src/coding/useReactHarness', () => {
   const run = { token: 'local', status: 'done', compileError: null, previewError: null, cases: [{ name: 'renders', status: 'pass', error: null, durationMs: 0 }], logs: [], passed: 1, failed: 0, total: 1, ran: true };
-  const handle = { ready: true, run, start: async () => run, reload: () => {}, iframeRef: () => {}, frameKey: 0 };
+  const handle = { ready: true, run, start: async () => {
+    if (reactPreview.stuck) await new Promise<never>(() => {});
+    return run;
+  }, reload: () => {}, iframeRef: () => {}, frameKey: 0 };
   return { HARNESS_URL: '/sandbox/index.html', useReactHarness: () => handle };
 });
 
@@ -102,4 +106,22 @@ it('shows a React grader outage as a problem to retry, not as a build error or a
   expect(screen.queryByText(/Build error/)).toBeNull();
   expect(screen.queryByRole('heading', { level: 3, name: 'Error' })).toBeNull();
   await waitFor(() => expect(screen.getByRole('button', { name: 'Submit' })).not.toHaveAttribute('aria-disabled'));
+});
+
+it('submits React code even when the browser preview never becomes ready', async () => {
+  vi.mocked(submitCoding).mockReset();
+  vi.mocked(submitCoding).mockResolvedValue({
+    verdict: 'passed', results: [{ pass: true, actual: '1', error: null }], hidden: null, check: null, logs: [],
+    codeError: null, design: null, designReference: null, failureHint: null, puzzle: null, progress: null,
+    firstPass: true, xpAwarded: 0, xpForfeited: false, applied: true, github: null, solutions: null,
+  });
+  reactPreview.stuck = true;
+  try {
+    mount(reactTask);
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(submitCoding).toHaveBeenCalledWith(expect.objectContaining({ code: reactTask.starter, session: 'test-session' }));
+    expect(await screen.findByRole('heading', { level: 3, name: /^Passed/ })).toBeVisible();
+  } finally {
+    reactPreview.stuck = false;
+  }
 });

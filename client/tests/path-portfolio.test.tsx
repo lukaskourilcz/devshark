@@ -47,6 +47,21 @@ describe('saved portfolio writing', () => {
       expect(init.method).toBeUndefined();
     }
   });
+  it('exports other writing when an older draft contains non-text fields', async () => {
+    calls.fetch.mockResolvedValueOnce({ draft: {
+      ...saved(ids[0]).draft,
+      content: { artifact: { decision: 'Keep valid writing', oldField: { result: '<img src="https://example.invalid">' } } },
+    } });
+    setup();
+    fireEvent.click(screen.getByRole('button', { name: 'Export writing as Markdown' }));
+    await waitFor(() => expect(calls.download).toHaveBeenCalledTimes(1));
+    const file = calls.download.mock.lastCall![0] as File;
+    const md = await file.text();
+    expect(md).toContain('Keep valid writing');
+    expect(md).toContain('Walkthrough script');
+    expect(md).toContain('### oldField\n\n```text\n{"result":');
+  });
+
   it('refuses a partial file after a failed read and lets the learner retry', async () => {
     calls.fetch.mockRejectedValueOnce(new Error('Could not load the draft'));
     setup(); fireEvent.click(screen.getByRole('button', { name: 'Export writing as JSON' }));

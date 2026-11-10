@@ -176,7 +176,7 @@ function Leaderboard() {
       : { period: 'global', categories: subjectCategories };
   const cacheKey = `${request.period}:${request.period === '30d' || request.period === 'category' ? request.category ?? '' : ''}`;
 
-  const { data, error, isLoading, isFetching, isPlaceholderData, fetchStatus, dataUpdatedAt, refetch } = useLeaderboard(request);
+  const { data, error, isLoading, isFetching, isPlaceholderData, fetchStatus, dataUpdatedAt, refetch } = useLeaderboard(request, user?.id ?? null);
   const reload = () => void refetch();
 
   // While the next board loads, the previous one stays on screen (a

@@ -310,12 +310,25 @@ INSERT INTO public.cosmetic_entitlements (user_id, cosmetic_id, equipped)
 SELECT s.user_id, 'crown', TRUE FROM seed_friends s WHERE s.crown
 ON CONFLICT (user_id, cosmetic_id) DO UPDATE SET equipped = TRUE;
 
--- The pair is stored ordered: friendships holds one row per unordered pair and
--- CHECK (user_low < user_high) enforces it, so the order is computed up front.
+-- This fixture works with both versions of the relationship key. Never
+-- overwrite a block or turn a muted pending row into an accepted friendship.
+LOCK TABLE public.friendships IN SHARE ROW EXCLUSIVE MODE;
+UPDATE public.friendships f
+   SET state = 'accepted', responded_at = NOW()
+  FROM seed_friends s
+ WHERE f.user_low = s.pair_low AND f.user_high = s.pair_high AND f.blocked_by IS NULL
+   AND NOT EXISTS (
+     SELECT 1 FROM public.friendships b
+      WHERE b.user_low = s.pair_low AND b.user_high = s.pair_high AND b.blocked_by IS NOT NULL
+   );
 INSERT INTO public.friendships (user_low, user_high, requested_by, state, responded_at)
-SELECT s.pair_low, s.pair_high, s.user_id, 'accepted', NOW() FROM seed_friends s
-ON CONFLICT (user_low, user_high) DO UPDATE SET
-  state = 'accepted', blocked_by = NULL, responded_at = NOW();
+SELECT s.pair_low, s.pair_high, s.user_id, 'accepted', NOW()
+  FROM seed_friends s
+ WHERE NOT EXISTS (
+   SELECT 1 FROM public.friendships b
+    WHERE b.user_low = s.pair_low AND b.user_high = s.pair_high AND b.blocked_by IS NOT NULL
+ )
+ON CONFLICT DO NOTHING;
 
 COMMIT;
 

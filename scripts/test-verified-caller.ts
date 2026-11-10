@@ -125,8 +125,14 @@ const RETIRED_REPORTED = 'rm-js-21';
 /** While true, the one-time quiz claim fails as an unreachable database would. */
 let claimFails = false;
 let healthReadFails = false;
+let healthReadHangs = false;
+let closedHealthReads = 0;
+const dailyMarkers = new Map<string, { grade_key: string; created_at: string }>();
+let dailyMarkerUnavailable = false;
 /** Token checks Supabase Auth answered, so a test can count a request's. */
 let authChecks = 0;
+let authDeleteError: { status: number; code: string } | null = null;
+let cardWriteError: { code: string; message: string } | null = null;
 /** How a read of the auth event log answers: normally, failing, or as a
  * table the migration has not created yet. */
 let authEventsRead: 'ok' | 'down' | 'missing' = 'ok';
@@ -190,6 +196,10 @@ async function startStandIns() {
     const adminUser = /^\/auth\/v1\/admin\/users\/([\w-]+)$/.exec(url.pathname);
     if (adminUser && req.method === 'DELETE') {
       seen.push({ method: 'DELETE', path: url.pathname, filters: {}, body: await readBody(req).then((raw) => raw ? JSON.parse(raw) as unknown : undefined) });
+      if (authDeleteError) {
+        res.setHeader('X-Supabase-Api-Version', '2024-01-01');
+        return send(authDeleteError.status, { code: authDeleteError.code, message: 'stand-in: identity deletion' });
+      }
       return send(200, {});
     }
     // The admin API saving an account's user_metadata (a learning preference).
@@ -238,12 +248,32 @@ async function startStandIns() {
     if (url.pathname === '/rest/v1/auth_events' && req.method === 'GET' && authEventsRead === 'missing') return send(404, { code: 'PGRST205', message: "Could not find the table 'public.auth_events' in the schema cache" });
     const filters = Object.fromEntries([...url.searchParams.entries()].filter(([, value]) => value.startsWith('eq.')).map(([key, value]) => [key, value.slice(3)]));
     seen.push({ method: req.method ?? 'GET', path: url.pathname, filters, body });
+    if (cardWriteError && url.pathname === '/rest/v1/flashcards' && req.method === 'POST') return send(409, cardWriteError);
     if (healthReadFails && url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key') return send(500, { code: '42501', message: 'permission denied for table quiz_submissions' });
+    if (healthReadHangs && url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key') {
+      res.once('close', () => { if (!res.writableEnded) closedHealthReads++; });
+      return;
+    }
+    if (url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key,created_at') {
+      if (dailyMarkerUnavailable) return send(500, { code: '08006', message: 'stand-in: start marker unavailable' });
+      const keys = url.searchParams.get('grade_key')?.slice(4, -1).split(',') ?? [];
+      return send(200, [...dailyMarkers.values()].filter((row) => keys.includes(row.grade_key)));
+    }
     const rpc = /^\/rest\/v1\/rpc\/([a-z0-9_]+)$/.exec(url.pathname)?.[1];
     if (rpc) {
       if (rpc === 'claim_quiz_submission' && claimFails) return send(500, { code: '08006', message: 'stand-in: connection failure' });
+      if (rpc === 'claim_quiz_submission' && typeof (body as Row | undefined)?.p_grade_key === 'string' &&
+          String((body as Row).p_grade_key).startsWith('daily-start:')) {
+        // Another instance won the insert between this request's read and its claim.
+        const gradeKey = String((body as Row).p_grade_key);
+        dailyMarkers.set(gradeKey, { grade_key: gradeKey, created_at: new Date(Date.now() - 10_000).toISOString() });
+        return send(200, 'replay');
+      }
       if (rpc === 'allocate_shark_name') return send(200, { handle: 'sleepySharkie17', ordinal: '17', base: 'sleepySharkie' });
       if (rpc === 'referral_summary') return send(200, { code: 'ab234567' });
+      if (rpc === 'request_friend' && (body as Row | undefined)?.p_handle === 'locked-friend') {
+        return send(500, { code: '55P03', message: 'canceling statement due to lock timeout' });
+      }
       // Migration 064 raises for a run already saved with another score.
       if (rpc === 'save_completed_challenge_score' && (body as Row).p_score === CONFLICTING_CHALLENGE_SCORE) return send(400, { code: 'P0001', message: 'challenge_score_conflict' });
       if (rpc === 'save_completed_challenge_score') return send(200, { id: 'score-17', name: 'sleepySharkie17', score: (body as Row).p_score, selected_topics: (body as Row).p_topics, all_topics: (body as Row).p_all_topics, created_at: new Date().toISOString() });
@@ -298,7 +328,7 @@ async function startStandIns() {
     GITHUB_APP_CLIENT_ID: 'Iv1.verified-caller',
     GITHUB_APP_CLIENT_SECRET: 'verified-caller-secret',
   });
-  for (const key of ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY', 'NODE_ENV', 'VERCEL_ENV', 'VERCEL', 'DEV_PASSWORD', 'ALLOW_LEGACY_DEV_PASSWORD', 'OWNER_EMAIL']) {
+  for (const key of ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY', 'NODE_ENV', 'VERCEL_ENV', 'VERCEL', 'DEV_PASSWORD', 'ALLOW_LEGACY_DEV_PASSWORD', 'OWNER_EMAIL', 'STRIPE_SECRET_KEY']) {
     delete process.env[key];
   }
   return [supabase, upstash];
@@ -366,11 +396,15 @@ async function main() {
     ]);
 
     type Handler = (req: never, res: never) => unknown;
-    const call = async (handler: Handler, input: { method?: string; query?: Record<string, string>; body?: unknown; account?: Account; from?: string }) => {
+    const call = async (handler: Handler, input: { method?: string; query?: Record<string, string>; body?: unknown; account?: Account; from?: string; authorization?: string | string[] }) => {
       const res = mockResponse();
       await handler({
         method: input.method ?? 'GET',
-        headers: { ...(input.account ? { authorization: `Bearer ${input.account.token}` } : {}), 'x-forwarded-for': input.from ?? nextAddress() },
+        headers: {
+          ...(input.account ? { authorization: `Bearer ${input.account.token}` } : {}),
+          ...(input.authorization !== undefined ? { authorization: input.authorization } : {}),
+          'x-forwarded-for': input.from ?? nextAddress(),
+        },
         query: input.query ?? {},
         url: '/api',
         body: input.body,
@@ -427,6 +461,81 @@ async function main() {
     assert.equal(authChecks, 0, 'opening a guest level does not ask Supabase Auth');
     assert.equal((reads('/rest/v1/roadmap_attempts').find((row) => row.method === 'POST')?.body as Row)?.user_id, null);
     console.log('PASS verified caller: GETs that write account rows ask Auth fresh, and guest starts still work');
+
+    seen.length = 0;
+    const startedDaily = await call(daily as Handler, { account: A });
+    assert.equal(startedDaily.statusCode, 200, JSON.stringify(startedDaily.body));
+    const dailySession = tokens.decodeSessionEnvelope((startedDaily.body as { sessionId: string }).sessionId);
+    const claim = reads('/rest/v1/rpc/claim_quiz_submission').find((row) => row.method === 'POST');
+    const dailyMarker = dailyMarkers.get(String((claim?.body as Row | undefined)?.p_grade_key));
+    assert.ok(dailyMarker);
+    assert.equal(dailySession?.startedAt, Date.parse(dailyMarker.created_at), 'a concurrent daily start uses the winning database marker');
+    dailyMarkerUnavailable = true;
+    try {
+      const unknownStart = await call(daily as Handler, { account: A });
+      assert.equal(unknownStart.statusCode, 503, JSON.stringify(unknownStart.body));
+      assert.equal(errorCode(unknownStart), 'daily_start_unavailable');
+      assert.equal(await call(daily as Handler, {}).then((response) => response.statusCode), 200, 'guests do not depend on the ranked start marker');
+    } finally {
+      dailyMarkerUnavailable = false;
+    }
+    console.log('PASS verified caller: a ranked daily uses the stored start even when another request won the insert');
+
+    const guestToken = (guestDaily.body as { sessionId: string }).sessionId;
+    const guestQuiz = tokens.decodeSessionEnvelope(guestToken)!;
+    const guestAnswers = Object.fromEntries(guestQuiz.questions.map(({ questionId, correctAnswer }) => [questionId, correctAnswer]));
+    const authBeforeMalformed = authChecks;
+    seen.length = 0;
+    for (const authorization of ['', 'Bearer', 'Bearer wrong token', 'Basic invalid', ['Bearer first', 'Bearer second']]) {
+      const start = await call(daily as Handler, { authorization });
+      assert.equal(start.statusCode, 401, `daily start refuses malformed credentials: ${JSON.stringify(authorization)}`);
+      const grade = await call(submit as Handler, { method: 'POST', body: { sessionId: guestToken, answers: guestAnswers }, authorization });
+      assert.equal(grade.statusCode, 401, 'quiz grading must not silently submit malformed credentials as a guest');
+    }
+    assert.equal(authChecks, authBeforeMalformed, 'locally malformed credentials need no upstream Auth request');
+    assert.equal(reads('/rest/v1/rpc/claim_quiz_submission').length, 0, 'malformed credentials must not spend a grading claim');
+    console.log('PASS verified caller: optional Auth distinguishes a guest from malformed credentials');
+
+    const cardBody = { subject: 'webdev', question_id: guestQuiz.questions[0].questionId, question: 'Synthetic question', correct_answer: 'Synthetic answer' };
+    try {
+      cardWriteError = { code: '23503', message: 'flashcard_account_missing' };
+      const erasedCard = await call(flashcards as Handler, { method: 'POST', account: A, body: cardBody });
+      assert.equal(erasedCard.statusCode, 401, 'a card write rejected by the deleted-account guard requires sign-in');
+      assert.equal(errorCode(erasedCard), 'invalid_token');
+      cardWriteError = { code: '55P03', message: 'canceling statement due to lock timeout' };
+      const busyCard = await call(flashcards as Handler, { method: 'POST', account: A, body: cardBody });
+      assert.equal(busyCard.statusCode, 503, 'a card that waits behind erasure may be retried');
+      assert.equal(errorCode(busyCard), 'flashcard_busy');
+    } finally {
+      cardWriteError = null;
+    }
+    console.log('PASS verified caller: a card write distinguishes erasure from a busy owner lock');
+
+    const busyFriend = await user('friends-request', { method: 'POST', account: A, body: { handle: 'locked-friend' } });
+    assert.equal(busyFriend.statusCode, 503, JSON.stringify(busyFriend.body));
+    assert.equal(errorCode(busyFriend), 'friendship_busy');
+    console.log('PASS verified caller: a friendship lock timeout is retryable');
+
+    const publicChallenge = await call(challenge as Handler, { query: { resource: 'leaderboard' } });
+    assert.equal(publicChallenge.statusCode, 200, JSON.stringify(publicChallenge.body));
+    assert.match(publicChallenge.headers['cache-control'] ?? '', /^public,/);
+    const exhaustedBoardAddress = nextAddress();
+    const boardClock = Date.now;
+    const frozenBoardTime = boardClock();
+    Date.now = () => frozenBoardTime;
+    try {
+      const boardRequest = { headers: { 'x-forwarded-for': exhaustedBoardAddress } } as never;
+      for (let i = 0; i < rateLimit.RATE_LIMITS.readAddress.capacity; i++) {
+        assert.ok(rateLimit.checkRateLimit(boardRequest, mockResponse() as never, rateLimit.RATE_LIMITS.readAddress));
+      }
+      const before = reads('/rest/v1/rpc/challenge_leaderboard').length;
+      const busyBoard = await call(challenge as Handler, { from: exhaustedBoardAddress, query: { resource: 'leaderboard', nonce: 'cache-miss' } });
+      assert.equal(busyBoard.statusCode, 429, 'a Challenge board cache miss respects the public board address limit');
+      assert.equal(reads('/rest/v1/rpc/challenge_leaderboard').length, before, 'a rejected cache miss does no database work');
+    } finally {
+      Date.now = boardClock;
+    }
+    console.log('PASS verified caller: Challenge leaderboard cache misses are rate-limited before SQL');
 
     // Leaderboard identity is independent of friends and cannot publish a full email.
     seen.length = 0;
@@ -742,6 +851,20 @@ async function main() {
       assert.equal(reads('/rest/v1/user_stats').length - before.database, 2, 'a later probe checks again');
     }
     console.log('PASS verified caller: health probes that arrive together share one check');
+
+    healthReadHangs = true;
+    try {
+      const timedOutHealth = await call(health as Handler, {});
+      assert.equal(timedOutHealth.statusCode, 503, 'a stalled dependency still fails readiness');
+      for (let wait = 0; wait < 20 && closedHealthReads === 0; wait++) {
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+      assert.equal(closedHealthReads, 1, 'the deadline cancels the stalled HTTP request, not only the caller’s wait');
+    } finally {
+      healthReadHangs = false;
+    }
+    assert.equal((await call(health as Handler, {})).statusCode, 200, 'the next health probe can recover');
+    console.log('PASS verified caller: a timed-out health probe aborts its stalled request');
 
     // ── the retired progress PUT ─────────────────────────────────────────
     // It answered with the progress read and wrote nothing; the server writes
@@ -1122,6 +1245,25 @@ async function main() {
     assert.equal(seen.filter((one) => one.method === 'DELETE' && one.path === `/auth/v1/admin/users/${EMAIL.id}`).length, 1, 'and its sign-in identity is deleted');
     console.log('PASS verified caller: an email and password account signs in, stays unnamed on boards, and deletes');
 
+    try {
+      seen.length = 0;
+      authDeleteError = { status: 404, code: 'user_not_found' };
+      const goneAlready = await user('delete-account', { method: 'DELETE', account: A, body: { confirmation: 'DELETE' } });
+      assert.equal(goneAlready.statusCode, 200, 'another request already deleting the identity is a successful deletion');
+      assert.deepEqual(goneAlready.body, { ok: true });
+      assert.equal(reads('/rest/v1/rpc/delete_user_data').length, 2, 'the confirmed-absent identity still gets the final cleanup');
+
+      seen.length = 0;
+      authDeleteError = { status: 500, code: 'unexpected_failure' };
+      const unknownDelete = await user('delete-account', { method: 'DELETE', account: B, body: { confirmation: 'DELETE' } });
+      assert.equal(unknownDelete.statusCode, 500, 'an unknown identity outcome cannot be reported as deleted');
+      assert.equal(errorCode(unknownDelete), 'auth_delete_failed');
+      assert.equal(reads('/rest/v1/rpc/delete_user_data').length, 1, 'final cleanup is reserved for a confirmed identity deletion');
+    } finally {
+      authDeleteError = null;
+    }
+    console.log('PASS verified caller: only a confirmed missing identity makes deletion idempotent');
+
     // A sign-in report while Supabase Auth is down says so; 401 would say the
     // session ended.
     const eventDown = await user('authevent', { method: 'POST', account: AUTH_DOWN, body: {} });
@@ -1238,7 +1380,10 @@ async function main() {
 
     console.log('Verified-caller contracts passed: a token acts for its own account whatever user_id says, admin by confirmed address or role, private caching by default, read limits, and one-time claims that fail closed.');
   } finally {
-    for (const server of servers) server.close();
+    for (const server of servers) {
+      server.close();
+      server.closeAllConnections();
+    }
   }
 }
 

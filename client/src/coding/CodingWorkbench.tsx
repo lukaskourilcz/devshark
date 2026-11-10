@@ -441,15 +441,15 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
           }
           result = await submitCoding({ session, code, runCount, hintsUsed: taken, durationMs });
         } else {
-          // The frame runs the suite so the learner sees named cases and a
-          // fresh preview straight away; the verdict itself comes from the
-          // server, which runs the same suite where it cannot be edited.
+          // The browser preview and the authoritative grader are independent.
+          // Send Submit now even if the sandbox frame cannot load or run.
           setFrameWanted(true);
           const restoreFocus = keepFocus();
           setRunSource(code);
-          const outcome = await harness.start(files(), { tests: true, preview: true });
-          restoreFocus();
-          if (!(outcome.status === 'done' && outcome.total > 0 && outcome.failed === 0)) setFailedRun(true);
+          void harness.start(files(), { tests: true, preview: true }).then((outcome) => {
+            restoreFocus();
+            if (!(outcome.status === 'done' && outcome.total > 0 && outcome.failed === 0)) setFailedRun(true);
+          }, restoreFocus);
           setRunCount((n) => n + 1);
           selectTab('results');
           result = await submitCoding({ session, code, runCount: runCount + 1, hintsUsed: taken, durationMs });
@@ -703,13 +703,14 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
 
   /* ── panels ─────────────────────────────────────────────────────────── */
   const localPassed = run ? runPassed(run) : null;
+  const suiteCases = useMemo(() => suiteCaseNames(task.suite), [task.suite]);
   // Server results replace the local run after Submit; otherwise a runner
   // startup error looked like a stale failed browser test with no explanation.
   const reactRun: HarnessRun | null = serverChecked && verdict && isReact && !checklist
     ? {
       token: harness.run?.token ?? 'server', status: verdict.codeError ? 'compile-error' : verdict.verdict === 'timeout' ? 'timeout' : 'done',
       compileError: verdict.codeError, previewError: harness.run?.previewError ?? null,
-      cases: verdict.results.map((result, index) => ({name: harness.run?.cases[index]?.name ?? `${index + 1}`, status: result.pass ? 'pass' : 'fail', error: result.error ?? null, durationMs: 0})),
+      cases: verdict.results.map((result, index) => ({name: harness.run?.cases[index]?.name ?? suiteCases[index] ?? `${index + 1}`, status: result.pass ? 'pass' : 'fail', error: result.error ?? null, durationMs: 0})),
       logs: harness.run?.logs ?? [], passed: verdict.results.filter(result => result.pass).length,
       failed: verdict.results.filter(result => !result.pass).length, total: verdict.results.length, ran: true,
     } : harness.run;
@@ -750,7 +751,6 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   // The junior and senior solutions arrive with a verified pass — this one, or
   // a recorded earlier one — and from nowhere else.
   const solutions: CodingSolutionPair | null = (passedNow || recordedPass || progress?.status === 'passed') ? verdict?.solutions ?? approaches.data?.solutions ?? null : null;
-  const suiteCases = useMemo(() => suiteCaseNames(task.suite), [task.suite]);
   // Public, authored calls only. Large fixtures still belong in Results;
   // they would turn the short examples into a second scrolling test suite.
   const publicExamples = useMemo(() => (task.tests ?? []).flatMap((test) => {

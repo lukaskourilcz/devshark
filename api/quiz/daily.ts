@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '../../lib/vercel-types.js';
 import { createHash } from 'node:crypto';
 import { encodeSession, quizSessionExpiresAt, stableAttemptId } from '../../lib/quiz-tokens';
 import { PRIVATE_CATEGORIES, type Question } from '../../lib/quiz-runtime';
-import { createLogger, createServiceClient, jsonError, tryAuthOnce, withRequestContext, withTimeout } from '../../lib/http';
+import { createLogger, createServiceClient, jsonError, ServiceUnavailableError, tryAuthOnce, withRequestContext, withTimeout } from '../../lib/http';
 import { getEffectiveQuestions } from '../../lib/questions-store';
 import { getGameSettings } from '../../lib/settings-store';
 import { enforceClassRateLimit, RATE_LIMITS } from '../../lib/rate-limit';
@@ -32,39 +32,45 @@ function dateString(): string {
  * that first sight, so fetching the same questions again just before
  * submitting does not shorten it. Kept as a marker row beside the attempt's
  * own one-time grading claim, under its own key, so no schema change is
- * needed; the claim row itself says the attempt was submitted. Unknown
- * (null) when the database cannot say, and the session's own issue time is
- * used, as before. */
-async function dailyStart(input: { attemptId: string; userId: string; subject: ScopeSubjectId }): Promise<{ startedAt: number | null; completed: boolean }> {
+ * needed; the claim row itself says the attempt was submitted. An unknown
+ * ranked start is retryable: a fresh token must not shorten a stored time. */
+async function dailyStart(input: { attemptId: string; userId: string; subject: ScopeSubjectId }): Promise<{ startedAt: number; completed: boolean }> {
   const startKey = `daily-start:${input.attemptId}`;
-  if (!supabase) {
-    if (isProduction) return { startedAt: null, completed: false };
+  const db = supabase;
+  if (!db && !isProduction) {
     if (!localDailyStarts.has(startKey)) localDailyStarts.set(startKey, Date.now());
     return { startedAt: localDailyStarts.get(startKey)!, completed: false };
   }
   try {
-    const rows = await withTimeout(
-      supabase.from('quiz_submissions').select('grade_key, created_at').in('grade_key', [startKey, input.attemptId]),
-    );
-    if (rows.error) throw new Error(rows.error.message);
-    const completed = (rows.data ?? []).some((row) => row.grade_key === input.attemptId);
-    const marker = (rows.data ?? []).find((row) => row.grade_key === startKey);
-    if (marker) {
-      const startedAt = Date.parse(String(marker.created_at));
-      return { startedAt: Number.isFinite(startedAt) ? Math.min(startedAt, Date.now()) : null, completed };
+    if (!db) throw new Error('ranked database is not configured');
+    const readRows = async () => {
+      const result = await withTimeout(db.from('quiz_submissions').select('grade_key, created_at')
+        .eq('user_id', input.userId).eq('subject', input.subject).in('grade_key', [startKey, input.attemptId]));
+      if (result.error) throw new Error(result.error.message);
+      return result.data ?? [];
+    };
+    let rows = await readRows();
+    if (!rows.some((row) => row.grade_key === startKey)) {
+      const claimed = await withTimeout(db.rpc('claim_quiz_submission', {
+        p_grade_key: startKey,
+        p_attempt_id: input.attemptId,
+        p_user_id: input.userId,
+        p_subject: input.subject,
+        p_answer_hash: DAILY_START_HASH,
+      }));
+      if (claimed.error) throw new Error(claimed.error.message);
+      if (claimed.data !== 'claimed' && claimed.data !== 'replay') throw new Error('invalid start claim');
+      // Use the same committed time when this request inserted the marker and
+      // when another instance inserted it between our read and claim.
+      rows = await readRows();
     }
-    const claimed = await withTimeout(supabase.rpc('claim_quiz_submission', {
-      p_grade_key: startKey,
-      p_attempt_id: input.attemptId,
-      p_user_id: input.userId,
-      p_subject: input.subject,
-      p_answer_hash: DAILY_START_HASH,
-    }));
-    if (claimed.error) throw new Error(claimed.error.message);
-    return { startedAt: Date.now(), completed };
+    const marker = rows.find((row) => row.grade_key === startKey);
+    const startedAt = Date.parse(String(marker?.created_at));
+    if (!Number.isFinite(startedAt)) throw new Error('start marker is missing or invalid');
+    return { startedAt: Math.min(startedAt, Date.now()), completed: rows.some((row) => row.grade_key === input.attemptId) };
   } catch (error) {
-    logEvent({ status: 200, reason: 'daily_start_unavailable', error: error instanceof Error ? error.message : 'unknown' });
-    return { startedAt: null, completed: false };
+    logEvent({ status: 503, reason: 'daily_start_unavailable', error: error instanceof Error ? error.message : 'unknown' });
+    throw new ServiceUnavailableError('daily_start_unavailable', 'Could not start the ranked daily challenge. Try again in a moment.');
   }
 }
 

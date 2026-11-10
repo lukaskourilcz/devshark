@@ -99,7 +99,7 @@ import type {
   SubmitActivityRequest,
   SubmitActivityResponse,
 } from '../../shared/learning-path-api';
-import { PATH_LIMITS } from '../../shared/learning-path-api';
+import { isPathDraftContent, PATH_LIMITS } from '../../shared/learning-path-api';
 import { LEARN_SECTION_IDS, isLearnSectionId } from '../../shared/learn-section-ids';
 import { MAX_ADDRESS_FIELD, MERCH_ENABLED, SHIRT_SIZES, validateAddress } from '../../shared/rewards';
 
@@ -1562,8 +1562,8 @@ export async function handlePathDraft(req: VercelRequest, res: VercelResponse, s
       return jsonError(res, 400, 'bad_request', 'expectedRevision must be a whole number');
     }
     const content = body.content;
-    if (!content || typeof content !== 'object' || Array.isArray(content)) {
-      return jsonError(res, 400, 'bad_request', 'content is required');
+    if (!isPathDraftContent(content)) {
+      return jsonError(res, 400, 'bad_request', 'Draft content must contain code or writing.');
     }
     const serialized = JSON.stringify(content);
     if (Buffer.byteLength(serialized, 'utf8') > PATH_LIMITS.payloadBytes) {
@@ -1574,16 +1574,21 @@ export async function handlePathDraft(req: VercelRequest, res: VercelResponse, s
       return jsonError(res, 413, 'too_large', 'Code is limited to 20 kB');
     }
 
-    const saved = await withTimeout(supabase.rpc('save_learning_path_draft', {
+    const params = {
       p_user_id: userId,
       p_enrollment_id: body.enrollmentId,
       p_activity_id: body.activityId,
       p_expected_revision: body.expectedRevision,
       p_content: content,
       p_max_drafts: PATH_LIMITS.draftsPerEnrollment,
-    }));
+    };
+    let saved = await withTimeout(supabase.rpc('save_learning_path_draft_v2', params));
+    if (isRpcMissing(saved.error)) saved = await withTimeout(supabase.rpc('save_learning_path_draft', params));
     if (saved.error) {
       if (migrationMissing(res, saved.error)) return;
+      if (saved.error.code === '55P03') {
+        return jsonError(res, 503, 'draft_busy', 'The draft is busy. Try again.');
+      }
       // Two first saves of one activity at once (a second tab or device) both
       // find no row and both insert at revision 0; the later one meets the
       // (enrollment, activity) key. The other save's copy is now the newer

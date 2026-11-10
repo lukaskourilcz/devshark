@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '../lib/vercel-types.js';
-import { createServiceClient, jsonError, withTimeout, logEvent, withRequestContext } from '../lib/http';
+import { createServiceClient, jsonError, logEvent, withRequestContext } from '../lib/http';
 
 const service = createServiceClient();
 
@@ -10,15 +10,18 @@ type DependencyStatus = 'ok' | 'down' | 'unconfigured';
  * error, so the 503 a monitor sees has a line in the logs saying why. */
 async function dependencyStatus(dependency: string, table: string, column: string): Promise<DependencyStatus> {
   if (!service) return 'unconfigured';
+  const deadline = AbortSignal.timeout(1_500);
   let reason: string;
   try {
-    const { error } = await withTimeout(service.from(table).select(column).limit(1), 1500);
+    // Closing the probe must release its HTTP connection as well as its
+    // waiting callers. A later probe can then try without piling up reads.
+    const { error } = await service.from(table).select(column).limit(1).abortSignal(deadline);
     if (!error) return 'ok';
     reason = error.code || 'query_error';
   } catch (error) {
     reason = error instanceof Error ? error.message : 'unknown';
   }
-  logEvent('health', { level: 'error', category: 'dependency_check', dependency, reason });
+  logEvent('health', { level: 'error', category: 'dependency_check', dependency, reason: deadline.aborted ? 'upstream_timeout' : reason });
   return 'down';
 }
 
@@ -29,7 +32,7 @@ async function dependencyStatus(dependency: string, table: string, column: strin
 let running: Promise<[DependencyStatus, DependencyStatus]> | null = null;
 
 /** The database and service-role checks, run together (a monitor waits for
- * the slower one only, not their sum: up to 3 s while the database hangs). */
+ * the slower one only, not their sum: up to 1.5 s while the database hangs). */
 function checkDependencies(): Promise<[DependencyStatus, DependencyStatus]> {
   running ??= Promise.all([
     dependencyStatus('database', 'user_stats', 'id'),

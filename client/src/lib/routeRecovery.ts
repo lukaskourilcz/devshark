@@ -89,7 +89,8 @@ export async function checkServedBuild(timeoutMs = BUILD_CHECK_TIMEOUT_MS): Prom
     const response = await fetch('/', { cache: 'no-store', credentials: 'same-origin', signal: controller.signal });
     if (!response.ok) return 'unreachable';
     const served = entryScript(new DOMParser().parseFromString(await response.text(), 'text/html'));
-    return running && served && served !== running ? 'newer' : 'same';
+    if (!running || !served) return 'unreachable';
+    return served !== running ? 'newer' : 'same';
   } catch {
     return 'unreachable';
   } finally {

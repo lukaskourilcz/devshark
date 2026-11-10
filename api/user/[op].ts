@@ -223,7 +223,9 @@ async function deleteAccount(req: VercelRequest, res: VercelResponse) {
     }
 
     const { error } = await withTimeout(supabase!.auth.admin.deleteUser(auth.sub), 8000);
-    if (error) {
+    // A concurrent, already authenticated deletion may get here after the
+    // first request removed the identity. Auth's explicit absence is success.
+    if (error && error.code !== 'user_not_found') {
       logEvent('delete-account', { status: 500, reason: 'auth_delete_failed', error: error.message });
       return jsonError(res, 500, 'auth_delete_failed', 'Account data was removed, but the sign-in identity could not be deleted');
     }

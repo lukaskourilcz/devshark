@@ -4,6 +4,10 @@
 -- table and its rows stay. Deleting an account still erases both, and only
 -- that account's rows.
 
+INSERT INTO auth.users (id) VALUES
+  ('cccccccc-0000-4000-8000-000000000200'),
+  ('cccccccc-0000-4000-8000-000000000201');
+
 SET LOCAL ROLE service_role;
 
 DO $$

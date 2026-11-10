@@ -45,10 +45,11 @@ const KNOWN: Record<string, { status: number; code: string; message: string }> =
   no_handle: { status: 409, code: 'no_handle', message: 'Choose a sharkname first' },
 };
 
-function rpcError(res: VercelResponse, error: { message?: string } | null, fallback: string, migration = '033') {
+function rpcError(res: VercelResponse, error: { code?: string; message?: string } | null, fallback: string, migration = '033') {
   // A sharkname allocation that timed out (lib/http.ts) is the database busy
   // for a moment, which the client may retry: 503, never a 500.
   if (error instanceof ServiceUnavailableError) return jsonError(res, 503, error.code, error.message);
+  if (error?.code === '55P03') return jsonError(res, 503, 'friendship_busy', 'A friendship update is in progress. Try again in a moment.');
   const raised = Object.keys(KNOWN).find((key) => error?.message?.includes(key));
   if (raised) {
     const known = KNOWN[raised];
@@ -191,10 +192,9 @@ export async function handleFriends(
       );
       if (error) return rpcError(res, error, 'Could not send the request');
       logEvent({ status: 200, op: 'request', state: String(data) });
-      // The routine answers 'pending' for a request it recorded, for one that
-      // was already waiting and, on purpose, for one a block dropped. The
-      // screen names states from the asker's side, where all three read as
-      // "Request sent", so a blocked asker learns nothing either.
+      // A newly recorded request, a retry, and a request muted by a block
+      // have the same outward state for the sender. The recipient does not
+      // see a muted request.
       return res.json({ state: data === 'pending' ? 'pending_out' : data });
     }
 

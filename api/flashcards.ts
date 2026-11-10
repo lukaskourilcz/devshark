@@ -87,6 +87,12 @@ export async function handleFlashcards(req: VercelRequest, res: VercelResponse, 
       const { data, error } = await withTimeout(
         db.from('flashcards').upsert(row, { onConflict: 'user_id,question_id' }).select(FIELDS).single(),
       );
+      if (error?.code === '23503' && error.message === 'flashcard_account_missing') {
+        return jsonError(res, 401, 'invalid_token', 'This account is no longer available. Sign in again.');
+      }
+      if (error?.code === '55P03') {
+        return jsonError(res, 503, 'flashcard_busy', 'The account is being updated. Try again in a moment.');
+      }
       if (error) return jsonError(res, 500, 'db_error', 'Could not save card');
       return res.json({ card: data });
     }

@@ -19,7 +19,12 @@ export class ApiError extends Error {
   }
 }
 
-type Options = RequestInit & { timeoutMs?: number; signal?: AbortSignal };
+type Options = RequestInit & {
+  timeoutMs?: number;
+  signal?: AbortSignal;
+  /** Refuse to send this request with any other account's session. */
+  expectedUserId?: string;
+};
 
 // Attach the current user's Supabase access token to API requests so the
 // server can verify identity. Read directly from the Supabase session, which
@@ -37,11 +42,11 @@ type Options = RequestInit & { timeoutMs?: number; signal?: AbortSignal };
 // `auth_unavailable`. Only a browser with no stored session sends no token.
 const TOKEN_READ_LIMIT_MS = 4_000;
 
-async function getAccessToken(): Promise<string | null> {
+async function getAccessToken(expectedUserId?: string): Promise<string | null> {
   if (!mayHaveSession()) return null;
   // A stored token supabase-js would hand out unchanged goes at once, without
   // the download (lib/supabaseClient.ts, freshStoredAccessToken).
-  const stored = freshStoredAccessToken();
+  const stored = freshStoredAccessToken(undefined, expectedUserId);
   if (stored) return stored;
   let timer: number | undefined;
   let session: Awaited<ReturnType<typeof getSupabaseSession>> = null;
@@ -57,7 +62,9 @@ async function getAccessToken(): Promise<string | null> {
   } finally {
     window.clearTimeout(timer);
   }
-  if (session?.access_token) return session.access_token;
+  if (session?.access_token) {
+    return !expectedUserId || session.user?.id === expectedUserId ? session.access_token : null;
+  }
   // supabase-js removes a session it can no longer refresh; one it keeps is
   // waiting for the network.
   if (hasStoredSession()) {
@@ -94,7 +101,7 @@ export const isPremiumRequired = (err: unknown): boolean =>
   err instanceof ApiError && err.status === 402 && err.code === PREMIUM_REQUIRED;
 
 export async function apiFetch<T>(url: string, opts: Options = {}): Promise<T> {
-  const { timeoutMs = DEFAULT_TIMEOUT_MS, signal, ...rest } = opts;
+  const { timeoutMs = DEFAULT_TIMEOUT_MS, signal, expectedUserId, ...rest } = opts;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(new Error('timeout')), timeoutMs);
 
@@ -107,7 +114,8 @@ export async function apiFetch<T>(url: string, opts: Options = {}): Promise<T> {
   try {
     // Inside the try, so a token that cannot be read settles like any other
     // failure: the timer and the abort listener are released below.
-    const token = isPublicRead(url, rest.method) ? null : await getAccessToken();
+    const token = isPublicRead(url, rest.method) ? null : await getAccessToken(expectedUserId);
+    if (expectedUserId && !token) throw new ApiError(translateStatic('error.cancelled'), 0, 'cancelled');
     const res = await fetch(url, {
       ...rest,
       signal: controller.signal,

@@ -150,6 +150,13 @@ describe('the served build', () => {
     expect(requests).toBe(2);
   });
 
+  it('does not reload into a successful response that is not an app shell', async () => {
+    server.use(http.get('http://localhost:3000/', () => new HttpResponse('<h1>Temporarily unavailable</h1>', {
+      headers: { 'content-type': 'text/html' },
+    })));
+    await expect(checkServedBuild()).resolves.toBe('unreachable');
+  });
+
   it('calls a failed, refused or slow answer unreachable', async () => {
     server.use(http.get('http://localhost:3000/', () => HttpResponse.error()));
     await expect(checkServedBuild()).resolves.toBe('unreachable');

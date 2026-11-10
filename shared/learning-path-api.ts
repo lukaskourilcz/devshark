@@ -374,6 +374,20 @@ export interface PathDraft {
   updatedAt: string;
 }
 
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/** A draft holds code as text, or artifact fields as text or lists of text. */
+export function isPathDraftContent(value: unknown): value is PathDraft['content'] {
+  if (!isPlainObject(value)) return false;
+  const { code, artifact } = value;
+  if (code === undefined && artifact === undefined) return false;
+  if (code !== undefined && typeof code !== 'string') return false;
+  if (artifact === undefined) return true;
+  return isPlainObject(artifact) && Object.values(artifact).every((field) =>
+    typeof field === 'string' || (Array.isArray(field) && field.every((one) => typeof one === 'string')));
+}
+
 /** GET/PUT /api/user/[op]?op=learning-path-draft */
 export interface DraftGetResponse {
   draft: PathDraft | null;
@@ -385,7 +399,7 @@ export interface DraftSaveRequest {
   /** The revision the client believes it is editing. A stale value conflicts
    * rather than overwriting a newer save from another device. */
   expectedRevision: number;
-  content: { code?: string; artifact?: Record<string, string | string[]> };
+  content: PathDraft['content'];
 }
 
 export interface DraftSaveResponse {

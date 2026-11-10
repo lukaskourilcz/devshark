@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, render } from '@testing-library/react';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { queryClient } from '../src/lib/queryClient';
+import { accountEpoch, beforeAccountChange } from '../src/lib/accountData';
 
 type Listener = (event: string, session: unknown) => void;
 const auth = vi.hoisted(() => ({ listeners: new Set<(event: string, session: unknown) => void>() }));
@@ -66,6 +67,27 @@ describe('an account change empties the query cache before the next account draw
     expect(drawn.filter(([id]) => id === 'bob').length).toBeGreaterThan(0);
     expect(drawn.filter(([id, data]) => id === 'bob' && data !== undefined)).toEqual([]);
     expect(queryClient.getQueryData(KEY)).toBeUndefined();
+  });
+
+  it('still forgets private storage when settling a pending draft fails', async () => {
+    mount();
+    emit('SIGNED_IN', session('ada'));
+    await seed('ada coins');
+    localStorage.setItem('devshark:coding:draft:html-1', '// Ada only');
+    const oldEpoch = accountEpoch();
+    const stopBroken = beforeAccountChange(() => { throw new Error('draft unavailable'); });
+    const settleOther = vi.fn();
+    const stopOther = beforeAccountChange(settleOther);
+    try {
+      emit('SIGNED_IN', session('bob'));
+      expect(settleOther).toHaveBeenCalledOnce();
+      expect(accountEpoch()).toBeGreaterThan(oldEpoch);
+      expect(localStorage.getItem('devshark:coding:draft:html-1')).toBeNull();
+      expect(drawn[drawn.length - 1]).toEqual(['bob', undefined]);
+    } finally {
+      stopOther();
+      stopBroken();
+    }
   });
 
   it('when the account signs out', async () => {

@@ -1,5 +1,5 @@
 // Bundles src/index.ts (and the shared/ modules it re-exports) into ESM and
-// CommonJS, then writes one flat declaration file with the TypeScript API.
+// CommonJS, then writes matching TypeScript declarations for each format.
 import { build } from 'esbuild';
 import { rmSync, mkdirSync, writeFileSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -28,15 +28,24 @@ if (errors.length) {
   console.error(ts.formatDiagnostics(errors, { getCanonicalFileName: (f) => f, getCurrentDirectory: () => here, getNewLine: () => '\n' }));
   process.exit(1);
 }
-// NodeNext consumers need explicit extensions on relative specifiers.
-const addExtensions = (dir) => {
+// Node's TypeScript resolution needs matching extensions for the entry
+// and every relative import within its declaration graph.
+function writeDeclarationFormats(dir) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const file = path.join(dir, entry.name);
-    if (entry.isDirectory()) { addExtensions(file); continue; }
-    writeFileSync(file, readFileSync(file, 'utf8').replace(/(from\s+['"])(\.{1,2}\/[^'"]+?)(?<!\.js)(['"])/g, '$1$2.js$3'));
+    if (entry.isDirectory()) {
+      writeDeclarationFormats(file);
+      continue;
+    }
+    if (!entry.name.endsWith('.d.ts')) continue;
+    const source = readFileSync(file, 'utf8');
+    const withExtension = (ext) => source.replace(/(from\s+['"])(\.{1,2}\/[^'"]+?)(?:\.js)?(['"])/g, `$1$2.${ext}$3`);
+    writeFileSync(file, withExtension('js'));
+    writeFileSync(file.replace(/\.d\.ts$/, '.d.cts'), withExtension('cjs'));
   }
-};
-addExtensions(path.join(dist, 'types'));
+}
+writeDeclarationFormats(path.join(dist, 'types'));
 const entry = './types/packages/coding-evaluator/src/index';
 writeFileSync(path.join(dist, 'index.d.ts'), `export * from '${entry}.js';\n`);
+writeFileSync(path.join(dist, 'index.d.cts'), `export * from '${entry}.cjs';\n`);
 console.log('built', readFileSync(path.join(dist, 'index.js')).length, 'bytes (esm)');

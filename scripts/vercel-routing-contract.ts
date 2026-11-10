@@ -21,6 +21,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOINDEX_PATHS } from '../client/src/lib/publicMetadata';
 
 interface Route {
   src?: string;
@@ -113,6 +114,8 @@ const APP_STYLES = '/assets/main-BmQx2Zrs.css';
 const WORKER_CHUNK = '/assets/coding-worker/worker-duXtWM9V.js';
 const SANDBOX_CHUNK = '/sandbox/assets/index-DKkK9iSG.js';
 const ASSET_PATHS = [APP_CHUNK, APP_STYLES, `${APP_CHUNK}.map`, WORKER_CHUNK, SANDBOX_CHUNK, '/assets/', '/sandbox/assets/'];
+const STATIC_MEDIA_PATHS = ['/og/', '/og/coding/stale.png', '/brand/', '/brand/v9/recommended/stale.svg'];
+const FILE_PATHS = [...ASSET_PATHS, ...STATIC_MEDIA_PATHS];
 const DOCUMENTS = ['/', '/index.html', '/coding', '/coding/javascript/js-double-numbers', '/premium/index.html', '/topics/javascript-closures/index.html', '/sandbox/index.html'];
 const WORKER_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'; connect-src 'self'";
 
@@ -122,6 +125,17 @@ export function vercelRoutingContracts(): void {
   const handles = (config.routes ?? []).filter((route) => route.handle !== undefined).map((route) => route.handle);
   assert.deepEqual(handles, ['filesystem', 'hit'], 'vercel.json routes: header rules, then the filesystem phase, then the hit phase, each once');
   const phases = routePhases(config);
+
+  // The browser adds robots metadata on navigation, but an email or payment
+  // return must also stay out of search when a crawler never executes JS.
+  for (const pathname of NOINDEX_PATHS) {
+    for (const path of [pathname, `${pathname}/`]) {
+      assert.equal(phaseHeaders(path, 'main', phases)['x-robots-tag'], 'noindex', `${path} is excluded before the app renders`);
+    }
+  }
+  for (const path of ['/', '/premium', '/premium/cancel', '/daily', '/topics/javascript-closures']) {
+    assert.equal(phaseHeaders(path, 'main', phases)['x-robots-tag'], undefined, `${path} remains indexable`);
+  }
 
   // Every rule before the filesystem check only adds headers, so none of them
   // ends the request early and every rule after it still runs. The one
@@ -155,7 +169,7 @@ export function vercelRoutingContracts(): void {
     assert.ok(route.dest === undefined && route.continue === undefined, `${route.src} answers with a redirect and ends the request`);
     assert.deepEqual(Object.keys(route.headers ?? {}), ['Location'], `${route.src} sets Location and nothing else`);
     assert.ok(phases.main.indexOf(route) > Math.max(...phases.main.filter((one) => one.status === undefined).map((one) => phases.main.indexOf(one))), `${route.src} comes after every header rule`);
-    for (const path of [...ASSET_PATHS, ...DOCUMENTS]) assert.ok(!routeMatches(route, path), `${route.src} would redirect ${path}`);
+    for (const path of [...FILE_PATHS, ...DOCUMENTS]) assert.ok(!routeMatches(route, path), `${route.src} would redirect ${path}`);
   }
   // The FDE path moved into its Learn section (#489, plan decision D4). Its
   // old addresses answer a crawler with a 308 to the new one, the module kept.
@@ -204,11 +218,11 @@ export function vercelRoutingContracts(): void {
     assert.match(cache, /max-age=\d{6,}/, `${path} should be cached for a long time, not seconds`);
   }
 
-  // A path under /assets/ or /sandbox/assets/ that matched no file answers 404
-  // with no-store, before any rewrite could answer it with index.html.
+  // Missing bundles and public images answer 404 with no-store before any
+  // rewrite could answer them with index.html.
   const [missing] = phases.filesystem;
   assert.ok(missing, 'the filesystem phase starts with the rule for a missing asset');
-  for (const path of ASSET_PATHS) {
+  for (const path of FILE_PATHS) {
     assert.ok(routeMatches(missing, path), `${path}: a missing file reaches the 404 rule`);
   }
   assert.equal(missing.status, 404, 'a missing asset answers 404');
@@ -216,7 +230,7 @@ export function vercelRoutingContracts(): void {
   assert.equal(missing.continue, undefined, 'the 404 for a missing asset ends the request');
   assert.equal(Object.entries(missing.headers ?? {}).find(([key]) => key.toLowerCase() === 'cache-control')?.[1], 'no-store', 'no cache keeps the 404 for a missing asset');
   for (const route of phases.filesystem.slice(1)) {
-    for (const path of ASSET_PATHS) assert.ok(!routeMatches(route, path), `${route.src} would answer ${path} after the 404 rule`);
+    for (const path of FILE_PATHS) assert.ok(!routeMatches(route, path), `${route.src} would answer ${path} after the 404 rule`);
   }
 
   // No rewrite may catch an asset path, the SPA fallback included, and the
@@ -224,7 +238,7 @@ export function vercelRoutingContracts(): void {
   const rewrites = config.rewrites ?? [];
   for (const rewrite of rewrites) {
     const pattern = rewriteSourcePattern(rewrite.source);
-    for (const path of ASSET_PATHS) {
+    for (const path of FILE_PATHS) {
       assert.ok(!pattern.test(path), `the rewrite ${rewrite.source} → ${rewrite.destination} catches ${path}`);
     }
   }
@@ -253,8 +267,9 @@ export function vercelRoutingContracts(): void {
   assert.equal(firstMatch('/coding/javascript')?.destination, '/coding/:track/index.html', 'a track page keeps its own head');
   assert.equal(firstMatch('/coding/javascript/js-double-numbers')?.destination, '/coding/:track/:taskId/index.html', 'a task page keeps its own head');
 
-  // Documents stay revalidated, or a deploy would never reach anyone.
-  for (const path of DOCUMENTS) {
+  // Public images and documents use stable names. An updated image or
+  // document must be revalidated before it can be shown in a share preview.
+  for (const path of [...DOCUMENTS, ...STATIC_MEDIA_PATHS, '/og/coding/js-double-numbers.png']) {
     for (const phase of ['main', 'hit'] as const) {
       assert.doesNotMatch(phaseHeaders(path, phase, phases)['cache-control'] ?? '', /immutable/, `${path} is a document and must not be cached immutably`);
     }

@@ -222,7 +222,7 @@ export const sendHeartbeat = (code: string, host_id: string) =>
 
 export const fetchLeaderboard = (
   period: LeaderboardPeriod = 'global',
-  options: { date?: string; category?: string | null; categories?: string[]; personal?: boolean; signal?: AbortSignal } = {},
+  options: { date?: string; category?: string | null; categories?: string[]; viewer?: string | null; signal?: AbortSignal } = {},
 ) => {
   const qs = new URLSearchParams({ period });
   if (options.date && period === 'daily') qs.set('date', options.date);
@@ -236,8 +236,9 @@ export const fetchLeaderboard = (
   // A signed-in learner's 30-day and month boards carry their own line.
   // `me=1` gives that personal variant its own URL, so a shared cache never
   // serves the anonymous board in its place.
-  if (options.personal && (period === '30d' || period === 'month')) qs.set('me', '1');
-  return apiFetch<LeaderboardResponse>(`/api/leaderboard?${qs}`, { signal: options.signal });
+  const viewer = period === '30d' || period === 'month' ? options.viewer : null;
+  if (viewer) qs.set('me', '1');
+  return apiFetch<LeaderboardResponse>(`/api/leaderboard?${qs}`, { signal: options.signal, expectedUserId: viewer ?? undefined });
 };
 
 export const fetchDistribution = (code: string, questionIdx: number, hostId: string) =>

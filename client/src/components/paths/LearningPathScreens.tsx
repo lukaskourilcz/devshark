@@ -655,6 +655,7 @@ interface DraftChannel {
   activityId: string;
   revision: number;
   inFlight: boolean;
+  conflict: boolean;
   queued: PathDraft['content'] | null;
   epoch: number;
 }
@@ -742,18 +743,20 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
       .then((started) => {
         if (cancelled) return;
         const kept = localDraftOver(enrollmentId, activityId, started.draft, started.draftUnavailable === true);
+        const conflict = !!(kept && started.draft && !started.draftUnavailable && kept.revision !== started.draft.revision);
         attempt.current = { session: started.session, expiresAt: started.expiresAt, key: newIdempotencyKey(), usedUp: false };
         drafts.current = {
           enrollmentId,
           activityId,
-          revision: started.draft?.revision ?? kept?.revision ?? 0,
+          revision: kept?.revision ?? started.draft?.revision ?? 0,
           inFlight: false,
+          conflict,
           queued: kept?.content ?? null,
           epoch: accountEpoch(),
         };
         setOpen(started);
         setDraft(kept ?? started.draft);
-        setDraftStatus(started.draft ? 'saved' : 'idle');
+        setDraftStatus(conflict ? 'conflict' : started.draft ? 'saved' : 'idle');
         capturePathEvent(
           started.previous && started.previous.attempts > 0
             ? 'learning_path_returned'
@@ -779,7 +782,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
   }, [activityId, enrollmentId, curriculumVersion, deal, pathId]);
 
   const pushDraft = useCallback(async (channel: DraftChannel | null) => {
-    if (!channel || channel.inFlight || !channel.queued || channelGone(channel)) return;
+    if (!channel || channel.inFlight || channel.conflict || !channel.queued || channelGone(channel)) return;
     const live = () => drafts.current === channel;
     channel.inFlight = true;
     try {
@@ -814,7 +817,8 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
           // The newest unsaved content waits for the next keystroke or the
           // connection coming back.
           channel.queued ??= content;
-          if (live()) setDraftStatus(caught instanceof ApiError && caught.code === 'draft_conflict' ? 'conflict' : 'error');
+          channel.conflict = caught instanceof ApiError && caught.code === 'draft_conflict';
+          if (live()) setDraftStatus(channel.conflict ? 'conflict' : 'error');
           return;
         }
       }

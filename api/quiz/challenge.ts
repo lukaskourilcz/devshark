@@ -58,6 +58,9 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     if (!scope.ok) {
       return jsonError(res, 400, 'invalid_subject_scope', 'Categories must belong to this deployment and one subject');
     }
+    // Shared responses stay cacheable, but varied query strings can miss the
+    // CDN. Give those reads the same address backstop as the other boards.
+    if (!(await enforceRateLimit(req, res, RATE_LIMITS.readAddress))) return;
     try {
       const board = await getChallengeLeaderboard(scope.subject, 10);
       res.setHeader('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=60');
@@ -254,6 +257,7 @@ async function handleCompleteRun(req: VercelRequest, res: VercelResponse) {
   // 060 the routines below answer as they did.
   let xpHeld: QuestionXpHeld | null = null;
   let heldAward: number | null = null;
+  let completionCanHoldXp = answers !== null;
   let { data, error } = await withTimeout(
     supabase.rpc('record_challenge_completion_v2', answers ? { ...completion, p_outcomes: answers.outcomes } : completion),
   );
@@ -269,9 +273,11 @@ async function handleCompleteRun(req: VercelRequest, res: VercelResponse) {
     ));
   }
   if (isRpcMissing(error) && answers) {
+    completionCanHoldXp = false;
     ({ data, error } = await withTimeout(supabase.rpc('record_challenge_completion', completion)));
   }
   if (isRpcMissing(error)) {
+    completionCanHoldXp = false;
     ({ data, error } = await withTimeout(
       supabase.rpc('record_verified_activity_xp', {
         p_user_id: auth.sub,
@@ -285,29 +291,36 @@ async function handleCompleteRun(req: VercelRequest, res: VercelResponse) {
     if (isRpcMissing(error)) return jsonError(res, 503, 'migration_required', 'Verified progression migration is not installed');
     return jsonError(res, 500, 'db_error', 'Could not record challenge progress');
   }
-  // From migration 058 a correct answer whose question paid this account XP
-  // less than an hour ago pays nothing, so the run may be awarded less than
-  // its score: the award row says how much. Without 058, or when the row
-  // cannot be read, the run was awarded in full.
-  const awardedXp = data !== true ? 0 : heldAward !== null ? Math.min(heldAward, xp) : await awardedRunXp(run.runId, xp);
-  // Tokens follow verified XP, keyed to the same award. A replay credits
-  // nothing, and a wallet that cannot be reached never fails the learning.
-  if (data === true) {
+  // Compatibility completions may have held back some XP. Use their
+  // recorded award, and use the same receipt to reconcile a retry after
+  // an interrupted credit. The coin ledger deduplicates by award id.
+  const awarded = data === true;
+  const awardedXp = awarded && (heldAward !== null || !completionCanHoldXp)
+    ? Math.max(0, Math.min(heldAward ?? xp, xp))
+    : !awarded && xpHeld ? 0 : await awardedRunXp(auth.sub, run.runId, xp);
+  if (awardedXp === null || (awarded && awardedXp === 0)) {
+    return jsonError(res, 503, 'progress_unavailable', 'Could not check the Challenge award. Try again.');
+  }
+  if (awardedXp > 0) {
     await creditVerifiedXp(supabase, { userId: auth.sub, awardId: `challenge:${run.runId}`, subject: run.subject, xp: awardedXp });
+  }
+  if (awarded) {
     // From migration 048 an awarded run is a streak day, so a Premium streak
     // milestone may have just been reached. Idempotent; a failure costs nothing.
     await settleMilestones(supabase, auth.sub, run.subject);
   }
-  return res.json({ ok: true, awarded: data === true, score, record, xp: data === true ? awardedXp : xp, ...(xpHeld ? { xpHeld } : {}) });
+  return res.json({ ok: true, awarded, score, record, xp: awarded ? awardedXp : xp, ...(xpHeld ? { xpHeld } : {}) });
 }
 
-/** The XP a completed run was awarded (verified_activity_awards). */
-async function awardedRunXp(runId: string, runXp: number): Promise<number> {
+/** The amount in a committed award, zero if no award exists, null if unreadable. */
+async function awardedRunXp(userId: string, runId: string, runXp: number): Promise<number | null> {
   const row = await withTimeout(
-    supabase!.from('verified_activity_awards').select('xp').eq('award_id', `challenge:${runId}`).maybeSingle(),
+    supabase!.from('verified_activity_awards').select('xp').eq('award_id', `challenge:${runId}`).eq('user_id', userId).maybeSingle(),
   ).catch(() => null);
-  const value = (row?.data as { xp?: unknown } | null | undefined)?.xp;
-  return !row || row.error || typeof value !== 'number' || !Number.isInteger(value) ? runXp : Math.min(value, runXp);
+  if (!row || row.error) return null;
+  if (!row.data) return 0;
+  const value = (row.data as { xp?: unknown }).xp;
+  return typeof value === 'number' && Number.isInteger(value) && value > 0 ? Math.min(value, runXp) : null;
 }
 
 /**

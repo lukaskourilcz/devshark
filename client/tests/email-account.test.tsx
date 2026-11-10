@@ -16,14 +16,21 @@ import Leaderboard from '../src/components/Leaderboard';
 import { PlayLanding } from '../src/components/Play';
 import { DEFAULT_CONFIG, GAME_CONFIG_KEY } from '../src/lib/gameConfig';
 import { server } from './mocks/server';
-import { emailUser } from './mocks/gotrue';
-import { leaderboardHandlers, settingsHandler, visibilityHandler } from './mocks/handlers';
+import { emailUser, sessionFor } from './mocks/gotrue';
+import { boardFor, pinnedData, settingsHandler, visibilityHandler } from './mocks/handlers';
 
 const USER = emailUser({ email: 'ada.lovelace@example.com' });
-const auth = vi.hoisted(() => ({ value: { user: null as unknown, isAuthenticated: false, isLoading: false } }));
+const auth = vi.hoisted(() => ({
+  value: { user: null as ReturnType<typeof emailUser> | null, isAuthenticated: false, isLoading: false },
+}));
 vi.mock('../src/lib/auth', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../src/lib/auth')>()),
   useAuth: () => ({ ...auth.value, signOut: async () => undefined, signInResumeFailed: false, passwordRecovery: false }),
+}));
+vi.mock('../src/lib/supabaseClient', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/lib/supabaseClient')>()),
+  mayHaveSession: () => auth.value.user !== null,
+  getSupabaseSession: async () => auth.value.user ? sessionFor(auth.value.user) : null,
 }));
 afterEach(() => { auth.value = { user: null, isAuthenticated: false, isLoading: false }; });
 
@@ -188,13 +195,21 @@ describe('an account made with an email and password', () => {
 
   it('uses the server-confirmed account name on the boards without publishing the full email or photo', async () => {
     serveAccount(true);
-    server.use(leaderboardHandlers.pinned);
+    const personalReads: Array<{ authorization: string | null; viewer: string | null }> = [];
+    server.use(http.get('*/api/leaderboard', ({ request }) => {
+      personalReads.push({
+        authorization: request.headers.get('authorization'),
+        viewer: new URL(request.url).searchParams.get('me'),
+      });
+      return HttpResponse.json(boardFor(request, pinnedData));
+    }));
     await mount('/leaderboard', <Leaderboard />);
     const pinned = (await screen.findByRole('table')).querySelector('tfoot tr') as HTMLElement;
     expect(within(pinned).getByText('ada.lovelace')).toBeVisible();
     expect(within(pinned).getByText('You')).toBeVisible();
     expect(pinned.querySelector('img')).toBeNull();
     expect(document.body).not.toHaveTextContent(/@example\.com/);
+    expect(personalReads).toEqual([{ authorization: 'Bearer access-token-email', viewer: '1' }]);
   });
 
   // A live room names its players on the server (lib/public-identity.ts):

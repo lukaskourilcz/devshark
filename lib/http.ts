@@ -10,7 +10,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { randomUUID } from 'node:crypto';
 import { timedSupabaseFetch, withServerTiming } from './request-timing';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { AuthError, getBearer, requireAuth, type AuthResult } from './auth';
+import { AuthError, hasAuthorizationHeader, requireAuth, type AuthResult } from './auth';
 import { SUBJECT_SCOPE_CATALOG } from '../shared/subject-catalog';
 import { gatedRef, PREMIUM_REQUIRED, type GatedContent, type GatedKind, type PremiumRequiredBody } from '../shared/tiers';
 
@@ -286,7 +286,7 @@ export async function verifiedCallerId(req: VercelRequest): Promise<string | nul
  * rate limit already verified the caller (`enforceClassRateLimit`) reads that
  * result here instead of asking Supabase Auth again. */
 export async function tryAuthOnce(req: VercelRequest): Promise<AuthResult | null> {
-  if (!getBearer(req)) return null;
+  if (!hasAuthorizationHeader(req)) return null;
   const outcome = await verifyOnce(req);
   if (outcome instanceof AuthError) throw outcome;
   return outcome;

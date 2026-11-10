@@ -284,6 +284,82 @@ describe('a returning visitor with a stored session', () => {
     }
   });
 
+  it('does not restore a stale boot snapshot after a newer account event', async () => {
+    localStorage.setItem(KEY, JSON.stringify(STORED));
+    const original = sb.createClient.getMockImplementation()!;
+    let finishBoot!: () => void;
+    sb.createClient.mockImplementationOnce((url, key, options) => {
+      const client = original(url, key, options);
+      client.auth.getSession.mockImplementationOnce(() => new Promise((resolve) => {
+        finishBoot = () => resolve({ data: { session: STORED }, error: null });
+      }));
+      return client;
+    });
+    recordSignInReports();
+    await mountAuth();
+    await waitFor(() => expect(finishBoot).toBeTypeOf('function'));
+    const next = sb.sessionFor('next-access-token', 'user-next');
+    await act(async () => {
+      localStorage.setItem(KEY, JSON.stringify(next));
+      sb.clients[0].emit('SIGNED_IN', next);
+    });
+    expect(screen.getByTestId('auth')).toHaveTextContent('user:user-next');
+    await act(async () => { finishBoot(); });
+    expect(screen.getByTestId('auth')).toHaveTextContent('user:user-next');
+  });
+
+  it('forgets a deleted account without signing out a replacement session', async () => {
+    localStorage.setItem(KEY, JSON.stringify(STORED));
+    const { current } = await mountAuth();
+    await waitFor(() => expect(screen.getByTestId('auth')).toHaveTextContent('user:user-stored'));
+    const replacement = sb.sessionFor('next-access-token', 'user-next');
+    localStorage.setItem(KEY, JSON.stringify(replacement));
+    expect(current().forgetDeletedAccount('user-stored')).toBe(false);
+    expect(JSON.parse(localStorage.getItem(KEY)!)).toEqual(replacement);
+    expect(sb.clients[0].auth.signOut).not.toHaveBeenCalled();
+
+    localStorage.setItem(KEY, JSON.stringify(STORED));
+    act(() => expect(current().forgetDeletedAccount('user-stored')).toBe(true));
+    expect(localStorage.getItem(KEY)).toBeNull();
+    expect(screen.getByTestId('auth')).toHaveTextContent('signed-out');
+    expect(sb.clients[0].auth.signOut).not.toHaveBeenCalled();
+  });
+
+  it('forgets the deleted session in a second tab without clearing its replacement', async () => {
+    localStorage.setItem(KEY, JSON.stringify(STORED));
+    await mountAuth();
+    await waitFor(() => expect(screen.getByTestId('auth')).toHaveTextContent('user:user-stored'));
+    const replacement = sb.sessionFor('next-access-token', 'user-next');
+    const removed = (oldValue: string) => window.dispatchEvent(new window.StorageEvent('storage', {
+      storageArea: localStorage,
+      key: KEY,
+      oldValue,
+      newValue: null,
+    }));
+
+    // A delayed deletion event cannot discard a newer persisted session.
+    localStorage.setItem(KEY, JSON.stringify(replacement));
+    act(() => { removed(JSON.stringify(STORED)); });
+    expect(localStorage.getItem(KEY)).toBe(JSON.stringify(replacement));
+    expect(screen.getByTestId('auth')).toHaveTextContent('user:user-stored');
+    recordSignInReports();
+    await act(async () => { sb.clients[0].emit('SIGNED_IN', replacement); });
+    expect(screen.getByTestId('auth')).toHaveTextContent('user:user-next');
+
+    // With storage now empty, a stale event for the old account still cannot
+    // wipe this tab. Only the event for the active account can finish it.
+    localStorage.removeItem(KEY);
+    localStorage.setItem('devshark:coding:draft:html-1', '// current account draft');
+    act(() => { removed(JSON.stringify(STORED)); });
+    expect(screen.getByTestId('auth')).toHaveTextContent('user:user-next');
+    expect(localStorage.getItem('devshark:coding:draft:html-1')).not.toBeNull();
+    localStorage.setItem('devshark:signed-out-by-choice', String(Date.now()));
+    act(() => { removed(JSON.stringify(replacement)); });
+    expect(screen.getByTestId('auth')).toHaveTextContent('signed-out');
+    expect(localStorage.getItem('devshark:coding:draft:html-1')).toBeNull();
+    expect(localStorage.getItem('devshark:coding:kept:v1')).toBeNull();
+  });
+
   it('restores the user when the client loaded before the provider mounted', async () => {
     localStorage.setItem(KEY, JSON.stringify(STORED));
     const reports = recordSignInReports();
@@ -331,6 +407,17 @@ describe('a returning visitor with a stored session', () => {
     await expect(apiFetch('/api/test')).resolves.toEqual({ ok: true });
     expect(authorization).toEqual(['Bearer stored-access-token']);
     expect(sb.createClient).not.toHaveBeenCalled();
+  });
+
+  it('sends account-bound requests only with the named account’s token', async () => {
+    localStorage.setItem(KEY, JSON.stringify(STORED));
+    const authorization = recordAuthorization();
+    const { apiFetch } = await import('../src/lib/api');
+    await expect(apiFetch('/api/test', { expectedUserId: 'user-stored' })).resolves.toEqual({ ok: true });
+    await expect(apiFetch('/api/test', { expectedUserId: 'user-other' })).rejects.toMatchObject({ code: 'cancelled' });
+    localStorage.removeItem(KEY);
+    await expect(apiFetch('/api/test', { expectedUserId: 'user-stored' })).rejects.toMatchObject({ code: 'cancelled' });
+    expect(authorization).toEqual(['Bearer stored-access-token']);
   });
 
   it('reads the stored token only while supabase-js would hand it out unchanged', async () => {

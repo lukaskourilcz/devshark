@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import type { SupabaseClient, User } from '@supabase/supabase-js';
+import type { AuthChangeEvent, Session, SupabaseClient, User } from '@supabase/supabase-js';
 import {
   forgetStoredSession,
   getSupabaseSession,
@@ -7,6 +7,7 @@ import {
   loadSupabase,
   mayHaveSession,
   onSupabaseAuthStateChange,
+  onSupabaseSessionRemoved,
   openedOnAuthRedirect,
   storedSessionUserId,
   supabaseForSession,
@@ -150,6 +151,8 @@ interface AuthContextValue {
    * supabase-js announces SIGNED_OUT here, which forgets the account's data
    * on this device. */
   signOut: (scope?: SignOutScope) => Promise<void>;
+  /** Forget a server-deleted account only while it still owns this browser session. */
+  forgetDeletedAccount: (userId: string) => boolean;
   /** A sign-in pressed before a reload failed when this document finished it
    * (there is no button of that press left to say so). */
   signInResumeFailed: boolean;
@@ -173,6 +176,7 @@ const AuthContext = createContext<AuthContextValue>({
     throw new Error('useAuth must be used within an AuthProvider');
   },
   signOut: async () => {},
+  forgetDeletedAccount: () => false,
   signInResumeFailed: false,
   passwordRecovery: false,
   draftsKept: false,
@@ -258,11 +262,11 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
     // for that same sign-in is not reported. An OAuth return's INITIAL_SESSION
     // is the new sign-in itself, so nothing is remembered for it.
     let restored: string | null = null;
-    // Whether supabase-js has said anything yet: after that its events, not
-    // a session read that missed the boot deadline, say who is here.
-    let heard = false;
-    const unsubscribe = onSupabaseAuthStateChange((event, session) => {
-      heard = true;
+    // Once the provider hears an Auth event, the boot read can no longer
+    // replace the session, even if the older snapshot eventually succeeds.
+    let bootCurrent = true;
+    const handleAuthChange = (event: AuthChangeEvent, session: Session | null) => {
+      bootCurrent = false;
       if (session?.user) signedIn(session.user.id);
       setUser(session?.user ?? null);
       setIsLoading(false);
@@ -285,7 +289,16 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
         accountSignedIn = false;
         accountId = null;
       }
+    };
+    const stopAuthEvents = onSupabaseAuthStateChange(handleAuthChange);
+    const stopSessionRemoval = onSupabaseSessionRemoved((userId) => {
+      if (signedInAccount() === userId) handleAuthChange('SIGNED_OUT', null);
     });
+    const unsubscribe = () => {
+      bootCurrent = false;
+      stopAuthEvents();
+      stopSessionRemoval();
+    };
 
     if (!mayHaveSession()) {
       setIsLoading(false);
@@ -304,13 +317,16 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
     // out, like a stalled session read always has.
     void withDeadline(getSupabaseSession(), AUTH_BOOT_TIMEOUT_MS)
       .then((session) => {
+        if (!bootCurrent) return;
         if (session?.user) signedIn(session.user.id);
         setUser(session?.user ?? null);
       })
       .catch(() => {
-        if (!heard) setUser(null);
+        if (bootCurrent) setUser(null);
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        if (bootCurrent) setIsLoading(false);
+      });
 
     return unsubscribe;
   }, []);
@@ -361,6 +377,17 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
     setUser(null);
   };
 
+  function forgetDeletedAccount(userId: string): boolean {
+    // The browser's stored session can change before this tab receives the
+    // Auth event. The server has already removed the old account, so there
+    // is no need for an SDK sign-out that might later pick up a new session.
+    const storedUserId = storedSessionUserId();
+    if (signedInAccount() !== userId || (storedUserId && storedUserId !== userId)) return false;
+    chooseSignOut();
+    forgetSessionHere();
+    return true;
+  }
+
   // supabase-js signs out every device by default. Log out means this
   // browser; signing out everywhere is its own, explicit action.
   //
@@ -389,7 +416,7 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, isLoading, signInWithGoogle, signOut, signInResumeFailed, passwordRecovery, draftsKept, dismissDraftsKept: () => setDraftsKept(false) }}
+      value={{ user, isAuthenticated: !!user, isLoading, signInWithGoogle, signOut, forgetDeletedAccount, signInResumeFailed, passwordRecovery, draftsKept, dismissDraftsKept: () => setDraftsKept(false) }}
     >
       {children}
     </AuthContext.Provider>

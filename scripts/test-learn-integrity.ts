@@ -48,7 +48,8 @@ const HEARTS = { id: '6f5e4d3c-2b1a-4f0e-9d8c-7b6a5f4e3d2c', email: 'hearts@exam
 const REPEAT = { id: '8a7b6c5d-4e3f-4a2b-9c1d-0e9f8a7b6c5d', email: 'repeat@example.invalid', token: 'learn-contract-repeat' };
 /** A Premium account past the Big O introduction, for DSA level 3. */
 const DSA = { id: '1d2c3b4a-5f6e-4d7c-8b9a-a0b1c2d3e4f5', email: 'dsa@example.invalid', token: 'learn-contract-dsa' };
-const USERS: Array<{ id: string; email: string; token: string; meta?: Record<string, unknown>; unconfirmed?: boolean }> = [LEARNER, OTHER, OWNER, BROKEN, OWNER_UNCONFIRMED, BACKEND, HEARTS, REPEAT, DSA];
+const RECOVERY = { id: '9acd8fb2-b9c7-445f-a506-ad6fb5053d75', email: 'recovery@example.invalid', token: 'learn-contract-recovery' };
+const USERS: Array<{ id: string; email: string; token: string; meta?: Record<string, unknown>; unconfirmed?: boolean }> = [LEARNER, OTHER, OWNER, BROKEN, OWNER_UNCONFIRMED, BACKEND, HEARTS, REPEAT, DSA, RECOVERY];
 const PREMIUM = new Set([OWNER.id, DSA.id]);
 const DAY = (offset: number) => new Date(Date.now() - offset * 86_400_000).toISOString().slice(0, 10);
 
@@ -65,8 +66,13 @@ const rpcCalls: { name: string; args: Row }[] = [];
 const tableReads: string[] = [];
 /** Answer advance_verified_streak as a database before migration 048 does. */
 let streakRoutineMissing = false;
+let atomicLearn = false;
+let failAtomicLearn = false;
+let atomicCoinCredits = 0;
 /** Answer complete_verified_roadmap_attempt_v2 as a database before 060 does. */
 let repeatRoutineMissing = false;
+/** Hold the backend beyond the request's 5 s upstream deadline. */
+let stallLearn = false;
 /** Migration 060's user_learn_step_xp (when each step last paid, ms) and the
  * repeat awards it paid, by award id. */
 const stepPaidAt = new Map<string, number>();
@@ -205,8 +211,25 @@ async function startStandIn() {
       if (rpc[1] === 'advance_verified_streak' && streakRoutineMissing) {
         return send(404, { code: 'PGRST202', message: 'Could not find the function public.advance_verified_streak(p_user_id) in the schema cache' });
       }
+      if (stallLearn && rpc[1] === 'record_roadmap_answer_v2') {
+        await new Promise((resolve) => setTimeout(resolve, 5500));
+        return send(504, { message: 'late test fixture' });
+      }
       if (rpc[1] === 'record_roadmap_answer_v2') { const out = recordAnswer(args); return send(out.status, out.body); }
       if (rpc[1] === 'complete_verified_roadmap_attempt') { const out = completeAttempt(args); return send(out.status, out.body); }
+      if (rpc[1] === 'complete_verified_roadmap_attempt_v3' || rpc[1] === 'complete_roadmap_attempt_on_hearts') {
+        if (!atomicLearn) return send(404, { code: 'PGRST202', message: 'Routine is missing from the schema cache' });
+        if (failAtomicLearn) return send(500, { code: '42883', message: 'function public.fixture_failed_reward_write() does not exist' });
+        if (rpc[1] === 'complete_roadmap_attempt_on_hearts') {
+          const attempt = tables.roadmap_attempts.find(one => one.attempt_id === args.p_attempt_id)!;
+          const applied = !attempt.completed_at;
+          if (applied) Object.assign(attempt, { completed_at: new Date().toISOString(), passed: false, score_pct: 0 });
+          return send(200, applied);
+        }
+        const out = completeAttemptV2(args);
+        if ((out.body as Row | null)?.firstPass === true) atomicCoinCredits += 1;
+        return send(out.status, out.body);
+      }
       if (rpc[1] === 'complete_verified_roadmap_attempt_v2') {
         if (repeatRoutineMissing) {
           return send(404, { code: 'PGRST202', message: 'Could not find the function public.complete_verified_roadmap_attempt_v2(p_attempt_id, p_coding_task_ids, p_user_id) in the schema cache' });
@@ -220,6 +243,10 @@ async function startStandIn() {
     }
     const table = /^\/rest\/v1\/([a-z_]+)$/.exec(url.pathname)?.[1];
     if (table) {
+      if (stallLearn && (table === 'roadmap_progress' || table === 'roadmap_attempts')) {
+        await new Promise((resolve) => setTimeout(resolve, 5500));
+        return send(504, { message: 'late test fixture' });
+      }
       const filters = filtersOf(url);
       // A database blip for one account's progress row.
       if (table === 'roadmap_progress' && filters.some(([key, value]) => key === 'user_id' && value === BROKEN.id)) {
@@ -378,6 +405,19 @@ async function main() {
     assert.equal(ownAnswer.statusCode, 200, `the account itself answers (${JSON.stringify(ownAnswer.body)})`);
     assert.equal(ownAnswer.body.isCorrect, true);
     assert.equal(ownAnswer.body.explanation, englishById.get(firstQuestion.questionId)!.explanation, 'a stray lang still gets the English explanation');
+    stallLearn = true;
+    try {
+      const stalled = await Promise.all([
+        call('POST', { resource: 'answer' }, LEARNER.token, { sessionId: own.body.sessionId, questionId: firstQuestion.questionId, selectedIndex: firstQuestion.correctAnswer }),
+        call('POST', { resource: 'complete' }, LEARNER.token, { sessionId: own.body.sessionId }),
+        call('GET', { resource: 'progress' }, LEARNER.token),
+      ]);
+      assert.deepEqual(stalled.map((res) => [res.statusCode, res.body?.error?.code]), [
+        [503, 'upstream_timeout'], [503, 'upstream_timeout'], [503, 'upstream_timeout'],
+      ], 'Learn answers, completion and progress report retryable upstream timeouts');
+    } finally {
+      stallLearn = false;
+    }
     // A guest keeps playing a guest session.
     const guestLevel = await call('GET', { topic: 'html', level: '1' });
     const guestStatuses = await answerAll(guestLevel.body.sessionId);
@@ -576,6 +616,40 @@ async function main() {
       }
     }
     console.log('PASS learn: a level lost on hearts counts for the streak once, and closes without the routine');
+
+    // A failed atomic reward remains retryable and does not run a legacy
+    // routine after an installed entrypoint failed inside its transaction.
+    {
+      atomicLearn = true;
+      try {
+        const level = await call('GET', { topic: 'html', level: '1' }, RECOVERY.token);
+        assert.equal(level.statusCode, 200);
+        const sessionId = level.body.sessionId as string;
+        assert.ok((await answerAll(sessionId, RECOVERY.token)).every(status => status === 200));
+        rpcCalls.length = 0;
+        failAtomicLearn = true;
+        const failed = await call('POST', { resource: 'complete' }, RECOVERY.token, { sessionId });
+        assert.equal(failed.statusCode, 503);
+        assert.equal(failed.body.error.code, 'progress_unavailable');
+        assert.equal(rpcCalls.some(one => one.name === 'complete_verified_roadmap_attempt_v2'), false, 'a broken helper is not a missing entrypoint');
+        failAtomicLearn = false;
+        const recovered = await call('POST', { resource: 'complete' }, RECOVERY.token, { sessionId });
+        assert.equal(recovered.statusCode, 200);
+        assert.equal(recovered.body.applied, true);
+        assert.equal(atomicCoinCredits, 1);
+        const replay = await call('POST', { resource: 'complete' }, RECOVERY.token, { sessionId });
+        assert.equal(replay.body.applied, false);
+        assert.equal(atomicCoinCredits, 1);
+        assert.equal(rpcCalls.some(one => one.name === 'credit_verified_xp_tokens'), false, 'the reward ran inside completion');
+
+        await loseOnHearts();
+        assert.ok(rpcCalls.some(one => one.name === 'complete_roadmap_attempt_on_hearts'), 'the server closes the last heart with the streak');
+        assert.equal(rpcCalls.some(one => one.name === 'advance_verified_streak'), false, 'no separate streak write');
+      } finally {
+        atomicLearn = false;
+        failAtomicLearn = false;
+      }
+    }
 
     // ── A replayed step pays its XP again after an hour ────────────────────
     // Migration 060: a pass of a step already passed pays the step's XP

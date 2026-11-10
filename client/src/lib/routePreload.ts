@@ -100,26 +100,43 @@ const savesData = (): boolean =>
  * primary mouse press still starts at once: the click that follows loads the
  * same code, so starting it on the press costs no extra data. */
 export function installIntentPreloading(): () => void {
-  let hover = 0;
+  let hover: number | undefined;
+  const cancelHover = () => {
+    window.clearTimeout(hover);
+    hover = undefined;
+  };
   const now = (event: Event) => {
     if (savesData() && !isPrimaryMousePress(event)) return;
     const path = pathOf(event.target);
     if (path && path !== window.location.pathname) void preloadPath(path);
   };
   const rest = (event: PointerEvent) => {
-    window.clearTimeout(hover);
     if (event.pointerType !== 'mouse' || savesData()) return;
     const path = pathOf(event.target);
-    if (path && path !== window.location.pathname) hover = window.setTimeout(() => void preloadPath(path), HOVER_INTENT_MS);
+    if (path && path === pathOf(event.relatedTarget)) return;
+    cancelHover();
+    if (path && path !== window.location.pathname) {
+      hover = window.setTimeout(() => {
+        hover = undefined;
+        if (!savesData() && path !== window.location.pathname) void preloadPath(path);
+      }, HOVER_INTENT_MS);
+    }
+  };
+  const leave = (event: PointerEvent) => {
+    if (hover !== undefined && event.pointerType === 'mouse' && pathOf(event.target) !== pathOf(event.relatedTarget)) {
+      cancelHover();
+    }
   };
   const options = { capture: true, passive: true } as const;
   document.addEventListener('pointerover', rest, options);
+  document.addEventListener('pointerout', leave, options);
   document.addEventListener('pointerdown', now, options);
   document.addEventListener('touchstart', now, options);
   document.addEventListener('focusin', now, options);
   return () => {
-    window.clearTimeout(hover);
+    cancelHover();
     document.removeEventListener('pointerover', rest, options);
+    document.removeEventListener('pointerout', leave, options);
     document.removeEventListener('pointerdown', now, options);
     document.removeEventListener('touchstart', now, options);
     document.removeEventListener('focusin', now, options);

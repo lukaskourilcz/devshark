@@ -35,11 +35,16 @@ export class AuthError extends Error {
   }
 }
 
+const authorizationHeader = (req: VercelRequest) => req.headers.authorization ?? req.headers.Authorization;
+
+export function hasAuthorizationHeader(req: VercelRequest): boolean {
+  return authorizationHeader(req) !== undefined;
+}
+
 export function getBearer(req: VercelRequest): string | null {
-  const raw = req.headers.authorization || req.headers.Authorization;
+  const raw = authorizationHeader(req);
   if (typeof raw !== 'string') return null;
-  const m = raw.match(/^Bearer\s+(.+)$/i);
-  return m ? m[1].trim() : null;
+  return /^Bearer[ \t]+(\S+)$/i.exec(raw.trim())?.[1] ?? null;
 }
 
 async function withAuthDeadline<T>(promise: Promise<T>, timeoutMs = 3000): Promise<T> {
@@ -221,6 +226,9 @@ function verifyTokenOnce(client: SupabaseClient, req: VercelRequest, token: stri
  */
 export async function requireAuth(req: VercelRequest): Promise<AuthResult> {
   const token = getBearer(req);
+  if (!token && hasAuthorizationHeader(req)) {
+    throw new AuthError(401, 'invalid_token', 'Malformed Authorization header');
+  }
 
   if (authClient) {
     if (!token) throw new AuthError(401, 'missing_token', 'Missing Bearer token');
@@ -266,7 +274,7 @@ export function confirmedEmail(payload: Record<string, unknown>): string | null 
 }
 
 /**
- * Verify auth, but return null on failure instead of throwing. Useful for
+ * Verify auth, or return null when no credentials were presented. Useful for
  * routes that have both authenticated and unauthenticated branches.
  */
 export async function tryAuth(req: VercelRequest): Promise<AuthResult | null> {
@@ -274,6 +282,6 @@ export async function tryAuth(req: VercelRequest): Promise<AuthResult | null> {
   // the public branch. Presented-but-invalid credentials are not anonymous:
   // propagate the typed 401/503 so callers never pretend a broken session was
   // a successful guest action and then lose the learner's progress.
-  if (!getBearer(req)) return null;
+  if (!hasAuthorizationHeader(req)) return null;
   return requireAuth(req);
 }

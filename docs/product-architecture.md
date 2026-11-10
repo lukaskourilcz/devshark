@@ -152,7 +152,8 @@ ranks only that attempt: a daily fetched signed out and submitted signed in is
 graded as practice, with no receipt. The recorded time runs from the first
 time the learner got the day's questions, kept as a `daily-start:<attempt>`
 marker row in `quiz_submissions` and sealed into every later session of the
-day, so fetching again just before submitting does not shorten it. The same
+day. Concurrent starts read the same committed marker. A ranked start returns
+503 if the marker cannot be read, and guest practice needs no marker. The same
 lookup tells the client the day is already played. The response is
 `private, no-store`, because the session inside it belongs to one caller.
 `/quiz?mode=daily` starts the daily challenge once the sign-in is known and
@@ -314,6 +315,12 @@ nothing. The Friends tab says what friends add you by and links to the card.
 Remove asks first ("Remove <name>?"), because it ends the friendship on both
 sides and only a new request undoes it.
 
+Each account owns its own block. A request to someone who blocked the sender
+still appears as outgoing to the sender and counts toward the request limit.
+The other account sees no incoming request and cannot accept it. Unblocking
+discards the hidden pending request. The same rules apply to lookup, the
+request list and authenticated table reads (migration 075).
+
 What friends see is two switches on `user_handles`, both off by default, set
 through `op=identity` (GET/PUT, signed in, PUT on the per-account write
 limit): `show_real_name` (friends see the Google name instead of the
@@ -355,7 +362,10 @@ presses "Reveal answer" (migration 056).
 The button is a `control` action, `reveal`: the server stores the question in
 `matches.revealed_idx` and `answer` then refuses it with 409
 `question_closed` (a retry of an answer that landed before the reveal still
-replays it). A classroom answer is only acknowledged (`{ ok, accepted,
+replays it). Migration 074 checks the current Classroom question again in
+the insert transaction. Pupils can answer concurrently under shared row
+locks. Reveal, Next and Finish wait for those answers to commit and prevent
+any later insert against the closed question. A classroom answer is only acknowledged (`{ ok, accepted,
 advanced: false }`), its retry included: no `is_correct` or speed bonus comes
 back, so a pupil learns whether they scored from the scoreboard once the
 question closes, and nobody can read the right option off their own reply
@@ -1255,8 +1265,10 @@ answers 409 `draft_conflict`.
 
 The browser keeps an unsaved draft on the device too
 (`client/src/lib/learningPathWorkspace.ts`), with the server revision it was
-typed on; once the server has moved past that revision, the server's copy
-wins. Starting an activity returns its draft in the same request, and
+typed on. When the server holds different work at a different revision, the
+editor keeps the unsent device edits visible and reports the conflict. Neither
+copy replaces the other. A confirmed absence can take a new draft.
+Starting an activity returns its draft in the same request, and
 `draftUnavailable: true` when the server could not read it: the device copy
 then stays for the next save to settle. Switching activity, leaving the view
 or a change of account writes what is waiting first (`beforeAccountChange`).
@@ -2055,11 +2067,13 @@ opening the email on a different device.
   is inserted only once the gate let the session through, so a refused
   session writes nothing (its reads are spent). The coding rows are read
   whether or not the questions passed, and a failed read still answers only
-  when they did. After the completion routine, the progress reload (then the
-  first pass's coin and referral credits, together), the milestone
-  settlement and the concept reviews run at once instead of one after
-  another; each is idempotent under its own event id and the answer waits
-  for all of them. One difference on a failure path: when the reload fails
+  when they did. Migration 076 settles first-pass coins in the same
+  transaction as completion. It also records the streak in the transaction
+  that closes a last-heart attempt. A failed reward write rolls back its
+  completion so the same request can retry. The previous routines remain a
+  fallback while the new entrypoints are missing. The progress reload,
+  milestone settlement and concept reviews then run together. First-pass
+  referral follows the reload, and the response waits for each branch. One difference on a failure path: when the reload fails
   (500 "Progress saved but could not be reloaded"), the settlement and the
   concept reviews have already run, where they used to be skipped.
   `npm run test:performance` (`scripts/test-learn-round-trips.ts`) pins the

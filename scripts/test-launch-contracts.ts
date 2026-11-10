@@ -3433,10 +3433,21 @@ function monthlyXpContracts() {
   assert.match(repeat.body, /AND last_xp_at <= NOW\(\) - INTERVAL '60 minutes'/, 'an hour after the step last paid');
   assert.match(repeat.body, /public\.record_verified_activity_xp\(p_user_id, 'learn-repeat:' \|\| p_attempt_id, v_attempt\.subject, v_xp\)/,
     'under the attempt\'s own award id, into the balance and the month');
+  const atomic = newest.get('complete_verified_roadmap_attempt_v3')!;
+  assert.equal(atomic.file, 'supabase-schema-076.sql');
+  assert.match(atomic.body, /v_result := public\.complete_verified_roadmap_attempt_v2\(p_user_id, p_attempt_id, p_coding_task_ids\);/);
+  assert.match(atomic.body, /IF v_result->'firstPass' = 'true'::JSONB THEN[\s\S]+PERFORM public\.credit_verified_xp_tokens\(/,
+    'the first-pass coin receipt is part of the completion transaction');
+  const hearts = newest.get('complete_roadmap_attempt_on_hearts')!;
+  assert.equal(hearts.file, 'supabase-schema-076.sql');
+  assert.match(hearts.body, /UPDATE public\.roadmap_attempts[\s\S]+PERFORM public\.advance_verified_streak\(p_user_id\)/,
+    'losing the last heart closes the level and records the streak together');
   const roadmapHandler = read('api/quiz/roadmap.ts');
-  assert.match(roadmapHandler, /supabase\.rpc\('complete_verified_roadmap_attempt_v2', completion\)/, 'the Learn completion asks 060 first');
-  assert.match(roadmapHandler, /if \(isRpcMissing\(completed\.error\)\) \{\s+completed = await withTimeout\(supabase\.rpc\('complete_verified_roadmap_attempt', completion\)\);/,
-    'and completes as before on a database without it');
+  assert.match(roadmapHandler, /let completed = await withTimeout\(supabase\.rpc\('complete_verified_roadmap_attempt_v3',/);
+  assert.match(roadmapHandler, /const legacyCompletion = completed\.error\?\.code === 'PGRST202';[\s\S]+if \(legacyCompletion\) \{\s+completed = await withTimeout\(supabase\.rpc\('complete_verified_roadmap_attempt_v2', completion\)\);/,
+    'only a missing atomic entrypoint permits 060');
+  assert.match(roadmapHandler, /if \(completed\.error\?\.code === 'PGRST202'\) \{\s+if \(passed\) passedBefore = await stepPassed\(userId, session\);\s+completed = await withTimeout\(supabase\.rpc\('complete_verified_roadmap_attempt', completion\)\);/,
+    'a database without 060 still completes as before');
   // learn_step_xp is shared/progression.ts in SQL.
   const progression = read('shared/progression.ts');
   assert.match(progression, /export const LEVEL_XP_PER_DIFFICULTY = 50;/);
@@ -5056,7 +5067,8 @@ async function main() {
     // and the coins and the XP the learner is told follow what was awarded.
     const complete = bodyOf(challengeSource, 'handleCompleteRun');
     assert.match(complete, /creditVerifiedXp\(supabase, \{[^\n]*xp: awardedXp \}\)/, 'coins follow the XP the run was awarded');
-    assert.match(complete, /xp: data === true \? awardedXp : xp/, 'the learner is told the XP the run was awarded');
+    assert.match(complete, /const awarded = data === true;/, 'only a new award is announced');
+    assert.match(complete, /xp: awarded \? awardedXp : xp/, 'the learner is told the XP the run was awarded');
     assert.match(bodyOf(challengeSource, 'runAnswers'), /xp: outcome\.isCorrect \? challengeRunXp\(1\) : 0/, 'each answer carries its XP to the routine');
   }
 
@@ -5768,6 +5780,31 @@ async function main() {
         items: [{ itemId: 'map-1', category: 'javascript', tags: ['map'], correct: true, kind: 'independent' }],
       }, [], t0);
       assert.equal(writes.length, 1, 'a learner with no states yet still records the first review');
+
+      const attempts: Array<{ name: string; args: Record<string, unknown> }> = [];
+      const input = {
+        userId: 'review-reader', subject: 'webdev' as const, eventId: 'event-3',
+        items: [{ itemId: 'map-1', category: 'javascript', tags: ['map'], correct: true, kind: 'independent' as const }],
+      };
+      const racing = { rpc: async (name: string, args: Record<string, unknown>) => {
+        attempts.push({ name, args });
+        if (attempts.length === 1) return { data: { state: 'stale', reviews: 3, stage: 2, dueAt: null, streak: 2, lastItemId: 'other' }, error: null };
+        return { data: { applied: true }, error: null };
+      } } as never;
+      await recordConceptReviews(racing, input, [], t0);
+      assert.deepEqual(attempts.map(({ name, args }) => [name, args.p_expected_reviews, args.p_stage, args.p_streak]), [
+        ['record_concept_review_v2', 0, 1, 1], ['record_concept_review_v2', 3, 3, 3],
+      ], 'a raced review recomputes the pure transition against the newer row');
+      assert.equal(attempts[0].args.p_event_id, attempts[1].args.p_event_id, 'the retry uses the same receipt');
+
+      attempts.length = 0;
+      const before072 = { rpc: async (name: string, args: Record<string, unknown>) => {
+        attempts.push({ name, args });
+        return name.endsWith('_v2') ? { error: { code: 'PGRST202' } } : { data: { applied: true }, error: null };
+      } } as never;
+      await recordConceptReviews(before072, input, [], t0);
+      assert.deepEqual(attempts.map(({ name }) => name), ['record_concept_review_v2', 'record_concept_review']);
+      assert.equal('p_expected_reviews' in attempts[1].args, false, 'the compatibility call uses the original signature');
     }
 
     // A due concept must reach the session, not merely be preferred in a list

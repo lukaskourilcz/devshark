@@ -6,13 +6,27 @@ import { http, HttpResponse } from 'msw';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import Leaderboard from '../src/components/Leaderboard';
 import { server } from './mocks/server';
-import { boardFor, leaderboardData, leaderboardHandlers, monthData, pinnedData, visibilityHandler } from './mocks/handlers';
+import { boardFor, leaderboardData, leaderboardHandlers, monthData, noActivityData, pinnedData, visibilityHandler } from './mocks/handlers';
 import { firstDraw, stretchFirstDataWait } from './firstDraw';
 
 type TestUser = { id: string; user_metadata?: Record<string, unknown> };
-const auth = vi.hoisted(() => ({ value: { user: null as TestUser | null, isAuthenticated: false, isLoading: false } }));
+const auth = vi.hoisted(() => ({
+  value: { user: null as TestUser | null, isAuthenticated: false, isLoading: false },
+  replacement: null as TestUser | null,
+}));
 vi.mock('../src/lib/auth', async (importOriginal) => ({ ...(await importOriginal<typeof import('../src/lib/auth')>()), useAuth: () => auth.value }));
-afterEach(() => { auth.value = { user: null, isAuthenticated: false, isLoading: false }; });
+vi.mock('../src/lib/supabaseClient', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/lib/supabaseClient')>()),
+  mayHaveSession: () => !!auth.value.user,
+  getSupabaseSession: async () => {
+    const user = auth.replacement ?? auth.value.user;
+    return user && { access_token: `board-token-${user.id}`, user };
+  },
+}));
+afterEach(() => {
+  auth.value = { user: null, isAuthenticated: false, isLoading: false };
+  auth.replacement = null;
+});
 
 // The screen holds its first render for the default board (lib/routeData.ts);
 // a render that suspends has to start inside an awaited act. Each mount is a
@@ -26,15 +40,24 @@ afterEach(() => { auth.value = { user: null, isAuthenticated: false, isLoading: 
 // data for five minutes (lib/queryClient.ts), so here it is never dropped:
 // each test has a client of its own.
 let visits = 0;
-function mount() {
+async function mount() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
-  return act(async () => render(
+  const key = `visit-${++visits}`;
+  const tree = () => (
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[{ pathname: '/leaderboard', key: `visit-${++visits}` }]}>
+      <MemoryRouter initialEntries={[{ pathname: '/leaderboard', key }]}>
         <LanguageProvider><Leaderboard /></LanguageProvider>
       </MemoryRouter>
-    </QueryClientProvider>,
-  ));
+    </QueryClientProvider>
+  );
+  const view = await act(async () => render(tree()));
+  return {
+    ...view,
+    replaceAccount: () => act(async () => {
+      client.clear();
+      view.rerender(tree());
+    }),
+  };
 }
 
 const last = <T,>(items: T[]): T => items[items.length - 1];
@@ -299,6 +322,45 @@ it('never shows the next visitor someone else’s row as theirs from the offline
   expect(screen.getByText('Workshop learner')).toBeVisible();
   expect(document.querySelector('[aria-current="true"]')).toBeNull();
   expect(screen.queryByText('You')).toBeNull();
+});
+
+it('does not fetch a private board with a replacement session before its Auth event', async () => {
+  auth.value = { user: { id: 'user-a' }, isAuthenticated: true, isLoading: false };
+  const seen = recordRequests();
+  server.use(visibilityHandler());
+  await mount();
+  expect(await screen.findByText('Workshop learner')).toBeVisible();
+
+  auth.replacement = { id: 'user-b' };
+  fireEvent.change(screen.getByLabelText('Topic'), { target: { value: 'html' } });
+  expect(await screen.findByRole('alert')).toBeVisible();
+  expect(seen).toHaveLength(1);
+});
+
+it('does not show the old personal board while the next account’s board is loading', async () => {
+  auth.value = { user: { id: 'user-a' }, isAuthenticated: true, isLoading: false };
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  let reads = 0;
+  server.use(http.get('*/api/leaderboard', async () => {
+    reads += 1;
+    if (reads === 1) return HttpResponse.json(pinnedData);
+    await gate;
+    return HttpResponse.json(noActivityData);
+  }), visibilityHandler());
+  const board = await mount();
+  expect(await screen.findByText('14')).toBeVisible();
+
+  try {
+    auth.value = { user: { id: 'user-b' }, isAuthenticated: true, isLoading: false };
+    await board.replaceAccount();
+    await waitFor(() => expect(reads).toBe(2));
+    expect(screen.queryByText('14')).toBeNull();
+    expect(document.querySelector('tfoot tr[aria-current="true"]')).toBeNull();
+  } finally {
+    await act(async () => { release(); });
+  }
+  expect(await screen.findByText('You need five answers to appear here.')).toBeVisible();
 });
 
 it('drops the “You” mark from an offline copy an older version saved', async () => {

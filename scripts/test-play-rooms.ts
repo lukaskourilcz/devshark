@@ -58,7 +58,7 @@ let beforeMatchPatch: (() => void) | undefined;
 /** Errors the database answers once each: the next request with this method
  * and path gets the status and body instead of its rows. A 500, because
  * supabase-js retries a read that met a 503. */
-const faults: Array<{ method: string; path: string; status: number; body: Row; delayMs?: number }> = [];
+const faults: Array<{ method: string; path: string; status: number; body: Row | Row[]; delayMs?: number }> = [];
 const DB_DOWN = { code: 'XX000', details: null, hint: null, message: 'the database could not answer' };
 /** The arguments of every match_scoreboard call, in order. */
 const scoreboardCalls: Row[] = [];
@@ -369,7 +369,16 @@ async function main() {
       const reads = await Promise.all((['one', 'two', 'host'] as const).map((who) => call(who, 'GET', 'state', { code })));
       assert.deepEqual(reads.map((read) => read.body.match.current_index), [1, 1, 1], 'every read at the expiry sees the next question');
       assert.equal(room(code).current_index, 1, 'the room moved on once');
+      const previous = { code, question_idx: 0, selected_idx: (correctIndex(code, 0) + 1) % 4 };
+      const lostAck = await call('two', 'POST', 'answer', previous);
+      assert.equal(lostAck.statusCode, 200, 'a lost acknowledgement is replayed after the room moves on');
+      assert.equal(lostAck.body.is_correct, true, 'the replay keeps the first answer even when the retried option differs');
+      const newLateAnswer = await call('host', 'POST', 'answer', previous);
+      assert.equal(newLateAnswer.statusCode, 409, 'the old question still rejects a new answer');
+      assert.equal(newLateAnswer.body.error.code, 'wrong_question');
       assert.equal((await call('host', 'POST', 'control', { code, action: 'finish' })).statusCode, 200);
+      assert.equal((await call('two', 'POST', 'answer', previous)).statusCode, 200, 'a finished room can still acknowledge a stored answer');
+      assert.equal((await call('three', 'POST', 'answer', previous)).statusCode, 403, 'a nonparticipant cannot replay an answer');
       const after = await call('host', 'GET', 'distribution', { code, q: '0' });
       assert.equal(after.statusCode, 200, 'the host reads the distribution after the end');
       assert.equal(after.body.buckets.length, 2);
@@ -500,6 +509,31 @@ async function main() {
       const pupilReveal = await call('two', 'POST', 'control', { code, action: 'reveal' });
       assert.equal(pupilReveal.statusCode, 403, 'a pupil cannot reveal');
       assert.equal(room(code).revealed_idx ?? null, null);
+      // The HTTP read may see the old match just before the database closes
+      // it. The guard error must stay a 409, with no answer or grade exposed.
+      const rejected = { code: 'PT409', details: null, hint: null, message: 'question_closed' };
+      faults.push({ method: 'POST', path: '/rest/v1/match_answers', status: 409, body: rejected });
+      const rejectedByGuard = await call('host', 'POST', 'answer', { code, question_idx: 0, selected_idx: 0 });
+      assert.equal(rejectedByGuard.statusCode, 409);
+      assert.equal(rejectedByGuard.body.error.code, 'question_closed');
+      assert.equal(tables.match_answers.filter((a) => a.user_id === USERS.host.id).length, 0);
+
+      // A stored first answer still replays if it appeared after the initial
+      // read. The follow-up lookup is limited to the signed-in pupil and round.
+      faults.push({ method: 'GET', path: '/rest/v1/match_answers', status: 200, body: [] });
+      faults.push({ method: 'POST', path: '/rest/v1/match_answers', status: 409, body: rejected });
+      const replayByGuard = await call('two', 'POST', 'answer', { code, question_idx: 0, selected_idx: 0 });
+      assert.equal(replayByGuard.statusCode, 200);
+      assert.deepEqual(replayByGuard.body, ACK);
+
+      faults.push({
+        method: 'POST', path: '/rest/v1/match_answers', status: 500,
+        body: { code: '55P03', details: null, hint: null, message: 'canceling statement due to lock timeout' },
+      });
+      const busy = await call('host', 'POST', 'answer', { code, question_idx: 0, selected_idx: 0 });
+      assert.equal(busy.statusCode, 503);
+      assert.equal(busy.body.error.code, 'backend_unavailable');
+
       const reveal = await call('one', 'POST', 'control', { code, action: 'reveal' });
       assert.equal(reveal.statusCode, 200, `the presenter reveals (${JSON.stringify(reveal.body)})`);
       assert.deepEqual(reveal.body, { ok: true, status: 'running', current_index: 0, revealed_idx: 0 });

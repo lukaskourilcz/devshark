@@ -157,6 +157,32 @@ it('drops a compiler whose check ran away, so the next Run starts a fresh one', 
   await settleCompiler();
 });
 
+it('waits for another active caller without cancelling its TypeScript check', async () => {
+  let finishFirst: (() => void) | undefined;
+  script = (worker, request) => {
+    if (request.compileOnly && !finishFirst) {
+      worker.post({ phase: 'compiling' });
+      worker.post({ phase: 'checking' });
+      finishFirst = () => worker.post({ phase: 'compiled', js: request.code, check: { codeErrors: [], typeTests: [] } });
+      return;
+    }
+    typescript(worker, request);
+  };
+  workers.length = 0;
+  const first = typed();
+  await vi.advanceTimersByTimeAsync(0);
+  const second = typed();
+  await vi.advanceTimersByTimeAsync(ABANDONED_CHECK_GRACE_MS + 1);
+  expect(workers[0].terminated).toBe(false);
+  expect(workers[0].requests.filter((request) => request.compileOnly)).toHaveLength(1);
+  finishFirst?.();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(await first).toMatchObject({ results: [{ pass: true }] });
+  expect(await second).toMatchObject({ results: [{ pass: true }] });
+  expect(workers.filter((worker) => worker.requests.some((request) => request.compileOnly))).toHaveLength(1);
+  await settleCompiler();
+});
+
 it('keeps the compiler a cancelled Run was loading for the next Run', async () => {
   let compile: (() => void) | null = null;
   script = (worker, request) => {

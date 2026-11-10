@@ -1402,7 +1402,25 @@ async function handleComplete(req: VercelRequest, res: VercelResponse) {
   let applied = false;
   let repeatXp: LearnRepeatXp | null = null;
   if (endedOnHearts) {
-    if (!attempt.completed_at) {
+    const close = userId && !attempt.completed_at
+      ? await withTimeout(supabase.rpc('complete_roadmap_attempt_on_hearts', {
+        p_user_id: userId,
+        p_attempt_id: session.attemptId,
+      }))
+      : null;
+    if (userId && close && close.error?.code !== 'PGRST202') {
+      if (/invalid_roadmap_attempt/i.test(close.error?.message ?? '')) {
+        return jsonError(res, 409, 'invalid_session', 'This learning attempt expired. Start the lesson again.');
+      }
+      if (/incomplete_roadmap_attempt/i.test(close.error?.message ?? '')) {
+        return jsonError(res, 409, 'incomplete_attempt', 'The learning attempt changed. Try completing it again.');
+      }
+      if (close.error) return jsonError(res, 503, 'progress_unavailable', 'Could not close the learning attempt. Try again.');
+      applied = close.data === true;
+      recordReviews();
+      if (applied) await settleMilestonesAfterPass(supabase, userId, session.subject!, () => premium!);
+    } else if (!attempt.completed_at) {
+      // Guests and deployments before migration 076 use the original close.
       const closed = await withTimeout(
         supabase
           .from('roadmap_attempts')
@@ -1442,13 +1460,25 @@ async function handleComplete(req: VercelRequest, res: VercelResponse) {
     // From migration 060 the completion also pays a replayed step its XP
     // again, an hour after the step last paid (owner decision of 9 Oct
     // 2026), and says so. Before 060 the completion of 056 answers alone.
-    let completed = await withTimeout(supabase.rpc('complete_verified_roadmap_attempt_v2', completion));
-    const passedBefore = passed && isRpcMissing(completed.error) ? await stepPassed(userId, session) : null;
-    if (isRpcMissing(completed.error)) {
-      completed = await withTimeout(supabase.rpc('complete_verified_roadmap_attempt', completion));
+    const { coins: coinSettings } = await getGameSettings();
+    let completed = await withTimeout(supabase.rpc('complete_verified_roadmap_attempt_v3', {
+      ...completion,
+      p_coin_rate: coinSettings.xpRate,
+      p_coin_multiplier: coinSettings.premiumMultiplier,
+      p_coin_daily_cap: coinSettings.dailyXpCap,
+    }));
+    // Only a missing entrypoint permits the non-atomic compatibility path.
+    const legacyCompletion = completed.error?.code === 'PGRST202';
+    let passedBefore: boolean | null = null;
+    if (legacyCompletion) {
+      completed = await withTimeout(supabase.rpc('complete_verified_roadmap_attempt_v2', completion));
+      if (completed.error?.code === 'PGRST202') {
+        if (passed) passedBefore = await stepPassed(userId, session);
+        completed = await withTimeout(supabase.rpc('complete_verified_roadmap_attempt', completion));
+      }
     }
     if (completed.error) {
-      if (isRpcMissing(completed.error)) {
+      if (completed.error.code === 'PGRST202') {
         return jsonError(res, 503, 'migration_required', 'Verified learning migration is not installed');
       }
       if (/incomplete_roadmap_attempt/i.test(completed.error.message ?? '')) {
@@ -1463,7 +1493,7 @@ async function handleComplete(req: VercelRequest, res: VercelResponse) {
       if (/invalid_roadmap_attempt/i.test(completed.error.message ?? '')) {
         return jsonError(res, 409, 'invalid_session', 'This learning attempt expired. Start the lesson again.');
       }
-      return jsonError(res, 500, 'db_error', 'Could not save learning progress');
+      return jsonError(res, 503, 'progress_unavailable', 'Could not save learning progress. Try again.');
     }
     const outcome = completed.data as { applied?: unknown; repeatXp?: unknown; firstPass?: unknown } | boolean | null;
     applied = typeof outcome === 'object' && outcome !== null ? outcome.applied === true : outcome === true;
@@ -1474,9 +1504,9 @@ async function handleComplete(req: VercelRequest, res: VercelResponse) {
     // reload, the coin credit, the referral, the milestones and the concept
     // reviews (#587, server item 5). Only the reload feeds the answer, and
     // each routine is idempotent under its own event id, so they run as
-    // three branches at once: the reload, then the first pass's coin and
-    // referral credits together (both read the reloaded record); the
-    // milestone settlement; the concept reviews. The settlement and the
+    // three branches at once: the reload, then the first pass's referral
+    // and, before 076, its coins. The milestone settlement and concept reviews
+    // run beside the reload. The settlement and the
     // reviews read nothing the credits write that this answer reports.
     //
     // A completed level or part test is a streak day from migration 048, passed
@@ -1498,14 +1528,14 @@ async function handleComplete(req: VercelRequest, res: VercelResponse) {
     }
     progress = sanitize(row.data?.data);
     if (applied && firstPass && progressStepPassed(row.data?.data, session)) {
-      const coins = creditLearnPass(supabase, {
+      const coins = legacyCompletion ? creditLearnPass(supabase, {
         userId,
         subject: session.subject!,
         topic: session.topic!,
         kind: session.roadmapKind!,
         ref: session.ref!,
-      });
-      coins.catch(() => {});
+      }) : null;
+      coins?.catch(() => {});
       try {
         // A friend's first passed Learn level pays both sides of an invitation
         // once; the routine reads the verified progress itself (#228). It
@@ -1633,6 +1663,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     try {
       return await handleAnswer(req, res);
     } catch (error) {
+      if (error instanceof ServiceUnavailableError) throw error;
       logEvent({ status: 500, kind: 'answer_error', category: error instanceof Error ? error.name : 'unknown' });
       return jsonError(res, 500, 'internal_error', 'Could not record the answer');
     }
@@ -1641,6 +1672,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     try {
       return await handleComplete(req, res);
     } catch (error) {
+      if (error instanceof ServiceUnavailableError) throw error;
       logEvent({ status: 500, kind: 'complete_error', category: error instanceof Error ? error.name : 'unknown' });
       return jsonError(res, 500, 'internal_error', 'Could not complete the learning attempt');
     }
@@ -1726,7 +1758,8 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     try {
       if (!(await limitRead(req, res))) return;
       return await handleProgress(req, res);
-    } catch {
+    } catch (error) {
+      if (error instanceof ServiceUnavailableError) throw error;
       return jsonError(res, 500, 'internal_error', 'Internal error');
     }
   }

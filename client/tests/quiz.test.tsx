@@ -35,6 +35,7 @@ import PendingQuizResults from '../src/components/PendingQuizResults';
 import Leaderboard from '../src/components/Leaderboard';
 import { onXpToast } from '../src/lib/xp';
 import { clearAccountData } from '../src/lib/accountData';
+import { replayPendingReceipts } from '../src/lib/pendingQuizReplay';
 
 // jsdom has no modal dialogs; leaving a quiz confirms in one.
 const dialogProto = HTMLDialogElement.prototype as unknown as { showModal?: () => void; close?: () => void };
@@ -1197,6 +1198,34 @@ describe('saving a result to the account', () => {
     await act(async () => { answers[0](); await new Promise((resolve) => setTimeout(resolve, 20)); });
     expect(sent).toHaveLength(1);
     expect(screen.queryByText(/earlier quiz result could not be saved/)).not.toBeInTheDocument();
+  });
+
+  it('replays a newly queued result after the same learner starts a new account session', async () => {
+    signIn();
+    const sent: string[] = [];
+    const finish: Array<() => void> = [];
+    server.use(http.post('*/api/user/stats', async ({ request }) => {
+      sent.push(((await request.json()) as { result_receipt: string }).result_receipt);
+      return new Promise<Response>((resolve) => {
+        finish.push(() => resolve(HttpResponse.json({ data: null, applied: true })));
+      });
+    }));
+    localStorage.setItem(PENDING_KEY, JSON.stringify({ old: { userId: LEARNER.id, receipt: 'old-session', profile: {} } }));
+    const previous = replayPendingReceipts(LEARNER.id);
+    await waitFor(() => expect(sent).toEqual(['old-session']));
+    clearAccountData();
+    signIn();
+    localStorage.setItem(PENDING_KEY, JSON.stringify({ fresh: { userId: LEARNER.id, receipt: 'new-session', profile: {} } }));
+    const current = replayPendingReceipts(LEARNER.id);
+    try {
+      await waitFor(() => expect(sent).toEqual(['old-session', 'new-session']));
+      finish[1]();
+      await expect(current).resolves.toEqual({ recorded: 1, refused: 0 });
+      expect(pendingStore()).toEqual({});
+    } finally {
+      finish[0]();
+      await Promise.all([previous, current]);
+    }
   });
 
   it('sends waiting results once signed in, and drops the ones too old to record', async () => {

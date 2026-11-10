@@ -2,9 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import * as esm from '../dist/index.js';
+import * as esm from '@lukaskourilcz/coding-evaluator';
 
-const cjs = createRequire(import.meta.url)('../dist/index.cjs');
+const cjs = createRequire(import.meta.url)('@lukaskourilcz/coding-evaluator');
 
 for (const [label, lib] of [['esm', esm], ['cjs', cjs]]) {
   test(`${label}: grades passing and failing calls`, async () => {

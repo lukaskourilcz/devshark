@@ -10,8 +10,8 @@
  *    round trip and is shared by the CDN (server item 12);
  *  - a completion reads its coding rows and checks the tier with its first
  *    reads, inserts nothing for a session the tier refuses, and then runs the
- *    reload (followed by the coin and referral credits together), the
- *    milestone settlement and the concept reviews at once (server item 5);
+ *    reload (followed by the referral), the milestone settlement and the
+ *    concept reviews at once. The completion settles the coins (migration 076);
  *  - a Premium level or part test reads the tier with the learner's record,
  *    and a free one never reads it (server item 6);
  *  - the answers of a Premium level trust a Premium tier the instance read
@@ -73,7 +73,7 @@ function recordAnswer(args: Row): Row {
   return { selectedIndex: answer.selected_index, correctAnswer: answer.correct_index, isCorrect: answer.is_correct };
 }
 
-/** A first pass, as complete_verified_roadmap_attempt_v2 reports one. */
+/** A first pass, as complete_verified_roadmap_attempt_v3 reports one. */
 function completeAttempt(args: Row): Row {
   const attempt = tables.roadmap_attempts.find((row) => row.attempt_id === args.p_attempt_id)!;
   attempt.completed_at = new Date().toISOString();
@@ -132,7 +132,7 @@ async function startStandIn() {
     if (rpc) {
       const args = (raw ? JSON.parse(raw) : {}) as Row;
       if (rpc === 'record_roadmap_answer_v2') return send(`rpc:${rpc}`, 200, recordAnswer(args));
-      if (rpc === 'complete_verified_roadmap_attempt_v2') return send(`rpc:${rpc}`, 200, completeAttempt(args));
+      if (rpc === 'complete_verified_roadmap_attempt_v3') return send(`rpc:${rpc}`, 200, completeAttempt(args));
       if (rpc === 'is_premium') {
         await new Promise((resolve) => setTimeout(resolve, TIER_LAG_MS));
         const premium = PREMIUM.has(String(args.p_user));
@@ -294,20 +294,19 @@ try {
     // A free level's gate asks for no tier; the plan is read once, with the
     // first reads, for the milestone settlement (server item 8).
     assert.ok(together(one(made, 'rpc:is_premium'), answers), 'the plan is read with the first reads');
-    const completion = one(made, 'rpc:complete_verified_roadmap_attempt_v2');
+    const completion = one(made, 'rpc:complete_verified_roadmap_attempt_v3');
     const reload = made.find((call) => call.name === 'GET roadmap_progress' && call.start >= completion.end)!;
     assert.ok(reload, 'the progress is reloaded after the completion');
     assert.equal(made.filter((call) => call.name === 'rpc:settle_coin_milestones').length, 0, 'a free account skips settle_coin_milestones, which credits only Premium accounts');
-    const reviews = made.filter((call) => call.name === 'rpc:record_concept_review');
+    const reviews = made.filter((call) => call.name === 'rpc:record_concept_review_v2');
     assert.ok(reviews.length > 0, 'the concepts the level graded are recorded');
     for (const follower of reviews) {
       assert.ok(follower.start >= completion.end, `${follower.name} waits for the completion`);
       assert.ok(together(follower, reload), `${follower.name} runs with the reload`);
     }
-    const credit = one(made, 'rpc:credit_verified_xp_tokens');
+    assert.ok(!made.some(one => one.name === 'rpc:credit_verified_xp_tokens'), 'the completion already settled first-pass coins');
     const referral = one(made, 'rpc:credit_referral');
-    for (const follower of [credit, referral]) assert.ok(follower.start >= reload.end, `${follower.name} reads the reloaded record first`);
-    assert.ok(together(credit, referral), 'the coin and referral credits run together');
+    assert.ok(referral.start >= reload.end, 'referral follows the reloaded progress');
     assert.ok(Math.max(...made.map((call) => call.end)) - completion.end < 3 * DELAY_MS, 'what follows the completion takes two waves, not five');
   }
   console.log('PASS round trips: a completion reads its coding rows with its first reads and runs what follows the close at once');
@@ -322,7 +321,7 @@ try {
     assert.equal((result as ReturnType<typeof mockResponse>).statusCode, 200);
     assert.ok(together(one(made, 'rpc:is_premium'), one(made, 'GET roadmap_attempts')), 'the tier is checked with the first reads, once');
     // A Premium account settles its milestones, beside the reload.
-    const completion = one(made, 'rpc:complete_verified_roadmap_attempt_v2');
+    const completion = one(made, 'rpc:complete_verified_roadmap_attempt_v3');
     const reload = made.find((call) => call.name === 'GET roadmap_progress' && call.start >= completion.end)!;
     const settle = one(made, 'rpc:settle_coin_milestones');
     assert.ok(settle.start >= completion.end && together(settle, reload), 'the settlement waits for the completion and runs with the reload');

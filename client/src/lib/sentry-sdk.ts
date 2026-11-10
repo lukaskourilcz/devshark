@@ -52,10 +52,13 @@ export function start(dsn: string, environment: string, early: EarlyError[] = []
  * free text loses e-mail addresses, tokens and the query strings of the
  * addresses inside it, and nothing names the person. */
 
+// A URL can carry credentials before the hostname as well as after it.
+const URL_USERINFO = /(\b[a-z][a-z0-9+.-]*:\/\/)[^\s\/@?#"'<>]+@/gi;
+
 /** An address without its query string or fragment; absolute or relative. */
 export function scrubAddress(value: string): string {
   const cut = value.search(/[?#]/);
-  return cut === -1 ? value : value.slice(0, cut);
+  return (cut === -1 ? value : value.slice(0, cut)).replace(URL_USERINFO, '$1');
 }
 
 const ABSOLUTE_URL_TAIL = /(\b[a-z][a-z0-9+.-]*:\/\/[^\s?#"'<>`]*)[?#][^\s"'<>`]*/gi;
@@ -68,6 +71,7 @@ const BEARER = /\bBearer\s+[\w.~+/-]{8,}=*/gi;
  * that could identify a person or open their account. */
 export function scrubText(value: string): string {
   return value
+    .replace(URL_USERINFO, '$1')
     .replace(ABSOLUTE_URL_TAIL, '$1')
     .replace(RELATIVE_URL_TAIL, '$1$2')
     .replace(JWT, '[token]')
@@ -81,13 +85,15 @@ const ADDRESS_KEY = /^(?:url|from|to)$|(?:^|\.)(?:url|full|target)$/;
 /** Keys that hold an address's query string or fragment on their own. */
 const QUERY_KEY = /(?:^|[._])(?:query|fragment|query_string)$/;
 
+// Keep diagnostics scalar. Objects may contain headers, credentials, user
+// data or exception arguments with fields the scrubber cannot recognise.
+const SENSITIVE_KEY = /(?:^|[._-])(?:authorization|cookie|password|token|secret)(?:$|[._-])/i;
+
 function scrubBag(bag: Record<string, unknown> | undefined): void {
   if (!bag || typeof bag !== 'object') return;
   for (const key of Object.keys(bag)) {
     const value = bag[key];
-    // SDK error serialization and console arguments can hold arbitrary
-    // objects. Keep only flat diagnostic fields we can scrub.
-    if (QUERY_KEY.test(key) || key === 'arguments' || key === '__serialized__' ||
+    if (QUERY_KEY.test(key) || SENSITIVE_KEY.test(key) || key === 'arguments' || key === '__serialized__' ||
         (value !== null && typeof value === 'object')) {
       delete bag[key];
       continue;
@@ -107,7 +113,7 @@ export function scrubBreadcrumb(crumb: Breadcrumb): Breadcrumb {
 export function scrubEvent<T extends Event>(event: T): T {
   delete event.user;
   if (event.request) {
-    if (typeof event.request.url === 'string') event.request.url = scrubAddress(event.request.url);
+    if (typeof event.request.url === 'string') event.request.url = scrubText(scrubAddress(event.request.url));
     delete event.request.query_string;
     delete event.request.cookies;
     delete event.request.data;

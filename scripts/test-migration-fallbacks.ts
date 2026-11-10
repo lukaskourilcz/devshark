@@ -281,6 +281,7 @@ async function main() {
     const bank = (await getEffectiveQuestions('webdev')).slice(0, 5);
     const answered = (runId: string) => bank.map((question, i) => tokens.encodeScoreProof(runId, question.id, 'webdev', i < 2));
     INSTALLED.record_challenge_completion = true;
+    TABLE_READS.verified_activity_awards = { status: 200, body: [{ xp: 10 }] };
     for (const shape of ['052', '040'] as const) {
       if (shape === '040') UNKNOWN_ARGS.record_challenge_completion = ['p_outcomes'];
       calls.length = 0;
@@ -311,6 +312,7 @@ async function main() {
         assert.ok(!calls.some((call) => call.name === 'record_verified_activity_xp'), 'and never falls back to the bare award');
       }
     }
+    delete TABLE_READS.verified_activity_awards;
     delete UNKNOWN_ARGS.record_challenge_completion;
     delete INSTALLED.record_challenge_completion;
 
@@ -344,6 +346,40 @@ async function main() {
     }
     delete INSTALLED.record_challenge_completion_v2;
 
+    // A compatibility completion can commit less XP than the score implies.
+    // A read failure must not guess the coin amount, and the same run can
+    // reconcile the actual amount after its receipt becomes readable.
+    {
+      const played = tokens.createChallengeRun(true, 'webdev');
+      const partial = {
+        method: 'POST',
+        headers: { authorization: `Bearer ${TOKEN}`, 'x-forwarded-for': '10.20.0.13' },
+        query: { resource: 'complete' },
+        url: '/api/quiz/challenge?resource=complete',
+        body: { runToken: played.runToken, proofs: answered(played.runId) },
+      };
+      INSTALLED.credit_verified_xp_tokens = 1;
+      INSTALLED.record_challenge_completion = true;
+      TABLE_READS.verified_activity_awards = { status: 503, body: { message: 'receipt read unavailable' } };
+      calls.length = 0;
+      const unsure = mockResponse();
+      await challenge(partial as never, unsure as never);
+      assert.deepEqual([unsure.statusCode, unsure.body?.error?.code], [503, 'progress_unavailable']);
+      assert.ok(!calls.some((call) => call.name === 'credit_verified_xp_tokens'), 'an unreadable receipt never credits the full score');
+      INSTALLED.record_challenge_completion = false;
+      TABLE_READS.verified_activity_awards = { status: 200, body: [{ xp: 5 }] };
+      calls.length = 0;
+      const retry = mockResponse();
+      await challenge(partial as never, retry as never);
+      assert.equal(retry.statusCode, 200, JSON.stringify(retry.body));
+      assert.equal(retry.body.awarded, false, 'the replay is not announced as a new XP award');
+      assert.equal(calls.find((call) => call.name === 'credit_verified_xp_tokens')?.args.p_xp, 5, 'replay reconciles coins from the stored amount');
+      assert.equal(calls.find((call) => call.name === 'read:verified_activity_awards')?.args.user_id, `eq.${USER.id}`, 'receipt read is owner scoped');
+      delete INSTALLED.credit_verified_xp_tokens;
+      delete INSTALLED.record_challenge_completion;
+      delete TABLE_READS.verified_activity_awards;
+    }
+
     // The tier before 039: every account reads as free, so a cleared step
     // stays open and a new Premium step answers 402, never 503.
     calls.length = 0;
@@ -371,6 +407,37 @@ async function main() {
       import('../api/user/[op]'),
       import('../api/admin/[op]'),
     ]);
+    {
+      const save = async () => {
+        calls.length = 0;
+        const response = mockResponse();
+        await userOps({
+          method: 'PUT',
+          headers: { authorization: `Bearer ${TOKEN}`, 'x-forwarded-for': '10.20.0.20' },
+          query: { op: 'learning-path-draft' },
+          url: '/api/user/learning-path-draft',
+          body: { enrollmentId: 'draft-enroll-0001', activityId: 'code-activity', expectedRevision: 0, content: { code: 'first' } },
+        } as never, response as never);
+        return response;
+      };
+      const routines = () => calls.filter((call) => call.name.startsWith('save_learning_path_draft'));
+      INSTALLED.save_learning_path_draft = { ok: true, revision: 1 };
+      const before070 = await save();
+      assert.equal(before070.statusCode, 200, JSON.stringify(before070.body));
+      assert.deepEqual(routines().map((call) => call.name), ['save_learning_path_draft_v2', 'save_learning_path_draft']);
+      assert.deepEqual(routines()[0]?.args, routines()[1]?.args, 'a missing 070 falls back with the same revision and content');
+      INSTALLED.save_learning_path_draft_v2 = { ok: true, revision: 1 };
+      assert.equal((await save()).statusCode, 200);
+      assert.deepEqual(routines().map((call) => call.name), ['save_learning_path_draft_v2']);
+      RPC_ERRORS.save_learning_path_draft_v2 = { status: 500, body: { code: '55P03', message: 'canceling statement due to lock timeout' } };
+      const busy = await save();
+      assert.deepEqual([busy.statusCode, busy.body?.error?.code], [503, 'draft_busy']);
+      assert.deepEqual(routines().map((call) => call.name), ['save_learning_path_draft_v2'], 'contention never bypasses the lock through v1');
+      delete RPC_ERRORS.save_learning_path_draft_v2;
+      delete INSTALLED.save_learning_path_draft_v2;
+      delete INSTALLED.save_learning_path_draft;
+    }
+
     calls.length = 0;
     const redeem = mockResponse();
     await userOps({
