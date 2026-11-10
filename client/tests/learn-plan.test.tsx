@@ -486,6 +486,23 @@ describe('a level whose session cannot be used', () => {
     fireEvent.click(screen.getByRole('radio', { name: /Option A/ }));
   }
 
+  it('advances one question when Continue is activated twice before rendering', async () => {
+    answer({
+      playable: {
+        ...PLAYABLE,
+        questions: [1, 2, 3].map((index) => ({ ...QUESTION, id: `lesson-${index}`, question: `Lesson question ${index}?` })),
+      },
+    });
+    await openLevelAndAnswer();
+    const next = await screen.findByRole('button', { name: 'Continue', exact: true });
+    act(() => {
+      next.click();
+      next.click();
+    });
+    expect(await screen.findByText('Question 2 of 3')).toBeInTheDocument();
+    expect(screen.queryByText('Question 3 of 3')).toBeNull();
+  });
+
   it('offers a fresh start when the session timed out', async () => {
     const seen = answer({ answer: () => HttpResponse.json({ error: { code: 'invalid_session', message: 'Learning session expired or invalid' } }, { status: 400 }) });
     await openLevelAndAnswer();

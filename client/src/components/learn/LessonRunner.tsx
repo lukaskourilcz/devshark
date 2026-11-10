@@ -408,7 +408,8 @@ export function LessonRunner({
         setCompleting(false);
       }
     } else if (qIndex < total - 1) {
-      setQIndex((i) => i + 1);
+      // Two activations of this question advance to the same next question.
+      setQIndex(qIndex + 1);
       setSelected(null);
       setRevealed(false);
       setGrade(null);
