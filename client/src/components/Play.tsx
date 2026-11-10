@@ -689,7 +689,7 @@ function PlayRoom() {
     submitLockRef.current = false;
     setQuestionShownAt(Date.now());
     clientReceivedAtRef.current = new Date().toISOString();
-  }, [match?.current_index, match?.status]);
+  }, [code, userId, match?.id, match?.current_index, match?.status]);
 
   // Host heartbeat — keeps the match from being auto-finished by the
   // server's stale-match cleanup (5 min). Pinged every 30 s while the
@@ -781,6 +781,7 @@ function PlayRoom() {
         duration_ms: Date.now() - questionShownAt,
         client_received_at: clientReceivedAtRef.current ?? new Date().toISOString(),
       });
+      if (questionSeqRef.current !== seq) return;
       if (result.advanced) {
         // In multiplayer the server advances as soon as the last player locks
         // in. Tell everyone, and pull fresh state right away so this client
@@ -798,6 +799,7 @@ function PlayRoom() {
         void channelRef.current?.send('answered', { question_idx: match.current_index }).catch(() => undefined);
       }
     } catch (err) {
+      if (questionSeqRef.current !== seq) return;
       if (err instanceof ApiError && (err.code === 'wrong_question' || err.code === 'time_up' || err.code === 'question_closed')) {
         // The clock ran out, the teacher closed the question, or the match
         // moved past it before the answer landed. Tell the player it didn't
@@ -811,13 +813,9 @@ function PlayRoom() {
         await refresh();
         return;
       }
-      // Genuine failure (network, server): unlock so the player can retry,
-      // unless the room has moved on: the lock then belongs to the next
-      // question, which the player may already have answered.
-      if (questionSeqRef.current === seq) {
-        submitLockRef.current = false;
-        setSubmitted(false);
-      }
+      // The current answer did not arrive. Unlock so the player can retry.
+      submitLockRef.current = false;
+      setSubmitted(false);
       setError(friendlyError(err));
     }
   };

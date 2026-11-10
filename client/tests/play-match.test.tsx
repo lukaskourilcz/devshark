@@ -812,6 +812,7 @@ describe('double presses', () => {
     await settle();
     expect(screen.getByText('Answer locked. Waiting for the other players…')).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'gamma' })).toBeDisabled();
+    expect(screen.queryByText(/Network error\./)).not.toBeInTheDocument();
   });
 
   it('creates one room for a double click on Create', async () => {
