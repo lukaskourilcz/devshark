@@ -72,6 +72,7 @@ function RunCard({ session, onDone, resumeInPrimary = false }: { session: Practi
   const { t } = useLanguage();
   const navigate = useNavigate();
   const advance = useAdvanceSession();
+  const transitioning = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const scheduled = session.status === 'scheduled';
   const due = scheduled && Boolean(session.scheduledFor) && new Date(session.scheduledFor!).getTime() <= Date.now();
@@ -79,18 +80,21 @@ function RunCard({ session, onDone, resumeInPrimary = false }: { session: Practi
   const finished = !scheduled && current === null;
   const done = Math.min(session.position, session.queue.length);
 
-  const begin = () => {
+  const changeStatus = (status: 'active' | 'finished' | 'abandoned') => {
+    if (transitioning.current) return;
+    transitioning.current = true;
     setError(null);
-    advance.mutate({ sessionId: session.sessionId, status: 'active' }, {
-      onSuccess: (data) => { const first = data.session ? currentRunTask(data.session) : null; if (first) navigate(taskHref(first)); },
+    advance.mutate({ sessionId: session.sessionId, status }, {
+      onSuccess: (data) => {
+        if (status === 'active') {
+          const first = data.session ? currentRunTask(data.session) : null;
+          if (first) navigate(taskHref(first));
+        } else {
+          onDone();
+        }
+      },
       onError: () => setError(t('coding.run.failed')),
-    });
-  };
-  const end = () => {
-    setError(null);
-    advance.mutate({ sessionId: session.sessionId, status: scheduled ? 'abandoned' : finished ? 'finished' : 'abandoned' }, {
-      onSuccess: onDone,
-      onError: () => setError(t('coding.run.failed')),
+      onSettled: () => { transitioning.current = false; },
     });
   };
 
@@ -111,7 +115,7 @@ function RunCard({ session, onDone, resumeInPrimary = false }: { session: Practi
       )}
       <div className="cd-actions">
         {/* Secondary: the Coding home's one SwimCta is its next challenge. */}
-        {scheduled && <Button variant="secondary" isDisabled={advance.isPending} onClick={begin} label={t('coding.run.startNow')} />}
+        {scheduled && <Button variant="secondary" isDisabled={advance.isPending} onClick={() => changeStatus('active')} label={t('coding.run.startNow')} />}
         {!scheduled && current && !resumeInPrimary && <Button variant="secondary" as={Link} href={taskHref(current)} label={t('coding.run.continue')} />}
         {scheduled && (
           <span className="ss-text-links" style={{ margin: 0 }}>
@@ -120,7 +124,7 @@ function RunCard({ session, onDone, resumeInPrimary = false }: { session: Practi
         )}
         <span className="cd-run__ending">
           {!finished && <span>{codingListCopy('coding.run.saved')}</span>}
-          <Button variant="ghost" isDisabled={advance.isPending} onClick={end} label={t(finished ? 'coding.run.close' : scheduled ? 'coding.run.cancel' : 'coding.run.end')} />
+          <Button variant="ghost" isDisabled={advance.isPending} onClick={() => changeStatus(finished ? 'finished' : 'abandoned')} label={t(finished ? 'coding.run.close' : scheduled ? 'coding.run.cancel' : 'coding.run.end')} />
         </span>
       </div>
       {error && <p className="cd-note cd-note--error" role="alert">{error}</p>}

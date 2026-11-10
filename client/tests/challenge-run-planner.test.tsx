@@ -17,7 +17,7 @@ vi.mock('../src/coding/practice', () => ({
   useAdvanceSession: () => ({ mutate: practice.advance, isPending: false }),
 }));
 
-beforeEach(() => { mutate.mockClear(); practice.start = null; practice.pending = false; practice.session = null; practice.advance.mockClear(); });
+beforeEach(() => { mutate.mockClear(); practice.start = null; practice.pending = false; practice.session = null; practice.advance.mockReset(); });
 
 const mount = (collapsible = true, resumeInPrimary = false) => render(
   <MemoryRouter initialEntries={['/coding']}>
@@ -108,4 +108,20 @@ it.each(['active', 'scheduled'] as const)('keeps %s run ending and its reassuran
   expect(screen.queryByRole('dialog')).toBeNull();
   expect(screen.queryByRole('alertdialog')).toBeNull();
   if (status === 'scheduled') expect(screen.getByRole('button', { name: 'Start now' })).toBeInTheDocument();
+});
+
+it('sends one transition when the run actions are pressed before the request settles', () => {
+  practice.session = { sessionId: 'run-1', status: 'scheduled', queue: ['js-digit-sum'], position: 0, minutes: 10, topic: null, estimatedMinutes: 5, order: 'sequential', count: 1, scheduledFor: '2026-12-01T10:00:00Z' };
+  let settle: (() => void) | undefined;
+  practice.advance.mockImplementation((_input, callbacks) => { settle = callbacks.onSettled; });
+  mount();
+  const start = screen.getByRole('button', { name: 'Start now' });
+  const cancel = screen.getByRole('button', { name: 'Cancel the run' });
+  fireEvent.click(start);
+  fireEvent.click(start);
+  fireEvent.click(cancel);
+  expect(practice.advance.mock.calls.map(([input]) => input.status)).toEqual(['active']);
+  settle?.();
+  fireEvent.click(cancel);
+  expect(practice.advance.mock.calls.map(([input]) => input.status)).toEqual(['active', 'abandoned']);
 });
