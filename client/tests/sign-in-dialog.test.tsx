@@ -58,7 +58,7 @@ afterEach(() => {
 
 /** The app's providers, the dialog host, and a line saying who is signed in;
  * then the dialog opened the way a page's "Log in" opens it. */
-async function openDialog(detail: { view?: 'signIn' | 'signUp' | 'forgot'; returnTo?: string; email?: string } = {}) {
+async function openDialog(detail: { view?: 'signIn' | 'signUp' | 'forgot'; returnTo?: string; email?: string } = {}, reactStrictMode = false) {
   const [{ AuthProvider, useAuth }, { LanguageProvider }, { default: SignInDialogHost }, store] = await Promise.all([
     import('../src/lib/auth'),
     import('../src/i18n/LanguageContext'),
@@ -85,6 +85,7 @@ async function openDialog(detail: { view?: 'signIn' | 'signUp' | 'forgot'; retur
         </AuthProvider>
       </LanguageProvider>
     </MemoryRouter>,
+    { reactStrictMode },
   );
   screen.getByRole('button', { name: 'Opener' }).focus();
   act(() => store.openSignIn(detail));
@@ -228,6 +229,18 @@ describe('the sign-in dialog', () => {
     // Typing again clears the old message.
     type(field(dialog, 'Password'), 'another try');
     expect(within(dialog).queryByRole('alert')).toBeNull();
+  });
+
+  it('shows an asynchronous sign-in error and allows a retry in Strict Mode', async () => {
+    server.use(http.post(`${AUTH}/token`, () => authError(400, 'invalid_credentials', 'Invalid login credentials')));
+    const { dialog } = await openDialog({}, true);
+    type(field(dialog, 'Email'), 'ada@example.com');
+    type(field(dialog, 'Password'), 'wrong password');
+    press(dialog, 'Sign in');
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('That email and password don’t match an account.');
+    expect(within(dialog).getByRole('button', { name: 'Sign in' })).toBeEnabled();
+    press(dialog, 'Sign in');
+    await waitFor(() => expect(calls('/token')).toHaveLength(2));
   });
 
   it('offers to send the confirmation again to an address nobody confirmed', async () => {

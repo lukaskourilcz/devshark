@@ -212,6 +212,16 @@ describe('the Play page (social-account-12)', () => {
   });
 });
 
+describe('joining a live room', () => {
+  it('opens on the state read after joining when the host has already started', async () => {
+    api.joinMatch.mockResolvedValue(running({ status: 'lobby', questions: [], question_started_at: null }));
+    api.fetchMatchState.mockResolvedValue(stateOf(running()));
+    await mount();
+    expect(screen.getByText('Pick one?')).toBeVisible();
+    expect(api.fetchMatchState).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('a timed question', () => {
   it('closes its options at 0 s and reads the room once just after the clock runs out', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });

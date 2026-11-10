@@ -143,10 +143,17 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
   const thrown = options.beforeSend!({
     exception: { values: [{ type: 'Error', value: 'boom' }] },
     breadcrumbs: [{ category: 'console', message: 'x', data: { arguments: [{ email: 'ada@example.com' }], logger: 'console' } }],
-    extra: { arguments: [{ href: 'https://devshark.app/auth/callback?code=oauth-code-123' }] },
+    extra: {
+      arguments: [{ href: 'https://devshark.app/auth/callback?code=oauth-code-123' }],
+      __serialized__: { email: 'ada@example.com', url: '/auth/confirmed?token_hash=synthetic-otp' },
+      details: { email: 'ada@example.com' },
+      componentStack: 'at Quiz',
+    },
   });
+  expect(thrown.extra).toEqual({ componentStack: 'at Quiz' });
   expect(JSON.stringify(thrown)).not.toContain('ada@example.com');
   expect(JSON.stringify(thrown)).not.toContain('oauth-code-123');
+  expect(JSON.stringify(thrown)).not.toContain('synthetic-otp');
 
   const trace = options.beforeSendTransaction!({
     transaction: '/settings/github',

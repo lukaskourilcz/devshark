@@ -43,13 +43,20 @@ const CAMPAIGN_STORAGE_KEY = 'devshark:campaign';
 const CAMPAIGN_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 const CAMPAIGN_VALUE = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 
+/** A short campaign label, normalized the same way in URLs and event fields. */
+export function campaignLabel(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const label = value.trim().toLowerCase();
+  return CAMPAIGN_VALUE.test(label) ? label : undefined;
+}
+
 /** The campaign labels in a query string, lower-cased; anything else is left out. */
 export function campaignFrom(search: string): Campaign {
   const params = new URLSearchParams(search);
   const campaign: Campaign = {};
   for (const key of CAMPAIGN_KEYS) {
-    const value = params.get(key)?.trim().toLowerCase();
-    if (value && CAMPAIGN_VALUE.test(value)) campaign[key] = value;
+    const value = campaignLabel(params.get(key));
+    if (value) campaign[key] = value;
   }
   return campaign;
 }

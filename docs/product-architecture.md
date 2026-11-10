@@ -207,7 +207,9 @@ answers this time: you can earn it again from 14:32, an hour after you last
 earned it."). The awarded XP is kept on the receipt row
 (`quiz_attempts.quest_xp`), and the stats handler credits coins for that
 amount once per attempt, also when a retry finds the result already
-recorded.
+recorded. Migration 068 records fully held Challenge runs in the grading
+claims ledger so replaying a finished run after the cooldown cannot earn XP
+or advance a streak.
 
 **This month** (`period=month`) ranks the current calendar month (UTC) by the
 verified XP each learner earned in it; the month's top three are paid coins
@@ -261,10 +263,15 @@ answers 409 `run_already_saved`, and the browser drops it from the results it
 still has to send. The board shows a count of the run's topics with the
 topics in a tooltip, or a gold fin for a run over every available topic.
 
-A known limit: a run submits its answer proofs from the client
-(`api/quiz/challenge.ts`), and without a server-side append-only attempt
-ledger a determined client can still leave out earlier proof batches. Do not
-claim the record is complete; a full fix has to fit an existing handler.
+New runs seal the grading version in each batch and proof. Migration 069
+serializes grading per run and records the first verdict for each question.
+The third wrong answer or timeout closes grading for the run. A void question
+costs no strike. Retrying the original batch and pick returns the recorded
+verdict, including after closure. Runs issued before deployment keep their
+original rules until their three-hour run tokens expire.
+
+The browser still controls when questions are shown and sends the proofs for
+completion. It can leave earlier correct answers out of the final score.
 
 ### XP again for a replayed Learn step
 
@@ -1286,6 +1293,11 @@ published curriculum version). Merchandise is paused ("Merchandise"), so
 
 ## Practice, scheduling and what the product claims about it
 
+Migration 067 enforces one open coding practice run per learner. Starting
+a replacement retires the previous active or scheduled run. Retrying a
+scheduled start keeps its original start time, and a delayed update cannot
+reopen a closed run or move its position backward.
+
 Four shared modules each own one job.
 
 `shared/concepts.ts` names the unit practice is scheduled and ordered by. A
@@ -1775,6 +1787,12 @@ Do not rename the schema. The browser keeps no coin balance of its own; old
 
 ## Sign-in, caching and limits
 
+Browser sign-in redirects use PKCE. Supabase exchanges an authorization code
+with the verifier saved by the browser that started the request. Stored
+sessions keep their existing storage key. The default confirmation and
+recovery links also need that browser. The token-hash templates below support
+opening the email on a different device.
+
 - **Two ways in.** Every "Log in" and "Sign
   in" opens one dialog (`openSignIn` in `client/src/lib/signInDialog.ts`,
   rendered by `components/auth/SignInDialogHost.tsx` in the shell, its code
@@ -1969,11 +1987,8 @@ Do not rename the schema. The browser keeps no coin balance of its own; old
 - **Token checks across requests** (#587). An access token Supabase Auth
   accepted is trusted again on the same function instance, without another
   Auth round trip, for at most 60 seconds (`VERIFIED_TOKEN_TTL_MS` in
-  `lib/auth.ts`) and never past the token's own `exp`, and only by reads:
-  a GET or HEAD request. Every other method (answers, completions, claims,
-  purchases, drafts, deletions) asks Auth on every request, so no XP, coin or
-  one-time claim is earned on a session Auth has ended, and no write lands
-  for an account deleted on another instance. Only acceptances are kept: a
+  `lib/auth.ts`) and never past the token's own `exp`. Read-only GET and HEAD
+  requests can use that cache. Other methods ask Auth on every request. A
   refusal, an outage or a timeout is asked again on the next request.
   Requests on one instance that present the same new token at once share one
   Auth call. Only a JWT whose `exp` and `sub` can be read is kept, keyed by
@@ -1982,16 +1997,14 @@ Do not rename the schema. The browser keeps no coin balance of its own; old
   password change, a ban, an admin role removed) can keep reading for up to
   a minute on an instance that accepted its token just before. Auth itself
   accepts a stolen access token until it expires (one hour); the minute only
-  postpones Auth's own session lookup. A few reads write a row of their own
-  (a Learn level open records its attempt), and for an account deleted on
-  another instance in that minute such a row can still be written; nothing
-  erases it again, since the tables do not reference `auth.users`. Among
-  reads, the admin API, the fulfilment desk and the wallet (its GET settles
-  coin grants) call `requireFreshAuth` and ask Auth on every request, as do
-  account deletion, billing checkout, portal and cancellation, and voucher
-  redemption, and a deleted account's token is forgotten at once on the
-  instance that deleted it (`forgetVerifiedToken`). `npm run test:launch`
-  (verified-caller suite) pins each bound.
+  postpones Auth's own session lookup. Privileged operations and GETs that
+  may write account data call `requireFreshAuth` before the rate-limit
+  prelude. That includes the wallet, badges, streak protection balance,
+  sharkname and leaderboard name settings, referral summary, daily challenge
+  start and Learn coding level opens. A write already verified before a
+  concurrent deletion can still race with erasure. The instance that deletes
+  the account forgets the token used for deletion (`forgetVerifiedToken`).
+  `npm run test:launch` (verified-caller suite) pins these checks.
 - **Learning-preference save** (#587, server item 23). A PUT merges the new
   answers with the `user_metadata` Supabase Auth returned for the request's
   own token check (a PUT never trusts an earlier acceptance, so it is the

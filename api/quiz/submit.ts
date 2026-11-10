@@ -30,42 +30,48 @@ const SUBMITTABLE_SCOPES: ReadonlySet<DecodedQuizSession['scope']> = new Set([
 const logEvent = createLogger('quiz/submit');
 const reportLogger = createLogger('quiz/report');
 const serviceSupabase = createServiceClient();
-const localSubmissionClaims = new Map<string, { answerHash: string; subject: string; userId: string | null }>();
+const isProduction = () => process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
 
-async function claimSubmission(input: {
+interface SubmissionClaim {
   gradeKey: string;
   attemptId: string;
   answerHash: string;
   subject: string;
   userId: string | null;
-}): Promise<'claimed' | 'replay' | 'conflict' | 'unavailable'> {
+}
+
+type ChallengeVerdict = 'correct' | 'strike' | 'void';
+type ClaimStatus = 'claimed' | 'replay' | 'conflict' | 'unavailable';
+type ChallengeClaim =
+  | { status: 'claimed' | 'replay'; verdict: ChallengeVerdict }
+  | { status: 'conflict' | 'finished' | 'unavailable' };
+const localSubmissionClaims = new Map<string, SubmissionClaim & { verdict?: ChallengeVerdict }>();
+const localChallengeStrikes = new Map<string, number>();
+
+function sameSubmission(previous: SubmissionClaim, input: SubmissionClaim): boolean {
+  return previous.attemptId === input.attemptId && previous.answerHash === input.answerHash &&
+    previous.subject === input.subject && previous.userId === input.userId;
+}
+
+function claimArguments(input: SubmissionClaim) {
+  return {
+    p_grade_key: input.gradeKey,
+    p_attempt_id: input.attemptId,
+    p_user_id: input.userId,
+    p_subject: input.subject,
+    p_answer_hash: input.answerHash,
+  };
+}
+
+async function claimSubmission(input: SubmissionClaim): Promise<ClaimStatus> {
   if (!serviceSupabase) {
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
-    if (isProduction) return 'unavailable';
+    if (isProduction()) return 'unavailable';
     const previous = localSubmissionClaims.get(input.gradeKey);
-    if (!previous) {
-      localSubmissionClaims.set(input.gradeKey, {
-        answerHash: input.answerHash,
-        subject: input.subject,
-        userId: input.userId,
-      });
-      return 'claimed';
-    }
-    return previous.answerHash === input.answerHash &&
-      previous.subject === input.subject &&
-      previous.userId === input.userId
-      ? 'replay'
-      : 'conflict';
+    if (previous) return sameSubmission(previous, input) ? 'replay' : 'conflict';
+    localSubmissionClaims.set(input.gradeKey, input);
+    return 'claimed';
   }
-  const result = await withTimeout(
-    serviceSupabase.rpc('claim_quiz_submission', {
-      p_grade_key: input.gradeKey,
-      p_attempt_id: input.attemptId,
-      p_user_id: input.userId,
-      p_subject: input.subject,
-      p_answer_hash: input.answerHash,
-    }),
-  );
+  const result = await withTimeout(serviceSupabase.rpc('claim_quiz_submission', claimArguments(input)));
   if (result.error) {
     if (isRpcMissing(result.error)) return 'unavailable';
     // The claim is what makes grading one-time, so without it nothing is
@@ -76,6 +82,36 @@ async function claimSubmission(input: {
   return result.data === 'claimed' || result.data === 'replay' || result.data === 'conflict'
     ? result.data
     : 'unavailable';
+}
+
+async function claimChallengeAnswer(input: SubmissionClaim, verdict: ChallengeVerdict): Promise<ChallengeClaim> {
+  if (!serviceSupabase) {
+    if (isProduction()) return { status: 'unavailable' };
+    const previous = localSubmissionClaims.get(input.gradeKey);
+    if (previous) {
+      return previous.verdict && sameSubmission(previous, input)
+        ? { status: 'replay', verdict: previous.verdict }
+        : { status: 'conflict' };
+    }
+    const strikes = localChallengeStrikes.get(input.attemptId) ?? 0;
+    if (strikes >= 3) return { status: 'finished' };
+    localSubmissionClaims.set(input.gradeKey, { ...input, verdict });
+    if (verdict === 'strike') localChallengeStrikes.set(input.attemptId, strikes + 1);
+    return { status: 'claimed', verdict };
+  }
+  const result = await withTimeout(serviceSupabase.rpc('claim_challenge_answer', { ...claimArguments(input), p_verdict: verdict }));
+  if (result.error) {
+    if (isRpcMissing(result.error)) return { status: 'unavailable' };
+    logEvent({ status: 503, reason: 'challenge_claim_failed', error: result.error.message });
+    throw new ServiceUnavailableError('claim_unavailable', 'This could not be checked right now. Try again in a minute.');
+  }
+  const stored = result.data as { status?: unknown; verdict?: unknown } | null;
+  if (stored?.status === 'conflict' || stored?.status === 'finished') return { status: stored.status };
+  if ((stored?.status === 'claimed' || stored?.status === 'replay') &&
+      (stored.verdict === 'correct' || stored.verdict === 'strike' || stored.verdict === 'void')) {
+    return { status: stored.status, verdict: stored.verdict };
+  }
+  return { status: 'unavailable' };
 }
 
 // Question-report reasons. 'needs-review' is the lightweight red-flag from the
@@ -184,18 +220,15 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     if (error instanceof AuthError) return jsonError(res, error.status, error.code, error.message);
     throw error;
   }
-  // A session issued to an account (a daily fetched signed in) is graded for
-  // that account only. Graded as a guest's, a submit that arrived without the
-  // token would spend the attempt's one-time claim under nobody's name, and
-  // every retry after it would be refused as already graded. Nothing is
-  // claimed here, so the same answers can be sent again signed in.
-  if (session.userId && !signedIn) {
+  // Challenge batches bind guests as well as accounts. A daily opened as a
+  // guest can still be submitted as unranked practice after sign-in.
+  const owner = session.scope === 'challenge' ? session.userId : session.userId ?? undefined;
+  if (owner && !signedIn) {
     logEvent({ status: 401, reason: 'owner_signed_out', scope: session.scope, latency_ms: Date.now() - started });
     return jsonError(res, 401, 'sign_in_required', 'Sign in again to submit this. It was started signed in.');
   }
-  // Another account's session is refused as a Learn step is: graded as
-  // practice, it would still spend its owner's claim for the day.
-  if (session.userId && signedIn && signedIn.sub !== session.userId) {
+  // Refuse before spending a claim that belongs to another caller.
+  if (owner !== undefined && owner !== (signedIn?.sub ?? null)) {
     logEvent({ status: 409, reason: 'session_owner_mismatch', scope: session.scope, latency_ms: Date.now() - started });
     return jsonError(res, 409, 'session_owner_mismatch', 'This was started under a different sign-in. Start it again.');
   }
@@ -223,32 +256,48 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     session.attemptId !== stableAttemptId('daily', signedIn.sub, subject, session.date ?? '');
   const auth = session.scope === 'qotd' || dailyPractice ? null : signedIn;
   const canonicalAnswers = [...validated].sort((a, b) => a.questionId.localeCompare(b.questionId));
-  const answerHash = createHash('sha256').update(JSON.stringify(canonicalAnswers)).digest('hex');
+  // The same index can refer to a different option in a new Challenge batch.
+  // Only the original deal may replay the claim. Pre-deploy batches lack an
+  // owner field and keep the old hash for retries until their tokens expire.
+  const claimContent = session.scope === 'challenge' && owner !== undefined
+    ? [body.sessionId, canonicalAnswers]
+    : canonicalAnswers;
+  const answerHash = createHash('sha256').update(JSON.stringify(claimContent)).digest('hex');
   const gradeKey = session.scope === 'challenge'
     ? `${session.attemptId}:${validated[0].questionId}`
     : session.attemptId;
-  // The question bank and the learner's review states do not depend on the
-  // one-time claim, so they load while it is taken. Nothing is graded or
-  // recorded until the claim has answered; a failed load is answered where it
-  // is awaited, below, and the handler here only keeps it from counting as
-  // unhandled while the claim is in flight.
+  // Start loading the bank and review states alongside the claim. New
+  // Challenge claims need the bank first so a retired question cannot
+  // spend a strike. No result is returned before the claim is recorded.
   const loading = Promise.all([
     getEffectiveQuestionsById(subject),
     auth && session.scope !== 'challenge' ? loadReviewStates(serviceSupabase, auth.sub, subject) : Promise.resolve([]),
   ]);
   loading.catch(() => {});
-  const claim = await claimSubmission({
+  const claimInput = {
     gradeKey,
     attemptId: session.attemptId,
     answerHash,
     subject,
     userId: auth?.sub ?? null,
-  });
+  };
+  let challengeClaim: ChallengeClaim | undefined;
+  if (session.scope === 'challenge' && session.gradingVersion === 2) {
+    const [bank] = await loading;
+    const { questionId, selectedIndex } = validated[0];
+    const correct = sessionById.get(questionId)?.correctAnswer === selectedIndex;
+    const verdict = !bank.has(questionId) ? 'void' : correct ? 'correct' : 'strike';
+    challengeClaim = await claimChallengeAnswer(claimInput, verdict);
+  }
+  const claim = challengeClaim?.status ?? await claimSubmission(claimInput);
   if (claim === 'unavailable') {
     return jsonError(res, 503, 'migration_required', 'One-time quiz grading is not configured');
   }
   if (claim === 'conflict') {
     return jsonError(res, 409, 'attempt_already_graded', 'This answer has already been graded and cannot be changed');
+  }
+  if (claim === 'finished') {
+    return jsonError(res, 409, 'challenge_finished', 'This Challenge run ended after its third strike.');
   }
   // Effective question set (base + /dev overrides, eligibility applied) for
   // explanations, and for the one grading decision the sealed key
@@ -258,14 +307,18 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   // the result screen can say why the total is short. The key stays sealed
   // either way; nothing here reveals it.
   const [questionsById, reviewStates] = await loading;
-  const voided = validated.filter(({ questionId }) => !questionsById.has(questionId)).map(({ questionId }) => questionId);
-  const gradable = validated.filter(({ questionId }) => questionsById.has(questionId));
+  const recordedVerdict = challengeClaim && 'verdict' in challengeClaim ? challengeClaim.verdict : undefined;
+  const canGrade = ({ questionId }: { questionId: string }) => recordedVerdict === undefined
+    ? questionsById.has(questionId)
+    : recordedVerdict !== 'void';
+  const voided = validated.filter((answer) => !canGrade(answer)).map(({ questionId }) => questionId);
+  const gradable = validated.filter(canGrade);
 
   let correct = 0;
   const results = gradable.map(({ questionId, selectedIndex }) => {
     const sessionQ = sessionById.get(questionId);
     const q = questionsById.get(questionId);
-    const isCorrect = sessionQ?.correctAnswer === selectedIndex;
+    const isCorrect = recordedVerdict === undefined ? sessionQ?.correctAnswer === selectedIndex : recordedVerdict === 'correct';
     if (isCorrect) correct++;
     const result = {
       questionId,
@@ -275,7 +328,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
       explanation: q?.explanation ?? '',
     };
     return session.scope === 'challenge' && session.runId && sessionQ
-      ? { ...result, scoreProof: encodeScoreProof(session.runId, questionId, subject, isCorrect) }
+      ? { ...result, scoreProof: encodeScoreProof(session.runId, questionId, subject, isCorrect, session.gradingVersion) }
       : result;
   });
 

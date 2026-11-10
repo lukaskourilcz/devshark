@@ -2429,6 +2429,110 @@ async function challengeSelectionContracts() {
   assert.equal(legacy.allTopics, null);
 }
 
+async function challengeAnswerClaimContracts() {
+  const learner = 'challenge-claim-owner';
+  const batch = mockResponse();
+  await challengeHandler(quizRequest('GET', { categories: 'javascript' }, undefined, learner), batch as never);
+  assert.equal(batch.statusCode, 200, JSON.stringify(batch.body));
+  const opened = batch.body as { sessionId: string; questions: { options: string[] }[] };
+  const session = decodeSessionEnvelope(opened.sessionId)!;
+  const question = session.questions[0];
+  const wrongPick = (question.correctAnswer + 1) % opened.questions[0].options.length;
+  const submit = async (sessionId: string, user: string | null = learner, pick = wrongPick, questionId = question.questionId) => {
+    const response = mockResponse();
+    await submitHandler(quizRequest('POST', {}, { sessionId, answers: { [questionId]: pick } }, user ?? undefined), response as never);
+    return response;
+  };
+
+  // Another batch in the same run can re-deal this question with the same
+  // selected index now correct. Only the original deal may replay its grade.
+  const context = { scope: 'challenge', runId: session.runId!, subject: 'webdev', attemptId: session.attemptId! } as const;
+  const redealt = encodeSession([{ questionId: question.questionId, correctAnswer: wrongPick }], {
+    ...context, userId: learner, gradingVersion: session.gradingVersion,
+  });
+  const first = await submit(opened.sessionId);
+  assert.equal(first.statusCode, 200, JSON.stringify(first.body));
+  assert.equal((first.body as { correctAnswers: number }).correctAnswers, 0);
+  const changed = await submit(redealt);
+  assert.equal(changed.statusCode, 409, 're-dealing the same question cannot turn a wrong pick into a point');
+  assert.equal((changed.body as { error: { code: string } }).error.code, 'attempt_already_graded');
+  const retry = await submit(opened.sessionId);
+  assert.equal(retry.statusCode, 200, 'a retry of the original deal still works');
+  assert.equal((retry.body as { correctAnswers: number }).correctAnswers, 0);
+  assert.equal((await submit(opened.sessionId, learner, question.correctAnswer)).statusCode, 409, 'changing the original pick remains a conflict');
+
+  assert.equal(session.userId, learner, 'a new signed-in batch names its account');
+  assert.equal((await submit(opened.sessionId, 'challenge-other-user')).statusCode, 409, 'another account cannot submit this batch');
+  assert.equal((await submit(opened.sessionId, null)).statusCode, 401, 'a signed-in batch still needs the session on submit');
+
+  const guestBatch = mockResponse();
+  await challengeHandler(quizRequest('GET', { categories: 'javascript' }), guestBatch as never);
+  assert.equal(guestBatch.statusCode, 200, JSON.stringify(guestBatch.body));
+  const guestToken = (guestBatch.body as { sessionId: string }).sessionId;
+  const guestSession = decodeSessionEnvelope(guestToken)!;
+  assert.equal(guestSession.userId, null, 'a new guest batch explicitly belongs to a guest');
+  const guestQuestion = guestSession.questions[0];
+  assert.equal((await submit(guestToken, learner, guestQuestion.correctAnswer, guestQuestion.questionId)).statusCode, 409, 'a signed-in submit cannot take a guest batch');
+  assert.equal((await submit(guestToken, null, guestQuestion.correctAnswer, guestQuestion.questionId)).statusCode, 200, 'the guest can still submit it');
+
+  const legacyRun = createChallengeRun(true, 'webdev');
+  const legacy = encodeSession([question], { ...context, runId: legacyRun.runId, attemptId: legacyRun.runId });
+  assert.equal((await submit(legacy)).statusCode, 200, 'an in-flight legacy batch can finish');
+  assert.equal((await submit(legacy)).statusCode, 200, 'an in-flight legacy retry can finish');
+}
+
+async function challengeStrikeContracts() {
+  const categories = 'javascript';
+  const batch = mockResponse();
+  await challengeHandler(quizRequest('GET', { categories }), batch as never);
+  assert.equal(batch.statusCode, 200, JSON.stringify(batch.body));
+  const { sessionId, runToken } = batch.body as { sessionId: string; runToken: string };
+  const session = decodeSessionEnvelope(sessionId)!;
+  const run = decodeChallengeRun(runToken)!;
+  const submit = async (questionId: string, pick: number, token = sessionId) => {
+    const response = mockResponse();
+    await submitHandler(quizRequest('POST', {}, { sessionId: token, answers: { [questionId]: pick } }), response as never);
+    return response;
+  };
+  const wrong = (question: { questionId: string; correctAnswer: number }) => submit(question.questionId, (question.correctAnswer + 1) % 2);
+  const proof = (response: ReturnType<typeof mockResponse>) => (response.body as { results: { scoreProof: string }[] }).results[0].scoreProof;
+  const [first, second, last, late] = session.questions;
+  const strikes = [await wrong(first), await wrong(second)];
+  const retiredId = 'retired-while-open';
+  const retired = encodeSession([{ questionId: retiredId, correctAnswer: 0 }], {
+    scope: 'challenge', runId: run.runId, attemptId: run.runId, subject: 'webdev', userId: null, gradingVersion: run.gradingVersion,
+  });
+  const voided = await submit(retiredId, -1, retired);
+  assert.equal(voided.statusCode, 200);
+  assert.deepEqual((voided.body as { voided: string[] }).voided, [retiredId]);
+  strikes.push(await submit(last.questionId, -1));
+  assert.deepEqual(strikes.map((response) => response.statusCode), [200, 200, 200], 'an unanswered question counts as the third strike, a void does not');
+
+  const after = await submit(late.questionId, late.correctAnswer);
+  assert.equal(after.statusCode, 409, 'a fourth new answer cannot add a score proof after the third strike');
+  assert.equal((after.body as { error: { code: string } }).error.code, 'challenge_finished');
+  const retry = await submit(last.questionId, -1);
+  assert.equal(retry.statusCode, 200, 'the terminal strike itself can be retried');
+  assert.equal((retry.body as { correctAnswers: number }).correctAnswers, 0);
+  assert.equal((await submit(last.questionId, last.correctAnswer)).statusCode, 409, 'a changed terminal answer stays a conflict');
+
+  const complete = async (proofs: string[]) => {
+    const response = mockResponse();
+    await challengeHandler(quizRequest('POST', { resource: 'complete' }, { runToken, proofs }), response as never);
+    return response;
+  };
+  assert.equal((await complete(strikes.map(proof))).statusCode, 200, 'three server-recorded strikes can complete the run');
+  const legacyProof = encodeScoreProof(run.runId, last.questionId, 'webdev', false);
+  assert.equal((await complete([...strikes.slice(0, 2).map(proof), legacyProof])).statusCode, 400, 'a new run cannot use a proof from the old grading path');
+
+  const legacy = createChallengeRun(true, 'webdev', { topics: [categories], allTopics: false, userId: null });
+  const refill = mockResponse();
+  await challengeHandler(quizRequest('GET', { categories, runToken: legacy.runToken }), refill as never);
+  assert.equal(refill.statusCode, 200, 'a legacy run can still get a refill');
+  const refilled = decodeSessionEnvelope((refill.body as { sessionId: string }).sessionId);
+  assert.equal(refilled?.gradingVersion, undefined, 'a refill keeps its original grading rules');
+}
+
 /** A class behind one school address (review round 3: SEC-1, QUIZ-2, PLAY-3,
  * CODE-8, PROF-7). Each route below charged one person's budget to the whole
  * address, so the pupil past it got 429: a quiz, the due list, the daily
@@ -2765,7 +2869,7 @@ async function quizSubmitScopeContracts() {
 
   // A Biggest Shark Challenge batch, one answer at a time.
   const batch = mockResponse();
-  await challengeHandler(quizRequest('GET', { categories: deliveryCategories('webdev').join(',') }), batch as never);
+  await challengeHandler(quizRequest('GET', { categories: deliveryCategories('webdev').join(',') }, undefined, learner), batch as never);
   assert.equal(batch.statusCode, 200, JSON.stringify(batch.body));
   const batchSession = decodeSessionEnvelope((batch.body as { sessionId: string }).sessionId)!;
   const one = batchSession.questions[0];
@@ -2961,9 +3065,9 @@ async function dailySwitchContracts() {
  * time they were handed the day's questions. */
 async function dailyIntegrityContracts() {
   const learner = 'daily-contract-learner-01';
-  const fetchDaily = async (user?: string) => {
+  const fetchDaily = async (user?: string, query: Record<string, string> = {}) => {
     const response = mockResponse();
-    await dailyHandler(quizRequest('GET', {}, undefined, user), response as never);
+    await dailyHandler(quizRequest('GET', query, undefined, user), response as never);
     assert.equal(response.statusCode, 200, JSON.stringify(response.body));
     return response;
   };
@@ -2993,12 +3097,19 @@ async function dailyIntegrityContracts() {
 
   // Fetching again just before submitting does not restart the clock.
   await new Promise((resolve) => setTimeout(resolve, 60));
-  const again = await fetchDaily(learner);
-  const firstSession = decodeSessionEnvelope((first.body as { sessionId: string }).sessionId)!;
-  const againSession = decodeSessionEnvelope((again.body as { sessionId: string }).sessionId)!;
+  type DailyBody = { sessionId: string; questions: { category: string }[] };
+  const firstBody = first.body as DailyBody;
+  // A valid category subset that excludes a question already dealt must
+  // still get the same ranked challenge, with the same option order.
+  const subset = deliveryCategories('webdev').find((category) => category !== firstBody.questions[0].category)!;
+  const again = await fetchDaily(learner, { categories: subset });
+  const againBody = again.body as DailyBody;
+  assert.deepEqual(againBody.questions, firstBody.questions, 'topic filters cannot change the ranked daily questions');
+  const firstSession = decodeSessionEnvelope(firstBody.sessionId)!;
+  const againSession = decodeSessionEnvelope(againBody.sessionId)!;
   assert.equal(againSession.attemptId, firstSession.attemptId, 'one attempt a day');
   assert.equal(againSession.startedAt, firstSession.startedAt, 'the start is the first fetch of the day');
-  const ranked = await submitAll((again.body as { sessionId: string }).sessionId, learner);
+  const ranked = await submitAll(againBody.sessionId, learner);
   const receipt = decodeQuizResultReceipt(ranked.resultReceipt!);
   assert.equal(receipt?.purpose, 'daily');
   assert.ok((receipt?.daily?.durationMs ?? 0) >= 60, `the time runs from the first fetch, got ${receipt?.daily?.durationMs} ms`);
@@ -3576,7 +3687,47 @@ async function identityContracts() {
   assert.deepEqual(friendCalls, [], 'and nothing is answered or removed');
 }
 
+async function practiceRunTransitionContracts() {
+  const learner = 'practice-learner-0001';
+  const sessionId = 'practice-session-0001';
+  const call = async (storedStatus: 'active' | 'abandoned', position?: number) => {
+    const calls: { name: string; args: Record<string, unknown> }[] = [];
+    const query = {
+      select: () => query,
+      eq: () => query,
+      maybeSingle: async () => ({ data: { session_id: sessionId, status: storedStatus, position }, error: null }),
+    };
+    const db = {
+      from: () => query,
+      rpc: async (name: string, args: Record<string, unknown>) => {
+        calls.push({ name, args });
+        return { data: name === 'begin_scheduled_practice_session' ? true : null, error: null };
+      },
+    };
+    const req = {
+      method: 'PUT', headers: { authorization: 'Bearer stand-in-token', 'x-forwarded-for': '198.51.100.82' },
+      query: {}, body: { sessionId, user_id: learner, status: 'active', position },
+    };
+    const res = mockResponse();
+    await handlePracticeSession(req as never, res as never, db as never);
+    return { res, calls };
+  };
+
+  const began = await call('active');
+  assert.equal(began.res.statusCode, 200);
+  assert.deepEqual(began.calls.map(({ name }) => name), ['begin_scheduled_practice_session'], 'activation does not send a second status write');
+  const combined = await call('active', 1);
+  assert.equal(combined.res.statusCode, 200);
+  assert.deepEqual(combined.calls[1], {
+    name: 'advance_practice_session',
+    args: { p_session_id: sessionId, p_user_id: learner, p_position: 1, p_status: null },
+  }, 'a caller can begin with a position without setting active twice');
+  const replaced = await call('abandoned');
+  assert.equal(replaced.res.statusCode, 409, 'a start response cannot direct the learner back to a replaced run');
+}
+
 async function main() {
+  await practiceRunTransitionContracts();
   codingBoardContracts();
   await codingFetchContracts();
   complexityContracts();
@@ -6335,6 +6486,8 @@ async function main() {
   englishOnlyContracts();
   await guestChallengeLimitContracts();
   await challengeSelectionContracts();
+  await challengeAnswerClaimContracts();
+  await challengeStrikeContracts();
   await dailyIntegrityContracts();
   await dailyOwnerContracts();
   seededShuffleContracts();

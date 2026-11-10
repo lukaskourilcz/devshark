@@ -154,6 +154,38 @@ describe('an account made with an email and password', () => {
     expect([...asked].sort()).toEqual(['advisor', 'freezes']);
   });
 
+  it.each([
+    ['a service outage', () => HttpResponse.json({ error: { code: 'upstream_timeout' } }, { status: 503 }), /Server error/],
+    ['an offline request', () => HttpResponse.error(), /Check your connection/],
+  ] as const)('offers a study advisor retry after %s', async (_scenario, fail, message) => {
+    serveAccount(false);
+    let releaseStats!: () => void;
+    const statsGate = new Promise<void>((done) => { releaseStats = done; });
+    let reads = 0;
+    server.use(
+      http.get('*/api/user/stats', async () => { await statsGate; return HttpResponse.json({ data: STATS }); }),
+      http.get('*/api/user/advisor', () => ++reads === 1
+        ? fail()
+        : HttpResponse.json({ weakAreas: [], suggestedWeek: [], generatedAt: '2026-10-01T09:00:00Z' })),
+    );
+    await mount('/profile', <Profile />);
+    await waitFor(() => expect(reads).toBe(1));
+    await act(async () => { releaseStats(); });
+
+    const heading = await screen.findByRole('heading', { name: 'Study advisor' });
+    const card = heading.closest<HTMLElement>('.ss-panel')!;
+    expect(await within(card).findByRole('alert')).toHaveTextContent(message);
+    expect(within(card).queryByText('Not enough data yet')).not.toBeInTheDocument();
+    const retry = within(card).getByRole('button', { name: 'Retry' });
+    retry.focus();
+    fireEvent.click(retry);
+
+    expect(await within(card).findByText('Not enough data yet')).toBeVisible();
+    expect(within(card).queryByRole('alert')).not.toBeInTheDocument();
+    expect(heading).toHaveFocus();
+    expect(reads).toBe(2);
+  });
+
   it('uses the server-confirmed account name on the boards without publishing the full email or photo', async () => {
     serveAccount(true);
     server.use(leaderboardHandlers.pinned);

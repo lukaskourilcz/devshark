@@ -5,7 +5,7 @@ import { beforeAll, afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
-import { CodingWorkbench } from '../src/coding/CodingWorkbench';
+import { CodingWorkbench, type CodingWorkbenchProps } from '../src/coding/CodingWorkbench';
 import { revealCoding, submitCoding, useCodingApproaches } from '../src/coding/api';
 import { runCodeTests, type RunOutcome } from '../src/coding/runner/run-tests';
 import { skipTask } from '../src/coding/practice';
@@ -50,13 +50,13 @@ const outcome = (extra: Partial<RunOutcome>): RunOutcome => ({ results: [], logs
 const status = () => document.querySelector('.cd-workbench > [role="status"]')!;
 const editor = () => screen.getByLabelText('Test editor');
 
-function mount(props: { signedIn?: boolean; subject?: PlayableCodingTask; mode?: 'section' | 'landing'; onRefreshTask?: (code: string) => Promise<void> } = {}) {
+function mount(props: { signedIn?: boolean; subject?: PlayableCodingTask; mode?: 'section' | 'landing'; onRefreshTask?: (code: string) => Promise<void>; onVerdict?: CodingWorkbenchProps['onVerdict'] } = {}) {
   return render(
     <MemoryRouter initialEntries={['/coding/javascript/js-test-state']}>
       <LanguageProvider>
         <Routes>
           <Route path="/coding/javascript/js-test-state" element={(
-            <CodingWorkbench task={props.subject ?? task} session="test-session" locked={null} initialCode={null} signedIn={props.signedIn ?? true} mode={props.mode ?? 'section'} onRefreshTask={props.onRefreshTask} />
+            <CodingWorkbench task={props.subject ?? task} session="test-session" locked={null} initialCode={null} signedIn={props.signedIn ?? true} mode={props.mode ?? 'section'} onRefreshTask={props.onRefreshTask} onVerdict={props.onVerdict} />
           )} />
           <Route path="/coding/:track/:taskId" element={<h1>Another task</h1>} />
         </Routes>
@@ -170,6 +170,38 @@ it('does not call the server’s results about the code just submitted stale', a
   fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
   expect(await screen.findByRole('heading', { level: 3, name: /^Passed/ })).toBeVisible();
   expect(screen.queryByText('The code changed since this run.')).toBeNull();
+});
+
+it('marks a Run stale when the editor changes while the result is pending', async () => {
+  let finish!: (run: RunOutcome) => void;
+  vi.mocked(runCodeTests).mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+  mount();
+  fireEvent.click(screen.getByRole('button', { name: 'Run' }));
+  fireEvent.change(editor(), { target: { value: '// newer code' } });
+  await act(async () => { finish(outcome({ codeError: 'Error from the old source' })); });
+
+  const panel = within(screen.getByRole('tabpanel', { name: 'Results' }));
+  expect(panel.getByText('The code changed since this run.')).toBeVisible();
+  expect(panel.getByText('Error from the old source')).toBeVisible();
+  expect(status()).toHaveTextContent('The code changed since this run.');
+});
+
+it('marks a slow Submit stale while still reporting the pass for the submitted source', async () => {
+  let finish!: (result: CodingVerdictResponse) => void;
+  vi.mocked(submitCoding).mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+  const onVerdict = vi.fn();
+  const accepted = verdict({});
+  mount({ onVerdict });
+  fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+  editor().focus();
+  fireEvent.change(editor(), { target: { value: '// newer code' } });
+  await act(async () => { finish(accepted); });
+
+  expect(screen.getByText('You changed the code after this check. Submit again to check the new version.')).toBeVisible();
+  expect(screen.getByText('+25 XP')).toBeVisible();
+  expect(editor()).toHaveValue('// newer code');
+  expect(editor()).toHaveFocus();
+  expect(onVerdict).toHaveBeenCalledWith(accepted, task.starter, true);
 });
 
 // C3-7: offline, a runner that never loaded read "Your code could not run.

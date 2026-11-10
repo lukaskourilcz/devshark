@@ -905,8 +905,12 @@ describe('focus mode', () => {
     expect(screen.getByRole('radio', { name: 'right' })).toHaveAttribute('aria-checked', 'false');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Keep playing' }));
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
-    // Closed, the keys work again.
+    // Closed, the keys work again while the question has focus.
     fireEvent.keyDown(document.body, { key: '1' });
+    expect(screen.getByRole('radio', { name: 'right' })).toHaveAttribute('aria-checked', 'false');
+    const question = document.querySelector<HTMLElement>('.ss-question__block')!;
+    question.focus();
+    fireEvent.keyDown(question, { key: '1' });
     expect(screen.getByRole('radio', { name: 'right' })).toHaveAttribute('aria-checked', 'true');
   });
 

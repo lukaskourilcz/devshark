@@ -26,14 +26,14 @@ export interface SuggestedDay {
 }
 
 /** GET /api/user/advisor result. */
-export interface Advice {
+interface Advice {
   weakAreas: WeakArea[];
   suggestedWeek: SuggestedDay[];
-  /** ISO timestamp; '' in the empty/offline fallback. */
+  /** ISO timestamp when supplied by the server. */
   generatedAt: string;
 }
 
-const EMPTY_ADVICE: Advice = { weakAreas: [], suggestedWeek: [], generatedAt: '' };
+export type AdviceResult = { advice: Advice } | { error: unknown };
 
 const FOCUS_VALUES: readonly AdvisorFocus[] = ['recall', 'practice', 'apply'];
 const isFocus = (v: unknown): v is AdvisorFocus =>
@@ -80,18 +80,15 @@ function normalize(res: RawAdvice): Advice {
   };
 }
 
-/**
- * Read the subject's weakest areas + a suggested practice week. Never throws:
- * offline / signed-out / migration-missing / too-little-data resolve to empty
- * advice (the component renders its "all strong / not enough data" state).
- */
-export async function getAdvice(subject: SubjectId): Promise<Advice> {
+/** Settle the read even if it starts before its card mounts. A failed read
+ * and a successful answer with too little data are different results. */
+export async function getAdvice(subject: SubjectId): Promise<AdviceResult> {
   try {
     const res = await apiFetch<RawAdvice>(
       `/api/user/advisor?subject=${encodeURIComponent(subject)}`,
     );
-    return normalize(res);
-  } catch {
-    return { ...EMPTY_ADVICE };
+    return { advice: normalize(res) };
+  } catch (error) {
+    return { error };
   }
 }

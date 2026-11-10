@@ -25,7 +25,7 @@ import { apiFetch, friendlyError } from '../lib/api';
 import { useBookmarks, removeBookmark } from '../lib/bookmarks';
 import { getStreakProtection, activateShield, streakState, shieldRemaining, type StreakProtection } from '../lib/streakFreezes';
 import { DayChangeNote } from './DayChangeNote';
-import { getAdvice, advisorCategoryKey, type Advice } from '../lib/advisor';
+import { getAdvice, advisorCategoryKey, type AdviceResult } from '../lib/advisor';
 import { renderQuestion } from './CodeBlock';
 import { useT, useLanguage } from '../i18n/LanguageContext';
 import { useEquippedRingColor, useEquippedFlair } from '../lib/shop';
@@ -61,7 +61,7 @@ function SectionLabel({ children }: { children: ReactNode }) {
 // afresh.
 interface EarlyReads {
   protection?: Promise<StreakProtection>;
-  advice?: { subject: string; read: Promise<Advice> };
+  advice?: { subject: string; read: Promise<AdviceResult> };
 }
 const EarlyReadsContext = createContext<MutableRefObject<EarlyReads> | null>(null);
 
@@ -71,7 +71,7 @@ function takeProtectionRead(early: MutableRefObject<EarlyReads> | null): Promise
   return read ?? getStreakProtection();
 }
 
-function takeAdviceRead(early: MutableRefObject<EarlyReads> | null, subject: Parameters<typeof getAdvice>[0]): Promise<Advice> {
+function takeAdviceRead(early: MutableRefObject<EarlyReads> | null, subject: Parameters<typeof getAdvice>[0]): Promise<AdviceResult> {
   const held = early?.current.advice;
   if (early) early.current.advice = undefined;
   return held && held.subject === subject ? held.read : getAdvice(subject);
@@ -677,36 +677,52 @@ function CareerCard({ totals }: { totals: { quizzes: number; questions: number; 
 function AdvisorCard() {
   const t = useT();
   const subject = useActiveSubject();
-  const [advice, setAdvice] = useState<Advice | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [settled, setSettled] = useState<{ attempt: number; result: AdviceResult } | null>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  const heading = useRef<HTMLElement>(null);
   const early = useContext(EarlyReadsContext);
 
   useEffect(() => {
     let active = true;
-    setAdvice(null);
-    takeAdviceRead(early, subject.id).then((a) => { if (active) setAdvice(a); });
+    void takeAdviceRead(early, subject.id).then((result) => {
+      if (!active) return;
+      // The retry button is about to be replaced. Keep keyboard focus in the
+      // card if the learner is still there.
+      if (attempt > 0 && 'advice' in result && panel.current?.contains(document.activeElement)) {
+        heading.current?.focus();
+      }
+      setSettled({ attempt, result });
+    });
     return () => { active = false; };
-  }, [subject.id, early]);
+  }, [subject.id, early, attempt]);
 
-  const hasData = !!advice && advice.weakAreas.length > 0;
+  const result = settled?.result;
 
   return (
-    <div className="ss-panel" style={{ padding: 24, width: '100%' }}>
+    <div ref={panel} className="ss-panel" style={{ padding: 24, width: '100%' }}>
         <VStack gap={2}>
           <HStack gap={1.5} align="center">
             <div aria-hidden className="ss-tile" style={{ width: 40, height: 40, color: 'var(--brand-accent-on-soft)', background: 'var(--brand-accent-soft)' }}>
               <TargetIcon size={20} />
             </div>
             <VStack gap={0}>
-              <SectionLabel>{t('advisor.title')}</SectionLabel>
+              <Kicker as="h2" elementRef={heading} tabIndex={-1}>{t('advisor.title')}</Kicker>
               <Text type="supporting" size="xsm" color="secondary">{t('advisor.subtitle')}</Text>
             </VStack>
           </HStack>
 
-          {!advice ? (
+          {!result ? (
             <div role="status" aria-live="polite" style={{ padding: '6px 0' }}>
               <Text type="supporting" size="xsm" color="secondary">{t('advisor.loading')}</Text>
             </div>
-          ) : !hasData ? (
+          ) : 'error' in result ? (
+            <ErrorRetry
+              message={friendlyError(result.error)}
+              busy={settled?.attempt !== attempt}
+              onRetry={() => setAttempt((current) => current === settled?.attempt ? current + 1 : current)}
+            />
+          ) : result.advice.weakAreas.length === 0 ? (
             <div style={{ padding: '2px 0' }}>
               <Text weight="semibold">{t('advisor.empty')}</Text>
               <Text type="supporting" size="xsm" color="secondary" display="block">{t('advisor.emptyBody')}</Text>
@@ -714,7 +730,7 @@ function AdvisorCard() {
           ) : (
             <VStack gap={1}>
               <Text weight="semibold">{t('advisor.weakest')}</Text>
-              {advice.weakAreas.map((w) => (
+              {result.advice.weakAreas.map((w) => (
                 <div key={w.category}>
                   <HStack justify="between" align="center" gap={1} wrap="wrap">
                     <Text weight="semibold" size="sm">{t(advisorCategoryKey(w.category))}</Text>

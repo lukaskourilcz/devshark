@@ -89,7 +89,8 @@ const JWT_ADMIN = jwtAccount(4, 3600, { appMetadata: { role: 'admin' } });
 const JWT_DELETED = jwtAccount(5);
 const JWT_OUTAGE = jwtAccount(6);
 const JWT_WRITER = jwtAccount(7);
-const JWT_ACCOUNTS = [JWT_LEARNER, JWT_TOGETHER, JWT_SHORT, JWT_ADMIN, JWT_DELETED, JWT_OUTAGE, JWT_WRITER];
+const JWT_GET_WRITER = jwtAccount(8);
+const JWT_ACCOUNTS = [JWT_LEARNER, JWT_TOGETHER, JWT_SHORT, JWT_ADMIN, JWT_DELETED, JWT_OUTAGE, JWT_WRITER, JWT_GET_WRITER];
 // An account whose saved learner profile Supabase Auth returns with the
 // token check, as it returns every account's user_metadata.
 const PROFILED: Account = {
@@ -134,6 +135,10 @@ const SLOW_REPORT = 'stand-in: answer after the timeout';
 const SLOW_QUESTION = 'stand-in: save after the timeout';
 // A topic board asked with this minimum answers after the timeout too.
 const SLOW_BOARD_MIN_ATTEMPTS = 97;
+const SLOW_PATH_PROGRESS = 'slow-path-progress';
+const SLOW_PATH_OPEN = 'slow-path-open-attempt';
+const SLOW_PATH_ACCEPT = 'slow-path-accept-result';
+let fdeFixtureVersion: number | undefined;
 const upstashCommands: string[] = [];
 // A Challenge run saved with this score finds the run already on the board
 // with another one.
@@ -216,6 +221,15 @@ async function startStandIns() {
       setTimeout(() => send(200, []), 5_500);
       return;
     }
+    if (url.pathname === '/rest/v1/learning_path_progress' && url.searchParams.get('enrollment_id') === `eq.${SLOW_PATH_PROGRESS}`) {
+      setTimeout(() => send(200, []), 5_500);
+      return;
+    }
+    if ((url.pathname === '/rest/v1/rpc/open_learning_path_attempt' && (body as Row | undefined)?.p_enrollment_id === SLOW_PATH_OPEN)
+        || (url.pathname === '/rest/v1/rpc/accept_learning_path_result' && (body as Row | undefined)?.p_attempt_id === SLOW_PATH_ACCEPT)) {
+      setTimeout(() => send(200, null), 5_500);
+      return;
+    }
     if (url.pathname === '/rest/v1/rpc/category_leaderboard' && (body as Row | undefined)?.p_min_attempts === SLOW_BOARD_MIN_ATTEMPTS) {
       setTimeout(() => send(200, []), 5_500);
       return;
@@ -229,6 +243,7 @@ async function startStandIns() {
     if (rpc) {
       if (rpc === 'claim_quiz_submission' && claimFails) return send(500, { code: '08006', message: 'stand-in: connection failure' });
       if (rpc === 'allocate_shark_name') return send(200, { handle: 'sleepySharkie17', ordinal: '17', base: 'sleepySharkie' });
+      if (rpc === 'referral_summary') return send(200, { code: 'ab234567' });
       // Migration 064 raises for a run already saved with another score.
       if (rpc === 'save_completed_challenge_score' && (body as Row).p_score === CONFLICTING_CHALLENGE_SCORE) return send(400, { code: 'P0001', message: 'challenge_score_conflict' });
       if (rpc === 'save_completed_challenge_score') return send(200, { id: 'score-17', name: 'sleepySharkie17', score: (body as Row).p_score, selected_topics: (body as Row).p_topics, all_topics: (body as Row).p_all_topics, created_at: new Date().toISOString() });
@@ -242,6 +257,13 @@ async function startStandIns() {
     }
     if (url.pathname.startsWith('/rest/v1/')) {
       const single = String(req.headers.accept ?? '').includes('vnd.pgrst.object');
+      if (url.pathname === '/rest/v1/learning_path_enrollments' && filters.user_id === A.id
+          && [SLOW_PATH_PROGRESS, SLOW_PATH_OPEN, SLOW_PATH_ACCEPT].includes(filters.enrollment_id)) {
+        return send(200, {
+          enrollment_id: filters.enrollment_id, user_id: A.id, path_id: 'fde',
+          status: 'active', curriculum_version: fdeFixtureVersion,
+        });
+      }
       if (url.pathname === '/rest/v1/user_handles' && req.method === 'GET' && filters.user_id === HANDLES_DOWN.id) return send(500, { code: '08006', message: 'stand-in: connection failure' });
       if (url.pathname === '/rest/v1/user_handles' && req.method === 'GET') return send(200, single ? { leaderboard_name_mode: 'nickname' } : []);
       if (req.method === 'POST' || req.method === 'PATCH') {
@@ -322,6 +344,7 @@ async function main() {
       reportsStore,
       questionsStore,
       { default: adminOps },
+      { default: daily },
     ] = await Promise.all([
       import('../api/user/[op]'),
       import('../api/quiz/roadmap'),
@@ -339,6 +362,7 @@ async function main() {
       import('../lib/reports-store'),
       import('../lib/questions-store'),
       import('../api/admin/[op]'),
+      import('../api/quiz/daily'),
     ]);
 
     type Handler = (req: never, res: never) => unknown;
@@ -357,6 +381,52 @@ async function main() {
       call(userOps as Handler, { ...input, query: { op, ...(input.query ?? {}) } });
     const reads = (path: string) => seen.filter((one) => one.path === path);
     const errorCode = (res: Response) => (res.body as { error?: { code?: string } } | undefined)?.error?.code;
+
+    // These GETs can write account rows, so a warm token must still be
+    // refused before the write when Supabase has ended the session.
+    const writer = JWT_GET_WRITER;
+    const writeOnRead = [
+      ['badges', () => user('badges', { account: writer, query: { subject: 'webdev' } }), '/rest/v1/rpc/sync_user_badges'],
+      ['freezes', () => user('freezes', { account: writer }), '/rest/v1/rpc/refresh_streak_freezes'],
+      ['friends-handle', () => user('friends-handle', { account: writer }), '/rest/v1/rpc/allocate_shark_name'],
+      ['leaderboard-name', () => user('leaderboard-name', { account: writer }), '/rest/v1/rpc/allocate_shark_name'],
+      ['referral', () => user('referral', { account: writer }), '/rest/v1/rpc/referral_summary'],
+      ['daily', () => call(daily as Handler, { account: writer }), '/rest/v1/rpc/claim_quiz_submission'],
+      ['Learn coding level', () => call(roadmap as Handler, { account: writer, query: { topic: 'dsa', level: '1' } }), '/rest/v1/roadmap_attempts'],
+    ] as const;
+    for (const [label, read, writePath] of writeOnRead) {
+      assert.equal((await user('identity', { account: writer })).statusCode, 200);
+      revokedTokens.add(writer.token);
+      try {
+        seen.length = 0;
+        authChecks = 0;
+        const refused = await read();
+        assert.equal(refused.statusCode, 401, `${label} refuses a revoked token even after a successful read`);
+        assert.equal(errorCode(refused), 'invalid_token');
+        assert.equal(authChecks, 1, `${label} checks Auth once`);
+        assert.ok(!reads(writePath).some((row) => row.method === 'POST'), `${label} writes nothing after refusal`);
+      } finally {
+        revokedTokens.delete(writer.token);
+      }
+      assert.equal((await user('identity', { account: writer })).statusCode, 200);
+      seen.length = 0;
+      authChecks = 0;
+      const accepted = await read();
+      assert.equal(accepted.statusCode, 200, `${label} works for an active session (${JSON.stringify(accepted.body)})`);
+      assert.equal(authChecks, 1, `${label} checks even an active cached token`);
+      assert.ok(reads(writePath).some((row) => row.method === 'POST'), `${label} can write for an active account`);
+    }
+    seen.length = 0;
+    authChecks = 0;
+    const guestDaily = await call(daily as Handler, {});
+    assert.equal(guestDaily.statusCode, 200, 'a guest may still start the daily challenge');
+    assert.equal(authChecks, 0, 'a guest does not ask Supabase Auth');
+    assert.equal(reads('/rest/v1/rpc/claim_quiz_submission').length, 0, 'a guest daily writes no start marker');
+    const guestLevel = await call(roadmap as Handler, { query: { topic: 'dsa', level: '1' } });
+    assert.equal(guestLevel.statusCode, 200, 'a guest may still start a free coding level');
+    assert.equal(authChecks, 0, 'opening a guest level does not ask Supabase Auth');
+    assert.equal((reads('/rest/v1/roadmap_attempts').find((row) => row.method === 'POST')?.body as Row)?.user_id, null);
+    console.log('PASS verified caller: GETs that write account rows ask Auth fresh, and guest starts still work');
 
     // Leaderboard identity is independent of friends and cannot publish a full email.
     seen.length = 0;
@@ -779,13 +849,55 @@ async function main() {
     assert.equal(errorCode(slowBoard), 'upstream_timeout');
     console.log('PASS verified caller: a timed-out leaderboard answers 503');
 
-    // So do the account ops whose own catch used to answer 500.
-    const slowOps = await Promise.all(['streak', 'xp', 'stats', 'leaderboard-visibility', 'identity', 'friends-handle'].map(async (op) => [op, await user(op, { account: SLOW })] as const));
-    for (const [op, res] of slowOps) {
-      assert.equal(res.statusCode, 503, `op=${op} whose read timed out answers 503 (${JSON.stringify(res.body)})`);
-      assert.equal(errorCode(res), 'upstream_timeout');
+    // The account ops and learning-path routes keep the same retryable
+    // error, including the path handler's enrollment and progress catches.
+    {
+      const { pathById } = await import('../lib/learning-paths/catalog');
+      const path = pathById('fde')!;
+      const lesson = path.modules.filter((module) => !module.requiresAtLeast)
+        .flatMap((module) => module.activities).find((activity) => activity.kind === 'lesson')!;
+      const oldSwitch = process.env.LEARNING_PATH_FDE_ENABLED;
+      process.env.LEARNING_PATH_FDE_ENABLED = 'true';
+      fdeFixtureVersion = path.version;
+      const pathStart = (account: Account, enrollmentId: string) => call(roadmap as Handler, {
+        account, method: 'POST', query: { resource: 'learning-path-start' },
+        body: { enrollmentId, activityId: lesson.id },
+      });
+      const pathSubmit = (account: Account, enrollmentId: string) => call(roadmap as Handler, {
+        account, method: 'POST', query: { resource: 'learning-path-submit' },
+        body: {
+          session: tokens.encodeLearningPathSession({
+            attemptId: enrollmentId, enrollmentId, userId: account.id, pathId: path.id,
+            activityId: lesson.id, activityKind: lesson.kind, purpose: lesson.purpose,
+            curriculumVersion: path.version, rubricVersion: path.rubric.version,
+          }).token,
+          idempotencyKey: 'test-slow-path-submit', acknowledged: true,
+        },
+      });
+      try {
+        const accountReads = ['streak', 'xp', 'stats', 'leaderboard-visibility', 'identity', 'friends-handle'];
+        const slowResponses = await Promise.all([
+          ...accountReads.map(async (op) => [op, await user(op, { account: SLOW })] as const),
+          ...['learning-path-enrollment', 'learning-path-progress', 'learning-path-draft'].map(async (op) => [
+            op, await user(op, { account: SLOW, query: { enrollmentId: 'slow-path-enrollment', activityId: lesson.id } }),
+          ] as const),
+          pathStart(SLOW, 'slow-path-enrollment').then((res) => ['path start enrollment', res] as const),
+          pathSubmit(SLOW, 'slow-path-enrollment').then((res) => ['path submit enrollment', res] as const),
+          pathSubmit(A, SLOW_PATH_PROGRESS).then((res) => ['path submit progress', res] as const),
+          pathStart(A, SLOW_PATH_OPEN).then((res) => ['path start attempt write', res] as const),
+          pathSubmit(A, SLOW_PATH_ACCEPT).then((res) => ['path submit result write', res] as const),
+        ]);
+        for (const [label, res] of slowResponses) {
+          assert.equal(res.statusCode, 503, `${label} times out with 503 (${JSON.stringify(res.body)})`);
+          assert.equal(errorCode(res), 'upstream_timeout', `${label} reports an upstream timeout`);
+        }
+      } finally {
+        if (oldSwitch === undefined) delete process.env.LEARNING_PATH_FDE_ENABLED;
+        else process.env.LEARNING_PATH_FDE_ENABLED = oldSwitch;
+        fdeFixtureVersion = undefined;
+      }
+      console.log('PASS verified caller: account and learning-path operations that time out answer 503 upstream_timeout');
     }
-    console.log('PASS verified caller: account ops whose read timed out answer 503');
 
     // ── this month's XP board (migration 056) ───────────────────────────
     // Shared and cached for a minute without a session; with one it is the

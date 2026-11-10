@@ -183,9 +183,9 @@ function LessonCodingTask({ task, session, signedIn, onPassed, onRevealed, onCon
             mode="lesson"
             onDraft={(code) => saveDraft(task.id, code, { signedIn, base, epoch })}
             onEdit={(code) => autosaveDraft(task.id, code, base, epoch)}
-            onVerdict={(verdict) => {
+            onVerdict={(verdict, _submittedCode, sourceChanged) => {
               if (verdict.verdict === 'passed') {
-                forgetDeviceDraft(task.id, epoch);
+                if (!sourceChanged) forgetDeviceDraft(task.id, epoch);
                 onPassed();
               }
             }}
@@ -437,12 +437,15 @@ export function LessonRunner({
     setFlagSnack(true);
   };
 
+  const questionRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (finished || showIntro || codingPhase) return;
+    if (finished || restart || showIntro || codingPhase) return;
     const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      const target = e.target instanceof Element ? e.target : null;
       if (target?.closest('input, textarea, select, button, a, [contenteditable="true"], [role="textbox"], [role="radio"], [role="checkbox"]')) return;
       if (!revealed && /^[1-9]$/.test(e.key)) {
+        if (!target || !questionRef.current?.closest('.ss-question')?.contains(target)) return;
         const idx = parseInt(e.key, 10) - 1;
         if (idx < question.options.length) {
           e.preventDefault();
@@ -455,7 +458,7 @@ export function LessonRunner({
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [finished, showIntro, codingPhase, revealed, question, choose, advance]);
+  }, [finished, restart, showIntro, codingPhase, revealed, question, choose, advance]);
 
   useEffect(() => {
     if (finished || restart) openAtTop(resultHeadingRef.current);
@@ -466,7 +469,6 @@ export function LessonRunner({
   // the page: a keyboard learner had to tab through the whole shell to go on.
   // A revealed answer takes focus to its Continue (or Try again); a question
   // takes it to the question, where the number keys still answer.
-  const questionRef = useRef<HTMLDivElement>(null);
   const showingQuestion = !finished && !restart && !showIntro && !codingPhase;
   useEffect(() => {
     if (showingQuestion) openAtTop(questionRef.current);

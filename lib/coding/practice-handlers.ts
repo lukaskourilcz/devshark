@@ -537,8 +537,8 @@ export async function handlePracticeSession(req: VercelRequest, res: VercelRespo
     if (body.status !== undefined && body.status !== 'finished' && body.status !== 'abandoned' && body.status !== 'active') {
       return jsonError(res, 400, 'bad_request', 'A run starts as active, or ends as finished or abandoned');
     }
-    if (body.status === 'active') {
-      // Starting a planned run, early or late. Only a scheduled row moves.
+    const beginning = body.status === 'active';
+    if (beginning) {
       const begun = await withTimeout(
         supabase.rpc('begin_scheduled_practice_session', { p_session_id: body.sessionId, p_user_id: userId }),
       );
@@ -547,21 +547,24 @@ export async function handlePracticeSession(req: VercelRequest, res: VercelRespo
         return jsonError(res, 500, 'db_error', 'Could not start the run');
       }
       if (begun.data !== true) return jsonError(res, 409, 'not_scheduled', 'That run is not waiting to be started');
-      logEvent({ status: 200, kind: 'run_started' });
     }
-    const moved = await withTimeout(
-      supabase.rpc('advance_practice_session', {
-        p_session_id: body.sessionId,
-        p_user_id: userId,
-        // The routine clamps the place to the queue, but the parameter is a
-        // Postgres integer: a larger number failed the call with a 500.
-        p_position: Number.isInteger(body.position) ? Math.max(0, Math.min(PRACTICE_QUEUE_MAX, Number(body.position))) : null,
-        p_status: body.status ?? null,
-      }),
-    );
-    if (moved.error) {
-      if (isRpcMissing(moved.error)) return migrationRequired(res);
-      return jsonError(res, 500, 'db_error', 'Could not save your place');
+
+    // Clamp before sending the place as a Postgres integer. Begin already
+    // set the status, so only an explicit position needs another write.
+    const position = Number.isInteger(body.position) ? Math.max(0, Math.min(PRACTICE_QUEUE_MAX, Number(body.position))) : null;
+    if (!beginning || position !== null) {
+      const moved = await withTimeout(
+        supabase.rpc('advance_practice_session', {
+          p_session_id: body.sessionId,
+          p_user_id: userId,
+          p_position: position,
+          p_status: beginning ? null : body.status ?? null,
+        }),
+      );
+      if (moved.error) {
+        if (isRpcMissing(moved.error)) return migrationRequired(res);
+        return jsonError(res, 500, 'db_error', 'Could not save your place');
+      }
     }
     const row = await withTimeout(
       supabase.from('practice_sessions').select('*').eq('session_id', body.sessionId).eq('user_id', userId).maybeSingle(),
@@ -569,6 +572,10 @@ export async function handlePracticeSession(req: VercelRequest, res: VercelRespo
     // A failed read is not "no run": answering null would tell the browser
     // the run it just moved does not exist.
     if (row.error) return jsonError(res, 500, 'db_error', 'Could not load your session');
+    if (beginning) {
+      if (row.data?.status !== 'active') return jsonError(res, 409, 'not_scheduled', 'That run is not waiting to be started');
+      logEvent({ status: 200, kind: 'run_started' });
+    }
     res.setHeader('Cache-Control', 'private, no-store');
     const answer: PracticeSessionResponse = { session: row.data ? toSession(row.data) : null };
     return res.json(answer);

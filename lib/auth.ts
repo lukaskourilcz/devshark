@@ -96,18 +96,12 @@ const tokenChecks = new WeakMap<VercelRequest, Map<string, Promise<AuthResult>>>
  *    check. The account's data reads the same as in the request that asked.
  *  - Reads only. Only a GET or HEAD request trusts an earlier acceptance;
  *    every other method (an answer, a completion, a claim, a purchase, a
- *    draft, any write) asks Auth itself, so XP, coins and one-time claims
- *    are never earned on a session Auth has ended, and no write lands for an
- *    account deleted on another instance (its rows would not be erased
- *    again: nothing ties them to auth.users). A write's own acceptance still
+ *    draft, any write) asks Auth itself. A write's own acceptance still
  *    renews the one reads use.
- *  - Exceptions among reads: a request marked with `requireFreshAuth` (the
- *    admin API, the fulfilment desk, and the wallet read, which settles coin
- *    grants) always asks Auth, and a deleted account's token is forgotten at
- *    once on the instance that deleted it (`forgetVerifiedToken`). A few
- *    other reads write a row of their own (a Learn level open records its
- *    attempt); for an account deleted on another instance less than a minute
- *    before, such a row can still be written, and is listed for the owner.
+ *  - Exceptions among reads: privileged requests and GETs that may write
+ *    account data (such as the wallet and a Learn coding level) call
+ *    `requireFreshAuth` before verification. A deleted account's token is
+ *    forgotten on the instance that deleted it (`forgetVerifiedToken`).
  *  - Only a JWT whose `exp` and `sub` can be read is kept, keyed by the
  *    SHA-256 of the token, so the token itself is never held as a key; at
  *    most VERIFIED_TOKEN_LIMIT entries, the oldest dropped first.

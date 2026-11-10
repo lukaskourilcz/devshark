@@ -24,6 +24,8 @@ interface Call { kind: 'upstash' | 'auth'; key?: string; start: number; end: num
 const calls: Call[] = [];
 /** Addresses whose address bucket the Upstash stand-in refuses. */
 const refused = new Set<string>();
+let hungConnections = 0;
+let closedConnections = 0;
 
 const readBody = (req: IncomingMessage) => new Promise<string>((resolve) => {
   let text = '';
@@ -42,6 +44,11 @@ const upstash = createServer(async (req, res) => {
   const start = performance.now();
   const body = JSON.parse(await readBody(req)) as unknown[];
   const commands = (req.url === '/pipeline' ? body : [body]) as unknown[][];
+  if (commands.some((command) => String(command[3] ?? '').includes(':limiter_transport:'))) {
+    hungConnections += 1;
+    res.once('close', () => { closedConnections += 1; });
+    return;
+  }
   await later();
   const results = commands.map((command) => {
     const key = String(command[3] ?? '');
@@ -73,7 +80,7 @@ process.env.UPSTASH_REDIS_REST_TOKEN = 'upstash-prelude';
 for (const key of ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY', 'NODE_ENV', 'VERCEL_ENV', 'VERCEL']) delete process.env[key];
 
 try {
-  const [{ limitRead, enforceClassRateLimit, RATE_LIMITS }, { withRequestContext }] = await Promise.all([
+  const [{ limitRead, enforceClassRateLimit, enforceRateLimit, RATE_LIMITS }, { withRequestContext }] = await Promise.all([
     import('../lib/rate-limit'),
     import('../lib/http'),
   ]);
@@ -194,7 +201,19 @@ try {
     }
   }
   console.log('PASS prelude: a coding Submit and the learning-path start, submit and draft save check the token while their address bucket answers');
+  // Stop the HTTP request as well as releasing the learner's request. The
+  // stand-in never sends headers, so closing it requires a transport abort.
+  const config = { key: 'limiter_transport', capacity: 1, refillPerSecond: 1 / 3600 };
+  const transport = (req: never, res: never) => enforceRateLimit(req, res, config, 'user:limiter_transport');
+  assert.deepEqual(await prelude(transport, '198.51.100.91', '91'), { admitted: true, status: 200 });
+  const closeDeadline = Date.now() + 1_000;
+  while (!closedConnections && Date.now() < closeDeadline) await later();
+  assert.equal(closedConnections, 1, 'the fallback cancels the hanging Upstash transport');
+  assert.deepEqual(await prelude(transport, '198.51.100.91', '91'), { admitted: false, status: 429 });
+  assert.equal(hungConnections, 1, 'the paused limiter spends only from the local bucket');
+  console.log('PASS prelude: distributed limiter timeout aborts its HTTP request and falls back locally');
 } finally {
+  upstash.closeAllConnections();
   upstash.close();
   auth.close();
 }

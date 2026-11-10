@@ -19,7 +19,7 @@ import { assessComplexity } from '../coding/complexity';
 import { codingPassXp, complexityGuidance, type ComplexityReport } from '../../shared/coding-complexity';
 import { codingAwardId, creditVerifiedXp, settleMilestonesAfterPass } from '../rewards/coins';
 import { AuthError, tryAuth } from '../auth';
-import { createLogger, isRpcMissing, jsonError, requireAuthSub, withTimeout } from '../http';
+import { createLogger, isRpcMissing, jsonError, requireAuthSub, ServiceUnavailableError, withTimeout } from '../http';
 import { prefetchTier, refuseLocked, resolveTier } from '../access';
 import { enforceAddressRateLimit, enforcePerItemRateLimit, enforceRateLimit, enterInFlight, RATE_LIMITS } from '../rate-limit';
 import { deploymentSubjectIds } from '../product-scope';
@@ -476,6 +476,7 @@ export async function handleEnrollment(req: VercelRequest, res: VercelResponse, 
       const body: EnrollmentListResponse = { enrollments: rows.filter((row) => isLearningPathId(row.path_id)).map(toEnrollment) };
       return res.json(body);
     } catch (error) {
+      if (error instanceof ServiceUnavailableError) throw error;
       if (migrationMissing(res, (error as { supabase?: { message?: string } }).supabase ?? null)) return;
       return jsonError(res, 500, 'db_error', 'Could not load enrollments');
     }
@@ -580,6 +581,7 @@ export async function handlePathProgress(req: VercelRequest, res: VercelResponse
     res.setHeader('Cache-Control', 'private, no-store');
     return res.json(body);
   } catch (error) {
+    if (error instanceof ServiceUnavailableError) throw error;
     if (migrationMissing(res, (error as { supabase?: { message?: string } }).supabase ?? null)) return;
     return jsonError(res, 500, 'db_error', 'Could not load learning-path progress');
   }
@@ -623,6 +625,7 @@ export async function handleActivityStart(req: VercelRequest, res: VercelRespons
   try {
     row = await loadEnrollment(supabase, userId, body.enrollmentId);
   } catch (error) {
+    if (error instanceof ServiceUnavailableError) throw error;
     if (migrationMissing(res, (error as { supabase?: { message?: string } }).supabase ?? null)) return;
     return jsonError(res, 500, 'db_error', 'Could not load the enrollment');
   }
@@ -992,6 +995,7 @@ export async function handleActivitySubmit(req: VercelRequest, res: VercelRespon
   try {
     enrollmentRow = await loadEnrollment(supabase, userId, session.enrollmentId);
   } catch (error) {
+    if (error instanceof ServiceUnavailableError) throw error;
     if (migrationMissing(res, (error as { supabase?: { message?: string } }).supabase ?? null)) return;
     return jsonError(res, 500, 'db_error', 'Could not load the enrollment');
   }
@@ -1163,6 +1167,7 @@ export async function handleActivitySubmit(req: VercelRequest, res: VercelRespon
   try {
     rows = await progressRows();
   } catch (error) {
+    if (error instanceof ServiceUnavailableError) throw error;
     if (migrationMissing(res, (error as { supabase?: { message?: string } }).supabase ?? null)) return;
     return jsonError(res, 500, 'db_error', 'Could not load learning-path progress');
   }
@@ -1535,6 +1540,7 @@ export async function handlePathDraft(req: VercelRequest, res: VercelResponse, s
       };
       return res.json(out);
     } catch (error) {
+      if (error instanceof ServiceUnavailableError) throw error;
       if (migrationMissing(res, (error as { supabase?: { message?: string } }).supabase ?? null)) return;
       return jsonError(res, 500, 'db_error', 'Could not load the draft');
     }

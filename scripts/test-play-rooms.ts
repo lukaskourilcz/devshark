@@ -54,6 +54,7 @@ const UNIQUE: Record<string, string[][]> = {
   user_handles: [['user_id']],
 };
 let clock = 0;
+let beforeMatchPatch: (() => void) | undefined;
 /** Errors the database answers once each: the next request with this method
  * and path gets the status and body instead of its rows. A 500, because
  * supabase-js retries a read that met a 503. */
@@ -238,6 +239,11 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   }
   if (req.method === 'PATCH') {
     const patch = JSON.parse(await readBody(req)) as Row;
+    if (table === 'matches' && beforeMatchPatch) {
+      const interleave = beforeMatchPatch;
+      beforeMatchPatch = undefined;
+      interleave();
+    }
     const hit = rows.filter((row) => matches(row, url.searchParams));
     hit.forEach((row) => Object.assign(row, patch));
     if (!representation) {
@@ -405,7 +411,13 @@ async function main() {
       const hostLobby = (await call('host', 'GET', 'state', { code })).body.match;
       assert.deepEqual(hostLobby.questions, [], 'a competing host reads no question in the lobby');
       assert.equal(hostLobby.question_count, 5);
-      room(code).last_heartbeat_at = new Date(Date.now() - 6 * 60_000).toISOString();
+      const staleHeartbeat = new Date(Date.now() - 6 * 60_000).toISOString();
+      room(code).last_heartbeat_at = staleHeartbeat;
+      beforeMatchPatch = () => { room(code).last_heartbeat_at = new Date().toISOString(); };
+      const revived = await call('one', 'GET', 'state', { code });
+      assert.equal(revived.body.match.status, 'lobby', 'a heartbeat received before the finish update keeps the lobby open');
+      assert.equal(room(code).status, 'lobby', 'the room itself stays open');
+      room(code).last_heartbeat_at = staleHeartbeat;
       const state = await call('one', 'GET', 'state', { code });
       assert.equal(state.body.match.status, 'finished', 'a lobby the host left is closed');
       assert.equal(state.body.match.started_at ?? null, null, 'and reads as never started');

@@ -69,9 +69,7 @@ const sb = vi.hoisted(() => {
     };
     const initialized = (async () => {
       await Promise.resolve();
-      const fragment = new URLSearchParams(window.location.hash.slice(1));
       const code = new URLSearchParams(window.location.search).get('code');
-      if (fragment.get('access_token')) return saveAndAnnounce(sessionFor(fragment.get('access_token')!, 'user-oauth'));
       if (code && localStorage.getItem(`${KEY}-code-verifier`)) return saveAndAnnounce(sessionFor(`pkce-${code}`, 'user-pkce'));
       const stored = readStored();
       if (stored) {
@@ -89,7 +87,7 @@ const sb = vi.hoisted(() => {
     /** Holds a download until the test releases it. */
     held: null as null | { promise: Promise<void>; release: () => void },
     clients: [] as ReturnType<typeof makeClient>[],
-    createClient: vi.fn((url: string, key: string) => {
+    createClient: vi.fn((url: string, key: string, _options: { auth: { flowType: string } }) => {
       const created = makeClient(url, key);
       state.clients.push(created);
       return created;
@@ -242,7 +240,7 @@ describe('a returning visitor with a stored session', () => {
     await waitFor(() => expect(sb.createClient).toHaveBeenCalledTimes(1));
     expect(sb.imports).toBe(1);
     // The default storage key: an explicit storageKey would sign users out.
-    expect(sb.createClient).toHaveBeenCalledWith(PROJECT_URL, ANON_KEY);
+    expect(sb.createClient).toHaveBeenCalledWith(PROJECT_URL, ANON_KEY, { auth: { flowType: 'pkce' } });
   });
 
   it('restores the user while the download is slow, without reporting a sign-in', async () => {
@@ -269,8 +267,8 @@ describe('a returning visitor with a stored session', () => {
     // (another tab holding it): the boot deadline must not sign the page out.
     localStorage.setItem(KEY, JSON.stringify(STORED));
     const original = sb.createClient.getMockImplementation()!;
-    sb.createClient.mockImplementationOnce((url: string, key: string) => {
-      const client = original(url, key);
+    sb.createClient.mockImplementationOnce((url, key, options) => {
+      const client = original(url, key, options);
       client.auth.getSession.mockImplementation(() => new Promise(() => {}));
       return client;
     });
@@ -356,7 +354,8 @@ describe('a returning visitor with a stored session', () => {
   it('waits for supabase-js on an OAuth return, though another account’s fresh session is stored', async () => {
     freshPageLoad('held');
     localStorage.setItem(KEY, JSON.stringify(STORED));
-    window.history.replaceState(null, '', '/#access_token=oauth-access-token&refresh_token=r&expires_in=3600&token_type=bearer');
+    localStorage.setItem(`${KEY}-code-verifier`, '"verifier"');
+    window.history.replaceState(null, '', '/?code=oauth-access-token');
     const authorization = recordAuthorization();
     const { apiFetch } = await import('../src/lib/api');
     const request = apiFetch('/api/test');
@@ -364,7 +363,7 @@ describe('a returning visitor with a stored session', () => {
     expect(authorization).toEqual([]);
     await releaseDownload();
     await expect(request).resolves.toEqual({ ok: true });
-    expect(authorization).toEqual(['Bearer oauth-access-token']);
+    expect(authorization).toEqual(['Bearer pkce-oauth-access-token']);
   });
 
   // Perf baseline #587 C10: the settings, the Learn map, the path catalog and
@@ -534,20 +533,22 @@ describe('a returning visitor with a stored session', () => {
 describe('an OAuth return', () => {
   it('imports supabase-js at once, and the sign-in is reported with its token', async () => {
     freshPageLoad('held');
-    window.history.replaceState(null, '', '/#access_token=oauth-access-token&refresh_token=r&expires_in=3600&token_type=bearer');
+    localStorage.setItem(`${KEY}-code-verifier`, '"verifier"');
+    window.history.replaceState(null, '', '/?code=oauth-access-token');
     const reports = recordSignInReports();
     const { renders } = await mountAuth();
     expect(renders[0]).toBe('loading');
     await settle();
     expect(sb.imports).toBe(1);
     await releaseDownload();
-    await waitFor(() => expect(screen.getByTestId('auth')).toHaveTextContent('user:user-oauth'));
-    await waitFor(() => expect(reports).toEqual(['Bearer oauth-access-token']));
-    expect(window.location.hash).toBe('');
+    await waitFor(() => expect(screen.getByTestId('auth')).toHaveTextContent('user:user-pkce'));
+    await waitFor(() => expect(reports).toEqual(['Bearer pkce-oauth-access-token']));
+    expect(window.location.search).toBe('');
   });
 
   it('sends a sign-in report the server never answered again on the next sign-in, and a delivered one only once', async () => {
-    window.history.replaceState(null, '', '/#access_token=oauth-access-token&refresh_token=r&expires_in=3600&token_type=bearer');
+    localStorage.setItem(`${KEY}-code-verifier`, '"verifier"');
+    window.history.replaceState(null, '', '/?code=oauth-access-token');
     const statuses = [503, 200];
     const reports: number[] = [];
     server.use(http.post('*/api/user/authevent', () => {
@@ -558,11 +559,11 @@ describe('an OAuth return', () => {
         : HttpResponse.json({ error: { code: 'upstream_timeout', message: 'Try again' } }, { status });
     }));
     await mountAuth();
-    await waitFor(() => expect(screen.getByTestId('auth')).toHaveTextContent('user:user-oauth'));
+    await waitFor(() => expect(screen.getByTestId('auth')).toHaveTextContent('user:user-pkce'));
     await waitFor(() => expect(reports).toEqual([503]));
     await settle();
     // supabase-js announces the session again (the tab is shown again).
-    const session = sb.sessionFor('oauth-access-token', 'user-oauth');
+    const session = sb.sessionFor('pkce-oauth-access-token', 'user-pkce');
     await act(async () => sb.clients[0].emit('SIGNED_IN', session));
     await waitFor(() => expect(reports).toEqual([503, 200]));
     await settle();

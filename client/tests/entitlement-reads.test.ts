@@ -74,7 +74,8 @@ describe('the plan read at start-up (C14)', () => {
     loaded.prefetchStoredAccountPlan();
 
     localStorage.setItem(KEY, JSON.stringify(session(3600)));
-    window.history.replaceState(null, '', '/#access_token=new-token&refresh_token=r&expires_in=3600&token_type=bearer');
+    localStorage.setItem(`${KEY}-code-verifier`, '"verifier"');
+    window.history.replaceState(null, '', '/?code=new-code');
     loaded = await pageLoad();
     loaded.prefetchStoredAccountPlan();
 

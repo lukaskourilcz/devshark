@@ -173,6 +173,7 @@ describe('a classroom of thirty behind one address', () => {
         </QueryClientProvider>,
       );
     });
+    await tick(READ_LATENCY_MS); // Join before starting the room reader.
     await tick(2_000);
     expect(screenOf(TEACHER).getByRole('heading', { name: 'Lobby' })).toBeInTheDocument();
 
