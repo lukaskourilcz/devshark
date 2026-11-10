@@ -1549,9 +1549,10 @@ async function handleComplete(req: VercelRequest, res: VercelResponse) {
     }
     await settled;
   } else if (!attempt.completed_at) {
-    await withTimeout(
+    const closed = await withTimeout(
       supabase.from('roadmap_attempts').update({ completed_at: new Date().toISOString() }).eq('attempt_id', session.attemptId!),
     );
+    if (closed.error) return jsonError(res, 503, 'progress_unavailable', 'Could not close the learning attempt. Try again.');
     applied = true;
   }
 

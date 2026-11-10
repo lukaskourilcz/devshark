@@ -74,6 +74,7 @@ let atomicCoinCredits = 0;
 let repeatRoutineMissing = false;
 /** Hold the backend beyond the request's 5 s upstream deadline. */
 let stallLearn = false;
+let unavailableGuestClose: string | null = null;
 /** Migration 060's user_learn_step_xp (when each step last paid, ms) and the
  * repeat awards it paid, by award id. */
 const stepPaidAt = new Map<string, number>();
@@ -262,6 +263,10 @@ async function startStandIn() {
       }
       if (req.method === 'PATCH') {
         const patch = JSON.parse(await readBody(req)) as Row;
+        if (table === 'roadmap_attempts' && unavailableGuestClose &&
+          filters.some(([key, value]) => key === 'attempt_id' && value === unavailableGuestClose)) {
+          return send(503, { code: '57014', message: 'Guest attempt close unavailable' });
+        }
         const found = rows.filter((row) => matches(row, filters));
         for (const row of found) Object.assign(row, patch);
         return send(200, found);
@@ -515,6 +520,18 @@ async function main() {
       assert.equal(guest.statusCode, 200, JSON.stringify(guest.body));
       assert.ok((guest.body.coding ?? []).length > 0, 'JavaScript level 1 carries a coding task');
       assert.ok((await answerAll(guest.body.sessionId)).every((status) => status === 200));
+      const guestAttempt = tokens.decodeSessionEnvelope(guest.body.sessionId)!.attemptId!;
+      unavailableGuestClose = guestAttempt;
+      try {
+        const unavailable = await call('POST', { resource: 'complete' }, undefined, { sessionId: guest.body.sessionId });
+        assert.equal(unavailable.statusCode, 503, 'a failed guest close must not report a completed attempt');
+        assert.equal(unavailable.body?.error?.code, 'progress_unavailable');
+        const storedGuest = tables.roadmap_attempts.find((row) => row.attempt_id === guestAttempt);
+        assert.ok(storedGuest);
+        assert.equal(storedGuest.completed_at ?? null, null);
+      } finally {
+        unavailableGuestClose = null;
+      }
       const guestDone = await call('POST', { resource: 'complete' }, undefined, { sessionId: guest.body.sessionId });
       assert.equal(guestDone.statusCode, 200, JSON.stringify(guestDone.body));
       assert.equal(guestDone.body.passed, true, 'a guest passes the level on its questions');
