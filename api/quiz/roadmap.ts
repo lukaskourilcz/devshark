@@ -1284,7 +1284,8 @@ async function handleComplete(req: VercelRequest, res: VercelResponse) {
         supabase
           .from('roadmap_attempts')
           .update({ completed_at: new Date().toISOString(), passed: false })
-          .eq('attempt_id', session.attemptId!),
+          .eq('attempt_id', session.attemptId!)
+          .is('completed_at', null),
       );
       if (closed.error) return jsonError(res, 500, 'db_error', 'Could not close the learning attempt');
     }

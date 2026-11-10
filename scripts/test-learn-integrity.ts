@@ -75,6 +75,7 @@ let repeatRoutineMissing = false;
 /** Hold the backend beyond the request's 5 s upstream deadline. */
 let stallLearn = false;
 let unavailableGuestClose: string | null = null;
+let completionBeforeRetirement: { attemptId: string; completedAt: string } | null = null;
 /** Migration 060's user_learn_step_xp (when each step last paid, ms) and the
  * repeat awards it paid, by award id. */
 const stepPaidAt = new Map<string, number>();
@@ -267,7 +268,13 @@ async function startStandIn() {
           filters.some(([key, value]) => key === 'attempt_id' && value === unavailableGuestClose)) {
           return send(503, { code: '57014', message: 'Guest attempt close unavailable' });
         }
-        const found = rows.filter((row) => matches(row, filters));
+        if (table === 'roadmap_attempts' && completionBeforeRetirement) {
+          const { attemptId, completedAt } = completionBeforeRetirement;
+          const attempt = rows.find((row) => row.attempt_id === attemptId && matches(row, filters));
+          if (attempt) Object.assign(attempt, { completed_at: completedAt, passed: true, score_pct: 100 });
+        }
+        const onlyOpen = url.searchParams.get('completed_at') === 'is.null';
+        const found = rows.filter((row) => matches(row, filters) && (!onlyOpen || row.completed_at == null));
         for (const row of found) Object.assign(row, patch);
         return send(200, found);
       }
@@ -553,6 +560,32 @@ async function main() {
       assert.equal(signedDone.body.codingUnverified, undefined, 'an account is never told its coding went unverified');
     }
     console.log('PASS learn: a guest passes a level on its questions; an account still needs its coding pass');
+
+    // Another request can finish against its current question bank while a
+    // bank refresh tells this request that a question has been retired.
+    {
+      const opened = await call('GET', { topic: 'html', level: '1' }, LEARNER.token);
+      assert.equal(opened.statusCode, 200);
+      assert.ok((await answerAll(opened.body.sessionId, LEARNER.token)).every((status) => status === 200));
+      const session = tokens.decodeSessionEnvelope(opened.body.sessionId)!;
+      const bank = await store.getEffectiveQuestionsById('webdev');
+      const questionId = session.questions[0].questionId;
+      const old = bank.get(questionId)!;
+      const completedAt = new Date(Date.now() - 1000).toISOString();
+      completionBeforeRetirement = { attemptId: session.attemptId!, completedAt };
+      bank.delete(questionId);
+      try {
+        const completed = await call('POST', { resource: 'complete' }, LEARNER.token, { sessionId: opened.body.sessionId });
+        assert.equal(completed.statusCode, 200, JSON.stringify(completed.body));
+        assert.equal(completed.body.invalidated?.reason, 'content_retired');
+        const row = tables.roadmap_attempts.find((one) => one.attempt_id === session.attemptId);
+        assert.equal(row?.passed, true, 'retiring an item must not overwrite a completion already committed');
+        assert.equal(row?.completed_at, completedAt);
+      } finally {
+        bank.set(questionId, old);
+        completionBeforeRetirement = null;
+      }
+    }
 
     // ── A failed progress read is not a refusal ────────────────────────────
     const blip = await call('GET', { topic: 'javascript', level: '2' }, BROKEN.token);
