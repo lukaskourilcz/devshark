@@ -327,7 +327,8 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   });
 
   const issuedAt = Date.now();
-  const sessionId = encodeSession(sessionData, { subject: scope.subject });
+  const isReview = resource === 'review';
+  const sessionId = encodeSession(sessionData, { scope: isReview ? 'review' : 'quiz', subject: scope.subject });
 
   // Per-request shuffle differs, so don't CDN-cache the response itself.
   res.setHeader('Cache-Control', 'private, no-store');
@@ -335,7 +336,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
 
   res.json({
     sessionId,
-    expiresAt: quizSessionExpiresAt(issuedAt),
+    ...(isReview ? { expiresAt: quizSessionExpiresAt(issuedAt) } : {}),
     questions: questionsWithShuffledOptions,
     ...(reviewPlan ? { reviewPlan } : {}),
     ...(mixed ? { interleaved: { contrasted } } : {}),

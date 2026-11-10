@@ -20,11 +20,11 @@ import { contentVersion } from '../../lib/curation';
 const MAX_ANSWERS = 50;
 
 // Who issues a session this handler grades: a quiz or a personalised review
-// (api/quiz/questions.ts, no scope), the daily challenge (api/quiz/daily.ts),
+// (api/quiz/questions.ts), the daily challenge (api/quiz/daily.ts),
 // the question of the day (lib/daily-question.ts), a Biggest Shark Challenge
 // batch and the 20-question assessment (api/quiz/challenge.ts).
 const SUBMITTABLE_SCOPES: ReadonlySet<DecodedQuizSession['scope']> = new Set([
-  undefined, 'daily', 'qotd', 'challenge', 'assessment',
+  undefined, 'quiz', 'review', 'daily', 'qotd', 'challenge', 'assessment',
 ]);
 
 const logEvent = createLogger('quiz/submit');

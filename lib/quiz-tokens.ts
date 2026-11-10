@@ -11,6 +11,10 @@ if (IS_PROD && (!SECRET || SECRET.length < 32)) {
 }
 
 const TOKEN_TTL_MS = 60 * 60 * 1000;
+/** Standard quizzes have no play timer. Keep the hidden grading credential
+ * within the seven days the database retains concept review receipts (072),
+ * so even a delayed replay cannot record an old review again. */
+const STANDARD_QUIZ_RECOVERY_MS = 6 * 24 * 60 * 60 * 1000;
 /** A daily result's time runs from the learner's first sight of the day's
  * questions, which can be longer ago than one session lasts. The database
  * accepts up to a day. */
@@ -27,10 +31,12 @@ const TOKEN_KEY = createHash('sha256').update(SECRET || 'dev-only-not-for-produc
 const b64url = (buffer: Buffer): string => buffer.toString('base64url');
 const fromB64url = (value: string): Buffer => Buffer.from(value, 'base64url');
 
+type QuizSessionScope = 'quiz' | 'review' | 'challenge' | 'daily' | 'roadmap' | 'assessment' | 'qotd';
+
 interface SessionPayload {
   kind: 'quiz-session';
   questions: { questionId: string; correctAnswer: number }[];
-  scope?: 'challenge' | 'daily' | 'roadmap' | 'assessment' | 'qotd';
+  scope?: QuizSessionScope;
   runId?: string;
   gradingVersion?: 2;
   subject?: ScopeSubjectId;
@@ -226,15 +232,20 @@ function openToken(token: string): unknown | null {
   }
 }
 
-function validLifetime(payload: { iat?: unknown; exp?: unknown }, maxTtl: number): boolean {
+function validLifetime(payload: { iat?: unknown; exp?: unknown }, maxTtl: number, recoveryAge?: number): boolean {
   const now = Date.now();
   return typeof payload.iat === 'number' && typeof payload.exp === 'number' &&
-    payload.iat <= now + 60_000 && payload.exp >= now && payload.exp > payload.iat &&
-    payload.exp - payload.iat <= maxTtl;
+    payload.iat <= now + 60_000 && payload.exp > payload.iat && payload.exp - payload.iat <= maxTtl &&
+    (payload.exp >= now || (recoveryAge !== undefined && now - payload.iat <= recoveryAge));
+}
+
+function sessionTtl(scope: QuizSessionScope | undefined): number {
+  return scope === 'roadmap' ? ROADMAP_TTL_MS : TOKEN_TTL_MS;
 }
 
 type SessionContext =
   | { subject: ScopeSubjectId }
+  | { scope: 'quiz' | 'review'; subject: ScopeSubjectId }
   | { scope: 'challenge'; runId: string; subject: ScopeSubjectId; attemptId?: string; userId?: string | null; gradingVersion?: 2 }
   // A daily fetched signed in names its account (`userId`), and only that
   // account may submit it (api/quiz/submit.ts).
@@ -258,7 +269,7 @@ type SessionContext =
 
 export interface DecodedQuizSession {
   questions: { questionId: string; correctAnswer: number }[];
-  scope?: 'challenge' | 'daily' | 'roadmap' | 'assessment' | 'qotd';
+  scope?: QuizSessionScope;
   runId?: string;
   /** Version 2 records strikes before returning a score proof. */
   gradingVersion?: 2;
@@ -288,13 +299,18 @@ export function encodeSession(data: SessionPayload['questions'], context?: Sessi
     ...(context ?? {}),
     attemptId: providedAttemptId ?? b64url(randomBytes(18)),
     iat: now,
-    exp: now + (context && 'scope' in context && context.scope === 'roadmap' ? ROADMAP_TTL_MS : TOKEN_TTL_MS),
+    exp: now + sessionTtl(context && 'scope' in context ? context.scope : undefined),
   });
 }
 
 export function decodeSessionEnvelope(token: string): DecodedQuizSession | null {
   const payload = openToken(token) as Partial<SessionPayload> | null;
-  if (!payload || payload.kind !== 'quiz-session' || !validLifetime(payload, payload.scope === 'roadmap' ? ROADMAP_TTL_MS : TOKEN_TTL_MS) || typeof payload.iat !== 'number') return null;
+  if (!payload || payload.kind !== 'quiz-session' || typeof payload.iat !== 'number') return null;
+  // The sealed hour still lets older deployments grade recent tokens.
+  // Standard quizzes can be graded for longer. Legacy unlabelled tokens can
+  // resume in that same window, while labelled Review keeps its original hour.
+  const recoveryAge = payload.scope === 'quiz' || payload.scope === undefined ? STANDARD_QUIZ_RECOVERY_MS : undefined;
+  if (!validLifetime(payload, sessionTtl(payload.scope), recoveryAge)) return null;
   if (!Array.isArray(payload.questions) || payload.questions.length === 0 || payload.questions.length > 50) return null;
   if (!payload.questions.every((question) => question && typeof question.questionId === 'string' && question.questionId.length > 0 && question.questionId.length <= 64 && Number.isInteger(question.correctAnswer) && question.correctAnswer >= 0 && question.correctAnswer <= 25)) return null;
   if (payload.subject !== undefined && !isScopeSubject(payload.subject)) return null;
@@ -346,7 +362,8 @@ export function decodeSessionEnvelope(token: string): DecodedQuizSession | null 
       userId: owner ?? null,
     };
   }
-  return base;
+  if (payload.scope === 'quiz' || payload.scope === 'review') return { ...base, scope: payload.scope };
+  return payload.scope === undefined ? base : null;
 }
 
 export const decodeSession = (token: string) => decodeSessionEnvelope(token)?.questions ?? null;

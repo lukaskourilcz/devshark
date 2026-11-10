@@ -124,6 +124,7 @@ const seen: Seen[] = [];
 const RETIRED_REPORTED = 'rm-js-21';
 /** While true, the one-time quiz claim fails as an unreachable database would. */
 let claimFails = false;
+let untimedQuizAttempt: string | undefined;
 let healthReadFails = false;
 let healthReadHangs = false;
 let closedHealthReads = 0;
@@ -262,6 +263,8 @@ async function startStandIns() {
     const rpc = /^\/rest\/v1\/rpc\/([a-z0-9_]+)$/.exec(url.pathname)?.[1];
     if (rpc) {
       if (rpc === 'claim_quiz_submission' && claimFails) return send(500, { code: '08006', message: 'stand-in: connection failure' });
+      if (rpc === 'claim_quiz_submission' && untimedQuizAttempt &&
+          (body as Row | undefined)?.p_grade_key === untimedQuizAttempt) return send(200, 'claimed');
       if (rpc === 'claim_quiz_submission' && typeof (body as Row | undefined)?.p_grade_key === 'string' &&
           String((body as Row).p_grade_key).startsWith('daily-start:')) {
         // Another instance won the insert between this request's read and its claim.
@@ -1377,6 +1380,33 @@ async function main() {
       }
       console.log('PASS verified caller: a token Auth accepted is trusted by reads for at most a minute and never past its expiry, refusals and outages are asked again, writes, the wallet, the admin desk and deletion always ask');
     }
+
+    const ordinary = await call(questions as Handler, { query: { count: '2', difficulty: 'mixed', categories: 'javascript' } });
+    assert.equal(ordinary.statusCode, 200, JSON.stringify(ordinary.body));
+    const untimedToken = (ordinary.body as { sessionId: string }).sessionId;
+    const untimed = tokens.decodeSessionEnvelope(untimedToken)!;
+    const untimedAnswers = Object.fromEntries(untimed.questions.map(({ questionId, correctAnswer }) => [questionId, correctAnswer]));
+    const legacy = tokens.encodeSession(untimed.questions, { subject: 'webdev' });
+    const review = tokens.encodeSession(untimed.questions, { scope: 'review', subject: 'webdev' });
+    const quizClock = Date.now;
+    untimedQuizAttempt = untimed.attemptId;
+    try {
+      Date.now = () => untimed.issuedAt + 2 * 60 * 60_000;
+      const graded = await call(submit as Handler, { method: 'POST', body: { sessionId: untimedToken, answers: untimedAnswers } });
+      assert.equal(graded.statusCode, 200, `a standard quiz can be graded after two hours: ${JSON.stringify(graded.body)}`);
+      assert.equal((graded.body as { correctAnswers: number }).correctAnswers, untimed.questions.length);
+      assert.equal((ordinary.body as { expiresAt?: number }).expiresAt, undefined, 'there is no gameplay deadline');
+      assert.ok(tokens.decodeSessionEnvelope(legacy), 'an existing one-hour unscoped quiz can still be resumed');
+      assert.equal(tokens.decodeSessionEnvelope(review), null, 'new Review sessions keep their existing expiry');
+      assert.equal(tokens.decodeSessionEnvelope(guestToken), null, 'Daily sessions still expire on schedule');
+      Date.now = () => untimed.issuedAt + 7 * 24 * 60 * 60_000;
+      assert.equal(tokens.decodeSessionEnvelope(untimedToken), null, 'an old sealed credential cannot outlive replay protection');
+      assert.equal(tokens.decodeSessionEnvelope(legacy), null, 'legacy recovery is also bounded');
+    } finally {
+      Date.now = quizClock;
+      untimedQuizAttempt = undefined;
+    }
+    console.log('PASS verified caller: standard quiz has no gameplay countdown and its sealed session remains bounded');
 
     console.log('Verified-caller contracts passed: a token acts for its own account whatever user_id says, admin by confirmed address or role, private caching by default, read limits, and one-time claims that fail closed.');
   } finally {

@@ -527,17 +527,17 @@ async function auditGateContracts() {
 
   // A Learn session lives as long as the attempt the answer routine opens for
   // it (two hours), so a level whose coding tasks run past an hour can still
-  // be completed. Other sessions keep their hour.
+  // be completed. Review still has its one-hour session.
   const realNow = Date.now;
   try {
     const opened = realNow();
     const learnSession = encodeSession([{ questionId: sample.id, correctAnswer: 0 }], {
       scope: 'roadmap', subject: 'webdev', topic: 'javascript', roadmapKind: 'level', ref: 1, userId: null,
     });
-    const quizSession = encodeSession([{ questionId: sample.id, correctAnswer: 0 }], { subject: 'webdev' });
+    const reviewSession = encodeSession([{ questionId: sample.id, correctAnswer: 0 }], { scope: 'review', subject: 'webdev' });
     Date.now = () => opened + 61 * 60_000;
     assert.ok(decodeSession(learnSession), 'a Learn session is still open after an hour');
-    assert.equal(decodeSession(quizSession), null, 'a quiz session still ends after an hour');
+    assert.equal(decodeSession(reviewSession), null, 'a Review session still ends after an hour');
     Date.now = () => opened + 121 * 60_000;
     assert.equal(decodeSession(learnSession), null, 'a Learn session ends after two hours');
   } finally {
@@ -2828,17 +2828,15 @@ async function quizSubmitScopeContracts() {
   assert.equal(learn.body.error?.code, 'invalid_session');
   assert.equal(learn.body.resultReceipt, undefined, 'no quiz receipt, XP, streak day or board entry for a Learn level');
 
-  // A quiz (and a personalised review, which is issued the same way).
+  // A standard quiz.
   const quiz = mockResponse();
   await questionsHandler(quizRequest('GET', { count: '2', difficulty: 'mixed', categories: 'javascript' }), quiz as never);
   assert.equal(quiz.statusCode, 200, JSON.stringify(quiz.body));
   const graded = await submitAll((quiz.body as { sessionId: string }).sessionId, learner);
   assert.equal(graded.response.statusCode, 200, JSON.stringify(graded.body));
   assert.equal(decodeQuizResultReceipt(graded.body.resultReceipt!)?.purpose, 'quiz');
-  // The questions say when their session stops being gradable, no later
-  // than the sealed session itself does, so a saved quiz can be dropped.
-  const quizExpiresAt = (quiz.body as { expiresAt: number }).expiresAt;
-  assert.ok(quizExpiresAt <= graded.session.issuedAt + 60 * 60_000 && quizExpiresAt > Date.now() + 59 * 60_000, `expiresAt ${quizExpiresAt}`);
+  assert.equal(graded.session.scope, 'quiz');
+  assert.equal((quiz.body as { expiresAt?: number }).expiresAt, undefined, 'standard quizzes expose no gameplay deadline');
 
   // The daily challenge, fetched and submitted signed in.
   const daily = mockResponse();
