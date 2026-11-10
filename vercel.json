@@ -28,6 +28,13 @@
       "continue": true
     },
     {
+      "src": "^/(?:premium/(?:success|checkout)|auth/confirmed|reset-password)/?$",
+      "headers": {
+        "X-Robots-Tag": "noindex"
+      },
+      "continue": true
+    },
+    {
       "src": "^/triage-verdicts\\.json$",
       "headers": {
         "Cache-Control": "public, max-age=86400"

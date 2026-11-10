@@ -21,6 +21,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOINDEX_PATHS } from '../client/src/lib/publicMetadata';
 
 interface Route {
   src?: string;
@@ -122,6 +123,17 @@ export function vercelRoutingContracts(): void {
   const handles = (config.routes ?? []).filter((route) => route.handle !== undefined).map((route) => route.handle);
   assert.deepEqual(handles, ['filesystem', 'hit'], 'vercel.json routes: header rules, then the filesystem phase, then the hit phase, each once');
   const phases = routePhases(config);
+
+  // The browser adds robots metadata on navigation, but an email or payment
+  // return must also stay out of search when a crawler never executes JS.
+  for (const pathname of NOINDEX_PATHS) {
+    for (const path of [pathname, `${pathname}/`]) {
+      assert.equal(phaseHeaders(path, 'main', phases)['x-robots-tag'], 'noindex', `${path} is excluded before the app renders`);
+    }
+  }
+  for (const path of ['/', '/premium', '/premium/cancel', '/daily', '/topics/javascript-closures']) {
+    assert.equal(phaseHeaders(path, 'main', phases)['x-robots-tag'], undefined, `${path} remains indexable`);
+  }
 
   // Every rule before the filesystem check only adds headers, so none of them
   // ends the request early and every rule after it still runs. The one
