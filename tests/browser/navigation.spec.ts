@@ -53,7 +53,7 @@ for (const theme of ['light', 'dark'] as const) for (const width of [360, 1280])
     expect(findings.violations.map((item) => item.id)).toEqual([]);
     await page.screenshot({ path: info.outputPath(`quiz-task-first-${theme}-${width}.png`), fullPage: true });
     await start.click();
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Quiz · Question 1 of 1');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Quiz · Question 1 of 1');
     expect(starts).toBe(1);
     await expect(page.locator('.ss-fin-drift').first()).toBeVisible();
   });
