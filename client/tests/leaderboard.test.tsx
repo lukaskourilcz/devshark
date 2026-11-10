@@ -10,14 +10,23 @@ import { boardFor, leaderboardData, leaderboardHandlers, monthData, noActivityDa
 import { firstDraw, stretchFirstDataWait } from './firstDraw';
 
 type TestUser = { id: string; user_metadata?: Record<string, unknown> };
-const auth = vi.hoisted(() => ({ value: { user: null as TestUser | null, isAuthenticated: false, isLoading: false } }));
+const auth = vi.hoisted(() => ({
+  value: { user: null as TestUser | null, isAuthenticated: false, isLoading: false },
+  replacement: null as TestUser | null,
+}));
 vi.mock('../src/lib/auth', async (importOriginal) => ({ ...(await importOriginal<typeof import('../src/lib/auth')>()), useAuth: () => auth.value }));
 vi.mock('../src/lib/supabaseClient', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../src/lib/supabaseClient')>()),
   mayHaveSession: () => !!auth.value.user,
-  getSupabaseSession: async () => auth.value.user && { access_token: 'board-test-token', user: auth.value.user },
+  getSupabaseSession: async () => {
+    const user = auth.replacement ?? auth.value.user;
+    return user && { access_token: `board-token-${user.id}`, user };
+  },
 }));
-afterEach(() => { auth.value = { user: null, isAuthenticated: false, isLoading: false }; });
+afterEach(() => {
+  auth.value = { user: null, isAuthenticated: false, isLoading: false };
+  auth.replacement = null;
+});
 
 // The screen holds its first render for the default board (lib/routeData.ts);
 // a render that suspends has to start inside an awaited act. Each mount is a
@@ -313,6 +322,19 @@ it('never shows the next visitor someone else’s row as theirs from the offline
   expect(screen.getByText('Workshop learner')).toBeVisible();
   expect(document.querySelector('[aria-current="true"]')).toBeNull();
   expect(screen.queryByText('You')).toBeNull();
+});
+
+it('does not fetch a private board with a replacement session before its Auth event', async () => {
+  auth.value = { user: { id: 'user-a' }, isAuthenticated: true, isLoading: false };
+  const seen = recordRequests();
+  server.use(visibilityHandler());
+  await mount();
+  expect(await screen.findByText('Workshop learner')).toBeVisible();
+
+  auth.replacement = { id: 'user-b' };
+  fireEvent.change(screen.getByLabelText('Topic'), { target: { value: 'html' } });
+  expect(await screen.findByRole('alert')).toBeVisible();
+  expect(seen).toHaveLength(1);
 });
 
 it('does not show the old personal board while the next account’s board is loading', async () => {

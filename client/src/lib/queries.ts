@@ -9,7 +9,7 @@ import { fetchRoadmapStructure, syncProgressWithServer } from './roadmap';
 import { useAuth } from './auth';
 import { entitlementQuery } from './entitlement';
 import { HELD_READ, readOnce, settled, useFirstData } from './routeData';
-import { fetchLeaderboard, type LeaderboardPeriod } from './play';
+import { fetchLeaderboard, type LeaderboardPeriod, type LeaderboardResponse } from './play';
 import { getUserStats, createOrUpdateUserStats, type UserStats } from './supabase';
 import { apiFetch } from './api';
 import { listFlashcards } from './flashcards';
@@ -72,7 +72,7 @@ export function leaderboardQuery(request: LeaderboardRequest, activeViewer?: str
   return queryOptions({
     // Keep the prior board during a tab or topic switch, unless its private
     // rank and viewer marks belong to an account that has since left.
-    placeholderData: (previous, previousQuery) => {
+    placeholderData: (previous: LeaderboardResponse | undefined, previousQuery) => {
       const previousViewer = previousQuery?.queryKey[5];
       return previousViewer && previousViewer !== (activeViewer ?? viewer) ? undefined : previous;
     },
@@ -90,7 +90,7 @@ export function leaderboardQuery(request: LeaderboardRequest, activeViewer?: str
         date: request.period === 'daily' ? request.date : undefined,
         category: request.period === 'category' || request.period === '30d' ? request.category : undefined,
         categories: request.period === 'global' || request.period === 'daily' || request.period === 'month' ? request.categories : undefined,
-        personal: (request.period === '30d' || request.period === 'month') && !!request.viewer,
+        viewer,
       }),
     staleTime: 30_000,
   });
