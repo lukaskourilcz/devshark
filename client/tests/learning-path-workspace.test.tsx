@@ -7,6 +7,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { ApiError } from '../src/lib/api';
+import { announceVerifiedQuestXp, syncXpWithServer } from '../src/lib/xp';
 import { loadEditor } from '../src/coding/loadEditor';
 
 const A = 'fde-v1-m01-linear-accumulator';
@@ -51,6 +52,7 @@ const calls = vi.hoisted(() => ({
   submitFailures: [] as unknown[],
   submitDelay: 0,
   codePassed: false,
+  replayed: false,
   changedOnRenewal: false,
   scenario: undefined as string | undefined,
   fixtureNote: undefined as string | undefined,
@@ -124,7 +126,7 @@ vi.mock('../src/lib/learningPaths', async (importOriginal) => {
         activityId: check ? C : A, state: calls.codePassed ? 'verified_pass' : 'needs_revision', verification: 'machine_verified', score: 0.5, criteria: [],
         questions: check ? [{ questionId: 'q1', correct: false, correctIndex: 1, explanation: 'Because of the right side.' }] : null,
         code: check ? null : { outcome: calls.codePassed ? 'passed' : 'failed', results: [], hidden: null, check: null, logs: [], codeError: null },
-        feedback: [], module: null, guidedComplete: false, nextActivityId: calls.next, replayed: false, xpAwarded: calls.codePassed ? 25 : 0,
+        feedback: [], module: null, guidedComplete: false, nextActivityId: calls.next, replayed: calls.replayed, xpAwarded: calls.codePassed ? 25 : 0,
       };
     }),
   };
@@ -140,6 +142,9 @@ beforeAll(async () => { await loadEditor(); });
 
 beforeEach(() => {
   calls.codePassed = false;
+  calls.replayed = false;
+  vi.mocked(announceVerifiedQuestXp).mockClear();
+  vi.mocked(syncXpWithServer).mockClear();
   calls.changedOnRenewal = false;
   calls.start.length = 0;
   calls.startSignals.length = 0;
@@ -231,6 +236,22 @@ describe('one attempt takes one result', () => {
     expect(calls.start).toEqual([A]);
     expect(calls.submit[1].session).toBe(calls.submit[0].session);
     expect(calls.submit[1].idempotencyKey).toBe(calls.submit[0].idempotencyKey);
+  });
+
+  it('reconciles a replayed code reward without announcing it again', async () => {
+    calls.submitFailures.push(new ApiError('Network error', 0, 'network'));
+    await mount(A);
+    await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
+    await type('already graded code');
+    await press('Submit');
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Network error'));
+    calls.codePassed = true;
+    calls.replayed = true;
+    await press('Submit');
+    await screen.findByRole('heading', { name: 'Passed +25 XP' });
+    expect(calls.submit[1].idempotencyKey).toBe(calls.submit[0].idempotencyKey);
+    expect(syncXpWithServer).toHaveBeenCalledWith({ announceRankUp: false });
+    expect(announceVerifiedQuestXp).not.toHaveBeenCalled();
   });
 
   it('a key the server already spent reads as plain copy, and the next submission opens a new attempt', async () => {

@@ -934,6 +934,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
         return;
       }
       const token = {};
+      const epoch = accountEpoch();
       working.current = token;
       // False once the learner opened another activity (or dealt this check
       // again): this submission's answer then belongs to a screen that is gone.
@@ -944,7 +945,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
       try {
         if (current.usedUp || expired) {
           const fresh = await startActivity({ enrollmentId: enrollment.enrollmentId, activityId: open.activity.id, previousSession: current.session });
-          if (!live()) return;
+          if (!live() || accountEpoch() !== epoch) return;
           target = { session: fresh.session, expiresAt: fresh.expiresAt, key: newIdempotencyKey(), usedUp: false };
           attempt.current = target;
           if (fresh.needsBriefReview) {
@@ -960,11 +961,12 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
           ...payload,
         });
         target.usedUp = true;
-        // The server recorded the result whatever the learner opened since,
-        // so its XP, its event and the progress it changed are kept current.
-        if (!graded.replayed && graded.xpAwarded > 0) {
-          announceVerifiedQuestXp(graded.xpAwarded);
-          void syncXpWithServer({ announceRankUp: true });
+        if (accountEpoch() !== epoch) return;
+        // The result also counts if this learner has moved to another activity.
+        // A replay can confirm a reward whose first response was lost.
+        if (graded.xpAwarded > 0) {
+          if (!graded.replayed) announceVerifiedQuestXp(graded.xpAwarded);
+          void syncXpWithServer({ announceRankUp: !graded.replayed });
         }
         if (graded.state === 'verified_pass') {
           capturePathEvent('learning_path_activity_verified', {
@@ -985,7 +987,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
       } catch (caught) {
         // A late refusal belongs to the activity it was sent for, not to the
         // one on screen now, whose attempt is untouched.
-        if (!live()) return;
+        if (!live() || accountEpoch() !== epoch) return;
         // An attempt that expired or already holds a result cannot take this
         // submission; the next one goes to a new attempt.
         if (caught instanceof ApiError && caught.code && ATTEMPT_USED_UP.has(caught.code)) {
