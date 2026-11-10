@@ -1,6 +1,7 @@
 // Profile edits the independent leaderboard preference; boards read it.
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiFetch } from './api';
+import { ApiError, apiFetch } from './api';
+import { accountEpoch } from './accountData';
 import { useAuth } from './auth';
 
 const URL = '/api/user/leaderboard-name';
@@ -13,13 +14,17 @@ export interface LeaderboardVisibility {
   picture?: string | null;
 }
 
+const visibilityKey = (userId: string) => ['leaderboard-name', userId] as const;
+
 export const leaderboardVisibilityQuery = (userId: string) => queryOptions({
-  queryKey: ['leaderboard-name', userId],
-  queryFn: ({ signal }) => apiFetch<LeaderboardVisibility>(URL, { signal }),
+  queryKey: visibilityKey(userId),
+  queryFn: ({ signal }) => apiFetch<LeaderboardVisibility>(URL, { signal, expectedUserId: userId }),
   staleTime: 5 * 60_000,
 });
 
 type Patch = { mode?: LeaderboardVisibility['mode']; showPhoto?: boolean };
+type Save = { patch: Patch; userId: string; epoch: number };
+type SaveHandlers = { onError?: (error: unknown) => void };
 
 /**
  * The signed-in learner's setting and the way to change it. `setMode`
@@ -29,10 +34,9 @@ type Patch = { mode?: LeaderboardVisibility['mode']; showPhoto?: boolean };
  * for them is uncached, follows at once, and the shared boards follow as soon
  * as the CDN's copy expires, within a minute (they are never served stale).
  *
- * A save writes its answer to the account that made it. The hook's options
- * follow whoever is signed in now, and a pending save takes them up on each
- * render, so a save that lands after another account signed in would
- * otherwise write the first account's names into the second one's setting.
+ * Carry the account that chose the setting through both the request and the
+ * optimistic cache update. Clearing the old account's cache must stay final,
+ * even when its save was already on the wire.
  */
 export function useLeaderboardVisibility() {
   const { user } = useAuth();
@@ -42,25 +46,39 @@ export function useLeaderboardVisibility() {
   const query = useQuery({ ...options, enabled: !!userId });
 
   const mutation = useMutation({
-    mutationFn: (patch: Patch) =>
-      apiFetch<LeaderboardVisibility>(URL, { method: 'PUT', body: JSON.stringify(patch) }),
-    onMutate: async (patch: Patch) => {
-      const queryKey = options.queryKey;
+    mutationFn: ({ patch, userId, epoch }: Save) => {
+      if (epoch !== accountEpoch()) throw new ApiError('Request was cancelled.', 0, 'cancelled');
+      return apiFetch<LeaderboardVisibility>(URL, { method: 'PUT', body: JSON.stringify(patch), expectedUserId: userId });
+    },
+    onMutate: async ({ patch, userId, epoch }: Save) => {
+      const queryKey = visibilityKey(userId);
       await queryClient.cancelQueries({ queryKey });
-      const previous = queryClient.getQueryData(queryKey);
-      queryClient.setQueryData(queryKey, (old: LeaderboardVisibility | undefined) => old ? { ...old, ...patch } : old);
+      if (epoch !== accountEpoch()) return;
+      const previous = queryClient.getQueryData<LeaderboardVisibility>(queryKey);
+      queryClient.setQueryData<LeaderboardVisibility>(queryKey, (old) => old ? { ...old, ...patch } : old);
       return { previous, queryKey };
     },
-    onError: (_error, _patch, context) => {
-      if (!context) return;
+    onError: (_error, { epoch }, context) => {
+      if (epoch !== accountEpoch() || !context) return;
       if (context.previous) queryClient.setQueryData(context.queryKey, context.previous);
       else void queryClient.resetQueries({ queryKey: context.queryKey });
     },
-    onSuccess: (saved, _patch, context) => {
-      if (context) queryClient.setQueryData(context.queryKey, saved);
+    onSuccess: (saved, { epoch }, context) => {
+      if (epoch === accountEpoch() && context) queryClient.setQueryData(context.queryKey, saved);
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['leaderboard'] }),
+    onSettled: (_saved, _error, { epoch }) => {
+      if (epoch === accountEpoch()) return queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+    },
   });
+  const save = (patch: Patch, handlers?: SaveHandlers) => {
+    if (!userId) return;
+    const epoch = accountEpoch();
+    mutation.mutate({ patch, userId, epoch }, {
+      onError: (error) => {
+        if (epoch === accountEpoch()) handlers?.onError?.(error);
+      },
+    });
+  };
 
   return {
     /** Null while it has not loaded (or there is no signed-in learner). */
@@ -69,9 +87,7 @@ export function useLeaderboardVisibility() {
     failed: query.isError && query.data === undefined,
     retry: () => void query.refetch(),
     saving: mutation.isPending,
-    setMode: (mode: LeaderboardVisibility['mode'], handlers?: { onError?: (error: unknown) => void }) =>
-      mutation.mutate({ mode }, { onError: handlers?.onError }),
-    setPhoto: (showPhoto: boolean, handlers?: { onError?: (error: unknown) => void }) =>
-      mutation.mutate({ showPhoto }, { onError: handlers?.onError }),
+    setMode: (mode: LeaderboardVisibility['mode'], handlers?: SaveHandlers) => save({ mode }, handlers),
+    setPhoto: (showPhoto: boolean, handlers?: SaveHandlers) => save({ showPhoto }, handlers),
   };
 }
