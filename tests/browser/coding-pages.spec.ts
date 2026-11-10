@@ -51,6 +51,27 @@ test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'light' });
 });
 
+test('highlighted technique rows leave room on both sides', async ({ page }) => {
+  await answer(page);
+  await page.goto('/coding');
+  await page.getByText('Techniques', { exact: true }).click();
+  const row = page.getByRole('link', { name: /^Array methods/ });
+  for (const width of [360, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await row.hover();
+    const inset = await row.evaluate((el) => {
+      const style = getComputedStyle(el);
+      const row = el.getBoundingClientRect();
+      const heading = el.querySelector('.cd-technique__head')!.getBoundingClientRect();
+      return { left: heading.left - row.left, right: row.right - heading.right, background: style.backgroundColor };
+    });
+    expect(inset.left).toBeGreaterThanOrEqual(8);
+    expect(inset.right).toBeGreaterThanOrEqual(8);
+    expect(inset.background).not.toBe('rgba(0, 0, 0, 0)');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+});
+
 test('a track that does not exist has a heading, a way back and no index', async ({ page }) => {
   await answer(page);
   await page.goto('/coding/nope');

@@ -134,6 +134,16 @@ for (const theme of ['light', 'dark'] as const) for (const width of [360, 1280])
     await expect(page.locator('.ss-fin-drift').first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath(`task-first-${theme}-${width}.png`), fullPage: true });
+    const close = feedback.getByRole('link', { name: 'Back to the list' });
+    const closeBox = await close.boundingBox();
+    const tabsBox = await feedback.getByRole('tablist').boundingBox();
+    expect(closeBox!.x).toBeGreaterThanOrEqual(tabsBox!.x + tabsBox!.width - 1);
+    expect(closeBox!.width).toBeGreaterThanOrEqual(44);
+    expect(closeBox!.height).toBeGreaterThanOrEqual(44);
+    await close.focus();
+    await close.press('Enter');
+    await expect(page).toHaveURL(/\/coding\/javascript$/);
+    await expect(page.locator('#main-content')).toBeFocused();
   });
 }
 

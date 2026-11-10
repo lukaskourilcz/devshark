@@ -30,7 +30,7 @@ import { evolvingStage } from '../../../shared/evolving';
 import { skipTask } from './practice';
 import { TermsBar } from '../components/ui/Terms';
 import { ReportDialog } from '../components/ReportDialog';
-import { FlagIcon, FormatCodeIcon, ResetIcon, HintIcon, SkipIcon } from '../components/ui/icons';
+import { CloseIcon, FlagIcon, FormatCodeIcon, ResetIcon, HintIcon, SkipIcon } from '../components/ui/icons';
 import { reportQuestion } from '../lib/supabase';
 import { glossaryDomainFor } from '../lib/glossaryDomain';
 import { CodePuzzle } from './CodePuzzle';
@@ -1343,6 +1343,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       backHref={backHref ?? (mode === 'lesson' ? '/learn' : `/coding/${task.track}`)} /></div>;
   }
 
+  const outputTabs = renderTabs(tabs, tab, selectTab, workbenchCopy('coding.output.label'));
   return (
     <div
       className={`cd-workbench cd-workbench--${mode}`}
@@ -1352,7 +1353,12 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       <span className="cd-visually-hidden" role="status" aria-live="polite">{announcement}</span>
       <div className="cd-workbench__grid" style={{ ['--cd-split' as string]: `${layout.split}%` }}>
         <section className="cd-pane cd-pane--output" aria-label={workbenchCopy('coding.output.label')}>
-          {renderTabs(tabs, tab, selectTab, workbenchCopy('coding.output.label'))}
+          {mode === 'section' ? (
+            <div className="cd-output-header">
+              {outputTabs}
+              <Button as={Link} href={parentHref} variant="ghost" isIconOnly icon={<CloseIcon />} label={t('coding.verdict.back')} tooltip={t('coding.verdict.back')} />
+            </div>
+          ) : outputTabs}
           <div className="cd-output-scroll">
             {renderPanels(tabs, tab)}
             {feedbackNotes}
