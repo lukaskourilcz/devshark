@@ -494,11 +494,10 @@ export function LessonRunner({
 
   // The one header row of every screen in a level (UX audit learn-03): the
   // level in the h1, progress and hearts (or the checkpoint score) on the
-  // first row, a line of context and the report and exit buttons on the
-  // second, at the same place on the intro and on every question.
+  // first row, with Exit beside the hearts or score.
   const counter = t('roadmap.question', { current: qIndex + 1, total });
   const progressPct = ((qIndex + (revealed ? 1 : 0)) / total) * 100;
-  const levelHeader = (meta: ReactNode, report = false, titleRef?: Ref<HTMLHeadingElement>) => (
+  const levelHeader = (meta?: ReactNode, titleRef?: Ref<HTMLHeadingElement>) => (
     <QuestionHeader
       titleRef={titleRef}
       title={`${isCheckpoint ? t('roadmap.checkpoint') : t('roadmap.levelLabel', { n: playable.ref })} · ${playable.title}`}
@@ -507,12 +506,7 @@ export function LessonRunner({
         ? <Text type="supporting" color="secondary" weight="bold">{correctCount}/{total}</Text>
         : <HeartMeter mistakes={mistakes} max={MAX_HEARTS} hit={heartHit} t={t} />}
       meta={meta}
-      tools={
-        <>
-          {report && <QuestionIconButton label={t('flag.ariaLabel')} icon={<ReportFlagIcon />} onClick={() => setFlagOpen(true)} />}
-          <QuestionIconButton label={t('roadmap.exit')} icon={<ExitIcon />} onClick={onExit} />
-        </>
-      }
+      exit={<QuestionIconButton label={t('roadmap.exit')} icon={<ExitIcon />} onClick={onExit} />}
     />
   );
 
@@ -541,7 +535,7 @@ export function LessonRunner({
         questionId="lesson-intro"
         focusable={false}
         stable={false}
-        header={levelHeader(<Text type="supporting" color="secondary" weight="bold">{t('roadmap.introKicker')}</Text>, false, introTitleRef)}
+        header={levelHeader(<Text type="supporting" color="secondary" weight="bold">{t('roadmap.introKicker')}</Text>, introTitleRef)}
         question={
           <>
             <p className="rm-intro__text">{intro}</p>
@@ -721,16 +715,12 @@ export function LessonRunner({
 
   return (
     <>
-      {/* One question screen from the shared parts (UX audit U2, learn-02,
-          learn-03, questions-01): the 640px shell, the level in the h1, the
-          answers top-anchored under a question block of one height, the
-          verdict in normal flow under them and Continue in the action row.
-          Nothing is drawn over the answers, so the learner's own pick and the
-          right answer stay in sight beside the explanation. */}
       <QuestionShell
+        compact
+        contentKey={qIndex}
         ref={questionRef}
         questionId="lesson-question"
-        header={levelHeader(<Text type="supporting" color="secondary">{counter}</Text>, true)}
+        header={levelHeader()}
         question={
           <>
             {renderQuestion(question.question)}
@@ -744,9 +734,22 @@ export function LessonRunner({
             />
           </>
         }
-        actions={feedbackAction && (
-          <QuestionActions key={answerError ? 'retry' : 'next'} primary={feedbackAction} focusPrimary />
-        )}
+        actions={
+          <QuestionActions
+            key={feedbackAction ? (answerError ? 'retry' : 'next') : 'answer'}
+            counter={counter}
+            primary={feedbackAction ?? undefined}
+            focusPrimary={feedbackAction != null}
+            secondary={
+              <>
+                {revealed && grade && !isRight && (
+                  <SaveSharkCard question={question} correctIndex={grade.correctAnswer} explanation={grade.explanation ?? ''} />
+                )}
+                <QuestionIconButton label={t('flag.ariaLabel')} icon={<ReportFlagIcon />} onClick={() => setFlagOpen(true)} />
+              </>
+            }
+          />
+        }
       >
         {/* The shared answer list (UX audit questions-04): 48px rows, the
             brand accent for the selection, and the graded marks in words. A
@@ -761,8 +764,7 @@ export function LessonRunner({
           grade={revealed && grade ? { correct: grade.correctAnswer, picked: selected } : null}
         />
 
-        {/* The keyboard hint keeps its line in every state (UX audit
-            questions-02): hiding the words after grading moves nothing. */}
+        {/* Feedback replaces the keyboard hint below the answers. */}
         <QuestionHint max={question.options.length} verb="answer" hidden={revealed || !!answerError} />
 
         {/* The verdict, under the answers it explains. The Banner is a status
@@ -776,13 +778,7 @@ export function LessonRunner({
             title={isRight ? t('roadmap.correct') : t('roadmap.incorrect')}
             description={grade.explanation}
             autoFocus={false}
-          >
-            {/* Shark Cards (owner decision 12): a missed question can be
-                kept with the answer and explanation graded here. */}
-            {!isRight && (
-              <SaveSharkCard question={question} correctIndex={grade.correctAnswer} explanation={grade.explanation ?? ''} />
-            )}
-          </QuestionFeedback>
+          />
         ) : null}
       </QuestionShell>
 

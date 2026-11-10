@@ -303,7 +303,7 @@ a.lp-activity:focus-visible { outline: 3px solid var(--ss-focus); outline-offset
 
 /* ── lesson body ───────────────────────────────────────────────────────── */
 
-.lp-lesson { display: flex; flex-direction: column; gap: 18px; max-width: 72ch; }
+.lp-lesson { display: flex; flex-direction: column; gap: 15px; max-width: 72ch; font-size: .85rem; }
 /* The Learn reading page (LearnLesson, UX audit learn-05): .lp-page is a
    stretching flex column, so Back keeps its own width at the top-left and the
    closing note and the one primary share a wrapping row inside the article's
@@ -329,13 +329,13 @@ a.lp-activity:focus-visible { outline: 3px solid var(--ss-focus); outline-offset
 }
 .lp-lesson pre {
   margin: 0;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-radius: var(--radius-element);
   background: var(--color-background-muted);
   border: 1px solid var(--ss-card-line);
   overflow-x: auto;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.88rem;
+  font-size: .75rem;
   line-height: 1.6;
 }
 .lp-figure { display: flex; flex-direction: column; gap: 8px; margin: 0; }
@@ -414,26 +414,26 @@ a.lp-activity:focus-visible { outline: 3px solid var(--ss-focus); outline-offset
 
 /* A check activity's container. It once shared .lp-check with the picker's
    checkbox label and took its dimming; the label is now .lp-toggle. */
-.lp-check-view { display: flex; flex-direction: column; gap: 20px; }
-.lp-question { display: flex; flex-direction: column; gap: 12px; }
+.lp-check-view { display: flex; flex-direction: column; gap: 17px; }
+.lp-question { display: flex; flex-direction: column; gap: 10px; font-size: .85rem; }
 .lp-question__prompt { margin: 0; font-weight: 600; line-height: 1.6; }
 .lp-question__context {
   margin: 0;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: var(--radius-element);
   background: var(--color-background-muted);
   border: 1px solid var(--ss-card-line);
   overflow-x: auto;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.86rem;
+  font-size: .731rem;
   line-height: 1.6;
 }
-.lp-options { display: flex; flex-direction: column; gap: 8px; }
+.lp-options { display: flex; flex-direction: column; gap: 7px; }
 .lp-option {
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  padding: 12px 14px;
+  padding: 10px 12px;
   min-height: 44px;
   border-radius: var(--radius-element);
   border: 1px solid var(--ss-card-line);

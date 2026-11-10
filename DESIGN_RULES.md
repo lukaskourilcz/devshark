@@ -390,14 +390,17 @@ their props), never drawn again by hand.
   keeps, so grading never rewraps a row; "Correct answer" and "Your pick" are
   in the accessible name.
   Check: `answer-option-list.test.tsx`, `daily-question.test.tsx`.
-- **One action row.** `QuestionActions` sits 16px under the panel:
-  secondaries left, the one `SwimCta` md right; on a phone the primary is the
-  last row at full width. When grading moves focus to the primary, the page
-  scrolls the least that shows it and never past the top of the answers.
+- **One action row.** `QuestionActions` puts secondaries left and the one
+  `SwimCta` md right. Active Quiz, Learn and skill check use the compact
+  panel with the row inside and the question counter centred. On a phone
+  the primary is the last row at full width. Compact question content
+  scrolls only when it exceeds the available height, keeping the actions
+  visible. Other screens keep their action row below the panel.
   Check: `question-actions.test.tsx`.
 - **One header with the screen's h1.** `QuestionHeader` names the run in the
   `h1` ("Quiz · Question 3 of 10"), with progress and status on the first row
-  and tags plus 44px icon buttons (hint, report, exit) on the second. The
+  and tags and hint on the second. Compact runners put Exit on the first
+  row and Report and Save, where available, in the footer. The
   question text and code span the panel.
   Check: `question-header.test.tsx`.
 - **One keyboard hint, on a reserved line.** `QuestionHint`, on a desktop with
