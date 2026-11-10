@@ -4,7 +4,7 @@
 // revalidation and built-in cancellation for free — replacing the bespoke
 // useEffect + AbortController + loading/error state each screen used to carry.
 
-import { keepPreviousData, queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchRoadmapStructure, syncProgressWithServer } from './roadmap';
 import { useAuth } from './auth';
 import { entitlementQuery } from './entitlement';
@@ -66,19 +66,23 @@ export type LeaderboardRequest =
  *  prefetch share, so the two cannot ask for different keys. The key holds only
  *  the inputs that change the result, plus the viewer on the 30-day and month
  *  boards, whose responses carry their own line. */
-export function leaderboardQuery(request: LeaderboardRequest) {
+export function leaderboardQuery(request: LeaderboardRequest, activeViewer?: string | null) {
   const period: LeaderboardPeriod = request.period;
+  const viewer = request.period === '30d' || request.period === 'month' ? request.viewer : null;
   return queryOptions({
-    // A tab or topic switch keeps the board on screen, marked busy, until
-    // the next one arrives (design review 2 R2-P1.5).
-    placeholderData: keepPreviousData,
+    // Keep the prior board during a tab or topic switch, unless its private
+    // rank and viewer marks belong to an account that has since left.
+    placeholderData: (previous, previousQuery) => {
+      const previousViewer = previousQuery?.queryKey[5];
+      return previousViewer && previousViewer !== (activeViewer ?? viewer) ? undefined : previous;
+    },
     queryKey: [
       'leaderboard',
       period,
       request.period === 'daily' ? request.date : null,
       request.period === 'category' || request.period === '30d' ? request.category : null,
       request.period === 'global' || request.period === 'daily' || request.period === 'month' ? request.categories.join(',') : null,
-      request.period === '30d' || request.period === 'month' ? request.viewer : null,
+      viewer,
     ],
     queryFn: ({ signal }) =>
       fetchLeaderboard(period, {
@@ -95,8 +99,8 @@ export function leaderboardQuery(request: LeaderboardRequest) {
 /** A leaderboard board. The screen's hold reads the board it opens on, so a
  * failure there draws the screen's error at once (HELD_READ); a board picked
  * later loads as before. */
-export function useLeaderboard(request: LeaderboardRequest) {
-  return useQuery({ ...leaderboardQuery(request), ...HELD_READ });
+export function useLeaderboard(request: LeaderboardRequest, activeViewer: string | null) {
+  return useQuery({ ...leaderboardQuery(request, activeViewer), ...HELD_READ });
 }
 
 export const profileStatsQueryKey = (userId: string | undefined) =>
