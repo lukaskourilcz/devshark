@@ -413,6 +413,42 @@ describe('the draft autosave', () => {
     expect(status()).toBe('Draft saved');
   }, 15_000);
 
+  it('serializes a draft save when the learner revisits an activity before the first write returns', async () => {
+    calls.draftDelay = 1_500;
+    await mount(A);
+    await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
+    await type('first edit in A');
+    await press('Close');
+    await waitFor(() => expect(calls.drafts).toHaveLength(1));
+    await act(async () => { fireEvent.click(screen.getByRole('link', { name: /Activity B/ })); });
+    await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${B}`));
+    await press('Close');
+    await act(async () => { fireEvent.click(screen.getByRole('link', { name: /Activity A/ })); });
+    await waitFor(() => expect(editor().value).toBe('first edit in A'));
+    await type('second edit in A');
+    await act(async () => { window.dispatchEvent(new Event('pagehide')); });
+    await waitFor(() => expect(calls.drafts).toHaveLength(2), { timeout: 4_000 });
+    expect(calls.drafts.map((one) => [one.expected, one.code])).toEqual([[0, 'first edit in A'], [1, 'second edit in A']]);
+    expect(calls.mostInFlight).toBe(1);
+    await waitFor(() => expect(status()).toBe('Draft saved'), { timeout: 4_000 });
+    expect(editor().value).toBe('second edit in A');
+  }, 12_000);
+
+  it('uses a draft confirmed while the reopening response still carries its old read', async () => {
+    calls.draftDelay = 750;
+    await mount(A);
+    await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
+    await type('committed while reopening');
+    await press('Close');
+    await waitFor(() => expect(calls.inFlight).toBe(1));
+    // The opening request already read no saved draft before the write commits.
+    calls.startDelay = 1_000;
+    await act(async () => { fireEvent.click(screen.getByRole('link', { name: /Activity A/ })); });
+    await waitFor(() => expect(editor().value).toBe('committed while reopening'), { timeout: 4_000 });
+    expect(status()).toBe('Draft saved');
+    expect(calls.drafts.map((one) => [one.expected, one.code])).toEqual([[0, 'committed while reopening']]);
+  });
+
   it('keeps a draft on this device while offline and saves it when the connection is back', async () => {
     await mount(A);
     await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
