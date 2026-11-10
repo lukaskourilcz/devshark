@@ -9,7 +9,7 @@ them. Production is not affected: devShark still deploys from `main` to Vercel.
 | [`@lukaskourilcz/coding-evaluator`](../packages/coding-evaluator/README.md) | npm (`npm.pkg.github.com`) | `shared/coding-evaluate.ts`, `coding-console.ts`, `coding-failure.ts`, `coding-mini-jest.ts` | a `coding-evaluator-v<version>` tag |
 | `ghcr.io/lukaskourilcz/devshark` | container (`ghcr.io`) | `Dockerfile`, `docker/` | a `docker-v<version>` tag |
 
-Either job can also be started by hand: Actions → Packages → Run workflow.
+Either job can also be started from the `main` branch in Actions → Packages → Run workflow.
 
 ## The npm package
 
