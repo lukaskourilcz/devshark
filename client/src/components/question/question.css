@@ -62,6 +62,42 @@
   .ss-question__panel { padding: 16px; }
 }
 
+/* Keep a short question in one view. Longer stems, answers and explanations
+   can scroll together while the header and in-card actions stay in place. */
+.ss-question--compact {
+  --ss-answer-row-min: var(--ss-control-height);
+  --ss-answer-gap: 7px;
+  --ss-answer-chip: 22px;
+  --ss-question-title-size: 1.0625rem;
+  --ss-code-padding: .85rem;
+  --ss-code-size: .6375rem;
+  scroll-margin-top: var(--ss-focus-inset);
+}
+.ss-question--compact .ss-question__panel { gap: 12px; padding: clamp(14px, 2vw, 20px); }
+.ss-question--compact .ss-question__content { display: flex; flex-direction: column; gap: 12px; min-height: 0; min-width: 0; }
+.ss-question--compact .ss-question__block { flex: none; min-height: 0; max-height: none; overflow: visible; font-size: .85rem; }
+.ss-question--compact .ss-question__body { gap: 8px; }
+.ss-question--compact .ss-answer-option.ss-radio-card { font-size: .85rem; }
+.ss-question--compact .ss-answer-option__row { gap: 10px; }
+.ss-question--compact .ss-question-hint[data-hidden='true'] { display: none; }
+.ss-question--compact .ss-question-feedback {
+  --text-label-size: .85rem;
+  --text-supporting-size: .75rem;
+}
+.ss-question--compact .ss-question__footer { display: flex; flex: none; flex-direction: column; gap: 8px; }
+@media (min-height: 500px) {
+  .ss-question--compact .ss-question__panel {
+    max-height: calc(100dvh - 2 * var(--ss-focus-inset) - 2.75rem - max(0px, (100dvh - 640px - 2 * var(--ss-focus-inset)) / 2));
+  }
+  .ss-question--compact .ss-question__content {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* Leave room for a keyboard focus outline within the scroll container. */
+    margin-inline: -4px;
+    padding: 4px;
+  }
+}
+
 /* ——— QuestionHeader ——— */
 .ss-question-header { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .ss-question-header__row { display: flex; align-items: center; gap: 12px; min-width: 0; }
@@ -83,6 +119,8 @@
 .ss-question-header__title:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 2px; border-radius: var(--radius-inner); }
 .ss-question-header__progress { flex: 1 1 auto; min-width: 48px; }
 .ss-question-header__status { flex: none; margin-inline-start: auto; display: flex; align-items: center; gap: 8px; font-size: var(--ss-type-compact); font-weight: 600; }
+.ss-question-header__exit { flex: none; margin-inline-start: auto; }
+.ss-question-header__status + .ss-question-header__exit { margin-inline-start: 0; }
 .ss-question-header__meta { flex: 1 1 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
 .ss-question-header__tools { flex: none; display: flex; align-items: center; gap: 4px; margin-inline-start: auto; }
 /* Under 560px a tag and the difficulty badge wrap to two lines beside the
@@ -239,6 +277,17 @@
 }
 .ss-question-actions__secondary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
 .ss-question-actions__primary { display: flex; margin-inline-start: auto; }
+.ss-question-actions--counted {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+.ss-question-actions__counter {
+  margin: 0;
+  text-align: center;
+  font-size: var(--ss-type-meta);
+  color: var(--color-text-secondary);
+}
+.ss-question-actions--counted .ss-question-actions__primary { grid-column: 3; }
 @media (max-width: 559px) {
   .ss-question-actions { display: grid; grid-template-columns: minmax(0, 1fr); }
   .ss-question-actions__secondary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -246,4 +295,9 @@
   .ss-question-actions__secondary:empty { display: none; }
   .ss-question-actions__primary { margin-inline-start: 0; }
   .ss-question-actions__primary > .ss-swim-cta { width: 100%; }
+  .ss-question-actions--counted { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .ss-question-actions--counted .ss-question-actions__secondary { display: flex; }
+  .ss-question-actions--counted .ss-question-actions__secondary > * { width: auto; }
+  .ss-question-actions--counted .ss-question-actions__counter { grid-column: 2; text-align: end; }
+  .ss-question-actions--counted .ss-question-actions__primary { grid-column: 1 / -1; }
 }
