@@ -154,7 +154,7 @@ jobs:
           npm run preview --prefix client -- --host 0.0.0.0 --port 4173 > /tmp/preview.log 2>&1 &
           node scripts/wait-for-preview.mjs
           npm run test:browser -- tests/browser/public.spec.ts
-          npm run test:browser -- tests/browser/guide-startup.spec.ts tests/browser/profile-leaderboard-preferences.spec.ts tests/browser/profile-path-picker.spec.ts
+          npm run test:browser -- tests/browser/guide-startup.spec.ts tests/browser/profile-leaderboard-preferences.spec.ts tests/browser/profile-path-picker.spec.ts tests/browser/admin.spec.ts
           npm run test:browser -- tests/browser/evolving.spec.ts
           npm run test:browser -- tests/browser/coding-pages.spec.ts
           npm run test:browser -- tests/browser/coding-workbench.spec.ts
