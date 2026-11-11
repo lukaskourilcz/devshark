@@ -144,6 +144,30 @@ it('never initialises PostHog when the yes is withdrawn while it loads', async (
   expect(client.capture).not.toHaveBeenCalled();
 });
 
+it('drops queued events from withdrawn consent even when the visitor opts in again before the SDK loads', async () => {
+  vi.stubEnv('VITE_PUBLIC_POSTHOG_KEY', 'test-key');
+  const { consent, analytics } = await load();
+  analytics.initAnalytics();
+  consent.acceptAllConsent();
+  analytics.capturePageview('/learn');
+  analytics.capture('old_consent_event');
+  analytics.identifyUser('previous-user');
+  consent.rejectAllConsent();
+  analytics.resetAnalytics();
+  analytics.capturePageview('/today');
+  consent.acceptAllConsent();
+  analytics.identifyUser('current-user');
+  analytics.capture('current_consent_event');
+
+  await vi.waitFor(() => expect(client.capture).toHaveBeenCalledWith('current_consent_event', undefined));
+  expect(client.capture.mock.calls).toEqual([
+    ['$pageview', { $current_url: `${window.location.origin}/today` }],
+    ['current_consent_event', undefined],
+  ]);
+  expect(client.identify.mock.calls).toEqual([['current-user', undefined, undefined]]);
+  expect(client.init).toHaveBeenCalledTimes(1);
+});
+
 it('removes what an older build stored when the visitor has not said yes', async () => {
   // PostHog ran for every visitor before the banner existed.
   localStorage.setItem('ph_phc_old_posthog', '{"distinct_id":"anon-0"}');
