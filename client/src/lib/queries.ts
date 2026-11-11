@@ -73,6 +73,7 @@ export function leaderboardQuery(request: LeaderboardRequest, activeViewer?: str
     // Keep the prior board during a tab or topic switch, unless its private
     // rank and viewer marks belong to an account that has since left.
     placeholderData: (previous: LeaderboardResponse | undefined, previousQuery) => {
+      if (request.period === 'daily' && previous?.period === 'daily' && previous.date !== request.date) return undefined;
       const previousViewer = previousQuery?.queryKey[5];
       return previousViewer && previousViewer !== (activeViewer ?? viewer) ? undefined : previous;
     },

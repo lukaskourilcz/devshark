@@ -99,6 +99,38 @@ describe('the friends list', () => {
     expect(result.closest('.fr-result')).toHaveTextContent('Ada Lovelaceel-tiburon-loco');
   });
 
+  it('does not replace a newer lookup when an earlier friend request finishes', async () => {
+    serve();
+    const refreshed = vi.fn();
+    let release!: () => void;
+    server.use(
+      http.get('*/api/user/friends-list', () => {
+        refreshed();
+        return HttpResponse.json({ friends: [], requests: [] });
+      }),
+      http.get('*/api/user/friends-lookup', ({ request }) => HttpResponse.json({
+        found: true, handle: new URL(request.url).searchParams.get('handle'), state: 'none',
+      })),
+      http.post('*/api/user/friends-request', () => new Promise<Response>((resolve) => {
+        release = () => resolve(HttpResponse.json({ state: 'pending_out' }));
+      })),
+    );
+    renderPanel();
+    const input = await screen.findByRole('textbox', { name: 'Add a friend' });
+    fireEvent.change(input, { target: { value: 'el-tiburon-loco' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Look up' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Add' }));
+    await waitFor(() => expect(release).toBeDefined());
+    fireEvent.change(input, { target: { value: 'fin-de-fiesta' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Look up' }));
+    await screen.findByText('fin-de-fiesta');
+    await act(async () => { release(); });
+    await waitFor(() => expect(refreshed).toHaveBeenCalledTimes(2));
+    expect(screen.getByText('fin-de-fiesta')).toBeInTheDocument();
+    expect(screen.queryByText('el-tiburon-loco')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Add' })).toBeEnabled();
+  });
+
   it('drops a lookup that answers after the box was edited', async () => {
     serve();
     let release!: () => void;

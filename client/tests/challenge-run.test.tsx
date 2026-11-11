@@ -3,8 +3,9 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
-import { onXpToast, primeRankMarker, type XpToast } from '../src/lib/xp';
+import { getTotalXp, onXpToast, primeRankMarker, type XpToast } from '../src/lib/xp';
 import { clearAccountData } from '../src/lib/accountData';
+import { queryClient } from '../src/lib/queryClient';
 
 // The Biggest Shark Challenge against a small stand-in for the three endpoints
 // it calls: the batch (GET /api/quiz/challenge), grading (POST
@@ -20,11 +21,15 @@ const api = vi.hoisted(() => ({
   runs: 0,
   sessions: new Map<string, Set<string>>(),
   batchRequests: [] as URLSearchParams[],
+  batchSignals: [] as (AbortSignal | null)[],
   submits: [] as { sessionId: string; questionId: string; selected: number; status: number }[],
   /** Replaces the default grade for one submit when it returns a response. */
   grade: null as Grade | null,
+  holdGrade: null as null | Promise<void>,
+  gradeSignals: [] as (AbortSignal | null)[],
   completions: [] as { runToken: string; proofs: string[]; status: number }[],
   completeStatus: (_runToken: string): { status: number; code?: string } => ({ status: 200 }),
+  alreadyAwarded: new Set<string>(),
   /** Run completions wait for this when it is set. */
   holdComplete: null as null | Promise<void>,
   auth: { user: null as null | { id: string; email?: string; user_metadata?: Record<string, unknown> }, isAuthenticated: false, isLoading: false },
@@ -54,6 +59,7 @@ vi.mock('../src/lib/api', async (importOriginal) => {
     if (parsed.pathname === '/api/quiz/challenge' && (opts.method ?? 'GET') === 'GET') {
       if (parsed.searchParams.get('resource') === 'leaderboard') return { top: [], champion: null };
       api.batchRequests.push(parsed.searchParams);
+      api.batchSignals.push(opts.signal ?? null);
       const request = api.batchRequests.length;
       const refusal = api.batchRefusal?.(request) ?? null;
       if (refusal) return fail(refusal.status, refusal.code);
@@ -79,6 +85,8 @@ vi.mock('../src/lib/api', async (importOriginal) => {
     if (parsed.pathname === '/api/quiz/submit') {
       const body = JSON.parse(String(opts.body)) as Body;
       const [questionId, selected] = Object.entries(body.answers)[0];
+      api.gradeSignals.push(opts.signal ?? null);
+      if (api.holdGrade) await api.holdGrade;
       const override = api.grade?.(body, questionId, selected) ?? null;
       const record = (status: number) => api.submits.push({ sessionId: body.sessionId, questionId, selected, status });
       if (override) {
@@ -106,7 +114,7 @@ vi.mock('../src/lib/api', async (importOriginal) => {
       if (outcome.status !== 200) return fail(outcome.status, outcome.code ?? 'error');
       const score = body.proofs.filter((proof) => proof.endsWith(':true')).length;
       const held = api.held ? Math.min(api.held.questions, score) : 0;
-      return { ok: true, awarded: score - held > 0, score, xp: (score - held) * 5, ...(api.held ? { xpHeld: api.held } : {}) };
+      return { ok: true, awarded: score - held > 0 && !api.alreadyAwarded.has(body.runToken), score, xp: (score - held) * 5, ...(api.held ? { xpHeld: api.held } : {}) };
     }
     if (parsed.pathname === '/api/quiz/challenge' && opts.method === 'POST' && !parsed.searchParams.has('resource')) {
       const body = JSON.parse(String(opts.body)) as { name: string; runToken: string };
@@ -183,10 +191,14 @@ beforeEach(() => {
   api.runs = 0;
   api.sessions.clear();
   api.batchRequests.length = 0;
+  api.batchSignals.length = 0;
   api.submits.length = 0;
   api.grade = null;
+  api.holdGrade = null;
+  api.gradeSignals.length = 0;
   api.completions.length = 0;
   api.completeStatus = () => ({ status: 200 });
+  api.alreadyAwarded.clear();
   api.holdComplete = null;
   api.auth = { user: null, isAuthenticated: false, isLoading: false };
   api.batchRefusal = null;
@@ -222,6 +234,23 @@ describe('the question buffer', () => {
     // The refill asked to skip what was seen and what was still queued.
     expect(api.batchRequests[1].get('exclude')?.split(',').sort()).toEqual(['b1-q1', 'b1-q2', 'b1-q3', 'b1-q4', 'b1-q5', 'b1-q6']);
     expect(screen.getByLabelText('3 shark fins left')).toBeInTheDocument();
+  });
+
+  it('cancels a held question refill when the run’s route unmounts', async () => {
+    api.holdBatch = 2;
+    const view = await mount();
+    await start();
+    for (let n = 0; n < 2; n += 1) {
+      await answer('right');
+      await next();
+    }
+    await waitFor(() => expect(api.release).not.toBeNull());
+    view.unmount();
+    try {
+      expect(api.batchSignals[1]?.aborted).toBe(true);
+    } finally {
+      await act(async () => { api.release?.(); });
+    }
   });
 
   it('lets a question whose batch session expired go without a strike, and moves on to a fresh batch', async () => {
@@ -382,6 +411,45 @@ describe('the run reward', () => {
     await strikeOut(1);
     await waitFor(() => expect(localStorage.getItem(PENDING)).toBeNull());
     expect(api.completions.map(({ runToken, status }) => [runToken, status])).toEqual([['RUN-1', 429], ['RUN-1', 200], ['RUN-2', 200]]);
+  });
+
+  it.each([
+    ['right:true', true],
+    ['wrong:false', false],
+  ])('updates Profile after finishing a saved run with proof %s', async (proof, invalidated) => {
+    api.auth = SIGNED_IN;
+    const profile = ['profile-stats', SIGNED_IN.user.id] as const;
+    queryClient.setQueryData(profile, { current_streak: 5 });
+    localStorage.setItem(PENDING, JSON.stringify([{ userId: SIGNED_IN.user.id, runToken: 'PENDING', proofs: [proof] }]));
+    try {
+      await mount();
+      await waitFor(() => expect(localStorage.getItem(PENDING)).toBeNull());
+      await settle();
+      expect(queryClient.getQueryState(profile)?.isInvalidated).toBe(invalidated);
+    } finally {
+      queryClient.removeQueries({ queryKey: profile, exact: true });
+    }
+  });
+
+  it('refreshes XP and profile stats when a replay confirms a previously credited run', async () => {
+    const gains: number[] = [];
+    const stop = onXpToast((toast) => { if (toast.kind === 'gain') gains.push(toast.amount); });
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+    try {
+      api.auth = SIGNED_IN;
+      api.accountXp = 15;
+      api.alreadyAwarded.add('CREDITED');
+      localStorage.setItem(PENDING, JSON.stringify([{ userId: SIGNED_IN.user.id, runToken: 'CREDITED', proofs: ['right:true'] }]));
+      await mount();
+      await waitFor(() => expect(localStorage.getItem(PENDING)).toBeNull());
+      await waitFor(() => expect(getTotalXp()).toBe(15));
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['profile-stats'] });
+      expect(gains).toEqual([]);
+      expect(api.completions.map(({ runToken }) => runToken)).toEqual(['CREDITED']);
+    } finally {
+      invalidate.mockRestore();
+      stop();
+    }
   });
 
   it('drops a saved run the server can never credit, and keeps one it only turned away for now', async () => {
@@ -882,6 +950,30 @@ describe('focus mode', () => {
     await settle();
     expect(api.completions).toEqual([]);
     expect(localStorage.getItem(PENDING)).toBeNull();
+  });
+
+  it('keeps a late grade from an exited run out of the next run', async () => {
+    let release!: () => void;
+    api.holdGrade = new Promise<void>((resolve) => { release = resolve; });
+    await mount();
+    await start();
+    fireEvent.click(screen.getByRole('radio', { name: 'right' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    await waitFor(() => expect(api.gradeSignals).toHaveLength(1));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exit run' }));
+    fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Leave run' }));
+    await start();
+    expect(shownQuestion()).toBe('Batch 2 question 1?');
+    api.holdGrade = null;
+    release();
+    await settle();
+
+    expect(screen.queryByText('Correct')).toBeNull();
+    expect(api.gradeSignals[0]?.aborted).toBe(true);
+    await answer('wrong');
+    expect(screen.getByText('Wrong')).toBeInTheDocument();
+    expect(api.submits[1]).toMatchObject({ sessionId: 'S2', questionId: 'b2-q1' });
   });
 
   it('ends on the run’s action row, with Play again as the one SwimCta', async () => {

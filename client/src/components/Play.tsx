@@ -470,6 +470,7 @@ function PlayRoom() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [scoreboard, setScoreboard] = useState<ScoreboardEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [readError, setReadError] = useState<string | null>(null);
   const [joining, setJoining] = useState(true);
   const [canReadRoom, setCanReadRoom] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
@@ -566,9 +567,10 @@ function PlayRoom() {
   useEffect(() => {
     if (!code || !user?.id || !playOn || !canReadRoom) return;
     const userId = user.id;
-    // Cleared on unmount or when the match changes, so a read still in
-    // flight for this match writes nothing afterwards.
-    let active = true;
+    // Cancel the room's reads when it closes or changes, including the
+    // fetch already in flight as well as any queued refresh.
+    const controller = new AbortController();
+    const { signal } = controller;
     let realtimeReady = false;
     let firstRead = true;
     handledRef.current = null;
@@ -577,14 +579,15 @@ function PlayRoom() {
       firstRead = false;
       try {
         const sentAt = Date.now();
-        const state = await fetchMatchState(code, userId);
-        if (!active) return;
+        const state = await fetchMatchState(code, userId, signal);
+        if (signal.aborted) return;
         noteServerClock(state.server_now, sentAt);
         const before = matchRef.current;
         matchRef.current = state.match;
         setMatch(state.match);
         setParticipants(state.participants);
         setScoreboard(state.scoreboard);
+        setReadError(null);
         refreshFailures.current = 0;
         // A read that works again clears the "could not refresh" warning,
         // even while Realtime stayed connected throughout.
@@ -597,7 +600,7 @@ function PlayRoom() {
           announce(state.match);
         }
       } catch (err) {
-        if (!active) return;
+        if (signal.aborted) return;
         // The state a broadcast named was not read: the next broadcast of it
         // reads again.
         handledRef.current = null;
@@ -605,11 +608,11 @@ function PlayRoom() {
           setPlayOff(true);
           return;
         }
-        if (initial) setError(friendlyError(err));
+        if (initial) setReadError(friendlyError(err));
         refreshFailures.current += 1;
         setConnectionState(refreshFailures.current >= 3 ? 'stale' : 'polling');
       } finally {
-        if (active && initial) setJoining(false);
+        if (!signal.aborted && initial) setJoining(false);
       }
     });
     readerRef.current = reader;
@@ -651,7 +654,7 @@ function PlayRoom() {
     void refresh();
 
     return () => {
-      active = false;
+      controller.abort();
       reader.cancel();
       answeredRead.cancel();
       if (readerRef.current === reader) readerRef.current = null;
@@ -834,19 +837,21 @@ function PlayRoom() {
     return <QuoteLoader quote={t('quiz.loadingQuote')} label={t('play.joining')} />;
   }
 
-  if (error && !match) {
+  const notice = error ?? readError;
+  if (notice && !match) {
     return (
       <div style={{ maxWidth: 'var(--ss-width-task)', margin: '0 auto', width: '100%' }}>
         <VStack gap={2}>
           {/* The page's heading, so a match that cannot open still has one. */}
           <PageHeader title={t('play.title')} />
-          <Banner status="error" title={error} />
+          <Banner status="error" title={notice} />
           <HStack gap={1} wrap="wrap">
             <Button
               variant="primary"
               label={t('error.tryAgain')}
               onClick={() => {
                 setError(null);
+                setReadError(null);
                 setJoining(true);
                 setCanReadRoom(false);
                 setJoinAttempt((n) => n + 1);
@@ -880,12 +885,12 @@ function PlayRoom() {
           <CodeBadge code={code} />
         </div>
 
-        {error && (
+        {notice && (
           <Banner
             status="warning"
-            title={error}
+            title={notice}
             isDismissable
-            onDismiss={() => setError(null)}
+            onDismiss={() => error ? setError(null) : setReadError(null)}
           />
         )}
 
@@ -1118,6 +1123,10 @@ function RunningQuestion({
   const isPlayer = mode === 'multiplayer' || !isHost;
   const isPresenter = isHost && mode === 'classroom';
   const questionLabelId = `play-question-${q.id}`;
+  // "Reveal answer" closes a classroom question on the server (056): no
+  // answer to it lands any more, and the scoreboard counts it. The room says
+  // which question the teacher closed, so the next one opens again.
+  const closedByTeacher = mode === 'classroom' && match.revealed_idx === questionIdx;
 
   // Presenter view polls the per-question answer distribution; the same
   // buckets drive both the histogram and the "answers received" count (the
@@ -1125,13 +1134,16 @@ function RunningQuestion({
   const [buckets, setBuckets] = useState<DistributionBucket[]>([]);
   const [distributionStale, setDistributionStale] = useState(false);
   useEffect(() => {
+    setBuckets([]);
+    setDistributionStale(false);
+  }, [code, questionIdx]);
+  useEffect(() => {
     if (!isPresenter || !hostSub) return;
     let cancelled = false;
     // One read at a time: on a slow connection a read outlasting the 1.5 s
     // tick stacked up more, and an older answer landing last drew counts
     // that had already gone up.
     let inFlight = false;
-    setBuckets([]);
     const load = () => {
       if (inFlight) return;
       inFlight = true;
@@ -1140,6 +1152,9 @@ function RunningQuestion({
           if (!cancelled) {
             setBuckets(r.buckets);
             setDistributionStale(false);
+            // Reveal closes the question on the server. Retry the final count
+            // if needed, then stop once its result is in.
+            if (closedByTeacher) window.clearInterval(id);
           }
         })
         .catch(() => {
@@ -1149,13 +1164,13 @@ function RunningQuestion({
           inFlight = false;
         });
     };
-    load();
     const id = window.setInterval(load, 1500);
+    load();
     return () => {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [isPresenter, hostSub, code, questionIdx]);
+  }, [isPresenter, hostSub, code, questionIdx, closedByTeacher]);
   const answeredCount = useMemo(() => buckets.reduce((sum, b) => sum + b.count, 0), [buckets]);
   // The presenter is a participant row too but never answers — exclude them
   // from the denominator.
@@ -1191,10 +1206,6 @@ function RunningQuestion({
   // The server still takes an answer sent on the buzzer for a moment after
   // that; only then is the question closed for everyone.
   const answersClosed = !noLimit && startedMs !== null && serverNow >= startedMs + durationS * 1000 + ANSWER_GRACE_MS;
-  // "Reveal answer" closes a classroom question on the server (056): no
-  // answer to it lands any more, and the scoreboard counts it. The room says
-  // which question the teacher closed, so the next one opens again.
-  const closedByTeacher = mode === 'classroom' && match.revealed_idx === questionIdx;
   // The presenter's screen is often projected while pupils answer, so the
   // answer key stays hidden until the question is closed: its clock ran out
   // or the teacher revealed it (an untimed question waits for the button).

@@ -96,9 +96,10 @@ const questionOnScreen = async () => {
 
 async function startQuiz(questions = [Q('a'), Q('b')], extra: object = {}) {
   server.use(http.get('*/api/quiz/questions', () => HttpResponse.json({ sessionId: sessionFor('standard'), expiresAt: Date.now() + 3_600_000, questions, ...extra })));
-  renderQuiz();
+  const view = renderQuiz();
   fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
   await questionOnScreen();
+  return view;
 }
 
 const pressDigit = (key: string) => fireEvent.keyDown(document.querySelector('.ss-question__block') ?? document.body, { key });
@@ -125,14 +126,20 @@ beforeEach(() => {
 });
 
 describe('keyboard shortcuts', () => {
-  it('leaves number keys alone outside the question', async () => {
+  it('leaves quiz keys alone outside the question card', async () => {
     await startQuiz();
-    fireEvent.keyDown(document.body, { key: '1' });
+    expect(fireEvent.keyDown(document.body, { key: '1' })).toBe(true);
+    expect(fireEvent.keyDown(document.body, { key: 'ArrowRight' })).toBe(true);
+    expect(fireEvent.keyDown(document.body, { key: 'Enter' })).toBe(true);
+    expect(counter()).toBe('Question 1 of 2');
     expect(checked()).toEqual([false, false, false, false]);
+
     const question = document.querySelector<HTMLElement>('.ss-question__block')!;
     question.focus();
     fireEvent.keyDown(question, { key: '1' });
     expect(checked()).toEqual([true, false, false, false]);
+    fireEvent.keyDown(question, { key: 'ArrowRight' });
+    expect(counter()).toBe('Question 2 of 2');
   });
 
   it('keep working after a click leaves focus on an answer or a button, and leave Enter on a button to the browser', async () => {
@@ -409,14 +416,16 @@ describe('the question screen (UX audit U2)', () => {
     expect(block).toHaveAttribute('data-stable', 'true');
   });
 
-  it('says what the keys do, and that Enter submits on the last question once all are answered', async () => {
+  it('keeps number and Enter shortcuts without showing the instruction line', async () => {
+    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json(graded([Q('a'), Q('b')]))));
     await startQuiz();
-    expect(screen.getByText('Press 1–4 to select · Enter to continue')).toBeInTheDocument();
+    expect(screen.queryByText(/Press 1–4 to select/)).toBeNull();
     pressDigit('1');
-    fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
-    expect(screen.getByText('Press 1–4 to select')).toBeInTheDocument();
+    pressDigit('Enter');
+    expect(screen.getByText('Question b?')).toBeInTheDocument();
     pressDigit('2');
-    expect(screen.getByText('Press 1–4 to select · Enter to submit')).toBeInTheDocument();
+    pressDigit('Enter');
+    expect(await screen.findByText('2 / 2')).toBeInTheDocument();
   });
 
   it('names the last-step navigation Review unanswered, then focuses the first open question', async () => {
@@ -738,7 +747,7 @@ describe('submitting', () => {
     // Both presses land before React renders the busy button.
     act(() => {
       fireEvent.click(submit);
-      fireEvent.keyDown(document.body, { key: 'Enter' });
+      pressDigit('Enter');
     });
     await screen.findByText('1 / 1');
     await new Promise((resolve) => setTimeout(resolve, 20));
@@ -767,6 +776,45 @@ describe('submitting', () => {
     expect(screen.queryByText('1 / 1')).not.toBeInTheDocument();
     expect(JSON.parse(sessionStorage.getItem(PROGRESS_KEY)!)).toMatchObject({ sessionId: sessionFor('second'), answers: { n: 1 } });
     expect(screen.getByRole('button', { name: /submit quiz/i })).toBeEnabled();
+  });
+
+  it('keeps progress of a new quiz when a submit from an unmounted route completes', async () => {
+    let answer: (() => void) | undefined;
+    server.use(http.post('*/api/quiz/submit', () => new Promise<Response>((resolve) => {
+      answer = () => resolve(HttpResponse.json(graded([Q('a')])));
+    })));
+    const first = await startQuiz([Q('a')]);
+    pressDigit('1');
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    await waitFor(() => expect(answer).toBeDefined());
+
+    first.unmount();
+    renderQuiz();
+    await questionOnScreen();
+    fireEvent.click(screen.getByRole('button', { name: /exit quiz/i }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Leave quiz' }));
+    server.use(http.get('*/api/quiz/questions', () => HttpResponse.json({
+      sessionId: sessionFor('new-route'), questions: [Q('n')],
+    })));
+    fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
+    await screen.findByText('Question n?');
+    await questionOnScreen();
+    pressDigit('2');
+
+    let backgroundGrade = false;
+    const unsubscribe = onXpToast((toast) => {
+      if (toast.kind === 'gain' && toast.source === 'quiz') backgroundGrade = true;
+    });
+    try {
+      await act(async () => { answer!(); });
+      await waitFor(() => expect(backgroundGrade).toBe(true));
+    } finally {
+      unsubscribe();
+    }
+    expect(JSON.parse(sessionStorage.getItem(PROGRESS_KEY)!)).toMatchObject({
+      sessionId: sessionFor('new-route'),
+      answers: { n: 1 },
+    });
   });
 
   it('says when advanced was asked of topics that have none', async () => {
@@ -828,12 +876,17 @@ describe('quiz orientation and deadline', () => {
     expect(checked()).toEqual([false, false, false, false]);
   });
 
-  it('uses the actual deadline, warns on wake, and keeps answers available for a server-accepted submit', async () => {
+  it('uses the Daily deadline, warns on wake, and keeps answers available for a server-accepted submit', async () => {
     let now = Date.now();
     vi.spyOn(Date, 'now').mockImplementation(() => now);
     const deadline = now + 4 * 60_000;
-    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json(graded([Q('a')]))));
-    await startQuiz([Q('a')], { expiresAt: deadline });
+    server.use(
+      http.get('*/api/quiz/daily', () => HttpResponse.json({ date: '2026-11-10', sessionId: sessionFor('daily'), questions: [Q('a')], expiresAt: deadline })),
+      http.post('*/api/quiz/submit', () => HttpResponse.json(graded([Q('a')]))),
+    );
+    renderQuiz();
+    fireEvent.click(await screen.findByRole('button', { name: /today’s challenge/i }));
+    await questionOnScreen();
     expect(document.querySelector('time')).toHaveAttribute('datetime', new Date(deadline).toISOString());
     expect(screen.getByText('Submit soon to finish before this quiz expires.')).toBeInTheDocument();
     pressDigit('2');
@@ -846,23 +899,34 @@ describe('quiz orientation and deadline', () => {
     expect(await screen.findByText('1 / 1')).toBeInTheDocument();
   });
 
-  it('does not invent a deadline for a session whose server response has none', async () => {
-    await startQuiz([Q('a')], { expiresAt: undefined });
+  it('does not show a standard deadline even with a cached older response', async () => {
+    await startQuiz([Q('a')]);
     expect(document.querySelector('time')).toBeNull();
     expect(screen.queryByText(/Submit before/)).not.toBeInTheDocument();
   });
 });
 
 describe('an expired quiz session', () => {
-  it('is dropped on return instead of resumed', async () => {
+  it('drops an expired Daily session on return', async () => {
     sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({
-      sessionId: sessionFor('old'), questions: [Q('a')], answers: {}, currentIndex: 0, mode: 'standard', expiresAt: Date.now() - 1000,
+      sessionId: sessionFor('old'), questions: [Q('a')], answers: {}, currentIndex: 0, mode: 'daily', expiresAt: Date.now() - 1000,
     }));
     renderQuiz();
     expect(await screen.findByRole('button', { name: /start quiz/i })).toBeInTheDocument();
     expect(screen.queryByText('Question a?')).not.toBeInTheDocument();
     expect(await screen.findByText(/more than an hour old/)).toBeInTheDocument();
     expect(sessionStorage.getItem(PROGRESS_KEY)).toBeNull();
+  });
+
+  it('resumes a standard quiz after the old one-hour deadline with its answers', async () => {
+    sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({
+      sessionId: sessionFor('old-standard'), questions: [Q('a')], answers: { a: 1 },
+      currentIndex: 0, mode: 'standard', expiresAt: Date.now() - 60_000,
+    }));
+    renderQuiz();
+    expect(await screen.findByText('Question a?')).toBeInTheDocument();
+    expect(checked()).toEqual([false, true, false, false]);
+    expect(document.querySelector('time')).toBeNull();
   });
 
   it('resumes with the hints that were opened, so they are reported', async () => {
@@ -893,6 +957,17 @@ describe('an expired quiz session', () => {
     expect(await screen.findByText('Question a?')).toBeInTheDocument();
     expect(counter()).toBe('Question 1 of 2');
     expect(checked()).toEqual([false, false, false, false]);
+  });
+
+  it('discards a locked saved quiz when one of its submitted answers is missing', async () => {
+    sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({
+      sessionId: sessionFor('partial-submit'), questions: [Q('a'), Q('b')],
+      answers: { a: 1 }, currentIndex: 1, mode: 'standard', locked: true,
+      expiresAt: Date.now() + 600_000,
+    }));
+    renderQuiz();
+    expect(await screen.findByRole('button', { name: /start quiz/i })).toBeInTheDocument();
+    expect(sessionStorage.getItem(PROGRESS_KEY)).toBeNull();
   });
 
   it('drops a saved quiz whose questions this build cannot show, instead of failing', async () => {
@@ -979,6 +1054,36 @@ describe('persistent result save status', () => {
     expect(localStorage.getItem(PENDING_KEY)).toBeNull();
   });
 
+  it.each([[503, 'offline'], [400, 'invalid_receipt']])('keeps a confirmed background save when the earlier request returns %i', async (status, code) => {
+    signIn();
+    let writes = 0;
+    let failFirst!: () => void;
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      server.use(
+        http.post('*/api/quiz/submit', () => HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'overlapping-save-receipt' })),
+        http.post('*/api/user/stats', () => ++writes === 1
+          ? new Promise<Response>((resolve) => {
+              failFirst = () => resolve(HttpResponse.json({ error: { code, message: 'Could not save' } }, { status }));
+            })
+          : HttpResponse.json({ data: null, applied: false, questXp: 0 })),
+      );
+      await startQuiz([Q('a')]);
+      answerAll(1);
+      fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+      await waitFor(() => expect(failFirst).toBeDefined());
+      fireEvent(window, new Event('online'));
+      await screen.findByText('Saved to your account');
+      await act(async () => { failFirst(); });
+      await waitFor(() => expect(log).toHaveBeenCalledWith('Stat write failed:', expect.anything()));
+      expect(screen.getByText('Saved to your account')).toBeInTheDocument();
+      expect(screen.queryByText(/Waiting to sync/)).not.toBeInTheDocument();
+      expect(localStorage.getItem(PENDING_KEY)).toBeNull();
+    } finally {
+      log.mockRestore();
+    }
+  });
+
   it('keeps a permanent refusal visible after replay and does not say Saved', async () => {
     signIn();
     let writes = 0;
@@ -1047,6 +1152,64 @@ describe('saving a result to the account', () => {
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     // The second failure is kept beside the first, not over it.
     await waitFor(() => expect(Object.values(pendingStore()).map((pending) => pending.receipt).sort()).toEqual(['receipt-1', 'receipt-2']));
+  });
+
+  it.each(['standard', 'daily', 'review'])('discards a %s question set still loading when a different account signs in', async (mode) => {
+    signIn();
+    const endpoint = mode === 'daily' ? '*/api/quiz/daily' : '*/api/quiz/questions';
+    const path = mode === 'standard' ? '/quiz' : `/quiz?mode=${mode}`;
+    let deal: (() => void) | undefined;
+    let loadingRequest: Request | undefined;
+    server.use(http.get(endpoint, ({ request }) => new Promise<Response>((resolve) => {
+      loadingRequest = request;
+      deal = () => resolve(HttpResponse.json({ sessionId: sessionFor('old-account'), questions: [Q('old-account')] }));
+    })));
+    const view = renderQuiz(path);
+    if (mode === 'standard') fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
+    await waitFor(() => expect(deal).toBeDefined());
+
+    act(() => {
+      clearAccountData();
+      auth.value = { user: { ...LEARNER, id: 'next-quiz-learner', email: 'next@example.test' }, isAuthenticated: true, isLoading: false };
+    });
+    view.rerender(quizTree(path));
+    await waitFor(() => expect(loadingRequest?.signal.aborted).toBe(true));
+    await act(async () => { deal!(); });
+    expect(screen.queryByText('Question old-account?')).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Sign-in changed' })).toHaveFocus();
+    expect(sessionStorage.getItem(PROGRESS_KEY)).toBeNull();
+
+    server.use(http.get(endpoint, () => HttpResponse.json({
+      sessionId: sessionFor('next-account'), questions: [Q('next-account')],
+    })));
+    fireEvent.click(screen.getByRole('button', { name: /new quiz, same settings/i }));
+    await questionOnScreen();
+    pressDigit('1');
+    expect(JSON.parse(sessionStorage.getItem(PROGRESS_KEY)!)).toMatchObject({
+      sessionId: sessionFor('next-account'),
+      answers: { 'next-account': 0 },
+    });
+  });
+
+  it('does not submit a quiz dealt before the account changed', async () => {
+    signIn();
+    let submits = 0;
+    server.use(http.post('*/api/quiz/submit', () => {
+      submits++;
+      return HttpResponse.json(graded([Q('a')]));
+    }));
+    const view = await startQuiz([Q('a')]);
+    pressDigit('1');
+    act(() => {
+      clearAccountData();
+      auth.value = { user: { ...LEARNER, id: 'next-quiz-learner', email: 'next@example.test' }, isAuthenticated: true, isLoading: false };
+    });
+    view.rerender(quizTree());
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+
+    expect(await screen.findByRole('heading', { name: 'Sign-in changed' })).toHaveFocus();
+    expect(submits).toBe(0);
+    expect(sessionStorage.getItem(PROGRESS_KEY)).toBeNull();
   });
 
   it('does not write a quiz on screen back to the tab once the account signed out', async () => {

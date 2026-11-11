@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useAdvanceSession, usePracticeSession } from '../../coding/practice';
-import { currentRunTask, formatWhen, runSummary, taskHref } from './ChallengeRunPlanner';
+import { currentRunTask, formatWhen, runSummary, taskHref, usePracticeRunDue } from './ChallengeRunPlanner';
 
 const RunGlyph = ({ size = 20 }: { size?: number }) => (
   <svg aria-hidden="true" focusable="false" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -25,11 +25,11 @@ export function ChallengeRunSection() {
   const query = usePracticeSession(true);
   const advance = useAdvanceSession();
   const session = query.data?.session ?? null;
+  const due = usePracticeRunDue(session?.status === 'scheduled' ? session.scheduledFor : null);
   if (!session) return null;
   const scheduled = session.status === 'scheduled';
   const current = scheduled ? null : currentRunTask(session);
   if (!scheduled && !current) return null;
-  const due = scheduled && Boolean(session.scheduledFor) && new Date(session.scheduledFor!).getTime() <= Date.now();
   const meta = runSummary(session, t);
   const reason = scheduled
     ? t(due ? 'today.runDue' : 'today.runPlanned', { when: formatWhen(session.scheduledFor ?? '') })

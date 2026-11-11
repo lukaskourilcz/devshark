@@ -53,6 +53,9 @@ type Listener = (record: ConsentRecord | null) => void;
 let current: ConsentRecord | null = null;
 let loaded = false;
 let listeningToOtherTabs = false;
+let expiryTimer: number | undefined;
+// Browsers clamp longer timeouts to a signed 32-bit integer.
+const MAX_TIMEOUT_MS = 2_147_483_647;
 const listeners = new Set<Listener>();
 
 function isValid(value: unknown, now: number): value is Omit<ConsentRecord, 'stored'> {
@@ -131,19 +134,38 @@ function persist(record: ConsentRecord, now: number): boolean {
   return true;
 }
 
+function scheduleExpiry(): void {
+  window.clearTimeout(expiryTimer);
+  expiryTimer = undefined;
+  if (!current?.stored) return;
+  const remaining = current.decidedAt + CONSENT_MAX_AGE_MS - Date.now() + 1;
+  expiryTimer = window.setTimeout(refreshStoredChoice, Math.min(Math.max(remaining, 0), MAX_TIMEOUT_MS));
+}
+
+function refreshStoredChoice(): void {
+  const next = readStored(Date.now());
+  if (!sameChoice(current, next)) {
+    current = next;
+    emit();
+  }
+  scheduleExpiry();
+}
+
 function ensureLoaded(): void {
   if (loaded) return;
   loaded = true;
-  current = typeof window === 'undefined' ? null : readStored(Date.now());
-  if (typeof window !== 'undefined' && !listeningToOtherTabs) {
+  if (typeof window === 'undefined') return;
+  current = readStored(Date.now());
+  scheduleExpiry();
+  if (!listeningToOtherTabs) {
     listeningToOtherTabs = true;
     // A choice made in another tab applies here too.
     window.addEventListener('storage', (event) => {
       if (event.key !== null && event.key !== CONSENT_STORAGE_KEY) return;
-      const next = readStored(Date.now());
-      if (sameChoice(current, next)) return;
-      current = next;
-      emit();
+      refreshStoredChoice();
+    });
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted && current?.stored) refreshStoredChoice();
     });
   }
 }
@@ -188,6 +210,7 @@ export function saveConsent(choices: ConsentChoices, now: number = Date.now()): 
   };
   const record = persist(wanted, now) ? wanted : { ...wanted, analytics: false, marketing: false, stored: false };
   current = record;
+  scheduleExpiry();
   emit();
   return record;
 }
@@ -244,6 +267,8 @@ export function useConsentSettingsOpen(): boolean {
 
 /** Tests only: forget the in-memory state so the next read starts fresh. */
 export function resetConsentForTests(): void {
+  window.clearTimeout(expiryTimer);
+  expiryTimer = undefined;
   current = null;
   loaded = false;
   settingsOpen = false;

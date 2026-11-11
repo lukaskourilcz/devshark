@@ -51,6 +51,7 @@ export function BigOIntroduction({ onActiveChange }: { onActiveChange?: (active:
   const navigate = useNavigate();
   const asked = new URLSearchParams(location.search).get('lesson');
   const [level, setLevel] = useState<1 | 2 | null>(() => (asked === '1' ? 1 : asked === '2' ? 2 : null));
+  const [returnFocusTo, setReturnFocusTo] = useState<1 | 2 | null>(null);
   const [generation, setGeneration] = useState(0);
   const [reading, setReading] = useState(true);
   // When the questions were asked for: the level's loader and the runner's
@@ -58,6 +59,7 @@ export function BigOIntroduction({ onActiveChange }: { onActiveChange?: (active:
   const [since, setSince] = useState(0);
   const startQuestions = () => {
     setSince(Date.now());
+    setGeneration((value) => value + 1);
     setReading(false);
   };
   const before = useRef(0);
@@ -94,17 +96,20 @@ export function BigOIntroduction({ onActiveChange }: { onActiveChange?: (active:
     prefetchLearnLesson(queryClient, `dsa-v1-d01-l${next}`);
     preloadLessonRunner();
     before.current = computeLearningXp(getRoadmapProgress());
-    setGeneration((value) => value + 1);
     setReading(true);
     setLevel(next);
   };
+  const close = () => {
+    setReturnFocusTo(level);
+    setLevel(null);
+  };
   if (level !== null) {
-    if (reading) return <LessonReader lessonId={`dsa-v1-d01-l${level}`} backLabel={t('bigO.pathTitle')} onStart={startQuestions} onBack={() => setLevel(null)} />;
+    if (reading) return <LessonReader lessonId={`dsa-v1-d01-l${level}`} backLabel={t('bigO.pathTitle')} onStart={startQuestions} onBack={close} />;
     if (lesson.isPending) return <DelayedQuoteLoader since={since} quote={t('quiz.loadingQuote')} label={t('common.loading')} />;
-    if (lesson.error || !lesson.data) return <LessonError message={friendlyError(lesson.error)} onRetry={() => open(level)} onExit={() => setLevel(null)} t={t} />;
-    return <LessonStage since={since} onExit={() => setLevel(null)} t={t}><LessonRunner key={`${level}-${generation}-${user?.id ?? 'guest'}`} playable={lesson.data} skipIntro
+    if (lesson.error || !lesson.data) return <LessonError message={friendlyError(lesson.error)} onRetry={startQuestions} onExit={close} t={t} />;
+    return <LessonStage since={since} onExit={close} t={t}><LessonRunner key={`${level}-${generation}-${user?.id ?? 'guest'}`} playable={lesson.data} skipIntro
       topicColor={getCategoryHexColor('dsa')} hasNext={level === 1} nextLabel={t('roadmap.nextLevel')}
-      onExit={() => setLevel(null)} onNext={() => open(2)} onReplay={() => open(level)} onActiveChange={onActiveChange} t={t}
+      onExit={close} onNext={() => open(2)} onReplay={() => open(level)} onActiveChange={onActiveChange} t={t}
       onFinished={(pct, repeatXp) => {
         recordLevelResult('dsa', level, pct, lesson.data!.passPct);
         awardLearningOutcome(computeLearningXp(getRoadmapProgress()) - before.current, isAuthenticated);
@@ -115,7 +120,7 @@ export function BigOIntroduction({ onActiveChange }: { onActiveChange?: (active:
   // SwimCta md and lesson 2 a secondary, both 44px (UX audit learn-04, -15, -19).
   return (
     <div style={{ display: 'contents' }} onPointerOver={warmOnIntent} onFocus={warmOnIntent} onPointerDown={warmOnIntent} onTouchStart={warmOnIntent}>
-      <BigOLessons onOpen={open} />
+      <BigOLessons onOpen={open} returnFocusTo={returnFocusTo} />
     </div>
   );
 }

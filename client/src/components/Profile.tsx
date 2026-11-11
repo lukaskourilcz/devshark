@@ -517,7 +517,27 @@ function StreakShield({
   const t = useT();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [now] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
+  const shieldUntil = state?.shieldUntil;
+  useEffect(() => {
+    if (!shieldUntil) return;
+    let timer = 0;
+    const refresh = () => {
+      window.clearTimeout(timer);
+      const time = Date.now();
+      setNow(time);
+      if (shieldRemaining(shieldUntil, time)) {
+        const minute = 60_000 - time % 60_000;
+        timer = window.setTimeout(refresh, Math.min(minute, Date.parse(shieldUntil) - time));
+      }
+    };
+    refresh();
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [shieldUntil]);
 
   if (!state || !state.shieldSupported) return null;
 

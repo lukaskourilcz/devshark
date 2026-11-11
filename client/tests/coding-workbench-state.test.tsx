@@ -95,10 +95,11 @@ it('keeps the editor and reports the server pass in the workspace', async () => 
   vi.mocked(submitCoding).mockResolvedValueOnce(verdict({}));
   mount();
   fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
-  expect(await screen.findByRole('heading', { level: 3, name: /^Passed/ })).toBeVisible();
+  const heading = await screen.findByRole('heading', { level: 3, name: /^Passed/ });
+  expect(heading).toBeVisible();
   expect(screen.queryByText(/You changed the code after this check/)).toBeNull();
   expect(screen.getByLabelText('Test editor')).toBeVisible();
-  expect(screen.getByRole('link', { name: 'Back to the list' })).toBeVisible();
+  expect(within(heading.closest('section')!).getByRole('link', { name: 'Back to the list' })).toBeVisible();
 });
 
 // C3-9 / C4-3: "Passing the visible examples is not enough" appeared when

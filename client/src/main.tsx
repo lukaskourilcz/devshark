@@ -24,6 +24,7 @@ import { MotionProvider } from './lib/motion';
 import { captureReferralFromUrl } from './lib/referral';
 import { installChunkErrorTracking } from './lib/routeRecovery';
 import { capturePublicGuide } from './lib/publicGuideHandoff';
+import { flushQuestXpBeacon } from './lib/xp';
 
 // Cosmetic scroll feedback can load after the interactive entry.
 const scrollbarReady = import('./lib/scrollbarActivity').then(({ installScrollbarActivity }) => installScrollbarActivity()).catch(() => () => {});
@@ -48,26 +49,10 @@ if (MARKETING_LOADERS.length > 0) void import('./lib/marketing').then(({ install
 // Keep an invite code (`/?ref=<code>`, #228) and take it out of the address
 // bar before the router reads the URL. The server binds it after sign-in.
 captureReferralFromUrl();
-// Register wallet + inventory into the account-synced blob so any sign-in
-// pulls the balance/owned/equipped that was earned on other devices. Runs at
-// module load, before any component mounts.
-import('./lib/roadmap').then(({ registerAccountExtras }) => {
-  // XP has its own debounce; hook its beacon into the same pagehide/hidden events.
-  import('./lib/xp').then(({ flushQuestXpBeacon }) => {
-    const flush = () => flushQuestXpBeacon();
-    window.addEventListener('pagehide', flush);
-    window.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') flush();
-    });
-  });
-  Promise.all([import('./lib/tokens'), import('./lib/shop')]).then(([tok, sh]) => {
-    registerAccountExtras((server) => {
-      // Per subject: max-merge balances; union owned; server-wins on
-      // equipped cosmetics remain valid; retired booster data is cleared.
-      tok.mergeBalancesFromServer(server.wallets);
-      sh.mergeInventoriesFromServer(server.inventories);
-    });
-  });
+// Flush the debounced XP write when the browser hides the document.
+window.addEventListener('pagehide', flushQuestXpBeacon);
+window.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') flushQuestXpBeacon();
 });
 
 // React Query devtools, dev-only: the dynamic import lives in a DEV-gated branch

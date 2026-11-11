@@ -11,7 +11,7 @@ import { server } from './mocks/server';
 
 beforeAll(() => import('../src/components/learn/LearnLesson'));
 const lesson = { id: 'dsa-v1-d01-l1', title: 'Complexity Basics', sources: [], sections: [{ kind: 'prose', body: 'Count the operations as the input grows.' }] };
-function mount(failReading = false, at = '/learn/big-o') {
+function mount(failReading = false, at = '/learn/big-o', failFirstAttempt = false) {
   const reads: string[] = [];
   server.use(http.get('*/api/quiz/roadmap', ({ request }) => {
     const params = new URL(request.url).searchParams;
@@ -21,6 +21,10 @@ function mount(failReading = false, at = '/learn/big-o') {
     }
     if (params.get('level')) {
       reads.push('attempt');
+      if (failFirstAttempt) {
+        failFirstAttempt = false;
+        return HttpResponse.json({ error: { code: 'unavailable', message: 'Questions unavailable' } }, { status: 503 });
+      }
       return HttpResponse.json({ kind: 'level', topic: 'dsa', ref: 1, title: 'Complexity Basics', passPct: 75, sessionId: 'fixture-attempt', questions: [{ id: 'fixture-q', category: 'dsa', difficulty: 1, question: 'Which count grows with the input?', options: ['n', '1'], introduction: '', tags: [] }] });
     }
     return HttpResponse.json({ topics: [], structure: {} });
@@ -43,6 +47,27 @@ describe('Learn lesson reading', () => {
     await screen.findByText('Which count grows with the input?');
     expect(reads).toEqual(['reading', 'attempt']);
   });
+  it('retries an unavailable question attempt without reopening the reading', async () => {
+    const reads = mount(false, '/learn/big-o', true);
+    fireEvent.click(screen.getByRole('button', { name: 'Complexity Basics' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Start the questions' }));
+    const retry = await screen.findByRole('button', { name: 'Try again' });
+    expect(screen.getByRole('alert')).toHaveTextContent('Server error. Try again in a moment.');
+    fireEvent.click(retry);
+    expect(await screen.findByText('Which count grows with the input?')).toBeInTheDocument();
+    expect(reads).toEqual(['reading', 'attempt', 'attempt']);
+  });
+
+  it('returns keyboard focus to the lesson button when leaving the reading', async () => {
+    mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Complexity Basics' }));
+    await screen.findByRole('heading', { name: 'Complexity Basics', level: 1 });
+    const back = screen.getByRole('button', { name: 'Big O introduction' });
+    back.focus();
+    fireEvent.click(back);
+    expect(screen.getByRole('button', { name: 'Complexity Basics' })).toHaveFocus();
+  });
+
   it('names where Back goes and ends on one row with the only primary (learn-05)', async () => {
     mount();
     fireEvent.click(screen.getByRole('button', { name: 'Complexity Basics' }));

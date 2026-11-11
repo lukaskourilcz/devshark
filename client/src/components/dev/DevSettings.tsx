@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { TextArea } from '@astryxdesign/core/TextArea';
 import { Switch } from '@astryxdesign/core/Switch';
@@ -8,7 +8,6 @@ import LoadingScreen from '../LoadingScreen';
 import ErrorRetry from '../ErrorRetry';
 import { AppToast } from '../ui/AppToast';
 import { friendlyError } from '../../lib/api';
-import { queryClient } from '../../lib/queryClient';
 import { getAdminSettings, saveAdminSettings, type GameSettings } from '../../lib/devApi';
 
 const SETTINGS_KEY = ['admin', 'settings'] as const;
@@ -237,10 +236,12 @@ function SelectField({
 }
 
 export default function DevSettings() {
+  const queryClient = useQueryClient();
   const settingsQuery = useQuery({ queryKey: SETTINGS_KEY, queryFn: getAdminSettings });
   const base = settingsQuery.data?.settings ?? null;
   const [form, setForm] = useState<FormState | null>(null);
   const [saving, setSaving] = useState(false);
+  const saveInFlight = useRef(false);
   const [snack, setSnack] = useState<string | null>(null);
 
   // Hydrate (and re-hydrate after a save/refetch) the editable form from the
@@ -277,12 +278,17 @@ export default function DevSettings() {
     setForm((f) => (f ? { ...f, shopPrices: { ...f.shopPrices, [id]: value } } : f));
 
   const handleSave = async () => {
+    if (saveInFlight.current) return;
+    saveInFlight.current = true;
+    const submitted = JSON.stringify(form);
     setSaving(true);
     try {
       const { settings } = await saveAdminSettings(toSettings(form, base));
-      // Update the cache; the hydrate effect re-fills the form from it,
-      // reflecting any server-side clamping, as the edits are saved now.
-      hydratedRef.current = null;
+      // Keep typing that happened after Save. Otherwise show the validated
+      // values that the server stored, including any clamping.
+      const savedForm = toForm(settings);
+      hydratedRef.current = JSON.stringify(savedForm);
+      setForm((current) => current && JSON.stringify(current) !== submitted ? current : savedForm);
       queryClient.setQueryData(SETTINGS_KEY, { settings });
       // Apply the (validated) thresholds to the live leveling module so ranks
       // update across the app without a reload.
@@ -291,6 +297,7 @@ export default function DevSettings() {
     } catch (err) {
       setSnack(friendlyError(err));
     } finally {
+      saveInFlight.current = false;
       setSaving(false);
     }
   };

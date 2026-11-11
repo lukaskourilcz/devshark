@@ -1,13 +1,11 @@
-// From migration 048 a finished Learn level, a recorded coding pass and an
-// awarded Challenge run are streak days too, so each marks the Profile's
-// cached stats stale and the streak card reads the new count. Work that moved
-// nothing leaves the cache alone.
+// From migration 048 a finished Learn level and a recorded coding pass are
+// streak days too, so both mark the Profile's cached stats stale. Challenge
+// applies this after account reconciliation, covered in challenge-run.test.tsx.
 import { beforeEach, describe, expect, it } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { queryClient } from '../src/lib/queryClient';
 import { profileStatsQueryKey } from '../src/lib/queries';
 import { completeRoadmapAttempt } from '../src/lib/roadmap';
-import { completeChallengeRun } from '../src/lib/challengeApi';
 import { submitCoding } from '../src/coding/api';
 import type { CodingVerdictResponse } from '../../shared/coding-api';
 import { server } from './mocks/server';
@@ -51,12 +49,4 @@ describe('a streak day outside the quiz', () => {
     expect(stale()).toBe(true);
   });
 
-  it('an awarded Challenge run, and not one that earned nothing', async () => {
-    server.use(http.post('*/api/quiz/challenge', () => HttpResponse.json({ ok: true, awarded: false, score: 0, xp: 0 })));
-    await completeChallengeRun({ runToken: 'run', proofs: [] });
-    expect(stale()).toBe(false);
-    server.use(http.post('*/api/quiz/challenge', () => HttpResponse.json({ ok: true, awarded: true, score: 4, xp: 20 })));
-    await completeChallengeRun({ runToken: 'run', proofs: [] });
-    expect(stale()).toBe(true);
-  });
 });

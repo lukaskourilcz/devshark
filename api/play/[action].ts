@@ -882,15 +882,22 @@ async function answer(req: VercelRequest, res: VercelResponse) {
     // answers race past each other.
     let advanced = false;
     if (match.mode === 'multiplayer') {
-      const { count: answeredCount } = await withTimeout(
-        supabase!
-          .from('match_answers')
-          .select('user_id', { count: 'exact', head: true })
-          .eq('match_id', match.id)
-          .eq('question_idx', body.question_idx),
-      );
-      if (participantIds.length > 0 && (answeredCount ?? 0) >= participantIds.length) {
-        advanced = !!(await tryAdvance(match));
+      try {
+        const { count: answeredCount, error: countError } = await withTimeout(
+          supabase!
+            .from('match_answers')
+            .select('user_id', { count: 'exact', head: true })
+            .eq('match_id', match.id)
+            .eq('question_idx', body.question_idx),
+        );
+        if (countError) throw new Error(countError.message);
+        if (participantIds.length > 0 && (answeredCount ?? 0) >= participantIds.length) {
+          advanced = !!(await tryAdvance(match));
+        }
+      } catch (error) {
+        // The answer already committed. The room's state reads can move it
+        // forward, while this response still acknowledges the stored answer.
+        logEvent('play/answer', { level: 'warn', code, reason: 'advance_unavailable', error: error instanceof Error ? error.message : 'unknown' });
       }
     }
 
@@ -984,17 +991,21 @@ async function heartbeat(req: VercelRequest, res: VercelResponse) {
     if (match.status !== 'running' && match.status !== 'lobby')
       return jsonError(res, 409, 'bad_state', 'Match is not active');
 
-    const { error } = await withTimeout(
+    const { data: touched, error } = await withTimeout(
       supabase!
         .from('matches')
         .update({ last_heartbeat_at: new Date().toISOString() })
-        .eq('id', match.id),
+        .eq('id', match.id)
+        .in('status', ['lobby', 'running'])
+        .select('id')
+        .maybeSingle(),
     );
 
     if (error) {
       logEvent('play/heartbeat', { status: 500, error: error.message });
       return jsonError(res, 500, 'db_error', 'Could not record heartbeat');
     }
+    if (!touched) return jsonError(res, 409, 'bad_state', 'Match is not active');
 
     return res.json({ ok: true });
   } catch (err) {

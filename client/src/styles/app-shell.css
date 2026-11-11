@@ -334,6 +334,9 @@
    box, so it never moves with the route width (UX audit shell-public-01). */
 .ss-route { width: 100%; max-width: var(--ss-page-width); margin-inline: auto; }
 .ss-route:has(.ss-wide-page) { max-width: var(--ss-width-wide); }
+/* A standalone state takes the centre of the route's available height. Auto
+   margins collapse when the panel needs the full height and scrolls. */
+.ss-route > .ss-state-panel:only-child:not(.ss-state-panel--inline) { margin-block: auto; }
 /* An activity owns its local navigation. Deriving this from mounted content
    also covers restored/deep-linked questions without a second activity store. */
 @media (min-width: 701px) { :root { --ss-page-gutter: 64px; } }

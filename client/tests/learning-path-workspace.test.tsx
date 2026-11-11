@@ -7,6 +7,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { ApiError } from '../src/lib/api';
+import { announceVerifiedQuestXp, syncXpWithServer } from '../src/lib/xp';
 import { loadEditor } from '../src/coding/loadEditor';
 
 const A = 'fde-v1-m01-linear-accumulator';
@@ -51,6 +52,7 @@ const calls = vi.hoisted(() => ({
   submitFailures: [] as unknown[],
   submitDelay: 0,
   codePassed: false,
+  replayed: false,
   changedOnRenewal: false,
   scenario: undefined as string | undefined,
   fixtureNote: undefined as string | undefined,
@@ -124,7 +126,7 @@ vi.mock('../src/lib/learningPaths', async (importOriginal) => {
         activityId: check ? C : A, state: calls.codePassed ? 'verified_pass' : 'needs_revision', verification: 'machine_verified', score: 0.5, criteria: [],
         questions: check ? [{ questionId: 'q1', correct: false, correctIndex: 1, explanation: 'Because of the right side.' }] : null,
         code: check ? null : { outcome: calls.codePassed ? 'passed' : 'failed', results: [], hidden: null, check: null, logs: [], codeError: null },
-        feedback: [], module: null, guidedComplete: false, nextActivityId: calls.next, replayed: false, xpAwarded: calls.codePassed ? 25 : 0,
+        feedback: [], module: null, guidedComplete: false, nextActivityId: calls.next, replayed: calls.replayed, xpAwarded: calls.codePassed ? 25 : 0,
       };
     }),
   };
@@ -140,6 +142,9 @@ beforeAll(async () => { await loadEditor(); });
 
 beforeEach(() => {
   calls.codePassed = false;
+  calls.replayed = false;
+  vi.mocked(announceVerifiedQuestXp).mockClear();
+  vi.mocked(syncXpWithServer).mockClear();
   calls.changedOnRenewal = false;
   calls.start.length = 0;
   calls.startSignals.length = 0;
@@ -231,6 +236,22 @@ describe('one attempt takes one result', () => {
     expect(calls.start).toEqual([A]);
     expect(calls.submit[1].session).toBe(calls.submit[0].session);
     expect(calls.submit[1].idempotencyKey).toBe(calls.submit[0].idempotencyKey);
+  });
+
+  it('reconciles a replayed code reward without announcing it again', async () => {
+    calls.submitFailures.push(new ApiError('Network error', 0, 'network'));
+    await mount(A);
+    await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
+    await type('already graded code');
+    await press('Submit');
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Network error'));
+    calls.codePassed = true;
+    calls.replayed = true;
+    await press('Submit');
+    await screen.findByRole('heading', { name: 'Passed +25 XP' });
+    expect(calls.submit[1].idempotencyKey).toBe(calls.submit[0].idempotencyKey);
+    expect(syncXpWithServer).toHaveBeenCalledWith({ announceRankUp: false });
+    expect(announceVerifiedQuestXp).not.toHaveBeenCalled();
   });
 
   it('a key the server already spent reads as plain copy, and the next submission opens a new attempt', async () => {
@@ -413,6 +434,42 @@ describe('the draft autosave', () => {
     expect(status()).toBe('Draft saved');
   }, 15_000);
 
+  it('serializes a draft save when the learner revisits an activity before the first write returns', async () => {
+    calls.draftDelay = 1_500;
+    await mount(A);
+    await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
+    await type('first edit in A');
+    await press('Close');
+    await waitFor(() => expect(calls.drafts).toHaveLength(1));
+    await act(async () => { fireEvent.click(screen.getByRole('link', { name: /Activity B/ })); });
+    await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${B}`));
+    await press('Close');
+    await act(async () => { fireEvent.click(screen.getByRole('link', { name: /Activity A/ })); });
+    await waitFor(() => expect(editor().value).toBe('first edit in A'));
+    await type('second edit in A');
+    await act(async () => { window.dispatchEvent(new Event('pagehide')); });
+    await waitFor(() => expect(calls.drafts).toHaveLength(2), { timeout: 4_000 });
+    expect(calls.drafts.map((one) => [one.expected, one.code])).toEqual([[0, 'first edit in A'], [1, 'second edit in A']]);
+    expect(calls.mostInFlight).toBe(1);
+    await waitFor(() => expect(status()).toBe('Draft saved'), { timeout: 4_000 });
+    expect(editor().value).toBe('second edit in A');
+  }, 12_000);
+
+  it('uses a draft confirmed while the reopening response still carries its old read', async () => {
+    calls.draftDelay = 750;
+    await mount(A);
+    await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
+    await type('committed while reopening');
+    await press('Close');
+    await waitFor(() => expect(calls.inFlight).toBe(1));
+    // The opening request already read no saved draft before the write commits.
+    calls.startDelay = 1_000;
+    await act(async () => { fireEvent.click(screen.getByRole('link', { name: /Activity A/ })); });
+    await waitFor(() => expect(editor().value).toBe('committed while reopening'), { timeout: 4_000 });
+    expect(status()).toBe('Draft saved');
+    expect(calls.drafts.map((one) => [one.expected, one.code])).toEqual([[0, 'committed while reopening']]);
+  });
+
   it('keeps a draft on this device while offline and saves it when the connection is back', async () => {
     await mount(A);
     await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
@@ -427,6 +484,25 @@ describe('the draft autosave', () => {
     await waitFor(() => expect(calls.drafts.map((one) => one.code)).toEqual(['written offline']));
     await waitFor(() => expect(status()).toBe('Draft saved'));
     expect(localStorage.getItem(`devshark:path:draft:${ENROLLMENT}:${A}`)).toBeNull();
+  });
+
+  it.each(['visibilitychange', 'pagehide'])('keeps the last keystrokes when the browser sends %s before the debounce', async (event) => {
+    const key = `devshark:path:draft:${ENROLLMENT}:${A}`;
+    await mount(A);
+    await waitFor(() => expect(editor().value).toBe(`STARTER_FOR_${A}`));
+    Object.defineProperty(window.navigator, 'onLine', { value: false, configurable: true });
+    await type('typed just before hiding the document');
+    expect(localStorage.getItem(key)).toBeNull();
+    const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+    try {
+      await act(async () => {
+        (event === 'visibilitychange' ? document : window).dispatchEvent(new Event(event));
+      });
+      expect(localStorage.getItem(key)).toContain('typed just before hiding the document');
+      expect(calls.drafts).toHaveLength(0);
+    } finally {
+      visibility.mockRestore();
+    }
   });
 
   it('sends the last keystrokes when the learner leaves the page before the debounce', async () => {

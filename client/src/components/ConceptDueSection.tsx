@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../lib/auth';
 import { conceptDueQuery } from '../lib/queries';
+import { HELD_READ } from '../lib/routeData';
 import { conceptById } from '../../../shared/concepts';
 
 const NAMED = 3;
@@ -35,7 +36,7 @@ export function ConceptDueSection() {
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
 
-  const { data } = useQuery({ ...conceptDueQuery, enabled: isAuthenticated });
+  const { data } = useQuery({ ...conceptDueQuery, ...HELD_READ, enabled: isAuthenticated });
 
   const due = data?.due ?? [];
   if (due.length === 0) return null;

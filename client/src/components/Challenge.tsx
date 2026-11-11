@@ -32,6 +32,7 @@ import type { QuestionXpHeld } from '../../../shared/repeat-xp';
 import { SwimCta } from './landing/LandingKit';
 import { readJSON, writeJSON, removeStored } from '../lib/storage';
 import { accountEpoch } from '../lib/accountData';
+import { staleProfileStats } from '../lib/queryClient';
 import './Challenge.css';
 import {
   AnswerOptionList,
@@ -110,15 +111,17 @@ const dropPendingReward = (runToken: string) =>
  * whose question paid XP less than an hour ago (migration 060), with the time
  * the last of them pays again. The sending stops when the account signs
  * out: the rest are no longer this browser's to send. */
-async function sendPendingRewards(userId: string | null): Promise<{ kept: number; xp: number; held: QuestionXpHeld | null }> {
+async function sendPendingRewards(userId: string | null): Promise<{ kept: number; xp: number; held: QuestionXpHeld | null; accountSaved: boolean }> {
   const epoch = accountEpoch();
   let kept = 0;
+  let accountSaved = false;
   let xp = 0;
   let held = null as QuestionXpHeld | null;
   for (const run of readPendingRewards().filter((one) => one.userId === userId)) {
     if (accountEpoch() !== epoch) break;
     try {
       const res = await completeChallengeRun({ runToken: run.runToken, proofs: run.proofs });
+      if (userId && res.score > 0) accountSaved = true;
       if (userId && res.awarded) xp += res.xp ?? 0;
       if (res.xpHeld) {
         held = {
@@ -139,7 +142,7 @@ async function sendPendingRewards(userId: string | null): Promise<{ kept: number
       if (err instanceof ApiError && (err.status === 0 || err.status === 429)) break;
     }
   }
-  return { kept, xp, held };
+  return { kept, xp, held, accountSaved };
 }
 
 /** The batch session that issued the question can no longer grade it: it
@@ -152,10 +155,11 @@ const isSessionRefusal = (err: unknown): boolean =>
 const isRetryable = (err: unknown): boolean =>
   !(err instanceof ApiError) || err.status === 0 || err.status === 429 || err.status >= 500;
 
-function gradeChallengeAnswer(sessionId: string, questionId: string, selectedIndex: number) {
+function gradeChallengeAnswer(sessionId: string, questionId: string, selectedIndex: number, signal: AbortSignal) {
   return apiFetch<QuizResult>('/api/quiz/submit', {
     method: 'POST',
     body: JSON.stringify({ sessionId, answers: { [questionId]: selectedIndex } }),
+    signal,
   });
 }
 
@@ -236,7 +240,7 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
   // handlers only after a render, and a second Enter or press in that gap
   // sent the pick again: the server replays a pick's grade, so the point or
   // the strike counted twice.
-  const gradingRef = useRef(false);
+  const gradingRequest = useRef<AbortController | null>(null);
   const [snack, setSnack] = useState<string | null>(null);
   // The question's deadline, set when it is shown. The clock counts down to
   // it rather than counting ticks, so time the page spends in the background
@@ -257,10 +261,20 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
   // A refill in flight resolves to null when its batch landed, or to the
   // message of the error that stopped it.
   const topupInFlight = useRef<Promise<string | null> | null>(null);
+  const topupAbort = useRef<AbortController | null>(null);
   // Bumped by every new run. A refill that returns after its run ended ("Play
   // again" pressed while it was in flight) carries the old run's token and
   // questions, and is dropped.
   const runGeneration = useRef(0);
+  const cancelRunRequests = useCallback(() => {
+    runGeneration.current += 1;
+    topupAbort.current?.abort();
+    topupAbort.current = null;
+    topupInFlight.current = null;
+    gradingRequest.current?.abort();
+    gradingRequest.current = null;
+  }, []);
+  useEffect(() => cancelRunRequests, [cancelRunRequests]);
   // Set when the queue ran dry and the refill failed: the run is kept, and
   // Retry asks for the batch again under the same run.
   const [refillError, setRefillError] = useState<string | null>(null);
@@ -297,17 +311,18 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
   const syncRewards = useCallback((userId: string | null) => {
     rewardSync.current = rewardSync.current.then(async () => {
       const epoch = accountEpoch();
-      const { kept, xp, held } = await sendPendingRewards(userId);
+      const { kept, xp, held, accountSaved } = await sendPendingRewards(userId);
       // Signed out while the runs were on their way: what they earned is not
       // news for whoever is here now, and its rank marker is not theirs.
       if (accountEpoch() !== epoch) return;
       if (xp > 0) announceVerifiedQuestXp(xp);
       if (held) announceXpHeld({ on: 'questions', count: held.questions, availableAt: held.availableAt });
-      if (xp > 0) {
-        // The gain first, then the rank it crosses, in Quiz's order. The
-        // run's XP exists only on the server until this sync, so the sync
-        // announces the rank-up; a silent one marked it seen unannounced.
-        await syncXpWithServer({ announceRankUp: true });
+      if (accountSaved) {
+        // A replay can confirm an award committed before the connection failed.
+        // Refresh the account without announcing the same gain twice.
+        staleProfileStats();
+        await syncXpWithServer({ announceRankUp: xp > 0 });
+        if (accountEpoch() !== epoch) return;
       }
       if (kept > 0) setSnack(t('challenge.rewardPending'));
       else void boardQuery.refetch();
@@ -372,17 +387,18 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
   const [leaveOpen, setLeaveOpen] = useState(false);
   const leaveRun = useCallback(() => {
     setLeaveOpen(false);
-    runGeneration.current += 1;
-    topupInFlight.current = null;
+    cancelRunRequests();
     buffer.current = null;
     clearStrikeRetry();
     setCurrent(null);
     setSelected(null);
     setLastResult(null);
     setRefillError(null);
+    setRefilling(false);
+    setSubmitting(false);
     setDeadline(0);
     setPhase('intro');
-  }, [clearStrikeRetry]);
+  }, [cancelRunRequests, clearStrikeRetry]);
 
   // Report a question from the run, as from the Quiz.
   const [reportTarget, setReportTarget] = useState<{ id: string; version?: string } | null>(null);
@@ -408,12 +424,15 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
     async (excluded: string[]): Promise<string | null> => {
       if (topupInFlight.current) return topupInFlight.current;
       const generation = runGeneration.current;
+      const controller = new AbortController();
+      topupAbort.current = controller;
       const p = (async (): Promise<string | null> => {
         try {
           const batch = await fetchChallengeBatch({
             exclude: excluded,
             runToken: runTokenRef.current || undefined,
             categories: runTopics.current,
+            signal: controller.signal,
           });
           if (generation !== runGeneration.current) return null;
           runTokenRef.current = batch.runToken;
@@ -446,7 +465,10 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
       try {
         return await p;
       } finally {
-        if (topupInFlight.current === p) topupInFlight.current = null;
+        if (topupInFlight.current === p) {
+          topupInFlight.current = null;
+          topupAbort.current = null;
+        }
       }
     },
     [],
@@ -480,13 +502,14 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
   const startRun = useCallback(async () => {
     if (topics.length === 0) return;
     runTopics.current = [...topics];
-    runGeneration.current += 1;
+    // Any pending request still belongs to the run that ended.
+    cancelRunRequests();
     const generation = runGeneration.current;
-    // A refill still in flight belongs to the run that ended.
-    topupInFlight.current = null;
     setPhase('loading');
     setError(null);
     setRefillError(null);
+    setRefilling(false);
+    setSubmitting(false);
     setScore(0);
     setLivesLost(0);
     setSeenIds([]);
@@ -512,7 +535,7 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
     showQuestion(next);
     setSeenIds([next.question.id]);
     setPhase('playing');
-  }, [ensureBufferTopUp, popNext, showQuestion, t, topics]);
+  }, [cancelRunRequests, ensureBufferTopUp, popNext, showQuestion, t, topics]);
 
   const advance = useCallback(
     async (becameGameOver: boolean) => {
@@ -523,8 +546,8 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
       if (advancingRef.current) return;
       advancingRef.current = true;
       let moved = false;
+      const generation = runGeneration.current;
       try {
-        const generation = runGeneration.current;
         // Eagerly refill so the next question is ready before we render it.
         const remaining = buffer.current?.queue.length ?? 0;
         if (remaining <= LOW_BATCH_THRESHOLD && !topupInFlight.current) {
@@ -539,7 +562,7 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
           try {
             failure = await ensureBufferTopUp([...seenIds, ...queuedIds(buffer.current)]);
           } finally {
-            setRefilling(false);
+            if (generation === runGeneration.current) setRefilling(false);
           }
           if (generation !== runGeneration.current) return;
           next = popNext();
@@ -562,7 +585,7 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
         setSelected(null);
         setLastResult(null);
       } finally {
-        if (!moved) advancingRef.current = false;
+        if (!moved && generation === runGeneration.current) advancingRef.current = false;
       }
     },
     [ensureBufferTopUp, popNext, seenIds, showQuestion, t],
@@ -607,21 +630,21 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
   // earlier pick for this question, whose response never arrived, it refuses
   // this one; the earlier picks are sent again, first one first, and the one
   // the server replays is the grade that counts, with its proof.
-  const gradeOrReplay = useCallback(async (sessionId: string, question: Question, pick: number) => {
+  const gradeOrReplay = useCallback(async (sessionId: string, question: Question, pick: number, signal: AbortSignal) => {
     const sent = sentPicks.current.questionId === question.id ? sentPicks.current : { questionId: question.id, picks: [] };
     sentPicks.current = sent;
     const earlier = sent.picks.filter((one) => one !== pick);
     if (!sent.picks.includes(pick)) sent.picks.push(pick);
     const alreadyGraded = (err: unknown) => err instanceof ApiError && err.code === 'attempt_already_graded';
     try {
-      return { pick, result: await gradeChallengeAnswer(sessionId, question.id, pick) };
+      return { pick, result: await gradeChallengeAnswer(sessionId, question.id, pick, signal) };
     } catch (err) {
-      if (!alreadyGraded(err)) throw err;
+      if (signal.aborted || !alreadyGraded(err)) throw err;
       for (const one of earlier) {
         try {
-          return { pick: one, result: await gradeChallengeAnswer(sessionId, question.id, one) };
+          return { pick: one, result: await gradeChallengeAnswer(sessionId, question.id, one, signal) };
         } catch (again) {
-          if (!alreadyGraded(again)) throw again;
+          if (signal.aborted || !alreadyGraded(again)) throw again;
         }
       }
       throw err;
@@ -629,21 +652,26 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
   }, []);
 
   const submitAnswer = useCallback(async () => {
-    if (selected == null || !current || gradingRef.current || timeLeft <= 0) return;
-    gradingRef.current = true;
+    if (selected == null || !current || gradingRequest.current || timeLeft <= 0) return;
+    const request = new AbortController();
+    gradingRequest.current = request;
     const question = current;
     const sessionId = currentSessionRef.current;
     setSubmitting(true);
     try {
-      const { pick, result } = await gradeOrReplay(sessionId, question, selected);
+      const { pick, result } = await gradeOrReplay(sessionId, question, selected, request.signal);
+      if (request.signal.aborted) return;
       if (pick !== selected) setSelected(pick);
       applyGrade(question, pick, result, false);
     } catch (err) {
+      if (request.signal.aborted) return;
       if (isSessionRefusal(err)) expireQuestion(question, selected, sessionId);
       else setSnack(friendlyError(err));
     } finally {
-      gradingRef.current = false;
-      setSubmitting(false);
+      if (gradingRequest.current === request) {
+        gradingRequest.current = null;
+        setSubmitting(false);
+      }
     }
   }, [selected, current, timeLeft, applyGrade, expireQuestion, gradeOrReplay]);
 
@@ -656,8 +684,9 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
   // fin, exactly like a wrong answer; the graded feedback card then lets the
   // learner continue (or ends the run if it was the third strike).
   const handleTimeout = useCallback(async () => {
-    if (!current || lastResult || submitting || gradingRef.current || strikeSentFor.current === current.id) return;
-    gradingRef.current = true;
+    if (!current || lastResult || submitting || gradingRequest.current || strikeSentFor.current === current.id) return;
+    const request = new AbortController();
+    gradingRequest.current = request;
     strikeSentFor.current = current.id;
     const question = current;
     const sessionId = currentSessionRef.current;
@@ -667,11 +696,13 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
       // ranked clients from omitting timeouts from the final proof set.
       // A pick the server graded before the clock ran out is replayed and
       // counts as that answer, not as a timeout.
-      const { pick, result } = await gradeOrReplay(sessionId, question, -1);
+      const { pick, result } = await gradeOrReplay(sessionId, question, -1, request.signal);
+      if (request.signal.aborted) return;
       if (pick !== -1) setSelected(pick);
       applyGrade(question, pick, result, pick === -1);
       setStrikeWaiting(false);
     } catch (err) {
+      if (request.signal.aborted) return;
       if (isSessionRefusal(err)) {
         setStrikeWaiting(false);
         expireQuestion(question, -1, sessionId);
@@ -694,8 +725,10 @@ export default function Challenge({ onActiveChange }: { onActiveChange?: (active
         setLastResult({ questionId: question.id, selectedIndex: -1, correctAnswer: -1, isCorrect: false, explanation: '', question, timedOut: true });
       }
     } finally {
-      gradingRef.current = false;
-      setSubmitting(false);
+      if (gradingRequest.current === request) {
+        gradingRequest.current = null;
+        setSubmitting(false);
+      }
     }
   }, [current, lastResult, submitting, applyGrade, expireQuestion, gradeOrReplay]);
 

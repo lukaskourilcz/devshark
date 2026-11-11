@@ -9,7 +9,7 @@ import { PRODUCT_CATALOG, resolveCatalogProductId } from './product-catalog';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { TopicArticle, topicPath } from './src/components/topics/TopicArticle';
-import { PUBLIC_ORIGIN, PUBLIC_PAGES, codingShareDescription, premiumSchema, topicSchema } from './src/lib/publicMetadata';
+import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, PUBLIC_ORIGIN, PUBLIC_PAGES, codingShareDescription, premiumSchema, topicSchema } from './src/lib/publicMetadata';
 import { TOPIC_LANDINGS } from './src/lib/topicCatalog';
 import { PremiumCancelStaticArticle, PremiumStaticArticle, type Translate } from './src/components/PremiumFacts';
 import { en, type TranslationKey } from './src/i18n/translations';
@@ -51,7 +51,7 @@ const STATIC_PAGE_BODIES = {
   '/daily': DailyStaticArticle,
 } as const;
 /** Share images the build draws (src/og/ogImages.ts), by page. */
-const STATIC_PAGE_IMAGES: Partial<Record<keyof typeof STATIC_PAGE_BODIES, string>> = { '/daily': '/og/daily.png' };
+const STATIC_PAGE_IMAGES: Partial<Record<keyof typeof STATIC_PAGE_BODIES, string>> = { '/daily': DAILY_SHARE_IMAGE_PATH };
 /** Dated question-of-the-day pages with their own head and share image: the
  * last 120 days and the next 45, rebuilt on every deploy. An older or later
  * date, like a task id the build did not write, has no file behind its
@@ -187,7 +187,9 @@ function productMetadata(env: Record<string, string>): Plugin {
   const renderHtml = (html: string) => html
     .split('__PRODUCT_NAME__').join(product.brand)
     .split('__PRODUCT_TITLE__').join(title)
-    .split('__PRODUCT_DESCRIPTION__').join(description);
+    .split('__PRODUCT_DESCRIPTION__').join(description)
+    .split('__PRODUCT_SHARE_IMAGE__').join(BRAND_SHARE_IMAGE)
+    .split('__PRODUCT_SHARE_IMAGE_ALT__').join(BRAND_SHARE_IMAGE_ALT);
 
   let outDir = path.resolve(__dirname, 'dist');
   return {
@@ -232,10 +234,7 @@ function productMetadata(env: Record<string, string>): Plugin {
 
       const topics = TOPIC_LANDINGS;
       const origin = PUBLIC_ORIGIN;
-      // Link previews need an absolute image URL: LinkedIn, Slack and iMessage
-      // do not resolve the shell's "/og-image.png" against the page.
-      const indexHtml = (await readFile(path.join(outDir, 'index.html'), 'utf8'))
-        .replace(/(<meta (?:property|name)="(?:og:image|twitter:image)" content=")\/(?!\/)/g, `$1${origin}/`);
+      const indexHtml = await readFile(path.join(outDir, 'index.html'), 'utf8');
       const escape = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
       const urls = [`${origin}/`];
       /** The shell with one page's og:image (absolute) and its size and alt. */

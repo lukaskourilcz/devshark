@@ -116,6 +116,8 @@ const AUTH_DOWN: Account = { id: '1a2b3c4d-0000-4000-8000-0000000000aa', token: 
 // drops), and while it answers 429 to its own rate limit.
 const AUTH_UNREACHABLE: Account = { ...AUTH_DOWN, token: 'auth-unreachable' };
 const AUTH_THROTTLED: Account = { ...AUTH_DOWN, token: 'auth-throttled' };
+const AUTH_STALLED: Account = { ...A, token: 'auth-stalled' };
+let closedAuthReads = 0;
 
 type Row = Record<string, unknown>;
 interface Seen { method: string; path: string; filters: Record<string, string>; body: unknown }
@@ -124,6 +126,9 @@ const seen: Seen[] = [];
 const RETIRED_REPORTED = 'rm-js-21';
 /** While true, the one-time quiz claim fails as an unreachable database would. */
 let claimFails = false;
+let untimedQuizAttempt: string | undefined;
+let reviewRows: Row[] | undefined;
+let reviewStorageDown = false;
 let healthReadFails = false;
 let healthReadHangs = false;
 let closedHealthReads = 0;
@@ -177,6 +182,11 @@ async function startStandIns() {
       if (token === AUTH_DOWN.token) return send(500, { message: 'stand-in auth is down' });
       if (token === AUTH_UNREACHABLE.token) { req.socket.destroy(); return; }
       if (token === AUTH_THROTTLED.token) return send(429, { message: 'stand-in: request rate limit reached' });
+      if (token === AUTH_STALLED.token) {
+        res.write('{"id":');
+        res.on('close', () => { closedAuthReads += 1; });
+        return;
+      }
       if (failingTokens.has(token)) return send(500, { message: 'stand-in auth is down' });
       if (revokedTokens.has(token)) return send(403, { code: 'session_not_found', message: 'Session from session_id claim in JWT does not exist' });
       const account = ACCOUNTS.find((one) => one.token === token);
@@ -248,6 +258,10 @@ async function startStandIns() {
     if (url.pathname === '/rest/v1/auth_events' && req.method === 'GET' && authEventsRead === 'missing') return send(404, { code: 'PGRST205', message: "Could not find the table 'public.auth_events' in the schema cache" });
     const filters = Object.fromEntries([...url.searchParams.entries()].filter(([, value]) => value.startsWith('eq.')).map(([key, value]) => [key, value.slice(3)]));
     seen.push({ method: req.method ?? 'GET', path: url.pathname, filters, body });
+    if (url.pathname === '/rest/v1/concept_reviews' && filters.user_id === A.id) {
+      if (reviewStorageDown) return send(503, { code: '08006', message: 'stand-in: concept review connection unavailable' });
+      if (reviewRows) return send(200, reviewRows);
+    }
     if (cardWriteError && url.pathname === '/rest/v1/flashcards' && req.method === 'POST') return send(409, cardWriteError);
     if (healthReadFails && url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key') return send(500, { code: '42501', message: 'permission denied for table quiz_submissions' });
     if (healthReadHangs && url.pathname === '/rest/v1/quiz_submissions' && url.searchParams.get('select') === 'grade_key') {
@@ -262,6 +276,8 @@ async function startStandIns() {
     const rpc = /^\/rest\/v1\/rpc\/([a-z0-9_]+)$/.exec(url.pathname)?.[1];
     if (rpc) {
       if (rpc === 'claim_quiz_submission' && claimFails) return send(500, { code: '08006', message: 'stand-in: connection failure' });
+      if (rpc === 'claim_quiz_submission' && untimedQuizAttempt &&
+          (body as Row | undefined)?.p_grade_key === untimedQuizAttempt) return send(200, 'claimed');
       if (rpc === 'claim_quiz_submission' && typeof (body as Row | undefined)?.p_grade_key === 'string' &&
           String((body as Row).p_grade_key).startsWith('daily-start:')) {
         // Another instance won the insert between this request's read and its claim.
@@ -1149,6 +1165,74 @@ async function main() {
     assert.equal(errorCode(refusedToken), 'unauthorized');
     console.log('PASS verified caller: Today\'s due list and a review keep 503 when Supabase Auth is down, unreachable or throttled, and 401 for a refused token');
 
+    const [stalledAuth, normalAuth] = await Promise.all([
+      call(questions as Handler, { account: AUTH_STALLED, query: { resource: 'due' } }),
+      call(questions as Handler, { account: A, query: { resource: 'due' } }),
+    ]);
+    assert.equal(normalAuth.statusCode, 200, 'another learner can verify while Auth stalls for one request');
+    assert.equal(stalledAuth.statusCode, 504);
+    assert.equal(errorCode(stalledAuth), 'auth_timeout');
+    for (let wait = 0; wait < 20 && closedAuthReads === 0; wait++) {
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    assert.equal(closedAuthReads, 1, 'Auth deadline closes the incomplete response body');
+    console.log('PASS verified caller: a timed-out Auth verification aborts its stalled response');
+
+    // A scoped review caps its due queue only after limiting it to concepts
+    // that the selected categories can actually serve.
+    const { CONCEPT_IDS, conceptById, conceptOf } = await import('../shared/concepts');
+    const reviewQuery = { resource: 'review', count: '2', categories: 'javascript' };
+    const baseReview = await call(questions as Handler, { account: A, query: reviewQuery });
+    assert.equal(baseReview.statusCode, 200, JSON.stringify(baseReview.body));
+    const bank = await questionsStore.getEffectiveQuestionsById('webdev');
+    const baseQuestions = (baseReview.body as { questions: { id: string }[] }).questions;
+    const baseConcepts = new Set(baseQuestions.map(({ id }) => conceptOf(bank.get(id) ?? {})));
+    const dueItem = [...bank.values()].find((question) =>
+      question.category === 'javascript' && conceptOf(question) !== null && !baseConcepts.has(conceptOf(question)));
+    assert.ok(dueItem, 'the curated bank has a JavaScript concept outside the baseline review');
+    const dueConcept = conceptOf(dueItem)!;
+    const overdueRow = (conceptId: string, days: number): Row => ({
+      concept_id: conceptId, stage: 1, due_at: new Date(Date.now() - days * 86_400_000).toISOString(),
+      streak: 0, last_item_id: null, reviews: 1,
+    });
+    const elsewhere = CONCEPT_IDS.filter((id) => conceptById(id)?.topic !== 'javascript').slice(0, 12);
+    assert.equal(elsewhere.length, 12);
+    reviewRows = [...elsewhere.map((id) => overdueRow(id, 2)), overdueRow(dueConcept, 1)];
+    try {
+      const scoped = await call(questions as Handler, { account: A, query: reviewQuery });
+      assert.equal(scoped.statusCode, 200, JSON.stringify(scoped.body));
+      assert.ok(scoped.body.questions.some((question: Row) => conceptOf(bank.get(String(question.id)) ?? {}) === dueConcept),
+        'older concepts outside the selected pool do not hide its due concept');
+    } finally {
+      reviewRows = undefined;
+    }
+    console.log('PASS scoped review applies the due queue cap after selecting eligible concepts');
+
+    const dueQuery = { resource: 'due', categories: 'javascript' };
+    reviewStorageDown = true;
+    try {
+      const unavailable = await call(questions as Handler, { account: A, query: dueQuery });
+      assert.equal(unavailable.statusCode, 503, 'an unreadable due list does not replace the last known list with an empty result');
+      assert.equal(errorCode(unavailable), 'review_unavailable');
+      assert.match(unavailable.headers['cache-control'], /private, no-store/);
+      const guest = await call(questions as Handler, { query: dueQuery });
+      assert.equal(guest.statusCode, 200);
+      assert.deepEqual(guest.body, { due: [], estimatedMinutes: 0 });
+      const practice = await call(questions as Handler, { account: A, query: reviewQuery });
+      assert.equal(practice.statusCode, 200, 'personalized practice can still use stats and history');
+    } finally {
+      reviewStorageDown = false;
+    }
+    reviewRows = [overdueRow(dueConcept, 1)];
+    try {
+      const recovered = await call(questions as Handler, { account: A, query: dueQuery });
+      assert.equal(recovered.statusCode, 200);
+      assert.equal(recovered.body.due[0].conceptId, dueConcept);
+    } finally {
+      reviewRows = undefined;
+    }
+    console.log('PASS due list keeps a failed storage read distinct from empty and recovers');
+
     // ── a quiz submit whose one-time claim cannot be taken ───────────────
     claimFails = true;
     try {
@@ -1377,6 +1461,33 @@ async function main() {
       }
       console.log('PASS verified caller: a token Auth accepted is trusted by reads for at most a minute and never past its expiry, refusals and outages are asked again, writes, the wallet, the admin desk and deletion always ask');
     }
+
+    const ordinary = await call(questions as Handler, { query: { count: '2', difficulty: 'mixed', categories: 'javascript' } });
+    assert.equal(ordinary.statusCode, 200, JSON.stringify(ordinary.body));
+    const untimedToken = (ordinary.body as { sessionId: string }).sessionId;
+    const untimed = tokens.decodeSessionEnvelope(untimedToken)!;
+    const untimedAnswers = Object.fromEntries(untimed.questions.map(({ questionId, correctAnswer }) => [questionId, correctAnswer]));
+    const legacy = tokens.encodeSession(untimed.questions, { subject: 'webdev' });
+    const review = tokens.encodeSession(untimed.questions, { scope: 'review', subject: 'webdev' });
+    const quizClock = Date.now;
+    untimedQuizAttempt = untimed.attemptId;
+    try {
+      Date.now = () => untimed.issuedAt + 2 * 60 * 60_000;
+      const graded = await call(submit as Handler, { method: 'POST', body: { sessionId: untimedToken, answers: untimedAnswers } });
+      assert.equal(graded.statusCode, 200, `a standard quiz can be graded after two hours: ${JSON.stringify(graded.body)}`);
+      assert.equal((graded.body as { correctAnswers: number }).correctAnswers, untimed.questions.length);
+      assert.equal((ordinary.body as { expiresAt?: number }).expiresAt, undefined, 'there is no gameplay deadline');
+      assert.ok(tokens.decodeSessionEnvelope(legacy), 'an existing one-hour unscoped quiz can still be resumed');
+      assert.equal(tokens.decodeSessionEnvelope(review), null, 'new Review sessions keep their existing expiry');
+      assert.equal(tokens.decodeSessionEnvelope(guestToken), null, 'Daily sessions still expire on schedule');
+      Date.now = () => untimed.issuedAt + 7 * 24 * 60 * 60_000;
+      assert.equal(tokens.decodeSessionEnvelope(untimedToken), null, 'an old sealed credential cannot outlive replay protection');
+      assert.equal(tokens.decodeSessionEnvelope(legacy), null, 'legacy recovery is also bounded');
+    } finally {
+      Date.now = quizClock;
+      untimedQuizAttempt = undefined;
+    }
+    console.log('PASS verified caller: standard quiz has no gameplay countdown and its sealed session remains bounded');
 
     console.log('Verified-caller contracts passed: a token acts for its own account whatever user_id says, admin by confirmed address or role, private caching by default, read limits, and one-time claims that fail closed.');
   } finally {

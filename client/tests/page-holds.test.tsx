@@ -138,6 +138,21 @@ describe('/today', () => {
     expect(screen.getByText('Where you start')).toBeInTheDocument();
   });
 
+  it('keeps Today usable and requests the due list once during a storage outage', async () => {
+    signIn();
+    answer(PREMIUM);
+    let requests = 0;
+    server.use(http.get('*/api/quiz/questions', () => {
+      requests++;
+      return HttpResponse.json({ error: { code: 'review_unavailable', message: 'Down' } }, { status: 503 });
+    }));
+    await mountAt('/today', <Today />);
+    await screen.findByRole('heading', { name: 'Learning paths' });
+    expect(screen.getByRole('heading', { level: 1, name: 'Today' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Due for review' })).toBeNull();
+    expect(requests).toBe(1);
+  });
+
   // The coding review queue is retired (C3-11): a pass is permanent, so Today
   // neither reads coding progress nor offers a coding task to review.
   it('reads no coding progress and offers no coding review', async () => {

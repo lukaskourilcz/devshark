@@ -223,7 +223,7 @@ describe('the match screen under a burst of broadcasts', () => {
     await broadcast();
     await flush();
     expect(api.fetchMatchState).toHaveBeenCalledTimes(1);
-    expect(api.fetchMatchState).toHaveBeenCalledWith('ABC123', 'student');
+    expect(api.fetchMatchState).toHaveBeenCalledWith('ABC123', 'student', expect.any(AbortSignal));
   });
 
   it('turns 30 broadcasts during a read into one read in flight and one trailing read', async () => {
@@ -245,7 +245,7 @@ describe('the match screen under a burst of broadcasts', () => {
     expect(api.fetchMatchState).toHaveBeenCalledTimes(2);
   });
 
-  it('drops the trailing read when the screen unmounts', async () => {
+  it('aborts the current read and drops the trailing read when the screen unmounts', async () => {
     const view = await joined();
     const inFlight = deferred();
     api.fetchMatchState.mockImplementationOnce(() => inFlight.promise.then(() => STATE));
@@ -253,7 +253,9 @@ describe('the match screen under a burst of broadcasts', () => {
     await broadcast();
     await broadcast();
     await broadcast();
+    const signal = api.fetchMatchState.mock.calls[0][2] as AbortSignal | undefined;
     view.unmount();
+    expect(signal?.aborted).toBe(true);
     expect(live.unsubscribed).toBe(1);
 
     inFlight.resolve();

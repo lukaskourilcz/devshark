@@ -8,6 +8,7 @@
 
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { apiFetch } from './api';
+import { accountEpoch } from './accountData';
 import { staleProfileStats } from './queryClient';
 import type {
   DraftSaveRequest,
@@ -142,6 +143,7 @@ export function startActivity(input: StartActivityRequest, signal?: AbortSignal)
 }
 
 export async function submitActivity(input: SubmitActivityRequest): Promise<SubmitActivityResponse> {
+  const epoch = accountEpoch();
   const result = await apiFetch<SubmitActivityResponse>(`${ROADMAP}?resource=learning-path-submit`, {
     method: 'POST',
     body: JSON.stringify(input),
@@ -149,7 +151,7 @@ export async function submitActivity(input: SubmitActivityRequest): Promise<Subm
     // shorter than this, so the client never gives up first.
     timeoutMs: 30_000,
   });
-  if (result.code?.outcome === 'passed' && result.state === 'verified_pass') staleProfileStats();
+  if (accountEpoch() === epoch && result.code?.outcome === 'passed' && result.state === 'verified_pass') staleProfileStats();
   return result;
 }
 

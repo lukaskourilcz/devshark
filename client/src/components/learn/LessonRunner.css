@@ -3,6 +3,10 @@
    verdict and action row are the shared ones; these rules only set the
    intro's text and the result screens' centred outcome. */
 
+/* Keep the compact card's layout and raise its reading sizes by 15%. */
+.ss-question--compact.rm-lesson-question { --ss-code-size: .733125rem; }
+.ss-question--compact.rm-lesson-question :is(.ss-question__block, .ss-answer-option.ss-radio-card) { font-size: .9775rem; }
+
 /* "Before you start": the intro reads at body size in the question block. */
 .rm-intro__text { margin: 0; font-size: 1.02rem; font-weight: 400; line-height: 1.6; }
 .rm-intro__coding { margin: 12px 0 0; font-size: var(--ss-type-compact); font-weight: 400; color: var(--color-text-secondary); }

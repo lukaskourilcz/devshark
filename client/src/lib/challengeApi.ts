@@ -1,5 +1,4 @@
 import { apiFetch } from './api';
-import { staleProfileStats } from './queryClient';
 import type { Question } from '../types/quiz';
 import { getSubject, deliveryCategoriesForSubject } from './subjects';
 import type { QuestionXpHeld } from '../../../shared/repeat-xp';
@@ -31,7 +30,7 @@ export interface ChallengeLeaderboard {
   champion: ChallengeScore | null;
 }
 
-export function fetchChallengeBatch(opts: { exclude?: string[]; runToken?: string; ranked?: boolean; assessment?: boolean; categories?: string[] } = {}): Promise<ChallengeBatch> {
+export function fetchChallengeBatch(opts: { exclude?: string[]; runToken?: string; ranked?: boolean; assessment?: boolean; categories?: string[]; signal?: AbortSignal } = {}): Promise<ChallengeBatch> {
   const params = new URLSearchParams();
   if (opts.exclude && opts.exclude.length > 0) {
     // Cap the exclude payload — the server caps too, but no need to send more.
@@ -44,7 +43,7 @@ export function fetchChallengeBatch(opts: { exclude?: string[]; runToken?: strin
   // section in the list gets the whole request refused.
   params.set('categories', (opts.categories ?? deliveryCategoriesForSubject(getSubject())).join(','));
   const qs = params.toString();
-  return apiFetch<ChallengeBatch>(`/api/quiz/challenge${qs ? `?${qs}` : ''}`);
+  return apiFetch<ChallengeBatch>(`/api/quiz/challenge${qs ? `?${qs}` : ''}`, { signal: opts.signal });
 }
 
 export function getChallengeLeaderboard(): Promise<ChallengeLeaderboard> {
@@ -57,12 +56,9 @@ export function getChallengeLeaderboard(): Promise<ChallengeLeaderboard> {
 
 /** `xpHeld`: the correct answers whose question paid XP less than an hour
  * ago, which paid nothing, and when they pay again (migration 060). */
-export async function completeChallengeRun(input: { runToken: string; proofs: string[] }): Promise<{ ok: true; awarded: boolean; score: number; xp?: number; xpHeld?: QuestionXpHeld; record?: ChallengeScore | null }> {
-  const result = await apiFetch<{ ok: true; awarded: boolean; score: number; xp?: number; xpHeld?: QuestionXpHeld; record?: ChallengeScore | null }>('/api/quiz/challenge?resource=complete', {
+export function completeChallengeRun(input: { runToken: string; proofs: string[] }): Promise<{ ok: true; awarded: boolean; score: number; xp?: number; xpHeld?: QuestionXpHeld; record?: ChallengeScore | null }> {
+  return apiFetch<{ ok: true; awarded: boolean; score: number; xp?: number; xpHeld?: QuestionXpHeld; record?: ChallengeScore | null }>('/api/quiz/challenge?resource=complete', {
     method: 'POST',
     body: JSON.stringify(input),
   });
-  // An awarded run is a streak day.
-  if (result.awarded) staleProfileStats();
-  return result;
 }

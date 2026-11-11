@@ -173,9 +173,10 @@ export const joinMatch = (input: { code: string; user_id: string }) =>
     body: JSON.stringify(input),
   });
 
-export const fetchMatchState = (code: string, user_id?: string) =>
+export const fetchMatchState = (code: string, user_id?: string, signal?: AbortSignal) =>
   apiFetch<{ match: Match; participants: Participant[]; scoreboard: ScoreboardEntry[]; server_now?: string }>(
     `/api/play/state?code=${encodeURIComponent(code)}${user_id ? `&user_id=${encodeURIComponent(user_id)}` : ''}`,
+    { signal },
   );
 
 /** How far the server's clock runs ahead of this device's, in ms, from a

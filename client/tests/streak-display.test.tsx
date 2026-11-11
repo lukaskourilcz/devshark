@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { StreakCard } from '../src/components/Profile';
@@ -186,6 +186,21 @@ describe('the Profile streak card', () => {
     render(<LanguageProvider><StreakCard stats={account(12, 1)} /></LanguageProvider>);
     fireEvent.click((await protection()).getByRole('button', { name: 'Protect today and tomorrow' }));
     expect(await (await protection()).findByRole('alert')).toHaveTextContent('Learn today to keep your streak');
+  });
+
+  it('stops showing an expired protection on an open Profile', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      vi.setSystemTime(new Date('2026-10-23T23:58:00Z'));
+      protectionIs({ remaining: 0, shieldUntil: '2026-10-24T00:00:00Z' });
+      render(<LanguageProvider><StreakCard stats={account(12, 0)} /></LanguageProvider>);
+      expect((await protection()).getByText(/^Protected/)).toBeVisible();
+      await act(async () => { await vi.advanceTimersByTimeAsync(120_000); });
+      expect((await protection()).getByText('No protection left this month')).toBeVisible();
+      expect(screen.queryByText(/^Protected/)).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('keeps a streak two shields in a row cover', async () => {

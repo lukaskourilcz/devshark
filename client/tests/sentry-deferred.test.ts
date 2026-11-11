@@ -83,6 +83,22 @@ describe('the error monitor', () => {
     expect(sentry.init).toHaveBeenCalledTimes(1);
   });
 
+  it('can start after a transient SDK startup error and retains the queued events', async () => {
+    Object.defineProperty(document, 'readyState', { value: 'loading', configurable: true });
+    sentry.init.mockImplementationOnce(() => { throw new Error('SDK startup did not complete'); });
+    const { initSentry, reportError } = await freshMonitor();
+    initSentry();
+    const first = new Error('before failed startup');
+    const second = new Error('after failed startup');
+    reportError(first);
+    await vi.waitFor(() => expect(sentry.init).toHaveBeenCalledTimes(1));
+
+    const event = new ErrorEvent('error', { error: second });
+    window.dispatchEvent(event);
+    await vi.waitFor(() => expect(sentry.init).toHaveBeenCalledTimes(2));
+    expect(sentry.captureException.mock.calls.map(([error]) => error)).toEqual([first, second]);
+  });
+
   it('keeps at most EARLY_ERROR_LIMIT errors from before the SDK, the first ones', async () => {
     Object.defineProperty(document, 'readyState', { value: 'loading', configurable: true });
     const { initSentry, reportError, EARLY_ERROR_LIMIT } = await freshMonitor();

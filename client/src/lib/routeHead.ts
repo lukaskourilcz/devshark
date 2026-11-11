@@ -3,7 +3,7 @@
 // every navigation.
 import type { TranslationKey } from '../i18n/translations';
 import { CURRENT_PRODUCT } from './products';
-import { NOINDEX_PATHS, PUBLIC_ORIGIN, premiumSchema, publicPage, topicFromPath, topicSchema } from './publicMetadata';
+import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, NOINDEX_PATHS, PUBLIC_ORIGIN, premiumSchema, publicPage, topicFromPath, topicSchema } from './publicMetadata';
 
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
@@ -86,8 +86,11 @@ const SHARED_META = [
   'meta[name="description"]',
   'meta[property="og:title"]',
   'meta[property="og:description"]',
+  'meta[property="og:image"]',
+  'meta[property="og:image:alt"]',
   'meta[name="twitter:title"]',
   'meta[name="twitter:description"]',
+  'meta[name="twitter:image"]',
 ] as const;
 
 export interface ShareHead {
@@ -143,11 +146,16 @@ export function applyRouteHead(rawPath: string, t: Translate, shareHead: ShareHe
   const description = publicTopic
     ? publicTopic.topic.description
     : page ? t(page.descriptionKey) : CURRENT_PRODUCT.description;
+  const image = pathname === '/daily' ? PUBLIC_ORIGIN + DAILY_SHARE_IMAGE_PATH : BRAND_SHARE_IMAGE;
+  const imageAlt = pathname === '/daily' ? document.title : BRAND_SHARE_IMAGE_ALT;
   setMeta('meta[name="description"]', description);
   setMeta('meta[property="og:title"]', document.title);
   setMeta('meta[property="og:description"]', description);
+  setMeta('meta[property="og:image"]', image);
+  setMeta('meta[property="og:image:alt"]', imageAlt);
   setMeta('meta[name="twitter:title"]', document.title);
   setMeta('meta[name="twitter:description"]', description);
+  setMeta('meta[name="twitter:image"]', image);
   clear();
   const canonical = publicTopic
     ? PUBLIC_ORIGIN + pathname

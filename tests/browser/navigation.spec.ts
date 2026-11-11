@@ -59,6 +59,34 @@ for (const theme of ['light', 'dark'] as const) for (const width of [360, 1280])
   });
 }
 
+test('standalone state cards stay vertically centred across viewports', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'dark' });
+  await page.addInitScript(() => {
+    localStorage.setItem('devquiz:color-mode', 'dark');
+    localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+  });
+  const panel = page.locator('.ss-route > .ss-state-panel');
+  for (const path of ['/play', '/play/ABC123', '/cards', '/settings/github']) {
+    await page.goto(path);
+    await expect(panel.getByRole('heading', { level: 1 })).toBeVisible();
+    for (const width of [360, 390, 430, 768, 1024, 1280, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      const { top, bottom, fits } = await panel.evaluate((el) => {
+        const route = el.parentElement!.getBoundingClientRect();
+        const card = el.getBoundingClientRect();
+        return { top: card.top - route.top, bottom: route.bottom - card.bottom, fits: card.left >= 0 && card.right <= innerWidth };
+      });
+      expect(Math.abs(top - bottom), `${path} at ${width}px`).toBeLessThanOrEqual(2);
+      expect(fits, `${path} at ${width}px`).toBe(true);
+    }
+  }
+  await page.setViewportSize({ width: 360, height: 320 });
+  await page.goto('/play');
+  const signIn = panel.getByRole('button', { name: 'Sign in', exact: true });
+  await signIn.scrollIntoViewIfNeeded();
+  await expect(signIn).toBeInViewport();
+});
+
 /** One animation frame of the content area. */
 type Frame = { t: number; route: boolean; kids: number; busy: string | null; opacity: number; h1: string | null; root: number; active: string | null; scrollTop: number };
 type Recorder = { __nav: { frames: Frame[]; done: boolean }; __navArm: (ms: number) => void };
@@ -154,6 +182,26 @@ test('desktop: every section opens without a blank, a loader or a footer jump', 
     expect(after.every((f) => f.busy === null && f.scrollTop === 0), section).toBe(true);
     if (section === '/coding') expect(new Set(after.map((f) => f.root)).size, section).toBe(1);
   }
+});
+
+test('route focus preserves a keyboard control focused before the delayed handoff', async ({ page }) => {
+  await prepare(page, 1280);
+  await page.addInitScript(() => {
+    const schedule = window.setTimeout.bind(window);
+    // Hold only the shell's 230 ms focus handoff so this case does not depend
+    // on the time Chromium takes to load the destination.
+    Reflect.set(window, 'setTimeout', (handler: TimerHandler, delay?: number, ...args: unknown[]) =>
+      schedule(handler, delay === 230 ? 5_000 : delay, ...args));
+  });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.locator('nav.ss-nav-center a[href="/quiz"]').press('Enter');
+  const topic = page.getByRole('button', { name: 'JavaScript', exact: true });
+  await topic.focus();
+  await expect(topic).toBeFocused();
+  // A page-side timer ensures the shell's earlier timer has fired.
+  await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 5_050)));
+  await expect(topic).toBeFocused();
 });
 
 test('phone: the drawer opens Coding without a blank or a loader', async ({ page }) => {

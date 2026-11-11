@@ -61,7 +61,7 @@
     "@vitejs/plugin-react": "^4.7.0",
     "msw": "2.15.0",
     "msw-storybook-addon": "3.0.0",
-    "purgecss": "^7.0.2",
+    "purgecss": "^9.1.0",
     "rollup-plugin-visualizer": "^7.0.1",
     "satori": "0.33.5",
     "storybook": "10.6.6",
@@ -72,6 +72,9 @@
   "overrides": {
     "satori": {
       "fflate": "0.7.5"
+    },
+    "@storybook/react-vite": {
+      "@joshwooding/vite-plugin-react-docgen-typescript": "0.9.1"
     }
   }
 }

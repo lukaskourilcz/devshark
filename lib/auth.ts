@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { createHash } from 'node:crypto';
 import { timedSupabaseFetch } from './request-timing';
 import type { VercelRequest } from './vercel-types.js';
@@ -9,13 +10,24 @@ const IS_PROD =
   process.env.NODE_ENV === 'production' ||
   process.env.VERCEL_ENV === 'production';
 
+// The singleton client's getUser has no signal parameter. Its custom fetch
+// reads the deadline for the current verification without sharing it with
+// any other in-flight verification.
+const authSignals = new AsyncLocalStorage<AbortSignal>();
+const authFetch: typeof fetch = (input, init) => {
+  const deadline = authSignals.getStore();
+  if (!deadline) return timedSupabaseFetch(input, init);
+  const signal = init?.signal ?? (input instanceof Request ? input.signal : undefined);
+  return timedSupabaseFetch(input, { ...init, signal: signal ? AbortSignal.any([signal, deadline]) : deadline });
+};
+
 // A keyless client used only to validate access tokens via auth.getUser(jwt).
 // No session is persisted; each call verifies the token against Supabase Auth,
 // which works regardless of the project's JWT signing algorithm.
 const authClient: SupabaseClient | null =
   supabaseUrl && supabaseAnonKey
     ? createClient(supabaseUrl, supabaseAnonKey, {
-        global: { fetch: timedSupabaseFetch },
+        global: { fetch: authFetch },
         auth: { persistSession: false, autoRefreshToken: false },
       })
     : null;
@@ -47,17 +59,21 @@ export function getBearer(req: VercelRequest): string | null {
   return /^Bearer[ \t]+(\S+)$/i.exec(raw.trim())?.[1] ?? null;
 }
 
-async function withAuthDeadline<T>(promise: Promise<T>, timeoutMs = 3000): Promise<T> {
+async function withAuthDeadline<T>(run: () => Promise<T>): Promise<T> {
+  const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
-      promise,
+      authSignals.run(controller.signal, run),
       new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new AuthError(504, 'auth_timeout', 'Authentication service timed out')), timeoutMs);
+        timer = setTimeout(() => {
+          reject(new AuthError(504, 'auth_timeout', 'Authentication service timed out'));
+          controller.abort();
+        }, 3000);
       }),
     ]);
   } finally {
-    if (timer) clearTimeout(timer);
+    clearTimeout(timer);
   }
 }
 
@@ -165,7 +181,7 @@ function rememberAccepted(key: string, token: string, result: AuthResult): void 
 const copyOf = (result: AuthResult): AuthResult => ({ sub: result.sub, payload: structuredClone(result.payload) });
 
 async function askAuth(client: SupabaseClient, token: string): Promise<AuthResult> {
-  const { data, error } = await withAuthDeadline(client.auth.getUser(token));
+  const { data, error } = await withAuthDeadline(() => client.auth.getUser(token));
   if (error || !data?.user?.id) {
     if (error && authUndecided(error)) {
       throw new AuthError(503, 'auth_unavailable', 'Authentication service is unavailable');

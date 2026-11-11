@@ -881,7 +881,10 @@ function StageNav({ stages, short, currentId, passed, savedStages, premiumOf }: 
  * reads no plan, progress, stars or run for it (perf baseline #587 C26). */
 export function CodingTaskScreen() {
   const { track, taskId } = useParams();
-  return isCodingSectionTrack(track) && taskId ? <CodingTaskView track={track} taskId={taskId} /> : <CodingNotFound what="track" track={null} />;
+  // Each task opens with its own saved Learn session, draft and retry state.
+  return isCodingSectionTrack(track) && taskId
+    ? <CodingTaskView key={taskId} track={track} taskId={taskId} />
+    : <CodingNotFound what="track" track={null} />;
 }
 
 function CodingTaskView({ track, taskId }: { track: CodingTrack; taskId: string }) {

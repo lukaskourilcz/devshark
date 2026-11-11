@@ -527,17 +527,17 @@ async function auditGateContracts() {
 
   // A Learn session lives as long as the attempt the answer routine opens for
   // it (two hours), so a level whose coding tasks run past an hour can still
-  // be completed. Other sessions keep their hour.
+  // be completed. Review still has its one-hour session.
   const realNow = Date.now;
   try {
     const opened = realNow();
     const learnSession = encodeSession([{ questionId: sample.id, correctAnswer: 0 }], {
       scope: 'roadmap', subject: 'webdev', topic: 'javascript', roadmapKind: 'level', ref: 1, userId: null,
     });
-    const quizSession = encodeSession([{ questionId: sample.id, correctAnswer: 0 }], { subject: 'webdev' });
+    const reviewSession = encodeSession([{ questionId: sample.id, correctAnswer: 0 }], { scope: 'review', subject: 'webdev' });
     Date.now = () => opened + 61 * 60_000;
     assert.ok(decodeSession(learnSession), 'a Learn session is still open after an hour');
-    assert.equal(decodeSession(quizSession), null, 'a quiz session still ends after an hour');
+    assert.equal(decodeSession(reviewSession), null, 'a Review session still ends after an hour');
     Date.now = () => opened + 121 * 60_000;
     assert.equal(decodeSession(learnSession), null, 'a Learn session ends after two hours');
   } finally {
@@ -2280,6 +2280,25 @@ async function qotdContracts() {
   const future = mockResponse();
   await dailyHandler({ method: 'GET', headers: {}, query: { qotd: addDays(utcToday(), 1) } } as never, future as never);
   assert.equal(future.statusCode, 404, 'tomorrow is not readable today');
+  const realNow = Date.now;
+  const nextDate = addDays(utcToday(), 1);
+  const opensAt = Date.parse(`${nextDate}T00:00:00Z`);
+  try {
+    for (const [remainingMs, status, cache] of [
+      [61_000, 404, 'public, max-age=60'],
+      [9_000, 404, 'public, max-age=9'],
+      [100, 404, 'public, max-age=0'],
+      [0, 200, 'private, no-store'],
+    ] as const) {
+      Date.now = () => opensAt - remainingMs;
+      const response = mockResponse();
+      await dailyHandler(quizRequest('GET', { qotd: nextDate }), response as never);
+      assert.equal(response.statusCode, status);
+      assert.equal(response.headers.get('cache-control'), cache);
+    }
+  } finally {
+    Date.now = realNow;
+  }
   const garbage = mockResponse();
   await dailyHandler({ method: 'GET', headers: {}, query: { qotd: '2026-02-30' } } as never, garbage as never);
   assert.equal(garbage.statusCode, 400);
@@ -2828,17 +2847,15 @@ async function quizSubmitScopeContracts() {
   assert.equal(learn.body.error?.code, 'invalid_session');
   assert.equal(learn.body.resultReceipt, undefined, 'no quiz receipt, XP, streak day or board entry for a Learn level');
 
-  // A quiz (and a personalised review, which is issued the same way).
+  // A standard quiz.
   const quiz = mockResponse();
   await questionsHandler(quizRequest('GET', { count: '2', difficulty: 'mixed', categories: 'javascript' }), quiz as never);
   assert.equal(quiz.statusCode, 200, JSON.stringify(quiz.body));
   const graded = await submitAll((quiz.body as { sessionId: string }).sessionId, learner);
   assert.equal(graded.response.statusCode, 200, JSON.stringify(graded.body));
   assert.equal(decodeQuizResultReceipt(graded.body.resultReceipt!)?.purpose, 'quiz');
-  // The questions say when their session stops being gradable, no later
-  // than the sealed session itself does, so a saved quiz can be dropped.
-  const quizExpiresAt = (quiz.body as { expiresAt: number }).expiresAt;
-  assert.ok(quizExpiresAt <= graded.session.issuedAt + 60 * 60_000 && quizExpiresAt > Date.now() + 59 * 60_000, `expiresAt ${quizExpiresAt}`);
+  assert.equal(graded.session.scope, 'quiz');
+  assert.equal((quiz.body as { expiresAt?: number }).expiresAt, undefined, 'standard quizzes expose no gameplay deadline');
 
   // The daily challenge, fetched and submitted signed in.
   const daily = mockResponse();
@@ -3059,6 +3076,15 @@ async function dailySwitchContracts() {
   const on = mockResponse();
   await dailyHandler(quizRequest('GET', {}), on as never);
   assert.equal(on.statusCode, 200, JSON.stringify(on.body));
+
+  const invalid = mockResponse();
+  await dailyHandler(quizRequest('GET', { date: '2026-11-31' }), invalid as never);
+  assert.equal(invalid.statusCode, 400, 'November 31 cannot start a Daily attempt');
+  assert.equal((invalid.body as { error: { message: string } }).error.message, 'date must be YYYY-MM-DD');
+
+  const repeated = mockResponse();
+  await dailyHandler({ ...(quizRequest('GET', {}) as object), query: { date: [utcToday()] } } as never, repeated as never);
+  assert.equal(repeated.statusCode, 400, 'a date query must be a single string');
 }
 
 /** A signed-in learner has one ranked daily attempt, timed from the first

@@ -1,8 +1,9 @@
 import { beforeEach, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { ChallengeRunPlanner } from '../src/components/coding/ChallengeRunPlanner';
+import { ChallengeRunSection } from '../src/components/coding/ChallengeRunSection';
 import type { PracticeSession } from '../../shared/coding-api';
 
 // Design audit P1.6: on the Coding home the planner is one row until opened,
@@ -17,7 +18,7 @@ vi.mock('../src/coding/practice', () => ({
   useAdvanceSession: () => ({ mutate: practice.advance, isPending: false }),
 }));
 
-beforeEach(() => { mutate.mockClear(); practice.start = null; practice.pending = false; practice.session = null; practice.advance.mockClear(); });
+beforeEach(() => { mutate.mockClear(); practice.start = null; practice.pending = false; practice.session = null; practice.advance.mockReset(); });
 
 const mount = (collapsible = true, resumeInPrimary = false) => render(
   <MemoryRouter initialEntries={['/coding']}>
@@ -108,4 +109,39 @@ it.each(['active', 'scheduled'] as const)('keeps %s run ending and its reassuran
   expect(screen.queryByRole('dialog')).toBeNull();
   expect(screen.queryByRole('alertdialog')).toBeNull();
   if (status === 'scheduled') expect(screen.getByRole('button', { name: 'Start now' })).toBeInTheDocument();
+});
+
+it('sends one transition when the run actions are pressed before the request settles', () => {
+  practice.session = { sessionId: 'run-1', status: 'scheduled', queue: ['js-digit-sum'], position: 0, minutes: 10, topic: null, estimatedMinutes: 5, order: 'sequential', count: 1, scheduledFor: '2026-12-01T10:00:00Z' };
+  let settle: (() => void) | undefined;
+  practice.advance.mockImplementation((_input, callbacks) => { settle = callbacks.onSettled; });
+  mount();
+  const start = screen.getByRole('button', { name: 'Start now' });
+  const cancel = screen.getByRole('button', { name: 'Cancel the run' });
+  fireEvent.click(start);
+  fireEvent.click(start);
+  fireEvent.click(cancel);
+  expect(practice.advance.mock.calls.map(([input]) => input.status)).toEqual(['active']);
+  settle?.();
+  fireEvent.click(cancel);
+  expect(practice.advance.mock.calls.map(([input]) => input.status)).toEqual(['active', 'abandoned']);
+});
+
+
+it.each([60_000, 60 * 86_400_000])('marks a scheduled run due on both screens after %i ms', (delay) => {
+  vi.useFakeTimers();
+  try {
+    const now = new Date('2026-11-11T10:00:00Z');
+    vi.setSystemTime(now);
+    practice.session = { sessionId: 'run-1', status: 'scheduled', queue: ['js-digit-sum'], position: 0, minutes: 10, topic: null, estimatedMinutes: 5, order: 'sequential', count: 1, scheduledFor: new Date(now.getTime() + delay).toISOString() };
+    mount();
+    render(<MemoryRouter><LanguageProvider><ChallengeRunSection /></LanguageProvider></MemoryRouter>);
+    expect(screen.queryByText(/Due now/)).toBeNull();
+    act(() => { vi.advanceTimersByTime(delay); });
+    expect(screen.getByText(/Due now\./)).toHaveAttribute('role', 'status');
+    expect(screen.getByRole('button', { name: /^Start:/ })).toHaveAttribute('data-start-here');
+    expect(practice.advance).not.toHaveBeenCalled();
+  } finally {
+    vi.useRealTimers();
+  }
 });

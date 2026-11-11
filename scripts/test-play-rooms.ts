@@ -712,6 +712,32 @@ async function main() {
         assert.ok(!stored.includes(local), `${local} is not stored in a room`);
       }
     }
+    // Once an answer commits, a later progress count cannot undo its acknowledgement.
+    {
+      const code = await open('multiplayer', ['one'], 'four');
+      faults.push({ method: 'HEAD', path: '/rest/v1/match_answers', status: 200, body: [], delayMs: 5_500 });
+      const accepted = await call('one', 'POST', 'answer', { code, question_idx: 0, selected_idx: correctIndex(code, 0) });
+      assert.equal(accepted.statusCode, 200, 'a stored answer is acknowledged even if the follow-up count times out');
+      assert.equal(accepted.body.is_correct, true);
+      assert.equal(accepted.body.advanced, false);
+      assert.equal(tables.match_answers.filter((row) => row.match_id === room(code).id).length, 1);
+    }
+    // A host heartbeat can race a committed Finish for the same room.
+    {
+      const code = await open('multiplayer', ['one'], 'four');
+      const row = room(code);
+      assert.equal((await call('four', 'POST', 'heartbeat', { code })).statusCode, 200);
+      const finishedAt = '2026-10-26T10:00:00.000Z';
+      beforeMatchPatch = () => {
+        row.status = 'finished';
+        row.ended_at = finishedAt;
+        row.last_heartbeat_at = finishedAt;
+      };
+      const closed = await call('four', 'POST', 'heartbeat', { code });
+      assert.equal(closed.statusCode, 409, 'a heartbeat cannot update a room already finished');
+      assert.equal(closed.body.error.code, 'bad_state');
+      assert.equal(row.last_heartbeat_at, finishedAt);
+    }
   } finally {
     server.close();
   }

@@ -15,7 +15,6 @@ import {
   QuestionActions,
   QuestionFeedback,
   QuestionHeader,
-  QuestionHint,
   QuestionIconButton,
   QuestionShell,
   ReportFlagIcon,
@@ -408,7 +407,8 @@ export function LessonRunner({
         setCompleting(false);
       }
     } else if (qIndex < total - 1) {
-      setQIndex((i) => i + 1);
+      // Two activations of this question advance to the same next question.
+      setQIndex(qIndex + 1);
       setSelected(null);
       setRevealed(false);
       setGrade(null);
@@ -717,6 +717,7 @@ export function LessonRunner({
     <>
       <QuestionShell
         compact
+        className="rm-lesson-question"
         contentKey={qIndex}
         ref={questionRef}
         questionId="lesson-question"
@@ -763,9 +764,6 @@ export function LessonRunner({
           disabled={revealed || grading}
           grade={revealed && grade ? { correct: grade.correctAnswer, picked: selected } : null}
         />
-
-        {/* Feedback replaces the keyboard hint below the answers. */}
-        <QuestionHint max={question.options.length} verb="answer" hidden={revealed || !!answerError} />
 
         {/* The verdict, under the answers it explains. The Banner is a status
             (or an alert for a failed send), so it is read out; focus goes to

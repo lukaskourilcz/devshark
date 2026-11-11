@@ -15,6 +15,7 @@ const auth = vi.hoisted(() => ({ listeners: new Set<(event: string, session: unk
 vi.mock('../src/lib/supabaseClient', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../src/lib/supabaseClient')>()),
   mayHaveSession: () => false,
+  supabaseForSession: async () => null,
   onSupabaseAuthStateChange: (listener: Listener) => {
     auth.listeners.add(listener);
     return () => { auth.listeners.delete(listener); };
@@ -28,8 +29,11 @@ const emit = (event: string, value: unknown) => act(() => { auth.listeners.forEa
 
 const KEY = ['coins-probe'];
 const drawn: [string | null, unknown][] = [];
+let signOut!: ReturnType<typeof useAuth>['signOut'];
 function Probe() {
-  const { user } = useAuth();
+  const account = useAuth();
+  signOut = account.signOut;
+  const { user } = account;
   // Never fetches on its own: only data the cache already holds can draw.
   const { data } = useQuery({ queryKey: KEY, queryFn: () => new Promise<never>(() => {}), enabled: false });
   drawn.push([user?.id ?? null, data]);
@@ -102,4 +106,13 @@ describe('an account change empties the query cache before the next account draw
     expect(signedOut.length).toBeGreaterThan(0);
     expect(signedOut.filter(([, data]) => data !== undefined)).toEqual([]);
   });
+});
+
+
+it('reports global sign-out unavailable when the Auth client cannot load', async () => {
+  mount();
+  emit('SIGNED_IN', session('ada'));
+  await expect(signOut('global')).rejects.toThrow('Authentication service is unavailable');
+  expect(localStorage.getItem('devshark:signed-out-by-choice')).toBeNull();
+  expect(drawn[drawn.length - 1][0]).toBe('ada');
 });

@@ -97,12 +97,13 @@ function withoutViewer(data: LeaderboardResponse): LeaderboardResponse {
   return { ...board, entries: entries as unknown as LeaderboardResponse['entries'] };
 }
 
-function readCachedBoard(key: string): CachedBoard | null {
+function readCachedBoard(key: string, dailyDate?: string): CachedBoard | null {
   try {
     const raw = window.localStorage.getItem(CACHE_PREFIX + key);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<CachedBoard>;
     if (typeof parsed?.savedAt !== 'number' || !parsed.data || !Array.isArray(parsed.data.entries)) return null;
+    if (dailyDate !== undefined && (parsed.data.period !== 'daily' || parsed.data.date !== dailyDate)) return null;
     return { savedAt: parsed.savedAt, data: withoutViewer(parsed.data) };
   } catch {
     return null;
@@ -127,18 +128,15 @@ function isOffline(error: unknown): boolean {
  *  Signed in, that board carries the learner's own line, and the learner's
  *  name setting comes with it, so their pinned line and the switch draw once.
  *  Offline the screen draws at once and shows the last board it loaded. */
-function useBoardFirstData() {
+function useBoardFirstData(request: LeaderboardRequest, viewer: string | null) {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
-  const viewer = user?.id ?? null;
-  useFirstData(`leaderboard ${viewer ?? ''}`, () => settled([
-    readOnce(queryClient, leaderboardQuery({ period: '30d', category: null, viewer })),
+  useFirstData(`leaderboard ${viewer ?? ''} ${request.period}`, () => settled([
+    readOnce(queryClient, leaderboardQuery(request, viewer)),
     viewer ? readOnce(queryClient, leaderboardVisibilityQuery(viewer)) : null,
   ]));
 }
 
 function Leaderboard() {
-  useBoardFirstData();
   const t = useT();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -147,7 +145,7 @@ function Leaderboard() {
   const compact = useMediaQuery('(max-width: 479.95px)');
   const subject = useActiveSubject();
   const { user } = useAuth();
-  const { setting } = useLeaderboardVisibility();
+  const viewer = user?.id ?? null;
   const topics = visibleCategoryOptionsFor();
   const selectId = useId();
 
@@ -166,9 +164,9 @@ function Leaderboard() {
   const subjectCategories = categoriesForSubject(subject.id);
   const request: LeaderboardRequest =
     tab === '30d'
-      ? { period: '30d', category: category || null, viewer: user?.id ?? null }
+      ? { period: '30d', category: category || null, viewer }
       : tab === 'month'
-      ? { period: 'month', categories: subjectCategories, viewer: user?.id ?? null }
+      ? { period: 'month', categories: subjectCategories, viewer }
       : tab === 'today'
       ? { period: 'daily', date, categories: subjectCategories }
       : category
@@ -176,7 +174,9 @@ function Leaderboard() {
       : { period: 'global', categories: subjectCategories };
   const cacheKey = `${request.period}:${request.period === '30d' || request.period === 'category' ? request.category ?? '' : ''}`;
 
-  const { data, error, isLoading, isFetching, isPlaceholderData, fetchStatus, dataUpdatedAt, refetch } = useLeaderboard(request, user?.id ?? null);
+  useBoardFirstData(request, viewer);
+  const { setting } = useLeaderboardVisibility();
+  const { data, error, isLoading, isFetching, isPlaceholderData, fetchStatus, dataUpdatedAt, refetch } = useLeaderboard(request, viewer);
   const reload = () => void refetch();
 
   // While the next board loads, the previous one stays on screen (a
@@ -212,7 +212,7 @@ function Leaderboard() {
   const stale: CachedBoard | null = offline
     ? data && !heldOver
       ? { savedAt: dataUpdatedAt, data }
-      : readCachedBoard(cacheKey)
+      : readCachedBoard(cacheKey, request.period === 'daily' ? request.date : undefined)
     : null;
   const board: LeaderboardResponse | null = offline ? stale?.data ?? null : error ? null : data ?? null;
   const me = !error && !offline && (drawTab === '30d' || drawTab === 'month') ? data?.me ?? null : null;

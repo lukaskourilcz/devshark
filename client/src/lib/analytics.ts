@@ -128,6 +128,8 @@ const POSTHOG_KEY = /^(?:__)?ph_/;
 let started = false;
 /** The visitor said yes to analytics and has not withdrawn it. */
 let active = false;
+// A later yes cannot revive work queued under a withdrawn choice.
+let consentGeneration = 0;
 let sdk: Promise<{ startPostHog: (key: string, apiHost: string) => PostHog } | null> | null = null;
 /** The client, once `init` has run. posthog-js is a singleton: it is
  * initialised once per page and opted in and out after that. */
@@ -194,13 +196,14 @@ export function clearAnalyticsStorage(): void {
 function ready(): Promise<PostHog | null> {
   const key = posthogKey();
   if (!active || !key) return Promise.resolve(null);
+  const generation = consentGeneration;
   sdk ??= import('./posthogClient').catch(() => {
     sdk = null;
     return null;
   });
   return sdk.then((module) => {
     // Withdrawn while the SDK was on its way: it is never initialised.
-    if (!module || !active) return null;
+    if (!module || !active || consentGeneration !== generation) return null;
     // Default to the same-origin reverse proxy; override only if you must.
     client ??= module.startPostHog(key, (import.meta.env.VITE_PUBLIC_POSTHOG_HOST as string | undefined) || '/ingest');
     const ph = client;
@@ -212,19 +215,26 @@ function ready(): Promise<PostHog | null> {
   });
 }
 
+function withActiveClient(run: (ph: PostHog) => void): void {
+  const generation = consentGeneration;
+  void ready().then((ph) => {
+    if (ph && active && consentGeneration === generation) run(ph);
+  });
+}
+
 function sendPageview(path: string): void {
   viewSent = true;
-  const campaign = firstPageview ? arrivalCampaign : {};
-  firstPageview = false;
-  void ready().then((ph) =>
-    ph?.capture('$pageview', { $current_url: window.location.origin + path + campaignQuery(campaign), ...campaign }),
-  );
+  withActiveClient((ph) => {
+    const campaign = firstPageview ? arrivalCampaign : {};
+    firstPageview = false;
+    ph.capture('$pageview', { $current_url: window.location.origin + path + campaignQuery(campaign), ...campaign });
+  });
 }
 
 function sendIdentity(id: string, properties?: Record<string, unknown>): void {
   identifiedId = id;
   const campaign = firstTouchCampaign();
-  void ready().then((ph) => ph?.identify(id, properties, Object.keys(campaign).length > 0 ? campaign : undefined));
+  withActiveClient((ph) => ph.identify(id, properties, Object.keys(campaign).length > 0 ? campaign : undefined));
 }
 
 /** A yes: load PostHog, then send the pageview of the page the visitor is on
@@ -244,6 +254,7 @@ function start(): void {
  * clears PostHog's consent flag; opting out after it leaves PostHog out. */
 function stop(): void {
   const wasRunning = client !== null && optedIn;
+  consentGeneration += 1;
   active = false;
   optedIn = false;
   viewSent = false;
@@ -274,7 +285,7 @@ export function initAnalytics(): void {
 /** Capture a product event (no-op unless analytics may run). */
 export function capture(event: string, properties?: Record<string, unknown>): void {
   if (!active) return;
-  void ready().then((ph) => ph?.capture(event, properties));
+  withActiveClient((ph) => ph.capture(event, properties));
 }
 
 /** Record a SPA pageview on route change. The first one of a page load keeps
@@ -304,8 +315,7 @@ export function resetAnalytics(): void {
   identity = null;
   identifiedId = null;
   if (!active) return;
-  void ready().then((ph) => {
-    if (!ph) return;
+  withActiveClient((ph) => {
     ph.reset();
     ph.opt_in_capturing({ captureEventName: false });
   });

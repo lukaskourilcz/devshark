@@ -318,7 +318,18 @@ function useDraftQueue<T>(send: (value: T) => void): (value: T) => void {
     pending.current = null;
     if (waiting) latest.current(waiting.value);
   }, []);
-  useEffect(() => flush, [flush]);
+  useEffect(() => {
+    // A browser navigation can discard the document without a React cleanup.
+    // Send the pending edit through the same local-first save before it hides.
+    const flushWhenHidden = () => { if (document.visibilityState === 'hidden') flush(); };
+    document.addEventListener('visibilitychange', flushWhenHidden);
+    window.addEventListener('pagehide', flush);
+    return () => {
+      document.removeEventListener('visibilitychange', flushWhenHidden);
+      window.removeEventListener('pagehide', flush);
+      flush();
+    };
+  }, [flush]);
   // A sign-out writes what waits first, so the device copy it keeps for the
   // account (lib/accountData.ts) holds the last keystrokes too.
   useEffect(() => beforeAccountChange(flush), [flush]);

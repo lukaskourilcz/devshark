@@ -99,6 +99,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   // it needs the subject scope and nothing else: no question bank is loaded and
   // no session is issued, so Today can ask cheaply and often.
   if (resource === 'due') {
+    res.setHeader('Cache-Control', 'private, no-store');
     let dueAuth;
     try {
       dueAuth = await tryAuthOnce(req);
@@ -107,11 +108,9 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     }
     // A signed-out visitor owes nothing, because nothing has been recorded for
     // them. That is an empty list, not an error.
-    if (!dueAuth) {
-      res.setHeader('Cache-Control', 'private, no-store');
-      return res.json({ due: [], estimatedMinutes: 0 });
-    }
-    const states = (await loadReviewStates(supabase, dueAuth.sub, scope.subject)) ?? [];
+    if (!dueAuth) return res.json({ due: [], estimatedMinutes: 0 });
+    const states = await loadReviewStates(supabase, dueAuth.sub, scope.subject);
+    if (states === null) return jsonError(res, 503, 'review_unavailable', 'Could not load your due reviews. Try again.');
     // Eligibility is the deployment scope the request already resolved: a
     // concept whose topic is not being served here is not due here.
     const servedTopics = new Set(selectedCategories as string[]);
@@ -123,7 +122,6 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
       },
       Date.now(),
     );
-    res.setHeader('Cache-Control', 'private, no-store');
     logEvent({ status: 200, resource, count: due.length, latency_ms: Date.now() - started });
     return res.json({ due, estimatedMinutes: estimatedMinutes(due.length) });
   }
@@ -217,14 +215,17 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     // says what order they arrive in. None of them widens the pool: `pool` is
     // already scoped by the same eligibility and plan filters as everything
     // else, so review can never unlock a level or resurrect retired material.
-    const due = dueFor(states, () => true, Date.now());
+    const poolConcepts = new Map(states.length > 0 ? pool.map((q) => [q.id, conceptOf(q)] as const) : []);
+    const conceptForQuestion = (q: Question) => poolConcepts.get(q.id) ?? null;
+    const servedConcepts = new Set(poolConcepts.values());
+    const due = dueFor(states, (conceptId) => servedConcepts.has(conceptId), Date.now());
     const dueSet = new Set(due.map((one) => one.conceptId));
     // Prefer a *different* item for a due concept than the one last used, so a
     // review tests the objective rather than the memory of one question.
     const lastItems = new Set(due.map((one) => one.lastItemId).filter(Boolean) as string[]);
     const duePool = dueSet.size > 0
       ? pool.filter((q) => {
-          const concept = conceptOf(q);
+          const concept = conceptForQuestion(q);
           return concept !== null && dueSet.has(concept);
         })
       : [];
@@ -235,7 +236,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     // the only arrangement the ranking cannot undo. One slot is always left
     // for the ranking, so a review is never only a drill.
     const dueLimit = Math.min(duePool.length, Math.max(0, Math.min(count - 1, Math.round(count * DUE_SHARE))));
-    const dueItems = selectDueItems(duePool, due.map((one) => one.conceptId), conceptOf, lastItems, dueLimit);
+    const dueItems = selectDueItems(duePool, due.map((one) => one.conceptId), conceptForQuestion, lastItems, dueLimit);
     const dueIds = new Set(dueItems.map((q) => q.id));
 
     const plan = selectPersonalizedReview(
@@ -327,7 +328,8 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   });
 
   const issuedAt = Date.now();
-  const sessionId = encodeSession(sessionData, { subject: scope.subject });
+  const isReview = resource === 'review';
+  const sessionId = encodeSession(sessionData, { scope: isReview ? 'review' : 'quiz', subject: scope.subject });
 
   // Per-request shuffle differs, so don't CDN-cache the response itself.
   res.setHeader('Cache-Control', 'private, no-store');
@@ -335,7 +337,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
 
   res.json({
     sessionId,
-    expiresAt: quizSessionExpiresAt(issuedAt),
+    ...(isReview ? { expiresAt: quizSessionExpiresAt(issuedAt) } : {}),
     questions: questionsWithShuffledOptions,
     ...(reviewPlan ? { reviewPlan } : {}),
     ...(mixed ? { interleaved: { contrasted } } : {}),

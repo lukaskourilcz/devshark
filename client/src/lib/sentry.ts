@@ -53,17 +53,21 @@ const listen = (on: boolean): void => {
 
 function load(): void {
   const dsn = dsnInUse;
-  if (loading || !dsn) return;
+  if (sentry || loading || !dsn) return;
   loading = true;
   void import('./sentry-sdk')
     .then((Sentry) => {
       // The options, consent-free monitoring's privacy rules among them, are
       // in lib/sentry-sdk.ts with the SDK, which also sends the early errors.
+      Sentry.start(dsn, import.meta.env.MODE, early);
+      early.length = 0;
       listen(false);
-      Sentry.start(dsn, import.meta.env.MODE, early.splice(0));
       sentry = Sentry;
     })
-    .catch(() => {});
+    .catch(() => {
+      // Keep the bounded queue and window listeners for the next attempt.
+      loading = false;
+    });
 }
 
 export function initSentry(): void {

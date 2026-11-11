@@ -91,8 +91,9 @@
 .cd-discovery .cd-techniques { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
 /* Nine technique groups fill a 3x3 grid from 1051px, with no orphan row. */
 @media (min-width: 1051px) { .cd-discovery .cd-techniques { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.cd-discovery .cd-technique { border: 0; border-bottom: 1px solid var(--ss-card-line); border-radius: 0; padding: 20px 0; background: transparent; }
-.cd-discovery .cd-technique:hover { background: var(--color-background-muted); }
+.cd-discovery .cd-technique { border: 0; border-bottom: 1px solid var(--ss-card-line); border-radius: 0; padding: 20px 8px; background: transparent; }
+.cd-discovery .cd-technique:hover,
+.cd-discovery .cd-technique:focus-visible { background: var(--color-background-muted); }
 @media (max-width: 1050px) {
   .cd-projects { grid-template-columns: minmax(0, 1fr); gap: 20px; }
   .cd-track-directory { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -551,6 +552,16 @@
   .cd-tab { padding: 8px; font-size: 0.9rem; }
   .cd-tab[data-tab='resources'] .cd-tab__badge { display: none; }
 }
+.cd-output-header {
+  display: flex;
+  align-items: center;
+  flex: none;
+  min-width: 0;
+  padding-inline-end: 8px;
+  border-bottom: 1px solid var(--ss-card-line);
+}
+.cd-output-header > .cd-tabs { flex: 1 1 auto; min-width: 0; min-height: 52px; padding-inline: 12px; border-bottom: 0; }
+.cd-output-header > .astryx-button { flex: none; }
 .cd-output-scroll { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .cd-panel { display: flex; flex-direction: column; gap: 10px; min-height: 160px; }
 .cd-panel[hidden] { display: none; }

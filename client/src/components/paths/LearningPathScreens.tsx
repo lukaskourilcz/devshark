@@ -654,13 +654,15 @@ interface DraftChannel {
   enrollmentId: string;
   activityId: string;
   revision: number;
-  inFlight: boolean;
+  sending: PathDraft['content'] | null;
+  lastSaved: PathDraft | null;
   conflict: boolean;
   queued: PathDraft['content'] | null;
   epoch: number;
 }
 
 const channelGone = (channel: DraftChannel) => channel.epoch !== accountEpoch();
+const draftChannelKey = (enrollmentId: string, activityId: string) => `${enrollmentId}:${activityId}`;
 
 /** Refusals that mean the attempt cannot take this submission. */
 const ATTEMPT_USED_UP = new Set(['idempotency_conflict', 'session_expired', 'attempt_expired']);
@@ -711,6 +713,9 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
   // still holds as it unmounts, after this screen has moved on: that save
   // goes to the activity it was typed in, never to the next one.
   const leftDrafts = useRef<DraftChannel | null>(null);
+  // A save can outlive a visit to its activity. Reopening the activity while
+  // it is still saving uses that same channel and its next revision.
+  const savingDrafts = useRef(new Map<string, DraftChannel>());
 
   const module = entry?.manifest.modules.find((one) => one.id === moduleId);
   const activity = module?.activities.find((one) => one.id === activityId);
@@ -739,24 +744,40 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
     // Leaving the activity (or the page) stops the request, so switching
     // quickly through several activities leaves no answers in flight.
     const controller = new AbortController();
+    const key = draftChannelKey(enrollmentId, activityId);
+    const saveAtOpen = savingDrafts.current.get(key);
     startActivity({ enrollmentId, activityId }, controller.signal)
       .then((started) => {
         if (cancelled) return;
-        const kept = localDraftOver(enrollmentId, activityId, started.draft, started.draftUnavailable === true);
-        const conflict = !!(kept && started.draft && !started.draftUnavailable && kept.revision !== started.draft.revision);
+        const saving = savingDrafts.current.get(key);
+        const pending = saving && !channelGone(saving) ? saving.queued ?? saving.sending : null;
+        if (saving && pending) {
+          drafts.current = saving;
+          setDraft({ activityId, revision: saving.revision, content: pending, updatedAt: new Date().toISOString() });
+          setDraftStatus('saving');
+        } else {
+          // The start response may have read the draft before the pending
+          // write committed. Its confirmed result can be newer than that read.
+          const confirmed = saveAtOpen && !channelGone(saveAtOpen) ? saveAtOpen.lastSaved : null;
+          const serverDraft = confirmed && confirmed.revision > (started.draft?.revision ?? 0) ? confirmed : started.draft;
+          const serverUnknown = !serverDraft && started.draftUnavailable === true;
+          const kept = localDraftOver(enrollmentId, activityId, serverDraft, serverUnknown);
+          const conflict = !!(kept && serverDraft && kept.revision !== serverDraft.revision);
+          drafts.current = {
+            enrollmentId,
+            activityId,
+            revision: kept?.revision ?? serverDraft?.revision ?? 0,
+            sending: null,
+            lastSaved: null,
+            conflict,
+            queued: kept?.content ?? null,
+            epoch: accountEpoch(),
+          };
+          setDraft(kept ?? serverDraft);
+          setDraftStatus(conflict ? 'conflict' : serverDraft ? 'saved' : 'idle');
+        }
         attempt.current = { session: started.session, expiresAt: started.expiresAt, key: newIdempotencyKey(), usedUp: false };
-        drafts.current = {
-          enrollmentId,
-          activityId,
-          revision: kept?.revision ?? started.draft?.revision ?? 0,
-          inFlight: false,
-          conflict,
-          queued: kept?.content ?? null,
-          epoch: accountEpoch(),
-        };
         setOpen(started);
-        setDraft(kept ?? started.draft);
-        setDraftStatus(conflict ? 'conflict' : started.draft ? 'saved' : 'idle');
         capturePathEvent(
           started.previous && started.previous.attempts > 0
             ? 'learning_path_returned'
@@ -782,9 +803,10 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
   }, [activityId, enrollmentId, curriculumVersion, deal, pathId]);
 
   const pushDraft = useCallback(async (channel: DraftChannel | null) => {
-    if (!channel || channel.inFlight || channel.conflict || !channel.queued || channelGone(channel)) return;
+    if (!channel || channel.sending || channel.conflict || !channel.queued || channelGone(channel)) return;
     const live = () => drafts.current === channel;
-    channel.inFlight = true;
+    const key = draftChannelKey(channel.enrollmentId, channel.activityId);
+    savingDrafts.current.set(key, channel);
     try {
       while (channel.queued) {
         if (typeof navigator !== 'undefined' && navigator.onLine === false) {
@@ -795,6 +817,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
           return;
         }
         const content = channel.queued;
+        channel.sending = content;
         channel.queued = null;
         if (live()) setDraftStatus('saving');
         try {
@@ -806,6 +829,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
           });
           if (channelGone(channel)) return;
           channel.revision = saved.draft.revision;
+          channel.lastSaved = saved.draft;
           if (channel.queued) keepDraftLocally(channel.enrollmentId, channel.activityId, channel.revision, channel.queued);
           else forgetLocalDraft(channel.enrollmentId, channel.activityId);
           if (live()) {
@@ -823,7 +847,8 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
         }
       }
     } finally {
-      channel.inFlight = false;
+      channel.sending = null;
+      if (savingDrafts.current.get(key) === channel) savingDrafts.current.delete(key);
     }
   }, []);
 
@@ -909,6 +934,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
         return;
       }
       const token = {};
+      const epoch = accountEpoch();
       working.current = token;
       // False once the learner opened another activity (or dealt this check
       // again): this submission's answer then belongs to a screen that is gone.
@@ -919,7 +945,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
       try {
         if (current.usedUp || expired) {
           const fresh = await startActivity({ enrollmentId: enrollment.enrollmentId, activityId: open.activity.id, previousSession: current.session });
-          if (!live()) return;
+          if (!live() || accountEpoch() !== epoch) return;
           target = { session: fresh.session, expiresAt: fresh.expiresAt, key: newIdempotencyKey(), usedUp: false };
           attempt.current = target;
           if (fresh.needsBriefReview) {
@@ -935,11 +961,12 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
           ...payload,
         });
         target.usedUp = true;
-        // The server recorded the result whatever the learner opened since,
-        // so its XP, its event and the progress it changed are kept current.
-        if (!graded.replayed && graded.xpAwarded > 0) {
-          announceVerifiedQuestXp(graded.xpAwarded);
-          void syncXpWithServer({ announceRankUp: true });
+        if (accountEpoch() !== epoch) return;
+        // The result also counts if this learner has moved to another activity.
+        // A replay can confirm a reward whose first response was lost.
+        if (graded.xpAwarded > 0) {
+          if (!graded.replayed) announceVerifiedQuestXp(graded.xpAwarded);
+          void syncXpWithServer({ announceRankUp: !graded.replayed });
         }
         if (graded.state === 'verified_pass') {
           capturePathEvent('learning_path_activity_verified', {
@@ -960,7 +987,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
       } catch (caught) {
         // A late refusal belongs to the activity it was sent for, not to the
         // one on screen now, whose attempt is untouched.
-        if (!live()) return;
+        if (!live() || accountEpoch() !== epoch) return;
         // An attempt that expired or already holds a result cannot take this
         // submission; the next one goes to a new attempt.
         if (caught instanceof ApiError && caught.code && ATTEMPT_USED_UP.has(caught.code)) {

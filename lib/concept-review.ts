@@ -55,9 +55,9 @@ const toState = (row: ReviewRow): StoredReviewState => ({
 /**
  * The learner's review state for one subject, or null when it cannot be read.
  *
- * Review is an enhancement to practice, so a reader treats null as an empty
- * list and the learner still gets a session; the failure is logged rather
- * than shown. A writer must not: `recordConceptReviews` builds each concept's
+ * Review is an enhancement to practice, so a question session may treat
+ * null as empty and proceed. A dedicated due-list read and a writer must
+ * distinguish failure from empty: `recordConceptReviews` builds each concept's
  * next state on the one read here, and building it on an empty list sent
  * every practised concept back to its first stage.
  */

@@ -33,6 +33,15 @@ export function toSharkCard(question: GradedQuestion, correctIndex: number, expl
   };
 }
 
+/** Roll back one card without overwriting other changes to the same deck. */
+function restoreCard(deck: Flashcard[] | undefined, previous: Flashcard[], id: string): Flashcard[] | undefined {
+  if (!deck) return deck;
+  const position = previous.findIndex((card) => card.question_id === id);
+  const next = deck.filter((card) => card.question_id !== id);
+  if (position >= 0) next.splice(position, 0, previous[position]);
+  return next;
+}
+
 /** Save a card, optimistically: it is in the deck at once, and back out if
  * the server refuses. The device's own bookmark list follows, so Profile and
  * the bookmark badge agree with the deck. */
@@ -71,8 +80,11 @@ export function useSaveSharkCard() {
         explanation: card.explanation ?? '',
       });
     },
-    onError: (_error, _card, context) => {
-      if (context?.previous) queryClient.setQueryData(key, context.previous);
+    onError: (_error, card, context) => {
+      if (context?.previous) {
+        const previous = context.previous;
+        queryClient.setQueryData<Flashcard[]>(key, (deck) => restoreCard(deck, previous, card.question_id));
+      }
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
   });
@@ -93,8 +105,11 @@ export function useRemoveSharkCard() {
       return { previous };
     },
     onSuccess: (_data, questionId) => removeBookmark(questionId),
-    onError: (_error, _id, context) => {
-      if (context?.previous) queryClient.setQueryData(key, context.previous);
+    onError: (_error, id, context) => {
+      if (context?.previous) {
+        const previous = context.previous;
+        queryClient.setQueryData<Flashcard[]>(key, (deck) => restoreCard(deck, previous, id));
+      }
     },
   });
 }
