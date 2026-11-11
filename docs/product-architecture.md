@@ -2467,3 +2467,13 @@ operation answers 503 `marketing_not_configured`. `npm run test:marketing`
 posts to social networks. See
 [marketing-social-bridge.md](marketing-social-bridge.md) for the header
 contract and limits.
+
+### Owner administration
+
+`/admin` is a standalone owner workspace, inspired by the NaviGym administration's persistent sidebar and table layout. Its only sections are Users (`/admin` or `/admin/users`), Vouchers (`/admin/vouchers`) and Emails (`/admin/emails`). It reuses the `/dev` console's server-verified access gate and clears private admin query data on lock or account change. The technical `/dev` console remains available separately. The new pages have noindex metadata and Vercel response headers.
+
+The existing `api/admin/[op].ts` handler routes `users` and `emails` after `requireAdmin` and the admin rate limit. There remain twelve physical handlers. The directory reads Supabase Auth's paginated administrative user list, 25 accounts per page, including accounts predating authentication-event logging. It returns only display fields, creation/last-sign-in dates, email verification, provider names, canonical entitlement summaries and redeemed-voucher hints/notes/dates. It never returns raw Auth metadata, identities, tokens or voucher hashes. Filtering is explicitly scoped to the current page. Voucher-history reads are bounded and expose a partial-history warning if truncated; read failures are errors rather than empty history or a Free plan.
+
+Vouchers reuse the existing creation, one-time code display and revocation screens. A new `action: 'limit'` changes only `max_redemptions` through a single row update. Validation bounds it to 1–10,000, and the existing database constraint and redemption row lock prevent lowering it below completed redemptions. It never resets usage or changes a grant already issued.
+
+Emails previews the actual cancellation/withdrawal email functions, reports provider configuration without exposing secrets, and links to hosted account-email template management when available. Preview dates and confirmation links are marked as samples. Viewing or refreshing this section sends no email and makes no delivery-success claim. No billing price, checkout switch or message delivery behavior changes.

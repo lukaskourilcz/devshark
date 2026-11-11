@@ -2,7 +2,7 @@
 
 devShark is a learning platform for web developers: guided Learn paths, quizzes, coding challenges, learning paths and a career roadmap across frontend, backend, databases, DevOps, testing, security, system design and AI.
 
-devShark has been freemium since 25 September 2026. Every signed-in account gets HTML, CSS and JavaScript in full, React levels 1 to 12, DSA Foundations levels 1 to 5, the opening stages of every coding project and short path (stages 1, 2 and 3 of a ten-stage project, 1 and 2 of a FullStack app, level 1 of a short path), and a starter set of challenges, plus every quiz, the daily challenge, the Biggest Shark Challenge, multiplayer rooms, Shark Cards (questions saved to review later), the typing racer, leaderboards, streaks, friends and the coin shop. Premium costs 4.99 EUR a month or 59.88 EUR a year, before VAT, and opens every Learn topic and coding task, the FDE learning path once its switch is on, and redeeming coins for merchandise once it returns (merchandise is paused until next quarter behind `MERCH_ENABLED` in `shared/rewards.ts`). `shared/tiers.ts` holds both lists, the server answers locked content with 402, and Premium leaves grading, XP amounts, scores, streaks and rankings alone. Stripe checkout is built but switched off (`BILLING_ENABLED=false`); taking payments is the owner's decision (#221, [STRIPE_INTEGRATION_TODO.md](./STRIPE_INTEGRATION_TODO.md)). Until then Premium opens through a voucher code the owner creates in `/dev` and a learner redeems on `/premium` (migration 045).
+devShark has been freemium since 25 September 2026. Every signed-in account gets HTML, CSS and JavaScript in full, React levels 1 to 12, DSA Foundations levels 1 to 5, the opening stages of every coding project and short path (stages 1, 2 and 3 of a ten-stage project, 1 and 2 of a FullStack app, level 1 of a short path), and a starter set of challenges, plus every quiz, the daily challenge, the Biggest Shark Challenge, multiplayer rooms, Shark Cards (questions saved to review later), the typing racer, leaderboards, streaks, friends and the coin shop. Premium costs 4.99 EUR a month or 59.88 EUR a year, before VAT, and opens every Learn topic and coding task, the FDE learning path once its switch is on, and redeeming coins for merchandise once it returns (merchandise is paused until next quarter behind `MERCH_ENABLED` in `shared/rewards.ts`). `shared/tiers.ts` holds both lists, the server answers locked content with 402, and Premium leaves grading, XP amounts, scores, streaks and rankings alone. Stripe checkout is built but switched off (`BILLING_ENABLED=false`); taking payments is the owner's decision (#221, [STRIPE_INTEGRATION_TODO.md](./STRIPE_INTEGRATION_TODO.md)). Until then Premium opens through a voucher code the owner creates in `/admin/vouchers` and a learner redeems on `/premium` (migration 045).
 
 Production: [devShark](https://devshark.app) deploys from `main` to the Vercel project `react-express-app` (functions in `arn1`), with the Supabase project `rvlybcjdpafwyeuojvhl` (`eu-north-1`) for data and identity. Preview deployments share the production Supabase project.
 
@@ -28,6 +28,7 @@ Current content comes from `shared/subject-catalog.ts`, `shared/coding-index.ts`
 - Google sign-in through Supabase Auth, cross-device progress, profile settings, and permanent account deletion.
 - Premium billing through Stripe Checkout, the Customer Portal and a two-step cancellation page, built and switched off; merchandise printed and shipped by Spreadshop (sprd.net AG), paused behind `MERCH_ENABLED`; and invite links that pay both friends coins once the invited one passes a first Learn level.
 - Sentry monitoring and PostHog analytics. Every optional integration is gated and disabled by default. devShark ships no AI feature.
+- An owner-only `/admin` workspace with Users, Vouchers and Emails: accounts and sign-ins, Premium end dates, redeemed vouchers, editable voucher limits and actual automatic-email previews.
 - A role-gated `/dev` control room for question CRUD/overrides, importance tuning, quality checks, report triage, auth logs, feature and coin settings, and the merchandise quotes, monthly caps and fulfilment queue.
 
 Correct answers are not sent with unanswered questions. Quiz and learning sessions use authenticated AES-256-GCM envelopes, submissions are claimed once in Postgres, result receipts are idempotent, and competitive/progression mutations are performed through service-only APIs and atomic database functions.
@@ -138,7 +139,7 @@ Production requires:
 - `SUPABASE_SERVICE_ROLE_KEY` — server only.
 - `SESSION_SECRET` — at least 32 random bytes.
 - `VITE_PRODUCT=devshark`, `VITE_LOCK_SUBJECT=webdev`, `PRODUCT_ID=devshark` and `PRODUCT_SUBJECT=webdev` (or leave them unset; they may not name anything else).
-- `ADMIN_EMAILS` or Supabase `app_metadata.role=admin` for `/dev`.
+- `ADMIN_EMAILS` or Supabase `app_metadata.role=admin` for `/admin` and `/dev`.
 - Google OAuth origins and callback URLs for every production domain.
 - All migrations through **`supabase/supabase-schema-066.sql`**, in numeric order.
 

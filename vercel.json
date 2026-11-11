@@ -28,7 +28,7 @@
       "continue": true
     },
     {
-      "src": "^/(?:premium/(?:success|checkout)|auth/confirmed|reset-password)/?$",
+      "src": "^/(?:admin(?:/.*)?|premium/(?:success|checkout)|auth/confirmed|reset-password)/?$",
       "headers": {
         "X-Robots-Tag": "noindex"
       },

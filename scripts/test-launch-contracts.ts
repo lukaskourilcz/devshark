@@ -1,3 +1,4 @@
+import { adminDirectoryContracts } from './test-admin-directory';
 // First: clears the environment the handlers below read when imported.
 import './launch-test-env';
 import { createCodingSession as encodeCodingSession } from '../lib/coding/session';
@@ -1235,7 +1236,7 @@ function publicCopyContracts() {
   for (const page of PUBLIC_PAGES) {
     assert.ok(rewrites.some((rule) => rule.source === page.path && rule.destination === `${page.path}/index.html`), `${page.path} serves its static HTML`);
   }
-  assert.deepEqual([...NOINDEX_PATHS], ['/premium/success', '/premium/checkout', '/auth/confirmed', '/reset-password']);
+  assert.deepEqual([...NOINDEX_PATHS], ['/admin', '/admin/users', '/admin/vouchers', '/admin/emails', '/premium/success', '/premium/checkout', '/auth/confirmed', '/reset-password']);
   // The pages the confirmation and reset emails open are client routes (no
   // handler of their own), and the catch-all rewrite serves them the app.
   const catchAll = rewrites.find((rule) => rule.destination === '/index.html');
@@ -3764,6 +3765,7 @@ async function practiceRunTransitionContracts() {
 }
 
 async function main() {
+  await adminDirectoryContracts();
   await practiceRunTransitionContracts();
   codingBoardContracts();
   await codingFetchContracts();

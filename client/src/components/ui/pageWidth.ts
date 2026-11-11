@@ -5,7 +5,7 @@
  * checkout and gates retain --ss-width-task (640px).
  */
 export function pageMaxWidth(pathname: string): string {
-  return pathname.startsWith('/dev')
+  return pathname.startsWith('/dev') || /^\/admin(?:\/|$)/.test(pathname)
     ? 'none'
     : `var(--ss-width-${/^\/(coding|learn|quiz|challenge|today|profile|play|typing|cards|collection|shop|leaderboard|roadmap)(\/|$)/.test(pathname) ? 'wide' : pathname === '/' ? 'standard' : 'narrow'})`;
 }

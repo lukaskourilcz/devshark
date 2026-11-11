@@ -88,6 +88,7 @@ const loadFlashcards = routeChunk(exact('/cards'), () => import('./components/Fl
 const loadShop = routeChunk(exact('/shop'), () => import('./components/Shop'));
 const loadPlay = routeChunk(routes('/play/:code?'), () => import('./components/Play'));
 const loadChallenge = routeChunk(exact('/challenge'), () => import('./components/Challenge'));
+const loadAdmin = routeChunk(routes('/admin/:section?'), () => import('./components/admin/AdminPage'));
 const loadDev = routeChunk(routes('/dev'), () => import('./components/dev/DevPage'));
 const loadLegal = routeChunk(exact('/privacy', '/terms'), () => import('./components/LegalPages'));
 const loadPublicInfo = routeChunk(exact('/classroom'), () => import('./components/PublicInfoPages'));
@@ -118,6 +119,7 @@ const PlayLanding = lazyPage(() => loadPlay().then((m) => ({ default: m.PlayLand
 const PlayMatch = lazyPage(() => loadPlay().then((m) => ({ default: m.PlayMatch })));
 const Challenge = lazyPage(loadChallenge);
 const DevPage = lazyPage(loadDev);
+const AdminPage = lazyPage(loadAdmin);
 const PrivacyPage = lazyPage(() => loadLegal().then((m) => ({ default: m.PrivacyPage })));
 const TermsPage = lazyPage(() => loadLegal().then((m) => ({ default: m.TermsPage })));
 const ClassroomPage = lazyPage(() => loadPublicInfo().then((m) => ({ default: m.ClassroomPage })));
@@ -523,7 +525,7 @@ function App() {
   }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The /dev console is a standalone admin surface — no app chrome, full width.
-  const isDev = location.pathname.startsWith('/dev');
+  const isDev = location.pathname.startsWith('/dev') || /^\/admin(?:\/|$)/.test(location.pathname);
   // The quiz setup screen gets tighter padding and vertical centering so it fits
   // one viewport.
   const isQuiz = location.pathname === '/quiz';
@@ -930,6 +932,7 @@ function App() {
                   <Route path="/daily/:date" element={<DailyQuestionPage />} />
                   <Route path="/classroom" element={<ClassroomPage />} />
                   <Route path="/topics/:slug" element={<TopicLandingPage />} />
+                  <Route path="/admin/:section?" element={<AdminPage />} />
                   <Route path="/dev" element={<DevPage />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>

@@ -19,7 +19,7 @@ import { AppToast } from '../ui/AppToast';
 import { ApiError, friendlyError } from '../../lib/api';
 import { useLanguage } from '../../i18n/LanguageContext';
 import type { TranslationKey } from '../../i18n/translations';
-import { createVoucher, listVouchers, revokeVoucher, type VoucherInput } from '../../lib/devApi';
+import { createVoucher, listVouchers, revokeVoucher, updateVoucherLimit, type VoucherInput } from '../../lib/devApi';
 import { normalizeVoucherCode, type AdminVoucher, type CreatedVoucher } from '../../../../shared/vouchers';
 import { Section, captionStyle } from './DevSettings';
 
@@ -328,6 +328,7 @@ function VoucherList({ onMessage }: { onMessage: (message: string) => void }) {
                 <span className="dev-voucher-note">{voucher.note}</span>
               </div>
               <VoucherFacts voucher={voucher} />
+              {voucher.active && <VoucherLimit voucher={voucher} />}
               {voucher.state !== 'revoked' && (confirming === voucher.id ? (
                 <div className="dev-voucher-confirm" role="group" aria-label={t('dev.vouchers.revoke')}>
                   <p>{t('dev.vouchers.revokeConfirm', { hint: voucher.hint })}</p>
@@ -347,4 +348,33 @@ function VoucherList({ onMessage }: { onMessage: (message: string) => void }) {
       )}
     </Section>
   );
+}
+
+function VoucherLimit({ voucher }: { voucher: AdminVoucher }) {
+  const { t } = useLanguage();
+  const client = useQueryClient();
+  const [uses, setUses] = useState(String(voucher.maxRedemptions));
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  useEffect(() => { setUses(String(voucher.maxRedemptions)); }, [voucher.maxRedemptions]);
+  const save = async (event: FormEvent) => {
+    event.preventDefault();
+    if (busy) return;
+    const value = Number(uses);
+    if (!Number.isInteger(value) || value < Math.max(1, voucher.redeemedCount) || value > 10000) {
+      setMessage(t('admin.vouchers.limitInvalid')); return;
+    }
+    setBusy(true); setMessage(null);
+    try {
+      await updateVoucherLimit(voucher.id, value);
+      await client.invalidateQueries({ queryKey: VOUCHERS_KEY });
+      setMessage(t('admin.vouchers.limitSaved'));
+    } catch (error) { setMessage(friendlyError(error)); }
+    finally { setBusy(false); }
+  };
+  return <form className="dev-voucher-limit" onSubmit={event => void save(event)}>
+    <TextInput label={t('admin.vouchers.limitFor', { hint: voucher.hint })} value={uses} onChange={setUses} type="text" />
+    <Button variant="secondary" label={t('admin.vouchers.saveLimit')} type="submit" isLoading={busy} isDisabled={busy || uses === String(voucher.maxRedemptions)} />
+    {message && <p role="status">{message}</p>}
+  </form>;
 }

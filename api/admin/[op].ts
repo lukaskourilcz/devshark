@@ -22,6 +22,7 @@ import { inspectQuestionQuality } from '../../lib/question-quality';
 import { allReadiness, pathEnabledInEnv } from '../../lib/learning-paths/catalog';
 import { handleAdminEntitlements } from '../../lib/entitlements';
 import { handleAdminVouchers } from '../../lib/vouchers';
+import { handleAdminUsers, handleAdminEmails } from '../../lib/admin-directory';
 
 const log = createLogger('admin');
 const supabase = createServiceClient();
@@ -76,6 +77,10 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   }
   try {
     switch (op) {
+      case 'users':
+        return await handleAdminUsers(req, res, supabase);
+      case 'emails':
+        return await handleAdminEmails(req, res);
       case 'questions':
         return await listQuestions(req, res);
       case 'save':

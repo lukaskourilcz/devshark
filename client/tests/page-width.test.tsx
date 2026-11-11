@@ -25,6 +25,10 @@ describe('pageMaxWidth: the one route-to-width map', () => {
     ['/coding/javascript', 'wide'],
     ['/coding/javascript/js-sum', 'wide'],
     ['/dev', 'none'],
+    ['/admin', 'none'],
+    ['/admin/users', 'none'],
+    ['/admin/vouchers', 'none'],
+    ['/admin/emails', 'none'],
   ])('gives %s the %s width', (path, width) => {
     expect(pageMaxWidth(path)).toBe(token(width));
   });

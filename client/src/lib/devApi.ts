@@ -32,7 +32,7 @@ export const clearDevPassword = () => {
   }
 };
 
-function adminFetch<T>(
+export function adminFetch<T>(
   op: string,
   init: { method?: string; body?: unknown; password?: string } = {},
 ): Promise<T> {
@@ -340,3 +340,6 @@ export const createVoucher = (input: VoucherInput) =>
 
 export const revokeVoucher = (voucherId: string) =>
   adminFetch<{ voucher: AdminVoucher }>('vouchers', { method: 'POST', body: { action: 'revoke', voucherId } });
+
+export const updateVoucherLimit = (voucherId: string, maxRedemptions: number) =>
+  adminFetch<{ ok: true }>('vouchers', { method: 'POST', body: { action: 'limit', voucherId, maxRedemptions } });
