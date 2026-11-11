@@ -2,6 +2,9 @@ import { FDE_SECTION_VISIBLE } from '../../../shared/learn-section-ids';
 import { TOPIC_LANDINGS, type TopicLandingDefinition } from './topicCatalog';
 import { PREMIUM_PRICE } from '../../../shared/tiers';
 export const PUBLIC_ORIGIN = 'https://devshark.app';
+export const BRAND_SHARE_IMAGE = PUBLIC_ORIGIN + '/og-image.png?v=20261012';
+export const BRAND_SHARE_IMAGE_ALT = 'devShark — Lessons, quizzes and coding challenges';
+export const DAILY_SHARE_IMAGE_PATH = '/og/daily.png';
 /** Resolve only the published English guide addresses. */
 export function topicFromPath(pathname: string): { topic: TopicLandingDefinition } | null {
   const match = /^\/topics\/([a-z0-9-]+)\/?$/.exec(pathname);

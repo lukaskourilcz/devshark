@@ -33,6 +33,9 @@ const SHELL_HEAD = `
   <meta name="description" content="shell description" />
   <meta property="og:title" content="devShark" />
   <meta property="og:description" content="shell description" />
+  <meta property="og:image" content="https://devshark.app/og-image.png?v=20261012" />
+  <meta property="og:image:alt" content="devShark — Lessons, quizzes and coding challenges" />
+  <meta name="twitter:image" content="https://devshark.app/og-image.png?v=20261012" />
   <meta name="twitter:title" content="devShark" />
   <meta name="twitter:description" content="shell description" />`;
 
@@ -141,6 +144,28 @@ describe('a share page opened directly', () => {
     visit(TASK, head);
     expect(document.title).toBe(TASK_TITLE);
     expect(canonical()).toBe(TASK_URL);
+  });
+
+  it('switches share images with the active route and restores the original card', () => {
+    prerendered(TASK, TASK_TITLE, TASK_TEXT);
+    const taskImage = 'https://devshark.app/og/coding/js-double-numbers.png';
+    for (const selector of ['meta[property="og:image"]', 'meta[name="twitter:image"]']) {
+      document.querySelector(selector)?.setAttribute('content', taskImage);
+    }
+    document.querySelector('meta[property="og:image:alt"]')?.setAttribute('content', TASK_TITLE);
+    const head = readShareHead();
+
+    visit('/quiz', head);
+    expect(meta('meta[property="og:image"]')).toBe('https://devshark.app/og-image.png?v=20261012');
+    expect(meta('meta[property="og:image:alt"]')).toBe('devShark — Lessons, quizzes and coding challenges');
+    visit('/daily', head);
+    expect(meta('meta[property="og:image"]')).toBe('https://devshark.app/og/daily.png');
+    expect(meta('meta[name="twitter:image"]')).toBe('https://devshark.app/og/daily.png');
+    expect(meta('meta[property="og:image:alt"]')).toBe('Question of the day · devShark');
+    visit(TASK, head);
+    expect(meta('meta[property="og:image"]')).toBe(taskImage);
+    expect(meta('meta[name="twitter:image"]')).toBe(taskImage);
+    expect(meta('meta[property="og:image:alt"]')).toBe(TASK_TITLE);
   });
 
   it('is not read from the plain shell', () => {
