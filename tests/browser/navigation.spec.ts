@@ -190,7 +190,8 @@ test('route focus preserves a keyboard control focused before the delayed handof
     const schedule = window.setTimeout.bind(window);
     // Hold only the shell's 230 ms focus handoff so this case does not depend
     // on the time Chromium takes to load the destination.
-    window.setTimeout = (handler, delay, ...args) => schedule(handler, delay === 230 ? 5_000 : delay, ...args);
+    Reflect.set(window, 'setTimeout', (handler: TimerHandler, delay?: number, ...args: unknown[]) =>
+      schedule(handler, delay === 230 ? 5_000 : delay, ...args));
   });
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
