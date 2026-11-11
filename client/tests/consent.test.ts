@@ -98,6 +98,28 @@ describe('the consent store', () => {
     expect(getConsent()).toBeNull();
   });
 
+  it('expires an existing choice in an open tab and notifies optional consumers', () => {
+    vi.useFakeTimers();
+    try {
+      const now = Date.now();
+      localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify({
+        version: CONSENT_VERSION, analytics: true, marketing: true, decidedAt: now - CONSENT_MAX_AGE_MS + 100,
+      }));
+      const listener = vi.fn();
+      subscribeConsent(listener);
+      expect(hasConsent('analytics')).toBe(true);
+
+      vi.advanceTimersByTime(101);
+      expect(listener).toHaveBeenCalledExactlyOnceWith(null);
+      expect(needsConsentDecision()).toBe(true);
+      expect(hasConsent('analytics')).toBe(false);
+      expect(hasConsent('marketing')).toBe(false);
+    } finally {
+      reload();
+      vi.useRealTimers();
+    }
+  });
+
   it('treats a damaged record as no decision', () => {
     localStorage.setItem(CONSENT_STORAGE_KEY, '{"version":1,"analytics":"yes"');
     reload();
