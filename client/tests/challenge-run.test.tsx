@@ -413,6 +413,24 @@ describe('the run reward', () => {
     expect(api.completions.map(({ runToken, status }) => [runToken, status])).toEqual([['RUN-1', 429], ['RUN-1', 200], ['RUN-2', 200]]);
   });
 
+  it.each([
+    ['right:true', true],
+    ['wrong:false', false],
+  ])('updates Profile after finishing a saved run with proof %s', async (proof, invalidated) => {
+    api.auth = SIGNED_IN;
+    const profile = ['profile-stats', SIGNED_IN.user.id] as const;
+    queryClient.setQueryData(profile, { current_streak: 5 });
+    localStorage.setItem(PENDING, JSON.stringify([{ userId: SIGNED_IN.user.id, runToken: 'PENDING', proofs: [proof] }]));
+    try {
+      await mount();
+      await waitFor(() => expect(localStorage.getItem(PENDING)).toBeNull());
+      await settle();
+      expect(queryClient.getQueryState(profile)?.isInvalidated).toBe(invalidated);
+    } finally {
+      queryClient.removeQueries({ queryKey: profile, exact: true });
+    }
+  });
+
   it('refreshes XP and profile stats when a replay confirms a previously credited run', async () => {
     const gains: number[] = [];
     const stop = onXpToast((toast) => { if (toast.kind === 'gain') gains.push(toast.amount); });
