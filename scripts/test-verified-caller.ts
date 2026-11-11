@@ -116,6 +116,8 @@ const AUTH_DOWN: Account = { id: '1a2b3c4d-0000-4000-8000-0000000000aa', token: 
 // drops), and while it answers 429 to its own rate limit.
 const AUTH_UNREACHABLE: Account = { ...AUTH_DOWN, token: 'auth-unreachable' };
 const AUTH_THROTTLED: Account = { ...AUTH_DOWN, token: 'auth-throttled' };
+const AUTH_STALLED: Account = { ...A, token: 'auth-stalled' };
+let closedAuthReads = 0;
 
 type Row = Record<string, unknown>;
 interface Seen { method: string; path: string; filters: Record<string, string>; body: unknown }
@@ -180,6 +182,11 @@ async function startStandIns() {
       if (token === AUTH_DOWN.token) return send(500, { message: 'stand-in auth is down' });
       if (token === AUTH_UNREACHABLE.token) { req.socket.destroy(); return; }
       if (token === AUTH_THROTTLED.token) return send(429, { message: 'stand-in: request rate limit reached' });
+      if (token === AUTH_STALLED.token) {
+        res.write('{"id":');
+        res.on('close', () => { closedAuthReads += 1; });
+        return;
+      }
       if (failingTokens.has(token)) return send(500, { message: 'stand-in auth is down' });
       if (revokedTokens.has(token)) return send(403, { code: 'session_not_found', message: 'Session from session_id claim in JWT does not exist' });
       const account = ACCOUNTS.find((one) => one.token === token);
@@ -1157,6 +1164,19 @@ async function main() {
     assert.equal(refusedToken.statusCode, 401, 'a token Supabase refuses is still 401');
     assert.equal(errorCode(refusedToken), 'unauthorized');
     console.log('PASS verified caller: Today\'s due list and a review keep 503 when Supabase Auth is down, unreachable or throttled, and 401 for a refused token');
+
+    const [stalledAuth, normalAuth] = await Promise.all([
+      call(questions as Handler, { account: AUTH_STALLED, query: { resource: 'due' } }),
+      call(questions as Handler, { account: A, query: { resource: 'due' } }),
+    ]);
+    assert.equal(normalAuth.statusCode, 200, 'another learner can verify while Auth stalls for one request');
+    assert.equal(stalledAuth.statusCode, 504);
+    assert.equal(errorCode(stalledAuth), 'auth_timeout');
+    for (let wait = 0; wait < 20 && closedAuthReads === 0; wait++) {
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    assert.equal(closedAuthReads, 1, 'Auth deadline closes the incomplete response body');
+    console.log('PASS verified caller: a timed-out Auth verification aborts its stalled response');
 
     // A scoped review caps its due queue only after limiting it to concepts
     // that the selected categories can actually serve.
