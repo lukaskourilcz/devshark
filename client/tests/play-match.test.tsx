@@ -549,6 +549,21 @@ describe('the classroom presenter screen', () => {
     expect(screen.getByRole('button', { name: 'Reveal answer' })).toBeInTheDocument();
   });
 
+  it('takes one final count after Reveal and stops polling that closed question', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    presenting({ question_duration_s: 0 });
+    await mount();
+    await screen.findByText('Live answers received: 8/0');
+    const before = api.fetchDistribution.mock.calls.length;
+    api.fetchDistribution.mockResolvedValue({ buckets: [{ selected_idx: 1, count: 9 }] });
+    fireEvent.click(screen.getByRole('button', { name: 'Reveal answer' }));
+    await settle();
+    expect(screen.getByText('Live answers received: 9/0')).toBeInTheDocument();
+    expect(api.fetchDistribution).toHaveBeenCalledTimes(before + 1);
+    await act(async () => { await vi.advanceTimersByTimeAsync(6_000); });
+    expect(api.fetchDistribution).toHaveBeenCalledTimes(before + 1);
+  });
+
   it('keeps one answer count read in flight on a slow connection', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     presenting({ question_duration_s: 0 });

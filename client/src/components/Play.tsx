@@ -1123,6 +1123,10 @@ function RunningQuestion({
   const isPlayer = mode === 'multiplayer' || !isHost;
   const isPresenter = isHost && mode === 'classroom';
   const questionLabelId = `play-question-${q.id}`;
+  // "Reveal answer" closes a classroom question on the server (056): no
+  // answer to it lands any more, and the scoreboard counts it. The room says
+  // which question the teacher closed, so the next one opens again.
+  const closedByTeacher = mode === 'classroom' && match.revealed_idx === questionIdx;
 
   // Presenter view polls the per-question answer distribution; the same
   // buckets drive both the histogram and the "answers received" count (the
@@ -1130,13 +1134,16 @@ function RunningQuestion({
   const [buckets, setBuckets] = useState<DistributionBucket[]>([]);
   const [distributionStale, setDistributionStale] = useState(false);
   useEffect(() => {
+    setBuckets([]);
+    setDistributionStale(false);
+  }, [code, questionIdx]);
+  useEffect(() => {
     if (!isPresenter || !hostSub) return;
     let cancelled = false;
     // One read at a time: on a slow connection a read outlasting the 1.5 s
     // tick stacked up more, and an older answer landing last drew counts
     // that had already gone up.
     let inFlight = false;
-    setBuckets([]);
     const load = () => {
       if (inFlight) return;
       inFlight = true;
@@ -1145,6 +1152,9 @@ function RunningQuestion({
           if (!cancelled) {
             setBuckets(r.buckets);
             setDistributionStale(false);
+            // Reveal closes the question on the server. Retry the final count
+            // if needed, then stop once its result is in.
+            if (closedByTeacher) window.clearInterval(id);
           }
         })
         .catch(() => {
@@ -1154,13 +1164,13 @@ function RunningQuestion({
           inFlight = false;
         });
     };
-    load();
     const id = window.setInterval(load, 1500);
+    load();
     return () => {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [isPresenter, hostSub, code, questionIdx]);
+  }, [isPresenter, hostSub, code, questionIdx, closedByTeacher]);
   const answeredCount = useMemo(() => buckets.reduce((sum, b) => sum + b.count, 0), [buckets]);
   // The presenter is a participant row too but never answers — exclude them
   // from the denominator.
@@ -1196,10 +1206,6 @@ function RunningQuestion({
   // The server still takes an answer sent on the buzzer for a moment after
   // that; only then is the question closed for everyone.
   const answersClosed = !noLimit && startedMs !== null && serverNow >= startedMs + durationS * 1000 + ANSWER_GRACE_MS;
-  // "Reveal answer" closes a classroom question on the server (056): no
-  // answer to it lands any more, and the scoreboard counts it. The room says
-  // which question the teacher closed, so the next one opens again.
-  const closedByTeacher = mode === 'classroom' && match.revealed_idx === questionIdx;
   // The presenter's screen is often projected while pupils answer, so the
   // answer key stays hidden until the question is closed: its clock ran out
   // or the teacher revealed it (an untimed question waits for the button).
