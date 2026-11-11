@@ -991,17 +991,21 @@ async function heartbeat(req: VercelRequest, res: VercelResponse) {
     if (match.status !== 'running' && match.status !== 'lobby')
       return jsonError(res, 409, 'bad_state', 'Match is not active');
 
-    const { error } = await withTimeout(
+    const { data: touched, error } = await withTimeout(
       supabase!
         .from('matches')
         .update({ last_heartbeat_at: new Date().toISOString() })
-        .eq('id', match.id),
+        .eq('id', match.id)
+        .in('status', ['lobby', 'running'])
+        .select('id')
+        .maybeSingle(),
     );
 
     if (error) {
       logEvent('play/heartbeat', { status: 500, error: error.message });
       return jsonError(res, 500, 'db_error', 'Could not record heartbeat');
     }
+    if (!touched) return jsonError(res, 409, 'bad_state', 'Match is not active');
 
     return res.json({ ok: true });
   } catch (err) {

@@ -722,6 +722,22 @@ async function main() {
       assert.equal(accepted.body.advanced, false);
       assert.equal(tables.match_answers.filter((row) => row.match_id === room(code).id).length, 1);
     }
+    // A host heartbeat can race a committed Finish for the same room.
+    {
+      const code = await open('multiplayer', ['one'], 'four');
+      const row = room(code);
+      assert.equal((await call('four', 'POST', 'heartbeat', { code })).statusCode, 200);
+      const finishedAt = '2026-10-26T10:00:00.000Z';
+      beforeMatchPatch = () => {
+        row.status = 'finished';
+        row.ended_at = finishedAt;
+        row.last_heartbeat_at = finishedAt;
+      };
+      const closed = await call('four', 'POST', 'heartbeat', { code });
+      assert.equal(closed.statusCode, 409, 'a heartbeat cannot update a room already finished');
+      assert.equal(closed.body.error.code, 'bad_state');
+      assert.equal(row.last_heartbeat_at, finishedAt);
+    }
   } finally {
     server.close();
   }
