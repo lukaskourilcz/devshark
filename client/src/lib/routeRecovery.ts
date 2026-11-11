@@ -151,7 +151,8 @@ export function reloadPage(automatic: boolean, reload: () => void = browserRecov
  */
 export async function reloadOnPress(recovery: Recovery = browserRecovery): Promise<boolean> {
   if (!isOnline()) return false;
-  if ((await recovery.checkServedBuild()) === 'unreachable') return false;
+  const address = window.location.href;
+  if ((await recovery.checkServedBuild()) === 'unreachable' || window.location.href !== address) return false;
   return reloadPage(false, recovery.reload);
 }
 
@@ -168,9 +169,10 @@ export const RELOAD_GRACE_MS = 4000;
 /** A chunk failed while the server has a newer build: nothing in place can
  * bring back a file the deploy removed, so reload, on the automatic budget.
  * The answer is kept for the boundary, which would otherwise ask again. */
-async function reloadForNewerBuild(error: unknown, recovery: Recovery): Promise<boolean> {
-  if (!isChunkLoadError(error) || !isOnline()) return false;
+async function reloadForNewerBuild(error: unknown, recovery: Recovery, address: string): Promise<boolean> {
+  if (!isChunkLoadError(error) || !isOnline() || window.location.href !== address) return false;
   const check = await recovery.checkServedBuild();
+  if (window.location.href !== address) return false;
   if (error !== null && typeof error === 'object') buildChecks.set(error, check);
   return check === 'newer' && reloadPage(true, recovery.reload);
 }
@@ -189,21 +191,18 @@ export function takeBuildCheck(error: unknown): BuildCheck | undefined {
  * same error without calling its loader. So this renders whichever lazy
  * component is current, and a failed one is swapped for a fresh one when
  * `renewFailedPages()` says so (a boundary does, once the error is on screen).
- * The fresh component calls the loader again. `beforeFailing` runs before
- * React learns of a failure.
+ * The fresh component calls the loader again.
  *
  * `ComponentType<any>` is React.lazy's own bound; the props come back through
  * ComponentProps.
  */
 function renewableLazy<T extends ComponentType<any>>(
   load: () => Promise<{ default: T }>,
-  beforeFailing?: (error: unknown) => Promise<void>,
 ): ComponentType<ComponentProps<T>> {
   type P = ComponentProps<T>;
   let View: LazyExoticComponent<T>;
   const renew = () => {
-    View = lazy(() => load().catch(async (error: unknown) => {
-      await beforeFailing?.(error);
+    View = lazy(() => load().catch((error: unknown) => {
       // React learns of the failure now; from here on the part may be renewed.
       failedPages.add(renew);
       throw error;
@@ -226,10 +225,14 @@ function renewableLazy<T extends ComponentType<any>>(
  * in between.
  */
 export function lazyPage<T extends ComponentType<any>>(load: () => Promise<{ default: T }>, recovery: Recovery = browserRecovery): ComponentType<ComponentProps<T>> {
-  return renewableLazy(load, async (error) => {
-    if (await reloadForNewerBuild(error, recovery)) {
-      await new Promise((resolve) => window.setTimeout(resolve, RELOAD_GRACE_MS));
-    }
+  return renewableLazy(() => {
+    const address = window.location.href;
+    return load().catch(async (error: unknown) => {
+      if (await reloadForNewerBuild(error, recovery, address)) {
+        await new Promise((resolve) => window.setTimeout(resolve, RELOAD_GRACE_MS));
+      }
+      throw error;
+    });
   });
 }
 

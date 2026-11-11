@@ -106,6 +106,23 @@ describe('reloading', () => {
 });
 
 describe('reloading on a press', () => {
+  it('does not reload a successor page while an older retry checks the build', async () => {
+    let answer!: (value: BuildCheck) => void;
+    const recovery = { checkServedBuild: () => new Promise<BuildCheck>((resolve) => { answer = resolve; }), reload: vi.fn() };
+    const original = window.location.href;
+    try {
+      window.history.replaceState(null, '', '/coding');
+      const retry = reloadOnPress(recovery);
+      window.history.replaceState(null, '', '/quiz');
+      answer('same');
+      await expect(retry).resolves.toBe(false);
+      expect(recovery.reload).not.toHaveBeenCalled();
+      expect(window.sessionStorage.getItem(STAMP)).toBeNull();
+    } finally {
+      window.history.replaceState(null, '', original);
+    }
+  });
+
   it('reloads while the server answers, whatever the automatic guard says, and never offline', async () => {
     // An automatic reload a moment ago rations the automatic ones only.
     window.sessionStorage.setItem(STAMP, String(Date.now()));
@@ -206,6 +223,26 @@ describe('the route error boundary', () => {
     const outcome = outcomes.length > 1 ? outcomes.shift() : outcomes[0];
     if (outcome === 'fail') throw chunkError(name);
     return { default: () => <p>{`${name} page`}</p> };
+  });
+
+  it('ignores a lazy route failure that arrives after leaving that address', async () => {
+    let fail!: (error: Error) => void;
+    const load = vi.fn(() => new Promise<{ default: React.ComponentType }>((_, reject) => { fail = reject; }));
+    const recovery = fakeRecovery('newer');
+    const original = window.location.href;
+    try {
+      window.history.replaceState(null, '', '/coding');
+      await mount(recovery, { '/coding': lazyPage(load, recovery), '/quiz': () => <p>the quiz</p> }, '/coding');
+      expect(load).toHaveBeenCalledTimes(1);
+      window.history.replaceState(null, '', '/quiz');
+      await act(async () => fireEvent.click(screen.getByText('go /quiz')));
+      await act(async () => fail(chunkError('RetiredRoute')));
+      expect(await screen.findByText('the quiz')).toBeInTheDocument();
+      expect(recovery.checkServedBuild).not.toHaveBeenCalled();
+      expect(recovery.reload).not.toHaveBeenCalled();
+    } finally {
+      window.history.replaceState(null, '', original);
+    }
   });
 
   it('keeps the shell, says what happened and reports the failure once', async () => {
