@@ -10,6 +10,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import Today from '../src/components/Today';
 import Roadmap from '../src/components/Roadmap';
+import { loadLessonRunner } from '../src/components/learn/lessonParts';
 import RoadmapTree from '../src/components/RoadmapTree';
 import CareerRoadmap from '../src/components/CareerRoadmap';
 import {
@@ -493,6 +494,8 @@ describe('a level whose session cannot be used', () => {
         questions: [1, 2, 3].map((index) => ({ ...QUESTION, id: `lesson-${index}`, question: `Lesson question ${index}?` })),
       },
     });
+    // This case measures the two activations after the runner is ready.
+    await loadLessonRunner();
     await openLevelAndAnswer();
     const next = await screen.findByRole('button', { name: 'Continue' });
     act(() => {
