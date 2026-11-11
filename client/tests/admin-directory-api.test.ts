@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { VercelRequest, VercelResponse } from '../../lib/vercel-types';
 import { handleAdminUsers, handleAdminEmails } from '../../lib/admin-directory';
+import { handleAdminVouchers } from '../../lib/vouchers';
 
 const request = (method = 'GET', query: Record<string, unknown> = {}) => ({ method, query }) as VercelRequest;
 function response() {
@@ -56,5 +57,28 @@ describe('admin directory data boundary', () => {
       const wrong = response(); await handleAdminEmails(request('POST'), wrong as unknown as VercelResponse);
       expect(wrong.statusCode).toBe(405);
     } finally { vi.unstubAllEnvs(); }
+  });
+});
+
+describe('voucher cap updates', () => {
+  it('changes only the cap and refuses invalid, already-consumed or missing voucher limits', async () => {
+    let error: unknown = null;
+    const chain = { update: vi.fn(() => chain), eq: vi.fn(() => chain), select: vi.fn(() => chain),
+      maybeSingle: vi.fn(async () => ({ data: { id: 'voucher' }, error })) };
+    const db = { from: vi.fn(() => chain) } as unknown as SupabaseClient;
+    const req = (value: unknown) => ({ method: 'POST', body: { action: 'limit', voucherId: '11111111-1111-4111-8111-111111111111', maxRedemptions: value } }) as VercelRequest;
+    for (const value of [0, -1, 10001, 1.5, '200', null]) {
+      const res = response(); await handleAdminVouchers(req(value), res as unknown as VercelResponse, db);
+      expect(res.statusCode).toBe(400);
+    }
+    expect(chain.update).not.toHaveBeenCalled();
+    const res = response(); await handleAdminVouchers(req(200), res as unknown as VercelResponse, db);
+    expect(chain.update).toHaveBeenCalledWith({ max_redemptions: 200 });
+    expect(chain.select).toHaveBeenCalledWith('id');
+    expect(res.body).toEqual({ ok: true });
+    error = { code: '23514' };
+    const used = response(); await handleAdminVouchers(req(1), used as unknown as VercelResponse, db);
+    expect(used.statusCode).toBe(400);
+    expect(JSON.stringify(used.body)).toContain('already redeemed');
   });
 });

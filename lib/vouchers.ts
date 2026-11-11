@@ -249,6 +249,26 @@ export async function handleAdminVouchers(req: VercelRequest, res: VercelRespons
       return jsonError(res, 500, 'db_error', 'Could not create the voucher');
     }
 
+    if (body.action === 'limit') {
+      const voucherId = typeof body.voucherId === 'string' ? body.voucherId : '';
+      if (!VOUCHER_ID.test(voucherId)) return jsonError(res, 400, 'bad_request', 'voucherId is not a valid voucher id');
+      const maximum = body.maxRedemptions;
+      if (!Number.isInteger(maximum) || (maximum as number) < 1 || (maximum as number) > MAX_REDEMPTIONS) {
+        return jsonError(res, 400, 'bad_request', 'Maximum uses must be a whole number from 1 to 10,000');
+      }
+      // A single UPDATE holds the same row lock as redemption. The existing
+      // CHECK keeps the new cap at least redeemed_count, including a racing
+      // redemption; no count is reset and existing grants never change.
+      const changed = await withTimeout(supabase.from('premium_vouchers')
+        .update({ max_redemptions: maximum }).eq('id', voucherId).select('id').maybeSingle());
+      if (changed.error) return jsonError(res, changed.error.code === '23514' ? 400 : 503,
+        changed.error.code === '23514' ? 'invalid_limit' : 'voucher_unavailable',
+        changed.error.code === '23514' ? 'The limit cannot be lower than the number of accounts that already redeemed the voucher.' : 'The limit could not be saved. Try again.');
+      if (!changed.data) return jsonError(res, 404, 'not_found', 'No voucher with that id');
+      logEvent({ status: 200, kind: 'voucher_limit', by: adminActor(req), voucherId, maximum });
+      return res.json({ ok: true });
+    }
+
     if (body.action === 'revoke') {
       const voucherId = typeof body.voucherId === 'string' ? body.voucherId : '';
       if (!VOUCHER_ID.test(voucherId)) return jsonError(res, 400, 'bad_request', 'voucherId is not a valid voucher id');
@@ -263,7 +283,7 @@ export async function handleAdminVouchers(req: VercelRequest, res: VercelRespons
       return res.json({ voucher });
     }
 
-    return jsonError(res, 400, 'bad_request', "action must be 'create' or 'revoke'");
+    return jsonError(res, 400, 'bad_request', "action must be 'create', 'limit' or 'revoke'");
   }
 
   res.setHeader('Allow', 'GET, POST');
