@@ -401,8 +401,12 @@ export function AuthProvider({ children, recovery = browserRecovery }: {
     const client = await supabaseForSession();
     if (!client) {
       // supabase-js could not load (offline, a failed download).
-      if (scope === 'local' && hasStoredSession()) forgetSessionHere();
-      return;
+      if (scope === 'local') {
+        if (hasStoredSession()) forgetSessionHere();
+        return;
+      }
+      removeStored(CHOSEN);
+      throw new Error('Authentication service is unavailable');
     }
     const { error } = await client.auth.signOut({ scope });
     if (!error) return;
