@@ -470,6 +470,7 @@ function PlayRoom() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [scoreboard, setScoreboard] = useState<ScoreboardEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [readError, setReadError] = useState<string | null>(null);
   const [joining, setJoining] = useState(true);
   const [canReadRoom, setCanReadRoom] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
@@ -585,6 +586,7 @@ function PlayRoom() {
         setMatch(state.match);
         setParticipants(state.participants);
         setScoreboard(state.scoreboard);
+        setReadError(null);
         refreshFailures.current = 0;
         // A read that works again clears the "could not refresh" warning,
         // even while Realtime stayed connected throughout.
@@ -605,7 +607,7 @@ function PlayRoom() {
           setPlayOff(true);
           return;
         }
-        if (initial) setError(friendlyError(err));
+        if (initial) setReadError(friendlyError(err));
         refreshFailures.current += 1;
         setConnectionState(refreshFailures.current >= 3 ? 'stale' : 'polling');
       } finally {
@@ -834,19 +836,21 @@ function PlayRoom() {
     return <QuoteLoader quote={t('quiz.loadingQuote')} label={t('play.joining')} />;
   }
 
-  if (error && !match) {
+  const notice = error ?? readError;
+  if (notice && !match) {
     return (
       <div style={{ maxWidth: 'var(--ss-width-task)', margin: '0 auto', width: '100%' }}>
         <VStack gap={2}>
           {/* The page's heading, so a match that cannot open still has one. */}
           <PageHeader title={t('play.title')} />
-          <Banner status="error" title={error} />
+          <Banner status="error" title={notice} />
           <HStack gap={1} wrap="wrap">
             <Button
               variant="primary"
               label={t('error.tryAgain')}
               onClick={() => {
                 setError(null);
+                setReadError(null);
                 setJoining(true);
                 setCanReadRoom(false);
                 setJoinAttempt((n) => n + 1);
@@ -880,12 +884,12 @@ function PlayRoom() {
           <CodeBadge code={code} />
         </div>
 
-        {error && (
+        {notice && (
           <Banner
             status="warning"
-            title={error}
+            title={notice}
             isDismissable
-            onDismiss={() => setError(null)}
+            onDismiss={() => error ? setError(null) : setReadError(null)}
           />
         )}
 
