@@ -47,6 +47,24 @@ describe('the progress sync', () => {
     expect(reads.count).toBe(2);
   });
 
+  it('merges the first successful progress response with its wallet and inventory', async () => {
+    const balancesKey = 'devquiz:tokens:balance:v2';
+    const inventoryKey = 'devquiz:shop:inventory:v2';
+    server.use(http.get('*/api/quiz/roadmap', () => HttpResponse.json({
+      ...record,
+      extra: {
+        ...record.extra,
+        wallets: { webdev: { balance: 70 } },
+        inventories: { webdev: { owned: ['ring-gold'], ring: 'ring-gold' } },
+      },
+    })));
+    await syncProgressWithServer();
+    expect(JSON.parse(localStorage.getItem(balancesKey) ?? '{}')).toEqual({ webdev: 70 });
+    expect(JSON.parse(localStorage.getItem(inventoryKey) ?? '{}')).toEqual({
+      webdev: { owned: ['ring-gold'], ring: 'ring-gold', flair: null, doubleXp: 0 },
+    });
+  });
+
   it('reads again after a level completion, which changed the record', async () => {
     const reads = countProgressReads();
     server.use(http.post('*/api/quiz/roadmap', () => HttpResponse.json({ correctAnswers: 8, totalQuestions: 8, percentage: 100, passed: true, applied: true, codingPending: [], progress: record.data })));

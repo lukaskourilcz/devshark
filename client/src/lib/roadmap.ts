@@ -492,24 +492,11 @@ export function mergeProgress(a: RoadmapProgress, b: RoadmapProgress): RoadmapPr
 
 /** Shape of what tokens.ts + shop.ts contribute to the account-synced blob:
  *  one wallet + one inventory PER SUBJECT (platform), keyed by subject id. */
-export interface SyncedInventory {
+interface SyncedInventory {
   owned: string[];
   ring: string | null;
   flair: string | null;
   doubleXp: number;
-}
-export interface AccountExtras {
-  wallets: Record<string, { balance: number }>;
-  inventories: Record<string, SyncedInventory>;
-}
-
-// tokens.ts and shop.ts register their merge here, so this module hands
-// them the account's wallets and inventories without importing them (which
-// would create a cycle: shop -> roadmap -> shop).
-let onAccountExtrasReceived: ((extras: AccountExtras) => void) | null = null;
-
-export function registerAccountExtras(onReceive: (extras: AccountExtras) => void): void {
-  onAccountExtrasReceived = onReceive;
 }
 
 // On sign-in: pull the account's progress + per-subject wallets/inventories,
@@ -598,34 +585,37 @@ async function syncOnce(epoch: number): Promise<void> {
   const accountUnlocks = Array.from(new Set<RoadmapTopic>(serverUnlocked));
   if (accountUnlocks.length !== local.length || accountUnlocks.some((id) => !local.includes(id))) writeExtraUnlocks(accountUnlocks);
 
-  // Merge wallets + inventories via the registered receiver (tokens.ts + shop.ts).
-  if (onAccountExtrasReceived) {
-    const toInventory = (inv: ServerInventory | undefined): SyncedInventory => ({
-      owned: Array.isArray(inv?.owned) ? inv!.owned!.filter((x): x is string => typeof x === 'string') : [],
-      ring: typeof inv?.ring === 'string' ? inv.ring : null,
-      flair: typeof inv?.flair === 'string' ? inv.flair : null,
-      doubleXp: typeof inv?.doubleXp === 'number' ? inv.doubleXp : 0,
-    });
+  // Open the wallet and inventory modules after a successful account read.
+  // Keeping the merge in this request means a fast first response cannot
+  // arrive before a separate bootstrap registration.
+  const mergers = await Promise.all([import('./tokens'), import('./shop')]).catch(() => null);
+  if (!mergers || accountEpoch() !== epoch) return;
+  const toInventory = (inv: ServerInventory | undefined): SyncedInventory => ({
+    owned: Array.isArray(inv?.owned) ? inv!.owned!.filter((x): x is string => typeof x === 'string') : [],
+    ring: typeof inv?.ring === 'string' ? inv.ring : null,
+    flair: typeof inv?.flair === 'string' ? inv.flair : null,
+    doubleXp: typeof inv?.doubleXp === 'number' ? inv.doubleXp : 0,
+  });
 
-    const wallets: Record<string, { balance: number }> = {};
-    for (const [k, v] of Object.entries(serverExtras.wallets ?? {})) {
-      wallets[k] = { balance: typeof v?.balance === 'number' ? v.balance : 0 };
-    }
-    const inventories: Record<string, SyncedInventory> = {};
-    for (const [k, v] of Object.entries(serverExtras.inventories ?? {})) {
-      inventories[k] = toInventory(v);
-    }
-    // Legacy pre-split blob → attribute to the active subject.
-    const legacyBalance = typeof serverExtras.wallet?.balance === 'number' ? serverExtras.wallet.balance : 0;
-    if (Object.keys(wallets).length === 0 && legacyBalance > 0) {
-      wallets[getSubject()] = { balance: legacyBalance };
-    }
-    if (Object.keys(inventories).length === 0 && serverExtras.inventory) {
-      inventories[getSubject()] = toInventory(serverExtras.inventory);
-    }
-
-    onAccountExtrasReceived({ wallets, inventories });
+  const wallets: Record<string, { balance: number }> = {};
+  for (const [k, v] of Object.entries(serverExtras.wallets ?? {})) {
+    wallets[k] = { balance: typeof v?.balance === 'number' ? v.balance : 0 };
   }
+  const inventories: Record<string, SyncedInventory> = {};
+  for (const [k, v] of Object.entries(serverExtras.inventories ?? {})) {
+    inventories[k] = toInventory(v);
+  }
+  // Legacy pre-split blob → attribute to the active subject.
+  const legacyBalance = typeof serverExtras.wallet?.balance === 'number' ? serverExtras.wallet.balance : 0;
+  if (Object.keys(wallets).length === 0 && legacyBalance > 0) {
+    wallets[getSubject()] = { balance: legacyBalance };
+  }
+  if (Object.keys(inventories).length === 0 && serverExtras.inventory) {
+    inventories[getSubject()] = toInventory(serverExtras.inventory);
+  }
+  const [tokens, shop] = mergers;
+  tokens.mergeBalancesFromServer(wallets);
+  shop.mergeInventoriesFromServer(inventories);
   // Fresh from here on, unless a completion answered while the GET was out.
   lastSynced = { epoch, writes: writesBefore, at: Date.now(), copy: deviceCopy() };
   // No write follows: the server keeps progress, unlocks and extras itself.
