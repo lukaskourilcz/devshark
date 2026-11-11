@@ -72,6 +72,9 @@
   "overrides": {
     "satori": {
       "fflate": "0.7.5"
+    },
+    "@storybook/react-vite": {
+      "@joshwooding/vite-plugin-react-docgen-typescript": "0.9.1"
     }
   }
 }
