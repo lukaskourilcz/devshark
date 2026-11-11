@@ -122,13 +122,18 @@ export function pickQuestionOfTheDay(
 export async function handleQuestionOfTheDay(req: VercelRequest, res: VercelResponse) {
   if (!(await enforceClassRateLimit(req, res, RATE_LIMITS.quizSessionAddress, RATE_LIMITS.quizSession))) return;
   const raw = typeof req.query.qotd === 'string' ? req.query.qotd : '';
-  const today = utcToday();
+  const now = Date.now();
+  const today = utcToday(now);
   const date = raw === '' || raw === 'today' ? today : raw;
   if (!isIsoDate(date)) return jsonError(res, 400, 'bad_request', 'qotd must be a date as YYYY-MM-DD, or today');
 
   const availability = qotdAvailability(date, today);
   if (availability === 'not-yet') {
-    res.setHeader('Cache-Control', 'public, max-age=60');
+    // A response stored just before midnight must stop being fresh when the
+    // question opens. A longer public lifetime is still useful earlier.
+    const opensAt = Date.parse(`${date}T00:00:00Z`);
+    const seconds = Math.min(60, Math.floor((opensAt - now) / 1000));
+    res.setHeader('Cache-Control', `public, max-age=${seconds}`);
     return jsonError(res, 404, QOTD_NOT_YET, 'This question of the day is not out yet.');
   }
   if (availability === 'before-start') {

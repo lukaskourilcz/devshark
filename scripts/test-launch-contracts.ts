@@ -2280,6 +2280,25 @@ async function qotdContracts() {
   const future = mockResponse();
   await dailyHandler({ method: 'GET', headers: {}, query: { qotd: addDays(utcToday(), 1) } } as never, future as never);
   assert.equal(future.statusCode, 404, 'tomorrow is not readable today');
+  const realNow = Date.now;
+  const nextDate = addDays(utcToday(), 1);
+  const opensAt = Date.parse(`${nextDate}T00:00:00Z`);
+  try {
+    for (const [remainingMs, status, cache] of [
+      [61_000, 404, 'public, max-age=60'],
+      [9_000, 404, 'public, max-age=9'],
+      [100, 404, 'public, max-age=0'],
+      [0, 200, 'private, no-store'],
+    ] as const) {
+      Date.now = () => opensAt - remainingMs;
+      const response = mockResponse();
+      await dailyHandler(quizRequest('GET', { qotd: nextDate }), response as never);
+      assert.equal(response.statusCode, status);
+      assert.equal(response.headers.get('cache-control'), cache);
+    }
+  } finally {
+    Date.now = realNow;
+  }
   const garbage = mockResponse();
   await dailyHandler({ method: 'GET', headers: {}, query: { qotd: '2026-02-30' } } as never, garbage as never);
   assert.equal(garbage.statusCode, 400);
