@@ -484,6 +484,7 @@ function App() {
     const preserveStartupFocus = startupGuidePath.current !== null;
     // The visit's first location (React Router keys it 'default').
     const firstPage = location.key === 'default';
+    const previousFocus = document.activeElement;
     const timer = window.setTimeout(() => {
       // The public guide's native interaction owns focus during cold startup.
       // Once navigation leaves it, ordinary route focus resumes.
@@ -492,10 +493,14 @@ function App() {
       // renders in a transition and a level opens without a minimum loader
       // (perf baseline #587 C04, C05): a control the learner or the page has
       // focused by then keeps the focus, as it did when the page drew later.
-      if (firstPage && document.activeElement && document.activeElement !== document.body) return;
-      // A page that focused the target its hash names keeps that focus.
-      if (location.hash && document.activeElement?.id === location.hash.slice(1)) return;
+      const active = document.activeElement;
       const main = document.getElementById('main-content');
+      // A control the learner reached during navigation, or the destination
+      // focused as it mounted, owns focus even after the first page.
+      if (active && active !== document.body &&
+          (firstPage || active !== previousFocus || main?.contains(active))) return;
+      // A page that focused the target its hash names keeps that focus.
+      if (location.hash && active?.id === location.hash.slice(1)) return;
       // Silent focus: clear the skip-link flag first so this move never paints
       // the page-wide ring (see #main-content rules in app-shell.css).
       main?.removeAttribute('data-skip-target');

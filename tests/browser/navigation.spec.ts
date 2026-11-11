@@ -184,6 +184,25 @@ test('desktop: every section opens without a blank, a loader or a footer jump', 
   }
 });
 
+test('route focus preserves a keyboard control focused before the delayed handoff', async ({ page }) => {
+  await prepare(page, 1280);
+  await page.addInitScript(() => {
+    const schedule = window.setTimeout.bind(window);
+    // Hold only the shell's 230 ms focus handoff so this case does not depend
+    // on the time Chromium takes to load the destination.
+    window.setTimeout = (handler, delay, ...args) => schedule(handler, delay === 230 ? 5_000 : delay, ...args);
+  });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.locator('nav.ss-nav-center a[href="/quiz"]').press('Enter');
+  const topic = page.getByRole('button', { name: 'JavaScript', exact: true });
+  await topic.focus();
+  await expect(topic).toBeFocused();
+  // A page-side timer ensures the shell's earlier timer has fired.
+  await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 5_050)));
+  await expect(topic).toBeFocused();
+});
+
 test('phone: the drawer opens Coding without a blank or a loader', async ({ page }) => {
   const { holdChunks } = await prepare(page, 390);
   await page.goto('/');
