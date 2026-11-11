@@ -826,17 +826,13 @@ describe('a level on the shared question parts', () => {
     expect(swimCtas()).toHaveLength(0);
   });
 
-  it('keeps the hint line and every option in place on grading, marks the pick and the key in words, and puts the verdict under them', async () => {
+  it('keeps number shortcuts without a visible hint and places the verdict after the options', async () => {
     fireEvent.click(await openLevel(PLAYABLE, true));
-    const hint = screen.getByText('Press 1–2 to answer');
-    expect(hint).not.toHaveAttribute('data-hidden');
+    expect(screen.queryByText('Press 1–2 to answer')).not.toBeInTheDocument();
     const list = screen.getByRole('radiogroup');
-    fireEvent.click(screen.getByRole('radio', { name: /Option B/ }));
+    fireEvent.keyDown(document.getElementById('lesson-question')!, { key: '2' });
     const verdict = await screen.findByText('Incorrect');
-    // The hint keeps its line (hidden, not removed), so the answers above it
-    // and the verdict below it do not move.
-    expect(hint).toBeInTheDocument();
-    expect(hint).toHaveAttribute('data-hidden', 'true');
+    expect(screen.queryByText('Press 1–2 to answer')).not.toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Option A, Correct answer' })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Option B, Your pick' })).toBeInTheDocument();
     // In normal flow after the list, inside the same panel; never over it.
