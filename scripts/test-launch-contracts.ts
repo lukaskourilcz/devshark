@@ -3057,6 +3057,15 @@ async function dailySwitchContracts() {
   const on = mockResponse();
   await dailyHandler(quizRequest('GET', {}), on as never);
   assert.equal(on.statusCode, 200, JSON.stringify(on.body));
+
+  const invalid = mockResponse();
+  await dailyHandler(quizRequest('GET', { date: '2026-11-31' }), invalid as never);
+  assert.equal(invalid.statusCode, 400, 'November 31 cannot start a Daily attempt');
+  assert.equal((invalid.body as { error: { message: string } }).error.message, 'date must be YYYY-MM-DD');
+
+  const repeated = mockResponse();
+  await dailyHandler({ ...(quizRequest('GET', {}) as object), query: { date: [utcToday()] } } as never, repeated as never);
+  assert.equal(repeated.statusCode, 400, 'a date query must be a single string');
 }
 
 /** A signed-in learner has one ranked daily attempt, timed from the first

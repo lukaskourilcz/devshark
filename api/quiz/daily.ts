@@ -10,6 +10,7 @@ import { defaultDeploymentCategories, validateCategoryScope } from '../../lib/pr
 import { AuthError, requireFreshAuth } from '../../lib/auth';
 import { dailySeededShuffle, handleQuestionOfTheDay } from '../../lib/daily-question';
 import { deliveryCategories, type ScopeSubjectId } from '../../shared/subject-catalog';
+import { daysBetween, isIsoDate, utcToday } from '../../shared/daily-question';
 
 // Daily challenge: deterministic per-UTC-date selection (one question per
 // difficulty bucket). Same set for every user on the same day, so leaderboards
@@ -22,10 +23,6 @@ const supabase = createServiceClient();
 const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
 const localDailyStarts = new Map<string, number>();
 const DAILY_START_HASH = createHash('sha256').update('daily-start').digest('hex');
-
-function dateString(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 /** When a signed-in learner was first handed this day's challenge, and
  * whether they have already submitted it. A daily result's time runs from
@@ -94,9 +91,9 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     return jsonError(res, 503, 'feature_disabled', 'The daily challenge is switched off');
   }
   const dailyCount = settings.daily.count;
-  const today = dateString();
-  const dateParam = (req.query.date as string) || today;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+  const today = utcToday();
+  const dateParam = req.query.date || today;
+  if (!isIsoDate(dateParam)) {
     return jsonError(res, 400, 'bad_request', 'date must be YYYY-MM-DD');
   }
   if (isProduction && dateParam !== today) {
@@ -105,10 +102,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
 
   // Restrict the ?date= override to a small window around today so an
   // attacker can't enumerate every historical daily challenge in one pass.
-  const dayMs = 86_400_000;
-  const requestedTs = Date.parse(`${dateParam}T00:00:00Z`);
-  const todayTs = Date.parse(`${today}T00:00:00Z`);
-  if (!Number.isFinite(requestedTs) || Math.abs(requestedTs - todayTs) > 30 * dayMs) {
+  if (Math.abs(daysBetween(today, dateParam)) > 30) {
     return jsonError(res, 400, 'bad_request', 'date out of range');
   }
 
