@@ -1,3 +1,4 @@
+import { adminDirectoryContracts } from './test-admin-directory';
 // First: clears the environment the handlers below read when imported.
 import './launch-test-env';
 import { createCodingSession as encodeCodingSession } from '../lib/coding/session';
@@ -3764,6 +3765,7 @@ async function practiceRunTransitionContracts() {
 }
 
 async function main() {
+  await adminDirectoryContracts();
   await practiceRunTransitionContracts();
   codingBoardContracts();
   await codingFetchContracts();
