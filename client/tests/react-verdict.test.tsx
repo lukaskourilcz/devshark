@@ -1,5 +1,5 @@
 import { beforeAll, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { CodingWorkbench } from '../src/coding/CodingWorkbench';
@@ -40,7 +40,8 @@ it('keeps the workbench and server award after a pass', async () => {
   expect(screen.queryByText('local form event failed')).toBeNull();
   expect(screen.getByLabelText('Test editor')).toBeVisible();
   expect(screen.getByRole('tab',{name:/Results/})).toHaveAttribute('aria-selected','true');
-  expect(screen.getByRole('link',{name:'Back to the list'})).toHaveAttribute('href','/coding/react');
+  const verdict = screen.getByRole('heading', { name: /^Passed/ }).closest('section')!;
+  expect(within(verdict).getByRole('link', { name: 'Back to the list' })).toHaveAttribute('href', '/coding/react');
   expect(screen.queryByText(/Complexity/)).toBeNull();
 });
 it('shows only known complexity and the server award for an above-target pass', async () => {
