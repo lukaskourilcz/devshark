@@ -712,6 +712,16 @@ async function main() {
         assert.ok(!stored.includes(local), `${local} is not stored in a room`);
       }
     }
+    // Once an answer commits, a later progress count cannot undo its acknowledgement.
+    {
+      const code = await open('multiplayer', ['one'], 'four');
+      faults.push({ method: 'HEAD', path: '/rest/v1/match_answers', status: 200, body: [], delayMs: 5_500 });
+      const accepted = await call('one', 'POST', 'answer', { code, question_idx: 0, selected_idx: correctIndex(code, 0) });
+      assert.equal(accepted.statusCode, 200, 'a stored answer is acknowledged even if the follow-up count times out');
+      assert.equal(accepted.body.is_correct, true);
+      assert.equal(accepted.body.advanced, false);
+      assert.equal(tables.match_answers.filter((row) => row.match_id === room(code).id).length, 1);
+    }
   } finally {
     server.close();
   }
