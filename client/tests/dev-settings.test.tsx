@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import DevSettings from '../src/components/dev/DevSettings';
+import { queryClient as appQueryClient } from '../src/lib/queryClient';
 import { DEFAULT_COIN_SETTINGS, DEFAULT_MERCH_SETTINGS } from '../../shared/rewards';
 import { server } from './mocks/server';
 
@@ -69,6 +70,27 @@ describe('/dev → Settings', () => {
       expect(sent.coins).toEqual(SETTINGS.coins);
     });
   }
+
+  it('keeps edits made while an earlier settings save is still in flight', async () => {
+    let complete!: () => void;
+    server.use(
+      http.get('*/api/admin/settings', () => HttpResponse.json({ settings: SETTINGS })),
+      http.post('*/api/admin/settings', async ({ request }) => {
+        const body = await request.json();
+        return new Promise<Response>((resolve) => { complete = () => resolve(HttpResponse.json(body)); });
+      }),
+    );
+    appQueryClient.clear();
+    renderSettings(appQueryClient);
+    const tips = await screen.findByRole('textbox', { name: /Dev tips/ });
+    fireEvent.change(tips, { target: { value: 'First edit' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save settings' }));
+    await waitFor(() => expect(complete).toBeDefined());
+    fireEvent.change(tips, { target: { value: 'Second edit, still unsaved' } });
+    await act(async () => { complete(); });
+    await screen.findByText('Settings saved');
+    expect(screen.getByRole('textbox', { name: /Dev tips/ })).toHaveValue('Second edit, still unsaved');
+  });
 
   it('keeps unsaved edits when the settings are read again', async () => {
     server.use(http.get('*/api/admin/settings', () => HttpResponse.json({ settings: SETTINGS })));
