@@ -8,6 +8,10 @@ import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, NOIND
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
 const ROUTE_TITLE_KEYS: Record<string, TranslationKey> = {
+  '/admin': 'admin.title',
+  '/admin/users': 'admin.users',
+  '/admin/vouchers': 'admin.vouchers',
+  '/admin/emails': 'admin.emails',
   '/': 'title.home',
   '/quiz': 'title.quiz',
   '/learn': 'title.learn',

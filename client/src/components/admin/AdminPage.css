@@ -1,0 +1,32 @@
+.admin-shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100dvh;background:var(--color-background-default)}
+.admin-sidebar{position:sticky;top:0;height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;padding:28px 20px;border-right:1px solid var(--color-border);background:var(--ss-header-bg)}
+.admin-brand{display:flex;flex-direction:column;align-items:flex-start;gap:12px;color:var(--color-text-primary);text-decoration:none}
+.admin-brand>span{font-size:.75rem;color:var(--color-text-secondary)}
+.admin-sidebar nav{display:flex;flex-direction:column;gap:4px}
+.admin-sidebar nav a{display:flex;align-items:center;min-height:var(--ss-control-height);padding:0 14px;border-radius:var(--radius-inner);color:var(--color-text-secondary);text-decoration:none;font-weight:600}
+.admin-sidebar nav a[aria-current=page]{background:var(--color-background-surface);color:var(--color-text-primary);box-shadow:inset 3px 0 var(--brand-accent)}
+.admin-sidebar a:focus-visible,.admin-table-scroll:focus-visible,.admin-email-preview summary:focus-visible{outline:2px solid var(--ss-focus);outline-offset:3px}
+.admin-sidebar-footer{margin-top:auto;display:flex;flex-direction:column;align-items:flex-start;gap:8px;border-top:1px solid var(--color-border);padding-top:16px}
+.admin-sidebar-footer>a,.admin-external-link{display:inline-flex;align-items:center;min-height:var(--ss-control-height);color:var(--color-text-primary)}
+.admin-account{font-size:.75rem;overflow-wrap:anywhere;color:var(--color-text-secondary)}
+.admin-main{min-width:0;padding:32px clamp(16px,3vw,48px) 48px}
+.admin-section{display:flex;flex-direction:column;gap:20px}
+.admin-muted{color:var(--color-text-secondary);font-size:.8125rem}
+.admin-toolbar{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+.admin-toolbar>div:first-child{flex:1;min-width:min(100%,240px)}
+.admin-table-scroll{overflow-x:auto;border:1px solid var(--color-border);border-radius:var(--radius-container)}
+.admin-table{width:100%;border-collapse:collapse;font-size:.875rem;text-align:left;min-width:760px}
+.admin-table th,.admin-table td{padding:18px 16px;vertical-align:top;border-bottom:1px solid var(--color-border)}
+.admin-table thead th{font-size:.75rem;font-weight:600;background:var(--color-background-surface);color:var(--color-text-secondary)}
+.admin-table tbody th{font-weight:400}
+.admin-table td>span,.admin-table td>time,.admin-table th>span{display:block;margin-bottom:6px;overflow-wrap:anywhere}
+.admin-user-name{font-weight:600}.admin-user-id{font-family:monospace;font-size:.6875rem;color:var(--color-text-secondary)}
+.admin-plan[data-premium=true]{font-weight:600;color:var(--brand-accent)}
+.admin-user-vouchers{list-style:none;padding:0;margin:0;display:grid;gap:12px}.admin-user-vouchers li{display:grid;gap:4px;min-width:180px}
+.admin-pagination{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+.admin-email-settings{border-bottom:1px solid var(--color-border);padding-bottom:20px}.admin-email-settings h2{font-size:1.125rem}.admin-email-settings p{line-height:1.6}
+.admin-email-settings dl{display:grid;gap:12px}.admin-email-settings dl>div{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}.admin-email-settings dd{margin:0}
+.admin-email-list{display:grid;gap:12px}.admin-email-preview{border:1px solid var(--color-border);border-radius:var(--radius-inner)}
+.admin-email-preview summary{min-height:var(--ss-control-height);box-sizing:border-box;cursor:pointer;padding:14px 16px;font-weight:600}
+.admin-email-preview pre{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;font:inherit;padding:0 16px 16px}
+@media(max-width:900px){.admin-shell{display:block}.admin-sidebar{position:relative;height:auto;padding:16px;gap:16px;border-right:0;border-bottom:1px solid var(--color-border)}.admin-brand{flex-direction:row;align-items:center}.admin-sidebar nav{flex-direction:row;overflow-x:auto}.admin-sidebar nav a{flex:1;justify-content:center}.admin-sidebar-footer{margin:0;padding-top:12px;flex-direction:row;flex-wrap:wrap;align-items:center;gap:12px}.admin-account{flex-basis:100%}.admin-main{padding-top:24px}}
