@@ -446,6 +446,33 @@ describe('Save as Shark Card', () => {
     expect(await screen.findByRole('button', { name: 'Saved as Shark Card' })).toBeInTheDocument();
   });
 
+  it('keeps another card removed when a concurrent save fails', async () => {
+    signIn();
+    const { sent } = serveDeck([QUIZ_CARD]);
+    let release!: () => void;
+    server.use(http.post('*/api/flashcards', () => new Promise<Response>((resolve) => {
+      release = () => resolve(HttpResponse.json({ error: { code: 'db_error', message: 'Could not save card' } }, { status: 500 }));
+    })));
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(['flashcards', 'webdev'], [QUIZ_CARD]);
+    const alreadySaved = { id: QUIZ_CARD.question_id, question: QUIZ_CARD.question, category: 'react', options: ['useRef'] };
+    render(<QueryClientProvider client={client}><LanguageProvider>
+      <section aria-label="First card"><SaveSharkCard question={question} correctIndex={0} explanation="Why" /></section>
+      <section aria-label="Second card"><SaveSharkCard question={alreadySaved} correctIndex={0} explanation="Why" /></section>
+    </LanguageProvider></QueryClientProvider>);
+    const first = within(screen.getByRole('region', { name: 'First card' }));
+    const second = within(screen.getByRole('region', { name: 'Second card' }));
+    fireEvent.click(first.getByRole('button', { name: 'Save as a Shark Card' }));
+    await waitFor(() => expect(release).toBeDefined());
+    fireEvent.click(second.getByRole('button', { name: 'Saved as Shark Card' }));
+    await waitFor(() => expect(sent).toContainEqual({ method: 'DELETE', questionId: QUIZ_CARD.question_id }));
+    await waitFor(() => expect(second.getByRole('button', { name: 'Save as a Shark Card' })).toBeEnabled());
+    await act(async () => { release(); });
+    await first.findByRole('alert');
+    expect(second.getByRole('button', { name: 'Save as a Shark Card' })).toBeEnabled();
+    expect(client.getQueryData(['flashcards', 'webdev'])).toEqual([]);
+  });
+
   it('says so and stays unsaved when the save fails', async () => {
     signIn();
     serveDeck([]);
