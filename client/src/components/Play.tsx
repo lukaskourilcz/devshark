@@ -567,9 +567,10 @@ function PlayRoom() {
   useEffect(() => {
     if (!code || !user?.id || !playOn || !canReadRoom) return;
     const userId = user.id;
-    // Cleared on unmount or when the match changes, so a read still in
-    // flight for this match writes nothing afterwards.
-    let active = true;
+    // Cancel the room's reads when it closes or changes, including the
+    // fetch already in flight as well as any queued refresh.
+    const controller = new AbortController();
+    const { signal } = controller;
     let realtimeReady = false;
     let firstRead = true;
     handledRef.current = null;
@@ -578,8 +579,8 @@ function PlayRoom() {
       firstRead = false;
       try {
         const sentAt = Date.now();
-        const state = await fetchMatchState(code, userId);
-        if (!active) return;
+        const state = await fetchMatchState(code, userId, signal);
+        if (signal.aborted) return;
         noteServerClock(state.server_now, sentAt);
         const before = matchRef.current;
         matchRef.current = state.match;
@@ -599,7 +600,7 @@ function PlayRoom() {
           announce(state.match);
         }
       } catch (err) {
-        if (!active) return;
+        if (signal.aborted) return;
         // The state a broadcast named was not read: the next broadcast of it
         // reads again.
         handledRef.current = null;
@@ -611,7 +612,7 @@ function PlayRoom() {
         refreshFailures.current += 1;
         setConnectionState(refreshFailures.current >= 3 ? 'stale' : 'polling');
       } finally {
-        if (active && initial) setJoining(false);
+        if (!signal.aborted && initial) setJoining(false);
       }
     });
     readerRef.current = reader;
@@ -653,7 +654,7 @@ function PlayRoom() {
     void refresh();
 
     return () => {
-      active = false;
+      controller.abort();
       reader.cancel();
       answeredRead.cancel();
       if (readerRef.current === reader) readerRef.current = null;
