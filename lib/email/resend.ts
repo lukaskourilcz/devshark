@@ -16,7 +16,8 @@ export const DEFAULT_EMAIL_FROM = 'devShark <noreply@devshark.app>';
 export const DEFAULT_EMAIL_REPLY_TO = 'support@devshark.app';
 
 export type EmailConfig = { apiKey: string; from: string; replyTo: string };
-export type EmailMessage = { subject: string; text: string };
+/** A plain-text part always; an HTML part when the email came from an editable template. */
+export type EmailMessage = { subject: string; text: string; html?: string };
 
 const value = (env: Record<string, string | undefined>, key: string): string | undefined => {
   const raw = env[key]?.trim();
@@ -30,14 +31,15 @@ export function emailConfig(env: Record<string, string | undefined> = process.en
   return { apiKey, from: value(env, 'RESEND_FROM') ?? DEFAULT_EMAIL_FROM, replyTo: value(env, 'RESEND_REPLY_TO') ?? DEFAULT_EMAIL_REPLY_TO };
 }
 
-/** Sends one plain-text email. Never throws: a failure is logged without the address and answers false. */
+/** Sends one email. Never throws: a failure is logged without the address and answers false. */
 export async function sendEmail(config: EmailConfig | null, to: string, message: EmailMessage, fetchImpl: typeof fetch = fetch): Promise<boolean> {
   if (!config) return false;
   try {
     const response = await fetchImpl('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: config.from, to: [to], reply_to: config.replyTo, subject: message.subject, text: message.text }),
+      body: JSON.stringify({ from: config.from, to: [to], reply_to: config.replyTo, subject: message.subject, text: message.text,
+        ...(message.html ? { html: message.html } : {}) }),
       signal: AbortSignal.timeout(4000),
     });
     if (!response.ok) log({ level: 'warn', kind: 'email_failed', status: response.status });
