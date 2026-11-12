@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { AdminDisclosure } from '../admin/AdminDisclosure';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { TextArea } from '@astryxdesign/core/TextArea';
@@ -190,6 +191,11 @@ const toSettings = (f: FormState, base: GameSettings): GameSettings => ({
   },
 });
 
+/** Help that stays folded until asked for (admin UX review, 12 November 2026). */
+function Help({ children, summary = 'How this works' }: { children: React.ReactNode; summary?: string }) {
+  return <div style={{ width: '100%' }}><AdminDisclosure className="admin-disclosure-quiet" summary={summary}><p style={{ margin: 0, maxWidth: '68ch' }}>{children}</p></AdminDisclosure></div>;
+}
+
 export const captionStyle: React.CSSProperties = {
   fontSize: '0.75rem',
   color: 'var(--color-text-secondary)',
@@ -314,12 +320,9 @@ export default function DevSettings() {
 
   return (
     <div style={{ maxWidth: 720 }}>
-      <p style={{ ...captionStyle, marginTop: 0, marginBottom: 16 }}>
-        Values are validated and clamped server-side. Lists are comma-separated. Changes take effect within a few
-        seconds.
-      </p>
+      <Help>Values are validated and clamped on the server. Lists are comma-separated.</Help>
 
-      <Section title="Quiz">
+      <Section title="Quiz" collapsible defaultOpen>
         {num('quizDefaultCount', 'Default count')}
         {num('quizMaxCount', 'Max count')}
         <SelectField
@@ -356,9 +359,9 @@ export default function DevSettings() {
         />
       </Section>
 
-      <Section title="Daily challenge">{num('dailyCount', 'Question count')}</Section>
+      <Section title="Daily challenge" collapsible>{num('dailyCount', 'Question count')}</Section>
 
-      <Section title="Multiplayer / Play">
+      <Section title="Multiplayer / Play" collapsible>
         {num('playDefaultDurationS', 'Default time (s)')}
         {num('playMinQuestions', 'Min questions')}
         {num('playMaxQuestions', 'Max questions')}
@@ -379,18 +382,18 @@ export default function DevSettings() {
         />
       </Section>
 
-      <Section title="Features">
+      <Section title="Features" collapsible>
         <Switch label="Daily challenge" value={form.featDaily} onChange={(c) => set('featDaily', c)} />
         <Switch label="Multiplayer / Play" value={form.featMulti} onChange={(c) => set('featMulti', c)} />
         <Switch label="Leaderboard" value={form.featLeader} onChange={(c) => set('featLeader', c)} />
       </Section>
 
-      <Section title="Coins">
-        <span style={{ ...captionStyle, width: '100%', marginBottom: 4 }}>
+      <Section title="Coins" collapsible>
+        <Help>
           Coins buy the crown, streak protection and, for Premium members, merchandise. They never change access, XP,
           scores, streaks or ranks. The XP rate and the daily cap apply to every verified XP award; Premium multiplies
           the rate and the cap applies after that. Milestones pay Premium members once per account.
-        </span>
+        </Help>
         <TextInput label="XP rate (%)" value={form.coinsXpRatePct} onChange={(v) => set('coinsXpRatePct', v)} size="sm" style={{ width: 160 }} />
         {num('coinsPremiumMultiplier', 'Premium multiplier')}
         {num('coinsDailyCap', 'Daily cap from XP')}
@@ -414,17 +417,17 @@ export default function DevSettings() {
         />
         {num('coinsReferral', 'Invitation, coins to each side')}
         {num('coinsReferralCap', 'Friends paid per inviter')}
-        <span style={{ ...captionStyle, width: '100%', marginTop: 4 }}>
+        <Help summary="How invitations work">
           Invitations: when a friend signs up through a learner&apos;s link and finishes a first Learn level, both
           accounts get these coins once. The inviter is paid for at most the cap; past it the friend is still paid.
           A code binds only within 48 hours of sign-up. Set the coins to 0 to turn invitations off.
-        </span>
+        </Help>
       </Section>
 
-      <Section title="Career levels — total XP to reach each rank">
-        <span style={{ ...captionStyle, width: '100%', marginBottom: 4 }}>
+      <Section title="Career levels — total XP to reach each rank" collapsible>
+        <Help>
           Must be strictly increasing and start at 0; invalid values revert to the defaults on save.
-        </span>
+        </Help>
         {RANK_TITLES.map((title, i) => (
           <TextInput
             key={title}
@@ -439,10 +442,10 @@ export default function DevSettings() {
         ))}
       </Section>
 
-      <Section title="Shop — token prices">
-        <span style={{ ...captionStyle, width: '100%', marginBottom: 4 }}>
+      <Section title="Shop — token prices" collapsible>
+        <Help>
           Token cost of each cosmetic shop item. Shop purchases never affect learning access, XP, or scores. 0 makes an item free.
-        </span>
+        </Help>
         {Object.keys(base.shop.prices).map((id) => (
           <TextInput
             key={id}
@@ -455,11 +458,11 @@ export default function DevSettings() {
         ))}
       </Section>
 
-      <Section title="Loading-screen dev tips">
-        <span style={{ ...captionStyle, width: '100%', marginBottom: 4 }}>
+      <Section title="Loading-screen dev tips" collapsible>
+        <Help>
           One tip per line. A random tip fades in under the shark after ~2.5s on longer, full-page loads. Keep them short
           one-liners so they're readable at a glance. Leave empty to show no tip.
-        </span>
+        </Help>
         <TextArea
           label="Dev tips (one per line)"
           rows={4}
@@ -473,7 +476,7 @@ export default function DevSettings() {
         </span>
       </Section>
 
-      <Section title="Owner">
+      <Section title="Owner" collapsible>
         <TextInput
           label="Owner email (sees private categories)"
           value={form.ownerEmail}
@@ -499,7 +502,14 @@ export default function DevSettings() {
   );
 }
 
-export function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/** A settings group. `collapsible` folds it into a disclosure (admin UX review, 12 November 2026). */
+export function Section({ title, children, collapsible = false, defaultOpen = false }: { title: string; children: React.ReactNode; collapsible?: boolean; defaultOpen?: boolean }) {
+  if (collapsible) {
+    return <details className="dev-settings-group" open={defaultOpen || undefined}>
+      <summary><h2>{title}</h2></summary>
+      <div className="dev-settings-group__body">{children}</div>
+    </details>;
+  }
   return (
     <div
       style={{
