@@ -1,3 +1,5 @@
+import type { EmailDocument } from './email-document';
+import type { AuthSyncResult, AuthSyncStatus, EmailTemplateId, StoredEmailTemplate } from './email-templates';
 import type { EntitlementResponse } from './tiers';
 
 export interface AdminUserVoucher {
@@ -30,16 +32,22 @@ export interface AdminDirectory {
   voucherHistoryPartial: boolean;
 }
 
-export interface AdminEmailPreview {
-  id: string;
-  subject: string;
-  text: string;
+export interface AdminEmails {
+  /** RESEND_API_KEY is set, so application emails are handed to Resend. */
+  deliveryConfigured: boolean;
+  billingEnabled: boolean;
+  sender: string;
+  replyTo: string;
+  authTemplatesUrl: string | null;
+  templates: Record<EmailTemplateId, StoredEmailTemplate>;
+  authSync: AuthSyncStatus;
 }
 
-export interface AdminEmails {
-  billingEmailConfigured: boolean;
-  billingEnabled: boolean;
-  sender: string | null;
-  authTemplatesUrl: string | null;
-  previews: AdminEmailPreview[];
-}
+export type AdminEmailRequest =
+  | { action: 'save'; id: EmailTemplateId; subject: string; document: EmailDocument }
+  | { action: 'reset'; id: EmailTemplateId }
+  | { action: 'test'; id: EmailTemplateId; to: string };
+
+export type AdminEmailResponse =
+  | { template: StoredEmailTemplate; authSync: AuthSyncResult | null }
+  | { sent: true };
