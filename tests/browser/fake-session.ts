@@ -38,7 +38,8 @@ export function fakeSession(user: typeof fakeUser = fakeUser) {
 
 /** Puts the fake session where supabase-js looks, before the page's scripts run. */
 export async function storeFakeSession(page: Page, user: typeof fakeUser = fakeUser) {
-  await page.addInitScript(({ key, session }) => localStorage.setItem(key, JSON.stringify(session)), { key: sessionKey, session: fakeSession(user) });
+  // A sandboxed frame (the admin email preview) has no storage; the session belongs to the page only.
+  await page.addInitScript(({ key, session }) => { try { localStorage.setItem(key, JSON.stringify(session)); } catch { /* sandboxed frame */ } }, { key: sessionKey, session: fakeSession(user) });
 }
 
 /** Supabase Auth, answered locally: nothing leaves the machine. With `user`,
