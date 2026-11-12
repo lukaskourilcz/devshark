@@ -19,6 +19,7 @@
 import type Stripe from 'stripe';
 import { isRpcMissing, logEvent, withTimeout } from '../http';
 import type { BillingConfig } from './config';
+import { sendEmail as sendSharedEmail } from '../email/resend';
 import {
   allSubscriptionsOf,
   BillingMigrationError,
@@ -297,26 +298,9 @@ export function cancellationLinkEmail(action: CancelAction, token: string, recei
   };
 }
 
-async function sendEmail(
-  config: BillingConfig,
-  to: string,
-  message: { subject: string; text: string },
-  fetchImpl: typeof fetch,
-): Promise<boolean> {
-  if (!config.email) return false;
-  try {
-    const response = await fetchImpl('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${config.email.apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: config.email.from, to: [to], subject: message.subject, text: message.text }),
-      signal: AbortSignal.timeout(4000),
-    });
-    if (!response.ok) log({ level: 'warn', kind: 'email_failed', status: response.status });
-    return response.ok;
-  } catch {
-    log({ level: 'warn', kind: 'email_failed', status: 0 });
-    return false;
-  }
+/** Through the shared Resend sender (lib/email/resend.ts). */
+function sendEmail(config: BillingConfig, to: string, message: { subject: string; text: string }, fetchImpl: typeof fetch): Promise<boolean> {
+  return sendSharedEmail(config.email, to, message, fetchImpl);
 }
 
 export async function sendCancellationEmail(

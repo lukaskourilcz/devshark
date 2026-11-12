@@ -1469,7 +1469,7 @@ export async function runBillingSuite(db: Backend, lib: Lib): Promise<number> {
     }
     return realFetch(input, init);
   }) as typeof fetch;
-  const withResend = { RESEND_API_KEY: 're_test_contract', RESEND_FROM: 'devShark <billing@devshark.app>' };
+  const withResend = { RESEND_API_KEY: 're_test_contract', RESEND_FROM: 'devShark <noreply@devshark.app>' };
   const linkIn = (text: string) => /\/premium\/cancel#confirm=([A-Za-z0-9_-]{43})/.exec(text)?.[1] ?? null;
 
   await check('an anonymous request changes nothing and asks nothing of Stripe', async () => {
@@ -1863,10 +1863,13 @@ export async function runBillingSuite(db: Backend, lib: Lib): Promise<number> {
     assert.match(lib.cancellationEmail({ ...effect, withdrawn: true, refunded: true }, '2026-09-25T14:32:00.000Z', 'https://devshark.app').text, /refunded your payment in full/);
     const sent: Array<{ url: string; body: any }> = [];
     const fakeFetch = (async (url: string, init: { body: string }) => { sent.push({ url, body: JSON.parse(init.body) }); return { ok: true, status: 200 }; }) as never;
-    const config = lib.billingConfig({ ...BASE_ENV, RESEND_API_KEY: 're_test', RESEND_FROM: 'devShark <billing@devshark.app>' });
+    const config = lib.billingConfig({ ...BASE_ENV, RESEND_API_KEY: 're_test' });
     assert.equal(await lib.sendCancellationEmail(config, effect, '2026-09-25T14:32:00.000Z', fakeFetch), true);
     assert.equal(sent[0].url, 'https://api.resend.com/emails');
     assert.deepEqual(sent[0].body.to, ['payer@example.com']);
+    // The shared sender (lib/email/resend.ts): noreply@ sends, replies go to support@ (owner, 12 November 2026).
+    assert.equal(sent[0].body.from, 'devShark <noreply@devshark.app>');
+    assert.equal(sent[0].body.reply_to, 'support@devshark.app');
     assert.equal(await lib.sendCancellationEmail(lib.billingConfig({ ...BASE_ENV }), effect, '2026-09-25T14:32:00.000Z', fakeFetch), false, 'no key, no email');
     const link = lib.cancellationLinkEmail('withdraw', 'T'.repeat(43), '2026-09-25T14:32:00.000Z', 'https://devshark.app');
     assert.equal(link.subject, 'Confirm your devShark Premium withdrawal');

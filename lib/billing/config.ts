@@ -23,7 +23,8 @@
  *                                 the owner can try the launch Checkout on a
  *                                 Preview before 4 October. Ignored unless
  *                                 STRIPE_SECRET_KEY is a test-mode key.
- *   RESEND_API_KEY, RESEND_FROM   the emails of the public cancellation page:
+ *   RESEND_API_KEY, RESEND_FROM   the emails of the public cancellation page
+ *   (lib/email/resend.ts)         (sender noreply@devshark.app, replies to support@):
  *                                 its confirmation link and its receipt.
  *                                 Without them only a signed-in owner of the
  *                                 address can cancel there.
@@ -33,6 +34,7 @@
  * secret key: the portal, the webhook and the public cancellation page keep
  * working for people who already pay after the owner turns sales off. */
 
+import { emailConfig, type EmailConfig } from '../email/resend';
 import { activeLaunchCoupon, launchCouponId, LAUNCH_COUPON_ENV } from '../../shared/launch-offer';
 
 export const BILLING_PLANS = ['monthly', 'annual'] as const;
@@ -57,7 +59,7 @@ export interface BillingConfig {
   origin: string;
   /** The variables checkout still needs, for the operator's log. */
   missing: string[];
-  email: { apiKey: string; from: string } | null;
+  email: EmailConfig | null;
   /** The launch offer's coupon id (STRIPE_COUPON_LAUNCH), whether or not the
    * window is open; `launchCoupon(config, now)` says whether it applies. */
   launchCoupon: string | null;
@@ -109,7 +111,6 @@ export function billingConfig(env: Env = process.env): BillingConfig {
   // No default: Managed Payments needs Stripe's approval first, and plain
   // Stripe makes the owner the taxable person. The owner says which.
   if (managedRaw !== 'true' && managedRaw !== 'false') missing.push('STRIPE_MANAGED_PAYMENTS');
-  const resendKey = value(env, 'RESEND_API_KEY');
   return {
     checkoutEnabled: env.BILLING_ENABLED === 'true' && missing.length === 0,
     connected: Boolean(secretKey),
@@ -120,7 +121,7 @@ export function billingConfig(env: Env = process.env): BillingConfig {
     managedPayments: managedRaw === 'true',
     origin: parseOrigin(value(env, 'PUBLIC_ORIGIN')),
     missing,
-    email: resendKey ? { apiKey: resendKey, from: value(env, 'RESEND_FROM') ?? 'devShark <billing@devshark.app>' } : null,
+    email: emailConfig(env),
     launchCoupon: launchCouponId(env[LAUNCH_COUPON_ENV]),
     launchTestNow: testNow(env, secretKey),
   };
