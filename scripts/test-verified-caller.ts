@@ -716,8 +716,8 @@ async function main() {
     const directoryMethod = await admin('users', { method: 'POST' });
     assert.equal(directoryMethod.statusCode, 405, 'a verified admin cannot write through the directory');
     const emails = await admin('emails', { method: 'GET' });
-    assert.equal(emails.statusCode, 200, 'a verified admin can preview automatic emails');
-    assert.equal(emails.body.previews.length, 4);
+    assert.equal(emails.statusCode, 200, 'a verified admin can open the email editor');
+    assert.equal(Object.keys(emails.body.templates).length, 7, 'every editable template is listed');
     console.log('PASS verified caller: Users, Vouchers and Emails stay behind the admin gate');
     const question = { question: 'Which hook keeps state?', options: ['useState', 'useRef'], correctIndex: 0, category: 'react', tags: ['hooks'], difficulty: 2 };
     // A save the database is too slow to take is the database busy, which the
