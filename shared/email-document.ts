@@ -71,14 +71,15 @@ export function isEmailDocument(value: unknown): value is EmailDocument {
 }
 
 const VARIABLE = /\{([a-z_]+)\}/g;
+const has = (variables: Record<string, string>, key: string) => Object.prototype.hasOwnProperty.call(variables, key);
 
 /** Literal replacement: a value is never parsed again as formatting or HTML. */
 export function replaceEmailVariables(value: string, variables: Record<string, string>): string {
-  return value.replace(VARIABLE, (token, key: string) => (Object.hasOwn(variables, key) ? variables[key]! : token));
+  return value.replace(VARIABLE, (token, key: string) => (has(variables, key) ? variables[key]! : token));
 }
 
 export function escapeEmailHtml(value: string): string {
-  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
 const inlineText = (content: EmailInline[] = []) => content.map(n => (n.type === 'hardBreak' ? '\n' : n.text)).join('');
@@ -122,7 +123,7 @@ export function emailDocumentVariables(document: EmailDocument): string[] {
 export function emailDocumentHtml(document: EmailDocument, variables: Record<string, string>, style: { font: string; color: string }): string {
   const base = `font-family:${style.font};color:${style.color};`;
   function styled(value: string, marks: EmailMark[]): string {
-    let text = escapeEmailHtml(value).replaceAll('\n', '<br />');
+    let text = escapeEmailHtml(value).replace(/\n/g, '<br />');
     for (const mark of marks) {
       if (mark.type === 'bold') text = `<strong style="font-weight:bold">${text}</strong>`;
       if (mark.type === 'italic') text = `<em style="font-style:italic">${text}</em>`;
@@ -151,7 +152,7 @@ export function emailDocumentHtml(document: EmailDocument, variables: Record<str
       const run = runs[runIndex]!;
       const token = tokens[tokenIndex];
       if (token?.index === cursor) {
-        html += styled(Object.hasOwn(variables, token[1]!) ? variables[token[1]!]! : token[0], run.marks);
+        html += styled(has(variables, token[1]!) ? variables[token[1]!]! : token[0], run.marks);
         cursor += token[0].length;
         tokenIndex++;
       } else {
