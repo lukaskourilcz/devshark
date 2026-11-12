@@ -11,7 +11,7 @@
 .admin-toolbar{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
 .admin-toolbar>div:first-child{flex:1;min-width:min(100%,240px)}
 .admin-table-scroll{overflow-x:auto;border:1px solid var(--color-border);border-radius:var(--radius-container)}
-.admin-table{width:100%;border-collapse:collapse;font-size:.875rem;text-align:left;min-width:760px}
+.admin-table{width:100%;border-collapse:collapse;font-size:.875rem;text-align:left;min-width:560px}
 .admin-table th,.admin-table td{padding:18px 16px;vertical-align:top;border-bottom:1px solid var(--color-border)}
 .admin-table thead th{font-size:.75rem;font-weight:600;background:var(--color-background-surface);color:var(--color-text-secondary)}
 .admin-table tbody th{font-weight:400}
@@ -72,3 +72,5 @@
 .admin-disclosure.admin-disclosure-quiet{border:0}.admin-disclosure.admin-disclosure-quiet>summary{padding:0;min-height:36px;font-weight:500;color:var(--color-text-secondary)}.admin-disclosure.admin-disclosure-quiet>.admin-disclosure-body{padding:4px 0 8px 17px}
 @media(prefers-reduced-motion:reduce){.admin-disclosure>summary::before{transition:none}}
 @media(max-width:900px){.admin-shell{display:block}.admin-sidebar{position:sticky;top:0;z-index:20;height:auto;max-height:100dvh;padding:12px 16px;gap:12px;border-right:0;border-bottom:1px solid var(--color-border)}.admin-sidebar-top{flex-direction:row;align-items:center;justify-content:space-between}.admin-brand>span{display:none}.admin-menu-toggle{display:inline-flex;align-items:center;gap:8px;min-height:var(--ss-control-height);padding:0 14px;border:1px solid var(--color-border);border-radius:var(--radius-inner);background:transparent;color:var(--color-text-primary);font:inherit;font-weight:600;cursor:pointer}.admin-menu-current{font-weight:400;color:var(--color-text-secondary)}#admin-navigation:not([data-open=true]),.admin-sidebar-footer:not([data-open=true]){display:none}.admin-main{padding-top:24px}}
+.admin-facts{display:grid;gap:8px;margin:0}.admin-facts>div{display:grid;grid-template-columns:minmax(96px,auto) 1fr;gap:12px}.admin-facts dt{color:var(--color-text-secondary)}.admin-facts dd{margin:0;overflow-wrap:anywhere}
+.admin-table th .admin-disclosure{margin-top:4px}
