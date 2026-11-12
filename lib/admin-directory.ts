@@ -3,8 +3,11 @@ import type { VercelRequest, VercelResponse } from './vercel-types.js';
 import { isRpcMissing, jsonError, withTimeout } from './http';
 import { toEntitlementResponse } from './entitlements';
 import { billingConfig } from './billing/config';
-import { cancellationEmail, cancellationLinkEmail } from './billing/cancel';
-import type { AdminDirectory, AdminEmails, AdminUserVoucher } from '../shared/admin-directory';
+import { DEFAULT_EMAIL_FROM, DEFAULT_EMAIL_REPLY_TO, emailConfig, sendEmail } from './email/resend';
+import { authSyncStatus, isAuthTemplateId, loadAllEmailTemplates, loadEmailTemplate, resetEmailTemplate, saveEmailTemplate, syncAuthTemplate } from './email/templates';
+import { isEmailDocument } from '../shared/email-document';
+import { EMAIL_SAMPLE_VARIABLES, emailTemplateProblem, isEmailTemplateId, renderEmailTemplate, sampleEmailAction } from '../shared/email-templates';
+import type { AdminDirectory, AdminEmailResponse, AdminEmails, AdminUserVoucher } from '../shared/admin-directory';
 
 const PAGE_SIZE = 25;
 const HISTORY_LIMIT = 1000;
@@ -61,33 +64,72 @@ export async function handleAdminUsers(req: VercelRequest, res: VercelResponse, 
   return res.json(body);
 }
 
-/** Previews use the actual transactional email functions. This read-only
- * operation sends no email and returns no provider credentials or live links. */
+const EMAIL_ADDRESS = /^[^\s@<>",;]{1,64}@[^\s@<>",;]{1,255}\.[a-z]{2,}$/i;
+
+/**
+ * The email editor (owner, 12 November 2026, after the NAVIGYM administration). Called only after the
+ * route-level requireAdmin gate. GET lists every template with its delivery state; POST saves one,
+ * resets it to the code's wording, or sends it once with sample values to an address the admin types.
+ * No provider key, token or live link ever leaves this handler.
+ */
 export async function handleAdminEmails(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Cache-Control', 'private, no-store');
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', 'GET');
+  if (req.method === 'GET') {
+    const config = billingConfig();
+    let authTemplatesUrl: string | null = null;
+    try {
+      const host = new URL(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '').hostname;
+      const ref = host.match(/^([a-z0-9]+)\.supabase\.co$/)?.[1];
+      if (ref) authTemplatesUrl = 'https://supabase.com/dashboard/project/' + ref + '/auth/templates';
+    } catch { /* Custom/self-hosted deployments have no hosted dashboard link. */ }
+    const sending = emailConfig() ?? { from: DEFAULT_EMAIL_FROM, replyTo: DEFAULT_EMAIL_REPLY_TO };
+    const [templates, authSync] = await Promise.all([loadAllEmailTemplates(), authSyncStatus()]);
+    const body: AdminEmails = {
+      deliveryConfigured: config.email !== null, billingEnabled: config.checkoutEnabled,
+      sender: sending.from, replyTo: sending.replyTo, authTemplatesUrl, templates, authSync,
+    };
+    return res.json(body);
+  }
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'GET, POST');
     return jsonError(res, 405, 'method_not_allowed', 'Method not allowed');
   }
-  const config = billingConfig();
-  let authTemplatesUrl: string | null = null;
-  try {
-    const host = new URL(process.env.SUPABASE_URL ?? '').hostname;
-    const ref = host.match(/^([a-z0-9]+)\.supabase\.co$/)?.[1];
-    if (ref) authTemplatesUrl = 'https://supabase.com/dashboard/project/' + ref + '/auth/templates';
-  } catch { /* Custom/self-hosted deployments have no hosted dashboard link. */ }
-  const receivedAt = new Date().toISOString();
-  const effect = { subscriptionId: 'preview', customerEmail: null, withdrawn: false, refunded: false,
-    endsAt: new Date(Date.now() + 30 * 86400000).toISOString() };
-  const body: AdminEmails = {
-    billingEmailConfigured: config.email !== null, billingEnabled: config.checkoutEnabled,
-    sender: config.email?.from ?? null, authTemplatesUrl,
-    previews: [
-      { id: 'cancel-link', ...cancellationLinkEmail('cancel', 'PREVIEW-NOT-A-VALID-LINK', receivedAt, config.origin) },
-      { id: 'withdraw-link', ...cancellationLinkEmail('withdraw', 'PREVIEW-NOT-A-VALID-LINK', receivedAt, config.origin) },
-      { id: 'cancelled', ...cancellationEmail(effect, receivedAt, config.origin) },
-      { id: 'withdrawn', ...cancellationEmail({ ...effect, withdrawn: true, refunded: true }, receivedAt, config.origin) },
-    ],
-  };
-  return res.json(body);
+  const b = (req.body || {}) as Record<string, unknown>;
+  if (!isEmailTemplateId(b.id)) return jsonError(res, 400, 'bad_request', 'Unknown email template');
+  const id = b.id;
+  if (b.action === 'save') {
+    if (typeof b.subject !== 'string' || !isEmailDocument(b.document)) {
+      return jsonError(res, 400, 'bad_request', 'The email formatting is not valid or is too long.');
+    }
+    const template = { subject: b.subject.trim(), document: b.document };
+    const problem = emailTemplateProblem(id, template);
+    if (problem) return jsonError(res, 400, 'bad_request', problem);
+    let saved;
+    try { saved = await saveEmailTemplate(id, template); } catch {
+      return jsonError(res, 503, 'storage_unavailable', 'The template could not be saved. Try again.');
+    }
+    const body: AdminEmailResponse = { template: saved, authSync: isAuthTemplateId(id) ? await syncAuthTemplate(id, saved) : null };
+    return res.json(body);
+  }
+  if (b.action === 'reset') {
+    let saved;
+    try { saved = await resetEmailTemplate(id); } catch {
+      return jsonError(res, 503, 'storage_unavailable', 'The template could not be reset. Try again.');
+    }
+    const body: AdminEmailResponse = { template: saved, authSync: isAuthTemplateId(id) ? await syncAuthTemplate(id, saved) : null };
+    return res.json(body);
+  }
+  if (b.action === 'test') {
+    const to = typeof b.to === 'string' ? b.to.trim() : '';
+    if (!EMAIL_ADDRESS.test(to)) return jsonError(res, 400, 'bad_request', 'Enter one valid email address.');
+    const config = emailConfig();
+    if (!config) return jsonError(res, 503, 'not_configured', 'RESEND_API_KEY is not set, so no email can be sent.');
+    // The saved wording with clearly fictional values; an account email's button leads to a harmless page.
+    const rendered = renderEmailTemplate(await loadEmailTemplate(id), EMAIL_SAMPLE_VARIABLES, sampleEmailAction(id, billingConfig().origin));
+    const sent = await sendEmail(config, to, { ...rendered, subject: '[Test] ' + rendered.subject });
+    if (!sent) return jsonError(res, 502, 'email_failed', 'Resend did not accept the email. Check the domain and the key in Resend.');
+    const body: AdminEmailResponse = { sent: true };
+    return res.json(body);
+  }
+  return jsonError(res, 400, 'bad_request', 'Unknown action');
 }

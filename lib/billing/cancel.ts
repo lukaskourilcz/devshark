@@ -19,6 +19,9 @@
 import type Stripe from 'stripe';
 import { isRpcMissing, logEvent, withTimeout } from '../http';
 import type { BillingConfig } from './config';
+import { sendEmail as sendSharedEmail } from '../email/resend';
+import { renderStoredEmail } from '../email/templates';
+import { fallbackEmailTemplate, renderEmailTemplate, type EmailTemplateId } from '../../shared/email-templates';
 import {
   allSubscriptionsOf,
   BillingMigrationError,
@@ -256,67 +259,44 @@ const longDate = (iso: string) =>
 const longTime = (iso: string) =>
   new Intl.DateTimeFormat('en-GB', { dateStyle: 'long', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(iso));
 
-/** The receipt for one effect. Exported for the tests. */
-export function cancellationEmail(effect: CancelEffect, receivedAt: string, origin: string): { subject: string; text: string } {
+/** Which template one effect's receipt uses, with its variables. */
+function receipt(effect: CancelEffect, receivedAt: string, origin: string): { id: EmailTemplateId; variables: Record<string, string> } {
   if (effect.withdrawn) {
-    return {
-      subject: 'Your devShark Premium withdrawal',
-      text: [
-        `We received your withdrawal on ${longTime(receivedAt)} UTC.`,
-        effect.refunded
-          ? 'Your subscription ended at once and we refunded your payment in full. Your bank may take 5 to 10 days to show it.'
-          : 'Your subscription ended at once. You were not charged.',
-        'Everything you passed stays in your account on the free plan.',
-      ].join('\n\n'),
-    };
+    return { id: 'withdrawn', variables: { received_at: longTime(receivedAt), refund_note: effect.refunded
+      ? 'Your subscription ended at once and we refunded your payment in full. Your bank may take 5 to 10 days to show it.'
+      : 'Your subscription ended at once. You were not charged.' } };
   }
-  return {
-    subject: 'Your devShark Premium cancellation',
-    text: [
-      `We received your cancellation on ${longTime(receivedAt)} UTC.`,
-      effect.endsAt
-        ? `Premium stays open until ${longDate(effect.endsAt)}. You will not be charged again.`
-        : 'Premium stays open until the end of the period you paid for. You will not be charged again.',
-      `Changed your mind? Open Manage billing on your profile before that date: ${origin}/profile`,
-    ].join('\n\n'),
-  };
+  return { id: 'cancelled', variables: { received_at: longTime(receivedAt), profile_url: `${origin}/profile`,
+    ends_at: effect.endsAt ? longDate(effect.endsAt) : 'the end of the period you paid for' } };
 }
 
 /** The link that confirms a request made on the page. The token sits after
- * `#`, so it never reaches a server log or a Referer header. Exported for the
- * tests. */
-export function cancellationLinkEmail(action: CancelAction, token: string, receivedAt: string, origin: string): { subject: string; text: string } {
-  const what = action === 'withdraw' ? 'withdraw from' : 'cancel';
-  return {
-    subject: action === 'withdraw' ? 'Confirm your devShark Premium withdrawal' : 'Confirm your devShark Premium cancellation',
-    text: [
-      `On ${longTime(receivedAt)} UTC someone asked on devshark.app to ${what} the devShark Premium subscription of this email address.`,
-      `If it was you, open this link within ${CANCEL_LINK_MINUTES} minutes and confirm: ${origin}/premium/cancel#confirm=${token}`,
-      'Nothing changes until you confirm. If it was not you, or no devShark Premium subscription uses this address, ignore this email.',
-    ].join('\n\n'),
-  };
+ * `#`, so it never reaches a server log or a Referer header. */
+function confirmation(action: CancelAction, token: string, receivedAt: string, origin: string): { id: EmailTemplateId; variables: Record<string, string> } {
+  return { id: action === 'withdraw' ? 'withdraw_link' : 'cancel_link', variables: {
+    received_at: longTime(receivedAt), minutes: String(CANCEL_LINK_MINUTES), link: `${origin}/premium/cancel#confirm=${token}` } };
 }
 
-async function sendEmail(
-  config: BillingConfig,
-  to: string,
-  message: { subject: string; text: string },
-  fetchImpl: typeof fetch,
-): Promise<boolean> {
+const fallback = ({ id, variables }: { id: EmailTemplateId; variables: Record<string, string> }) => {
+  const { subject, text } = renderEmailTemplate(fallbackEmailTemplate(id), variables);
+  return { subject, text };
+};
+
+/** The receipt for one effect in the code's own wording (the template fallback). Exported for the tests. */
+export function cancellationEmail(effect: CancelEffect, receivedAt: string, origin: string): { subject: string; text: string } {
+  return fallback(receipt(effect, receivedAt, origin));
+}
+
+/** The confirmation link email in the code's own wording. Exported for the tests. */
+export function cancellationLinkEmail(action: CancelAction, token: string, receivedAt: string, origin: string): { subject: string; text: string } {
+  return fallback(confirmation(action, token, receivedAt, origin));
+}
+
+/** Through the shared Resend sender (lib/email/resend.ts). */
+async function sendEmail(config: BillingConfig, to: string, email: { id: EmailTemplateId; variables: Record<string, string> }, fetchImpl: typeof fetch): Promise<boolean> {
   if (!config.email) return false;
-  try {
-    const response = await fetchImpl('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${config.email.apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: config.email.from, to: [to], subject: message.subject, text: message.text }),
-      signal: AbortSignal.timeout(4000),
-    });
-    if (!response.ok) log({ level: 'warn', kind: 'email_failed', status: response.status });
-    return response.ok;
-  } catch {
-    log({ level: 'warn', kind: 'email_failed', status: 0 });
-    return false;
-  }
+  // The administration's saved wording (lib/email/templates.ts), or the code's when none is saved.
+  return sendSharedEmail(config.email, to, await renderStoredEmail(email.id, email.variables), fetchImpl);
 }
 
 export async function sendCancellationEmail(
@@ -326,7 +306,7 @@ export async function sendCancellationEmail(
   fetchImpl: typeof fetch = fetch,
 ): Promise<boolean> {
   if (!effect.customerEmail) return false;
-  return sendEmail(config, effect.customerEmail, cancellationEmail(effect, receivedAt, config.origin), fetchImpl);
+  return sendEmail(config, effect.customerEmail, receipt(effect, receivedAt, config.origin), fetchImpl);
 }
 
 export async function sendCancellationLinkEmail(
@@ -337,5 +317,5 @@ export async function sendCancellationLinkEmail(
   receivedAt: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<boolean> {
-  return sendEmail(config, to, cancellationLinkEmail(action, token, receivedAt, config.origin), fetchImpl);
+  return sendEmail(config, to, confirmation(action, token, receivedAt, config.origin), fetchImpl);
 }
