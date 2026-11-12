@@ -5,7 +5,7 @@ devShark (devshark.app) is a learning platform for web developers: guided lesson
 This system covers **social carousels for Instagram and Threads** (1080 × 1350) in the “Deep End v2” identity of the product: ocean ink, tactile paper, editorial type, one disciplined accent, the waterline mark, restrained fins.
 
 ## Sources
-- Product repository: github.com/lukaskourilcz/react-express-app (main). Tokens from `client/src/styles/astryx-theme.css`; brand rules from `docs/brand/brand-guidelines.md` (V9 kit); behavioural rules from `DESIGN_RULES.md`; code theme from `client/src/components/CodeBlock.tsx` (Prism One Dark); tech logos from `client/src/components/ui/techIcons.tsx` (devicon).
+- Product repository: github.com/lukaskourilcz/devshark (main). Tokens from `client/src/styles/astryx-theme.css`; brand rules from `docs/brand/brand-guidelines.md` (V9 kit); behavioural rules from `DESIGN_RULES.md`; code theme from `client/src/components/CodeBlock.tsx` (Prism One Dark); tech logos from `client/src/components/ui/techIcons.tsx` (devicon).
 - Brand marks: the V9 kit (`client/public/brand/v9/recommended/`) — copied into `assets/`.
 - The finished design: `Direction B - Mixed colours.dc.html` (two carousels: the Premium launch offer and a full run). When the prices or the offer end date change, take the new values from `PREMIUM_PRICE` in `shared/tiers.ts` and from `shared/launch-offer.ts` in the product repository.
 

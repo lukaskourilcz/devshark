@@ -38,7 +38,7 @@ Title: `[Epic <letter>] <outcome in one line>`.
 <One paragraph: what the epic delivers and the owner decision behind it, with the date.>
 
 ## Specification
-[<Plan name>](https://github.com/lukaskourilcz/react-express-app/blob/main/docs/<plan>.md), sections <n> and the Epic <letter> table in section <m>; decisions <D-ids> in section <k>.
+[<Plan name>](https://github.com/lukaskourilcz/devshark/blob/main/docs/<plan>.md), sections <n> and the Epic <letter> table in section <m>; decisions <D-ids> in section <k>.
 
 ## <Order | Conventions | Rules that hold for every child issue>
 <Order: the arrows from the plan's blocker table, for example "A1 → A2 → A3 and A4 → A5".>
@@ -74,7 +74,7 @@ Files: <files> · Review reference: <page> <number>
 
 ## Source
 
-Review page: [<page file>](https://github.com/lukaskourilcz/react-express-app/blob/main/<path>), <reference>.
+Review page: [<page file>](https://github.com/lukaskourilcz/devshark/blob/main/<path>), <reference>.
 ```
 
 ## Closeout comment on an issue
