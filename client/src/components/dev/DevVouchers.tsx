@@ -22,6 +22,7 @@ import type { TranslationKey } from '../../i18n/translations';
 import { createVoucher, listVouchers, revokeVoucher, updateVoucherLimit, type VoucherInput } from '../../lib/devApi';
 import { normalizeVoucherCode, type AdminVoucher, type CreatedVoucher } from '../../../../shared/vouchers';
 import { Section, captionStyle } from './DevSettings';
+import { AdminDisclosure } from '../admin/AdminDisclosure';
 
 const VOUCHERS_KEY = ['admin', 'vouchers'] as const;
 const DAY_CHOICES = [
@@ -75,12 +76,16 @@ export default function DevVouchers() {
   const { t } = useLanguage();
   const [toast, setToast] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedVoucher | null>(null);
+  // The list is what an admin checks; the form opens on demand (admin UX review, 12 November 2026).
+  const [creating, setCreating] = useState(false);
   return (
     <div style={{ maxWidth: 960 }}>
-      <p style={{ ...captionStyle, marginTop: 0, marginBottom: 16, maxWidth: '68ch' }}>{t('dev.vouchers.intro')}</p>
-      <CreateVoucher onCreated={setCreated} />
       {created && <CreatedCode created={created} onDone={() => setCreated(null)} />}
+      {creating
+        ? <CreateVoucher onCreated={value => { setCreated(value); setCreating(false); }} onCancel={() => setCreating(false)} />
+        : <div className="dev-voucher-actions"><Button variant="primary" label={t('dev.vouchers.createTitle')} onClick={() => setCreating(true)} /></div>}
       <VoucherList onMessage={setToast} />
+      <AdminDisclosure summary={t('dev.vouchers.howStored')}><p style={{ margin: 0, maxWidth: '68ch' }}>{t('dev.vouchers.intro')}</p></AdminDisclosure>
       <AppToast open={!!toast} onClose={() => setToast(null)} message={toast ?? ''} severity="info" autoHideDuration={3500} />
     </div>
   );
@@ -88,7 +93,7 @@ export default function DevVouchers() {
 
 /* ── a new voucher ─────────────────────────────────────────────────────── */
 
-function CreateVoucher({ onCreated }: { onCreated: (created: CreatedVoucher) => void }) {
+function CreateVoucher({ onCreated, onCancel }: { onCreated: (created: CreatedVoucher) => void; onCancel: () => void }) {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [note, setNote] = useState('');
@@ -211,8 +216,9 @@ function CreateVoucher({ onCreated }: { onCreated: (created: CreatedVoucher) => 
           />
         </div>
         {failure && <Banner status="error" title={failure} />}
-        <div>
+        <div className="dev-voucher-actions">
           <Button type="submit" variant="primary" label={t('dev.vouchers.create')} isLoading={busy} isDisabled={busy} />
+          <Button variant="secondary" label={t('dev.vouchers.cancel')} onClick={onCancel} isDisabled={busy} />
         </div>
       </form>
     </Section>
@@ -328,7 +334,7 @@ function VoucherList({ onMessage }: { onMessage: (message: string) => void }) {
                 <span className="dev-voucher-note">{voucher.note}</span>
               </div>
               <VoucherFacts voucher={voucher} />
-              {voucher.active && <VoucherLimit voucher={voucher} />}
+              {voucher.active && <AdminDisclosure className="admin-disclosure-quiet" summary={t('admin.vouchers.changeLimit')}><VoucherLimit voucher={voucher} /></AdminDisclosure>}
               {voucher.state !== 'revoked' && (confirming === voucher.id ? (
                 <div className="dev-voucher-confirm" role="group" aria-label={t('dev.vouchers.revoke')}>
                   <p>{t('dev.vouchers.revokeConfirm', { hint: voucher.hint })}</p>

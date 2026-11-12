@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
+import { AdminDisclosure } from '../admin/AdminDisclosure';
 import { Table, TableHeader, TableBody, TableRow, TableCell, TableHeaderCell } from '@astryxdesign/core/Table';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { Button } from '@astryxdesign/core/Button';
@@ -498,19 +499,11 @@ export default function DevQuestions() {
         <Badge variant="neutral" label={`${filtered.length} shown`} />
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          gap: 8,
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          marginBottom: 16,
-          padding: 8,
-          border: '1px dashed var(--color-border)',
-          borderRadius: 'var(--radius-element)',
-        }}
-      >
-        <span style={{ ...captionStyle, fontWeight: 600 }}>Bulk cleanup:</span>
+      {/* A destructive bulk action is never the first thing on the page (admin UX review, 12 November 2026). */}
+      <div style={{ marginBottom: 16 }}>
+        <AdminDisclosure summary={`Bulk cleanup (${stats.filler} filler)`}>
+          <p style={{ ...captionStyle, margin: 0 }}>Permanently removes every question at or below the score; learning paths re-level automatically.</p>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
         <SelectField
           label="Hide score ≤"
           value={String(bulkThreshold)}
@@ -529,7 +522,8 @@ export default function DevQuestions() {
           label={`Delete ${bulkHideCount} filler${bulkHideCount === 1 ? '' : 's'}`}
           onClick={handleBulkHide}
         />
-        <span style={captionStyle}>Permanently removes them; learning paths re-level automatically.</span>
+          </div>
+        </AdminDisclosure>
       </div>
 
       {selected.size > 0 && (

@@ -19,13 +19,16 @@ const REVOKED = {
 
 function renderConsole() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
-  return render(
+  const view = render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={['/dev?section=vouchers']}>
+      <MemoryRouter initialEntries={['/admin/vouchers']}>
         <LanguageProvider><DevVouchers /></LanguageProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   );
+  // The list comes first; "New voucher" opens the form (admin UX review, 12 November 2026).
+  fireEvent.click(screen.getByRole('button', { name: 'New voucher' }));
+  return view;
 }
 
 afterEach(() => { vi.unstubAllGlobals(); });
@@ -53,7 +56,7 @@ describe('the voucher form', () => {
   });
 });
 
-describe('/dev → Vouchers', () => {
+describe('/admin/vouchers', () => {
   it('lists each voucher by its hint, with uses, length, dates and state in words', async () => {
     server.use(http.get('*/api/admin/vouchers', () => HttpResponse.json({ vouchers: [OPEN, REVOKED] })));
     renderConsole();
@@ -118,8 +121,9 @@ describe('/dev → Vouchers', () => {
     expect(await screen.findByText('ABCD…')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Done' }));
     expect(screen.queryByDisplayValue('ABCD-EFGH-JKMN')).toBeNull();
-    // The form is ready for the next one.
-    expect(screen.getByRole('textbox', { name: /^Note/ })).toHaveValue('');
+    // The form closed with the code shown; the next voucher starts from the button.
+    expect(screen.queryByRole('textbox', { name: /^Note/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'New voucher' })).toBeInTheDocument();
   });
 
   it('creates one voucher however fast the form is sent twice', async () => {

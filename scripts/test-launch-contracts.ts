@@ -1236,7 +1236,7 @@ function publicCopyContracts() {
   for (const page of PUBLIC_PAGES) {
     assert.ok(rewrites.some((rule) => rule.source === page.path && rule.destination === `${page.path}/index.html`), `${page.path} serves its static HTML`);
   }
-  assert.deepEqual([...NOINDEX_PATHS], ['/admin', '/admin/users', '/admin/vouchers', '/admin/emails', '/premium/success', '/premium/checkout', '/auth/confirmed', '/reset-password']);
+  assert.deepEqual([...NOINDEX_PATHS], ['/admin', '/admin/users', '/admin/vouchers', '/admin/emails', '/admin/questions', '/admin/triage', '/admin/quality', '/admin/paths', '/admin/flags', '/admin/settings', '/admin/logs', '/admin/merch', '/premium/success', '/premium/checkout', '/auth/confirmed', '/reset-password']);
   // The pages the confirmation and reset emails open are client routes (no
   // handler of their own), and the catch-all rewrite serves them the app.
   const catchAll = rewrites.find((rule) => rule.destination === '/index.html');

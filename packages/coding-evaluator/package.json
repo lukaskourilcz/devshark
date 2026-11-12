@@ -30,10 +30,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lukaskourilcz/react-express-app.git",
+    "url": "https://github.com/lukaskourilcz/devshark.git",
     "directory": "packages/coding-evaluator"
   },
-  "homepage": "https://github.com/lukaskourilcz/react-express-app/tree/main/packages/coding-evaluator#readme",
+  "homepage": "https://github.com/lukaskourilcz/devshark/tree/main/packages/coding-evaluator#readme",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   }

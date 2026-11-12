@@ -20,7 +20,6 @@
     { "rule": "small-button", "file": "client/src/components/coding/GithubGardenCard.tsx", "match": "t('quiz.retry')", "reason": "A Retry inside the GitHub load-failure banner: an in-row utility." },
     { "rule": "small-button", "file": "client/src/coding/CodingWorkbench.tsx", "match": "t('coding.preview.reload')", "reason": "A Reload inside the preview's timeout note: an in-row utility, like a Retry in a banner." },
 
-    { "rule": "small-button", "file": "client/src/components/dev/DevConsole.tsx", "reason": "/dev is the high-density admin console (DESIGN_RULES.md §10, design skill: '/dev high density')." },
     { "rule": "small-button", "file": "client/src/components/dev/DevLogs.tsx", "reason": "/dev is the high-density admin console." },
     { "rule": "small-button", "file": "client/src/components/dev/DevMerch.tsx", "reason": "/dev is the high-density admin console." },
     { "rule": "small-button", "file": "client/src/components/dev/DevQuality.tsx", "reason": "/dev is the high-density admin console." },

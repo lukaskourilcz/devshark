@@ -1486,7 +1486,7 @@ Premium opens through a manual grant or a voucher.
   of `entitlement_grants`: `provider` (a Stripe subscription), `manual` (an
   admin's grant) and `promo`, which a voucher opens. While billing is off, a
   voucher is how a learner gets Premium.
-  - *Creating.* The owner works in `/dev` → Vouchers (`op=vouchers` in
+  - *Creating.* The owner works in Administration (`/admin`) → Vouchers (`op=vouchers` in
     `api/admin/[op].ts`, behind `requireAdmin`): a note, Premium for a number
     of days counted from the redemption or with no end, how many accounts may
     redeem it (one by default), an optional last day, and an optional custom
@@ -1696,7 +1696,7 @@ Do not rename the schema. The browser keeps no coin balance of its own; old
 
 - **Rules.** `shared/rewards.ts` holds the defaults (`DEFAULT_COIN_SETTINGS`)
   and the game settings mirror them as `coins`, clamped on read, so the owner
-  tunes them in `/dev` → Settings → Coins without a deploy. Every account
+  tunes them in Administration (`/admin`) → Settings → Coins without a deploy. Every account
   earns 10 % of verified XP; Premium doubles it at credit time; one account
   earns at most 400 coins a day from XP, counted after the doubling (4,000 XP
   a day on Free, 2,000 on Premium). The welcome grant is 200. Premium
@@ -1778,7 +1778,7 @@ Do not rename the schema. The browser keeps no coin balance of its own; old
   first Learn pass and the wallet read settle it. The routine writes the
   ledger and the referral row and nothing else. `op=referral` GET returns the
   code and counts only; `referrals` has no browser policy. A grant of 0 in
-  `/dev` turns invitations off.
+  Administration → App settings turns invitations off.
 - **Merchandise through Spreadshop (migration 043).** Spreadshop (sprd.net
   AG) prints, sells and ships devShark merchandise and has no order API, so
   the app links out and embeds nothing: no Spreadshop script, iframe or CSP
@@ -1789,7 +1789,7 @@ Do not rename the schema. The browser keeps no coin balance of its own; old
   is paid in the Spreadshop checkout and `cashCheckoutEnabled` stays off. A
   coin redemption or a claimed learning-path package is a `merch_orders` row;
   the owner orders it at base price from the shop preview and works the queue
-  in `/dev` → Merchandise, which also edits the quotes and the monthly caps
+  in Administration (`/admin`) → Merchandise, which also edits the quotes and the monthly caps
   (`op=fulfilment`, `set_merch_stock`). A claimed package ships without
   touching `reserved`. `lib/rewards/spreadshop.ts` reads Spreadshop's own
   monthly promotion on the server when `SPREADSHOP_API_KEY` and
@@ -1894,7 +1894,7 @@ opening the email on a different device.
   `devshark:plan-seen` (`<user id>:<tier>`, cleared with the account's data),
   which makes the other tabs re-read theirs. A change made on another device
   shows within five minutes or at the next lock pressed.
-- **The sign-in report** (`POST /api/user/authevent`, the `/dev` Logs tab)
+- **The sign-in report** (`POST /api/user/authevent`, Administration → Activity log)
   goes once per sign-in. supabase-js also says `SIGNED_IN` for the stored
   session each time a tab is shown again; `lib/auth.tsx` remembers the
   sign-in its `INITIAL_SESSION` restored (the access token's `session_id`,
@@ -2470,10 +2470,10 @@ contract and limits.
 
 ### Owner administration
 
-`/admin` is a standalone owner workspace, inspired by the NaviGym administration's persistent sidebar and table layout. Its only sections are Users (`/admin` or `/admin/users`), Vouchers (`/admin/vouchers`) and Emails (`/admin/emails`). It reuses the `/dev` console's server-verified access gate and clears private admin query data on lock or account change. The technical `/dev` console remains available separately. The new pages have noindex metadata and Vercel response headers.
+`/admin` is the one owner workspace (admin UX review, 12 November 2026, `docs/design/admin-ux-review-2026-11-12.md`), laid out like the NAVIGYM administration: a sidebar with grouped navigation (Learners: Users, Vouchers; Content: Question bank, Quality triage, Content quality, Learning paths, Learner flags; Communication: Emails; a folded More tools group: App settings, Activity log, Merchandise), each section at `/admin/<section>` and Users at `/admin`. On a phone the navigation opens from a Menu button. Details, explanations and destructive bulk actions sit behind `AdminDisclosure`. The former `/dev` control room now redirects there, keeping `?section=`. The workspace uses the server-verified access gate and clears private admin query data on lock or account change. Every `/admin` path has noindex metadata and Vercel response headers.
 
 The existing `api/admin/[op].ts` handler routes `users` and `emails` after `requireAdmin` and the admin rate limit. There remain twelve physical handlers. The directory reads Supabase Auth's paginated administrative user list, 25 accounts per page, including accounts predating authentication-event logging. It returns only display fields, creation/last-sign-in dates, email verification, provider names, canonical entitlement summaries and redeemed-voucher hints/notes/dates. It never returns raw Auth metadata, identities, tokens or voucher hashes. Filtering is explicitly scoped to the current page. Voucher-history reads are bounded and expose a partial-history warning if truncated; read failures are errors rather than empty history or a Free plan.
 
 Vouchers reuse the existing creation, one-time code display and revocation screens. A new `action: 'limit'` changes only `max_redemptions` through a single row update. Validation bounds it to 1–10,000, and the existing database constraint and redemption row lock prevent lowering it below completed redemptions. It never resets usage or changes a grant already issued.
 
-Emails previews the actual cancellation/withdrawal email functions, reports provider configuration without exposing secrets, and links to hosted account-email template management when available. Preview dates and confirmation links are marked as samples. Viewing or refreshing this section sends no email and makes no delivery-success claim. No billing price, checkout switch or message delivery behavior changes.
+Emails edits every template (`docs/email-delivery.md`): delivery state on one line, a rich-text editor, a live preview with sample values, and one test send to a typed address.
