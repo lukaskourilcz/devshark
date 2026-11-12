@@ -39,7 +39,7 @@ COPY --from=build /app/client/dist ./client/dist
 COPY --from=build /app/lib/coding/generated ./lib/coding/generated
 COPY --from=build /app/docker/dist ./docker/dist
 COPY docker/server.mjs ./docker/server.mjs
-LABEL org.opencontainers.image.source="https://github.com/lukaskourilcz/react-express-app" \
+LABEL org.opencontainers.image.source="https://github.com/lukaskourilcz/devshark" \
       org.opencontainers.image.description="devShark: the React client and the twelve API handlers in one Node container." \
       org.opencontainers.image.title="devShark"
 USER node
