@@ -78,7 +78,7 @@ export async function handleAdminEmails(req: VercelRequest, res: VercelResponse)
     const config = billingConfig();
     let authTemplatesUrl: string | null = null;
     try {
-      const host = new URL(process.env.SUPABASE_URL ?? '').hostname;
+      const host = new URL(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '').hostname;
       const ref = host.match(/^([a-z0-9]+)\.supabase\.co$/)?.[1];
       if (ref) authTemplatesUrl = 'https://supabase.com/dashboard/project/' + ref + '/auth/templates';
     } catch { /* Custom/self-hosted deployments have no hosted dashboard link. */ }

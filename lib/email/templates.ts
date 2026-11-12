@@ -114,7 +114,8 @@ export const isAuthTemplateId = (id: EmailTemplateId): id is AuthTemplateId => e
 function managementAccess(env: Record<string, string | undefined> = process.env): { ref: string; token: string } | null {
   const token = env.SUPABASE_MANAGEMENT_API_TOKEN?.trim();
   let ref: string | undefined;
-  try { ref = new URL(env.SUPABASE_URL ?? '').hostname.match(/^([a-z0-9]+)\.supabase\.co$/)?.[1]; } catch { ref = undefined; }
+  // The same source lib/http.ts reads: production sets only VITE_SUPABASE_URL.
+  try { ref = new URL(env.VITE_SUPABASE_URL || env.SUPABASE_URL || '').hostname.match(/^([a-z0-9]+)\.supabase\.co$/)?.[1]; } catch { ref = undefined; }
   return token && ref ? { ref, token } : null;
 }
 
