@@ -215,3 +215,17 @@ export function sampleEmailAction(id: EmailTemplateId, origin = 'https://devshar
   const path = id === 'password_reset' ? '/reset-password' : id === 'signup_confirmation' ? '/auth/confirmed' : '/';
   return { url: origin + path, label: actionLabel };
 }
+
+export type AuthTemplateId = keyof typeof SUPABASE_AUTH_ACTION_URLS;
+
+/** A template as the store holds it: `custom` is false while the fallback is in use. */
+export type StoredEmailTemplate = EmailTemplate & { custom: boolean; updatedAt: string | null };
+
+/** What saving one account template did on Supabase's side. */
+export type AuthSyncResult = { synced: true } | { synced: false; reason: 'not_configured' | 'request_failed'; status?: number };
+
+/** Whether the Management API token works, and which hosted templates already carry devShark's text. */
+export type AuthSyncStatus =
+  | { configured: false }
+  | { configured: true; ok: false; status?: number }
+  | { configured: true; ok: true; synced: Record<AuthTemplateId, boolean> };

@@ -9,7 +9,11 @@ import {
   fallbackEmailTemplate,
   renderEmailTemplate,
   type EmailTemplate,
+  type StoredEmailTemplate,
   type EmailTemplateId,
+  type AuthSyncResult,
+  type AuthSyncStatus,
+  type AuthTemplateId,
   type RenderedEmail,
 } from '../../shared/email-templates';
 
@@ -26,7 +30,7 @@ const TABLE = 'app_settings';
 const CACHE_TTL_MS = 30_000;
 const MANAGEMENT_API = 'https://api.supabase.com/v1';
 
-export type StoredEmailTemplate = EmailTemplate & { custom: boolean; updatedAt: string | null };
+export type { StoredEmailTemplate } from '../../shared/email-templates';
 
 let defaultDb: SupabaseClient | null | undefined;
 const db = () => (defaultDb === undefined ? (defaultDb = createServiceClient()) : defaultDb);
@@ -100,19 +104,12 @@ export async function renderStoredEmail(id: EmailTemplateId, variables: Record<s
 
 // ---- Supabase Auth ---------------------------------------------------------------------------------
 
-type AuthTemplateId = keyof typeof SUPABASE_AUTH_ACTION_URLS;
 const AUTH_FIELDS: Record<AuthTemplateId, { subject: string; content: string }> = {
   signup_confirmation: { subject: 'mailer_subjects_confirmation', content: 'mailer_templates_confirmation_content' },
   password_reset: { subject: 'mailer_subjects_recovery', content: 'mailer_templates_recovery_content' },
   magic_link: { subject: 'mailer_subjects_magic_link', content: 'mailer_templates_magic_link_content' },
 };
 export const isAuthTemplateId = (id: EmailTemplateId): id is AuthTemplateId => emailTemplateDefinition(id).delivery === 'supabase_auth';
-
-export type AuthSyncResult = { synced: true } | { synced: false; reason: 'not_configured' | 'request_failed'; status?: number };
-export type AuthSyncStatus =
-  | { configured: false }
-  | { configured: true; ok: false; status?: number }
-  | { configured: true; ok: true; synced: Record<AuthTemplateId, boolean> };
 
 function managementAccess(env: Record<string, string | undefined> = process.env): { ref: string; token: string } | null {
   const token = env.SUPABASE_MANAGEMENT_API_TOKEN?.trim();
