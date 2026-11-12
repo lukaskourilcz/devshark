@@ -7,6 +7,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { adminEmailsKey, listAdminEmails, saveAdminEmail } from '../../lib/adminDirectory';
 import { friendlyError } from '../../lib/api';
 import { StatePanel } from '../ui/StatePanel';
+import { AdminDisclosure } from './AdminDisclosure';
 import type { AdminEmails as AdminEmailsData } from '../../../../shared/admin-directory';
 import type { EmailDocument } from '../../../../shared/email-document';
 import {
@@ -97,17 +98,15 @@ export default function AdminEmails() {
   const busy = save.isPending || reset.isPending;
 
   return <div className="admin-section" data-testid="admin-emails">
-    <section className="admin-email-settings">
-      <h2>{t('admin.emails.delivery')}</h2>
-      <dl>
-        <div><dt>{t('admin.emails.provider')}</dt><dd>{data.deliveryConfigured ? t('admin.emails.configured') : t('admin.emails.notConfigured')}</dd></div>
+    <AdminDisclosure testId="email-delivery" summary={<span className="admin-email-status">{t('admin.emails.delivery')}: <span data-ok={data.deliveryConfigured}>{data.deliveryConfigured ? t('admin.emails.ready') : t('admin.emails.notConfigured')}</span></span>}>
+      <dl className="admin-facts">
         <div><dt>{t('admin.emails.sender')}</dt><dd>{data.sender}</dd></div>
         <div><dt>{t('admin.emails.replyTo')}</dt><dd>{data.replyTo}</dd></div>
         <div><dt>{t('admin.emails.billing')}</dt><dd>{data.billingEnabled ? t('admin.emails.enabled') : t('admin.emails.disabled')}</dd></div>
         <div><dt>{t('admin.emails.authSync')}</dt><dd>{authSyncLabel(data.authSync, t)}</dd></div>
       </dl>
       {data.authTemplatesUrl ? <a className="admin-external-link" href={data.authTemplatesUrl} target="_blank" rel="noreferrer">{t('admin.emails.manageAuth')} ↗</a> : null}
-    </section>
+    </AdminDisclosure>
 
     <div className="admin-email-tabs" role="tablist" aria-label={t('admin.emails.templates')}>
       {EMAIL_TEMPLATE_DEFINITIONS.map(template => <button key={template.id} type="button" role="tab" id={'email-tab-' + template.id}
@@ -117,18 +116,20 @@ export default function AdminEmails() {
 
     <div className="admin-email-workspace" role="tabpanel" id="email-template-panel" aria-labelledby={'email-tab-' + selectedId}>
       <div className="admin-email-form">
-        <p className="admin-muted">{definition.description}</p>
-        <p className="admin-muted">{t('admin.emails.variables')} {definition.variables.map((variable, index) =>
-          <span key={variable}><code>{variable}</code>{index < definition.variables.length - 1 ? ', ' : '.'}</span>)}
-          {definition.required.length ? ' ' + t('admin.emails.required').replace('{variables}', definition.required.join(', ')) : ''}</p>
-        {definition.delivery === 'supabase_auth' ? <p className="admin-muted">{authTemplateNote(selectedId, data.authSync, t)}</p> : null}
+        <AdminDisclosure className="admin-disclosure-quiet" summary={t('admin.emails.about')}>
+          <p className="admin-muted">{definition.description}</p>
+          <p className="admin-muted">{t('admin.emails.variables')} {definition.variables.map((variable, index) =>
+            <span key={variable}><code>{variable}</code>{index < definition.variables.length - 1 ? ', ' : '.'}</span>)}
+            {definition.required.length ? ' ' + t('admin.emails.required').replace('{variables}', definition.required.join(', ')) : ''}</p>
+          {definition.delivery === 'supabase_auth' ? <p className="admin-muted">{authTemplateNote(selectedId, data.authSync, t)}</p> : null}
+        </AdminDisclosure>
         <form onSubmit={event => { event.preventDefault(); if (!problem && dirty) save.mutate(); }}>
           <TextInput label={t('admin.emails.subject')} value={subject} onChange={setSubject} width="100%" />
           <p className="admin-email-label" id="email-body-label">{t('admin.emails.body')}</p>
           {seed ? <Suspense fallback={<p role="status">{t('admin.emails.editorLoading')}</p>}>
             <EmailRichTextEditor initialDocument={seed} onChange={setDocument} labelId="email-body-label" helpId="email-body-help" />
           </Suspense> : null}
-          <p className="admin-muted" id="email-body-help">{t('admin.emails.bodyHelp')}</p>
+          <p className="admin-muted admin-email-help" id="email-body-help">{t('admin.emails.bodyHelp')}</p>
           {problem && dirty ? <Banner status="warning" title={problem} /> : null}
           {saveFeedback ? <Banner status={saveFeedback.status} title={saveFeedback.title} /> : null}
           <div className="admin-email-actions">

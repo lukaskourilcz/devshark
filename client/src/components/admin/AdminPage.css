@@ -20,8 +20,6 @@
 .admin-plan[data-premium=true]{font-weight:600;color:var(--brand-accent)}
 .admin-user-vouchers{list-style:none;padding:0;margin:0;display:grid;gap:12px}.admin-user-vouchers li{display:grid;gap:4px;min-width:180px}
 .admin-pagination{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
-.admin-email-settings{border-bottom:1px solid var(--color-border);padding-bottom:20px}.admin-email-settings h2{font-size:1.125rem}.admin-email-settings p{line-height:1.6}
-.admin-email-settings dl{display:grid;gap:12px}.admin-email-settings dl>div{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}.admin-email-settings dd{margin:0}
 .admin-email-tabs{display:flex;flex-wrap:wrap;gap:8px}
 .admin-email-tab{min-height:var(--ss-control-height);padding:0 14px;border:1px solid var(--color-border);border-radius:var(--radius-inner);background:transparent;color:var(--color-text-primary);font:inherit;cursor:pointer}
 .admin-email-tab[aria-selected=true]{border-color:var(--color-text-primary);font-weight:600}
@@ -74,3 +72,5 @@
 @media(max-width:900px){.admin-shell{display:block}.admin-sidebar{position:sticky;top:0;z-index:20;height:auto;max-height:100dvh;padding:12px 16px;gap:12px;border-right:0;border-bottom:1px solid var(--color-border)}.admin-sidebar-top{flex-direction:row;align-items:center;justify-content:space-between}.admin-brand>span{display:none}.admin-menu-toggle{display:inline-flex;align-items:center;gap:8px;min-height:var(--ss-control-height);padding:0 14px;border:1px solid var(--color-border);border-radius:var(--radius-inner);background:transparent;color:var(--color-text-primary);font:inherit;font-weight:600;cursor:pointer}.admin-menu-current{font-weight:400;color:var(--color-text-secondary)}#admin-navigation:not([data-open=true]),.admin-sidebar-footer:not([data-open=true]){display:none}.admin-main{padding-top:24px}}
 .admin-facts{display:grid;gap:8px;margin:0}.admin-facts>div{display:grid;grid-template-columns:minmax(96px,auto) 1fr;gap:12px}.admin-facts dt{color:var(--color-text-secondary)}.admin-facts dd{margin:0;overflow-wrap:anywhere}
 .admin-table th .admin-disclosure{margin-top:4px}
+.admin-email-status span[data-ok=false]{color:var(--color-text-secondary);font-weight:500}.admin-email-status span[data-ok=true]{color:var(--brand-accent)}
+.admin-email-form{display:grid;gap:12px;align-content:start}
