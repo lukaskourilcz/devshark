@@ -39,9 +39,25 @@ for (const theme of ['light', 'dark']) test('Administration works at seven width
   await page.goto('/admin');
   await expect(page.getByRole('heading', { level: 1, name: 'Users', exact: true })).toBeVisible();
   await expect(page.getByText('learner@example.invalid', { exact: true })).toBeVisible();
+  await expect(page.getByText('1 voucher(s) redeemed', { exact: true })).toBeVisible();
+  await expect(page.getByText('TEST…', { exact: true })).toBeHidden();
+  await page.getByText('Details', { exact: true }).click();
   await expect(page.getByText('TEST…', { exact: true })).toBeVisible();
   const nav = page.getByRole('navigation', { name: 'Admin sections' });
-  await expect(nav.getByRole('link')).toHaveText(['Users', 'Vouchers', 'Emails']);
+  await expect(nav.getByRole('link')).toHaveText(['Users', 'Vouchers', 'Question bank', 'Quality triage', 'Content quality', 'Learning paths', 'Learner flags', 'Emails']);
+  // More tools stays folded until asked for.
+  await nav.getByText('More tools').click();
+  await expect(nav.getByRole('link', { name: 'App settings', exact: true })).toBeVisible();
+  // On a phone the navigation sits behind Menu and closes on Escape.
+  await page.setViewportSize({ width: 390, height: 900 });
+  await expect(nav).toBeHidden();
+  const menu = page.getByRole('button', { name: /^Menu/ });
+  await menu.click();
+  await expect(nav).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(nav).toBeHidden();
+  await expect(menu).toBeFocused();
+  await page.setViewportSize({ width: 1280, height: 900 });
   for (const width of [360, 390, 430, 768, 1024, 1280, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
@@ -51,6 +67,7 @@ for (const theme of ['light', 'dark']) test('Administration works at seven width
   await nav.getByRole('link', { name: 'Vouchers', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Vouchers', exact: true })).toBeVisible();
   await expect(page.getByText('90 days of Premium', { exact: true })).toBeVisible();
+  await page.getByText('Change limit', { exact: true }).click();
   await page.getByLabel('Maximum uses for TEST…').fill('200');
   await page.getByRole('button', { name: 'Save limit' }).click();
   await expect(page.getByText('5 of 200 used', { exact: true })).toBeVisible();
