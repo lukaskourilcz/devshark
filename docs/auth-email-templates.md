@@ -1,7 +1,10 @@
 # Supabase Auth email templates
 
-Paste these into Supabase → Authentication → Emails → Templates. They replace
-Supabase's unbranded defaults. NEEDED.md lists the rest of the email set-up
+Administration → Emails edits these templates and, with
+`SUPABASE_MANAGEMENT_API_TOKEN` set, writes them into Supabase itself (see
+[email delivery](email-delivery.md)). Without the token, paste these into
+Supabase → Authentication → Emails → Templates. They replace Supabase's
+unbranded defaults. NEEDED.md lists the rest of the email set-up
 (SMTP, URL configuration, password rules).
 
 The confirmation and reset links point at devShark's own pages with
