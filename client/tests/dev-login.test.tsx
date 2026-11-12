@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import DevLogin from '../src/components/dev/DevLogin';
-import DevPage from '../src/components/dev/DevPage';
+import AdminPage from '../src/components/admin/AdminPage';
 import { server } from './mocks/server';
 
 const auth = vi.hoisted(() => ({
@@ -16,7 +16,7 @@ const auth = vi.hoisted(() => ({
 vi.mock('../src/lib/auth', () => ({ useAuth: () => auth.value }));
 afterEach(() => { auth.value = { user: { id: 'learner-1' }, isAuthenticated: true, isLoading: false }; });
 
-describe('/dev → access check', () => {
+describe('/admin → access check', () => {
   it('tells a signed-in account without the admin role that it has no access', async () => {
     server.use(http.get('*/api/admin/settings', () => HttpResponse.json(
       { error: { code: 'forbidden', message: 'Administrative access required' } },
@@ -31,7 +31,7 @@ describe('/dev → access check', () => {
   });
 });
 
-describe('/dev → the console', () => {
+describe('/admin → the console', () => {
   it('closes and checks access again when the signed-in account changes', async () => {
     let admin = true;
     server.use(
@@ -44,8 +44,8 @@ describe('/dev → the console', () => {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
     const page = () => (
       <QueryClientProvider client={client}>
-        <MemoryRouter initialEntries={['/dev']}>
-          <LanguageProvider><DevPage /></LanguageProvider>
+        <MemoryRouter initialEntries={['/admin/questions']}>
+          <LanguageProvider><AdminPage /></LanguageProvider>
         </MemoryRouter>
       </QueryClientProvider>
     );
