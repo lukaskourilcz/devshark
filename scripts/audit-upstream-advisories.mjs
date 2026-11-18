@@ -11,8 +11,7 @@
 // makes one request per repository plus one per hit, about 420 in all, so CI
 // does not run it. It prints each hit with its scope (prod or dev) and its
 // lockfile (root or client), writes artifacts/upstream-advisories.json, and
-// exits 1 when a production dependency is affected. docs/packages.md says
-// when to run it.
+// exits 1 when a production dependency is affected.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
