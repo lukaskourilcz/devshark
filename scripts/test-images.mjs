@@ -152,8 +152,8 @@ function fixture(t) {
   put(html, '<!doctype html><html lang="en"><head><link rel="icon" type="image/svg+xml" href="/icon.svg?v=1"><link rel="icon" type="image/x-icon" sizes="16x16 32x32" href="/favicon.ico"><link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png"><link rel="manifest" href="/manifest.webmanifest"></head><body></body></html>');
   put(join(assetsDir, 'brand.svg'), SVG);
   put(join(distDir, 'og', 'coding', 'example.png'), png(1200, 630));
-  function run() {
-    const result = spawnSync(process.execPath, [checker, `--public-dir=${publicDir}`, `--assets-dir=${assetsDir}`, `--dist-dir=${distDir}`, `--html=${html}`], { encoding: 'utf8', timeout: 15_000 });
+  function run({ htmlPath = html } = {}) {
+    const result = spawnSync(process.execPath, [checker, `--public-dir=${publicDir}`, `--assets-dir=${assetsDir}`, `--dist-dir=${distDir}`, `--html=${htmlPath}`], { encoding: 'utf8', timeout: 15_000 });
     assert.equal(result.error, undefined, 'the checker process finishes');
     return { ...result, output: result.stdout + result.stderr };
   }
@@ -221,6 +221,29 @@ test('HTML icon MIME types must match the file contents', (t) => {
   refused(data.run(), /icon\.svg[^\n]*(?:type|MIME|image\/png)/i);
 });
 
+test('uppercase HTML icon attributes still require the referenced file', (t) => {
+  const data = fixture(t);
+  put(data.html, '<!doctype html><link REL="icon" TYPE="image/svg+xml" HREF="/missing.svg">');
+  refused(data.run(), /missing\.svg/);
+});
+
+test('uppercase HTML icon attributes still validate MIME types and sizes', (t) => {
+  const data = fixture(t);
+  put(data.html, '<!doctype html><link REL="icon" TYPE="image/jpeg" HREF="/icon-192.png" SIZES="128x128">');
+  const run = data.run();
+  refused(run, /icon-192\.png[^\n]*(?:MIME|type|jpeg)/i);
+  assert.match(run.output, /icon-192\.png[^\n]*(?:128x128|size|dimension)/i);
+});
+
+test('relative HTML icon URLs resolve beside the containing HTML document', (t) => {
+  const data = fixture(t);
+  const htmlPath = join(data.distDir, 'nested', 'index.html');
+  put(htmlPath, '<!doctype html><link rel="icon" type="image/png" href="icons/square.png" sizes="32x32">');
+  put(join(data.distDir, 'nested', 'icons', 'square.png'), png(32, 32));
+  const run = data.run({ htmlPath });
+  assert.equal(run.status, 0, run.output);
+});
+
 test('HTML icon sizes must match an actual raster or ICO size', (t) => {
   const data = fixture(t);
   put(data.html, readFileSync(data.html, 'utf8').replace('sizes="16x16 32x32"', 'sizes="16x16 48x48"'));
@@ -232,6 +255,26 @@ test('a generated manifest icon must exist', (t) => {
   data.manifest.icons[1].src = '/missing-192.png';
   data.writeManifest(data.manifest);
   refused(data.run(), /missing-192\.png/);
+});
+
+test('relative manifest icon URLs resolve beside the containing manifest', (t) => {
+  const data = fixture(t);
+  put(data.html, '<!doctype html><link rel="manifest" href="/nested/site.webmanifest">');
+  put(join(data.distDir, 'nested', 'site.webmanifest'), JSON.stringify({ icons: [
+    { src: 'icons/square.png', type: 'image/png', sizes: '32x32' },
+  ] }));
+  put(join(data.distDir, 'nested', 'icons', 'square.png'), png(32, 32));
+  const run = data.run();
+  assert.equal(run.status, 0, run.output);
+});
+
+test('a root icon cannot hide a missing relative icon beside a nested manifest', (t) => {
+  const data = fixture(t);
+  put(data.html, '<!doctype html><link rel="manifest" href="/nested/site.webmanifest">');
+  put(join(data.distDir, 'nested', 'site.webmanifest'), JSON.stringify({ icons: [
+    { src: 'icon-192.png', type: 'image/png', sizes: '192x192' },
+  ] }));
+  refused(data.run(), /nested[^\n]*icon-192\.png/);
 });
 
 test('a generated manifest must declare the icon file type', (t) => {
