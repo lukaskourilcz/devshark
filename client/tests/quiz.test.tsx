@@ -29,6 +29,24 @@ vi.mock('../src/components/LoadingScreen', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   holdLoadingScreen: () => Promise.resolve(),
 }));
+// Monitoring, watched: a fault in the save code is reported, a failed or
+// refused save (a state the screen shows) is not.
+const sentry = vi.hoisted(() => ({ reportError: vi.fn() }));
+vi.mock('../src/lib/sentry', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  reportError: sentry.reportError,
+}));
+// The stats write, replaced by a test that needs it to fail in a way the
+// network cannot (a TypeError thrown by code).
+const stats = vi.hoisted(() => ({ record: null as null | (() => Promise<unknown>) }));
+vi.mock('../src/lib/supabase', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/lib/supabase')>();
+  return {
+    ...actual,
+    recordQuizResult: (...args: Parameters<typeof actual.recordQuizResult>) =>
+      (stats.record ? stats.record() : actual.recordQuizResult(...args)) as ReturnType<typeof actual.recordQuizResult>,
+  };
+});
 
 import Quiz from '../src/components/Quiz';
 import PendingQuizResults from '../src/components/PendingQuizResults';
@@ -111,6 +129,11 @@ function answerAll(count: number) {
   }
 }
 
+/** console.error, silenced and recorded. A save that failed or was refused is
+ * a state the result screen shows, not an error for the console, where the
+ * browser suite's console-clean helper fails on it. */
+const watchConsoleErrors = () => vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
 function signIn() {
   auth.value = { user: LEARNER, isAuthenticated: true, isLoading: false };
   server.use(http.get('*/api/user/xp', () => HttpResponse.json({ data: { quest_xp: 0, by_subject: {} } })));
@@ -123,6 +146,8 @@ beforeEach(() => {
   localStorage.setItem('devquiz:quiz-setup:v1', JSON.stringify({ count: 10, difficulty: 'mixed', categories: ['javascript'] }));
   auth.value = { user: null, isAuthenticated: false, isLoading: false };
   server.use(http.get('*/api/settings', () => HttpResponse.json(DEFAULT_CONFIG)));
+  sentry.reportError.mockClear();
+  stats.record = null;
 });
 
 describe('keyboard shortcuts', () => {
@@ -1031,6 +1056,7 @@ describe('persistent result save status', () => {
 
   it('updates a waiting result after background replay without regrading the quiz', async () => {
     signIn();
+    const log = watchConsoleErrors();
     let grades = 0;
     const receipts: string[] = [];
     server.use(
@@ -1052,13 +1078,15 @@ describe('persistent result save status', () => {
     expect(grades).toBe(1);
     expect(receipts).toEqual(['replay-status-receipt', 'replay-status-receipt']);
     expect(localStorage.getItem(PENDING_KEY)).toBeNull();
+    expect(log).not.toHaveBeenCalled();
+    expect(sentry.reportError).not.toHaveBeenCalled();
   });
 
   it.each([[503, 'offline'], [400, 'invalid_receipt']])('keeps a confirmed background save when the earlier request returns %i', async (status, code) => {
     signIn();
     let writes = 0;
     let failFirst!: () => void;
-    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const log = watchConsoleErrors();
     try {
       server.use(
         http.post('*/api/quiz/submit', () => HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'overlapping-save-receipt' })),
@@ -1074,8 +1102,11 @@ describe('persistent result save status', () => {
       await waitFor(() => expect(failFirst).toBeDefined());
       fireEvent(window, new Event('online'));
       await screen.findByText('Saved to your account');
-      await act(async () => { failFirst(); });
-      await waitFor(() => expect(log).toHaveBeenCalledWith('Stat write failed:', expect.anything()));
+      // The failed first write settles well inside the wait (msw answers in
+      // process); its catch must leave the confirmed save alone.
+      await act(async () => { failFirst(); await new Promise((resolve) => setTimeout(resolve, 50)); });
+      expect(log).not.toHaveBeenCalled();
+      expect(sentry.reportError).not.toHaveBeenCalled();
       expect(screen.getByText('Saved to your account')).toBeInTheDocument();
       expect(screen.queryByText(/Waiting to sync/)).not.toBeInTheDocument();
       expect(localStorage.getItem(PENDING_KEY)).toBeNull();
@@ -1086,6 +1117,7 @@ describe('persistent result save status', () => {
 
   it('keeps a permanent refusal visible after replay and does not say Saved', async () => {
     signIn();
+    const log = watchConsoleErrors();
     let writes = 0;
     server.use(
       http.post('*/api/quiz/submit', () => HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'refused-later-receipt' })),
@@ -1101,6 +1133,7 @@ describe('persistent result save status', () => {
     expect(await screen.findByText('This result could not be saved to your account.')).toHaveClass('quiz-save-status');
     expect(screen.queryByText('Saved to your account')).not.toBeInTheDocument();
     expect(localStorage.getItem(PENDING_KEY)).toBeNull();
+    expect(log).not.toHaveBeenCalled();
   });
 
   it('does not show the previous account’s save status when it signs out during the write', async () => {
@@ -1131,6 +1164,7 @@ describe('saving a result to the account', () => {
 
   it('keeps one waiting result per attempt when the write fails, and says it is not saved yet', async () => {
     signIn();
+    const log = watchConsoleErrors();
     let run = 0;
     server.use(
       http.get('*/api/quiz/questions', () => { run++; return HttpResponse.json({ sessionId: sessionFor(`attempt${run}`), questions: [Q('a')] }); }),
@@ -1152,6 +1186,8 @@ describe('saving a result to the account', () => {
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     // The second failure is kept beside the first, not over it.
     await waitFor(() => expect(Object.values(pendingStore()).map((pending) => pending.receipt).sort()).toEqual(['receipt-1', 'receipt-2']));
+    expect(log).not.toHaveBeenCalled();
+    expect(sentry.reportError).not.toHaveBeenCalled();
   });
 
   it.each(['standard', 'daily', 'review'])('discards a %s question set still loading when a different account signs in', async (mode) => {
@@ -1248,6 +1284,7 @@ describe('saving a result to the account', () => {
 
   it('drops a result the server refuses and says it could not be saved', async () => {
     signIn();
+    const log = watchConsoleErrors();
     server.use(
       http.post('*/api/quiz/submit', () => HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'refused-receipt' })),
       http.post('*/api/user/stats', () => HttpResponse.json({ error: { code: 'invalid_receipt', message: 'Quiz result receipt expired or invalid' } }, { status: 400 })),
@@ -1257,6 +1294,41 @@ describe('saving a result to the account', () => {
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     expect(await screen.findByText('This result could not be saved to your account.')).toBeInTheDocument();
     expect(pendingStore()).toEqual({});
+    expect(log).not.toHaveBeenCalled();
+    expect(sentry.reportError).not.toHaveBeenCalled();
+  });
+
+  it('reports a fault in the save code to monitoring and keeps the result waiting to sync', async () => {
+    signIn();
+    const log = watchConsoleErrors();
+    const fault = new TypeError('saved.data is not an object');
+    stats.record = () => Promise.reject(fault);
+    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'fault-receipt' })));
+    await startQuiz([Q('a')]);
+    pressDigit('1');
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    expect(await screen.findByText('Waiting to sync. We’ll retry when you reconnect or reopen devShark.')).toBeInTheDocument();
+    await waitFor(() => expect(sentry.reportError).toHaveBeenCalledTimes(1));
+    expect(sentry.reportError.mock.calls[0][0]).toBe(fault);
+    expect(Object.values(pendingStore()).map((pending) => pending.receipt)).toEqual(['fault-receipt']);
+    expect(log).not.toHaveBeenCalled();
+  });
+
+  it('reports a fault after a confirmed save to monitoring and still says Saved', async () => {
+    signIn();
+    const log = watchConsoleErrors();
+    const fault = new TypeError('Cannot read properties of undefined');
+    // The save lands; the code that reads its answer afterwards throws.
+    stats.record = () => Promise.resolve({ data: null, applied: false, questXp: 0, get xpHeld(): never { throw fault; } });
+    server.use(http.post('*/api/quiz/submit', () => HttpResponse.json({ ...graded([Q('a')]), resultReceipt: 'saved-fault-receipt' })));
+    await startQuiz([Q('a')]);
+    pressDigit('1');
+    fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    expect(await screen.findByText('Saved to your account')).toBeInTheDocument();
+    await waitFor(() => expect(sentry.reportError).toHaveBeenCalledTimes(1));
+    expect(sentry.reportError.mock.calls[0][0]).toBe(fault);
+    expect(pendingStore()).toEqual({});
+    expect(log).not.toHaveBeenCalled();
   });
 
   it('announces the XP the account recorded and never says repeats earn less', async () => {
