@@ -40,6 +40,7 @@ execFileSync(process.execPath, ['--test', 'docker/server.test.mjs'], { stdio: 'i
 // the repeat row's consent record, the --api-origin replay list, request
 // kinds and the median summary), and audit:performance's flag and route
 // checks, failed runs, --runs statistics and report fields, through a
-// stand-in for Lighthouse (#630); no case sends a request or opens Chrome,
-// which this CI job does not install.
+// stand-in for Lighthouse, and check:bundle's index.html reader and
+// --largest checks (#630); no case sends a request, builds the client or
+// opens Chrome, which this CI job does not install.
 execFileSync(process.execPath, ['--test', 'scripts/test-perf-tools.mjs'], { stdio: 'inherit' });
