@@ -215,11 +215,15 @@ if (url) {
   assert.equal(origin.protocol, 'https:', '--url must name an HTTPS deployment');
   const mismatches = [];
   const requestHeaders = {};
+  // In CI, Vercel's Protection Bypass for Automation secret opens a protected
+  // deployment without a share link.
+  const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  if (bypass) requestHeaders['x-vercel-protection-bypass'] = bypass;
   // A share link (https://<deployment>/?_vercel_share=<token>, as the Vercel
   // MCP get_access_to_vercel_url returns it) trades its token for a
   // _vercel_jwt cookie on the first request; every probe sends the cookie.
   if (origin.searchParams.has('_vercel_share')) {
-    const response = await fetch(origin, { redirect: 'manual', signal: AbortSignal.timeout(30_000) });
+    const response = await fetch(origin, { redirect: 'manual', headers: requestHeaders, signal: AbortSignal.timeout(30_000) });
     await response.arrayBuffer();
     const jwt = response.headers.getSetCookie().map(cookie => /^_vercel_jwt=([^;]+)/.exec(cookie)?.[1]).find(Boolean);
     assert(jwt, `${origin.host}: the share link answered ${response.status} without a _vercel_jwt cookie; it may have expired, so ask for a new one`);
@@ -233,7 +237,7 @@ if (url) {
     const location = response.status >= 300 && response.status < 400 ? response.headers.get('location') : null;
     const target = location ? new URL(location, origin).hostname : '';
     if (target === 'vercel.com' || target.endsWith('.vercel.com')) {
-      assert.fail(`${origin.host}${pathname} answers ${response.status} to ${target}: the deployment sits behind Vercel Authentication. Pass a share link: --url='https://${origin.host}/?_vercel_share=<token>'.`);
+      assert.fail(`${origin.host}${pathname} answers ${response.status} to ${target}: the deployment sits behind Vercel Authentication. Pass a share link (--url='https://${origin.host}/?_vercel_share=<token>') or set VERCEL_AUTOMATION_BYPASS_SECRET${bypass ? ' to the project\'s current secret' : ''}.`);
     }
     return { pathname, response, body: await response.text() };
   };
