@@ -75,6 +75,58 @@ covers every possible incorrect solution or a platform penetration-test claim.
 - The existing roadmap handler allows 45 seconds; Submit waits up to 50 seconds.
   Exactly twelve physical API handlers remain.
 
+## Upload per Submit
+
+Measured 18 November 2026 (Epic F, F11) on the branch point of
+`claude/f11-grading-sandbox-limits`, after `node scripts/build-react-runner.mjs`.
+Every React Submit writes two files into a fresh VM. The SDK packs them into one
+gzipped tar stream, so the gzip column is close to what crosses the network.
+
+| File in the VM | Bytes | gzip |
+|---|---:|---:|
+| `runner.cjs` (`lib/coding/generated/react-sandbox.cjs`) | 2,100,887 | 691,960 |
+| `input.json`, median of the 183 React tasks' reference solutions | 22,224 | 5,680 |
+| `input.json`, largest of the 183 | 55,113 | 11,672 |
+
+The API also loads `lib/coding/generated/vercel-sandbox.cjs` (2,306,351 bytes),
+the bundled SDK. It runs in the function and never enters the VM.
+`lib/coding/generated/quickjs-sandbox.cjs` (1,676,943 bytes, gzip 607,983) is the
+QuickJS grader's worker thread for JavaScript and TypeScript, also never uploaded.
+
+What `runner.cjs` carries, by esbuild's `bytesInOutput`:
+
+| Input | Bytes | Used at run time |
+|---|---:|---|
+| `@jitl/quickjs-singlefile-cjs-release-sync/dist/index.js` | 844,280 | Its loader and FFI only. 819,611 bytes of it are one template literal holding the upstream wasm, which never runs: `quickjs-variant.ts` always supplies `wasmModule`. |
+| `lib/coding/vendor/quickjs-node24.cjs` | 670,988 | Yes: the pinned Node 24 wasm, base64. |
+| Four `@jitl/quickjs-wasmfile-*` variants (debug and release, sync and asyncify), module and index files | 345,671 | No. `quickjs-emscripten`'s index imports them; nothing calls them. |
+| `quickjs-emscripten-core` | 78,126 | Yes. |
+| `sandbox-web-apis.ts`, `coding-locale.ts`, `coding-console.ts`, `grader-capacity.ts`, `sandbox.ts` | 48,314 | No. `react-learner.ts` imports two error helpers from `sandbox.ts`, and the QuickJS preludes come with them. |
+| Everything else (the learner engine, the runner, mini-jest, UTC time, realm lockdown, the guest) | 110,302 | Yes. |
+| esbuild module wrappers and the `"use strict"` banner | 3,206 | Yes. |
+
+Reproduce the table from the repository root:
+
+```sh
+node --input-type=module -e "
+import { build } from 'esbuild';
+import { createRequire } from 'node:module';
+const req = createRequire(process.cwd() + '/package.json');
+const { metafile } = await build({
+  entryPoints: ['scripts/react-sandbox-entry.ts'], outfile: 'guest.cjs', write: false, metafile: true,
+  bundle: true, platform: 'node', format: 'cjs', packages: 'external', target: 'node24', banner: { js: '\"use strict\";' },
+  plugins: [{ name: 'quickjs', setup(b) { b.onResolve({ filter: /^(?:quickjs-emscripten(?:-core)?|@jitl\/quickjs-[^/]+)(?:\/.*)?$/ }, (a) => ({ path: req.resolve(a.path, { paths: [a.resolveDir] }) })); } }],
+});
+const [output] = Object.values(metafile.outputs);
+console.log(output.bytes, 'guest.cjs');
+for (const [file, { bytesInOutput }] of Object.entries(output.inputs).sort((a, b) => b[1].bytesInOutput - a[1].bytesInOutput)) console.log(bytesInOutput, file);
+"
+```
+
+The input sizes come from `JSON.stringify` of the `GuestInput` that
+`runIsolatedReactSuite` writes, built for each React task's reference solution
+with its hidden suite, both compiled fixtures and a 48-character nonce.
+
 ## Configuration and rollout
 
 1. Authenticate the Sandbox SDK with Vercel OIDC, or local operator credentials
