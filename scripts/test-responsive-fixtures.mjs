@@ -50,9 +50,9 @@ test('F6-04: the legacy user router and path form receive the same fixture', () 
 test('F6-04: a saved-card fixture supplies a real review card rather than an empty gate', () => {
   const cards = apiFixture('GET', api('/api/flashcards?subject=webdev'));
   assert.equal(cards.status, 200);
-  assert.ok(cards.body.data.length > 0);
-  assert.equal(typeof cards.body.data[0].question, 'string');
-  assert.equal(typeof cards.body.data[0].answer, 'string');
+  assert.ok(cards.body.cards.length > 0);
+  assert.equal(typeof cards.body.cards[0].question, 'string');
+  assert.equal(typeof cards.body.cards[0].correct_answer, 'string');
 });
 
 test('F6-04: only the configured local Auth project receives user fixtures', () => {
