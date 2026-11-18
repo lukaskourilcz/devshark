@@ -60,6 +60,11 @@ test('F6-04: only the configured local Auth project receives user fixtures', () 
   assert.equal(apiFixture('POST', new URL('/auth/v1/signup', auth)), null);
 });
 
+test('F6-04: local Auth permits only the known CORS preflights', () => {
+  assert.equal(apiFixture('OPTIONS', new URL('/auth/v1/user', auth)).status, 204);
+  assert.equal(apiFixture('OPTIONS', new URL('/auth/v1/signup', auth)), null);
+});
+
 test('F6-04: unexpected API reads and submissions never get a success fixture', () => {
   assert.equal(apiFixture('GET', api('/api/unexpected')), null);
   assert.equal(apiFixture('POST', api('/api/quiz/submit')), null);
