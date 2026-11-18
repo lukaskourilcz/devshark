@@ -48,7 +48,7 @@
 .sn-input {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: calc(var(--ss-control-height) - 2px);
+  min-height: var(--ss-control-height);
   padding: 8px 12px;
   border: 0;
   border-radius: inherit;
