@@ -3,9 +3,12 @@ import { checkSortParity } from './coding-sort-contract';
 import { checkCodingTaskRuntimePolicy } from './coding-task-runtime-contracts';
 import { createCodingSession as encodeCodingSession } from '../lib/coding/session';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
+import { QuickJSContext, QuickJSRuntime } from 'quickjs-emscripten';
+import vendoredQuickJS from '../lib/coding/vendor/quickjs-node24.cjs';
 import { HIDDEN_RUN_FAILED_MESSAGE, runChecks, runInQuickJS, runInSandbox, sandboxPool, SANDBOX_MAX_WAITING, SANDBOX_SLOT_WAIT_MS, SANDBOX_WORKER_FILE } from '../lib/coding/sandbox';
 import { checkTypes, TRANSPILE_FAILED_MESSAGE, TS_CHECK_MAX_WAITING, TS_CHECK_SLOT_WAIT_MS, TS_CHECK_WORKER_FILE, TYPE_CHECK_DEADLINE_MS, TYPE_CHECK_STOPPED_MESSAGE } from '../lib/coding/ts-check-pool';
 import { GRADING_PER_CALLER, GRADING_PER_TASK, GraderBusyError, gradingItem, threadSlots } from '../lib/coding/grader-capacity';
@@ -1507,6 +1510,96 @@ const fillDays = (readings: readonly Reading[]): Reading[] => {
   assert.deepEqual(localeRun.results.map((one) => one.actual ?? one.error), localeSubmit.results.map((one) => one.actual ?? one.error), 'Run and Submit format and sort alike');
   assert.deepEqual(localeSubmit.results.slice(0, 9).map((one) => one.actual), localeNode.results.map((one) => one.actual), 'as an en-US browser does');
   console.log('PASS integrity: Run lacks what the grader lacks, says so, and formats as the grader does');
+}
+
+// ── each engine reaches the host functions listed here, and no others (F11-04) ──
+// CHECKER_GLOBALS pins the names learner code sees, not what stands behind
+// them. A host function can wait in a prelude's closure, as the URL parser
+// does, and a rebuilt wasm can import more of the host than this one. So this
+// block records every function and host reference the host hands a QuickJS
+// context during one grader run and one React run, pins the vendored
+// module's imports and exports next to its provenance hash, and checks that
+// learner code loads no module in either engine. A new binding fails here
+// until it is listed.
+{
+  const contexts = QuickJSContext.prototype;
+  const runtimes = QuickJSRuntime.prototype;
+  const { newFunctionWithOptions, newHostRef } = contexts;
+  const { setModuleLoader } = runtimes;
+  const handed: string[] = [];
+  // newFunction and newConstructorFunction both go through newFunctionWithOptions.
+  contexts.newFunctionWithOptions = function (this: QuickJSContext, args) {
+    handed.push(`function ${args.name ?? ''}`);
+    return newFunctionWithOptions.call(this, args);
+  };
+  contexts.newHostRef = function (this: QuickJSContext, value: object) {
+    handed.push('host reference');
+    return newHostRef.call(this, value);
+  } as typeof newHostRef;
+  runtimes.setModuleLoader = function (this: QuickJSRuntime, ...args: Parameters<typeof setModuleLoader>) {
+    handed.push('module loader');
+    return setModuleLoader.apply(this, args);
+  };
+  const load = 'const load = (name) => import(name).then(() => "loaded", (error) => String(error && error.message));';
+  try {
+    // In this thread, so the wrappers above see the run.
+    const graded = await runInQuickJS({
+      code: `${load}\nconst search = (text) => new URL(text).search;`,
+      calls: ['search("https://a.b/?q=1")', 'Promise.all(["node:fs", "std", "os"].map(load))'],
+      expectations: ['?q=1', ["could not load module 'node:fs'", "could not load module 'std'", "could not load module 'os'"]],
+    });
+    assert.deepEqual(graded.results.map((one) => one.pass), [true, true], JSON.stringify(graded));
+    assert.deepEqual(handed.splice(0), ['function url'], 'a grader run hands QuickJS one host function, the URL parser, and no module loader');
+    const react = await runReactSuite({
+      suite: `import React from 'react';
+import { render, fireEvent } from '@testing-library/react';
+import App, { load } from './App';
+test('renders and updates', () => { const { container } = render(<App />); fireEvent.click(container.querySelector('button')); expect(container.textContent).toBe('1'); });
+test('loads no module', async () => { expect(await Promise.all(['node:fs', 'fs', 'std', 'os', 'react'].map(load))).toEqual(["Cannot find module 'node:fs'", "Cannot find module 'fs'", "Cannot find module 'std'", "Cannot find module 'os'", 'loaded']); });`,
+      appSource: `import React, { useState } from 'react';
+export ${load}
+export default function App() { const [count, setCount] = useState(0); return <button onClick={() => setCount(count + 1)}>{count}</button>; }`,
+    });
+    assert.deepEqual(react.cases.map((one) => one.status), ['pass', 'pass'], JSON.stringify(react));
+    assert.deepEqual(handed.splice(0), ['function capability', 'function schedule', 'function report'], 'a React run hands the learner engine three host functions and no module loader');
+    // A static import resolves through the same fixed list.
+    const fixed = await runReactSuite({
+      suite: `import App from './App';\ntest('renders', () => { expect(typeof App).toBe('function'); });`,
+      appSource: `import { readFileSync } from 'node:fs';\nexport const read = readFileSync;\nexport default function App() { return null; }`,
+    });
+    assert.equal(fixed.compileError, "compiling App: Cannot find module 'node:fs'", JSON.stringify(fixed));
+    handed.splice(0);
+  } finally {
+    contexts.newFunctionWithOptions = newFunctionWithOptions;
+    contexts.newHostRef = newHostRef;
+    runtimes.setModuleLoader = setModuleLoader;
+  }
+
+  // The wasm both engines load (quickjs-variant.ts), checked against its
+  // provenance. Its imports are all it can call in the host. Emscripten
+  // minified their names: a.s calls a host function, a.i asks the interrupt
+  // handler, a.h and a.g load and resolve a module (no loader is set, so they
+  // refuse), a.t frees a host reference, and the other fifteen are the C
+  // library's: assert and abort, the clock, the time zone and a timer, heap
+  // growth, environment strings, stdout and file stubs, keep-alive and exit.
+  // A rebuild that imports anything more fails here.
+  const wasm = Buffer.from(vendoredQuickJS, 'base64');
+  const provenance = JSON.parse(readFileSync(join(process.cwd(), 'lib/coding/vendor/provenance.json'), 'utf8')) as { artifact: { wasmSha256: string } };
+  assert.equal(createHash('sha256').update(wasm).digest('hex'), provenance.artifact.wasmSha256, 'the engines load the wasm the provenance names');
+  const compiled = new WebAssembly.Module(wasm);
+  assert.deepEqual(
+    WebAssembly.Module.imports(compiled).map(({ module, name, kind }) => `${module}.${name} ${kind}`),
+    [...'bcdefghijklmnopqrst'].map((name) => `a.${name} function`).concat('a.a memory'),
+    'the wasm imports nineteen host functions and its memory',
+  );
+  const exported = WebAssembly.Module.exports(compiled);
+  assert.ok(exported.every(({ kind }) => kind === 'function'), 'the wasm exports functions only');
+  assert.deepEqual(
+    exported.map(({ name }) => name),
+    'u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z _ $ aa ba ca da ea fa ga ha ia ja ka la ma na oa pa qa ra sa ta ua va wa xa ya za Aa Ba Ca Da Ea Fa Ga Ha Ia Ja Ka La Ma Na Oa'.split(' '),
+    'the wasm exports 75 functions',
+  );
+  console.log('PASS integrity: QuickJS gets one host function in the grader and three in the React engine, no module loader, and the wasm imports 20 names and exports 75');
 }
 
 // ── console output is capped by size (CODE-13) ───────────────────────────
