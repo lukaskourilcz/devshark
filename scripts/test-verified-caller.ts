@@ -884,6 +884,79 @@ async function main() {
     const stored = (reads('/rest/v1/question_edits').find((one) => one.method === 'POST')?.body as Row | undefined)?.explanation as string;
     assert.equal(stored, `${'a'.repeat(3_999)}🦈`, 'the cut keeps the emoji whole');
     console.log('PASS verified caller: an admin save cuts long text by code point');
+
+    // ── input classes the handlers already refuse (#638) ────────────────
+    // A list where one value belongs, U+0000, a decision that is no boolean,
+    // an unknown op or resource, a lookup by `constructor` or `__proto__`,
+    // an index that is no integer, an id past its cap: each answers 400 or
+    // 404 with the generic error body, and writes no row and calls no
+    // routine. These handlers need a database before they parse, so they are
+    // held here and not in the launch contracts, which run without one. The
+    // admin, voucher, referral and report buckets run on the healthy Upstash.
+    {
+      type Case = [label: string, send: () => Promise<Response>, status: number, code: string];
+      const handle = 'shark_fan';
+      const list = (...values: string[]) => values as unknown as string;
+      const cases: Case[] = [
+        ['user: an unknown op', () => user('no-such-op', { account: A }), 404, 'unknown_op'],
+        ['user: constructor as the op', () => user('constructor', { account: A }), 404, 'unknown_op'],
+        ['user: __proto__ as the op', () => user('__proto__', { account: A }), 404, 'unknown_op'],
+        ['user: a repeated op', () => call(userOps as Handler, { account: A, query: { op: list('stats', 'xp') } }), 404, 'unknown_op'],
+        ['friends: an answer that is no boolean', () => user('friends-respond', { method: 'POST', account: A, body: { handle, accept: 'yes' } }), 400, 'bad_request'],
+        ['friends: an answer of 1', () => user('friends-respond', { method: 'POST', account: A, body: { handle, accept: 1 } }), 400, 'bad_request'],
+        ['friends: a block that is no boolean', () => user('friends-remove', { method: 'POST', account: A, body: { handle, block: 'yes' } }), 400, 'bad_request'],
+        ['friends: U+0000 in a handle', () => user('friends-request', { method: 'POST', account: A, body: { handle: 'shark\u0000fan' } }), 400, 'invalid_handle'],
+        ['friends: a handle that is a list', () => user('friends-request', { method: 'POST', account: A, body: { handle: [handle] } }), 400, 'invalid_handle'],
+        ['badges: constructor as the subject', () => user('badges', { account: A, query: { subject: 'constructor' } }), 400, 'invalid_subject_scope'],
+        ['badges: a repeated subject', () => user('badges', { account: A, query: { subject: list('webdev', 'webdev') } }), 400, 'invalid_subject_scope'],
+        ['coding draft: constructor as the task id', () => user('coding-draft', { method: 'POST', account: A, body: { id: 'constructor', code: 'x' } }), 400, 'bad_request'],
+        ['coding draft: __proto__ as the task id', () => user('coding-draft', { method: 'POST', account: A, body: { id: '__proto__', code: 'x' } }), 400, 'bad_request'],
+        ['coding draft: a repeated task id', () => user('coding-draft', { account: A, query: { id: list(codingTask.id, codingTask.id) } }), 400, 'bad_request'],
+        ['leaderboard visibility: a switch that is no boolean', () => user('leaderboard-visibility', { method: 'PUT', account: A, body: { visible: 'true' } }), 400, 'bad_request'],
+        ['identity: a switch that is no boolean', () => user('identity', { method: 'PUT', account: A, body: { showRealName: 'yes' } }), 400, 'bad_request'],
+        ['leaderboard name: a photo switch that is no boolean', () => user('leaderboard-name', { method: 'PUT', account: A, body: { showPhoto: 'yes' } }), 400, 'bad_request'],
+        ['leaderboard name: constructor as the mode', () => user('leaderboard-name', { method: 'PUT', account: A, body: { mode: 'constructor' } }), 400, 'bad_request'],
+        ['voucher: a code that is a list', () => user('voucher', { method: 'POST', account: A, body: { code: ['SHARKCAMP2026'] } }), 400, 'bad_request'],
+        ['referral: a code that is a list', () => user('referral', { method: 'POST', account: A, body: { code: ['ab234567'] } }), 400, 'bad_request'],
+        ['leaderboard: constructor as the period', () => call(leaderboard as Handler, { query: { period: 'constructor' } }), 400, 'bad_request'],
+        ['leaderboard: __proto__ as the period', () => call(leaderboard as Handler, { query: { period: '__proto__' } }), 400, 'bad_request'],
+        ['leaderboard: constructor as the category', () => call(leaderboard as Handler, { query: { period: 'category', category: 'constructor' } }), 400, 'bad_request'],
+        ['Shark Cards: constructor as the subject', () => call(flashcards as Handler, { account: A, query: { subject: 'constructor' } }), 400, 'invalid_subject_scope'],
+        ['Shark Cards: __proto__ as the subject', () => call(flashcards as Handler, { account: A, query: { subject: '__proto__' } }), 400, 'invalid_subject_scope'],
+        ['Shark Cards: a repeated subject', () => call(flashcards as Handler, { account: A, query: { subject: list('webdev', 'webdev') } }), 400, 'invalid_subject_scope'],
+        ['Shark Cards: U+0000 in a card', () => call(flashcards as Handler, { method: 'POST', account: A, body: { ...cardBody, question: 'before\u0000after' } }), 400, 'bad_request'],
+        ['Shark Cards: constructor as the question id', () => call(flashcards as Handler, { method: 'POST', account: A, body: { ...cardBody, question_id: 'constructor' } }), 400, 'invalid_question'],
+        ['Shark Cards: a repeated question id on delete', () => call(flashcards as Handler, { method: 'DELETE', account: A, query: { subject: 'webdev', question_id: list('a', 'b') } }), 400, 'bad_request'],
+        ['Challenge: constructor as a category', () => call(challenge as Handler, { query: { categories: 'constructor' } }), 400, 'invalid_subject_scope'],
+        ['Challenge: __proto__ as a board category', () => call(challenge as Handler, { query: { resource: 'leaderboard', categories: '__proto__' } }), 400, 'invalid_subject_scope'],
+        ['Challenge: an unknown resource', () => call(challenge as Handler, { query: { resource: 'no-such-resource' } }), 404, 'unknown_resource'],
+        ['Challenge: constructor as the resource', () => call(challenge as Handler, { query: { resource: 'constructor' } }), 404, 'unknown_resource'],
+        ['Challenge: a run token that is a list', () => call(challenge as Handler, { method: 'POST', query: { resource: 'complete' }, body: { runToken: ['x'], proofs: [] } }), 400, 'bad_request'],
+        ['admin: an unknown op', () => admin('no-such-op', {}), 404, 'unknown_op'],
+        ['admin: constructor as the op', () => admin('constructor', {}), 404, 'unknown_op'],
+        ['admin: __proto__ as the op', () => admin('__proto__', {}), 404, 'unknown_op'],
+        ['admin: a fractional answer index', () => admin('save', { method: 'POST', body: { ...question, correctIndex: 0.5 } }), 400, 'bad_request'],
+        ['admin: an answer index sent as text', () => admin('save', { method: 'POST', body: { ...question, correctIndex: '0' } }), 400, 'bad_request'],
+        ['admin: constructor as the category', () => admin('save', { method: 'POST', body: { ...question, category: 'constructor' } }), 400, 'bad_request'],
+        ['report: a question id that is a list', () => call(submit as Handler, { method: 'POST', query: { resource: 'report' }, body: { question_id: ['q-report-1'], reason: 'typo' } }), 400, 'bad_request'],
+        ['report: a question id past 64 characters', () => call(submit as Handler, { method: 'POST', query: { resource: 'report' }, body: { question_id: 'q'.repeat(65), reason: 'typo' } }), 400, 'bad_request'],
+        ['report: constructor as the reason', () => call(submit as Handler, { method: 'POST', query: { resource: 'report' }, body: { question_id: 'q-report-1', reason: 'constructor' } }), 400, 'bad_request'],
+        ['report: U+0000 in the question id', () => call(submit as Handler, { method: 'POST', query: { resource: 'report' }, body: { question_id: 'q-report-\u0000', reason: 'typo' } }), 400, 'bad_request'],
+      ];
+      for (const [label, send, status, code] of cases) {
+        seen.length = 0;
+        const refused = await send();
+        const error = (refused.body as { error?: Record<string, unknown> } | undefined)?.error;
+        assert.equal(refused.statusCode, status, `${label} answers ${status} (${JSON.stringify(refused.body)})`);
+        assert.equal(error?.code, code, `${label} answers ${code}`);
+        assert.equal(typeof error?.message, 'string', `${label} carries a message`);
+        assert.deepEqual(Object.keys(error ?? {}).filter((key) => !['code', 'message', 'requestId'].includes(key)), [],
+          `${label} answers the generic error body`);
+        assert.deepEqual(seen.filter((one) => one.method !== 'GET').map((one) => `${one.method} ${one.path}`), [],
+          `${label} writes no row and calls no routine`);
+      }
+      console.log(`PASS verified caller: ${cases.length} malformed requests to user ops, leaderboards, Shark Cards, the Challenge, admin and reports answer 400 or 404 and write nothing`);
+    }
     upstashMode('failing');
 
     // ── nothing about one person in a shared cache ──────────────────────
