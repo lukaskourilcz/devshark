@@ -44,7 +44,6 @@ function resolveChrome() {
   );
 }
 
-const CHROME = resolveChrome();
 const IS_LINUX = platform() === 'linux';
 const DEFAULT_BASE = 'http://localhost:4173';
 // The routes that render their page on the preview server with the fixtures
@@ -111,7 +110,7 @@ const DEFAULT_VIEWPORTS = [
 const SETTINGS = JSON.parse(readFileSync(new URL('../tests/fixtures/api-settings.json', import.meta.url), 'utf8'));
 // The roadmap structure, the path catalog and a coding task, built from the
 // server's own modules (scripts/responsive-fixtures.ts), bundled once here.
-const SERVER = await loadServerFixtures();
+let SERVER;
 async function loadServerFixtures() {
   const { build } = await import('esbuild');
   const out = await build({
@@ -262,6 +261,7 @@ Options:
   --widths <csv>      Viewport widths (${DEFAULT_VIEWPORTS.map(({ width }) => width).join(', ')})
   --base-url <url>    Running preview URL (default: ${DEFAULT_BASE})
   --output-dir <path> Keep failure screenshots at an explicit path
+  --print-matrix      Print the selected route and viewport inventory as JSON
   --help              Show this help
 
 The same settings are available through RESPONSIVE_ROUTES,
@@ -542,7 +542,7 @@ async function openBrowser(seed, baseUrl) {
     'about:blank',
   ];
   if (IS_LINUX) chromeArgs.unshift('--no-sandbox', '--disable-dev-shm-usage');
-  const chrome = spawn(CHROME, chromeArgs, { stdio: ['ignore', 'pipe', 'pipe'] });
+  const chrome = spawn(resolveChrome(), chromeArgs, { stdio: ['ignore', 'pipe', 'pipe'] });
 
   let devtoolsSocket;
   let closed = false;
@@ -618,6 +618,11 @@ async function main() {
     throw new Error('Responsive checks require Node.js 22 or newer (the version declared in package.json).');
   }
   const { routes, viewports } = selectedMatrix();
+  if (process.argv.includes('--print-matrix')) {
+    console.log(JSON.stringify({ routes, viewports, authMode: 'guest' }, null, 2));
+    return;
+  }
+  SERVER = await loadServerFixtures();
   const baseUrl = (optionValue('--base-url') ?? process.env.RESPONSIVE_BASE_URL ?? DEFAULT_BASE).replace(/\/$/, '');
   const configuredOutput = optionValue('--output-dir') ?? process.env.RESPONSIVE_OUTPUT_DIR;
   const outDir = configuredOutput
