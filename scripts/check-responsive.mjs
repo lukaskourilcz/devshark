@@ -21,7 +21,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync
 import { tmpdir, platform } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CLEARANCE } from './responsive-clearance.mjs';
+import { CLEARANCE, TOUCH_TARGETS } from './responsive-clearance.mjs';
 import { closeBrowserProcess } from './responsive-browser-process.mjs';
 
 const CHROME_CANDIDATES = [
@@ -583,11 +583,12 @@ async function probeRoute(session, baseUrl, route, vp, notFoundHeading) {
     problems.push(`zoom geometry differs: expected ${vp.width}x${vp.height} CSS at ${vp.deviceScaleFactor} density on ${vp.physicalWidth}x${vp.physicalHeight}, got ${JSON.stringify(geometry)}`);
   }
   const data = await evaluate(call, PROBE);
+  const targets = vp.mobile ? await evaluate(call, TOUCH_TARGETS) : { measured: 0, violations: [], exceptions: [] };
   const clearance = await evaluate(call, CLEARANCE);
   if (process.env.RESPONSIVE_DEBUG === '1') {
     console.log(`  [debug] ${route} ${vp.label}: ${clearance.overlays} bottom overlay(s), ${clearance.covered.length} covered, h1 ${JSON.stringify(rendered.headings)}, api ${JSON.stringify(session.apiRequests)}`);
   }
-  return { route, viewport: vp.label, zoom: vp.zoom, geometry, physicalWidth: vp.physicalWidth, physicalHeight: vp.physicalHeight, ready, covered: clearance.covered, problems, headings: rendered.headings, ...data };
+  return { route, viewport: vp.label, zoom: vp.zoom, geometry, physicalWidth: vp.physicalWidth, physicalHeight: vp.physicalHeight, targets, ready, covered: clearance.covered, problems, headings: rendered.headings, ...data };
 }
 
 /** The heading of the not-found page, read from an address that cannot exist,
@@ -795,7 +796,7 @@ async function main() {
           }
         }
         results.push(r);
-        const broken = r.overflow > 0 || r.parentOffenders.length > 0 || r.covered.length > 0 || r.problems.length > 0;
+        const broken = r.overflow > 0 || r.parentOffenders.length > 0 || r.covered.length > 0 || r.problems.length > 0 || r.targets.violations.length > 0;
         const tag = broken ? 'FAIL' : 'OK';
         const slow = r.ready ? '' : '  (measured before load finished)';
         process.stdout.write(`  ${tag.padEnd(5)} ${vp.label.padEnd(10)} ${route}${slow}\n`);
@@ -808,8 +809,9 @@ async function main() {
     session.close();
 
     const errored = results.filter((r) => r.error);
-    const fails = results.filter((r) => r.overflow > 0 || r.parentOffenders.length > 0 || r.covered.length > 0 || r.problems.length > 0);
+    const fails = results.filter((r) => r.overflow > 0 || r.parentOffenders.length > 0 || r.covered.length > 0 || r.problems.length > 0 || r.targets?.violations.length > 0);
     console.log(`\n${results.length} probes · ${fails.length} with issues · ${errored.length} unprobed`);
+    console.log(`Touch targets: ${results.reduce((sum, row) => sum + (row.targets?.measured ?? 0), 0)} measured; ${results.reduce((sum, row) => sum + (row.targets?.exceptions.length ?? 0), 0)} inline prose exceptions.`);
     if (errored.length) {
       console.log('\nCould not be probed:');
       for (const e of errored) console.log(`  ${e.viewport}  ${e.route} — ${e.error}`);
@@ -819,6 +821,7 @@ async function main() {
       for (const f of fails) {
         console.log(`\n  ${f.viewport}  ${f.route}`);
         for (const problem of f.problems) console.log(`    not measured as rendered: ${problem}`);
+        for (const target of f.targets?.violations ?? []) console.log(`    touch target ${target.selector} ${target.tag}[${target.type}] ${target.classes}: ${target.width}x${target.height}px (${target.text})`);
         console.log(`    winW=${f.winW} docW=${f.docW} overflow=${f.overflow}`);
         if (f.horizOffenders.length) {
           console.log('    horizontal offenders (top elements past viewport):');

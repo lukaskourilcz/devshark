@@ -74,3 +74,78 @@ export const CLEARANCE = `(async () => {
   }
   return { covered, overlays: overlays.length };
 })()`;
+
+// Measure the clickable geometry, including native labels and the established
+// compact-control pseudo hit areas. Inline prose links use the documented
+// WCAG 2.5.8 inline exception; standalone links keep the 44px product floor.
+export const TOUCH_TARGETS = String.raw`(() => {
+  const selector = 'a[href],button,input:not([type="hidden"]),select,textarea,summary,[role="button"],[role="checkbox"],[role="radio"],[role="switch"],[role="tab"],[role="slider"],[role="combobox"],[role="separator"][tabindex],[contenteditable="true"]';
+  const violations = [], exceptions = [];
+  let measured = 0;
+  const describe = (el) => el.id ? '#' + CSS.escape(el.id) : el.tagName.toLowerCase() + [...el.classList].slice(0, 3).map((name) => '.' + CSS.escape(name)).join('');
+  const visible = (el) => {
+    const style = getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden') return false;
+    for (let parent = el; parent; parent = parent.parentElement) if (Number(getComputedStyle(parent).opacity) === 0) return false;
+    return true;
+  };
+  const rect = (box) => ({ left: box.left, top: box.top, right: box.right, bottom: box.bottom });
+  const clip = (box, origin, includeSelf = false) => {
+    const result = { ...box };
+    let canScrollX = false, canScrollY = false;
+    for (let parent = includeSelf ? origin : origin.parentElement; parent; parent = parent.parentElement) {
+      const style = getComputedStyle(parent), bounds = parent.getBoundingClientRect();
+      // A scrollport can expose its offscreen controls. A hidden/clip ancestor
+      // cannot expose the clipped part and genuinely shrinks the hit area.
+      if (/^(auto|scroll)$/.test(style.overflowX) && parent.scrollWidth > parent.clientWidth) canScrollX = true;
+      if (/^(auto|scroll)$/.test(style.overflowY) && parent.scrollHeight > parent.clientHeight) canScrollY = true;
+      if (!canScrollX && /^(hidden|clip)$/.test(style.overflowX)) {
+        result.left = Math.max(result.left, bounds.left + parent.clientLeft);
+        result.right = Math.min(result.right, bounds.left + parent.clientLeft + parent.clientWidth);
+      }
+      if (!canScrollY && /^(hidden|clip)$/.test(style.overflowY)) {
+        result.top = Math.max(result.top, bounds.top + parent.clientTop);
+        result.bottom = Math.min(result.bottom, bounds.top + parent.clientTop + parent.clientHeight);
+      }
+    }
+    return { width: Math.max(0, result.right - result.left), height: Math.max(0, result.bottom - result.top) };
+  };
+  const pixels = (value) => /^-?(?:\d+\.?\d*|\.\d+)px$/.test(value) ? Number.parseFloat(value) : null;
+  for (const el of document.querySelectorAll(selector)) {
+    if (el.matches(':disabled,[aria-disabled="true"]') || el.closest('[inert],[aria-hidden="true"]')) continue;
+    const labels = [...(el.labels ?? [])].filter((label) => visible(label) && getComputedStyle(label).pointerEvents !== 'none');
+    const style = getComputedStyle(el);
+    if ((!visible(el) || style.pointerEvents === 'none') && labels.length === 0) continue;
+    const bounds = el.getBoundingClientRect();
+    const candidates = [clip(rect(bounds), el), ...labels.map((label) => clip(rect(label.getBoundingClientRect()), label))];
+    if (style.position !== 'static' && style.pointerEvents !== 'none') for (const pseudo of ['::before', '::after']) {
+      const hit = getComputedStyle(el, pseudo);
+      if (hit.position !== 'absolute' || hit.content === 'none' || hit.content === 'normal' || hit.pointerEvents === 'none') continue;
+      let width = pixels(hit.width), height = pixels(hit.height);
+      if (width === null || height === null) continue;
+      if (hit.boxSizing !== 'border-box') {
+        width += (pixels(hit.paddingLeft) ?? 0) + (pixels(hit.paddingRight) ?? 0) + (pixels(hit.borderLeftWidth) ?? 0) + (pixels(hit.borderRightWidth) ?? 0);
+        height += (pixels(hit.paddingTop) ?? 0) + (pixels(hit.paddingBottom) ?? 0) + (pixels(hit.borderTopWidth) ?? 0) + (pixels(hit.borderBottomWidth) ?? 0);
+      }
+      const left = pixels(hit.left) ?? (bounds.width - (pixels(hit.right) ?? 0) - width);
+      const top = pixels(hit.top) ?? (bounds.height - (pixels(hit.bottom) ?? 0) - height);
+      candidates.push(clip({ left: bounds.left + left, right: bounds.left + left + width, top: bounds.top + top, bottom: bounds.top + top + height }, el, true));
+    }
+    const area = candidates.sort((a, b) => Math.min(b.width, b.height) - Math.min(a.width, a.height) || b.width * b.height - a.width * a.height)[0];
+    if (!area || area.width === 0 || area.height === 0) continue;
+    measured++;
+    if (area.width >= 43.99 && area.height >= 43.99) continue;
+    const prose = el.tagName === 'A' && style.display === 'inline' && el.closest('p,li,dd,dt,blockquote,figcaption');
+    if (prose) {
+      const surrounding = prose.cloneNode(true);
+      surrounding.querySelectorAll(selector).forEach((target) => target.remove());
+      if (/[\p{L}\p{N}]/u.test(surrounding.textContent ?? '')) {
+        exceptions.push({ selector: describe(el), reason: 'Inline sentence link: WCAG 2.5.8 inline exception' });
+        continue;
+      }
+    }
+    const labelled = (el.getAttribute('aria-labelledby') ?? '').split(/\s+/).map((id) => document.getElementById(id)?.textContent ?? '').join(' ');
+    violations.push({ selector: describe(el), tag: el.tagName.toLowerCase(), type: el.getAttribute('type') || el.getAttribute('role') || '', classes: [...el.classList].join(' '), width: Math.round(area.width * 100) / 100, height: Math.round(area.height * 100) / 100, text: (el.getAttribute('aria-label') || labelled.trim() || labels.map((label) => label.textContent).join(' ') || el.textContent || '').trim().slice(0, 100) });
+  }
+  return { measured, violations, exceptions };
+})()`;
