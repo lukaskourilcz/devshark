@@ -13,17 +13,18 @@ import { server } from './mocks/server';
 
 // Design audit P1.6: on the Coding home the planner is one row until opened,
 // and opening it shows the same form as before.
-const practice = vi.hoisted(() => ({ start: null as null | ((input: unknown, callbacks: { onSuccess: (data: unknown) => void; onSettled?: () => void }) => void), pending: false, session: null as PracticeSession | null, advance: vi.fn() }));
-const mutate = vi.fn((input: unknown, callbacks: { onSuccess: (data: unknown) => void; onSettled?: () => void }) => practice.start?.(input, callbacks));
+type Callbacks = { onSuccess: (data: unknown) => void; onError?: (error: unknown) => void; onSettled?: () => void };
+const practice = vi.hoisted(() => ({ start: null as null | ((input: unknown, callbacks: Callbacks) => void), pending: false, session: null as PracticeSession | null, advance: vi.fn(), advanceFailed: false }));
+const mutate = vi.fn((input: unknown, callbacks: Callbacks) => practice.start?.(input, callbacks));
 vi.mock('../src/coding/practice', () => ({
   usePracticeSession: () => (practice.pending
     ? { data: undefined, isPending: true, isError: false, refetch: () => {} }
     : { data: { session: practice.session }, isPending: false, isError: false, refetch: () => {} }),
   useStartSession: () => ({ mutate, isPending: false }),
-  useAdvanceSession: () => ({ mutate: practice.advance, isPending: false }),
+  useAdvanceSession: () => ({ mutate: practice.advance, isPending: false, isError: practice.advanceFailed }),
 }));
 
-beforeEach(() => { mutate.mockClear(); practice.start = null; practice.pending = false; practice.session = null; practice.advance.mockReset(); });
+beforeEach(() => { mutate.mockClear(); practice.start = null; practice.pending = false; practice.session = null; practice.advance.mockReset(); practice.advanceFailed = false; });
 
 const mount = (collapsible = true, resumeInPrimary = false) => render(
   <MemoryRouter initialEntries={['/coding']}>
@@ -167,6 +168,73 @@ it.each([60_000, 60 * 86_400_000])('marks a scheduled run due on both screens af
   } finally {
     vi.useRealTimers();
   }
+});
+
+// Today's section and the Coding home planner stay mounted while the account
+// changes, so a start answered after a Log out or another account's sign-in
+// must not move the next learner to the previous learner's run, or tell them
+// it failed. clearAccountData is what lib/auth.tsx runs on the change.
+describe('a run start answered after the account changed', () => {
+  const PLANNED: PracticeSession = { sessionId: 'run-1', status: 'scheduled', queue: ['js-digit-sum'], position: 0, minutes: 10, topic: null, estimatedMinutes: 5, order: 'sequential', count: 1, scheduledFor: '2026-12-01T10:00:00Z' };
+  const STARTED = { session: { ...PLANNED, status: 'active', scheduledFor: null } };
+  const today = () => (
+    <MemoryRouter initialEntries={['/today']}>
+      <LanguageProvider>
+        <Routes>
+          <Route path="/today" element={<ChallengeRunSection />} />
+          <Route path="/coding/:track/:taskId" element={<h1>Task page</h1>} />
+        </Routes>
+      </LanguageProvider>
+    </MemoryRouter>
+  );
+  const holdAdvance = () => {
+    const held: { callbacks?: Callbacks } = {};
+    practice.advance.mockImplementation((_input, callbacks: Callbacks) => { held.callbacks = callbacks; });
+    return held;
+  };
+  /** The held request's answer, after the account changed. */
+  const answerLate = (callbacks: Callbacks | undefined, outcome: 'started' | 'refused') => {
+    clearAccountData();
+    if (outcome === 'refused') practice.advanceFailed = true;
+    act(() => {
+      if (outcome === 'started') callbacks?.onSuccess(STARTED);
+      else callbacks?.onError?.(new Error('refused'));
+      callbacks?.onSettled?.();
+    });
+  };
+  const expectUntouched = () => {
+    expect(screen.queryByRole('heading', { name: 'Task page' })).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
+  };
+
+  it.each(['started', 'refused'] as const)('leaves the next learner on Today, told nothing, when the planned run is %s late', (outcome) => {
+    practice.session = PLANNED;
+    const held = holdAdvance();
+    const view = render(today());
+    fireEvent.click(screen.getByRole('button', { name: /^Start:/ }));
+    answerLate(held.callbacks, outcome);
+    // The section reads the mutation's error state as it draws.
+    view.rerender(today());
+    expectUntouched();
+  });
+
+  it.each(['started', 'refused'] as const)('leaves the next learner on the Coding home, told nothing, when the planner\'s run is %s late', (outcome) => {
+    let held: Callbacks | undefined;
+    practice.start = (_input, callbacks) => { held = callbacks; };
+    mount(false);
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+    answerLate(held, outcome);
+    expectUntouched();
+  });
+
+  it.each(['started', 'refused'] as const)('leaves the next learner on the Coding home, told nothing, when the planned run card\'s start is %s late', (outcome) => {
+    practice.session = PLANNED;
+    const held = holdAdvance();
+    mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Start now' }));
+    answerLate(held.callbacks, outcome);
+    expectUntouched();
+  });
 });
 
 // A start, a step or a save still on the wire when the learner logs out, or
