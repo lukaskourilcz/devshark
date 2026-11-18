@@ -299,4 +299,10 @@ export function vercelRoutingContracts(): void {
   for (const key of ['content-security-policy', 'strict-transport-security', 'x-frame-options', 'x-content-type-options', 'referrer-policy', 'permissions-policy']) {
     assert.ok(page[key], `pages keep ${key}`);
   }
+  // A page loads images from named hosts only: a bare scheme such as https:,
+  // or *, would let any host receive an image request from the page. data:
+  // is the one scheme allowed, for images the page carries itself.
+  const imageSources = /(?:^|;)\s*img-src\s+([^;]*)/.exec(page['content-security-policy'] ?? '')?.[1].trim().split(/\s+/) ?? [];
+  assert.ok(imageSources.length > 0, 'the app policy lists its image sources');
+  assert.deepEqual(imageSources.filter((source) => source === '*' || (/^[a-z][a-z0-9+.-]*:$/i.test(source) && source.toLowerCase() !== 'data:')), [], 'img-src names its hosts and holds no scheme-only source but data:');
 }

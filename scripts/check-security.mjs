@@ -76,6 +76,83 @@ function parsePolicy(policy) {
   return directives;
 }
 
+const DEFAULT_PORTS = { 'http:': '80', 'https:': '443', 'ws:': '80', 'wss:': '443' };
+const portOf = url => url.port || DEFAULT_PORTS[url.protocol] || '';
+// CSP Level 3 "scheme-part match": a source's scheme also covers its secure
+// upgrade (http: covers https:, ws: covers wss:), and ws: and wss: cover the
+// HTTP schemes. https: does not cover wss:, so a host the page opens a
+// socket to needs its own wss:// source.
+const SCHEME_COVERS = { 'http:': ['http:', 'https:'], 'https:': ['https:'], 'ws:': ['ws:', 'wss:', 'http:', 'https:'], 'wss:': ['wss:', 'https:'] };
+const schemeCovers = (source, target) => (SCHEME_COVERS[source] ?? [source]).includes(target);
+
+/** Whether a fetch or socket to `target` (a URL string) passes the directive
+ * `sources` (one parsePolicy entry) on a page served from `self` (a URL).
+ * It follows CSP Level 3's source matching for the source shapes a policy in
+ * vercel.json may hold: 'self', 'none', a bare scheme, and a host source with
+ * a scheme, a leading *. wildcard, a port and a path. */
+function cspAllows(sources, target, self) {
+  const url = new URL(target);
+  return sources.some(raw => {
+    const source = raw.toLowerCase();
+    if (source === "'self'") {
+      // 'self' also covers the secure upgrades of the page's own host.
+      return url.hostname === self.hostname && portOf(url) === portOf(self)
+        && (url.protocol === self.protocol || ['https:', 'wss:'].includes(url.protocol) || (self.protocol === 'http:' && url.protocol === 'ws:'));
+    }
+    if (source.startsWith("'")) return false;
+    if (/^[a-z][a-z0-9+.-]*:$/.test(source)) return schemeCovers(source, url.protocol);
+    const host = /^(?:([a-z][a-z0-9+.-]*:)\/\/)?(\*|(?:\*\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*)(?::(\d+|\*))?(\/[^?#]*)?$/.exec(source);
+    if (!host) return false;
+    const [, scheme, hostname, port, path] = host;
+    if (!schemeCovers(scheme ?? self.protocol, url.protocol)) return false;
+    if (hostname.startsWith('*.') ? !url.hostname.endsWith(hostname.slice(1)) : hostname !== '*' && hostname !== url.hostname) return false;
+    if (port !== '*' && (port ?? DEFAULT_PORTS[url.protocol]) !== portOf(url)) return false;
+    if (!path || path === '/') return true;
+    return path.endsWith('/') ? url.pathname.startsWith(path) : url.pathname === path;
+  });
+}
+
+// The matcher decides whether --url passes the deployed bundle's hosts, so its
+// edges are pinned here.
+{
+  const self = new URL('https://devshark.app/');
+  const cases = [
+    [['https://*.supabase.co'], 'https://abc.supabase.co/rest/v1/', true],
+    [['https://*.supabase.co'], 'wss://abc.supabase.co/realtime/v1/websocket', false],
+    [['wss://*.supabase.co'], 'wss://abc.supabase.co/realtime/v1/websocket', true],
+    [['https://*.supabase.co'], 'https://supabase.co/', false],
+    [['https://*.supabase.co'], 'https://abc.supabase.co.evil.example/', false],
+    [['https://abc.supabase.co'], 'https://abd.supabase.co/', false],
+    [['https://abc.supabase.co'], 'https://abc.supabase.co:8443/', false],
+    [['https:'], 'https://anything.example/', true],
+    [['https:'], 'wss://anything.example/', false],
+    [["'self'"], 'https://devshark.app/ingest/e/', true],
+    [["'self'"], 'wss://devshark.app/socket', true],
+    [["'self'"], 'https://eu.i.posthog.com/e/', false],
+    [["'none'"], 'https://devshark.app/', false],
+    [['https://*.ingest.de.sentry.io'], 'https://o1.ingest.de.sentry.io/api/2/envelope/', true],
+    [['https://*.ingest.de.sentry.io'], 'https://o1.ingest.us.sentry.io/api/2/envelope/', false],
+    [['https://example.com/api/'], 'https://example.com/api/x', true],
+    [['https://example.com/api'], 'https://example.com/api/x', false],
+  ];
+  const wrong = cases.filter(([sources, target, allowed]) => cspAllows(sources, target, self) !== allowed);
+  assert.deepEqual(wrong, [], 'cspAllows in scripts/check-security.mjs disagrees with CSP Level 3 source matching');
+}
+
+/** The hosts a built JavaScript chunk sends data to on its own: each Supabase
+ * project URL (https://<ref>.supabase.co, from VITE_SUPABASE_URL), each
+ * Sentry ingest host with its project (from the DSN in VITE_SENTRY_DSN), and
+ * the api_host the analytics module hands startPostHog (VITE_PUBLIC_POSTHOG_HOST,
+ * or the same-origin /ingest proxy). */
+function bundleHosts(js) {
+  const unique = values => [...new Set(values)].sort();
+  return {
+    supabase: unique([...js.matchAll(/https:\/\/([a-z0-9-]+)\.supabase\.co(?![a-z0-9.-])/gi)].map(([, ref]) => ref.toLowerCase())),
+    sentry: unique([...js.matchAll(/https:\/\/[0-9a-f]+@([a-z0-9.-]+\.sentry\.io)\/(\d+)/gi)].map(([, host, project]) => `${host.toLowerCase()}/${project}`)),
+    posthog: unique([...js.matchAll(/\.startPostHog\(\s*[\w$]+\s*,\s*(["'`])([^"'`]*)\1\s*\)/g)].map(match => match[2])),
+  };
+}
+
 // The app document's policy, directive by directive. vercel.json must list
 // exactly these sources (in any order) and no other directive, so a host added
 // to img-src, script-src or connect-src fails here: change vercel.json and
@@ -88,7 +165,12 @@ const APP_POLICY = {
   'script-src': ["'self'", 'https://js.stripe.com', 'https://*.js.stripe.com', 'https://checkout.stripe.com', ...bootstrapHashes],
   'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
   'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
-  'img-src': ["'self'", 'data:', 'https:'],
+  // Google profile photos (the only avatar host lib/public-identity.ts and
+  // client/src/lib/auth.tsx accept), and Stripe's and Link's images in
+  // checkout, as Stripe's CSP guide lists them. data: carries the Play QR
+  // code and the SVG backgrounds in the built CSS. When merchandise returns,
+  // its image host joins this list.
+  'img-src': ["'self'", 'data:', 'https://*.googleusercontent.com', 'https://*.stripe.com', 'https://*.link.com'],
   // Stripe's API and Link; Supabase REST, Auth and the realtime socket; the
   // Sentry EU ingest host, which the DSN in client/src/lib/sentry.ts posts to
   // directly (no tunnel), so without it browser errors never arrive.
@@ -127,20 +209,17 @@ assert.deepEqual(policyDrift, [], `The app policy in vercel.json differs from AP
 // policy by editing vercel.json and APP_POLICY together.
 // - A bare scheme (https:, http:, wss:), * or scheme://* lets every host of
 //   that scheme in. data: and blob: name content the page made itself.
-//   img-src https: is the one such source left: F10-13 replaces it with the
-//   named image hosts and deletes its exception here.
 // - No 'unsafe-eval' or other unsafe keyword; 'unsafe-inline' only in
 //   style-src, never for scripts.
 // - No PostHog host: analytics reach PostHog through the same-origin /ingest
 //   proxy (vercel.json rewrites, client/src/lib/analytics.ts).
-const OPEN_SOURCE_EXCEPTIONS = new Set(['img-src https:']);
 const opensEveryHost = source => source === '*'
   || (/^[a-z][a-z0-9+.-]*:$/i.test(source) && !['data:', 'blob:'].includes(source.toLowerCase()))
   || /^[a-z][a-z0-9+.-]*:\/\/\*(?:[:/]|$)/i.test(source);
 const ruleBreaks = [];
 for (const [directive, sources] of appPolicy) {
   for (const source of sources) {
-    if (opensEveryHost(source) && !OPEN_SOURCE_EXCEPTIONS.has(`${directive} ${source}`)) ruleBreaks.push(`${directive} holds ${source}, which lets every host in; name the hosts`);
+    if (opensEveryHost(source)) ruleBreaks.push(`${directive} holds ${source}, which lets every host in; name the hosts`);
     if (/unsafe/i.test(source) && !(directive === 'style-src' && source === "'unsafe-inline'")) ruleBreaks.push(`${directive} holds ${source}; only style-src may hold an unsafe keyword, and only 'unsafe-inline'`);
   }
 }
@@ -302,6 +381,36 @@ if (url) {
     }
     const matched = mismatches.length === before;
     console.log(`${origin.origin}${pathname}: ${response.status}, ${matched ? `the ${Object.keys(expected.headers).length} headers vercel.json gives it match` : 'differs from vercel.json'}${inline}`);
+  }
+  // The hosts the deployed main chunk talks to must pass the deployed app
+  // policy's connect-src, so a build pointed at another Supabase project,
+  // Sentry organisation or PostHog host fails here instead of in the
+  // learner's browser. Each extraction that finds nothing fails as well: the
+  // check would otherwise pass while proving nothing.
+  const chunk = probes.find(probe => probe.pathname === mainChunk);
+  const deployedPolicy = parsePolicy(home.response.headers.get('content-security-policy') ?? '');
+  const connect = deployedPolicy.get('connect-src') ?? deployedPolicy.get('default-src');
+  if (chunk && connect) {
+    const found = bundleHosts(chunk.body);
+    const targets = [];
+    if (!found.supabase.length) mismatches.push(`${mainChunk}: names no https://<ref>.supabase.co project URL; if the Supabase client left the main chunk, point this check at its new chunk`);
+    for (const ref of found.supabase) {
+      targets.push({ url: `https://${ref}.supabase.co/rest/v1/`, use: 'Supabase REST and Auth' }, { url: `wss://${ref}.supabase.co/realtime/v1/websocket`, use: 'the Supabase realtime socket' });
+    }
+    for (const ingest of found.sentry) {
+      const [host, project] = ingest.split('/');
+      targets.push({ url: `https://${host}/api/${project}/envelope/`, use: 'Sentry error reports' });
+    }
+    if (!found.posthog.length) mismatches.push(`${mainChunk}: holds no startPostHog(key, host) call; if the analytics module moved or changed shape, update bundleHosts in this file`);
+    for (const host of found.posthog) {
+      // PostHog's capture endpoint under the api_host; the CSP rules above
+      // keep every PostHog host out of the policy, so only the same-origin
+      // proxy passes (VITE_PUBLIC_POSTHOG_HOST stays unset).
+      targets.push({ url: new URL(`${host.replace(/\/$/, '')}/e/`, origin).href, use: 'PostHog analytics, which must go through the same-origin /ingest proxy' });
+    }
+    const blockedTargets = targets.filter(target => !cspAllows(connect, target.url, origin));
+    for (const target of blockedTargets) mismatches.push(`${mainChunk}: the bundle connects to ${target.url} for ${target.use}, which the deployed connect-src blocks`);
+    console.log(`${origin.origin}${mainChunk}: Supabase ${found.supabase.join(', ') || 'none'}; Sentry ${found.sentry.join(', ') || 'no DSN'}; PostHog ${found.posthog.join(', ') || 'none'}; ${targets.length - blockedTargets.length} of ${targets.length} connections allowed by connect-src`);
   }
   assert.equal(mismatches.length, 0, `${origin.origin} differs from vercel.json:\n  ${mismatches.join('\n  ')}`);
 }
