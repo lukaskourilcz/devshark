@@ -477,18 +477,19 @@ test('audit:performance keeps every run\'s report and summarizes the runs of eac
   assert.equal(run.results.length, 6, 'main returns every audit');
   assert.deepEqual(run.summary.map(({ profile, route, runs, failed }) => [profile, route, runs, failed]), [['mobile', '/learn', 3, 0], ['desktop', '/learn', 3, 1]]);
   const [mobile, desktop] = run.summary;
-  assert.deepEqual(mobile.median, { performance: 0.8, lcpMs: 3000, cls: 0.02, tbtMs: 200 });
-  assert.deepEqual(mobile.min, { performance: 0.6, lcpMs: 2600, cls: 0.01, tbtMs: 100 });
-  assert.deepEqual(mobile.max, { performance: 0.9, lcpMs: 4100, cls: 0.03, tbtMs: 300 });
+  const unread = { fcpMs: null, speedIndexMs: null, benchmarkIndex: null };
+  assert.deepEqual(mobile.median, { performance: 0.8, lcpMs: 3000, cls: 0.02, tbtMs: 200, ...unread });
+  assert.deepEqual(mobile.min, { performance: 0.6, lcpMs: 2600, cls: 0.01, tbtMs: 100, ...unread });
+  assert.deepEqual(mobile.max, { performance: 0.9, lcpMs: 4100, cls: 0.03, tbtMs: 300, ...unread });
   assert.deepEqual(mobile.results.map((row) => row.run), [1, 2, 3]);
-  assert.deepEqual(desktop.median, { performance: 0.99, lcpMs: 800, cls: 0, tbtMs: 0 }, 'the median of the two finished runs');
+  assert.deepEqual(desktop.median, { performance: 0.99, lcpMs: 800, cls: 0, tbtMs: 0, ...unread }, 'the median of the two finished runs');
   assert.equal(desktop.results[1].error, 'Lighthouse exited with code 1');
 });
 
 test('audit:performance summarizes a page whose runs all failed with empty statistics', () => {
   const rows = [1, 2].map((run) => ({ profile: 'mobile', route: '/', requestedUrl: 'http://127.0.0.1:9', run, error: 'Lighthouse exited with code 1' }));
   const [summary] = lighthouse.summarize(rows, 2);
-  const empty = { performance: null, lcpMs: null, cls: null, tbtMs: null };
+  const empty = { performance: null, fcpMs: null, lcpMs: null, speedIndexMs: null, cls: null, tbtMs: null, benchmarkIndex: null };
   assert.deepEqual(summary, { profile: 'mobile', route: '/', requestedUrl: 'http://127.0.0.1:9', runs: 2, failed: 2, median: empty, min: empty, max: empty, results: rows });
   assert.equal(lighthouse.summarize(rows, 1), rows, 'one run per profile keeps one row per audit');
 });

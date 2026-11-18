@@ -73,12 +73,37 @@ export function runLighthouse(url, profile, prefix) {
  return run.status;
 }
 
-// The summary row of one finished report.
+// The LCP element of a report and how its time splits, from the node and
+// subpart table of the lcp-breakdown-insight audit: such as
+// { selector: 'section.ss-consent > … > p#_r_4_', nodeLabel: 'devShark keeps…',
+// subparts: { timeToFirstByte: 12.6, elementRenderDelay: 167.2 } }. The
+// subparts come from the observed trace, so under simulated throttling they
+// do not add up to lcpMs. null when the report has no LCP node.
+export function lcpElement(lhr) {
+ const items = lhr.audits['lcp-breakdown-insight']?.details?.items ?? [];
+ const node = items.find(item => item.type === 'node');
+ if (!node) return null;
+ const table = items.find(item => item.type === 'table')?.items ?? [];
+ return { selector: node.selector ?? null, nodeLabel: node.nodeLabel ?? null, subparts: Object.fromEntries(table.map(part => [part.subpart, part.duration])) };
+}
+
+// The summary row of one finished report. benchmarkIndex and the
+// throttling settings tell how fast the machine was and what Lighthouse
+// simulated, so runs on different machines can be compared.
 export function reportRow(lhr) {
+ const audits = lhr.audits;
  return { finalUrl: lhr.finalDisplayedUrl, fetchTime: lhr.fetchTime,
   lighthouseVersion: lhr.lighthouseVersion, scores: Object.fromEntries(Object.entries(lhr.categories).map(([key, value]) => [key, value.score])),
-  lcpMs: lhr.audits['largest-contentful-paint'].numericValue, cls: lhr.audits['cumulative-layout-shift'].numericValue,
-  tbtMs: lhr.audits['total-blocking-time'].numericValue, transferredBytes: lhr.audits['total-byte-weight'].numericValue,
+  fcpMs: audits['first-contentful-paint']?.numericValue ?? null,
+  lcpMs: audits['largest-contentful-paint'].numericValue, cls: audits['cumulative-layout-shift'].numericValue,
+  tbtMs: audits['total-blocking-time'].numericValue,
+  speedIndexMs: audits['speed-index']?.numericValue ?? null,
+  lcpElement: lcpElement(lhr),
+  transferredBytes: audits['total-byte-weight'].numericValue,
+  requestCount: audits['network-requests']?.details?.items?.length ?? null,
+  benchmarkIndex: lhr.environment?.benchmarkIndex ?? null,
+  throttlingMethod: lhr.configSettings?.throttlingMethod ?? null,
+  throttling: lhr.configSettings?.throttling ?? null,
   warnings: lhr.runWarnings,
  };
 }
@@ -106,7 +131,7 @@ function audit(lighthouse, { profile, route, url, prefix, run }) {
 
 // The values summary.json takes the median, min and max of when --runs is
 // above 1.
-const STATS = { performance: row => row.scores.performance, lcpMs: row => row.lcpMs, cls: row => row.cls, tbtMs: row => row.tbtMs };
+const STATS = { performance: row => row.scores.performance, fcpMs: row => row.fcpMs, lcpMs: row => row.lcpMs, speedIndexMs: row => row.speedIndexMs, cls: row => row.cls, tbtMs: row => row.tbtMs, benchmarkIndex: row => row.benchmarkIndex };
 
 // summary.json: with one run per profile and page, one row per audit, as
 // CI has always read it. With more, one row per profile and page with the
