@@ -295,6 +295,8 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      } catch { throw new FatalLabError('Preview authorization failed'); }
     }
     const page = await context.newPage(), cdp = await context.newCDPSession(page);
+    // Writes the lab refused during the current row's navigation; each row
+    // starts again from zero.
     let blockedWrites = 0;
     await cdp.send('Network.enable');
     await cdp.send('Fetch.enable', { patterns: [{ urlPattern: '*', requestStage: 'Request' }] });
@@ -353,6 +355,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
     });
     for (cache of ['cold-browser', 'repeat-browser']) {
      let diskHits = 0;
+     blockedWrites = 0;
      const listener = e => { if (e.response.fromDiskCache || e.response.fromPrefetchCache) diskHits++; };
      cdp.on('Network.responseReceived', listener);
      // The repeat row stores the choice on the cold row's page, same origin,
