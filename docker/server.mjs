@@ -51,15 +51,19 @@ const rewrites = (vercel.rewrites ?? []).map(({ source, destination }) => {
   const pattern = source.replace(/:([A-Za-z]+)/g, (_, name) => { names.push(name); return '([^/]+)'; });
   return { regex: new RegExp(`^${pattern}$`), names, destination };
 });
-function rewrite(pathname) {
+// A rewrite is a check route on Vercel: when its destination is no file, the
+// next rewrites see the rewritten path. So a task page the build did not
+// prerender goes from /coding/:track/:taskId/index.html on to the app shell.
+function* rewriteTargets(pathname) {
+  let current = pathname;
   for (const rule of rewrites) {
-    const match = rule.regex.exec(pathname);
+    const match = rule.regex.exec(current);
     if (!match) continue;
     let target = rule.destination;
     rule.names.forEach((name, i) => { target = target.replaceAll(`:${name}`, match[i + 1]); });
-    return target.replace(/\$(\d+)/g, (_, n) => match[Number(n)] ?? '');
+    current = target.replace(/\$(\d+)/g, (_, n) => match[Number(n)] ?? '');
+    yield current;
   }
-  return null;
 }
 
 // ---- the twelve handlers: /api/user/[op] matches /api/user/anything ----
@@ -272,19 +276,27 @@ async function handle(req, res) {
     }
   }
 
-  const target = rewrite(pathname);
-  if (target && /^https?:\/\//.test(target)) {
-    // The PostHog ingest proxy is not part of the image; analytics stay off.
-    res.statusCode = 404;
-    res.end();
-    return;
+  for (const target of rewriteTargets(pathname)) {
+    if (/^https?:\/\//.test(target)) {
+      // The PostHog ingest proxy is not part of the image; analytics stay off.
+      res.statusCode = 404;
+      res.end();
+      return;
+    }
+    const file = staticFile(target);
+    if (file) {
+      applyHeaderRoutes(hitRoutes, target, headers);
+      sendFile(res, file, 200, headers);
+      return;
+    }
   }
-  const file = target ? staticFile(target) : null;
-  if (file) { sendFile(res, file, 200, headers); return; }
-  const notFound = staticFile('/index.html');
-  if (notFound) { sendFile(res, notFound, 404, headers); return; }
+  // Nothing serves the path: Vercel's own plain-text 404 with the headers the
+  // routes before the filesystem check gave it. Answering with index.html ran
+  // the app under the sandbox policy at /sandbox/<missing>.
+  for (const [name, value] of Object.entries(headers)) res.setHeader(name, value);
   res.statusCode = 404;
-  res.end();
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.end('The page could not be found\n\nNOT_FOUND\n');
 }
 
 if (!existsSync(STATIC)) {
