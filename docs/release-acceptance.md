@@ -6908,3 +6908,54 @@ The review stage re-ran both test-then-fix pairs against the `origin/main` sourc
 CI runs only the specs that `quality.yml` names, so it will not run `offline.spec.ts` until someone adds that line, which is F12-22.
 
 The remaining findings of F12 (F12-04 and F12-09 to F12-23) moved to #646.
+
+## Epic F15: SEO, public pages and observability (18 November 2026)
+
+Branch `claude/f15-seo-observability`, issue #644, ten commits. The changes sit in the productMetadata plugin of `client/vite.config.ts`, `client/src/lib/publicMetadata.ts`, `client/src/lib/routeHead.ts`, `client/tests/route-head.test.tsx` and `scripts/check-public.mjs`.
+
+### What changed
+
+- F15-01: check:public walks all 912 prerendered pages in `client/dist` and gives each one class: 17 listed, 1 alias (`/coding/review`), 893 share-only (769 coding tasks, 124 dated daily pages) and 1 noindex (hidden system design). The class fixes the canonical, og:url, robots line and sitemap membership. The listed class now sets the sitemap count, which used to be a literal 17.
+- F15-02: every classified page carries each head tag once. og and twitter titles, descriptions and images must match the page's own, with `twitter:card summary_large_image`, `lang="en"`, no hreflang and one static h1.
+- F15-03: every JSON-LD block must parse and validate against a table of schema.org types and properties (6 blocks on this build).
+- F15-04 and F15-05: titles stay under 60 characters. A coding task title drops "coding challenge", then the track, until it fits. A dated daily title carries a short date such as "14 Sep 2026".
+- F15-06 and F15-07: descriptions stay between 50 and 160 characters. `metaDescription()` cuts a long page text after its last whole sentence that fits, at build and in `applyRouteHead`. The visible page copy stays unchanged.
+- F15-08: robots.txt now disallows `/admin` and `/ingest/`. check:public compares the file line by line and fails when a Disallow prefix covers a crawlable page.
+- Review fix: check:public now fails on any robots meta on a listed, alias or share-only page. The F15-01 rewrite had narrowed main's rule for the seven Coding section pages to noindex only, so a `nofollow` passed.
+
+### Numbers
+
+| Measure | Before (main a9882348) | After |
+|---|---|---|
+| Share-only titles of 60 characters or more | 463 of 893 (longest 87) | 0 (longest 59) |
+| Descriptions over 160 characters | 2: `/coding/fullstack` 182, `/premium/cancel` 170 | 0: 125 and 121 |
+| robots.txt Disallow rules | 3 | 5 |
+| Pages whose whole head check:public reads | 17 sitemap pages, plus og:image on task pages | 912 |
+| JSON-LD blocks validated against schema.org types | 0 | 6 |
+| Initial load, check:bundle | budget 241,651 gzip bytes | 235,520 gzip bytes in 5 files |
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm run build` with the CI build env | pass |
+| `npm run check:public` | pass: 912 pages, 17 sitemap URLs, 8 robots.txt lines, 6 JSON-LD blocks, design contract ok |
+| `npm run check:bundle` | pass: 235,520 of 241,651 gzip bytes; monitoring SDK 49,507 of 60,000 |
+| `npm run test:client` | pass: 193 files, 1,908 tests |
+| `npx vitest run tests/route-head.test.tsx` (client) | pass: 40 tests |
+| `npm run test:browser -- tests/browser/public.spec.ts tests/browser/daily.spec.ts tests/browser/coding-pages.spec.ts` against a preview | pass: 41 tests |
+| `npm run typecheck:api` | pass |
+| `npm run typecheck:scripts` | pass |
+| `npm run typecheck:tooling --prefix client` | pass |
+| `npm run check:security` | pass |
+| `git diff --check origin/main...HEAD` | pass |
+
+### Not run
+
+- `npm run test:launch`, `npm run test:sql` and both `npm audit --omit=dev` runs: the branch changes no server code, SQL or lockfile.
+- `npm run check:responsive`: no visible layout change.
+- `tests/browser/consent-network.spec.ts`: not written yet.
+- The ten-event Sentry PII read: this session has no Sentry access, so the owner has to do it.
+- The 30-day Vercel runtime-error read: not started.
+
+Every other F15 finding moved to #646.
