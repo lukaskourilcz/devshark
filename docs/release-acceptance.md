@@ -6959,3 +6959,53 @@ Branch `claude/f15-seo-observability`, issue #644, ten commits. The changes sit 
 - The 30-day Vercel runtime-error read: not started.
 
 Every other F15 finding moved to #646.
+
+## Epic F1 part 2: Baseline measurements and audit tooling (18 November 2026)
+
+Branch `claude/f1b-baseline-measurements`, stacked on `claude/f1-baseline-measurements`. Part 2 changes the lab tools only. It records no production baseline numbers; those findings stay open.
+
+### What changed
+
+| Finding | Change |
+| --- | --- |
+| F1-11 | perf:measure counts each row's requests by kind (document, script, stylesheet, font, image, api, other, blocked) and the responses the origin itself sent. It resets `blockedWrites` per navigation (the repeat row used to add the cold row's count), writes `summary` (medians per profile, path and cache state) and `requestTotals` into the lab JSON, and prints both. |
+| F1-12 | audit:performance refuses unknown flags with exit 2 before it creates the output folder. It takes `--routes=/,/learn` and writes `<profile>-<slug>.report.*` per route. Without `--routes` it writes the same files CI uploads. |
+| F1-41 | A failed Lighthouse run becomes an error row, the other runs continue, the old reports of that prefix are deleted first, summary.json is rewritten after every audit, and the script exits 1 at the end. |
+| F1-13 | `--runs=N` (1 to 10, default 1) keeps a `-run<k>` report per run and writes the median, min and max per profile and page. |
+| F1-14 | Each summary row carries `fcpMs`, `speedIndexMs`, `lcpElement` (selector, label, subparts), `requestCount`, `benchmarkIndex` and the throttling settings. |
+| F1-15 | check:bundle lists the largest JavaScript and CSS chunks of the shaped build (`--largest=N`, 1 to 100, default 10) under `largest` in artifacts/bundle.json. `sizes` is unchanged. |
+| F1-16 | check:bundle prints the fonts index.html preloads on their own unbudgeted line and writes `preloadedFontBytes` and `preloadedFonts`. The budget and its comparison are unchanged. |
+| Review | perf:measure's request handler no longer declares a boolean named `write`, which hid the lab-file writer. New tests pin check:bundle's index.html reader and its `--largest` checks. |
+
+### Numbers
+
+check:bundle on this branch, production-shaped build (`VITE_PRODUCT=devshark`, `VITE_LOCK_SUBJECT=webdev`, placeholders from `measuredBuild.env`), 18 November 2026:
+
+| Measure | Value |
+| --- | --- |
+| Initial requests of index.html | 5 files, 235,518 gzip bytes; budget 241,651 |
+| Preloaded fonts (not budgeted) | 2 files, 73,092 bytes: Inter 48,256, Manrope 24,836 |
+| Monitoring SDK | 49,507 gzip bytes; budget 60,000 |
+| JavaScript and CSS chunks in the build | 222 (the coding worker's chunks under assets/coding-worker included) |
+| Ten largest, gzip bytes | coding-worker/ts-compiler 1,091,349; Editor 172,118; EmailRichTextEditor 130,606; main 121,458 (initial); posthogClient 93,372; babel 82,985; estree 61,866; react 56,793 (initial); supabase 55,233; sentry-sdk 49,507 |
+
+### Checks
+
+| Command | Result |
+| --- | --- |
+| `node --test scripts/test-perf-tools.mjs` | 41 of 41 pass |
+| `npm run test:performance` (heavy lock) | exit 0, no failing case |
+| `npm run check:bundle` (heavy lock) | exit 0, numbers above |
+| `npm run typecheck:scripts` | exit 0 |
+| `npm run typecheck:api` | exit 0 |
+| `npm run check:unused` | exit 0, no new findings |
+| `npm run check:security` | exit 0 |
+| `git diff --check claude/f1-baseline-measurements...HEAD` | clean |
+
+### Not run
+
+- Lighthouse and perf:measure runs against a local preview for the manual verify steps of F1-11, F1-12, F1-13, F1-14 and F1-41. The finishing stage shared the machine with five other agents. Stand-in Lighthouse tests and helper unit tests cover these code paths.
+- Client typecheck, the CI-env client build and the browser checks: no client code changed. test:sql: no SQL changed. npm audit: no lockfile changed.
+- check:bundle `--url`: F1-17 is not implemented.
+
+The rest of F1 (F1-17 to F1-36, F1-40, F1-44, F1-45 and F1-46: the cold-start tool, the image inventory and every production baseline record) is in #646 for the next agent.
