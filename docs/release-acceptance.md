@@ -6509,3 +6509,46 @@ When GitHub reviews them, the unflagged static audit step fails on every pull re
 Dev tools the brief names: neither the global database (the full client audit) nor the maintainers' repositories list an open advisory for vitest 5.0.3, storybook 10.6.6, purgecss 9.1.0, knip 6.35.1 or rollup-plugin-visualizer 7.0.1. storybook's October advisories GHSA-f2ph-cmg5-wxc8 (critical) and GHSA-px85-f4q5-jh77 (high) are fixed in 10.6.2. rollup-plugin-visualizer pulls open 11.0.0, which pulls powershell-utils 0.1.0. The client lockfile counts vitest 5.0.3 and @vitest/mocker 5.0.3 as production packages, because the client lists @testing-library/jest-dom, which names vitest as a peer, under `dependencies`.
 
 Unused code: `docs/quality/unused-baseline.json` holds 1 entry (the file `client/src/lib/eligibility.ts`) and `npm run check:unused` reports 0 findings, so the entry is stale. `npm run audit:unused`, which reports every issue type, finds 275 unused exports, 125 unused types, 19 duplicate exports and 1 unlisted binary (`psql` in `scripts/test-sql.mjs`), with no unused files or dependencies.
+
+## Epic F1: Baseline measurements and audit tooling (18 November 2026)
+
+Branch `claude/f1-baseline-measurements` (#630) holds 24 commits on `a9882348`. They rebuild `perf:measure` (`scripts/measure-web-performance.mjs`) so its lab rows report LCP, CLS, TBT and INP the way Core Web Vitals defines them. `scripts/test-perf-tools.mjs` pins the new behaviour, and `npm run test:performance` runs it with no browser. The run stopped before the measurement batches began, so this branch adds no baseline number of brief section 5.
+
+### What changed
+
+| Finding | Change | Before | After |
+|---|---|---|---|
+| F1-01, F1-02 | `parseArgs()` splits a flag at its first `=`, reads a bare switch as on, refuses unknown, repeated and malformed flags, and exits 2 with the usage text before Chrome starts. | `--samples=abc` ran zero loads and exited 0; a bare `--fixture` stayed off | exit 2 with a usage message; 5 of 5 refusal cases pass (0 of 5 on `a9882348`) |
+| F1-10 | `--url` is required. Defaults: the eight Epic F routes, three samples, `artifacts/performance/web-lab.json`. | a bare run sent 64 page loads to devshark.app and overwrote an October file under /tmp | a bare run exits 2 |
+| F1-03 | Each sample runs in its own try/catch and records an error row; the run exits 1 at the end. | one failed `/learn` load ended the run | the `/` rows still measure (LCP 712 and 112 ms); the `/learn` row carries the error |
+| F1-04 | Mobile presses "Open navigation menu"; desktop presses the footer "Dark mode" or "Light mode" toggle. Each row records whether a button matched. | desktop: 0 of 4 rows recorded an interaction | 16 of 16 rows on both profiles |
+| F1-09 | Pages load with `reducedMotion: 'no-preference'`; `--reduced-motion` restores the old setting. | 0 of 8 rows loaded the motion-features chunk | 8 of 8 (14,319 bytes transferred) |
+| F1-07 | `navigation.ttfb` is `responseStart`, as web-vitals counts it; `navigation.serverWait` keeps the old request-to-first-byte gap. | TTFB left out redirect, DNS, TCP and TLS | mobile `/` cold: TTFB 168 ms, serverWait 150 ms |
+| F1-05 | `summarizeInteractions()` gives one INP per row with input delay, processing and presentation; `'<16'` for a fast press, null when nothing was pressed. | a raw entry list that counted each press three times | 32 of 32 rows carry a numeric INP |
+| F1-06 | `summarizeLayoutShifts()` reports CLS as the largest session window, keeps the plain sum as `clsSum` and input-flagged shifts as `clsInputFlagged`. | the test example summed to 0.875 | 0.5, the largest window |
+| F1-08 | Rows carry FCP, long tasks (count, longest) and TBT summed from FCP to the measurement point, as Lighthouse sums it. | no FCP, long tasks or TBT | mobile `/` cold: 3 long tasks, longest 149 ms, TBT 5 ms |
+| F1-47 | Each row names its LCP element (`lcpElement`). | LCP time only | mobile cold rows name the cookie banner paragraph; desktop `/` names the hero `h1` |
+| F1-43 | The repeat row loads as a visitor who pressed Reject all (`--consent=rejected`, the default); `--consent=undecided` keeps the banner. | repeat rows showed the banner and named it as LCP | mobile `/learn` repeat names `main p.rm-section-line` |
+| F1-42 | `--api-origin=<origin>` answers allow-listed anonymous API reads from one Node GET per read per run, held `--api-delay-ms` (default 120) before each answer. | with `--fixture`, `/learn` and `/leaderboard` rendered their error state on a local preview | 8 of 8 rows rendered their page; the run sent 2 GETs to devshark.app and served 8 page requests from them |
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `node --test scripts/test-perf-tools.mjs` | 19 of 19 pass |
+| the same file against the lab script of `d0d0fc25` | 17 pass, 2 fail: the replay cases fail without F1-42, as intended |
+| `npm run test:performance` | exit 0 |
+| `npm run typecheck:scripts` | exit 0 |
+| `npm run typecheck:api` | exit 0 |
+| `npm run check:unused` | exit 0, no new Knip findings |
+| `git diff --check origin/main...HEAD` | clean |
+| local preview on 4211 + `node scripts/measure-web-performance.mjs --url=http://127.0.0.1:4211 --fixture --api-origin=https://devshark.app --routes=/learn,/leaderboard --samples=1` | exit 0, 8 of 8 rows, 2 production GETs, 0 blocked writes |
+
+### Not run
+
+- Client build, `check:bundle`, `test:client`, `test:browser`, `check:responsive` and `typecheck:tooling`: the branch changes no client code, build config or dependency.
+- Both `npm audit --omit=dev` runs: no lockfile changed. `test:sql`: no SQL changed. `check:security`: no header or CSP changed.
+- `npm run ci:parity`: it binds ports 4173 and 6006, which parallel agents need.
+- `audit:performance`, `perf:cold-start` and every baseline measurement of brief section 5: those findings never started.
+
+The remaining F1 findings (F1-11 to F1-36, F1-40, F1-41 and F1-44 to F1-46) moved to #646.
