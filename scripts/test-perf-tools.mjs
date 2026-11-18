@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import * as lighthouse from './audit-performance.mjs';
 import * as lab from './measure-web-performance.mjs';
 import { parseArgs, resolveOptions, UsageError } from './measure-web-performance.mjs';
 
@@ -365,6 +366,8 @@ function runAudit(t, flags, { url = closedOrigin } = {}) {
 
 for (const [name, flags, mention, url] of [
   ['a misspelt flag', ['--route=/learn'], /--route\b/],
+  ['a route without a leading slash', ['--routes=learn'], /--routes/],
+  ['two routes that share a report name', ['--routes=/learn,/learn/'], /--routes/],
   ['a stray argument', ['learn'], /learn/],
   ['a URL it cannot load', [], /--url/, 'ftp://example.test'],
 ]) {
@@ -377,3 +380,24 @@ for (const [name, flags, mention, url] of [
     assert.equal(existsSync(run.output), false, 'a refused run creates no output folder');
   });
 }
+
+test('audit:performance names each route\'s reports after its path', () => {
+  assert.equal(lighthouse.routeSlug('/'), 'home');
+  assert.equal(lighthouse.routeSlug('/learn'), 'learn');
+  assert.equal(lighthouse.routeSlug('/learn/'), 'learn');
+  assert.equal(lighthouse.routeSlug('/topics/javascript-closures'), 'topics-javascript-closures');
+  assert.equal(lighthouse.routeSlug('/quiz?mode=daily'), 'quiz-mode_daily', 'a query stays apart from the path');
+});
+
+test('audit:performance keeps CI\'s single page without --routes and resolves routes against --url', () => {
+  const plain = lighthouse.resolveOptions({});
+  assert.deepEqual(plain, { url: 'http://localhost:4173', output: 'artifacts/performance', pages: [{ route: '/', url: 'http://localhost:4173', slug: null }] });
+  const routes = lighthouse.resolveOptions({ url: 'https://devshark.app/learn', routes: '/,/topics/javascript-closures' });
+  assert.deepEqual(routes.pages, [
+    { route: '/', url: 'https://devshark.app/', slug: 'home' },
+    { route: '/topics/javascript-closures', url: 'https://devshark.app/topics/javascript-closures', slug: 'topics-javascript-closures' },
+  ]);
+  for (const value of ['learn', '//example.test', '/,', '/learn,/learn']) {
+    assert.throws(() => lighthouse.resolveOptions({ routes: value }), UsageError, value);
+  }
+});
