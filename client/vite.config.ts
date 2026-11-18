@@ -9,7 +9,7 @@ import { PRODUCT_CATALOG, resolveCatalogProductId } from './product-catalog';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { TopicArticle, topicPath } from './src/components/topics/TopicArticle';
-import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, PUBLIC_ORIGIN, PUBLIC_PAGES, codingShareDescription, premiumSchema, topicSchema } from './src/lib/publicMetadata';
+import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, PUBLIC_ORIGIN, PUBLIC_PAGES, codingShareDescription, metaDescription, premiumSchema, topicSchema } from './src/lib/publicMetadata';
 import { TOPIC_LANDINGS } from './src/lib/topicCatalog';
 import { PremiumCancelStaticArticle, PremiumStaticArticle, type Translate } from './src/components/PremiumFacts';
 import { en, type TranslationKey } from './src/i18n/translations';
@@ -64,6 +64,20 @@ const HIDDEN_CODING_PATH = '/coding/system-design';
 const QOTD_FUTURE_DAYS = 45;
 const dailyDateLabel = (iso: string) =>
   new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`));
+/** The date in a dated daily page's title, "12 Sep 2026": the long label
+ * pushed 120 of those titles past 60 characters. The abbreviations are fixed
+ * here because en-GB's short September is "Sept" in current ICU, which put
+ * "DSA Foundations question of the day, 14 Sept 2026 · devShark" at 60. The
+ * visible kicker, the image alt and the share image keep the long date. */
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+const dailyTitleDate = (iso: string) => {
+  const [year, month, day] = iso.split('-').map(Number);
+  return `${day} ${SHORT_MONTHS[month - 1]} ${year}`;
+};
+/** Search results cut a title near 60 characters (check:public, F15-04).
+ * The first candidate under that wins; the last one is the floor. */
+const TITLE_LIMIT = 60;
+const fitTitle = (...candidates: string[]) => candidates.find((one) => [...one].length < TITLE_LIMIT) ?? candidates[candidates.length - 1];
 
 // `ANALYZE=true npm run build` emits a treemap of the bundle to
 // dist/bundle-stats.html (open it to inspect the design-system/router/app split) plus a
@@ -187,7 +201,7 @@ function productMetadata(env: Record<string, string>): Plugin {
   const renderHtml = (html: string) => html
     .split('__PRODUCT_NAME__').join(product.brand)
     .split('__PRODUCT_TITLE__').join(title)
-    .split('__PRODUCT_DESCRIPTION__').join(description)
+    .split('__PRODUCT_DESCRIPTION__').join(metaDescription(description))
     .split('__PRODUCT_SHARE_IMAGE__').join(BRAND_SHARE_IMAGE)
     .split('__PRODUCT_SHARE_IMAGE_ALT__').join(BRAND_SHARE_IMAGE_ALT);
 
@@ -244,11 +258,13 @@ function productMetadata(env: Record<string, string>): Plugin {
           .replace(/(<meta property="og:image:alt" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(alt) + end)
         : html;
       /** The shell with a page's own title, description, canonical URL and
-       * image. No URL writes no canonical; no image keeps the shell's. */
+       * image. No URL writes no canonical; no image keeps the shell's. The
+       * description is cut to fit a search result (metaDescription); the
+       * page body shows it whole. */
       const pageHead = (html: string, page: { title: string; description: string; url: string | null; image: string | null; imageAlt: string }) =>
         withImage(html, page.image, page.imageAlt)
           .replace(/<title>[^<]*<\/title>/, `<title>${escape(page.title)}</title>`)
-          .replace(/(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(page.description) + end)
+          .replace(/(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(metaDescription(page.description)) + end)
           .replace(/(<meta (?:name|property)="(?:og:title|twitter:title)" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(page.title) + end)
           .replace('</head>', page.url ? `<link rel="canonical" href="${page.url}" /><meta property="og:url" content="${page.url}" /></head>` : '</head>');
       const writePage = async (pagePath: string, html: string) => {
@@ -258,7 +274,7 @@ function productMetadata(env: Record<string, string>): Plugin {
       };
       for (const topic of topics) {
         const topicTitle = `${topic.title} · ${product.brand}`;
-        const description = topic.description;
+        const description = metaDescription(topic.description);
         const url = origin + topicPath(topic.slug);
         const schema = JSON.stringify(topicSchema(topicTitle, description, url)).replace(/</g, '\\u003c');
         const links = `<link rel="canonical" href="${url}" />`;
@@ -281,7 +297,8 @@ function productMetadata(env: Record<string, string>): Plugin {
       for (const page of PUBLIC_PAGES) {
         const url = origin + page.path;
         const pageTitle = en[page.titleKey];
-        const description = en[page.descriptionKey];
+        // The body below shows the page copy whole; the head carries the cut.
+        const description = metaDescription(en[page.descriptionKey]);
         const schema = page.schema === 'premium'
           ? `<script id="public-schema" type="application/ld+json">${JSON.stringify(premiumSchema(pageTitle, description, url)).replace(/</g, '\\u003c')}</script>`
           : '';
@@ -312,7 +329,13 @@ function productMetadata(env: Record<string, string>): Plugin {
         const difficulty = en[`coding.difficulty.${task.difficulty}` as TranslationKey] ?? task.difficulty;
         const pagePath = `/coding/${task.track}/${task.id}`;
         const image = `/og/coding/${task.id}.png`;
-        const pageTitle = `${task.title} · ${track} coding challenge · ${product.brand}`;
+        // The track and "coding challenge" while they fit, then the track,
+        // then the task alone.
+        const pageTitle = fitTitle(
+          `${task.title} · ${track} coding challenge · ${product.brand}`,
+          `${task.title} · ${track} · ${product.brand}`,
+          `${task.title} · ${product.brand}`,
+        );
         const description = codingShareDescription({ difficulty, track, brand: product.brand, ...coding });
         if ((await writeOgCard(path.join(outDir, image), {
           kind: 'coding', title: task.title, track, difficulty, free: task.free === true, freeCount: coding.free, totalCount: coding.total,
@@ -360,7 +383,7 @@ function productMetadata(env: Record<string, string>): Plugin {
         const track = en[`category.${qotdTrack(date)}` as TranslationKey];
         const dateLabel = dailyDateLabel(date);
         const pagePath = qotdPath(date);
-        const pageTitle = `${translate('daily.title', { track })}, ${dateLabel} · ${product.brand}`;
+        const pageTitle = `${translate('daily.title', { track })}, ${dailyTitleDate(date)} · ${product.brand}`;
         const description = en['daily.description'];
         const image = qotdImagePath(date);
         if ((await writeOgCard(path.join(outDir, image), { kind: 'daily', track, dateLabel })) === 'drawn') drawn++;
@@ -374,7 +397,11 @@ function productMetadata(env: Record<string, string>): Plugin {
       const fallback = `<main class="ss-public-fallback ss-info-page"><h1>${escape(title)}</h1><p>${escape(description)}</p><ul class="ss-topic-links">${topics.map(topic => `<li><a href="${topicPath(topic.slug)}">${escape(topic.title)}</a></li>`).join('')}</ul></main>`;
       await writeFile(path.join(outDir, 'index.html'), indexHtml.replace('</head>', `<link rel="canonical" href="${origin}/" /><meta property="og:url" content="${origin}/" /></head>`).replace('<div id="root"></div>', `<div id="root"><noscript>${fallback}</noscript></div>`));
       await writeFile(path.join(outDir, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(url => `<url><loc>${url}</loc></url>`).join('')}</urlset>`);
-      await writeFile(path.join(outDir, 'robots.txt'), `User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /sandbox/\nDisallow: /dev\nSitemap: ${origin}/sitemap.xml\n`);
+      // Crawlers stay out of the API, the React sandbox, /dev, the admin
+      // workspace and the PostHog proxy. /admin keeps its X-Robots-Tag
+      // noindex (vercel.json) for crawlers that fetch it anyway.
+      const disallow = ['/api/', '/sandbox/', '/dev', '/admin', '/ingest/'];
+      await writeFile(path.join(outDir, 'robots.txt'), `User-agent: *\nAllow: /\n${disallow.map((prefix) => `Disallow: ${prefix}\n`).join('')}Sitemap: ${origin}/sitemap.xml\n`);
     },
   };
 }

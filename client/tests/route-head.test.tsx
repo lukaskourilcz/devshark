@@ -17,7 +17,8 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '../src/i18n/LanguageContext';
 import { applyRouteHead, readShareHead, type ShareHead } from '../src/lib/routeHead';
 import { NotFoundPage } from '../src/components/PublicInfoPages';
-import { codingShareDescription } from '../src/lib/publicMetadata';
+import { META_DESCRIPTION_MAX, codingShareDescription, metaDescription } from '../src/lib/publicMetadata';
+import { en } from '../src/i18n/translations';
 
 const { result: language } = renderHook(() => useLanguage(), { wrapper: LanguageProvider });
 const visit = (pathname: string, shareHead: ShareHead | null = null) => {
@@ -234,6 +235,52 @@ describe('the missing page’s Go back', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }));
     expect(screen.getByText('Home page')).toBeInTheDocument();
+  });
+});
+
+describe('a head description', () => {
+  const length = (text: string) => [...text].length;
+  // F15-07: two page texts ran past what a search result shows (182 and 170
+  // characters). The head carries their leading whole sentences; the page
+  // still shows the whole text.
+  const FULLSTACK_CUT = 'A five-level link shortener, then three twelve-stage apps: JavaScript logic, TypeScript contracts, React screens, fetch APIs.';
+  const CANCEL_CUT = 'No sign-in needed. Enter the email address of your subscription and confirm, then open the link we email to that address.';
+
+  it('keeps a text that fits whole', () => {
+    expect(metaDescription(en['daily.description'])).toBe(en['daily.description']);
+    expect(metaDescription('x'.repeat(META_DESCRIPTION_MAX))).toBe('x'.repeat(META_DESCRIPTION_MAX));
+  });
+
+  it('cuts a long text after the last whole sentence that fits', () => {
+    expect(length(en['coding.evolving.fullstackBody'])).toBeGreaterThan(META_DESCRIPTION_MAX);
+    expect(metaDescription(en['coding.evolving.fullstackBody'])).toBe(FULLSTACK_CUT);
+    expect(length(FULLSTACK_CUT)).toBe(125);
+    expect(length(en['billing.cancel.lead'])).toBeGreaterThan(META_DESCRIPTION_MAX);
+    expect(metaDescription(en['billing.cancel.lead'])).toBe(CANCEL_CUT);
+    expect(length(CANCEL_CUT)).toBe(121);
+  });
+
+  it('ends no sentence inside a price or an abbreviation', () => {
+    const first = 'Premium costs 4.99 a month and opens every topic, e.g. arrays and closures.';
+    const text = `${first} ${'Every coding task stays graded on the server. '.repeat(3).trim()}`;
+    expect(length(text)).toBeGreaterThan(META_DESCRIPTION_MAX);
+    expect(metaDescription(text)).toBe(`${first} Every coding task stays graded on the server.`);
+  });
+
+  it('cuts one long sentence at a word, with an ellipsis', () => {
+    const text = `${'word '.repeat(40)}end.`;
+    const cut = metaDescription(text);
+    expect(cut).toMatch(/^(?:word )+word…$/);
+    expect(length(cut)).toBeLessThanOrEqual(META_DESCRIPTION_MAX);
+    expect(length(cut)).toBeGreaterThan(META_DESCRIPTION_MAX - 6);
+  });
+
+  it('writes the cut on /premium/cancel in the app, as the build does', () => {
+    visit('/premium/cancel');
+    for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
+      expect(meta(selector)).toBe(CANCEL_CUT);
+    }
+    expect(canonical()).toBe('https://devshark.app/premium/cancel');
   });
 });
 

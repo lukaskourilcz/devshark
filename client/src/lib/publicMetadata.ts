@@ -35,6 +35,34 @@ export type PublicPage = (typeof PUBLIC_PAGES)[number];
 export const publicPage = (pathname: string): PublicPage | null =>
   PUBLIC_PAGES.find((page) => page.path === pathname.replace(/(.)\/$/, '$1')) ?? null;
 
+/** The longest description a head carries, in characters: about what a
+ * search result shows (check:public asserts 50 to 160). */
+export const META_DESCRIPTION_MAX = 160;
+/**
+ * A page's head description, made from its page copy: the copy itself when it
+ * fits, else its longest run of whole sentences from the start that fits, else
+ * its first words and an ellipsis. Counted in code points. The build
+ * (vite.config.ts) and the app (routeHead.ts) both cut with it, so the head a
+ * page arrives with and the head the app writes agree; the page itself still
+ * shows the whole copy.
+ */
+export function metaDescription(text: string): string {
+  const fits = (value: string) => [...value].length <= META_DESCRIPTION_MAX;
+  if (fits(text)) return text;
+  let cut = '';
+  // A sentence ends at . ! or ? before a space and a capital, a digit or an
+  // opening quote; "4.99" and "e.g. a" do not end one.
+  for (const end of text.matchAll(/[.!?](?=\s+["'“‘(]?[A-Z0-9])/g)) {
+    const next = text.slice(0, end.index + 1);
+    if (!fits(next)) break;
+    cut = next;
+  }
+  if (cut) return cut;
+  const start = [...text].slice(0, META_DESCRIPTION_MAX - 1).join('');
+  const space = start.lastIndexOf(' ');
+  return `${(space > 0 ? start.slice(0, space) : start).replace(/[\s,;:.]+$/, '')}…`;
+}
+
 /** The description in a coding task's share page head (vite.config.ts, #239):
  * "An easy JavaScript coding challenge…", "A medium…". */
 export function codingShareDescription({ difficulty, track, brand, free, total }: { difficulty: string; track: string; brand: string; free: number; total: number }): string {

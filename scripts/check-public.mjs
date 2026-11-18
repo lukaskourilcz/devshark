@@ -7,7 +7,6 @@ const sitemap = new JSDOM(readFileSync(`${dir}/sitemap.xml`, 'utf8'), { contentT
 const urls = [...sitemap.window.document.querySelectorAll('loc')].map(node => new URL(node.textContent));
 assert(!urls.some(url => url.pathname.startsWith('/cs/')), 'retired guide URLs stay out of the sitemap');
 assert(!existsSync(`${dir}/cs`), 'no retired guide HTML is emitted');
-assert.equal(urls.length, 17, 'Home, five English guides, two published Learn sections, /premium, /premium/cancel, /daily, /coding and its five track pages');
 assert(!urls.some(url => url.pathname.includes('forward-deployed-engineer')), 'the paused FDE section is absent from the sitemap');
 // The app pages with public HTML (#222, #239). /premium/success stays out: a
 // Stripe return means nothing to anyone else, and the app marks it noindex.
@@ -21,25 +20,258 @@ const SITEMAP_CODING_PAGES = ['/coding', ...CODING_TRACK_PAGES];
 assert.deepEqual(urls.filter(url => url.pathname.startsWith('/coding')).map(url => url.pathname), SITEMAP_CODING_PAGES, 'the sitemap lists the Coding home and its track pages, and nothing else under /coding');
 assert(!urls.some(url => url.pathname.startsWith('/premium/success')), 'the checkout return page is never listed');
 assert(!urls.some(url => url.pathname.startsWith('/premium/checkout')), 'the private checkout page is never listed');
+const ORIGIN = 'https://devshark.app';
+const HIDDEN_CODING_PATH = '/coding/system-design';
+const index = readFileSync('shared/coding-index.ts', 'utf8');
+const tasks = [...index.matchAll(/\{"id":"([^"]+)","track":"([^"]+)"/g)].map(([, id, track]) => ({ id, track }));
+assert(tasks.length > 700, 'the coding index was read');
+assert(!tasks.some(({ track }) => track === 'system-design'), 'the index the browser ships holds no system design task');
+// F15-01: every prerendered page has exactly one class, chosen by its address,
+// and its head and the sitemap must agree with that class.
+// - listed: in the sitemap, canonical to itself, indexable.
+// - alias: canonical to another listed page, not in the sitemap. Only
+//   /coding/review, which opens /coding (C4-4).
+// - share-only: canonical to itself and indexable, not in the sitemap. The
+//   coding task pages (owner decision, 9 Oct 2026) and the dated question of
+//   the day pages.
+// - noindex: robots noindex, no canonical, not in the sitemap. The hidden
+//   system design track (owner decision, 9 Oct 2026).
+// A page that no rule or more than one rule matches fails: give a new page a
+// class here.
+const ALIASES = { '/coding/review': '/coding' };
+const TASK_PATHS = new Set(tasks.map(({ id, track }) => `/coding/${track}/${id}`));
+const PAGE_CLASSES = [
+  ['listed', (pagePath) => pagePath === '/' || /^\/topics\/[a-z0-9-]+$/.test(pagePath) || APP_PAGES.includes(pagePath) || SITEMAP_CODING_PAGES.includes(pagePath)],
+  ['alias', (pagePath) => Object.hasOwn(ALIASES, pagePath)],
+  ['share-only', (pagePath) => TASK_PATHS.has(pagePath) || /^\/daily\/\d{4}-\d{2}-\d{2}$/.test(pagePath)],
+  ['noindex', (pagePath) => pagePath === HIDDEN_CODING_PATH],
+];
+const classesOf = (pagePath) => PAGE_CLASSES.filter(([, test]) => test(pagePath)).map(([kind]) => kind);
+/** Every index.html in the build, by the address it is served at. The assets,
+ * the React sandbox, the share images and the brand kit hold no page. */
+const NOT_PAGES = new Set(['assets', 'sandbox', 'og', 'brand']);
+const pagePaths = [];
+const walk = (relative) => {
+  for (const entry of readdirSync(path.join(dir, relative), { withFileTypes: true })) {
+    if (entry.isDirectory() && !(relative === '' && NOT_PAGES.has(entry.name))) walk(path.posix.join(relative, entry.name));
+    else if (entry.isFile() && entry.name === 'index.html') pagePaths.push(`/${relative}`);
+  }
+};
+walk('');
+const pageUrl = (pagePath) => `${ORIGIN}${pagePath}`;
+// One parser for every page: a JSDOM window per page took 29 s and 2 GB for
+// the 912 pages of 18 Nov 2026, this takes about 8 s. Text comes back decoded,
+// so '&amp;' in a title counts as one character.
+const parser = new (new JSDOM('').window.DOMParser)();
+const readPage = (pagePath) => parser.parseFromString(readFileSync(path.join(dir, pagePath, 'index.html'), 'utf8'), 'text/html');
+// F15-03: the schema.org types the site emits and the properties a page may
+// give each, with the kinds of value schema.org expects (https://schema.org/
+// <Type>, read 18 Nov 2026). Each list is a subset of what schema.org defines.
+// Where schema.org also takes a type the site never emits (Person,
+// ImageObject, DefinedTerm, QuantitativeValue), the table leaves it out. A
+// misspelt property, an unknown type or a value of the wrong kind fails; add a
+// new type or property here from schema.org before a page emits it.
+const SCHEMA_PARENT = { LearningResource: 'CreativeWork', WebSite: 'CreativeWork', CreativeWork: 'Thing', Organization: 'Thing', Offer: 'Thing', UnitPriceSpecification: 'PriceSpecification', PriceSpecification: 'Thing' };
+const isSchemaType = (type, expected) => {
+  for (let one = type; one; one = SCHEMA_PARENT[one]) if (one === expected) return true;
+  return false;
+};
+const THING = { additionalType: ['Text', 'URL'], alternateName: ['Text'], description: ['Text'], identifier: ['Text', 'URL'], image: ['URL'], mainEntityOfPage: ['CreativeWork', 'URL'], name: ['Text'], sameAs: ['URL'], url: ['URL'] };
+const CREATIVE_WORK = {
+  ...THING, about: ['Thing'], abstract: ['Text'], author: ['Organization'], copyrightHolder: ['Organization'], copyrightYear: ['Number'], creator: ['Organization'],
+  dateCreated: ['Date', 'DateTime'], dateModified: ['Date', 'DateTime'], datePublished: ['Date', 'DateTime'], educationalLevel: ['Text', 'URL'], educationalUse: ['Text'], headline: ['Text'],
+  inLanguage: ['Language'], isAccessibleForFree: ['Boolean'], isFamilyFriendly: ['Boolean'], isPartOf: ['CreativeWork', 'URL'], keywords: ['Text', 'URL'],
+  learningResourceType: ['Text'], license: ['CreativeWork', 'URL'], offers: ['Offer'], provider: ['Organization'], publisher: ['Organization'], teaches: ['Text'], text: ['Text'],
+  thumbnailUrl: ['URL'], timeRequired: ['Duration'], typicalAgeRange: ['Text'], version: ['Number', 'Text'],
+};
+const PRICE_SPECIFICATION = { ...THING, maxPrice: ['Number'], minPrice: ['Number'], price: ['Price'], priceCurrency: ['Currency'], validFrom: ['Date', 'DateTime'], validThrough: ['Date', 'DateTime'], valueAddedTaxIncluded: ['Boolean'] };
+const SCHEMA_TYPES = {
+  LearningResource: { ...CREATIVE_WORK, assesses: ['Text'], competencyRequired: ['Text', 'URL'] },
+  WebSite: { ...CREATIVE_WORK, issn: ['Text'] },
+  Organization: { ...THING, email: ['Text'], founder: ['Organization'], foundingDate: ['Date'], legalName: ['Text'], logo: ['URL'], slogan: ['Text'] },
+  Offer: {
+    ...THING, availability: ['URL'], category: ['Text', 'Thing', 'URL'], eligibleRegion: ['Text'], price: ['Price'], priceCurrency: ['Currency'],
+    priceSpecification: ['PriceSpecification'], priceValidUntil: ['Date'], seller: ['Organization'], validFrom: ['Date', 'DateTime'], validThrough: ['Date', 'DateTime'],
+  },
+  UnitPriceSpecification: { ...PRICE_SPECIFICATION, billingDuration: ['Duration', 'Number'], billingIncrement: ['Number'], billingStart: ['Number'], priceType: ['Text', 'URL'], unitCode: ['Text', 'URL'], unitText: ['Text'] },
+};
+const CURRENCIES = new Set(Intl.supportedValuesOf('currency'));
+const VALUE_KINDS = {
+  Text: (value) => typeof value === 'string' && value.trim() !== '',
+  URL: (value) => typeof value === 'string' && URL.canParse(value) && new URL(value).protocol === 'https:',
+  Boolean: (value) => typeof value === 'boolean',
+  Number: (value) => Number.isFinite(value),
+  // schema.org: digits with '.' as the decimal point, as a Number or Text.
+  Price: (value) => (Number.isFinite(value) && value >= 0) || (typeof value === 'string' && /^\d+(?:\.\d+)?$/.test(value)),
+  // ISO 4217.
+  Currency: (value) => CURRENCIES.has(value),
+  // ISO 8601 durations and dates.
+  Duration: (value) => typeof value === 'string' && /^P(?=\d|T\d)(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?(?:T(?=\d)(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/.test(value),
+  Date: (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)),
+  DateTime: (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/.test(value) && !Number.isNaN(Date.parse(value)),
+  // A BCP 47 tag in its canonical form.
+  Language: (value) => {
+    try { return Intl.getCanonicalLocales(value)[0] === value; } catch { return false; }
+  },
+};
+/** One node and everything under it. `expected` lists the types schema.org
+ * takes where the node sits (null at the top); `ids` holds the block's nodes
+ * by @id, so `{ "@id": … }` can stand for one of them. */
+const checkSchemaNode = (node, expected, where, ids) => {
+  assert(node !== null && typeof node === 'object' && !Array.isArray(node), `${where}: a JSON-LD node`);
+  if (Object.keys(node).length === 1 && Object.hasOwn(node, '@id')) {
+    const target = ids.get(node['@id']);
+    assert(target, `${where}: ${node['@id']} names a node in the same block`);
+    assert(!expected || expected.some(type => isSchemaType(target['@type'], type)), `${where}: ${node['@id']} is a ${expected?.join(' or ')}`);
+    return;
+  }
+  const type = node['@type'];
+  assert(typeof type === 'string' && Object.hasOwn(SCHEMA_TYPES, type), `${where}: @type ${JSON.stringify(type)} is a known schema.org type (${Object.keys(SCHEMA_TYPES).join(', ')})`);
+  assert(!expected || expected.some(one => isSchemaType(type, one)), `${where}: a ${type} where schema.org takes ${expected?.join(' or ')}`);
+  for (const [key, value] of Object.entries(node)) {
+    if (key === '@type') continue;
+    if (key === '@id') {
+      assert(VALUE_KINDS.URL(value), `${where}: @id is an absolute https URL`);
+      continue;
+    }
+    assert(Object.hasOwn(SCHEMA_TYPES[type], key), `${where}: ${type} has no property "${key}" on schema.org`);
+    const kinds = SCHEMA_TYPES[type][key];
+    const types = kinds.filter(kind => !Object.hasOwn(VALUE_KINDS, kind));
+    const items = Array.isArray(value) ? value : [value];
+    assert(items.length > 0, `${where}: ${key} is not empty`);
+    for (const item of items) {
+      if (types.length && item !== null && typeof item === 'object') checkSchemaNode(item, types, `${where} > ${key}`, ids);
+      else assert(kinds.some(kind => Object.hasOwn(VALUE_KINDS, kind) && VALUE_KINDS[kind](item)), `${where}: ${key} ${JSON.stringify(item)} is not a ${kinds.join(' or ')}`);
+    }
+  }
+};
+/** One application/ld+json block: it parses, names https://schema.org as its
+ * context, and each top node (or each node of its @graph) that has a url gives
+ * the page's canonical. */
+const checkJsonLd = (text, where, canonical) => {
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (error) {
+    assert.fail(`${where}: JSON-LD does not parse (${error.message})`);
+  }
+  assert(data !== null && typeof data === 'object' && !Array.isArray(data), `${where}: JSON-LD is one object`);
+  const { '@context': context, ...top } = data;
+  assert.equal(context, 'https://schema.org', `${where}: @context is https://schema.org`);
+  const graph = Object.hasOwn(top, '@graph');
+  if (graph) assert(Object.keys(top).length === 1 && Array.isArray(top['@graph']) && top['@graph'].length > 0, `${where}: @graph is a list of nodes and nothing sits beside it`);
+  const nodes = graph ? top['@graph'] : [top];
+  const ids = new Map();
+  const collect = (value) => {
+    if (Array.isArray(value)) return value.forEach(collect);
+    if (value === null || typeof value !== 'object') return;
+    if (typeof value['@id'] === 'string' && Object.keys(value).length > 1) ids.set(value['@id'], value);
+    Object.values(value).forEach(collect);
+  };
+  collect(nodes);
+  for (const node of nodes) {
+    checkSchemaNode(node, null, `${where} ${node?.['@type'] ?? 'node'}`, ids);
+    if (Object.hasOwn(node, 'url')) assert.equal(node.url, canonical, `${where}: the ${node['@type']} url is the page canonical`);
+  }
+};
+let jsonLdBlocks = 0;
+/** Titles a search result would cut (F15-04), reported together at the end. */
+const longTitles = [];
+/** Descriptions too short or too long for a search result (F15-06), reported
+ * together at the end. */
+const DESCRIPTION_LENGTH = { min: 50, max: 160 };
+const offDescriptions = [];
+const sitemapHrefs = new Set(urls.map(url => url.href));
+assert.equal(sitemapHrefs.size, urls.length, 'the sitemap lists no URL twice');
+for (const url of urls) {
+  assert.equal(url.origin, ORIGIN, `${url}: a devshark.app address`);
+  assert(existsSync(path.join(dir, url.pathname, 'index.html')), `${url}: in the sitemap without a page`);
+}
+const classCounts = { listed: 0, alias: 0, 'share-only': 0, noindex: 0 };
+/** Pages a crawler or a link preview may fetch: every class but noindex. */
+const crawlablePaths = [];
+for (const pagePath of pagePaths) {
+  const classes = classesOf(pagePath);
+  assert.equal(classes.length, 1, `${pagePath}: ${classes.length ? `more than one class (${classes.join(', ')})` : 'no class; give the page one in scripts/check-public.mjs'}`);
+  const [kind] = classes;
+  const doc = readPage(pagePath);
+  const url = pageUrl(pagePath);
+  const canonicals = [...doc.querySelectorAll('link[rel="canonical"]')].map(link => link.getAttribute('href'));
+  const ogUrls = [...doc.querySelectorAll('meta[property="og:url"]')].map(meta => meta.getAttribute('content'));
+  assert(canonicals.length <= 1 && ogUrls.length <= 1, `${pagePath}: at most one canonical and one og:url`);
+  const canonical = canonicals[0] ?? null;
+  const robots = [...doc.querySelectorAll('meta[name="robots"]')].map(meta => meta.getAttribute('content') ?? '');
+  const noindex = robots.some(content => /\b(?:noindex|none)\b/i.test(content));
+  const listed = sitemapHrefs.has(url);
+  if (kind === 'noindex') {
+    assert(noindex, `${pagePath} (noindex): robots noindex in the HTML`);
+    assert.equal(canonical, null, `${pagePath} (noindex): no canonical`);
+    assert.equal(ogUrls[0] ?? null, null, `${pagePath} (noindex): no og:url`);
+  } else {
+    assert.equal(canonical, kind === 'alias' ? pageUrl(ALIASES[pagePath]) : url, `${pagePath} (${kind}): canonical`);
+    assert.equal(ogUrls[0] ?? null, canonical, `${pagePath} (${kind}): og:url matches the canonical`);
+    // No robots line at all: a nofollow or a snippet limit costs an indexable
+    // page as much as a noindex would.
+    assert.deepEqual(robots, [], `${pagePath} (${kind}): indexable, no robots line`);
+  }
+  assert.equal(listed, kind === 'listed', `${pagePath} (${kind}): ${kind === 'listed' ? 'in' : 'not in'} the sitemap`);
+  // F15-02: the title, description and image a crawler reads are the ones
+  // every link preview reads, each tag written once.
+  const one = (selector) => {
+    const nodes = doc.querySelectorAll(selector);
+    assert.equal(nodes.length, 1, `${pagePath}: exactly one ${selector}`);
+    return nodes[0].getAttribute('content') ?? '';
+  };
+  assert.equal(doc.querySelectorAll('title').length, 1, `${pagePath}: exactly one title`);
+  const title = doc.title;
+  assert.equal(one('meta[property="og:title"]'), title, `${pagePath}: og:title is the title`);
+  assert.equal(one('meta[name="twitter:title"]'), title, `${pagePath}: twitter:title is the title`);
+  if (pagePath !== '/') assert(title.endsWith(' · devShark'), `${pagePath}: the title "${title}" ends with " · devShark"`);
+  // F15-04: search results cut a title near 60 characters. Counted in code
+  // points of the decoded title, so '&amp;' is one.
+  if ((kind === 'listed' || kind === 'share-only') && [...title].length >= 60) longTitles.push({ pagePath, title, length: [...title].length });
+  const description = one('meta[name="description"]');
+  assert(description.trim(), `${pagePath}: a description`);
+  // F15-06: a search result shows about 160 characters of the description,
+  // and under 50 says too little about the page. Code points of the decoded
+  // text, as for the title.
+  const descriptionLength = [...description].length;
+  if ((kind === 'listed' || kind === 'share-only') && (descriptionLength < DESCRIPTION_LENGTH.min || descriptionLength > DESCRIPTION_LENGTH.max)) {
+    offDescriptions.push({ pagePath, description, length: descriptionLength });
+  }
+  assert.equal(one('meta[property="og:description"]'), description, `${pagePath}: og:description is the description`);
+  assert.equal(one('meta[name="twitter:description"]'), description, `${pagePath}: twitter:description is the description`);
+  // Link previews on LinkedIn, Slack and iMessage need an absolute image URL.
+  const image = one('meta[property="og:image"]');
+  assert.match(image, /^https:\/\/devshark\.app\//, `${pagePath}: og:image is absolute under https://devshark.app/`);
+  assert.equal(one('meta[name="twitter:image"]'), image, `${pagePath}: twitter:image is og:image`);
+  assert(one('meta[property="og:image:alt"]').trim(), `${pagePath}: og:image:alt is not empty`);
+  assert.equal(one('meta[name="twitter:card"]'), 'summary_large_image', `${pagePath}: twitter:card summary_large_image`);
+  assert.equal(doc.documentElement.getAttribute('lang'), 'en', `${pagePath}: html lang en`);
+  assert.equal(doc.querySelectorAll('link[hreflang]').length, 0, `${pagePath}: English only, no hreflang`);
+  // The h1 a visitor without JavaScript sees, in the body or its noscript.
+  assert.equal(doc.querySelectorAll('h1').length, 1, `${pagePath}: one static h1`);
+  for (const block of doc.querySelectorAll('script[type="application/ld+json"]')) {
+    checkJsonLd(block.textContent, `${pagePath}: JSON-LD`, canonical ?? url);
+    jsonLdBlocks++;
+  }
+  classCounts[kind]++;
+  if (kind !== 'noindex') crawlablePaths.push(pagePath);
+}
+for (const [alias, target] of Object.entries(ALIASES)) {
+  assert(pagePaths.includes(alias) && pagePaths.includes(target), `${alias}: it and its canonical ${target} are both built`);
+  assert.deepEqual(classesOf(target), ['listed'], `${alias}: its canonical ${target} is a listed page`);
+}
+assert.equal(urls.length, classCounts.listed, 'the sitemap lists exactly the listed pages');
 const tiers = readFileSync('shared/tiers.ts', 'utf8');
 const price = (plan) => tiers.match(new RegExp(`${plan}: '([0-9.]+)'`))?.[1];
 for (const url of urls) {
   const file = path.join(dir, url.pathname, 'index.html');
   const doc = new JSDOM(readFileSync(file, 'utf8')).window.document;
-  assert.equal(doc.querySelector('link[rel="canonical"]')?.getAttribute('href'), url.href);
-  assert.equal(doc.querySelector('meta[property="og:url"]')?.getAttribute('content'), url.href, `${url}: og:url matches the canonical`);
-  // Link previews on LinkedIn, Slack and iMessage need an absolute image URL.
-  for (const selector of ['meta[property="og:image"]', 'meta[name="twitter:image"]']) {
-    assert.match(doc.querySelector(selector)?.getAttribute('content') ?? '', /^https:\/\/devshark\.app\//, `${url}: ${selector} is absolute`);
-  }
-  assert.equal(url.hostname, 'devshark.app');
   if (url.pathname === '/') continue;
-  assert.equal(doc.querySelectorAll('h1').length, 1, `${url}: one static h1`);
   // Checked as section pages below.
   if (SITEMAP_CODING_PAGES.includes(url.pathname)) continue;
   if (APP_PAGES.includes(url.pathname)) {
-    assert.equal(doc.documentElement.lang, 'en');
-    assert.equal(doc.querySelectorAll('link[hreflang]').length, 0, `${url}: English only`);
     const text = doc.querySelector('#root').textContent;
     if (LEARN_SECTION_PAGES.includes(url.pathname)) {
       assert(!doc.querySelector('#public-schema'), `${url}: preview makes no certification or paid-course schema claim`);
@@ -69,10 +301,7 @@ for (const url of urls) {
     }
     continue;
   }
-  assert.equal(doc.documentElement.lang, 'en');
   assert.equal(doc.querySelectorAll('details').length, 3, 'Practice is present without JS');
-  assert.equal(doc.querySelectorAll('link[hreflang]').length, 0);
-  for (const alternate of doc.querySelectorAll('link[hreflang]')) assert(existsSync(path.join(dir, new URL(alternate.href).pathname, 'index.html')));
   const schema = JSON.parse(doc.querySelector('#public-schema').textContent);
   assert.equal(schema['@type'], 'LearningResource'); assert.equal(schema.url, url.href); assert.equal(schema.inLanguage, 'en');
   // A guide is free to read without an account; Premium is not a guide.
@@ -83,10 +312,6 @@ for (const url of urls) {
 // #239: every coding task and every day in the window has its own head and
 // share image, and none of those pages carries a question, an answer or a
 // solution.
-const index = readFileSync('shared/coding-index.ts', 'utf8');
-const tasks = [...index.matchAll(/\{"id":"([^"]+)","track":"([^"]+)"/g)].map(([, id, track]) => ({ id, track }));
-assert(tasks.length > 700, 'the coding index was read');
-assert(!tasks.some(({ track }) => track === 'system-design'), 'the index the browser ships holds no system design task');
 const free = tasks.filter(({ id }) => new RegExp(`"id":"${id}"[^\n]*"free":true`).test(index)).length;
 for (const { id, track } of tasks) {
   const file = path.join(dir, 'coding', track, id, 'index.html');
@@ -102,20 +327,11 @@ for (const { id, track } of tasks) {
 // track pages are in the sitemap; /coding/review is not.
 const home = new JSDOM(readFileSync(`${dir}/index.html`, 'utf8')).window.document;
 const homeDescription = home.querySelector('meta[name="description"]').getAttribute('content');
-const SECTION_PAGES = {
-  '/coding': '/coding', '/coding/review': '/coding',
-  ...Object.fromEntries(CODING_TRACK_PAGES.map(page => [page, page])),
-};
-for (const [pagePath, canonicalPath] of Object.entries(SECTION_PAGES)) {
+const SECTION_PAGES = ['/coding', '/coding/review', ...CODING_TRACK_PAGES];
+for (const pagePath of SECTION_PAGES) {
   const doc = new JSDOM(readFileSync(path.join(dir, pagePath, 'index.html'), 'utf8')).window.document;
-  const canonical = canonicalPath && `https://devshark.app${canonicalPath}`;
-  assert.equal(doc.querySelector('link[rel="canonical"]')?.getAttribute('href') ?? null, canonical, `${pagePath}: canonical`);
-  assert.equal(doc.querySelector('meta[property="og:url"]')?.getAttribute('content') ?? null, canonical, `${pagePath}: og:url matches the canonical`);
   assert.notEqual(doc.title, home.title, `${pagePath}: its own title`);
-  assert.equal(doc.querySelector('meta[property="og:title"]').getAttribute('content'), doc.title, `${pagePath}: og:title is the title`);
   assert.notEqual(doc.querySelector('meta[name="description"]').getAttribute('content'), homeDescription, `${pagePath}: its own description`);
-  assert.equal(urls.some(url => url.pathname === pagePath), pagePath === canonicalPath, `${pagePath}: in the sitemap only under its own address`);
-  assert.equal(doc.querySelectorAll('meta[name="robots"]').length, 0, `${pagePath}: indexable`);
 }
 const rewrites = JSON.parse(readFileSync('vercel.json', 'utf8')).rewrites;
 for (const source of ['/coding', '/coding/:track']) {
@@ -126,11 +342,9 @@ for (const source of ['/coding', '/coding/:track']) {
 // itself, with no canonical and no image of its own. No share page or share
 // image of a system design task is built, and the sitemap names none.
 {
-  const HIDDEN = '/coding/system-design';
+  const HIDDEN = HIDDEN_CODING_PATH;
   const doc = new JSDOM(readFileSync(path.join(dir, HIDDEN, 'index.html'), 'utf8')).window.document;
   assert.equal(doc.querySelector('meta[name="robots"]')?.getAttribute('content'), 'noindex', `${HIDDEN}: noindex without JavaScript`);
-  assert.equal(doc.querySelector('link[rel="canonical"]'), null, `${HIDDEN}: no canonical`);
-  assert.equal(doc.querySelector('meta[property="og:url"]'), null, `${HIDDEN}: no og:url`);
   assert.equal(doc.querySelector('h1')?.textContent, 'That track does not exist.', `${HIDDEN}: the not-found heading`);
   assert.deepEqual(readdirSync(path.join(dir, HIDDEN)), ['index.html'], `${HIDDEN}: no task page under it`);
   assert(!readdirSync(path.join(dir, 'og', 'coding')).some(file => /^(?:sd|dd)-/.test(file)), 'no system design share image');
@@ -160,7 +374,28 @@ for (const file of codingChunks) {
   const found = readFileSync(`${dir}/assets/${file}`, 'utf8').match(UNEXPECTED_DIACRITICS) ?? [];
   assert.equal(found.length, 0, `${file}: ${found.length} unexpected accented glyphs in a coding chunk`);
 }
-assert(readFileSync(`${dir}/robots.txt`, 'utf8').includes(`Sitemap: ${urls[0].origin}/sitemap.xml`));
+// F15-08: robots.txt, rule by rule. Crawlers stay out of the API, the React
+// sandbox, /dev, the admin workspace and the PostHog proxy (/ingest/). A
+// Disallow is a path prefix, so no listed or share page, with or without its
+// trailing slash, may start with one: Twitterbot, for one, obeys robots.txt
+// before it draws a link preview.
+const ROBOTS_LINES = ['User-agent: *', 'Allow: /', 'Disallow: /api/', 'Disallow: /sandbox/', 'Disallow: /dev', 'Disallow: /admin', 'Disallow: /ingest/', `Sitemap: ${ORIGIN}/sitemap.xml`];
+const robotsLines = readFileSync(`${dir}/robots.txt`, 'utf8').trimEnd().split('\n');
+assert.deepEqual(robotsLines, ROBOTS_LINES, 'robots.txt carries exactly the expected rules');
+const disallowed = robotsLines.filter(line => line.startsWith('Disallow: ')).map(line => line.slice('Disallow: '.length));
+for (const pagePath of crawlablePaths) {
+  const rule = disallowed.find(prefix => pagePath.startsWith(prefix) || `${pagePath}/`.startsWith(prefix));
+  assert.equal(rule, undefined, `${pagePath}: robots.txt disallows it (Disallow: ${rule})`);
+}
 assert(!existsSync(`${dir}/mockServiceWorker.js`), 'Mocks must never ship with the app');
 assert(!readdirSync(`${dir}/assets`).some(file => /storybook|mocks|\.stories\./i.test(file)));
-console.log(`Public HTML passed: ${urls.length} URLs, canonical, schema, teaching content, the Premium terms, ${tasks.length} coding share pages, ${Object.keys(SECTION_PAGES).length} Coding section pages, hidden system design, ${days.length} question-of-the-day pages, and no unexpected accented glyphs in ${codingChunks.length} coding chunks.`);
+{
+  const shown = [...longTitles].sort((one, other) => other.length - one.length).slice(0, 25);
+  const kinds = Object.entries(Object.groupBy(longTitles, ({ pagePath }) => pagePath.startsWith('/daily/') ? 'dated daily' : pagePath.startsWith('/coding/') ? 'coding task' : 'other')).map(([kind, list]) => `${list.length} ${kind}`).join(', ');
+  assert.equal(longTitles.length, 0, `${longTitles.length} titles are 60 characters or longer (${kinds}); the longest:\n${shown.map(({ pagePath, title, length }) => `  ${length} ${pagePath}: ${title}`).join('\n')}${longTitles.length > shown.length ? `\n  and ${longTitles.length - shown.length} more` : ''}`);
+}
+{
+  const shown = offDescriptions.slice(0, 25);
+  assert.equal(offDescriptions.length, 0, `${offDescriptions.length} descriptions are outside ${DESCRIPTION_LENGTH.min} to ${DESCRIPTION_LENGTH.max} characters:\n${shown.map(({ pagePath, description, length }) => `  ${length} ${pagePath}: ${description}`).join('\n')}${offDescriptions.length > shown.length ? `\n  and ${offDescriptions.length - shown.length} more` : ''}`);
+}
+console.log(`Public HTML passed: ${pagePaths.length} pages (${Object.entries(classCounts).map(([kind, count]) => `${count} ${kind}`).join(', ')}), ${urls.length} sitemap URLs, canonical, titles under 60 and descriptions of ${DESCRIPTION_LENGTH.min} to ${DESCRIPTION_LENGTH.max} characters, ${ROBOTS_LINES.length} robots.txt lines that block none of ${crawlablePaths.length} crawlable pages, ${jsonLdBlocks} JSON-LD blocks against schema.org, teaching content, the Premium terms, ${tasks.length} coding share pages, ${SECTION_PAGES.length} Coding section pages, hidden system design, ${days.length} question-of-the-day pages, and no unexpected accented glyphs in ${codingChunks.length} coding chunks.`);
