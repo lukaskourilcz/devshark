@@ -1356,8 +1356,10 @@ async function main() {
     // cold instances, so the buckets a script would guess or spam through
     // (the admin gate, voucher codes, invite claims, question reports and
     // the emailed cancellation page) refuse with 503 rate_limit_unavailable
-    // while Upstash fails, and spend nothing. Every other bucket keeps to
-    // memory, so a quiz and the Learn map still answer.
+    // while Upstash fails, and spend nothing. So do sign-in reports, which
+    // take their own buckets so that no other account write closes with
+    // them. Every other bucket keeps to memory, so a quiz, the Learn map and
+    // a learning-preference save still answer.
     {
       const outcomeOf = (res: Response) => `${res.statusCode} ${errorCode(res) ?? ''}`.trim();
       const voucherCount = `rl:${rateLimit.RATE_LIMITS.voucherRedeem.key}:user:${GUARDED.id}`;
@@ -1366,17 +1368,22 @@ async function main() {
         voucher: await user('voucher', { method: 'POST', account: GUARDED, body: { code: 'SHARKCAMP2026' } }),
         quiz: await call(questions as Handler, { query: { count: '2', categories: 'javascript' } }),
         map: await call(roadmap as Handler, { query: { nonce: 'closed-buckets' } }),
+        signIn: await user('authevent', { method: 'POST', account: GUARDED, body: {} }),
+        preference: await user('learning-preference', { method: 'PUT', account: GUARDED, body: { schemaVersion: 1, baseTrack: 'frontend', specialization: null } }),
       });
+      const passedLimits = (res: Response) => !['rate_limited', 'rate_limit_unavailable'].includes(errorCode(res) ?? '') && res.statusCode !== 401;
       upstashMode('failing');
       seen.length = 0;
       const down = await routes();
-      for (const label of ['admin', 'voucher'] as const) {
+      for (const label of ['admin', 'voucher', 'signIn'] as const) {
         assert.equal(outcomeOf(down[label]), '503 rate_limit_unavailable', `the ${label} bucket closes while Upstash fails (${JSON.stringify(down[label].body)})`);
         assert.equal(down[label].headers['retry-after'], '15', `and the ${label} refusal says when to retry`);
       }
       assert.equal(reads('/rest/v1/rpc/redeem_premium_voucher').length, 0, 'a refused redeem looks up no code');
       assert.equal(down.quiz.statusCode, 200, `a quiz keeps to memory (${JSON.stringify(down.quiz.body)})`);
       assert.equal(down.map.statusCode, 200, `and so does the Learn map (${JSON.stringify(down.map.body)})`);
+      assert.ok(!reads('/rest/v1/auth_events').some((one) => one.method === 'POST'), 'a refused sign-in report logs no event');
+      assert.ok(passedLimits(down.preference), `a learning-preference save keeps to memory (${outcomeOf(down.preference)})`);
 
       upstashMode('healthy');
       seen.length = 0;
@@ -1387,9 +1394,11 @@ async function main() {
       assert.equal(upstashCounts.get(voucherCount), 1, 'the attempt refused during the outage spent nothing of the five an hour');
       assert.equal(up.quiz.statusCode, 200);
       assert.equal(up.map.statusCode, 200);
+      assert.equal(up.signIn.statusCode, 200, `with Upstash back a sign-in report is logged (${JSON.stringify(up.signIn.body)})`);
+      assert.ok(passedLimits(up.preference), `and a learning-preference save passes (${outcomeOf(up.preference)})`);
       upstashMode('failing');
     }
-    console.log('PASS verified caller: the admin gate and voucher redemption refuse with 503 while Upstash fails, a quiz and the Learn map keep to memory');
+    console.log('PASS verified caller: the admin gate, voucher redemption and sign-in reports refuse with 503 while Upstash fails, a quiz, the Learn map and other account writes keep to memory');
 
     // ── what an escaped error logs ───────────────────────────────────────
     const { AuthError } = await import('../lib/auth');
