@@ -1,6 +1,7 @@
 import { FDE_SECTION_VISIBLE } from '../../../shared/learn-section-ids';
 import { TOPIC_LANDINGS, type TopicLandingDefinition } from './topicCatalog';
 import { PREMIUM_PRICE } from '../../../shared/tiers';
+import type { TranslationKey } from '../i18n/translations';
 export const PUBLIC_ORIGIN = 'https://devshark.app';
 export const BRAND_SHARE_IMAGE = PUBLIC_ORIGIN + '/og-image.png?v=20261012';
 export const BRAND_SHARE_IMAGE_ALT = 'devShark — Lessons, quizzes and coding challenges';
@@ -34,6 +35,41 @@ export const PUBLIC_PAGES = ALL_PUBLIC_PAGES.filter(page => FDE_SECTION_VISIBLE 
 export type PublicPage = (typeof PUBLIC_PAGES)[number];
 export const publicPage = (pathname: string): PublicPage | null =>
   PUBLIC_PAGES.find((page) => page.path === pathname.replace(/(.)\/$/, '$1')) ?? null;
+
+/** A key of the privacy policy's own dictionary (translations.privacy.ts),
+ * which only the legal pages load. Named by its prefix, so neither this file
+ * nor the build config (tsconfig.node.json) imports that dictionary. */
+export type PrivacyCopyKey = `legal.privacy.${string}`;
+export const isPrivacyCopyKey = (key: string): key is PrivacyCopyKey => key.startsWith('legal.privacy.');
+type PageCopyKey = TranslationKey | PrivacyCopyKey;
+export interface PrerenderedAppPage {
+  path: string;
+  titleKey: TranslationKey;
+  /** The h1 and the lead the live page opens with: the build puts them in a
+   * noscript for a visitor without JavaScript. */
+  headingKey: PageCopyKey;
+  leadKey: PageCopyKey;
+  /** The page copy the description is cut from (metaDescription), joined
+   * with a space. */
+  descriptionKeys: readonly PageCopyKey[];
+  /** The LegalPages.tsx constant holding the date the page last changed: the
+   * build reads it from that file's source as the sitemap's lastmod. */
+  updated?: 'LEGAL_UPDATED' | 'PRIVACY_UPDATED';
+}
+/** App routes the build writes a static page for too (F15-11): a title, a
+ * description cut from the page's own copy, a canonical URL and og:url, a
+ * sitemap entry, and the page's h1 and lead in a noscript; the app is the
+ * body. The app (routeHead.ts) writes the same canonical and description.
+ * Kept apart from PUBLIC_PAGES, which scripts/test-launch-contracts.ts holds
+ * to one vercel.json rewrite each: until those rewrites land (F15-55),
+ * Vercel serves <path>/index.html as a directory index, as it does
+ * /sandbox. */
+export const PRERENDERED_APP_PAGES: readonly PrerenderedAppPage[] = [
+  { path: '/privacy', titleKey: 'title.privacy', headingKey: 'legal.privacy.title', leadKey: 'legal.privacy.lead', descriptionKeys: ['legal.privacy.lead'], updated: 'PRIVACY_UPDATED' },
+  { path: '/terms', titleKey: 'title.terms', headingKey: 'legal.terms.title', leadKey: 'legal.terms.lead', descriptionKeys: ['legal.terms.lead'], updated: 'LEGAL_UPDATED' },
+];
+export const prerenderedAppPage = (pathname: string): PrerenderedAppPage | null =>
+  PRERENDERED_APP_PAGES.find((page) => page.path === pathname.replace(/(.)\/$/, '$1')) ?? null;
 
 /** The longest description a head carries, in characters: about what a
  * search result shows (check:public asserts 50 to 160). */

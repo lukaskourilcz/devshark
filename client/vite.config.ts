@@ -9,7 +9,7 @@ import { PRODUCT_CATALOG, resolveCatalogProductId } from './product-catalog';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { TopicArticle, topicPath } from './src/components/topics/TopicArticle';
-import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, PUBLIC_ORIGIN, PUBLIC_PAGES, codingShareDescription, metaDescription, premiumSchema, topicSchema } from './src/lib/publicMetadata';
+import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, PRERENDERED_APP_PAGES, PUBLIC_ORIGIN, PUBLIC_PAGES, codingShareDescription, isPrivacyCopyKey, metaDescription, premiumSchema, topicSchema } from './src/lib/publicMetadata';
 import { TOPIC_LANDINGS } from './src/lib/topicCatalog';
 import { PremiumCancelStaticArticle, PremiumStaticArticle, type Translate } from './src/components/PremiumFacts';
 import { en, type TranslationKey } from './src/i18n/translations';
@@ -74,6 +74,20 @@ const dailyTitleDate = (iso: string) => {
   const [year, month, day] = iso.split('-').map(Number);
   return `${day} ${SHORT_MONTHS[month - 1]} ${year}`;
 };
+/** One string of a TypeScript dictionary or one exported constant, read from
+ * its source with `pattern` (one capture group). The build reads the privacy
+ * policy's words (translations.privacy.ts) and the legal pages' dates
+ * (LegalPages.tsx) this way: importing the first would add it to this config's
+ * TypeScript project (tsconfig.node.json), and importing the second would load
+ * the legal page's stylesheet and app modules into the config. A source that
+ * no longer matches fails the build. */
+const readSourceValue = (source: string, file: string, pattern: RegExp) => {
+  const match = pattern.exec(source);
+  if (!match) throw new Error(`${file}: nothing matches ${pattern}`);
+  return match[1].replace(/\\(.)/g, '$1');
+};
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 /** Search results cut a title near 60 characters (check:public, F15-04).
  * The first candidate under that wins; the last one is the floor. */
 const TITLE_LIMIT = 60;
@@ -225,7 +239,7 @@ function productMetadata(env: Record<string, string>): Plugin {
       // the same public HTML that production serves.
       server.middlewares.use((req, _res, next) => {
         const [pathname, search] = (req.url || '').split('?');
-        if (/^\/topics\/[a-z0-9-]+\/?$/.test(pathname) || PUBLIC_PAGES.some(page => page.path === pathname.replace(/\/$/, ''))) {
+        if (/^\/topics\/[a-z0-9-]+\/?$/.test(pathname) || [...PUBLIC_PAGES, ...PRERENDERED_APP_PAGES].some(page => page.path === pathname.replace(/\/$/, ''))) {
           req.url = `${pathname.replace(/\/$/, '')}/index.html${search ? `?${search}` : ''}`;
         } else if (pathname === HIDDEN_CODING_PATH || pathname.startsWith(`${HIDDEN_CODING_PATH}/`)) {
           // vercel.json: the hidden track and everything under it.
@@ -250,7 +264,9 @@ function productMetadata(env: Record<string, string>): Plugin {
       const origin = PUBLIC_ORIGIN;
       const indexHtml = await readFile(path.join(outDir, 'index.html'), 'utf8');
       const escape = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
-      const urls = [`${origin}/`];
+      /** The sitemap: each address, with the day it last changed where the
+       * build knows it (YYYY-MM-DD). */
+      const urls: { loc: string; lastmod?: string }[] = [{ loc: `${origin}/` }];
       /** The shell with one page's og:image (absolute) and its size and alt. */
       const withImage = (html: string, image: string | null, alt: string) => image
         ? html
@@ -288,7 +304,7 @@ function productMetadata(env: Record<string, string>): Plugin {
         const topicDir = path.join(outDir, topicPath(topic.slug));
         await mkdir(topicDir, { recursive: true });
         await writeFile(path.join(topicDir, 'index.html'), html);
-        urls.push(url);
+        urls.push({ loc: url });
       }
       // The app pages with public HTML (#222): /premium and /premium/cancel.
       // Same shell, their own title, description, canonical and body, so the
@@ -314,7 +330,26 @@ function productMetadata(env: Record<string, string>): Plugin {
         const pageDir = path.join(outDir, page.path);
         await mkdir(pageDir, { recursive: true });
         await writeFile(path.join(pageDir, 'index.html'), html);
-        urls.push(url);
+        urls.push({ loc: url });
+      }
+      // F15-11: app routes with public content get a head of their own: a
+      // crawler that runs no JavaScript stops reading them as the home page.
+      // The body is the app, with the live page's h1 and lead for a visitor
+      // without JavaScript.
+      const legalFile = path.join(__dirname, 'src/components/LegalPages.tsx');
+      const privacyFile = path.join(__dirname, 'src/i18n/translations.privacy.ts');
+      const [legalSource, privacySource] = await Promise.all([readFile(legalFile, 'utf8'), readFile(privacyFile, 'utf8')]);
+      const pageCopy = (key: string) => isPrivacyCopyKey(key)
+        ? readSourceValue(privacySource, privacyFile, new RegExp(`'${escapeRegExp(key)}':\\s*'((?:[^'\\\\\\n]|\\\\.)*)'`))
+        : en[key as TranslationKey];
+      for (const page of PRERENDERED_APP_PAGES) {
+        const url = origin + page.path;
+        const pageTitle = en[page.titleKey];
+        const description = page.descriptionKeys.map(pageCopy).join(' ');
+        await writePage(page.path, pageHead(indexHtml, { title: pageTitle, description, url, image: null, imageAlt: pageTitle })
+          .replace('<div id="root"></div>', `<div id="root"><noscript><main class="ss-public-fallback ss-info-page"><h1>${escape(pageCopy(page.headingKey))}</h1><p>${escape(pageCopy(page.leadKey))}</p></main></noscript></div>`));
+        const lastmod = page.updated && readSourceValue(legalSource, legalFile, new RegExp(`export const ${page.updated} = '(\\d{4}-\\d{2}-\\d{2})'`));
+        urls.push(lastmod ? { loc: url, lastmod } : { loc: url });
       }
       // #239: a page head and a share image for every coding task, so a shared
       // task link previews that task. Only the head differs from the app
@@ -362,7 +397,7 @@ function productMetadata(env: Record<string, string>): Plugin {
       for (const page of sectionPages) {
         await writePage(page.path, pageHead(indexHtml, { title: page.title, description: page.description, url: origin + page.canonical, image: null, imageAlt: page.title })
           .replace('<div id="root"></div>', `<div id="root"><noscript><main class="ss-public-fallback ss-info-page"><h1>${escape(page.name)}</h1><p>${escape(page.description)}</p>${sectionLinks}</main></noscript></div>`));
-        if (page.path === page.canonical) urls.push(origin + page.path);
+        if (page.path === page.canonical) urls.push({ loc: origin + page.path });
       }
       // System design is hidden (owner decision, 9 Oct 2026): /coding/system-design
       // and every address under it (vercel.json sends them all here) are the
@@ -395,8 +430,13 @@ function productMetadata(env: Record<string, string>): Plugin {
       this.info(`share pages: ${CODING_INDEX.length} coding tasks, ${sectionPages.length} Coding section pages and the hidden system design page, ${days} days of the question of the day, ${drawn} images drawn (the rest from cache)`);
 
       const fallback = `<main class="ss-public-fallback ss-info-page"><h1>${escape(title)}</h1><p>${escape(description)}</p><ul class="ss-topic-links">${topics.map(topic => `<li><a href="${topicPath(topic.slug)}">${escape(topic.title)}</a></li>`).join('')}</ul></main>`;
-      await writeFile(path.join(outDir, 'index.html'), indexHtml.replace('</head>', `<link rel="canonical" href="${origin}/" /><meta property="og:url" content="${origin}/" /></head>`).replace('<div id="root"></div>', `<div id="root"><noscript>${fallback}</noscript></div>`));
-      await writeFile(path.join(outDir, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(url => `<url><loc>${url}</loc></url>`).join('')}</urlset>`);
+      // F15-10: no canonical and no og:url here. vercel.json's catch-all
+      // rewrite serves this file for every app route and every missing page,
+      // and a home canonical in it made each of them claim to be a copy of the
+      // home page. The app writes the home page's canonical when it starts
+      // (routeHead.ts).
+      await writeFile(path.join(outDir, 'index.html'), indexHtml.replace('<div id="root"></div>', `<div id="root"><noscript>${fallback}</noscript></div>`));
+      await writeFile(path.join(outDir, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(({ loc, lastmod }) => `<url><loc>${loc}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}</url>`).join('')}</urlset>`);
       // Crawlers stay out of the API, the React sandbox, /dev, the admin
       // workspace and the PostHog proxy. /admin keeps its X-Robots-Tag
       // noindex (vercel.json) for crawlers that fetch it anyway.

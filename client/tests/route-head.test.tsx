@@ -19,6 +19,7 @@ import { applyRouteHead, readShareHead, type ShareHead } from '../src/lib/routeH
 import { NotFoundPage } from '../src/components/PublicInfoPages';
 import { META_DESCRIPTION_MAX, codingShareDescription, metaDescription } from '../src/lib/publicMetadata';
 import { en } from '../src/i18n/translations';
+import { privacyEn } from '../src/i18n/translations.privacy';
 
 const { result: language } = renderHook(() => useLanguage(), { wrapper: LanguageProvider });
 const visit = (pathname: string, shareHead: ShareHead | null = null) => {
@@ -281,6 +282,37 @@ describe('a head description', () => {
       expect(meta(selector)).toBe(CANCEL_CUT);
     }
     expect(canonical()).toBe('https://devshark.app/premium/cancel');
+  });
+});
+
+// F15-11: the legal pages are indexable and in the sitemap, so the app
+// writes the same canonical and description the build writes into their
+// static HTML: the lead each page opens with.
+describe('a legal page', () => {
+  const DESCRIPTIONS = ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]'];
+  it.each([
+    ['/privacy', 'Privacy · devShark', () => privacyEn['legal.privacy.lead']],
+    ['/terms', 'Terms · devShark', () => en['legal.terms.lead']],
+  ])('%s names itself as canonical and describes itself with its lead', async (path, title, lead) => {
+    visit(path);
+    expect(document.title).toBe(title);
+    expect(canonical()).toBe(`https://devshark.app${path}`);
+    expect(meta('meta[property="og:url"]')).toBe(`https://devshark.app${path}`);
+    expect(robots()).toEqual([]);
+    // The privacy policy's words load with the legal pages, so its
+    // description may arrive a moment later.
+    await vi.waitFor(() => {
+      for (const selector of DESCRIPTIONS) expect(meta(selector)).toBe(metaDescription(lead()));
+    });
+  });
+
+  it('keeps a late privacy description off the page the visitor moved on to', async () => {
+    visit('/privacy');
+    visit('/no-such-page');
+    await vi.dynamicImportSettled();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(canonical()).toBeNull();
+    for (const selector of DESCRIPTIONS) expect(meta(selector)).not.toBe(metaDescription(privacyEn['legal.privacy.lead']));
   });
 });
 

@@ -74,6 +74,23 @@ test('the sitemap lists the Coding pages, and system design is a noindex page', 
 });
 
 
+// F15-10: the catch-all rewrite serves the app shell for every app route
+// and every missing page, so the shell names no canonical: a crawler that
+// runs no JavaScript must not read /today or a 404 as a copy of the home
+// page. The app writes the home page's canonical when it starts.
+test('the app shell names no canonical, and the home page gets its own at runtime', async ({ page, request }) => {
+  for (const path of ['/no-such-page', '/today']) {
+    const html = await (await request.get(path)).text();
+    expect(html).toContain('<div id="root">');
+    expect(html).not.toContain('rel="canonical"');
+    expect(html).not.toContain('property="og:url"');
+  }
+  await page.goto('/');
+  await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://devshark.app/');
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', 'https://devshark.app/');
+});
+
 test('retired guide addresses show the app not-found page without an English redirect', async ({ page }) => {
   await page.goto('/cs/topics/javascript-closures');
   await expect(page).toHaveURL(/\/cs\/topics\/javascript-closures$/);

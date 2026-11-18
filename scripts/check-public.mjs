@@ -13,6 +13,25 @@ assert(!urls.some(url => url.pathname.includes('forward-deployed-engineer')), 't
 const LEARN_SECTION_PAGES = ['/learn/web-developer', '/learn/software-engineer'];
 const APP_PAGES = [...LEARN_SECTION_PAGES, '/premium', '/premium/cancel', '/daily'];
 assert.deepEqual(urls.filter(url => APP_PAGES.includes(url.pathname)).map(url => url.pathname), APP_PAGES);
+// F15-11: app routes the build writes a static head for, kept apart from
+// PUBLIC_PAGES until vercel.json has a rewrite for each (PRERENDERED_APP_PAGES
+// in client/src/lib/publicMetadata.ts): a canonical, a sitemap entry, and the
+// live page's h1 and lead in a noscript. Each maps to that h1.
+const PRERENDERED_APP_HEADINGS = { '/privacy': 'Privacy policy', '/terms': 'Terms of use' };
+const PRERENDERED_APP_PAGES = Object.keys(PRERENDERED_APP_HEADINGS);
+assert.deepEqual(urls.filter(url => PRERENDERED_APP_PAGES.includes(url.pathname)).map(url => url.pathname), PRERENDERED_APP_PAGES, 'the sitemap lists the prerendered app pages');
+/** Each sitemap address with its lastmod, or null. */
+const lastmods = new Map([...sitemap.window.document.querySelectorAll('url')].map(node => [node.querySelector('loc').textContent, node.querySelector('lastmod')?.textContent ?? null]));
+// F15-11: a legal page's lastmod is the date the page itself prints, from the
+// constants in LegalPages.tsx.
+{
+  const legal = readFileSync('client/src/components/LegalPages.tsx', 'utf8');
+  for (const [pagePath, name] of [['/privacy', 'PRIVACY_UPDATED'], ['/terms', 'LEGAL_UPDATED']]) {
+    const date = legal.match(new RegExp(`export const ${name} = '(\\d{4}-\\d{2}-\\d{2})'`))?.[1];
+    assert(date, `LegalPages.tsx exports ${name}`);
+    assert.equal(lastmods.get(`https://devshark.app${pagePath}`), date, `${pagePath}: lastmod is ${name}`);
+  }
+}
 // The Coding home and its track pages (owner decision, 9 Oct 2026). The task
 // pages, /coding/review and hidden system design stay out.
 const CODING_TRACK_PAGES = ['javascript', 'typescript', 'react', 'algorithms', 'fullstack'].map(track => `/coding/${track}`);
@@ -28,7 +47,8 @@ assert(tasks.length > 700, 'the coding index was read');
 assert(!tasks.some(({ track }) => track === 'system-design'), 'the index the browser ships holds no system design task');
 // F15-01: every prerendered page has exactly one class, chosen by its address,
 // and its head and the sitemap must agree with that class.
-// - listed: in the sitemap, canonical to itself, indexable.
+// - listed: in the sitemap, canonical to itself, indexable. The home page's
+//   canonical is written by the app at runtime (RUNTIME_CANONICAL).
 // - alias: canonical to another listed page, not in the sitemap. Only
 //   /coding/review, which opens /coding (C4-4).
 // - share-only: canonical to itself and indexable, not in the sitemap. The
@@ -39,9 +59,15 @@ assert(!tasks.some(({ track }) => track === 'system-design'), 'the index the bro
 // A page that no rule or more than one rule matches fails: give a new page a
 // class here.
 const ALIASES = { '/coding/review': '/coding' };
+// F15-10: dist/index.html is the home page and also the shell the catch-all
+// rewrite (vercel.json) serves for every app route and every missing page.
+// A canonical in it told crawlers that /today, /profile and any 404 were
+// copies of the home page, so it names none; routeHead.ts writes the home
+// page's canonical and og:url when the app starts.
+const RUNTIME_CANONICAL = new Set(['/']);
 const TASK_PATHS = new Set(tasks.map(({ id, track }) => `/coding/${track}/${id}`));
 const PAGE_CLASSES = [
-  ['listed', (pagePath) => pagePath === '/' || /^\/topics\/[a-z0-9-]+$/.test(pagePath) || APP_PAGES.includes(pagePath) || SITEMAP_CODING_PAGES.includes(pagePath)],
+  ['listed', (pagePath) => pagePath === '/' || /^\/topics\/[a-z0-9-]+$/.test(pagePath) || APP_PAGES.includes(pagePath) || PRERENDERED_APP_PAGES.includes(pagePath) || SITEMAP_CODING_PAGES.includes(pagePath)],
   ['alias', (pagePath) => Object.hasOwn(ALIASES, pagePath)],
   ['share-only', (pagePath) => TASK_PATHS.has(pagePath) || /^\/daily\/\d{4}-\d{2}-\d{2}$/.test(pagePath)],
   ['noindex', (pagePath) => pagePath === HIDDEN_CODING_PATH],
@@ -208,7 +234,8 @@ for (const pagePath of pagePaths) {
     assert.equal(canonical, null, `${pagePath} (noindex): no canonical`);
     assert.equal(ogUrls[0] ?? null, null, `${pagePath} (noindex): no og:url`);
   } else {
-    assert.equal(canonical, kind === 'alias' ? pageUrl(ALIASES[pagePath]) : url, `${pagePath} (${kind}): canonical`);
+    const expected = kind === 'alias' ? pageUrl(ALIASES[pagePath]) : RUNTIME_CANONICAL.has(pagePath) ? null : url;
+    assert.equal(canonical, expected, `${pagePath} (${kind}): ${expected ? 'canonical' : 'no canonical in the shell'}`);
     assert.equal(ogUrls[0] ?? null, canonical, `${pagePath} (${kind}): og:url matches the canonical`);
     // No robots line at all: a nofollow or a snippet limit costs an indexable
     // page as much as a noindex would.
@@ -271,6 +298,17 @@ for (const url of urls) {
   if (url.pathname === '/') continue;
   // Checked as section pages below.
   if (SITEMAP_CODING_PAGES.includes(url.pathname)) continue;
+  if (PRERENDERED_APP_PAGES.includes(url.pathname)) {
+    // The app is the body. A visitor without JavaScript reads the live page's
+    // h1 and lead, and the description is cut from those same words.
+    const heading = doc.querySelector('#root > noscript h1')?.textContent ?? '';
+    const lead = doc.querySelector('#root > noscript h1 + p')?.textContent ?? '';
+    assert.equal(heading, PRERENDERED_APP_HEADINGS[url.pathname], `${url}: the noscript h1 is the live page's`);
+    assert(lead.trim(), `${url}: the noscript carries the page's lead`);
+    const cut = doc.querySelector('meta[name="description"]').getAttribute('content').replace(/…$/, '');
+    assert(lead.startsWith(cut) || `${heading} ${lead}`.startsWith(cut), `${url}: the description "${cut}" comes from the page's h1 and lead`);
+    continue;
+  }
   if (APP_PAGES.includes(url.pathname)) {
     const text = doc.querySelector('#root').textContent;
     if (LEARN_SECTION_PAGES.includes(url.pathname)) {
