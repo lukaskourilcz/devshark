@@ -6552,3 +6552,66 @@ Branch `claude/f1-baseline-measurements` (#630) holds 24 commits on `a9882348`. 
 - `audit:performance`, `perf:cold-start` and every baseline measurement of brief section 5: those findings never started.
 
 The remaining F1 findings (F1-11 to F1-36, F1-40, F1-41 and F1-44 to F1-46) moved to #646.
+
+## Epic F2: Dependencies, advisories and update automation (18 November 2026)
+
+Branch `claude/f2-dependencies-advisories`, 9 commits on `a9882348`, checked at head `ad925b4e` with Node 22.23.4 and npm 10.9.9.
+
+All four `npm audit` runs (root and client, with and without `--omit=dev`) report 0 vulnerabilities before and after. The brief's 4 high in the root and 6 high in the client came from GHSA-fc5q-39xc-vjpf (picomatch), which GitHub withdrew on 18 November. The branch fixes advisories that maintainers have published and GitHub has not reviewed yet, so the unflagged static audit keeps passing when those reviews land.
+
+### What changed
+
+- F2-01: `npm run audit:upstream` (`scripts/audit-upstream-advisories.mjs`) checks every installed package against the advisories published in its own GitHub repository. It needs a token and about 420 requests, so CI does not run it. semver 7.8.6 joins the root devDependencies.
+- F2-02: the baseline numbers sit above, under "Epic F2 dependencies, 18 November 2026: baseline".
+- F2-03: `scripts/check-dependency-placement.mjs` runs inside `check:unused`. It fails when a package the browser loads is a client devDependency, when a client dependency loads nowhere, when a package the handlers, the React guest bundle or the TypeScript checker worker loads at run time is a root devDependency, or when an override names no GHSA advisory.
+- F2-04: `@testing-library/jest-dom` moves to client devDependencies. As a production dependency it pulled vitest, vite, msw, rollup and esbuild into the production audit.
+- F2-45: `typescript` moves to client dependencies as `^5.9.3`, because the runner worker downloads it for TypeScript tasks.
+- F2-05: a top-level `"//overrides"` object in `client/package.json` names the advisory behind each override: satori > fflate (GHSA-px8p-9vwx-vf98) and Storybook's docgen plugin (GHSA-3g3m-2fjr-6pw4). npm rejects a `//` key inside `overrides`.
+- F2-06: vite 6.4.5 to 6.4.6 for GHSA-p4f5-76q4-ffq7 (critical, dev server only).
+- F2-07: react-router-dom and react-router 7.18.3 to 7.18.5, with the floor at `^7.18.5`, past GHSA-2rq8-3rm6-2w8f, GHSA-qhgm-jj2j-75wj and GHSA-mjj8-rxh9-q8f5. All three sit in server, Framework or RSC code that library mode never runs.
+- Review fix: the header of the audit:upstream script no longer points to `docs/packages.md`, which does not cover the script.
+
+### Numbers
+
+| Measure | Before (`a9882348`) | After (`ad925b4e`) |
+|---|---|---|
+| `npm audit --omit=dev`, root / client | 0 / 0 | 0 / 0 |
+| `npm audit` (full), root / client | 0 / 0 | 0 / 0 |
+| `npm run audit:upstream` | 16 advisories over 23 versions (21 production) | 12 over 19 (16 production) |
+| Client lockfile entries without `dev: true` | 346 of 633 | 215 of 633 |
+| Root lockfile entries without `dev: true` | 122 of 315 | 122 of 316 |
+| react-router / react-router-dom | 7.18.3 | 7.18.5 |
+| vite | 6.4.5 | 6.4.6 |
+| `check:bundle` initial gzip bytes (budget 241,651) | 235,518 | 235,520 |
+| `docs/quality/unused-baseline.json` entries | 1 | 1 (unchanged) |
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm ci --dry-run`, root and client | pass |
+| `npm run check:unused` | pass; placement guard: 27 client and 13 root runtime packages in dependencies |
+| Placement guard against the base `client/package.json`, and with root jsdom moved to devDependencies | fails with the expected problems (4, then 1) |
+| `npm audit --omit=dev` / `--prefix client` | 0 vulnerabilities / 0 vulnerabilities |
+| `npm audit` / `--prefix client` | 0 vulnerabilities / 0 vulnerabilities |
+| `npm run typecheck:api` | pass |
+| `npm run typecheck:scripts` | pass |
+| `npm run typecheck:tooling --prefix client` | pass |
+| `npm run build` (CI build env) | pass |
+| `npm run check:bundle` | pass: 235,520 of 241,651 gzip bytes; monitoring SDK 49,508 of 60,000 |
+| `npm run test:client` | pass: 1,903 tests in 193 files |
+| `npm run test:launch` | pass |
+| `npm run test:coding` | pass: 814 tasks, 769 issued, solutions proven, payloads answer-free |
+| `npm run test:browser -- navigation.spec.ts route-errors.spec.ts` (preview on :4212) | 23 passed |
+| `npm run audit:upstream` | exit 1 by design: 12 unreviewed advisories over 19 versions, all moved to remaining work |
+| `git diff --check origin/main...HEAD` | clean |
+
+### Not run
+
+- `npm run check:quickjs-build`: needs emsdk and Python 3.10; this machine has no emcc and Python 3.9.6. The quickjs CI job runs it because `package.json` changed.
+- `npm run build:storybook`: passed on the vite commit in the earlier batch; not re-run in this stage.
+- Full `test:browser` and `check:responsive`: only the navigation and route-error specs ran, because the router upgrade is the only change that reaches the browser.
+- `npm run ci:parity`: binds ports other agents were using; its steps ran one by one.
+- `npm run test:sql`: no SQL changed.
+
+The remaining F2 findings (F2-08 to F2-44 and F2-46, among them Dependabot, the GitHub Actions upgrades, the unused-baseline cleanup and the dependency documentation) moved to #646.
