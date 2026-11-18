@@ -165,12 +165,21 @@ function must(result, what) {
 
 // Splits SQL into its top-level statements with the comments removed. It reads
 // as much of Postgres's lexer as migrations need: '…' and E'…' strings, "…"
-// identifiers, $tag$…$tag$ bodies, -- comments and nested /* */ comments.
+// identifiers, $tag$…$tag$ bodies, -- comments and nested /* */ comments. A
+// semicolon inside parentheses or inside the BEGIN ATOMIC … END body of a
+// CREATE FUNCTION or CREATE PROCEDURE ends nothing, as in psql's own lexer
+// (psqlscan.l), which counts BEGIN, CASE and END the same way.
 function splitStatements(sql) {
   const statements = [];
   let current = '';
   let i = 0;
+  let words = [];
+  let parenDepth = 0;
+  let beginDepth = 0;
   const identifierChar = (ch) => /[A-Za-z0-9_$]/.test(ch ?? '');
+  const routineStatement = () => words[0] === 'create'
+    && (['function', 'procedure'].includes(words[1])
+      || (words[1] === 'or' && words[2] === 'replace' && ['function', 'procedure'].includes(words[3])));
   while (i < sql.length) {
     const ch = sql[i];
     if (sql.startsWith('--', i)) {
@@ -201,11 +210,24 @@ function splitStatements(sql) {
       const end = close === -1 ? sql.length : close + tag.length;
       current += sql.slice(i, end);
       i = end;
-    } else if (ch === ';') {
+    } else if (ch === ';' && parenDepth === 0 && beginDepth === 0) {
       if (current.trim()) statements.push(current.trim());
       current = '';
+      words = [];
       i += 1;
+    } else if (/[A-Za-z_]/.test(ch) && !identifierChar(sql[i - 1])) {
+      const word = /^[A-Za-z_][A-Za-z0-9_$]*/.exec(sql.slice(i))[0];
+      const lower = word.toLowerCase();
+      if (words.length < 4) words.push(lower);
+      if (parenDepth === 0 && routineStatement()) {
+        if (lower === 'begin' || (lower === 'case' && beginDepth > 0)) beginDepth += 1;
+        else if (lower === 'end' && beginDepth > 0) beginDepth -= 1;
+      }
+      current += word;
+      i += word.length;
     } else {
+      if (ch === '(') parenDepth += 1;
+      else if (ch === ')' && parenDepth > 0) parenDepth -= 1;
       current += ch;
       i += 1;
     }
