@@ -118,3 +118,29 @@ test('perf:measure counts TTFB from navigation start and keeps the server wait b
   assert.deepEqual([timings.domContentLoaded, timings.load], [640, 900]);
   assert.equal(lab.navigationTimings({ ...entry, secureConnectionStart: 0 }).tls, 0, 'plain http has no TLS time');
 });
+
+test('perf:measure turns EventTiming entries into one INP value per sample', () => {
+  assert.equal(typeof lab.summarizeInteractions, 'function', 'perf:measure computes INP in summarizeInteractions');
+  // One press arrives as three entries that share an interactionId; the
+  // pointermove before it has none.
+  const press = [
+    { name: 'pointermove', interactionId: 0, startTime: 900, processingStart: 901, processingEnd: 902, duration: 24 },
+    { name: 'pointerdown', interactionId: 7, startTime: 1000, processingStart: 1004, processingEnd: 1010, duration: 56 },
+    { name: 'pointerup', interactionId: 7, startTime: 1080, processingStart: 1082, processingEnd: 1090, duration: 64 },
+    { name: 'click', interactionId: 7, startTime: 1080, processingStart: 1090, processingEnd: 1130, duration: 80 },
+  ];
+  assert.deepEqual(lab.summarizeInteractions(press, { pressed: true }), {
+    inpMs: 80,
+    interactionCount: 1,
+    inpParts: { event: 'click', inputDelay: 10, processing: 40, presentation: 30 },
+  });
+  // A press under the 16 ms threshold leaves no entry: fast, and measured.
+  assert.deepEqual(lab.summarizeInteractions([], { pressed: true }), { inpMs: '<16', interactionCount: 0, inpParts: null });
+  // No press, no value: a row that pressed nothing must not read as fast.
+  assert.deepEqual(lab.summarizeInteractions([], { pressed: false }), { inpMs: null, interactionCount: 0, inpParts: null });
+  // From 50 interactions on, web-vitals skips the longest one per 50.
+  const many = Array.from({ length: 60 }, (_, i) => ({ name: 'click', interactionId: i + 1, startTime: i * 100, processingStart: i * 100, processingEnd: i * 100, duration: 16 + i }));
+  const summary = lab.summarizeInteractions(many, { pressed: true });
+  assert.equal(summary.interactionCount, 60);
+  assert.equal(summary.inpMs, 74, 'the second-longest of 60 interactions');
+});
