@@ -236,7 +236,7 @@ if (url) {
   // Access-Control-Allow-Origin: * on static files, and HSTS max-age=63072000.
   const PLATFORM_HEADERS = new Set(['cache-control', 'access-control-allow-origin', 'strict-transport-security']);
   const namedHeaders = headerNames(config);
-  for (const { pathname, response } of probes) {
+  for (const { pathname, response, body } of probes) {
     const expected = vercelAnswer(config, pathname, path => deployed.has(path));
     const before = mismatches.length;
     if (expected.status !== null && response.status !== expected.status) {
@@ -260,8 +260,19 @@ if (url) {
         mismatches.push(`${pathname}: sends ${name}: ${JSON.stringify(response.headers.get(name))}, which vercel.json does not give this path`);
       }
     }
+    // The page as deployed must run under the policy deployed with it: the
+    // build may have changed the bytes client/index.html holds.
+    let inline = '';
+    if ((response.headers.get('content-type') ?? '').startsWith('text/html')) {
+      const { scripts } = inlineScripts(body);
+      const policy = parsePolicy(response.headers.get('content-security-policy') ?? '');
+      for (const text of scripts) {
+        if (!inlineScriptAllowed(policy, text)) mismatches.push(`${pathname}: the deployed policy blocks the page's inline script ${sourceHash(text)}`);
+      }
+      inline = `; ${scripts.length} inline script${scripts.length === 1 ? '' : 's'}`;
+    }
     const matched = mismatches.length === before;
-    console.log(`${origin.origin}${pathname}: ${response.status}, ${matched ? `the ${Object.keys(expected.headers).length} headers vercel.json gives it match` : 'differs from vercel.json'}`);
+    console.log(`${origin.origin}${pathname}: ${response.status}, ${matched ? `the ${Object.keys(expected.headers).length} headers vercel.json gives it match` : 'differs from vercel.json'}${inline}`);
   }
   assert.equal(mismatches.length, 0, `${origin.origin} differs from vercel.json:\n  ${mismatches.join('\n  ')}`);
 }
