@@ -96,3 +96,14 @@ test('perf:measure presses a button the app renders at each profile width', () =
   assert.deepEqual(lab.INTERACTION_CONTROLS.desktop, [label('footer.darkMode'), label('footer.lightMode')]);
   assert.deepEqual(Object.keys(lab.INTERACTION_CONTROLS), lab.PROFILES);
 });
+
+test('perf:measure loads pages without reduced motion unless --reduced-motion asks for it', () => {
+  assert.equal(typeof lab.contextOptions, 'function', 'perf:measure builds each browser context in contextOptions');
+  // Under 'reduce', client/src/lib/motion.tsx never loads the motion-features
+  // chunk, so a forced setting measures a lighter page than a default visitor gets.
+  const plain = resolveOptions(parseArgs(['--url=http://127.0.0.1:4211']));
+  for (const profile of lab.PROFILES) assert.equal(lab.contextOptions(profile, plain).reducedMotion, 'no-preference', profile);
+  const reduced = resolveOptions(parseArgs(['--url=http://127.0.0.1:4211', '--reduced-motion']));
+  for (const profile of lab.PROFILES) assert.equal(lab.contextOptions(profile, reduced).reducedMotion, 'reduce', profile);
+  assert.throws(() => parseArgs(['--reduced-motion=no']), UsageError);
+});
