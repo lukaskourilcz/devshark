@@ -238,7 +238,7 @@ const step = (id, command, more = {}) => ({ id, command, ci: [command], tier: 'f
 const RESPONSIVE_LIGHT = `-- --routes /,/quiz,/topics/${TOPIC},/daily,/not-found-responsive-check --widths 360,390,430,768,1024,1280,1440`;
 const RESPONSIVE_DARK = `-- --routes /,/topics/${TOPIC},/daily --widths 390,768,1280`;
 const BROWSER_SPECS = [
-  'public images', 'guide-startup profile-leaderboard-preferences profile-path-picker admin', 'evolving', 'coding-pages', 'coding-workbench',
+  'public images', 'guide-startup profile-leaderboard-preferences profile-path-picker admin', 'evolving', 'coding-pages', 'coding-workbench mobile-safari',
   'coding-drafts', 'learning-release learn-sections',
   'fde-hub fde-taster fde-positioning interview-shelf', 'path-content-shapes portfolio-export diagnostic-overview dsa-advanced', 'segmented', 'on-accent', 'navigation', 'lazy-auth', 'sign-in',
   'route-errors', 'first-load', 'home-sample', 'routes-axe', 'daily', 'launch-offer',
@@ -266,7 +266,7 @@ const PLAN = [
   step('preview', 'npm run preview --prefix client -- --host 0.0.0.0 --port 4173',
     { kind: 'server', url: 'http://localhost:4173', needs: ['build'] }),
   ...BROWSER_SPECS.map((specs) => step(`browser:${specs.replace(/tests\/browser\/|\.spec\.ts/g, '').replace(/ /g, '+')}`,
-    npmRun('test:browser', `-- ${specs}`), { tier: 'full', needs: ['preview', 'chromium'] })),
+    npmRun('test:browser', `-- --project=chromium ${specs}`), { tier: 'full', needs: ['preview', 'chromium'] })),
   step('check:responsive', npmRun('check:responsive', RESPONSIVE_LIGHT), { needs: ['preview', 'chromium'], chrome: true }),
   step('check:responsive:dark', npmRun('check:responsive', RESPONSIVE_DARK), {
     ci: [`RESPONSIVE_THEME=dark ${npmRun('check:responsive', RESPONSIVE_DARK)}`],
@@ -277,8 +277,8 @@ const PLAN = [
   step('build:storybook', npmRun('build:storybook'), { tier: 'full', needs: ['build'] }),
   step('storybook', npmRun('storybook', '--prefix client -- --ci'),
     { tier: 'full', kind: 'server', url: 'http://localhost:6006', needs: ['build:storybook'] }),
-  step('browser:storybook', npmRun('test:browser', '-- tests/browser/storybook.spec.ts'), {
-    ci: [`STORYBOOK_URL=http://localhost:6006 ${npmRun('test:browser', '-- tests/browser/storybook.spec.ts')}`],
+  step('browser:storybook', npmRun('test:browser', '-- --project=chromium tests/browser/storybook.spec.ts'), {
+    ci: [`STORYBOOK_URL=http://localhost:6006 ${npmRun('test:browser', '-- --project=chromium tests/browser/storybook.spec.ts')}`],
     tier: 'full', needs: ['storybook', 'chromium'], chrome: true, env: { STORYBOOK_URL: 'http://localhost:6006' },
   }),
 ];
