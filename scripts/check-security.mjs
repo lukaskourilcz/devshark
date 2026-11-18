@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, sep } from 'node:path';
-import { vercelAnswer } from './vercel-headers.mjs';
+import { headerNames, vercelAnswer } from './vercel-headers.mjs';
 const config = JSON.parse(readFileSync('vercel.json', 'utf8'));
 // The header rules are `routes` that run before the filesystem check
 // (scripts/vercel-routing-contract.ts says why they are not `headers`).
@@ -231,6 +231,11 @@ if (url) {
   for (const pathname of ['/premium', mainChunk, mainChunk && `${mainChunk}.map`, sandboxChunk, '/assets/coding-worker/missing.js', '/api/settings', '/roadmap/specializations/fde']) {
     if (pathname) probes.push(await get(pathname));
   }
+  // Headers Vercel sends on its own where vercel.json sets none: Cache-Control
+  // (public, max-age=0, must-revalidate, or what a function sets),
+  // Access-Control-Allow-Origin: * on static files, and HSTS max-age=63072000.
+  const PLATFORM_HEADERS = new Set(['cache-control', 'access-control-allow-origin', 'strict-transport-security']);
+  const namedHeaders = headerNames(config);
   for (const { pathname, response } of probes) {
     const expected = vercelAnswer(config, pathname, path => deployed.has(path));
     const before = mismatches.length;
@@ -246,6 +251,13 @@ if (url) {
         if (differences.length) mismatches.push(`${pathname}: ${differences.join('; ')}`);
       } else {
         mismatches.push(`${pathname}: ${name} is ${actual === null ? 'missing' : JSON.stringify(actual)}, vercel.json gives ${JSON.stringify(value)}`);
+      }
+    }
+    // A header vercel.json withholds from this path, such as X-Frame-Options
+    // on the sandbox frame, must not arrive from somewhere else.
+    for (const name of namedHeaders) {
+      if (expected.headers[name] === undefined && !PLATFORM_HEADERS.has(name) && response.headers.has(name)) {
+        mismatches.push(`${pathname}: sends ${name}: ${JSON.stringify(response.headers.get(name))}, which vercel.json does not give this path`);
       }
     }
     const matched = mismatches.length === before;
