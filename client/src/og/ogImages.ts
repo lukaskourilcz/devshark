@@ -43,7 +43,7 @@ const require = createRequire(import.meta.url);
 const clientRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const kitSvg = (name: string) => {
   // The kit files carry a C2PA manifest in <metadata>; the drawing is the rest.
-  const svg = readFileSync(path.join(clientRoot, 'public/brand/v9/recommended', name), 'utf8').replace(/<metadata>[\s\S]*?<\/metadata>/, '');
+  const svg = readFileSync(path.join(clientRoot, '../docs/brand/source/v9/recommended', name), 'utf8').replace(/<metadata>[\s\S]*?<\/metadata>/, '');
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
 };
 
@@ -59,7 +59,7 @@ function loadAssets() {
       { name: 'Inter', data: font('inter', 'inter-latin-600-normal.woff'), weight: 600, style: 'normal' },
       { name: 'Manrope', data: font('manrope', 'manrope-latin-800-normal.woff'), weight: 800, style: 'normal' },
     ],
-    logo: `data:image/svg+xml;base64,${readFileSync(path.join(clientRoot, 'public/brand/approved/navbar-logo-ink.svg')).toString('base64')}`,
+    logo: `data:image/svg+xml;base64,${readFileSync(path.join(clientRoot, '../docs/brand/source/approved/navbar-logo-ink.svg')).toString('base64')}`,
     fin: kitSvg('devshark-fin-wave-green.svg'),
   };
   return assets;

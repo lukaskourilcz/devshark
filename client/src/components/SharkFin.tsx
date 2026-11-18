@@ -25,7 +25,7 @@ interface FinProps {
 
 /**
  * A static dorsal shark fin with the V9 geometry from the brand kit
- * (client/public/brand/v9/recommended/devshark-fin-*.svg), copied path for
+ * (docs/brand/source/v9/recommended/devshark-fin-*.svg), copied path for
  * path including the mirror transform: the tip points left and the fin swims
  * right. `aria-hidden`: it's decorative.
  */

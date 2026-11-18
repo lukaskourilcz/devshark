@@ -48,7 +48,7 @@ if (process.argv.includes('--logo-svg')) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="400" viewBox="0 0 ${lockupWidth + 100} 400"><rect width="100%" height="100%" fill="${paper}"/><g transform="translate(50 85)">${lockup}</g></svg>`;
   await render(`<body style="margin:0;background:${paper}">${svg}</body>`, 1800, 400);
 } else {
-  const art = readFileSync('client/public/brand/og/architecture-current.webp').toString('base64');
+  const art = readFileSync('docs/brand/source/og/architecture-current.webp').toString('base64');
   const font = readFileSync('client/node_modules/@fontsource/manrope/files/manrope-latin-700-normal.woff2').toString('base64');
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${lockupWidth} 229">${lockup}</svg>`;
   const logoWidth = width * (shape === 'og' ? 940 / 1200 : .85);

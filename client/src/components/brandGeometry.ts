@@ -1,5 +1,5 @@
 // The devShark V9 fin, copied 1:1 from the brand kit in
-// client/public/brand/v9/recommended/ (devshark-fin-clean-*.svg,
+// docs/brand/source/v9/recommended/ (devshark-fin-clean-*.svg,
 // devshark-fin-wave-*.svg, devshark-logo-compact-*.svg). Do not redraw or
 // round these numbers: SharkFin, SwimmingFin and BrandLogo share them, and the
 // favicon and app icons are rendered from the same geometry.
