@@ -206,7 +206,7 @@ import { techniqueGroup, CODING_FOUNDATION_LEVELS, CODING_SECTION_TRACKS, hasLea
 import { CODING_SUMMARIES } from '../lib/coding/active';
 import { serverContentIndex } from '../lib/access';
 import { loadReviewStates, recordConceptReviews } from '../lib/concept-review';
-import { isRpcMissing, jsonPremiumRequired, PremiumRequiredError, requestMemo, requireAuthSub, verifiedCallerId, withRequestContext } from '../lib/http';
+import { isRpcMissing, jsonPremiumRequired, PremiumRequiredError, requestMemo, requireAuthSub, UNSTORABLE_TEXT_MESSAGE, unstorableText, verifiedCallerId, withRequestContext } from '../lib/http';
 import { handleLeaderboardVisibility, limitUserWrite } from '../api/user/[op]';
 import { handleFriends, handleIdentity } from '../lib/friends-handlers';
 import { isValidHandle } from '../shared/handles';
@@ -3764,6 +3764,48 @@ async function practiceRunTransitionContracts() {
   assert.equal(replaced.res.statusCode, 409, 'a start response cannot direct the learner back to a replaced run');
 }
 
+/* ── text Postgres cannot store (#638) ─────────────────────────────────────
+ *
+ * Postgres text and JSONB refuse U+0000 (22P05) and a lone UTF-16
+ * surrogate (22P02), each failing the whole write. `unstorableText` finds
+ * either in a request value, keys included, at any depth up to its bound,
+ * and counts a container nested past the bound as unstorable. */
+function unstorableTextContracts() {
+  // JSON carries a lone surrogate, and JSON.stringify sends it to Postgres
+  // as the escape it refuses.
+  assert.equal(JSON.parse('"x\\ud800y"'), 'x\ud800y');
+  assert.equal(JSON.stringify('x\ud800y'), '"x\\ud800y"');
+  const nest = (levels: number, leaf: unknown): unknown => Array.from({ length: levels }).reduce<unknown>((inner) => ({ inner }), leaf);
+  const cases: [label: string, value: unknown, unstorable: boolean, depth?: number][] = [
+    ['U+0000', 'before\u0000after', true],
+    ['a lone high surrogate', 'x\ud800y', true],
+    ['a lone high surrogate at the end', 'shark \ud83e', true],
+    ['a lone low surrogate', 'x\udc00y', true],
+    ['a lone low surrogate at the start', '\udd88 fin', true],
+    ['two high surrogates before one low', '\ud83e\ud83e\udd88', true],
+    ['an emoji, a valid pair', 'shark \ud83e\udd88', false],
+    ['the escape spelled out as text', 'print("\\u0000")', false],
+    ['plain text', 'useState', false],
+    ['an empty string', '', false],
+    ['a number, a boolean and null', [7, true, null], false],
+    ['U+0000 nested in an array in an object', { options: ['a', ['b', 'c\u0000']] }, true],
+    ['a lone surrogate nested in objects', { a: { b: { c: 'x\udc00' } } }, true],
+    ['U+0000 in a key', { ['key\u0000']: 1 }, true],
+    ['a lone surrogate in a key', { ['\ud800']: 'value' }, true],
+    ['an emoji nested in objects', { a: [{ b: '\ud83e\udd88' }] }, false],
+    ['eight containers deep', nest(8, 'ok'), false],
+    ['nine containers deep, past the bound', nest(9, 'ok'), true],
+    ['two containers past a bound of one', nest(2, 'ok'), true, 1],
+    ['one container within a bound of one', nest(1, 'ok'), false, 1],
+    ['a string past the bound is still read', nest(1, 'x\u0000'), true, 1],
+  ];
+  for (const [label, value, unstorable, depth] of cases) {
+    assert.equal(depth === undefined ? unstorableText(value) : unstorableText(value, depth), unstorable, `${label}: ${unstorable ? 'unstorable' : 'storable'}`);
+  }
+  assert.match(UNSTORABLE_TEXT_MESSAGE, /U\+0000/, 'the message names the character');
+  console.log(`PASS unstorable text: ${cases.length} values, U+0000 and lone surrogates found at any depth, valid pairs kept, past the bound refused`);
+}
+
 /* ── input classes the handlers already refuse (#638) ─────────────────────
  *
  * The section-code-audit list of untrusted input, per handler that parses
@@ -6656,6 +6698,7 @@ async function main() {
   await identityContracts();
   await productCleanupContracts();
   await inputClassContracts();
+  unstorableTextContracts();
 
   console.log('Launch contracts passed: product identity, scope, token confidentiality, stable attempts, fairness-neutral rewards, rate limiting, health, 12-function budget, the free tier and Premium, billing, the launch price, the public Premium copy, the retired support settings, the progression graph, failure hints, retired sections, curation claims, the content-audit gate, spaced practice, interleaving, challenge runs, lesson figures, an unconfigured shop, coins, invitations, merchandise through Spreadshop, one erasure routine, Premium vouchers, the question of the day, and the webdev-bank contract BoardlessAI imports.');
 }
