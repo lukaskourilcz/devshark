@@ -7,6 +7,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { chromium } from '@playwright/test';
 import { FIN_BODY, FIN_MIRROR, FIN_WAVE_CUT, FIN_WAVE_LINE, LOGO_WAVE_STROKE } from '../client/src/components/brandGeometry.ts';
+import { compressSharePng } from '../client/src/og/png.ts';
 
 const dark = process.argv.includes('--dark');
 const reference = process.argv.includes('--reference');
@@ -38,7 +39,8 @@ async function render(html, renderWidth, renderHeight) {
       await document.fonts.ready;
       await Promise.all([...document.images].map(img => img.decode()));
     });
-    await page.screenshot({path:out,type:'png'});
+    const png = await page.screenshot({type:'png'});
+    writeFileSync(out, await compressSharePng(png));
   } finally { await browser.close(); }
 }
 

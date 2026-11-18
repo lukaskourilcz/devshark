@@ -18,11 +18,12 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
+import { compressSharePng } from './png';
 
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
-/** Bump when the layout changes, so cached cards are drawn again. */
-const LAYOUT_VERSION = 2;
+/** Bump when the layout or encoding changes, so cached cards are drawn again. */
+const LAYOUT_VERSION = 3;
 
 const INK = '#132019';
 const INK_700 = '#3C4F43';
@@ -101,7 +102,7 @@ function layout(card: OgCard): Node {
 /** The PNG of one card. */
 export async function renderOgCard(card: OgCard): Promise<Buffer> {
   const svg = await satori(layout(card) as never, { width: OG_WIDTH, height: OG_HEIGHT, fonts: loadAssets().fonts });
-  return Buffer.from(new Resvg(svg, { fitTo: { mode: 'width', value: OG_WIDTH }, font: { loadSystemFonts: false } }).render().asPng());
+  return compressSharePng(Buffer.from(new Resvg(svg, { fitTo: { mode: 'width', value: OG_WIDTH }, font: { loadSystemFonts: false } }).render().asPng()));
 }
 
 const cacheDir = path.join(clientRoot, 'node_modules/.cache/devshark-og');
