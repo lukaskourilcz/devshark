@@ -66,72 +66,101 @@ export function resolveOptions(args) {
  return { origin: url.origin, routes, samples: Number(samples), profiles, output: args.output ?? DEFAULTS.output, access: args.access ?? null, fixture: args.fixture === true };
 }
 
+// A failure every later load would repeat; it ends the run instead of one row.
+class FatalLabError extends Error {}
+
+const firstLine = error => String(error?.message ?? error).split('\n')[0];
+
 export async function main({ origin, routes, samples, profiles, output, access: accessFile, fixture: useFixture }) {
  mkdirSync(dirname(output), { recursive: true });
  const access = accessFile ? JSON.parse(readFileSync(accessFile, 'utf8')) : null;
  const fixture = useFixture ? JSON.parse(readFileSync('tests/fixtures/api-settings.json', 'utf8')) : null;
  if (fixture) fixture.billing = { ...fixture.billing, enabled: false, launchOffer: false };
- let browser;
+ let browser, chrome;
  const results = [];
+ const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; EventTiming is lab interaction latency, NOT field INP' }, results }, null, 2) + '\n');
  try {
   for (const profile of profiles) for (const path of routes) for (let sample = 0; sample < samples; sample++) {
+   // A browser that cannot start fails every sample the same way: let it end the run.
    browser = await chromium.launch({ executablePath: process.env.CHROME_BIN, args: ['--disk-cache-size=8388608', '--media-cache-size=2097152', '--disable-gpu-shader-disk-cache'] });
-   const context = await browser.newContext({ viewport: profile === 'mobile' ? { width: 390, height: 844 } : { width: 1440, height: 1000 }, deviceScaleFactor: 1, isMobile: profile === 'mobile', hasTouch: profile === 'mobile', colorScheme: 'light', reducedMotion: 'reduce', serviceWorkers: 'block' });
-   if (access) {
-    try {
-     if (new URL(access.url).origin !== origin) throw new Error('origin mismatch');
-     const response = await context.request.get(access.url);
-     if (response.status() !== 200 || new URL(response.url()).origin !== origin) throw new Error('access refused');
-    } catch { throw new Error('Preview authorization failed'); }
-   }
-   const page = await context.newPage(), cdp = await context.newCDPSession(page);
-   let blockedWrites = 0;
-   await cdp.send('Network.enable');
-   await cdp.send('Fetch.enable', { patterns: [{ urlPattern: '*', requestStage: 'Request' }] });
-   cdp.on('Fetch.requestPaused', async e => {
-    const url = new URL(e.request.url);
-    if (fixture && url.origin === origin && url.pathname.startsWith('/api/') && e.request.method === 'GET') {
-     const body = url.pathname === '/api/settings' ? fixture : { error: { code: 'fixture_only', message: 'Isolated measurement' } };
-     await cdp.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: url.pathname === '/api/settings' ? 200 : 503, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }, { name: 'Cache-Control', value: 'no-store' }], body: Buffer.from(JSON.stringify(body)).toString('base64') }).catch(() => {});
-    } else if (!['GET', 'HEAD', 'OPTIONS'].includes(e.request.method) || (url.origin !== origin && !url.hostname.endsWith('fonts.gstatic.com'))) {
-     if (!['GET', 'HEAD', 'OPTIONS'].includes(e.request.method)) blockedWrites++;
-     await cdp.send('Fetch.failRequest', { requestId: e.requestId, errorReason: 'BlockedByClient' }).catch(() => {});
-    } else await cdp.send('Fetch.continueRequest', { requestId: e.requestId }).catch(() => {});
-   });
-   await cdp.send('Network.setCacheDisabled', { cacheDisabled: false });
-   await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: profile === 'mobile' ? 150 : 20, downloadThroughput: (profile === 'mobile' ? 1.6 : 10) * 1e6 / 8, uploadThroughput: 750000 });
-   await cdp.send('Emulation.setCPUThrottlingRate', { rate: profile === 'mobile' ? 4 : 1 });
-   await page.addInitScript(() => {
-    localStorage.setItem('devquiz:color-mode', 'light');
-    window.__lab = { lcp: 0, cls: 0, interactions: [] };
-    new PerformanceObserver(l => { for (const e of l.getEntries()) window.__lab.lcp = e.startTime; }).observe({ type: 'largest-contentful-paint', buffered: true });
-    new PerformanceObserver(l => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__lab.cls += e.value; }).observe({ type: 'layout-shift', buffered: true });
-    new PerformanceObserver(l => { for (const e of l.getEntries()) if (e.interactionId) window.__lab.interactions.push({ name: e.name, duration: e.duration, inputDelay: e.processingStart - e.startTime }); }).observe({ type: 'event', durationThreshold: 16, buffered: true });
-   });
-   for (const cache of ['cold-browser', 'repeat-browser']) {
-    let diskHits = 0;
-    const listener = e => { if (e.response.fromDiskCache || e.response.fromPrefetchCache) diskHits++; };
-    cdp.on('Network.responseReceived', listener);
-    const started = Date.now();
-    await page.goto(origin + path, { waitUntil: 'load', timeout: 60000 });
-    await page.waitForTimeout(profile === 'mobile' ? 3000 : 1500);
-    const measurement = await page.evaluate(() => {
-     const n = performance.getEntriesByType('navigation')[0];
-     const resources = performance.getEntriesByType('resource').map(r => ({ path: new URL(r.name).pathname, kind: r.initiatorType, start: r.startTime, duration: r.duration, ttfb: r.responseStart - r.requestStart, download: r.responseEnd - r.responseStart, transfer: r.transferSize, encoded: r.encodedBodySize, decoded: r.decodedBodySize, serverTiming: r.serverTiming.map(t => ({ name: t.name, duration: t.duration })) }));
-     return { navigation: { ttfb: n.responseStart - n.requestStart, dns: n.domainLookupEnd - n.domainLookupStart, connect: n.connectEnd - n.connectStart, tls: n.secureConnectionStart ? n.connectEnd - n.secureConnectionStart : 0, download: n.responseEnd - n.responseStart, domContentLoaded: n.domContentLoadedEventEnd, load: n.loadEventEnd }, ...window.__lab, resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
+   chrome ??= browser.version();
+   let context, cache = null;
+   // One failed navigation (a timeout, an empty 404, a reset) costs its own
+   // sample only; the remaining routes, samples and profiles still run.
+   try {
+    context = await browser.newContext({ viewport: profile === 'mobile' ? { width: 390, height: 844 } : { width: 1440, height: 1000 }, deviceScaleFactor: 1, isMobile: profile === 'mobile', hasTouch: profile === 'mobile', colorScheme: 'light', reducedMotion: 'reduce', serviceWorkers: 'block' });
+    if (access) {
+     try {
+      if (new URL(access.url).origin !== origin) throw new Error('origin mismatch');
+      const response = await context.request.get(access.url);
+      if (response.status() !== 200 || new URL(response.url()).origin !== origin) throw new Error('access refused');
+     } catch { throw new FatalLabError('Preview authorization failed'); }
+    }
+    const page = await context.newPage(), cdp = await context.newCDPSession(page);
+    let blockedWrites = 0;
+    await cdp.send('Network.enable');
+    await cdp.send('Fetch.enable', { patterns: [{ urlPattern: '*', requestStage: 'Request' }] });
+    cdp.on('Fetch.requestPaused', async e => {
+     const url = new URL(e.request.url);
+     if (fixture && url.origin === origin && url.pathname.startsWith('/api/') && e.request.method === 'GET') {
+      const body = url.pathname === '/api/settings' ? fixture : { error: { code: 'fixture_only', message: 'Isolated measurement' } };
+      await cdp.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: url.pathname === '/api/settings' ? 200 : 503, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }, { name: 'Cache-Control', value: 'no-store' }], body: Buffer.from(JSON.stringify(body)).toString('base64') }).catch(() => {});
+     } else if (!['GET', 'HEAD', 'OPTIONS'].includes(e.request.method) || (url.origin !== origin && !url.hostname.endsWith('fonts.gstatic.com'))) {
+      if (!['GET', 'HEAD', 'OPTIONS'].includes(e.request.method)) blockedWrites++;
+      await cdp.send('Fetch.failRequest', { requestId: e.requestId, errorReason: 'BlockedByClient' }).catch(() => {});
+     } else await cdp.send('Fetch.continueRequest', { requestId: e.requestId }).catch(() => {});
     });
-    // Local-only appearance/menu changes; no quiz/start/submit or sign-in action.
-    const control = page.getByRole('button', { name: /^(Open navigation menu|Switch to dark mode)$/ }).first();
-    if (await control.count()) { await control.click(); await page.waitForTimeout(250); measurement.interactions = await page.evaluate(() => window.__lab.interactions); await page.keyboard.press('Escape'); }
-    cdp.off('Network.responseReceived', listener);
-    const row = { profile, path, sample, cache, elapsed: Date.now() - started, diskHits, blockedWrites, ...measurement };
+    await cdp.send('Network.setCacheDisabled', { cacheDisabled: false });
+    await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: profile === 'mobile' ? 150 : 20, downloadThroughput: (profile === 'mobile' ? 1.6 : 10) * 1e6 / 8, uploadThroughput: 750000 });
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: profile === 'mobile' ? 4 : 1 });
+    await page.addInitScript(() => {
+     localStorage.setItem('devquiz:color-mode', 'light');
+     window.__lab = { lcp: 0, cls: 0, interactions: [] };
+     new PerformanceObserver(l => { for (const e of l.getEntries()) window.__lab.lcp = e.startTime; }).observe({ type: 'largest-contentful-paint', buffered: true });
+     new PerformanceObserver(l => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__lab.cls += e.value; }).observe({ type: 'layout-shift', buffered: true });
+     new PerformanceObserver(l => { for (const e of l.getEntries()) if (e.interactionId) window.__lab.interactions.push({ name: e.name, duration: e.duration, inputDelay: e.processingStart - e.startTime }); }).observe({ type: 'event', durationThreshold: 16, buffered: true });
+    });
+    for (cache of ['cold-browser', 'repeat-browser']) {
+     let diskHits = 0;
+     const listener = e => { if (e.response.fromDiskCache || e.response.fromPrefetchCache) diskHits++; };
+     cdp.on('Network.responseReceived', listener);
+     const started = Date.now();
+     await page.goto(origin + path, { waitUntil: 'load', timeout: 60000 });
+     await page.waitForTimeout(profile === 'mobile' ? 3000 : 1500);
+     const measurement = await page.evaluate(() => {
+      const n = performance.getEntriesByType('navigation')[0];
+      const resources = performance.getEntriesByType('resource').map(r => ({ path: new URL(r.name).pathname, kind: r.initiatorType, start: r.startTime, duration: r.duration, ttfb: r.responseStart - r.requestStart, download: r.responseEnd - r.responseStart, transfer: r.transferSize, encoded: r.encodedBodySize, decoded: r.decodedBodySize, serverTiming: r.serverTiming.map(t => ({ name: t.name, duration: t.duration })) }));
+      return { navigation: { ttfb: n.responseStart - n.requestStart, dns: n.domainLookupEnd - n.domainLookupStart, connect: n.connectEnd - n.connectStart, tls: n.secureConnectionStart ? n.connectEnd - n.secureConnectionStart : 0, download: n.responseEnd - n.responseStart, domContentLoaded: n.domContentLoadedEventEnd, load: n.loadEventEnd }, ...window.__lab, resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
+     });
+     // Local-only appearance/menu changes; no quiz/start/submit or sign-in action.
+     const control = page.getByRole('button', { name: /^(Open navigation menu|Switch to dark mode)$/ }).first();
+     if (await control.count()) { await control.click(); await page.waitForTimeout(250); measurement.interactions = await page.evaluate(() => window.__lab.interactions); await page.keyboard.press('Escape'); }
+     cdp.off('Network.responseReceived', listener);
+     const row = { profile, path, sample, cache, elapsed: Date.now() - started, diskHits, blockedWrites, ...measurement };
+     results.push(row);
+     write();
+     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'LCP', Math.round(row.lcp), 'CLS', row.cls.toFixed(3), 'cacheHits', diskHits);
+    }
+   } catch (error) {
+    if (error instanceof FatalLabError) throw error;
+    const row = { profile, path, sample, cache, error: firstLine(error) };
     results.push(row);
-    writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome: browser.version(), network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; EventTiming is lab interaction latency, NOT field INP' }, results }, null, 2) + '\n');
-    console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'LCP', Math.round(row.lcp), 'CLS', row.cls.toFixed(3), 'cacheHits', diskHits);
+    write();
+    console.log(profile, path, sample, cache ?? 'setup', 'FAILED', row.error);
+   } finally {
+    await context?.close().catch(() => {});
+    await browser.close().catch(() => {});
+    browser = undefined;
    }
-   await context.close(); await browser.close(); browser = undefined;
   }
  } finally { await browser?.close(); }
+ const failed = results.filter(row => row.error);
+ if (failed.length) {
+  console.error(`perf:measure: ${failed.length} of ${results.length} rows failed and carry an error instead of a measurement:`);
+  for (const row of failed) console.error(`  ${row.profile} ${row.path} sample ${row.sample} ${row.cache ?? 'setup'}: ${row.error}`);
+  process.exitCode = 1;
+ }
+ return results;
 }
 
 function invokedDirectly() {
