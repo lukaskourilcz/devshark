@@ -192,8 +192,11 @@ function ico(bytes) {
 }
 
 function svg(bytes) {
-  const text = bytes.toString('utf8');
-  const root = text.match(/<svg\b[^>]*>/i)?.[0];
+  // Comments and CDATA contain text, not SVG elements or attributes. Read
+  // attributes from actual opening tags so data-id cannot define an id.
+  const text = bytes.toString('utf8').replace(/<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>/g, '');
+  const tags = text.match(/<[A-Za-z_][\w:.-]*(?:[^"'<>]|"[^"]*"|'[^']*')*>/g) ?? [];
+  const root = tags.find((tag) => /^<svg\b/.test(tag));
   const viewBox = root && attributes(root).viewBox;
   const parts = viewBox?.trim().split(/[\s,]+/).map(Number);
   if (!parts || parts.length !== 4 || !parts.every(Number.isFinite) || parts[2] <= 0 || parts[3] <= 0) {
@@ -202,12 +205,15 @@ function svg(bytes) {
   if (/<(?:[\w-]+:)?metadata\b|\bxmlns:(?:inkscape|sodipodi|rdf|cc|dc)\s*=|\b(?:inkscape|sodipodi):|https?:\/\/(?:[^"'\s>]*\.)?(?:inkscape\.org|sodipodi\.sourceforge\.net|ns\.adobe\.com)\//i.test(text)) {
     throw new Error('SVG contains metadata or an editor namespace/element');
   }
-  const ids = new Set([...text.matchAll(/\bid\s*=\s*["']([^"']+)["']/g)].map((match) => match[1]));
-  const references = [
-    ...[...text.matchAll(/\b(?:xlink:)?href\s*=\s*["']#([^"']+)["']/g)].map((match) => match[1]),
-    ...[...text.matchAll(/url\(\s*["']?#([^\s)'";]+)["']?\s*\)/g)].map((match) => match[1]),
-    ...[...text.matchAll(/\baria-labelledby\s*=\s*["']([^"']+)["']/g)].flatMap((match) => match[1].trim().split(/\s+/)),
-  ];
+  const entries = tags.map((tag) => attributes(tag));
+  const ids = new Set(entries.map((entry) => entry.id).filter(Boolean));
+  const cssAttributes = new Set(['style', 'fill', 'stroke', 'filter', 'clip-path', 'mask', 'marker', 'marker-start', 'marker-mid', 'marker-end', 'cursor']);
+  const references = entries.flatMap((entry) => [
+    ...[entry.href, entry['xlink:href']].filter((value) => value?.startsWith('#')).map((value) => value.slice(1)),
+    ...(entry['aria-labelledby']?.trim().split(/\s+/) ?? []),
+    ...Object.entries(entry).filter(([name]) => cssAttributes.has(name)).flatMap(([, value]) =>
+      [...value.matchAll(/url\(\s*["']?#([^\s)'";]+)["']?\s*\)/g)].map((match) => match[1])),
+  ]);
   for (const reference of references) if (!ids.has(reference)) throw new Error(`SVG fragment #${reference} has no matching id`);
   return { width: parts[2], height: parts[3], ids };
 }
@@ -273,15 +279,20 @@ function decode(value) {
     return number >= 0 && number <= 0x10ffff ? String.fromCodePoint(number) : entity;
   });
 }
-function attributes(tag) {
-  return Object.fromEntries([...tag.matchAll(/([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g)]
-    .map(([, name, double, single, bare]) => [name, decode(double ?? single ?? bare)]));
+function attributes(tag, htmlNames = false) {
+  return Object.fromEntries([...tag.matchAll(/(?:^|\s)([\w:.-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g)]
+    .map(([, name, double, single, bare]) => [htmlNames ? name.toLowerCase() : name, decode(double ?? single ?? bare)]));
 }
 
 function localFile(root, reference, from) {
   try {
     const origin = 'https://image-check.invalid';
-    const url = new URL(reference, `${origin}/`);
+    const containing = path.relative(root, from);
+    // Source client/index.html sits beside public/, not inside it. In that
+    // source-only mode it still represents the served root document.
+    const inside = containing && !containing.startsWith(`..${path.sep}`) && containing !== '..' && !path.isAbsolute(containing);
+    const base = inside ? `/${containing.split(path.sep).map(encodeURIComponent).join('/')}` : '/';
+    const url = new URL(reference, origin + base);
     if (url.origin !== origin) throw new Error('must refer to a local image');
     const relative = decodeURIComponent(url.pathname).replace(/^\/+/, '');
     const file = path.resolve(root, relative);
@@ -327,7 +338,7 @@ function manifest(root, file) {
 function html(root, file) {
   if (!existsSync(file)) { fail(file, 'HTML file does not exist'); return; }
   for (const tag of readFileSync(file, 'utf8').match(/<link\b[^>]*>/gi) ?? []) {
-    const attr = attributes(tag);
+    const attr = attributes(tag, true);
     const rel = (attr.rel ?? '').toLowerCase().split(/\s+/);
     if (rel.includes('manifest')) {
       const target = attr.href && localFile(root, attr.href, file);
@@ -366,7 +377,7 @@ function main() {
   if (existsSync(generated)) manifest(root, generated);
   else if (built) fail(generated, 'generated manifest file does not exist');
   for (const failure of failures) console.error(failure);
-  console.log(`Images: ${checked} source and${built ? ' built' : ' no built'} images checked; ${failures.size} failure(s). Raster cap ${MAX_RASTER_BYTES} bytes; share cap 1200x630.`);
+  console.log(`Images: ${checked} images checked across source${built ? ' and build' : ' (build absent)'}; ${failures.size} failure(s). Raster cap ${MAX_RASTER_BYTES} bytes; share cap 1200x630.`);
   if (failures.size) process.exitCode = 1;
 }
 
