@@ -24,3 +24,9 @@
 # default privileges in public grant them every new table, sequence and
 # routine (#637). Migrations that revoke both remove this line.
 252-browser-grants.test.sql: grant invariants:
+
+# Five plain indexes in public repeat another index on the same table (#637):
+# idx_user_stats_user_id, idx_matches_code, idx_question_reports_question_id,
+# user_badges_user_subject_idx and user_cards_user_subject_idx. The migrations
+# that drop them remove this line.
+253-index-hygiene.test.sql: redundant indexes:
