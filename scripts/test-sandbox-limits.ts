@@ -17,7 +17,7 @@ import {
   SANDBOX_DEADLINE_MS, SANDBOX_IDLE_THREADS, SANDBOX_MAX_THREADS, SANDBOX_MAX_TICKS, SANDBOX_MAX_WAITING,
   SANDBOX_MEMORY_BYTES, SANDBOX_SLOT_WAIT_MS, SANDBOX_STACK_BYTES, SANDBOX_WORKER_GRACE_MS,
 } from '../lib/coding/sandbox';
-import { MAX_LOGS, TIMEOUT_MESSAGE, type EvaluateResult } from '../shared/coding-evaluate';
+import { LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, MAX_LOGS, TIMEOUT_MESSAGE, type EvaluateResult } from '../shared/coding-evaluate';
 
 await buildSandboxWorker();
 process.env.VERCEL = '1';
@@ -209,6 +209,35 @@ await limitCase('a console.log flood of 200,000 lines', {
   assert.equal(run.logs.length, MAX_LOGS, `the first ${MAX_LOGS} lines are kept`);
   assert.deepEqual([run.logs[0], run.logs.at(-1)], ['0', String(MAX_LOGS - 1)], 'in the order they were printed');
   assert.ok(took < SANDBOX_DEADLINE_MS, `inside the deadline (${took} ms)`);
+}, 'kept');
+// A correct answer that logs a 20,000-number array 3,000 times. Each line is
+// cut to 2,000 characters, so 31 fit the 64,000-character cap and the 32nd
+// is the cut marker. The grader used to turn every argument into JSON before
+// it dropped the line and spent the deadline on 2,968 lines nobody sees, so
+// the answer graded "timeout"; past the cap it skips that work.
+const bigLine = MAX_LOG_LINE_CHARS + LOG_LINE_CUT.length;
+const keptBigLines = Math.floor(MAX_LOG_CHARS / bigLine);
+await limitCase('3,000 logs of a 20,000-number array', {
+  code: 'const loud = () => { const numbers = Array.from({ length: 2e4 }, (_, i) => i); for (let i = 0; i < 3000; i++) console.log(numbers); return 1; };',
+  calls: ['loud()'], expectations: [1],
+}, (run, took) => {
+  assert.equal(run.timedOut, false, `the run ends before its deadline (${took} ms)`);
+  assert.equal(run.codeError, null, 'the run finishes');
+  assert.equal(run.results[0]?.pass, true, 'the correct answer passes');
+  assert.equal(keptBigLines, 31, '31 cut lines fit under the output cap');
+  assert.equal(run.logs.length, keptBigLines + 1, 'the learner reads 31 lines and the cut marker');
+  assert.ok(run.logs.slice(0, -1).every((line) => line.length === bigLine && line.endsWith(LOG_LINE_CUT)), 'each line is cut to 2,000 characters');
+  assert.equal(run.logs.at(-1), LOG_OUTPUT_CUT, 'the last entry marks the cut');
+}, 'kept');
+// The same past the line cap: 100 short lines, then 3,000 big ones nobody sees.
+await limitCase('3,000 logs of a 20,000-number array after 100 short lines', {
+  code: 'const loud = () => { for (let i = 0; i < 100; i++) console.log(i); const numbers = Array.from({ length: 2e4 }, (_, i) => i); for (let i = 0; i < 3000; i++) console.log(numbers); return 1; };',
+  calls: ['loud()'], expectations: [1],
+}, (run, took) => {
+  assert.equal(run.timedOut, false, `the run ends before its deadline (${took} ms)`);
+  assert.equal(run.results[0]?.pass, true, 'the correct answer passes');
+  assert.equal(run.logs.length, MAX_LOGS, `the first ${MAX_LOGS} lines are kept`);
+  assert.equal(run.logs.at(-1), String(MAX_LOGS - 1), 'and none of the big ones');
 }, 'kept');
 
 // ── output: a return value deeper than 40 levels or wider than 10,000 ────
