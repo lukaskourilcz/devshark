@@ -216,6 +216,14 @@ if (url) {
   const mismatches = [];
   const get = async pathname => {
     const response = await fetch(new URL(pathname, origin), { redirect: 'manual', signal: AbortSignal.timeout(30_000) });
+    // A preview behind Vercel Authentication answers every path with a
+    // redirect to vercel.com's sign-in, which would read as a missing header
+    // on every probe.
+    const location = response.status >= 300 && response.status < 400 ? response.headers.get('location') : null;
+    const target = location ? new URL(location, origin).hostname : '';
+    if (target === 'vercel.com' || target.endsWith('.vercel.com')) {
+      assert.fail(`${origin.host}${pathname} answers ${response.status} to ${target}: the deployment sits behind Vercel Authentication, so check:security cannot read its headers.`);
+    }
     return { pathname, response, body: await response.text() };
   };
   const chunkOf = (page, prefix) => new RegExp(`<script\\b[^>]*\\bsrc="(${prefix}[^"]+\\.js)"`).exec(page.body)?.[1];
