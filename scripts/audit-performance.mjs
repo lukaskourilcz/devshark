@@ -8,7 +8,7 @@
 //   npm run audit:performance -- --url=https://devshark.app
 //   npm run audit:performance -- --url=http://127.0.0.1:4173 --routes=/,/learn
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium } from '@playwright/test';
@@ -77,22 +77,48 @@ export function reportRow(lhr) {
  };
 }
 
-// Audits every page on both profiles and writes summary.json. lighthouse
-// runs one audit; the tests pass a stand-in that writes canned reports.
+const firstLine = error => String(error?.message ?? error).split('\n')[0];
+
+// One audit and its summary row, or an error row when Lighthouse exits
+// non-zero, writes no report, or reports a runtime error. The old reports
+// of this prefix go first, so a failed run never reads an earlier one.
+function audit(lighthouse, { profile, route, url, prefix, run }) {
+ for (const extension of ['json', 'html']) rmSync(`${prefix}.report.${extension}`, { force: true });
+ const base = { profile, route, requestedUrl: url, run };
+ try {
+  const status = lighthouse(url, profile, prefix);
+  const report = `${prefix}.report.json`;
+  const lhr = existsSync(report) ? JSON.parse(readFileSync(report, 'utf8')) : null;
+  if (lhr?.runtimeError) throw new Error(`${lhr.runtimeError.code}: ${lhr.runtimeError.message}`);
+  if (status !== 0) throw new Error(`Lighthouse exited with ${status === null ? 'a signal' : `code ${status}`}`);
+  if (!lhr) throw new Error('Lighthouse wrote no report');
+  return { ...base, ...reportRow(lhr) };
+ } catch (error) {
+  return { ...base, error: firstLine(error) };
+ }
+}
+
+// Audits every page on both profiles. A failed audit becomes an error row
+// and the rest still run; summary.json is rewritten after each audit, so
+// it holds the finished rows even when the process stops early. The caller
+// exits 1 when any row carries an error. lighthouse runs one audit; the
+// tests pass a stand-in that writes canned reports.
 export function main({ output, pages }, { lighthouse = runLighthouse } = {}) {
  mkdirSync(output, { recursive: true });
  const results = [];
+ const write = () => writeFileSync(path.join(output, 'summary.json'), JSON.stringify(results, null, 2) + '\n');
  for (const { route, url, slug } of pages) for (const profile of PROFILES) {
   const prefix = path.join(output, slug ? `${profile}-${slug}` : profile);
-  const status = lighthouse(url, profile, prefix);
-  if (status !== 0) process.exit(status || 1);
-  const lhr = JSON.parse(readFileSync(`${prefix}.report.json`, 'utf8'));
-  if (lhr.runtimeError) throw new Error(lhr.runtimeError.message);
-  results.push({ profile, route, requestedUrl: url, ...reportRow(lhr) });
+  results.push(audit(lighthouse, { profile, route, url, prefix, run: 1 }));
+  write();
  }
- writeFileSync(path.join(output, 'summary.json'), JSON.stringify(results, null, 2) + '\n');
- console.table(results.map(({ profile, route, scores, lcpMs, cls, tbtMs }) => ({ profile, route, ...scores, lcpMs, cls, tbtMs })));
+ console.table(results.map(({ profile, route, scores, lcpMs, cls, tbtMs, error }) => (error ? { profile, route, error } : { profile, route, ...scores, lcpMs, cls, tbtMs })));
  console.log('Lab results, not field Core Web Vitals; compare the same URL, build settings and test machine.');
+ const failed = results.filter(row => row.error);
+ if (failed.length) {
+  console.error(`audit:performance: ${failed.length} of ${results.length} audits failed and carry an error instead of a result:`);
+  for (const row of failed) console.error(`  ${row.profile} ${row.route} run ${row.run}: ${row.error}`);
+ }
  return results;
 }
 
@@ -107,5 +133,5 @@ if (invokedDirectly()) {
   console.error(`audit:performance: ${error.message}\n\n${USAGE}`);
   process.exit(2);
  }
- main(options);
+ if (main(options).some(row => row.error)) process.exitCode = 1;
 }
