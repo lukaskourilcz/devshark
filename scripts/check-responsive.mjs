@@ -97,8 +97,10 @@ const DEFAULT_VIEWPORTS = [
   { label: '390x844', width: 390, height: 844, mobile: true },
   { label: '430x932', width: 430, height: 932, mobile: true },
   { label: '768x1024', width: 768, height: 1024, mobile: false },
+  { label: '820x1180', width: 820, height: 1180, mobile: false },
   { label: '1024x768', width: 1024, height: 768, mobile: false },
   { label: '1280x800', width: 1280, height: 800, mobile: false },
+  { label: '1366x768', width: 1366, height: 768, mobile: false },
   { label: '1440x900', width: 1440, height: 900, mobile: false },
 ];
 
@@ -229,24 +231,29 @@ function normalizeRoute(route) {
   return route.startsWith('/') ? route : `/${route}`;
 }
 
+class UsageError extends Error {}
+
 function selectedMatrix() {
   const routeFilter = commaList(optionValue('--routes') ?? process.env.RESPONSIVE_ROUTES);
   const widthFilter = commaList(optionValue('--widths') ?? process.env.RESPONSIVE_WIDTHS)
-    ?.map((width) => Number.parseInt(width, 10));
+    ?.map((width) => {
+      if (!/^\d+$/.test(width)) throw new UsageError(`Invalid responsive width: ${width}. Use a supported integer width.`);
+      return Number(width);
+    });
   const routes = routeFilter?.map(normalizeRoute) ?? DEFAULT_ROUTES;
   const viewports = widthFilter
     ? DEFAULT_VIEWPORTS.filter((viewport) => widthFilter.includes(viewport.width))
     : DEFAULT_VIEWPORTS;
 
-  if (routes.length === 0) throw new Error('Responsive route filter selected no routes.');
+  if (routes.length === 0) throw new UsageError('Responsive route filter selected no routes.');
   if (viewports.length === 0) {
-    throw new Error(`Responsive width filter must use one of: ${DEFAULT_VIEWPORTS.map(({ width }) => width).join(', ')}.`);
+    throw new UsageError(`Responsive width filter must use one of: ${DEFAULT_VIEWPORTS.map(({ width }) => width).join(', ')}.`);
   }
   const unsupported = widthFilter?.filter((width) => !DEFAULT_VIEWPORTS.some((viewport) => viewport.width === width));
   if (unsupported?.length) {
-    throw new Error(`Unsupported responsive width(s): ${unsupported.join(', ')}. Use one of: ${DEFAULT_VIEWPORTS.map(({ width }) => width).join(', ')}.`);
+    throw new UsageError(`Unsupported responsive width(s): ${unsupported.join(', ')}. Use one of: ${DEFAULT_VIEWPORTS.map(({ width }) => width).join(', ')}.`);
   }
-  return { routes, viewports };
+  return { routes, viewports: viewports.map((viewport) => ({ ...viewport, physicalWidth: viewport.width, physicalHeight: viewport.height })) };
 }
 
 function printHelp() {
@@ -739,5 +746,5 @@ async function main() {
 
 main().catch((err) => {
   console.error(err);
-  process.exit(1);
+  process.exit(err instanceof UsageError ? 2 : 1);
 });
