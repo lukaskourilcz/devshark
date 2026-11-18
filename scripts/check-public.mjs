@@ -7,7 +7,6 @@ const sitemap = new JSDOM(readFileSync(`${dir}/sitemap.xml`, 'utf8'), { contentT
 const urls = [...sitemap.window.document.querySelectorAll('loc')].map(node => new URL(node.textContent));
 assert(!urls.some(url => url.pathname.startsWith('/cs/')), 'retired guide URLs stay out of the sitemap');
 assert(!existsSync(`${dir}/cs`), 'no retired guide HTML is emitted');
-assert.equal(urls.length, 17, 'Home, five English guides, two published Learn sections, /premium, /premium/cancel, /daily, /coding and its five track pages');
 assert(!urls.some(url => url.pathname.includes('forward-deployed-engineer')), 'the paused FDE section is absent from the sitemap');
 // The app pages with public HTML (#222, #239). /premium/success stays out: a
 // Stripe return means nothing to anyone else, and the app marks it noindex.
@@ -21,18 +20,95 @@ const SITEMAP_CODING_PAGES = ['/coding', ...CODING_TRACK_PAGES];
 assert.deepEqual(urls.filter(url => url.pathname.startsWith('/coding')).map(url => url.pathname), SITEMAP_CODING_PAGES, 'the sitemap lists the Coding home and its track pages, and nothing else under /coding');
 assert(!urls.some(url => url.pathname.startsWith('/premium/success')), 'the checkout return page is never listed');
 assert(!urls.some(url => url.pathname.startsWith('/premium/checkout')), 'the private checkout page is never listed');
+const ORIGIN = 'https://devshark.app';
+const HIDDEN_CODING_PATH = '/coding/system-design';
+const index = readFileSync('shared/coding-index.ts', 'utf8');
+const tasks = [...index.matchAll(/\{"id":"([^"]+)","track":"([^"]+)"/g)].map(([, id, track]) => ({ id, track }));
+assert(tasks.length > 700, 'the coding index was read');
+assert(!tasks.some(({ track }) => track === 'system-design'), 'the index the browser ships holds no system design task');
+// F15-01: every prerendered page has exactly one class, chosen by its address,
+// and its head and the sitemap must agree with that class.
+// - listed: in the sitemap, canonical to itself, indexable.
+// - alias: canonical to another listed page, not in the sitemap. Only
+//   /coding/review, which opens /coding (C4-4).
+// - share-only: canonical to itself and indexable, not in the sitemap. The
+//   coding task pages (owner decision, 9 Oct 2026) and the dated question of
+//   the day pages.
+// - noindex: robots noindex, no canonical, not in the sitemap. The hidden
+//   system design track (owner decision, 9 Oct 2026).
+// A page that no rule or more than one rule matches fails: give a new page a
+// class here.
+const ALIASES = { '/coding/review': '/coding' };
+const TASK_PATHS = new Set(tasks.map(({ id, track }) => `/coding/${track}/${id}`));
+const PAGE_CLASSES = [
+  ['listed', (pagePath) => pagePath === '/' || /^\/topics\/[a-z0-9-]+$/.test(pagePath) || APP_PAGES.includes(pagePath) || SITEMAP_CODING_PAGES.includes(pagePath)],
+  ['alias', (pagePath) => Object.hasOwn(ALIASES, pagePath)],
+  ['share-only', (pagePath) => TASK_PATHS.has(pagePath) || /^\/daily\/\d{4}-\d{2}-\d{2}$/.test(pagePath)],
+  ['noindex', (pagePath) => pagePath === HIDDEN_CODING_PATH],
+];
+const classesOf = (pagePath) => PAGE_CLASSES.filter(([, test]) => test(pagePath)).map(([kind]) => kind);
+/** Every index.html in the build, by the address it is served at. The assets,
+ * the React sandbox, the share images and the brand kit hold no page. */
+const NOT_PAGES = new Set(['assets', 'sandbox', 'og', 'brand']);
+const pagePaths = [];
+const walk = (relative) => {
+  for (const entry of readdirSync(path.join(dir, relative), { withFileTypes: true })) {
+    if (entry.isDirectory() && !(relative === '' && NOT_PAGES.has(entry.name))) walk(path.posix.join(relative, entry.name));
+    else if (entry.isFile() && entry.name === 'index.html') pagePaths.push(`/${relative}`);
+  }
+};
+walk('');
+const pageUrl = (pagePath) => `${ORIGIN}${pagePath}`;
+// One parser for every page: a JSDOM window per page took 29 s and 2 GB for
+// the 912 pages of 18 Nov 2026, this takes about 8 s. Text comes back decoded,
+// so '&amp;' in a title counts as one character.
+const parser = new (new JSDOM('').window.DOMParser)();
+const readPage = (pagePath) => parser.parseFromString(readFileSync(path.join(dir, pagePath, 'index.html'), 'utf8'), 'text/html');
+const sitemapHrefs = new Set(urls.map(url => url.href));
+assert.equal(sitemapHrefs.size, urls.length, 'the sitemap lists no URL twice');
+for (const url of urls) {
+  assert.equal(url.origin, ORIGIN, `${url}: a devshark.app address`);
+  assert(existsSync(path.join(dir, url.pathname, 'index.html')), `${url}: in the sitemap without a page`);
+}
+const classCounts = { listed: 0, alias: 0, 'share-only': 0, noindex: 0 };
+for (const pagePath of pagePaths) {
+  const classes = classesOf(pagePath);
+  assert.equal(classes.length, 1, `${pagePath}: ${classes.length ? `more than one class (${classes.join(', ')})` : 'no class; give the page one in scripts/check-public.mjs'}`);
+  const [kind] = classes;
+  const doc = readPage(pagePath);
+  const url = pageUrl(pagePath);
+  const canonicals = [...doc.querySelectorAll('link[rel="canonical"]')].map(link => link.getAttribute('href'));
+  const ogUrls = [...doc.querySelectorAll('meta[property="og:url"]')].map(meta => meta.getAttribute('content'));
+  assert(canonicals.length <= 1 && ogUrls.length <= 1, `${pagePath}: at most one canonical and one og:url`);
+  const canonical = canonicals[0] ?? null;
+  const noindex = [...doc.querySelectorAll('meta[name="robots"]')].some(meta => /\b(?:noindex|none)\b/i.test(meta.getAttribute('content') ?? ''));
+  const listed = sitemapHrefs.has(url);
+  if (kind === 'noindex') {
+    assert(noindex, `${pagePath} (noindex): robots noindex in the HTML`);
+    assert.equal(canonical, null, `${pagePath} (noindex): no canonical`);
+    assert.equal(ogUrls[0] ?? null, null, `${pagePath} (noindex): no og:url`);
+  } else {
+    assert.equal(canonical, kind === 'alias' ? pageUrl(ALIASES[pagePath]) : url, `${pagePath} (${kind}): canonical`);
+    assert.equal(ogUrls[0] ?? null, canonical, `${pagePath} (${kind}): og:url matches the canonical`);
+    assert(!noindex, `${pagePath} (${kind}): indexable, no robots noindex`);
+  }
+  assert.equal(listed, kind === 'listed', `${pagePath} (${kind}): ${kind === 'listed' ? 'in' : 'not in'} the sitemap`);
+  classCounts[kind]++;
+}
+for (const [alias, target] of Object.entries(ALIASES)) {
+  assert(pagePaths.includes(alias) && pagePaths.includes(target), `${alias}: it and its canonical ${target} are both built`);
+  assert.deepEqual(classesOf(target), ['listed'], `${alias}: its canonical ${target} is a listed page`);
+}
+assert.equal(urls.length, classCounts.listed, 'the sitemap lists exactly the listed pages');
 const tiers = readFileSync('shared/tiers.ts', 'utf8');
 const price = (plan) => tiers.match(new RegExp(`${plan}: '([0-9.]+)'`))?.[1];
 for (const url of urls) {
   const file = path.join(dir, url.pathname, 'index.html');
   const doc = new JSDOM(readFileSync(file, 'utf8')).window.document;
-  assert.equal(doc.querySelector('link[rel="canonical"]')?.getAttribute('href'), url.href);
-  assert.equal(doc.querySelector('meta[property="og:url"]')?.getAttribute('content'), url.href, `${url}: og:url matches the canonical`);
   // Link previews on LinkedIn, Slack and iMessage need an absolute image URL.
   for (const selector of ['meta[property="og:image"]', 'meta[name="twitter:image"]']) {
     assert.match(doc.querySelector(selector)?.getAttribute('content') ?? '', /^https:\/\/devshark\.app\//, `${url}: ${selector} is absolute`);
   }
-  assert.equal(url.hostname, 'devshark.app');
   if (url.pathname === '/') continue;
   assert.equal(doc.querySelectorAll('h1').length, 1, `${url}: one static h1`);
   // Checked as section pages below.
@@ -83,10 +159,6 @@ for (const url of urls) {
 // #239: every coding task and every day in the window has its own head and
 // share image, and none of those pages carries a question, an answer or a
 // solution.
-const index = readFileSync('shared/coding-index.ts', 'utf8');
-const tasks = [...index.matchAll(/\{"id":"([^"]+)","track":"([^"]+)"/g)].map(([, id, track]) => ({ id, track }));
-assert(tasks.length > 700, 'the coding index was read');
-assert(!tasks.some(({ track }) => track === 'system-design'), 'the index the browser ships holds no system design task');
 const free = tasks.filter(({ id }) => new RegExp(`"id":"${id}"[^\n]*"free":true`).test(index)).length;
 for (const { id, track } of tasks) {
   const file = path.join(dir, 'coding', track, id, 'index.html');
@@ -102,20 +174,12 @@ for (const { id, track } of tasks) {
 // track pages are in the sitemap; /coding/review is not.
 const home = new JSDOM(readFileSync(`${dir}/index.html`, 'utf8')).window.document;
 const homeDescription = home.querySelector('meta[name="description"]').getAttribute('content');
-const SECTION_PAGES = {
-  '/coding': '/coding', '/coding/review': '/coding',
-  ...Object.fromEntries(CODING_TRACK_PAGES.map(page => [page, page])),
-};
-for (const [pagePath, canonicalPath] of Object.entries(SECTION_PAGES)) {
+const SECTION_PAGES = ['/coding', '/coding/review', ...CODING_TRACK_PAGES];
+for (const pagePath of SECTION_PAGES) {
   const doc = new JSDOM(readFileSync(path.join(dir, pagePath, 'index.html'), 'utf8')).window.document;
-  const canonical = canonicalPath && `https://devshark.app${canonicalPath}`;
-  assert.equal(doc.querySelector('link[rel="canonical"]')?.getAttribute('href') ?? null, canonical, `${pagePath}: canonical`);
-  assert.equal(doc.querySelector('meta[property="og:url"]')?.getAttribute('content') ?? null, canonical, `${pagePath}: og:url matches the canonical`);
   assert.notEqual(doc.title, home.title, `${pagePath}: its own title`);
   assert.equal(doc.querySelector('meta[property="og:title"]').getAttribute('content'), doc.title, `${pagePath}: og:title is the title`);
   assert.notEqual(doc.querySelector('meta[name="description"]').getAttribute('content'), homeDescription, `${pagePath}: its own description`);
-  assert.equal(urls.some(url => url.pathname === pagePath), pagePath === canonicalPath, `${pagePath}: in the sitemap only under its own address`);
-  assert.equal(doc.querySelectorAll('meta[name="robots"]').length, 0, `${pagePath}: indexable`);
 }
 const rewrites = JSON.parse(readFileSync('vercel.json', 'utf8')).rewrites;
 for (const source of ['/coding', '/coding/:track']) {
@@ -126,11 +190,9 @@ for (const source of ['/coding', '/coding/:track']) {
 // itself, with no canonical and no image of its own. No share page or share
 // image of a system design task is built, and the sitemap names none.
 {
-  const HIDDEN = '/coding/system-design';
+  const HIDDEN = HIDDEN_CODING_PATH;
   const doc = new JSDOM(readFileSync(path.join(dir, HIDDEN, 'index.html'), 'utf8')).window.document;
   assert.equal(doc.querySelector('meta[name="robots"]')?.getAttribute('content'), 'noindex', `${HIDDEN}: noindex without JavaScript`);
-  assert.equal(doc.querySelector('link[rel="canonical"]'), null, `${HIDDEN}: no canonical`);
-  assert.equal(doc.querySelector('meta[property="og:url"]'), null, `${HIDDEN}: no og:url`);
   assert.equal(doc.querySelector('h1')?.textContent, 'That track does not exist.', `${HIDDEN}: the not-found heading`);
   assert.deepEqual(readdirSync(path.join(dir, HIDDEN)), ['index.html'], `${HIDDEN}: no task page under it`);
   assert(!readdirSync(path.join(dir, 'og', 'coding')).some(file => /^(?:sd|dd)-/.test(file)), 'no system design share image');
@@ -163,4 +225,4 @@ for (const file of codingChunks) {
 assert(readFileSync(`${dir}/robots.txt`, 'utf8').includes(`Sitemap: ${urls[0].origin}/sitemap.xml`));
 assert(!existsSync(`${dir}/mockServiceWorker.js`), 'Mocks must never ship with the app');
 assert(!readdirSync(`${dir}/assets`).some(file => /storybook|mocks|\.stories\./i.test(file)));
-console.log(`Public HTML passed: ${urls.length} URLs, canonical, schema, teaching content, the Premium terms, ${tasks.length} coding share pages, ${Object.keys(SECTION_PAGES).length} Coding section pages, hidden system design, ${days.length} question-of-the-day pages, and no unexpected accented glyphs in ${codingChunks.length} coding chunks.`);
+console.log(`Public HTML passed: ${pagePaths.length} pages (${Object.entries(classCounts).map(([kind, count]) => `${count} ${kind}`).join(', ')}), ${urls.length} sitemap URLs, canonical, schema, teaching content, the Premium terms, ${tasks.length} coding share pages, ${SECTION_PAGES.length} Coding section pages, hidden system design, ${days.length} question-of-the-day pages, and no unexpected accented glyphs in ${codingChunks.length} coding chunks.`);
