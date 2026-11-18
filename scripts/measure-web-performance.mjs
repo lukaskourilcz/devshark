@@ -11,7 +11,7 @@ export const PROFILES = ['mobile', 'desktop'];
 // 1024px, so the 1440px desktop profile presses the footer theme toggle,
 // which names the mode it switches to.
 export const INTERACTION_CONTROLS = { mobile: ['Open navigation menu'], desktop: ['Dark mode', 'Light mode'] };
-const FLAGS = { url: 'value', routes: 'value', samples: 'value', profiles: 'value', output: 'value', access: 'value', fixture: 'switch' };
+const FLAGS = { url: 'value', routes: 'value', samples: 'value', profiles: 'value', output: 'value', access: 'value', fixture: 'switch', 'reduced-motion': 'switch' };
 // No default origin: a bare run would send 64 page loads to production.
 const DEFAULTS = {
  routes: '/,/learn,/coding,/quiz,/daily,/premium,/topics/javascript-closures,/leaderboard',
@@ -26,6 +26,7 @@ export const USAGE = `Usage: node scripts/measure-web-performance.mjs --url=<ori
   --profiles=<names>    comma-separated, any of ${PROFILES.join(',')} (default ${PROFILES.join(',')})
   --output=<file>       lab JSON to write (default ${DEFAULTS.output})
   --fixture             answer the origin's API GETs from tests/fixtures/api-settings.json
+  --reduced-motion      load pages as a visitor who asked for reduced motion (default: no preference)
   --access=<file>       JSON whose url authorizes a preview before each load`;
 
 export class UsageError extends Error {}
@@ -68,7 +69,16 @@ export function resolveOptions(args) {
  for (const profile of profiles) if (!PROFILES.includes(profile)) throw new UsageError(`--profiles accepts ${PROFILES.join(' and ')}, got "${profile}"`);
  const routes = list(args.routes ?? DEFAULTS.routes, 'routes');
  for (const route of routes) if (!route.startsWith('/') || route.startsWith('//')) throw new UsageError(`--routes entries must start with one /, got "${route}"`);
- return { origin: url.origin, routes, samples: Number(samples), profiles, output: args.output ?? DEFAULTS.output, access: args.access ?? null, fixture: args.fixture === true };
+ return { origin: url.origin, routes, samples: Number(samples), profiles, output: args.output ?? DEFAULTS.output, access: args.access ?? null, fixture: args.fixture === true, reducedMotion: args['reduced-motion'] === true };
+}
+
+// The browser context of one sample. Reduced motion stays off unless
+// --reduced-motion asks for it: under 'reduce', client/src/lib/motion.tsx
+// skips the motion-features chunk and every fade, a lighter page than a
+// default visitor or Lighthouse loads.
+export function contextOptions(profile, { reducedMotion = false } = {}) {
+ const mobile = profile === 'mobile';
+ return { viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 }, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile, colorScheme: 'light', reducedMotion: reducedMotion ? 'reduce' : 'no-preference', serviceWorkers: 'block' };
 }
 
 // A failure every later load would repeat; it ends the run instead of one row.
@@ -76,14 +86,14 @@ class FatalLabError extends Error {}
 
 const firstLine = error => String(error?.message ?? error).split('\n')[0];
 
-export async function main({ origin, routes, samples, profiles, output, access: accessFile, fixture: useFixture }) {
+export async function main({ origin, routes, samples, profiles, output, access: accessFile, fixture: useFixture, reducedMotion = false }) {
  mkdirSync(dirname(output), { recursive: true });
  const access = accessFile ? JSON.parse(readFileSync(accessFile, 'utf8')) : null;
  const fixture = useFixture ? JSON.parse(readFileSync('tests/fixtures/api-settings.json', 'utf8')) : null;
  if (fixture) fixture.billing = { ...fixture.billing, enabled: false, launchOffer: false };
  let browser, chrome;
  const results = [];
- const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; EventTiming is lab interaction latency, NOT field INP' }, results }, null, 2) + '\n');
+ const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; EventTiming is lab interaction latency, NOT field INP' }, results }, null, 2) + '\n');
  try {
   for (const profile of profiles) for (const path of routes) for (let sample = 0; sample < samples; sample++) {
    // A browser that cannot start fails every sample the same way: let it end the run.
@@ -93,7 +103,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
    // One failed navigation (a timeout, an empty 404, a reset) costs its own
    // sample only; the remaining routes, samples and profiles still run.
    try {
-    context = await browser.newContext({ viewport: profile === 'mobile' ? { width: 390, height: 844 } : { width: 1440, height: 1000 }, deviceScaleFactor: 1, isMobile: profile === 'mobile', hasTouch: profile === 'mobile', colorScheme: 'light', reducedMotion: 'reduce', serviceWorkers: 'block' });
+    context = await browser.newContext(contextOptions(profile, { reducedMotion }));
     if (access) {
      try {
       if (new URL(access.url).origin !== origin) throw new Error('origin mismatch');
