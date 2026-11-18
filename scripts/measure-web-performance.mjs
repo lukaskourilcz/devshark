@@ -11,7 +11,7 @@ export const PROFILES = ['mobile', 'desktop'];
 // 1024px, so the 1440px desktop profile presses the footer theme toggle,
 // which names the mode it switches to.
 export const INTERACTION_CONTROLS = { mobile: ['Open navigation menu'], desktop: ['Dark mode', 'Light mode'] };
-const FLAGS = { url: 'value', routes: 'value', samples: 'value', profiles: 'value', output: 'value', access: 'value', consent: 'value', fixture: 'switch', 'reduced-motion': 'switch' };
+const FLAGS = { url: 'value', routes: 'value', samples: 'value', profiles: 'value', output: 'value', access: 'value', consent: 'value', 'api-origin': 'value', 'api-delay-ms': 'value', fixture: 'switch', 'reduced-motion': 'switch' };
 // The cookie choice of the repeat-browser row. No mode accepts: a yes would
 // load PostHog and send the lab's page views to it.
 export const CONSENT_MODES = ['rejected', 'undecided'];
@@ -21,6 +21,8 @@ const DEFAULTS = {
  samples: 3,
  output: 'artifacts/performance/web-lab.json',
  consent: 'rejected',
+ // The API delay of the #587 walk (docs/perf/2026-10-17).
+ apiDelayMs: 120,
 };
 
 export const USAGE = `Usage: node scripts/measure-web-performance.mjs --url=<origin> [flags]
@@ -33,6 +35,10 @@ export const USAGE = `Usage: node scripts/measure-web-performance.mjs --url=<ori
                         pressed Reject all (default), or undecided, the banner still open
                         as in runs before 18 November 2026; the cold row is always undecided
   --fixture             answer the origin's API GETs from tests/fixtures/api-settings.json
+  --api-origin=<origin> answer the page's anonymous API reads from this https or loopback
+                        origin: one GET from Node per distinct read per run, no cookie,
+                        then a copy; other API GETs get the --fixture 503, writes stay blocked
+  --api-delay-ms=<n>    hold each replayed answer this long, 0 to 10000 (default ${DEFAULTS.apiDelayMs})
   --reduced-motion      load pages as a visitor who asked for reduced motion (default: no preference)
   --access=<file>       JSON whose url authorizes a preview before each load`;
 
@@ -78,7 +84,41 @@ export function resolveOptions(args) {
  for (const route of routes) if (!route.startsWith('/') || route.startsWith('//')) throw new UsageError(`--routes entries must start with one /, got "${route}"`);
  const consent = args.consent ?? DEFAULTS.consent;
  if (!CONSENT_MODES.includes(consent)) throw new UsageError(`--consent accepts ${CONSENT_MODES.join(' or ')}, got "${consent}"`);
- return { origin: url.origin, routes, samples: Number(samples), profiles, output: args.output ?? DEFAULTS.output, access: args.access ?? null, fixture: args.fixture === true, reducedMotion: args['reduced-motion'] === true, consent };
+ const apiOrigin = args['api-origin'] === undefined ? null : replayOrigin(args['api-origin']);
+ if (args['api-delay-ms'] !== undefined && !apiOrigin) throw new UsageError('--api-delay-ms needs --api-origin');
+ const apiDelayMs = args['api-delay-ms'] ?? String(DEFAULTS.apiDelayMs);
+ if (!/^\d+$/.test(apiDelayMs) || Number(apiDelayMs) > 10000) throw new UsageError(`--api-delay-ms must be a whole number from 0 to 10000, got "${apiDelayMs}"`);
+ return { origin: url.origin, routes, samples: Number(samples), profiles, output: args.output ?? DEFAULTS.output, access: args.access ?? null, fixture: args.fixture === true, reducedMotion: args['reduced-motion'] === true, consent, apiOrigin, apiDelayMs: Number(apiDelayMs) };
+}
+
+const LOOPBACK = ['127.0.0.1', 'localhost', '[::1]'];
+
+// --api-origin is a bare origin: https, or http on this machine.
+function replayOrigin(value) {
+ let api;
+ try { api = new URL(value); } catch { throw new UsageError(`--api-origin is not a URL: "${value}"`); }
+ if (api.protocol !== 'https:' && !(api.protocol === 'http:' && LOOPBACK.includes(api.hostname))) throw new UsageError(`--api-origin must use https, or http on a loopback address: "${value}"`);
+ if (api.username || api.password || api.pathname !== '/' || api.search || api.hash) throw new UsageError(`--api-origin takes an origin alone, such as https://devshark.app: "${value}"`);
+ return api.origin;
+}
+
+// The API reads --api-origin answers: GETs whose handler gives every guest
+// the same body without a token. client/src/lib/api.ts lists the settings,
+// map, catalog and lesson reads as PUBLIC_READ; the boards, the question of
+// the day and the curation coverage answer a guest too. A board read with
+// me=1 asks for the caller's own row and stays off the list.
+export function replayableRead(url) {
+ const { pathname, searchParams } = url;
+ const resource = searchParams.get('resource');
+ switch (pathname) {
+  case '/api/settings': return searchParams.size === 0;
+  case '/api/leaderboard': return !searchParams.has('me');
+  case '/api/quiz/roadmap': return searchParams.size === 0 || (resource === 'learning-path-catalog' && searchParams.size === 1) || (resource === 'lesson' && searchParams.has('id') && searchParams.size === 2);
+  case '/api/quiz/daily': return searchParams.has('qotd') && searchParams.size === 1;
+  case '/api/quiz/questions': return resource === 'curation';
+  case '/api/quiz/challenge': return resource === 'leaderboard';
+  default: return false;
+ }
 }
 
 // The browser context of one sample. Reduced motion stays off unless
@@ -202,14 +242,41 @@ class FatalLabError extends Error {}
 
 const firstLine = error => String(error?.message ?? error).split('\n')[0];
 
-export async function main({ origin, routes, samples, profiles, output, access: accessFile, fixture: useFixture, reducedMotion = false, consent = DEFAULTS.consent }) {
+export async function main({ origin, routes, samples, profiles, output, access: accessFile, fixture: useFixture, reducedMotion = false, consent = DEFAULTS.consent, apiOrigin = null, apiDelayMs = DEFAULTS.apiDelayMs }) {
  mkdirSync(dirname(output), { recursive: true });
  const access = accessFile ? JSON.parse(readFileSync(accessFile, 'utf8')) : null;
  const fixture = useFixture ? JSON.parse(readFileSync('tests/fixtures/api-settings.json', 'utf8')) : null;
  if (fixture) fixture.billing = { ...fixture.billing, enabled: false, launchOffer: false };
+ // One anonymous GET per distinct read per run: every later sample gets the
+ // same copy, so a run sends single-digit requests to --api-origin.
+ const replay = apiOrigin ? { reads: new Map(), unlisted: new Map() } : null;
+ const replayRead = key => {
+  let read = replay.reads.get(key);
+  if (!read) {
+   const record = { path: key, status: null, bytes: 0, fetchMs: null, served: 0 };
+   const started = performance.now();
+   // Node's fetch keeps no cookies; the request carries no Authorization and
+   // follows no redirect, so it reads what a signed-out visitor reads.
+   const copy = fetch(apiOrigin + key, { headers: { Accept: 'application/json' }, redirect: 'manual', signal: AbortSignal.timeout(30000) })
+    .then(async response => {
+     const body = Buffer.from(await response.arrayBuffer());
+     Object.assign(record, { status: response.status, bytes: body.length, fetchMs: Math.round(performance.now() - started) });
+     return { status: response.status, contentType: response.headers.get('content-type') ?? 'application/json', cacheControl: response.headers.get('cache-control') ?? 'no-store', body };
+    })
+    .catch(error => {
+     record.error = firstLine(error);
+     return { status: 503, contentType: 'application/json', cacheControl: 'no-store', body: Buffer.from(JSON.stringify({ error: { code: 'replay_failed', message: 'perf:measure could not read this from --api-origin' } })) };
+    });
+   read = { record, copy };
+   replay.reads.set(key, read);
+  }
+  read.record.served++;
+  return read.copy;
+ };
+ const replaySummary = () => replay && { origin: apiOrigin, delayMs: apiDelayMs, forwarded: replay.reads.size, reads: [...replay.reads.values()].map(read => read.record), unlisted: [...replay.unlisted].map(([path, count]) => ({ path, count })) };
  let browser, chrome;
  const results = [];
- const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', consent: consentByCache(consent), ttfbDefinition: 'responseStart (web-vitals)', clsDefinition: 'largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press', tbtDefinition: 'long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, results }, null, 2) + '\n');
+ const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, apiOrigin, apiDelayMs: apiOrigin ? apiDelayMs : null, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', consent: consentByCache(consent), ttfbDefinition: 'responseStart (web-vitals)', clsDefinition: 'largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press', tbtDefinition: 'long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, apiReplay: replaySummary(), results }, null, 2) + '\n');
  try {
   for (const profile of profiles) for (const path of routes) for (let sample = 0; sample < samples; sample++) {
    // A browser that cannot start fails every sample the same way: let it end the run.
@@ -233,9 +300,14 @@ export async function main({ origin, routes, samples, profiles, output, access: 
     await cdp.send('Fetch.enable', { patterns: [{ urlPattern: '*', requestStage: 'Request' }] });
     cdp.on('Fetch.requestPaused', async e => {
      const url = new URL(e.request.url);
-     if (fixture && url.origin === origin && url.pathname.startsWith('/api/') && e.request.method === 'GET') {
-      const body = url.pathname === '/api/settings' ? fixture : { error: { code: 'fixture_only', message: 'Isolated measurement' } };
-      await cdp.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: url.pathname === '/api/settings' ? 200 : 503, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }, { name: 'Cache-Control', value: 'no-store' }], body: Buffer.from(JSON.stringify(body)).toString('base64') }).catch(() => {});
+     const apiRead = url.origin === origin && url.pathname.startsWith('/api/') && e.request.method === 'GET';
+     if (apiRead && replay && !(fixture && url.pathname === '/api/settings') && replayableRead(url)) {
+      const [copy] = await Promise.all([replayRead(url.pathname + url.search), new Promise(resolve => setTimeout(resolve, apiDelayMs))]);
+      await cdp.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: copy.status, responseHeaders: [{ name: 'Content-Type', value: copy.contentType }, { name: 'Cache-Control', value: copy.cacheControl }], body: copy.body.toString('base64') }).catch(() => {});
+     } else if (apiRead && (fixture || replay)) {
+      if (replay && !(fixture && url.pathname === '/api/settings')) replay.unlisted.set(url.pathname + url.search, (replay.unlisted.get(url.pathname + url.search) ?? 0) + 1);
+      const body = fixture && url.pathname === '/api/settings' ? fixture : { error: { code: 'fixture_only', message: 'Isolated measurement' } };
+      await cdp.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: fixture && url.pathname === '/api/settings' ? 200 : 503, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }, { name: 'Cache-Control', value: 'no-store' }], body: Buffer.from(JSON.stringify(body)).toString('base64') }).catch(() => {});
      } else if (!['GET', 'HEAD', 'OPTIONS'].includes(e.request.method) || (url.origin !== origin && !url.hostname.endsWith('fonts.gstatic.com'))) {
       if (!['GET', 'HEAD', 'OPTIONS'].includes(e.request.method)) blockedWrites++;
       await cdp.send('Fetch.failRequest', { requestId: e.requestId, errorReason: 'BlockedByClient' }).catch(() => {});
@@ -337,6 +409,15 @@ export async function main({ origin, routes, samples, profiles, output, access: 
    }
   }
  } finally { await browser?.close(); }
+ if (replay) {
+  const { reads, unlisted } = replaySummary();
+  console.log(`perf:measure: forwarded ${reads.length} anonymous API reads to ${apiOrigin}, answered ${reads.reduce((sum, read) => sum + read.served, 0)} page requests from the copies after ${apiDelayMs} ms each:`);
+  for (const read of reads) console.log(`  ${read.status ?? 'failed'} ${read.bytes} B ${read.fetchMs ?? '-'} ms served ${read.served}x ${read.path}${read.error ? ' ' + read.error : ''}`);
+  if (unlisted.length) {
+   console.warn(`perf:measure: ${unlisted.length} API reads are not on the replay list and got the fixture 503:`);
+   for (const { path, count } of unlisted) console.warn(`  ${count}x ${path}`);
+  }
+ }
  const unpressed = results.filter(row => !row.error && !row.interaction.matched);
  if (unpressed.length) console.warn(`perf:measure: ${unpressed.length} of ${results.length} rows found no button to press and measure no interaction`);
  const failed = results.filter(row => row.error);
