@@ -392,13 +392,13 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      const apiRead = url.origin === origin && url.pathname.startsWith('/api/') && e.request.method === 'GET';
      const replayed = apiRead && replay && !(fixture && url.pathname === '/api/settings') && replayableRead(url);
      const answered = !replayed && apiRead && (fixture || replay);
-     const write = !['GET', 'HEAD', 'OPTIONS'].includes(e.request.method);
-     const blocked = !replayed && !answered && (write || (url.origin !== origin && !url.hostname.endsWith('fonts.gstatic.com')));
+     const mutating = !['GET', 'HEAD', 'OPTIONS'].includes(e.request.method);
+     const blocked = !replayed && !answered && (mutating || (url.origin !== origin && !url.hostname.endsWith('fonts.gstatic.com')));
      // Counted before the first await, so a request lands in the row whose
      // navigation started it.
      if (requests) requests[requestKind(e.resourceType, url, origin, { blocked })]++;
      if (replayed || answered) fulfilled.add(e.networkId);
-     if (blocked && write) blockedWrites++;
+     if (blocked && mutating) blockedWrites++;
      if (replayed) {
       const [copy] = await Promise.all([replayRead(url.pathname + url.search), new Promise(resolve => setTimeout(resolve, apiDelayMs))]);
       await cdp.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: copy.status, responseHeaders: [{ name: 'Content-Type', value: copy.contentType }, { name: 'Cache-Control', value: copy.cacheControl }], body: copy.body.toString('base64') }).catch(() => {});
