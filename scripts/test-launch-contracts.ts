@@ -3764,6 +3764,92 @@ async function practiceRunTransitionContracts() {
   assert.equal(replaced.res.statusCode, 409, 'a start response cannot direct the learner back to a replaced run');
 }
 
+/* ── input classes the handlers already refuse (#638) ─────────────────────
+ *
+ * The section-code-audit list of untrusted input, per handler that parses
+ * its input without a database: a list where one value belongs (a query
+ * parameter repeated), a calendar date Postgres cannot store, U+0000, an
+ * unknown resource, a lookup by `constructor` or `__proto__`, a number that
+ * is no integer, an id or a list past its cap. Each answers 400, 404 or 413
+ * with the generic `{ error: { code, message } }` body. No database is
+ * configured here, so nothing can reach one; the verified-caller and play
+ * suites hold the handlers that need one before they parse. */
+async function inputClassContracts() {
+  type Case = [label: string, handler: (req: never, res: never) => unknown, method: 'GET' | 'POST', query: Record<string, unknown>, body: unknown, status: number, code: string];
+  const answers = (count: number) => Object.fromEntries(Array.from({ length: count }, (_, i) => [`q-${i}`, 0]));
+  const cases: Case[] = [
+    ['questions: a repeated difficulty', questionsHandler, 'GET', { difficulty: ['easy', 'mixed'] }, undefined, 400, 'bad_request'],
+    ['questions: constructor as the difficulty', questionsHandler, 'GET', { difficulty: 'constructor' }, undefined, 400, 'bad_request'],
+    ['questions: constructor as a category', questionsHandler, 'GET', { categories: 'constructor' }, undefined, 400, 'bad_request'],
+    ['questions: __proto__ as a category', questionsHandler, 'GET', { categories: '__proto__' }, undefined, 400, 'bad_request'],
+    ['questions: U+0000 in a category', questionsHandler, 'GET', { categories: 'java\u0000script' }, undefined, 400, 'bad_request'],
+    ['questions: an unknown resource', questionsHandler, 'GET', { resource: 'no-such-resource' }, undefined, 404, 'unknown_resource'],
+    ['questions: constructor as the resource', questionsHandler, 'GET', { resource: 'constructor' }, undefined, 404, 'unknown_resource'],
+    ['daily: 2026-02-30', dailyHandler, 'GET', { date: '2026-02-30' }, undefined, 400, 'bad_request'],
+    ['daily: year 0000', dailyHandler, 'GET', { date: '0000-01-01' }, undefined, 400, 'bad_request'],
+    ['daily: a repeated date', dailyHandler, 'GET', { date: ['2026-11-18', '2026-11-17'] }, undefined, 400, 'bad_request'],
+    ['daily: U+0000 in the date', dailyHandler, 'GET', { date: '2026-11-18\u0000' }, undefined, 400, 'bad_request'],
+    ['daily: constructor as a category', dailyHandler, 'GET', { categories: 'constructor' }, undefined, 400, 'invalid_subject_scope'],
+    ['daily: __proto__ as a category', dailyHandler, 'GET', { categories: '__proto__' }, undefined, 400, 'invalid_subject_scope'],
+    ['question of the day: 2026-02-30', dailyHandler, 'GET', { qotd: '2026-02-30' }, undefined, 400, 'bad_request'],
+    ['question of the day: year 0000', dailyHandler, 'GET', { qotd: '0000-01-01' }, undefined, 404, 'qotd_before_start'],
+    ['question of the day: constructor', dailyHandler, 'GET', { qotd: 'constructor' }, undefined, 400, 'bad_request'],
+    ['submit: 51 answers', submitHandler, 'POST', {}, { sessionId: 'x', answers: answers(51) }, 413, 'too_many_answers'],
+    ['submit: answers as a list', submitHandler, 'POST', {}, { sessionId: 'x', answers: [0, 1] }, 400, 'bad_request'],
+    ['submit: a session id as a list', submitHandler, 'POST', {}, { sessionId: ['x'], answers: { a: 0 } }, 400, 'bad_request'],
+    ['submit: a fractional answer index', submitHandler, 'POST', {}, { sessionId: 'x', answers: { a: 0.5 } }, 400, 'bad_request'],
+    ['submit: an answer index sent as text', submitHandler, 'POST', {}, { sessionId: 'x', answers: { a: '1' } }, 400, 'bad_request'],
+    ['submit: an answer index sent as a boolean', submitHandler, 'POST', {}, { sessionId: 'x', answers: { a: true } }, 400, 'bad_request'],
+    ['submit: a question id past 64 characters', submitHandler, 'POST', {}, { sessionId: 'x', answers: { ['q'.repeat(65)]: 0 } }, 400, 'bad_request'],
+    ['submit: a session id past 16,384 characters', submitHandler, 'POST', {}, { sessionId: 'x'.repeat(16_385), answers: { a: 0 } }, 400, 'bad_request'],
+    ['submit: a body that is no object', submitHandler, 'POST', {}, 'not-json', 400, 'bad_request'],
+    ['Learn: constructor as the topic', roadmapHandler, 'GET', { topic: 'constructor' }, undefined, 400, 'bad_request'],
+    ['Learn: __proto__ as the topic', roadmapHandler, 'GET', { topic: '__proto__' }, undefined, 400, 'bad_request'],
+    ['Learn: a repeated topic', roadmapHandler, 'GET', { topic: ['javascript', 'css'] }, undefined, 400, 'bad_request'],
+    ['Learn: U+0000 in the topic', roadmapHandler, 'GET', { topic: 'java\u0000script' }, undefined, 400, 'bad_request'],
+    ['Learn: a level that is no number', roadmapHandler, 'GET', { topic: 'javascript', level: 'NaN' }, undefined, 400, 'bad_request'],
+    ['Learn: constructor as the level', roadmapHandler, 'GET', { topic: 'javascript', level: 'constructor' }, undefined, 400, 'bad_request'],
+    ['Learn: level 0', roadmapHandler, 'GET', { topic: 'javascript', level: '0' }, undefined, 400, 'bad_request'],
+    ['Learn: a level past the topic', roadmapHandler, 'GET', { topic: 'javascript', level: '999' }, undefined, 400, 'bad_request'],
+    ['Learn: a part test that is no number', roadmapHandler, 'GET', { topic: 'javascript', test: 'NaN' }, undefined, 400, 'bad_request'],
+    ['Learn: a part test past the parts', roadmapHandler, 'GET', { topic: 'javascript', test: '9' }, undefined, 400, 'bad_request'],
+    ['Learn: a checkpoint that is no number', roadmapHandler, 'GET', { topic: 'javascript', checkpoint: 'abc' }, undefined, 400, 'bad_request'],
+    ['placement: constructor as the subject', roadmapHandler, 'GET', { resource: 'placement', subject: 'constructor' }, undefined, 400, 'invalid_subject_scope'],
+    ['placement: __proto__ as the subject', roadmapHandler, 'GET', { resource: 'placement', subject: '__proto__' }, undefined, 400, 'invalid_subject_scope'],
+    ['placement: a repeated subject', roadmapHandler, 'GET', { resource: 'placement', subject: ['webdev', 'webdev'] }, undefined, 400, 'invalid_subject_scope'],
+    ['placement: a token that is a list', roadmapHandler, 'POST', { resource: 'placement' }, { placementToken: ['x'], answers: {} }, 400, 'invalid_session'],
+    ['coding task: constructor as the id', roadmapHandler, 'GET', { resource: 'coding-task', id: 'constructor' }, undefined, 404, 'not_found'],
+    ['coding task: __proto__ as the id', roadmapHandler, 'GET', { resource: 'coding-task', id: '__proto__' }, undefined, 404, 'not_found'],
+    ['coding task: a repeated id', roadmapHandler, 'GET', { resource: 'coding-task', id: ['a', 'b'] }, undefined, 400, 'bad_request'],
+    ['coding task: an id longer than any task id', roadmapHandler, 'GET', { resource: 'coding-task', id: 'x'.repeat(500) }, undefined, 404, 'not_found'],
+    ['coding brief: constructor as the id', roadmapHandler, 'GET', { resource: 'coding-brief', id: 'constructor' }, undefined, 404, 'not_found'],
+    ['coding brief: a repeated id', roadmapHandler, 'GET', { resource: 'coding-brief', id: ['a', 'b'] }, undefined, 400, 'bad_request'],
+    ['coding state: constructor as the id', roadmapHandler, 'GET', { resource: 'coding-state', id: 'constructor' }, undefined, 404, 'not_found'],
+    ['coding approaches: constructor as the id', roadmapHandler, 'GET', { resource: 'coding-approaches', id: 'constructor' }, undefined, 404, 'not_found'],
+    ['learning paths: an unknown resource', roadmapHandler, 'GET', { resource: 'learning-path-no-such-resource' }, undefined, 404, 'not_found'],
+    ['lesson: constructor as the topic', roadmapHandler, 'GET', { resource: 'lesson', topic: 'constructor', level: '1' }, undefined, 400, 'bad_request'],
+    ['lesson: __proto__ as the topic', roadmapHandler, 'GET', { resource: 'lesson', topic: '__proto__', level: '1' }, undefined, 400, 'bad_request'],
+    ['lesson: a repeated topic', roadmapHandler, 'GET', { resource: 'lesson', topic: ['javascript'], level: '1' }, undefined, 400, 'bad_request'],
+    ['lesson: a level that is no number', roadmapHandler, 'GET', { resource: 'lesson', topic: 'javascript', level: 'NaN' }, undefined, 400, 'bad_request'],
+  ];
+  let caller = 0;
+  for (const [label, handler, method, query, body, status, code] of cases) {
+    caller += 1;
+    const res = mockResponse();
+    await handler({
+      method, url: '/api/input-class', query, body,
+      headers: { 'x-forwarded-for': `10.63.8.${caller % 250}` },
+    } as never, res as never);
+    const error = (res.body as { error?: Record<string, unknown> } | undefined)?.error;
+    assert.equal(res.statusCode, status, `${label} answers ${status} (${JSON.stringify(res.body)})`);
+    assert.equal(error?.code, code, `${label} answers ${code}`);
+    assert.equal(typeof error?.message, 'string', `${label} carries a message`);
+    assert.deepEqual(Object.keys(error ?? {}).filter((key) => !['code', 'message', 'requestId'].includes(key)), [],
+      `${label} answers the generic error body`);
+  }
+  console.log(`PASS input classes: ${cases.length} malformed requests to questions, daily, submit and Learn answer 400, 404 or 413 with the generic body`);
+}
+
 async function main() {
   await adminDirectoryContracts();
   await practiceRunTransitionContracts();
@@ -6569,6 +6655,7 @@ async function main() {
   monthlyXpContracts();
   await identityContracts();
   await productCleanupContracts();
+  await inputClassContracts();
 
   console.log('Launch contracts passed: product identity, scope, token confidentiality, stable attempts, fairness-neutral rewards, rate limiting, health, 12-function budget, the free tier and Premium, billing, the launch price, the public Premium copy, the retired support settings, the progression graph, failure hints, retired sections, curation claims, the content-audit gate, spaced practice, interleaving, challenge runs, lesson figures, an unconfigured shop, coins, invitations, merchandise through Spreadshop, one erasure routine, Premium vouchers, the question of the day, and the webdev-bank contract BoardlessAI imports.');
 }
