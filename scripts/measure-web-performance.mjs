@@ -6,6 +6,11 @@ import { dirname } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const PROFILES = ['mobile', 'desktop'];
+// The local-only button each profile presses, by its accessible name in
+// client/src/i18n/translations.ts. app-shell.css hides the menu button from
+// 1024px, so the 1440px desktop profile presses the footer theme toggle,
+// which names the mode it switches to.
+export const INTERACTION_CONTROLS = { mobile: ['Open navigation menu'], desktop: ['Dark mode', 'Light mode'] };
 const FLAGS = { url: 'value', routes: 'value', samples: 'value', profiles: 'value', output: 'value', access: 'value', fixture: 'switch' };
 // No default origin: a bare run would send 64 page loads to production.
 const DEFAULTS = {
@@ -133,13 +138,23 @@ export async function main({ origin, routes, samples, profiles, output, access: 
       return { navigation: { ttfb: n.responseStart - n.requestStart, dns: n.domainLookupEnd - n.domainLookupStart, connect: n.connectEnd - n.connectStart, tls: n.secureConnectionStart ? n.connectEnd - n.secureConnectionStart : 0, download: n.responseEnd - n.responseStart, domContentLoaded: n.domContentLoadedEventEnd, load: n.loadEventEnd }, ...window.__lab, resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
      });
      // Local-only appearance/menu changes; no quiz/start/submit or sign-in action.
-     const control = page.getByRole('button', { name: /^(Open navigation menu|Switch to dark mode)$/ }).first();
-     if (await control.count()) { await control.click(); await page.waitForTimeout(250); measurement.interactions = await page.evaluate(() => window.__lab.interactions); await page.keyboard.press('Escape'); }
+     let pressed = null;
+     for (const name of INTERACTION_CONTROLS[profile]) {
+      const button = page.getByRole('button', { name, exact: true }).first();
+      if (await button.count()) { pressed = { name, button }; break; }
+     }
+     measurement.interaction = { control: pressed?.name ?? INTERACTION_CONTROLS[profile].join(' or '), matched: Boolean(pressed) };
+     if (pressed) {
+      try { await pressed.button.click({ timeout: 10000 }); } catch (error) { measurement.interaction.error = firstLine(error); }
+      await page.waitForTimeout(250);
+      measurement.interactions = await page.evaluate(() => window.__lab.interactions);
+      await page.keyboard.press('Escape');
+     } else console.warn(`perf:measure: no "${measurement.interaction.control}" button on ${profile} ${path}; this row measures no interaction`);
      cdp.off('Network.responseReceived', listener);
      const row = { profile, path, sample, cache, elapsed: Date.now() - started, diskHits, blockedWrites, ...measurement };
      results.push(row);
      write();
-     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'LCP', Math.round(row.lcp), 'CLS', row.cls.toFixed(3), 'cacheHits', diskHits);
+     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'LCP', Math.round(row.lcp), 'CLS', row.cls.toFixed(3), 'cacheHits', diskHits, 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
     }
    } catch (error) {
     if (error instanceof FatalLabError) throw error;
@@ -154,6 +169,8 @@ export async function main({ origin, routes, samples, profiles, output, access: 
    }
   }
  } finally { await browser?.close(); }
+ const unpressed = results.filter(row => !row.error && !row.interaction.matched);
+ if (unpressed.length) console.warn(`perf:measure: ${unpressed.length} of ${results.length} rows found no button to press and measure no interaction`);
  const failed = results.filter(row => row.error);
  if (failed.length) {
   console.error(`perf:measure: ${failed.length} of ${results.length} rows failed and carry an error instead of a measurement:`);
