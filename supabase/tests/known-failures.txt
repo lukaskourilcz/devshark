@@ -18,3 +18,9 @@
 # Migrations that drop the dead ten and recreate the rest TO authenticated in
 # the (SELECT auth.uid())::text form remove this line.
 251-rls-every-table.test.sql: RLS invariants:
+
+# The browser roles hold USAGE, SELECT and UPDATE on the one sequence in
+# public, learning_path_evidence_evidence_id_seq, and the migration role's
+# default privileges in public grant them every new table, sequence and
+# routine (#637). Migrations that revoke both remove this line.
+252-browser-grants.test.sql: grant invariants:
