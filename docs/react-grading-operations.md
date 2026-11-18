@@ -101,7 +101,8 @@ What `runner.cjs` carries, by esbuild's `bytesInOutput`:
 | `lib/coding/vendor/quickjs-node24.cjs` | 670,988 | Yes: the pinned Node 24 wasm, base64. |
 | Four `@jitl/quickjs-wasmfile-*` variants (debug and release, sync and asyncify), module and index files | 345,671 | No. `quickjs-emscripten`'s index imports them; nothing calls them. |
 | `quickjs-emscripten-core` | 78,126 | Yes. |
-| `sandbox-web-apis.ts`, `coding-locale.ts`, `coding-console.ts`, `grader-capacity.ts`, `sandbox.ts` | 48,314 | No. `react-learner.ts` imports two error helpers from `sandbox.ts`, and the QuickJS preludes come with them. |
+| `sandbox-web-apis.ts`, `coding-locale.ts`, `grader-capacity.ts`, `sandbox.ts` | 44,771 | No. `react-learner.ts` imports two error helpers from `sandbox.ts`, and the QuickJS preludes come with them. |
+| `coding-console.ts` | 3,543 | No. `coding-evaluate.ts` imports it for Run's console, and esbuild keeps `CONSOLE_SOURCE` because the template interpolates a constant. |
 | Everything else (the learner engine, the runner, mini-jest, UTC time, realm lockdown, the guest) | 110,302 | Yes. |
 | esbuild module wrappers and the `"use strict"` banner | 3,206 | Yes. |
 
@@ -126,6 +127,13 @@ for (const [file, { bytesInOutput }] of Object.entries(output.inputs).sort((a, b
 The input sizes come from `JSON.stringify` of the `GuestInput` that
 `runIsolatedReactSuite` writes, built for each React task's reference solution
 with its hidden suite, both compiled fixtures and a 48-character nonce.
+
+### Trims since the baseline
+
+| Change | `runner.cjs` bytes | gzip |
+|---|---:|---:|
+| Baseline above | 2,100,887 | 691,960 |
+| Error helpers moved to `shared/coding-error-text.ts` and `lib/coding/vm-errors.ts`, so the guest no longer imports `sandbox.ts` | 2,056,252 | 679,802 |
 
 ## Configuration and rollout
 
