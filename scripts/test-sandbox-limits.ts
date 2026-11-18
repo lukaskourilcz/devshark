@@ -165,6 +165,27 @@ await limitCase('unbounded recursion at the top level', {
   assert.equal(run.timedOut, false, 'a stack overflow is not a timeout');
 }, 'kept');
 
+// ── a learner's own error is not a limit, whatever its words ────────────
+// The grader used to read a timeout or a stack overflow off the error text,
+// so a program that threw "Download interrupted" at load read as an infinite
+// loop, and one that threw "stack overflow in my parser" lost its message.
+// Only the interrupt handler firing is a timeout, and only QuickJS's own
+// stack overflow is the stack message; the two cases above still are.
+for (const [thrown, codeError] of [
+  ['new Error("Download interrupted")', 'Error: Download interrupted'],
+  ['"interrupted"', 'interrupted'],
+  ['new Error("stack overflow in my parser")', 'Error: stack overflow in my parser'],
+  ['new RangeError("Maximum call stack size exceeded, says my parser")', 'RangeError: Maximum call stack size exceeded, says my parser'],
+  ['new Error("gc_obj_list is my variable")', 'Error: gc_obj_list is my variable'],
+] as const) {
+  const name = `a top-level throw of ${thrown}`;
+  await limitCase(name, { code: `throw ${thrown};`, calls: ['1'] }, (run) => {
+    assert.equal(run.codeError, codeError, `${name}: the learner reads their own error`);
+    assert.equal(run.timedOut, false, `${name}: it is not a timeout`);
+    assert.deepEqual(run.results, [], `${name}: no call has a result`);
+  }, 'kept');
+}
+
 // ── output: a console flood keeps the first lines only ──────────────────
 await limitCase('a console.log flood of 200,000 lines', {
   code: 'const shout = () => { for (let i = 0; i < 2e5; i++) console.log(i); return 1; };', calls: ['shout()'], expectations: [1],
