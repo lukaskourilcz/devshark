@@ -15,11 +15,11 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const measure = join(root, 'scripts/measure-web-performance.mjs');
 const closedOrigin = 'http://127.0.0.1:9';
 
-function runMeasure(t, flags) {
+function runMeasure(t, flags, { url = closedOrigin } = {}) {
   const scratch = mkdtempSync(join(tmpdir(), 'devshark-perf-tools-'));
   t.after(() => rmSync(scratch, { recursive: true, force: true }));
   const output = join(scratch, 'lab.json');
-  const result = spawnSync(process.execPath, [measure, `--url=${closedOrigin}`, ...flags, `--output=${output}`], {
+  const result = spawnSync(process.execPath, [measure, ...(url ? [`--url=${url}`] : []), ...flags, `--output=${output}`], {
     cwd: root,
     encoding: 'utf8',
     timeout: 30_000,
@@ -59,4 +59,21 @@ test('perf:measure refuses flags it cannot read', () => {
   for (const argv of [['--url'], ['--fixture=1'], ['--samples=3', '--samples=4'], ['learn'], ['--routes=/,'], ['--profiles=mobile,mobile'], ['--url=ftp://example.test'], ['--routes=//example.test'], ['--samples=1e1']]) {
     assert.throws(() => resolveOptions(parseArgs(argv)), UsageError, argv.join(' '));
   }
+});
+
+test('perf:measure needs --url, so a bare run never loads production', (t) => {
+  const run = runMeasure(t, ['--routes=/', '--samples=1'], { url: null });
+  assert.equal(run.error, undefined, 'the process ran to its end');
+  assert.equal(run.status, 2, `exit code 2 (stderr: ${run.stderr.trim()})`);
+  assert.match(run.stderr, /--url/);
+  assert.match(run.stderr, /Usage: /);
+  assert.equal(existsSync(run.output), false, 'a refused run writes no lab file');
+});
+
+test('perf:measure defaults to the Epic F routes, three samples and a lab file under artifacts/', () => {
+  const options = resolveOptions(parseArgs(['--url=http://127.0.0.1:4211']));
+  assert.deepEqual(options.routes, ['/', '/learn', '/coding', '/quiz', '/daily', '/premium', '/topics/javascript-closures', '/leaderboard']);
+  assert.equal(options.samples, 3);
+  assert.deepEqual(options.profiles, ['mobile', 'desktop']);
+  assert.equal(options.output, 'artifacts/performance/web-lab.json');
 });
