@@ -540,3 +540,19 @@ test('check:bundle budgets the entry, modulepreload and stylesheet requests and 
   });
   assert.deepEqual(bundle.initialRequests('<html></html>'), { files: [], fonts: [] });
 });
+
+for (const [name, flag, mention] of [
+  ['zero largest chunks', '--largest=0', /--largest must be a whole number from 1 to 100/],
+  ['more largest chunks than it lists', '--largest=101', /--largest must be a whole number from 1 to 100/],
+  ['a largest count that is not a number', '--largest=ten', /--largest must be a whole number from 1 to 100/],
+  ['a misspelt flag', '--larges=3', /unknown argument "--larges=3"/],
+]) {
+  test(`check:bundle refuses ${name} before it starts a build`, () => {
+    const run = spawnSync(process.execPath, [join(root, 'scripts/check-bundle.mjs'), flag], { cwd: root, encoding: 'utf8', timeout: 30_000 });
+    assert.equal(run.error, undefined, 'the process ran to its end');
+    assert.equal(run.status, 2, `exit code 2 (stderr: ${run.stderr.trim()})`);
+    assert.match(run.stderr, mention);
+    assert.match(run.stderr, /Usage: /);
+    assert.equal(run.stdout, '', 'nothing built, nothing measured');
+  });
+}
