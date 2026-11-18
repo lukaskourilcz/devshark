@@ -21,19 +21,25 @@
  *  - the reads a script can drive take a per-account bucket and an address
  *    bucket, and a leaderboard `limit` is rounded to a few fixed sizes;
  *  - with Upstash configured and failing, a one-time claim is refused with
- *    503 instead of falling back to this instance's memory.
+ *    503 instead of falling back to this instance's memory;
+ *  - every op the twelve handlers route, against a database that answers
+ *    every call with a raw Postgres error, answers without that error's
+ *    text, and an unreadable plan answers 503 entitlement_unavailable.
  *
  * Upstash is a second stand-in with two modes. Failing, it answers every
  * command with an error, so the rate limits run on their in-memory fallback;
  * the checks that drain an in-memory bucket, the limiter's pause and the
  * claim outage use it. Healthy, it answers as Upstash does and counts each
  * bucket without a window, so a bucket runs out after exactly its capacity;
- * the admin, report and sign-in checks use it. Nothing leaves the
- * machine. */
+ * the admin, report and sign-in checks use it. GitHub is a stand-in behind
+ * fetch. Nothing leaves the machine. */
 
 import assert from 'node:assert/strict';
+import { generateKeyPairSync } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import { join } from 'node:path';
 
 interface Account {
   id: string;
@@ -109,7 +115,15 @@ const PROFILED: Account = {
     },
   },
 };
-const ACCOUNTS = [A, B, LISTED_UNCONFIRMED, LISTED_CONFIRMED, ROLE_ADMIN, EMAIL, SLOW, HANDLES_DOWN, SLOW_ERASURE, PROFILED, ...JWT_ACCOUNTS];
+// The accounts the op sweeps take turns with, so no one account's per-person
+// buckets run out across some hundred requests.
+const SWEEPERS: Account[] = Array.from({ length: 12 }, (_, n) => ({
+  id: `1a2b3c4d-0000-4000-8000-0000000002${String(n).padStart(2, '0')}`,
+  token: `sweeper-${n}`,
+  email: `sweeper-${n}@example.invalid`,
+  confirmed: true,
+}));
+const ACCOUNTS = [A, B, LISTED_UNCONFIRMED, LISTED_CONFIRMED, ROLE_ADMIN, EMAIL, SLOW, HANDLES_DOWN, SLOW_ERASURE, PROFILED, ...JWT_ACCOUNTS, ...SWEEPERS];
 /** Tokens the stand-in now refuses (a session ended elsewhere), and tokens
  * for which it answers 500, as Supabase Auth does when it is down. */
 const revokedTokens = new Set<string>();
@@ -207,6 +221,27 @@ function upstashAnswer(command: unknown[]): unknown {
 // A Challenge run saved with this score finds the run already on the board
 // with another one.
 const CONFLICTING_CHALLENGE_SCORE = 2;
+/** How PostgREST answers every table and routine: as stored, or with a raw
+ * Postgres error (500, the marker text below). The marker holds no "does
+ * not exist" or "schema cache", so no migration-missing branch takes it. */
+let dbMode: 'ok' | 'poisoned' = 'ok';
+const POISON = { code: 'XX000', message: 'pg-raw-marker relation "secret" PGRST999', details: 'pg-raw-marker detail', hint: null };
+// Any echo of the poisoned answer: its message or details, a PostgREST code,
+// or its Postgres code. (The word "relation" alone is in the question bank.)
+const RAW_DATABASE_TEXT = /pg-raw-marker|PGRST|"XX000"/;
+// A stand-in GitHub (fetch to github.com and api.github.com never leaves the
+// machine): one user who owns one installation with no repositories.
+const GITHUB_OWNER = { id: 7_001, login: 'verified-caller-owner' };
+const GITHUB_INSTALLATION = 555_001;
+function githubAnswer(url: URL): unknown {
+  if (url.href === 'https://github.com/login/oauth/access_token') return { access_token: 'ghu_verified_caller' };
+  if (url.pathname === '/user/installations') return { installations: [{ id: GITHUB_INSTALLATION }] };
+  if (url.pathname === '/user') return { id: GITHUB_OWNER.id };
+  if (url.pathname === `/app/installations/${GITHUB_INSTALLATION}`) return { id: GITHUB_INSTALLATION, account: { ...GITHUB_OWNER, type: 'User' }, repository_selection: 'all' };
+  if (url.pathname === `/app/installations/${GITHUB_INSTALLATION}/access_tokens`) return { token: 'ghs_verified_caller', expires_at: new Date(Date.now() + 3_600_000).toISOString() };
+  if (url.pathname === '/installation/repositories') return { repositories: [] };
+  return null;
+}
 
 const readBody = (req: IncomingMessage) => new Promise<string>((resolve) => {
   let text = '';
@@ -222,6 +257,12 @@ async function listen(server: Server): Promise<number> {
 async function startStandIns() {
   const supabase = createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://stand-in');
+    if (dbMode === 'poisoned' && url.pathname.startsWith('/rest/v1/')) {
+      res.statusCode = 500;
+      res.setHeader('content-type', 'application/json');
+      res.end(JSON.stringify(POISON));
+      return;
+    }
     if(url.pathname==='/rest/v1/user_stats'&&req.method==='GET'&&req.headers.apikey==='anon-verified-caller') {
       res.setHeader('content-type','application/json');res.statusCode=403;
       res.end(JSON.stringify({code:'42501',message:'permission denied for table user_stats'}));return;
@@ -311,6 +352,13 @@ async function startStandIns() {
     if (url.pathname === '/rest/v1/auth_events' && req.method === 'GET' && authEventsRead === 'missing') return send(404, { code: 'PGRST205', message: "Could not find the table 'public.auth_events' in the schema cache" });
     const filters = Object.fromEntries([...url.searchParams.entries()].filter(([, value]) => value.startsWith('eq.')).map(([key, value]) => [key, value.slice(3)]));
     seen.push({ method: req.method ?? 'GET', path: url.pathname, filters, body });
+    // The admin API reading one account (a learning preference), recorded
+    // above so a check can count it.
+    if (adminUser && req.method === 'GET') {
+      const account = ACCOUNTS.find((one) => one.id === adminUser[1]);
+      if (!account) return send(404, { code: 'user_not_found', message: 'User not found' });
+      return send(200, { id: account.id, aud: 'authenticated', email: account.email, app_metadata: account.appMetadata ?? {}, user_metadata: account.userMetadata ?? {} });
+    }
     if (url.pathname === '/rest/v1/concept_reviews' && filters.user_id === A.id) {
       if (reviewStorageDown) return send(503, { code: '08006', message: 'stand-in: concept review connection unavailable' });
       if (reviewRows) return send(200, reviewRows);
@@ -400,17 +448,26 @@ async function startStandIns() {
   process.env.UPSTASH_REDIS_REST_URL = `http://127.0.0.1:${upstashPort}`;
   process.env.UPSTASH_REDIS_REST_TOKEN = 'upstash-verified-caller';
   process.env.ADMIN_EMAILS = ADMIN_EMAIL;
-  // The garden reads its settings when asked, not on import.
+  // The garden reads its settings when asked, not on import. The app key
+  // signs the app JWT the stand-in GitHub takes without checking.
+  const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
   Object.assign(process.env, {
     GITHUB_APP_ID: '424242',
     GITHUB_APP_SLUG: 'devshark-verified-caller',
-    GITHUB_APP_PRIVATE_KEY: 'unused-by-these-checks',
+    GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: 'pkcs1', format: 'pem' }).toString(),
     GITHUB_APP_CLIENT_ID: 'Iv1.verified-caller',
     GITHUB_APP_CLIENT_SECRET: 'verified-caller-secret',
   });
   for (const key of ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY', 'NODE_ENV', 'VERCEL_ENV', 'VERCEL', 'DEV_PASSWORD', 'ALLOW_LEGACY_DEV_PASSWORD', 'OWNER_EMAIL', 'STRIPE_SECRET_KEY']) {
     delete process.env[key];
   }
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
+    const url = new URL(input instanceof Request ? input.url : String(input));
+    if (url.hostname !== 'github.com' && url.hostname !== 'api.github.com') return realFetch(input, init);
+    const body = githubAnswer(url);
+    return new Response(JSON.stringify(body ?? { message: 'Not Found' }), { status: body ? 200 : 404, headers: { 'content-type': 'application/json' } });
+  }) as typeof fetch;
   return [supabase, upstash];
 }
 
@@ -455,6 +512,7 @@ async function main() {
       questionsStore,
       { default: adminOps },
       { default: daily },
+      { default: play },
     ] = await Promise.all([
       import('../api/user/[op]'),
       import('../api/quiz/roadmap'),
@@ -473,6 +531,7 @@ async function main() {
       import('../lib/questions-store'),
       import('../api/admin/[op]'),
       import('../api/quiz/daily'),
+      import('../api/play/[action]'),
     ]);
 
     type Handler = (req: never, res: never) => unknown;
@@ -1649,6 +1708,185 @@ async function main() {
       untimedQuizAttempt = undefined;
     }
     console.log('PASS verified caller: standard quiz has no gameplay countdown and its sealed session remains bounded');
+
+    // ── every op against a database that fails or hangs (#638) ──────────
+    // Sealed sessions and tokens first, while the database still answers, so
+    // the ops that take one reach their database calls below.
+    const sweeper = (n: number) => SWEEPERS[n % SWEEPERS.length];
+    const learnLevel = await call(roadmap as Handler, { account: SWEEPERS[0], query: { topic: 'javascript', level: '1' } });
+    assert.equal(learnLevel.statusCode, 200, JSON.stringify(learnLevel.body));
+    const learnSession = (learnLevel.body as { sessionId: string; questions: { id: string }[] });
+    const codingOpen = await call(roadmap as Handler, { account: A, query: { resource: 'coding-task', id: codingTask.id } });
+    assert.equal(codingOpen.statusCode, 200, JSON.stringify(codingOpen.body));
+    const codingSession = (codingOpen.body as { session: string }).session;
+    const placementOpen = await call(roadmap as Handler, { query: { resource: 'placement', subject: 'webdev' } });
+    assert.equal(placementOpen.statusCode, 200, JSON.stringify(placementOpen.body));
+    const placementRound = placementOpen.body as { placementToken: string; questions: { id: string }[] };
+    const sweepRun = tokens.createChallengeRun(true, 'webdev', { topics: ['javascript'], allTopics: false, userId: null });
+    const sweepProofs = ['a', 'b', 'c'].map((id) => tokens.encodeScoreProof(sweepRun.runId, id, 'webdev', false));
+    const quizSession = tokens.encodeSession([{ questionId: 'q-sweep-1', correctAnswer: 0 }], { subject: 'webdev' });
+    const ROOM = 'ABC123';
+    type Sweep = [label: string, send: () => Promise<Response>];
+    const everyOp = (): Sweep[] => {
+      let n = 0;
+      const next = () => sweeper(n++);
+      const op = (name: string, method = 'GET', body?: unknown, query: Record<string, string> = {}, account?: Account): Sweep =>
+        [`user ${method} ${name}`, () => user(name, { method, account: account ?? next(), body, query })];
+      const route = (label: string, handler: Handler, input: Parameters<typeof call>[1]): Sweep => [label, () => call(handler, input)];
+      const adminOp = (name: string, method = 'GET', body?: unknown): Sweep =>
+        [`admin ${method} ${name}`, () => call(adminOps as Handler, { method, account: ROLE_ADMIN, body, query: { op: name } })];
+      const playAction = (action: string, method: 'GET' | 'POST', input: Row): Sweep =>
+        [`play ${method} ${action}`, () => call(play as Handler, { method, account: next(), query: { action, ...(method === 'GET' ? input as Record<string, string> : {}) }, body: method === 'POST' ? input : undefined })];
+      return [
+        route('health', health as Handler, {}),
+        route('settings', settings as Handler, {}),
+        ...['global', '30d', '7d', 'daily'].map((period) => route(`leaderboard ${period}`, leaderboard as Handler, { account: next(), query: { period } })),
+        route('leaderboard month', leaderboard as Handler, { account: next(), query: { period: 'month', me: '1' } }),
+        route('leaderboard category', leaderboard as Handler, { query: { period: 'category', category: 'javascript' } }),
+        route('Shark Cards GET', flashcards as Handler, { account: next(), query: { subject: 'webdev' } }),
+        route('Shark Cards POST', flashcards as Handler, { method: 'POST', account: next(), body: cardBody }),
+        route('Shark Cards DELETE', flashcards as Handler, { method: 'DELETE', account: next(), query: { subject: 'webdev', question_id: cardBody.question_id } }),
+        route('Challenge batch', challenge as Handler, { account: next(), query: { categories: 'javascript' } }),
+        route('Challenge assessment', challenge as Handler, { account: next(), query: { resource: 'assessment', categories: 'javascript' } }),
+        route('Challenge board', challenge as Handler, { query: { resource: 'leaderboard', nonce: `sweep-${dbMode}` } }),
+        route('Challenge complete', challenge as Handler, { method: 'POST', account: next(), query: { resource: 'complete' }, body: { runToken: sweepRun.runToken, proofs: [...sweepProofs, tokens.encodeScoreProof(sweepRun.runId, 'right', 'webdev', true)] } }),
+        route('daily', daily as Handler, { account: next() }),
+        route('question of the day', daily as Handler, { query: { qotd: 'today' } }),
+        route('quiz', questions as Handler, { account: next(), query: { count: '2', categories: 'javascript' } }),
+        route('due list', questions as Handler, { account: next(), query: { resource: 'due', categories: 'javascript' } }),
+        route('review', questions as Handler, { account: next(), query: { resource: 'review', count: '2', categories: 'javascript' } }),
+        route('curation', questions as Handler, { query: { resource: 'curation' } }),
+        route('quiz grade', submit as Handler, { method: 'POST', account: next(), body: { sessionId: quizSession, answers: { 'q-sweep-1': 0 } } }),
+        route('question report', submit as Handler, { method: 'POST', account: next(), query: { resource: 'report' }, body: { question_id: 'q-sweep-1', reason: 'typo' } }),
+        route('Learn map', roadmap as Handler, { query: { nonce: 'sweep' } }),
+        route('Learn level', roadmap as Handler, { account: next(), query: { topic: 'javascript', level: '1' } }),
+        route('Learn part test', roadmap as Handler, { account: next(), query: { topic: 'javascript', test: '1' } }),
+        route('Learn checkpoint', roadmap as Handler, { account: next(), query: { topic: 'javascript', checkpoint: '1' } }),
+        route('Learn answer', roadmap as Handler, { method: 'POST', account: SWEEPERS[0], query: { resource: 'answer' }, body: { sessionId: learnSession.sessionId, questionId: learnSession.questions[0].id, selectedIndex: 0 } }),
+        route('Learn complete', roadmap as Handler, { method: 'POST', account: SWEEPERS[0], query: { resource: 'complete' }, body: { sessionId: learnSession.sessionId } }),
+        route('Learn attempt status', roadmap as Handler, { method: 'POST', account: SWEEPERS[0], query: { resource: 'attempt-status' }, body: { sessionId: learnSession.sessionId } }),
+        route('Learn skill check', roadmap as Handler, { method: 'POST', account: next(), query: { resource: 'skill-check' }, body: { resultReceipt: 'not-a-receipt' } }),
+        route('Learn plan', roadmap as Handler, { account: next(), query: { resource: 'eligibility' } }),
+        route('Learn progress', roadmap as Handler, { account: next(), query: { resource: 'progress' } }),
+        route('lesson', roadmap as Handler, { query: { resource: 'lesson', topic: 'javascript', level: '1' } }),
+        route('placement start', roadmap as Handler, { account: next(), query: { resource: 'placement', subject: 'webdev' } }),
+        route('placement round', roadmap as Handler, { method: 'POST', query: { resource: 'placement' }, body: { placementToken: placementRound.placementToken, answers: Object.fromEntries(placementRound.questions.map((q) => [q.id, 0])) } }),
+        route('coding task', roadmap as Handler, { account: A, query: { resource: 'coding-task', id: codingTask.id } }),
+        route('coding brief', roadmap as Handler, { query: { resource: 'coding-brief', id: codingTask.id } }),
+        route('coding state', roadmap as Handler, { account: A, query: { resource: 'coding-state', id: codingTask.id } }),
+        route('coding approaches', roadmap as Handler, { account: A, query: { resource: 'coding-approaches', id: codingTask.id } }),
+        route('coding submit', roadmap as Handler, { method: 'POST', account: A, query: { resource: 'coding-submit' }, body: { session: codingSession, code: 'const sweep = 1;' } }),
+        route('coding reveal', roadmap as Handler, { method: 'POST', account: A, query: { resource: 'coding-reveal' }, body: { session: codingSession } }),
+        route('coding reset', roadmap as Handler, { method: 'POST', account: A, query: { resource: 'coding-reset' }, body: { session: codingSession } }),
+        route('learning-path catalogue', roadmap as Handler, { query: { resource: 'learning-path-catalog' } }),
+        route('learning-path start', roadmap as Handler, { method: 'POST', account: next(), query: { resource: 'learning-path-start' }, body: { enrollmentId: 'sweep-enrollment', activityId: 'sweep-activity' } }),
+        playAction('create', 'POST', { mode: 'multiplayer', count: 5, categories: ['javascript'], duration_s: 30 }),
+        playAction('join', 'POST', { code: ROOM }),
+        playAction('state', 'GET', { code: ROOM }),
+        playAction('control', 'POST', { code: ROOM, action: 'start' }),
+        playAction('answer', 'POST', { code: ROOM, question_idx: 0, selected_idx: 0 }),
+        playAction('distribution', 'GET', { code: ROOM, q: '0' }),
+        playAction('heartbeat', 'POST', { code: ROOM }),
+        ...['users', 'emails', 'questions', 'reports', 'logs', 'settings', 'quality', 'learning-paths', 'entitlements', 'vouchers'].map((name) => adminOp(name)),
+        adminOp('save', 'POST', question),
+        adminOp('delete', 'POST', { id: 'rm-js-1' }),
+        adminOp('reset', 'POST', { id: 'rm-js-1' }),
+        adminOp('bulkhide', 'POST', { maxImportance: 1 }),
+        adminOp('reports', 'POST', { id: '5d6a8a4e-1f59-4d6a-9f56-0f7b6c1e2a3b' }),
+        adminOp('settings', 'POST', { settings: { devTips: ['sweep'] } }),
+        adminOp('entitlements', 'POST', { action: 'grant', userId: SWEEPERS[1].id, validUntil: null, note: 'sweep' }),
+        adminOp('vouchers', 'POST', { action: 'create', note: 'sweep', premiumDays: 30, maxRedemptions: 1 }),
+        ...['stats', 'leaderboard-visibility', 'leaderboard-name', 'identity', 'streak', 'xp', 'cards', 'freezes',
+          'coding-progress', 'coding-bookmarks', 'practice-session', 'wallet', 'referral', 'shop', 'orders', 'learning-preference',
+          'learning-path-enrollment', 'learning-path-reward', 'entitlement', 'github-connection', 'friends-handle', 'friends-list'].map((name) => op(name)),
+        op('badges', 'GET', undefined, { subject: 'webdev' }),
+        op('advisor', 'GET', undefined, { subject: 'webdev' }),
+        op('category-stats', 'POST', {}),
+        op('coding-draft', 'GET', undefined, { id: codingTask.id }),
+        op('learning-path-progress', 'GET', undefined, { enrollmentId: 'sweep-enrollment' }),
+        op('learning-path-draft', 'GET', undefined, { enrollmentId: 'sweep-enrollment', activityId: 'sweep-activity' }),
+        op('friends-lookup', 'GET', undefined, { handle: 'shark_fan' }),
+        op('fulfilment', 'GET', undefined, {}, ROLE_ADMIN),
+        op('stats', 'POST', {}),
+        op('leaderboard-visibility', 'PUT', { visible: true }),
+        op('leaderboard-name', 'PUT', { mode: 'nickname' }),
+        op('identity', 'PUT', { showRealName: true }),
+        op('streak', 'PUT', {}),
+        op('xp', 'PUT', {}),
+        op('authevent', 'POST', {}),
+        op('delete-account', 'DELETE', { confirmation: 'DELETE' }),
+        op('coding-draft', 'POST', { id: codingTask.id, code: 'const draft = 1;' }),
+        op('coding-bookmarks', 'PUT', { op: 'save', taskId: codingTask.id, saved: false }),
+        op('coding-skip', 'POST', { taskId: codingTask.id, reason: 'later' }),
+        op('practice-session', 'POST', { action: 'start', count: 5 }),
+        op('referral', 'POST', { code: 'ab234567' }),
+        op('orders', 'POST', { items: [{ sku: 'mug', quantity: 1 }] }),
+        op('cosmetic', 'POST', { id: 'crown', op: 'equip', subject: 'webdev' }),
+        op('protection', 'POST', { action: 'buy' }),
+        op('payment-webhook', 'POST', { event: 'payment', orderId: 'order-0123456789abcdef' }),
+        op('fulfilment', 'POST', { op: 'stock', sku: 'mug', variant: '', onHand: 3 }, {}, ROLE_ADMIN),
+        op('learning-preference', 'PUT', { schemaVersion: 1, baseTrack: 'frontend', specialization: null }),
+        op('learning-path-enrollment', 'POST', { action: 'enroll', pathId: 'fde', curriculumVersion: 1 }),
+        op('learning-path-draft', 'PUT', { enrollmentId: 'sweep-enrollment', activityId: 'sweep-activity', expectedRevision: 0, content: { code: 'x' } }),
+        op('voucher', 'POST', { code: 'SHARKCAMP2026' }),
+        op('billing-checkout', 'POST', {}),
+        op('billing-portal', 'POST', {}),
+        op('billing-webhook', 'POST', {}),
+        op('billing-cancel', 'POST', {}),
+        op('github-connect-start', 'POST', {}),
+        ((account): Sweep => ['user POST github-connect-finish', () => user('github-connect-finish', { method: 'POST', account,
+          body: { installationId: GITHUB_INSTALLATION, state: tokens.encodeGithubConnectState(account.id), code: 'sweep-code' } })])(next()),
+        op('github-repo', 'POST', { repoFullName: `${GITHUB_OWNER.login}/garden` }),
+        op('github-sync', 'POST', {}),
+        op('github-disconnect', 'POST', {}),
+        op('friends-handle', 'PUT', { base: 'sleepySharkie' }),
+        op('friends-request', 'POST', { handle: 'shark_fan' }),
+        op('friends-respond', 'POST', { handle: 'shark_fan', accept: true }),
+        op('friends-remove', 'POST', { handle: 'shark_fan' }),
+      ];
+    };
+    const leaked = (res: Response) => RAW_DATABASE_TEXT.test(JSON.stringify(res.body ?? null));
+    // Every op of the twelve handlers, its database answering every table and
+    // routine with a raw Postgres error: no answer carries that error's
+    // message, details or code, whatever status it chose.
+    const poisonedSweep: [string, Response][] = [];
+    dbMode = 'poisoned';
+    try {
+      for (const [label, send] of everyOp()) poisonedSweep.push([label, await send()]);
+    } finally {
+      dbMode = 'ok';
+    }
+    for (const [label, res] of poisonedSweep) {
+      assert.ok(!leaked(res), `${label} answers with raw database text (${res.statusCode} ${JSON.stringify(res.body).slice(0, 300)})`);
+    }
+    // Every op the routers dispatch is in the sweep, read from their source,
+    // so an op added later cannot be left out of it.
+    {
+      const source = (file: string) => readFileSync(join(process.cwd(), file), 'utf8');
+      const names = (file: string, pattern: RegExp) => [...source(file).matchAll(pattern)].map((match) => match[1]);
+      const routed: [string, string[]][] = [
+        ['user', [
+          ...names('api/user/[op].ts', /if \(op === '([a-z-]+)'\) return/g),
+          ...names('lib/github-handlers.ts', /op === '(github-[a-z-]+)'/g),
+          ...names('lib/friends-handlers.ts', /op === '(friends-[a-z-]+)'/g),
+        ]],
+        ['admin', names('api/admin/[op].ts', /case '([a-z-]+)':/g)],
+        ['play', names('api/play/[action].ts', /case '([a-z]+)':\s+return [a-z]+\(req, res\)/g)],
+      ];
+      const labels = poisonedSweep.map(([label]) => label);
+      for (const [family, ops] of routed) {
+        assert.ok(ops.length > 5, `${family} ops were read from the source`);
+        for (const name of new Set(ops)) {
+          assert.ok(labels.some((label) => label.startsWith(`${family} `) && label.endsWith(` ${name}`)), `the sweep calls ${family} op ${name}`);
+        }
+      }
+    }
+    // An account's plan the database cannot read is unknown, not free: 503
+    // entitlement_unavailable, never the 402 upgrade sheet.
+    const unreadablePlan = poisonedSweep.find(([label]) => label === 'user GET entitlement')![1];
+    assert.deepEqual([unreadablePlan.statusCode, errorCode(unreadablePlan)], [503, 'entitlement_unavailable'], 'an unreadable plan answers 503 entitlement_unavailable');
+    console.log(`PASS verified caller: ${poisonedSweep.length} requests over every op of the twelve handlers answer a raw Postgres error without its text, and an unreadable plan answers 503`);
+
 
     console.log('Verified-caller contracts passed: a token acts for its own account whatever user_id says, admin by confirmed address or role, private caching by default, read limits, and one-time claims that fail closed.');
   } finally {
