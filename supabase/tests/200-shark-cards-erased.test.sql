@@ -1,8 +1,8 @@
 -- Shark Cards (owner decision 12, 1 October 2026). A Shark Card is now a
 -- saved question (public.flashcards), and the collectible card packs are
--- retired: nothing calls grant_daily_queue_cards any more, but the user_cards
--- table and its rows stay. Deleting an account still erases both, and only
--- that account's rows.
+-- retired: migration 078 dropped grant_daily_queue_cards, the routine that
+-- granted them, but the user_cards table and its rows stay. Deleting an
+-- account still erases both, and only that account's rows.
 
 INSERT INTO auth.users (id) VALUES
   ('cccccccc-0000-4000-8000-000000000200'),

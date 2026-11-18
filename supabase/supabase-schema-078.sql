@@ -20,6 +20,12 @@
 --    stopped paying (design audit P0.3). Production has no
 --    credit_social_visit (read on 18 November 2026), so IF EXISTS makes that
 --    drop a no-op there.
+-- 3. grant_daily_queue_cards (047), the routine of the collectible card
+--    packs that owner decision 12 retired (1 October 2026). api/user/[op].ts
+--    answers op=cards with 410, and scripts/product-cleanup-contracts.ts
+--    fails if api, lib, shared or client/src call it again. The user_cards
+--    and daily_queue_completions rows stay, and delete_user_data still
+--    erases them.
 --
 -- Revert, per group:
 -- 1. Run the CREATE OR REPLACE FUNCTION block of each routine again
@@ -30,6 +36,8 @@
 -- 2. Run the CREATE OR REPLACE FUNCTION, REVOKE and GRANT statements of
 --    record_verified_quiz_result from 021, delete_learning_path_data from 026
 --    section 8 and credit_social_visit from 041 again.
+-- 3. Run the CREATE OR REPLACE FUNCTION, REVOKE and GRANT statements of
+--    grant_daily_queue_cards from 047 section 7 again.
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 SET LOCAL statement_timeout = '30s';
@@ -45,7 +53,8 @@ DO $$
 DECLARE
   v_names   CONSTANT TEXT[] := ARRAY[
     'global_leaderboard', 'daily_leaderboard', 'record_quiz_result', 'record_category_stats',  -- 1
-    'record_verified_quiz_result', 'delete_learning_path_data', 'credit_social_visit'           -- 2
+    'record_verified_quiz_result', 'delete_learning_path_data', 'credit_social_visit',          -- 2
+    'grant_daily_queue_cards'                                                                   -- 3
   ];
   v_pattern CONSTANT TEXT := '\m(' || array_to_string(v_names, '|') || ')\M';
   v_callers TEXT;
@@ -83,5 +92,10 @@ DROP FUNCTION IF EXISTS public.record_category_stats(TEXT, JSONB);            --
 DROP FUNCTION IF EXISTS public.record_verified_quiz_result(TEXT, TEXT, INTEGER, INTEGER, JSONB, TEXT, TEXT, TEXT);  -- 021
 DROP FUNCTION IF EXISTS public.delete_learning_path_data(TEXT, TEXT);                                              -- 026
 DROP FUNCTION IF EXISTS public.credit_social_visit(TEXT, TEXT, TEXT, INTEGER);                                     -- 041
+
+-- ---------------------------------------------------------------------------
+-- 3. The card pack grant. Its tables and their rows stay.
+-- ---------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.grant_daily_queue_cards(TEXT, TEXT, DATE, JSONB);  -- 047
 
 COMMIT;
