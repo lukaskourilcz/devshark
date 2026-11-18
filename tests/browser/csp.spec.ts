@@ -1,4 +1,4 @@
-import { test, expect, type ConsoleMessage, type Page } from '@playwright/test';
+import { test, expect, type ConsoleMessage, type Page } from './console-clean';
 import { readFileSync } from 'node:fs';
 import { CODING_TASKS, playable } from '../../lib/coding/catalog';
 import { solutionFor } from '../../lib/coding/solutions';
