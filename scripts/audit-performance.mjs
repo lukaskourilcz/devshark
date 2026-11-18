@@ -56,29 +56,44 @@ export function resolveOptions(args) {
  return { url, output: args.output ?? DEFAULTS.output, pages };
 }
 
-export function main({ output, pages }) {
+// One Lighthouse run of url on a profile. Lighthouse writes
+// <prefix>.report.json and <prefix>.report.html; the exit status comes back.
+export function runLighthouse(url, profile, prefix) {
  // CI installs Chromium through Playwright; an explicit Chrome path still wins.
- process.env.CHROME_PATH ||= chromium.executablePath();
+ const env = { ...process.env, CHROME_PATH: process.env.CHROME_PATH || chromium.executablePath() };
+ const run = spawnSync(process.execPath, ['node_modules/lighthouse/cli/index.js', url,
+  '--chrome-flags=--headless --no-sandbox --disable-dev-shm-usage', '--output=json', '--output=html', `--output-path=${prefix}`,
+  '--only-categories=performance,accessibility,best-practices,seo', ...(profile === 'desktop' ? ['--preset=desktop'] : []), '--quiet'], { stdio: 'inherit', env });
+ return run.status;
+}
+
+// The summary row of one finished report.
+export function reportRow(lhr) {
+ return { finalUrl: lhr.finalDisplayedUrl, fetchTime: lhr.fetchTime,
+  lighthouseVersion: lhr.lighthouseVersion, scores: Object.fromEntries(Object.entries(lhr.categories).map(([key, value]) => [key, value.score])),
+  lcpMs: lhr.audits['largest-contentful-paint'].numericValue, cls: lhr.audits['cumulative-layout-shift'].numericValue,
+  tbtMs: lhr.audits['total-blocking-time'].numericValue, transferredBytes: lhr.audits['total-byte-weight'].numericValue,
+  warnings: lhr.runWarnings,
+ };
+}
+
+// Audits every page on both profiles and writes summary.json. lighthouse
+// runs one audit; the tests pass a stand-in that writes canned reports.
+export function main({ output, pages }, { lighthouse = runLighthouse } = {}) {
  mkdirSync(output, { recursive: true });
  const results = [];
  for (const { route, url, slug } of pages) for (const profile of PROFILES) {
   const prefix = path.join(output, slug ? `${profile}-${slug}` : profile);
-  const run = spawnSync(process.execPath, ['node_modules/lighthouse/cli/index.js', url,
-   '--chrome-flags=--headless --no-sandbox --disable-dev-shm-usage', '--output=json', '--output=html', `--output-path=${prefix}`,
-   '--only-categories=performance,accessibility,best-practices,seo', ...(profile === 'desktop' ? ['--preset=desktop'] : []), '--quiet'], { stdio: 'inherit', env: process.env });
-  if (run.status !== 0) process.exit(run.status || 1);
+  const status = lighthouse(url, profile, prefix);
+  if (status !== 0) process.exit(status || 1);
   const lhr = JSON.parse(readFileSync(`${prefix}.report.json`, 'utf8'));
   if (lhr.runtimeError) throw new Error(lhr.runtimeError.message);
-  results.push({ profile, route, requestedUrl: url, finalUrl: lhr.finalDisplayedUrl, fetchTime: lhr.fetchTime,
-   lighthouseVersion: lhr.lighthouseVersion, scores: Object.fromEntries(Object.entries(lhr.categories).map(([key, value]) => [key, value.score])),
-   lcpMs: lhr.audits['largest-contentful-paint'].numericValue, cls: lhr.audits['cumulative-layout-shift'].numericValue,
-   tbtMs: lhr.audits['total-blocking-time'].numericValue, transferredBytes: lhr.audits['total-byte-weight'].numericValue,
-   warnings: lhr.runWarnings,
-  });
+  results.push({ profile, route, requestedUrl: url, ...reportRow(lhr) });
  }
  writeFileSync(path.join(output, 'summary.json'), JSON.stringify(results, null, 2) + '\n');
  console.table(results.map(({ profile, route, scores, lcpMs, cls, tbtMs }) => ({ profile, route, ...scores, lcpMs, cls, tbtMs })));
  console.log('Lab results, not field Core Web Vitals; compare the same URL, build settings and test machine.');
+ return results;
 }
 
 function invokedDirectly() {
