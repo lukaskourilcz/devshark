@@ -12,12 +12,24 @@
 --    browser roles, and 023 kept the leaderboards "for rollback
 --    compatibility". api/leaderboard.ts calls daily_leaderboard_v2 and answers
 --    503 when it is missing, with no fallback to the first version.
+-- 2. Three service-role routines their callers retired:
+--    record_verified_quiz_result (021), which api/user/[op].ts replaced with
+--    _v3 and its _v2 fallback; delete_learning_path_data (026), which no
+--    handler ever called; and credit_social_visit (041), which
+--    lib/rewards/coins.ts stopped calling when opening a social profile
+--    stopped paying (design audit P0.3). Production has no
+--    credit_social_visit (read on 18 November 2026), so IF EXISTS makes that
+--    drop a no-op there.
 --
--- Revert: run the CREATE OR REPLACE FUNCTION block of each routine again
--- (record_quiz_result from 002, global_leaderboard and daily_leaderboard from
--- 004, record_category_stats from 005) without the GRANT that follows it, then
--- REVOKE ALL ... FROM PUBLIC, anon, authenticated and GRANT EXECUTE ... TO
--- service_role on each, as 007 and 023 did.
+-- Revert, per group:
+-- 1. Run the CREATE OR REPLACE FUNCTION block of each routine again
+--    (record_quiz_result from 002, global_leaderboard and daily_leaderboard
+--    from 004, record_category_stats from 005) without the GRANT that follows
+--    it, then REVOKE ALL ... FROM PUBLIC, anon, authenticated and GRANT
+--    EXECUTE ... TO service_role on each, as 007 and 023 did.
+-- 2. Run the CREATE OR REPLACE FUNCTION, REVOKE and GRANT statements of
+--    record_verified_quiz_result from 021, delete_learning_path_data from 026
+--    section 8 and credit_social_visit from 041 again.
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 SET LOCAL statement_timeout = '30s';
@@ -32,7 +44,8 @@ SET LOCAL statement_timeout = '30s';
 DO $$
 DECLARE
   v_names   CONSTANT TEXT[] := ARRAY[
-    'global_leaderboard', 'daily_leaderboard', 'record_quiz_result', 'record_category_stats'  -- 1
+    'global_leaderboard', 'daily_leaderboard', 'record_quiz_result', 'record_category_stats',  -- 1
+    'record_verified_quiz_result', 'delete_learning_path_data', 'credit_social_visit'           -- 2
   ];
   v_pattern CONSTANT TEXT := '\m(' || array_to_string(v_names, '|') || ')\M';
   v_callers TEXT;
@@ -63,5 +76,12 @@ DROP FUNCTION IF EXISTS public.global_leaderboard(INTEGER);                   --
 DROP FUNCTION IF EXISTS public.daily_leaderboard(DATE, INTEGER);              -- 004
 DROP FUNCTION IF EXISTS public.record_quiz_result(TEXT, INTEGER, INTEGER);    -- 002
 DROP FUNCTION IF EXISTS public.record_category_stats(TEXT, JSONB);            -- 005
+
+-- ---------------------------------------------------------------------------
+-- 2. The retired service routines. The _v2 and _v3 quiz writers stay.
+-- ---------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.record_verified_quiz_result(TEXT, TEXT, INTEGER, INTEGER, JSONB, TEXT, TEXT, TEXT);  -- 021
+DROP FUNCTION IF EXISTS public.delete_learning_path_data(TEXT, TEXT);                                              -- 026
+DROP FUNCTION IF EXISTS public.credit_social_visit(TEXT, TEXT, TEXT, INTEGER);                                     -- 041
 
 COMMIT;
