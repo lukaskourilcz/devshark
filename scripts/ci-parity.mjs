@@ -235,8 +235,8 @@ const BUILD_ENV = {
 const npmRun = (script, extra = '') => `npm run ${script}${extra ? ` ${extra}` : ''}`;
 const step = (id, command, more = {}) => ({ id, command, ci: [command], tier: 'fast', ...more });
 
-const RESPONSIVE_LIGHT = `-- --routes /,/quiz,/topics/${TOPIC},/daily,/not-found-responsive-check --widths 360,390,430,768,1024,1280,1440`;
-const RESPONSIVE_DARK = `-- --routes /,/topics/${TOPIC},/daily --widths 390,768,1280`;
+const RESPONSIVE_LIGHT = `-- --routes /,/quiz,/topics/${TOPIC},/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 360,390,430,768,820,1024,1280,1366,1440`;
+const RESPONSIVE_DARK = `-- --routes /,/quiz,/topics/${TOPIC},/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 390,820,1280`;
 const BROWSER_SPECS = [
   'public images', 'guide-startup profile-leaderboard-preferences profile-path-picker admin', 'evolving', 'coding-pages', 'coding-workbench mobile-safari',
   'coding-drafts', 'learning-release learn-sections',
@@ -272,6 +272,10 @@ const PLAN = [
     ci: [`RESPONSIVE_THEME=dark ${npmRun('check:responsive', RESPONSIVE_DARK)}`],
     needs: ['preview', 'chromium'], chrome: true, env: { RESPONSIVE_THEME: 'dark' },
   }),
+  ...[200, 400].map((zoom) => step(`check:responsive:zoom${zoom}`, npmRun('check:responsive', '-- --routes / --widths 1280'), {
+    ci: [`RESPONSIVE_ZOOM=${zoom} ${npmRun('check:responsive', '-- --routes / --widths 1280')}`],
+    needs: ['preview', 'chromium'], chrome: true, env: { RESPONSIVE_ZOOM: String(zoom) },
+  })),
   step('test:harness', npmRun('test:harness'), { tier: 'full', needs: ['build', 'chromium'], chrome: true }),
   step('audit:performance', npmRun('audit:performance'), { tier: 'full', needs: ['preview', 'chromium'], chrome: true }),
   step('build:storybook', npmRun('build:storybook'), { tier: 'full', needs: ['build'] }),

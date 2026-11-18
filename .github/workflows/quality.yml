@@ -175,8 +175,10 @@ jobs:
           npm run test:browser -- --project=chromium tests/browser/launch-offer.spec.ts
           export CHROME_BIN=$(node -e "console.log(require('@playwright/test').chromium.executablePath())")
           TOPIC=javascript-closures
-          npm run check:responsive -- --routes /,/quiz,/topics/$TOPIC,/daily,/not-found-responsive-check --widths 360,390,430,768,1024,1280,1440
-          RESPONSIVE_THEME=dark npm run check:responsive -- --routes /,/topics/$TOPIC,/daily --widths 390,768,1280
+          npm run check:responsive -- --routes /,/quiz,/topics/$TOPIC,/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 360,390,430,768,820,1024,1280,1366,1440
+          RESPONSIVE_THEME=dark npm run check:responsive -- --routes /,/quiz,/topics/$TOPIC,/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 390,820,1280
+          RESPONSIVE_ZOOM=200 npm run check:responsive -- --routes / --widths 1280
+          RESPONSIVE_ZOOM=400 npm run check:responsive -- --routes / --widths 1280
           npm run test:harness
       - if: ${{ !cancelled() && steps.build.conclusion == 'success' }}
         name: Storybook and performance

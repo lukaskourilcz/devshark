@@ -12,7 +12,7 @@
     "typecheck:api": "tsc --noEmit",
     "typecheck:scripts": "tsc -p tsconfig.scripts.json",
     "test:launch": "esbuild scripts/test-launch-contracts.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/launch-contracts.mjs --log-level=warning && node node_modules/.cache/shark/launch-contracts.mjs && esbuild scripts/test-play-rooms.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/play-rooms.mjs --log-level=warning && node node_modules/.cache/shark/play-rooms.mjs && esbuild scripts/test-verified-caller.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/verified-caller.mjs --log-level=warning && node node_modules/.cache/shark/verified-caller.mjs && npm run test:marketing",
-    "check:responsive": "node scripts/test-responsive-clearance.mjs && node scripts/check-responsive.mjs",
+    "check:responsive": "node scripts/test-responsive-matrix.mjs && node scripts/test-responsive-fixtures.mjs && node scripts/test-responsive-targets.mjs && node scripts/test-responsive-clearance.mjs && node scripts/check-responsive.mjs",
     "preview": "vercel dev --listen 3000",
     "install:all": "npm install && cd client && npm install",
     "test:coding": "esbuild scripts/test-coding-content.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/coding-content.mjs --log-level=warning && node node_modules/.cache/shark/coding-content.mjs",
