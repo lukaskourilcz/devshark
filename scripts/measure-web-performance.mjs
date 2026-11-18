@@ -45,18 +45,20 @@ export const USAGE = `Usage: node scripts/measure-web-performance.mjs --url=<ori
 export class UsageError extends Error {}
 
 // Splits --name=value at the first '=', reads a bare --name as true and
-// refuses flags the lab does not know, so a typo cannot fall back to a default.
-export function parseArgs(argv) {
+// refuses flags the tool does not know, so a typo cannot fall back to a
+// default. flags maps each name to 'value' or 'switch'; audit:performance
+// passes its own.
+export function parseArgs(argv, flags = FLAGS) {
  const args = {};
  for (const arg of argv) {
   if (!arg.startsWith('--') || arg === '--') throw new UsageError(`unexpected argument "${arg}"`);
   const equals = arg.indexOf('=');
   const name = equals === -1 ? arg.slice(2) : arg.slice(2, equals);
   const value = equals === -1 ? true : arg.slice(equals + 1);
-  if (!Object.hasOwn(FLAGS, name)) throw new UsageError(`unknown flag --${name}`);
+  if (!Object.hasOwn(flags, name)) throw new UsageError(`unknown flag --${name}`);
   if (Object.hasOwn(args, name)) throw new UsageError(`--${name} appears twice`);
-  if (FLAGS[name] === 'switch' && value !== true) throw new UsageError(`--${name} takes no value`);
-  if (FLAGS[name] === 'value' && (value === true || value === '')) throw new UsageError(`--${name} needs a value: --${name}=<value>`);
+  if (flags[name] === 'switch' && value !== true) throw new UsageError(`--${name} takes no value`);
+  if (flags[name] === 'value' && (value === true || value === '')) throw new UsageError(`--${name} needs a value: --${name}=<value>`);
   args[name] = value;
  }
  return args;
