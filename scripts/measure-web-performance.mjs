@@ -223,7 +223,9 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      const { shifts, ...measurement } = await page.evaluate(() => {
       const n = performance.getEntriesByType('navigation')[0].toJSON();
       const resources = performance.getEntriesByType('resource').map(r => ({ path: new URL(r.name).pathname, kind: r.initiatorType, start: r.startTime, duration: r.duration, ttfb: r.responseStart - r.requestStart, download: r.responseEnd - r.responseStart, transfer: r.transferSize, encoded: r.encodedBodySize, decoded: r.decodedBodySize, serverTiming: r.serverTiming.map(t => ({ name: t.name, duration: t.duration })) }));
-      return { navigation: n, lcp: window.__lab.lcp, shifts: window.__lab.takeShifts(), resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
+      // The paint timeline keeps first-contentful-paint, no observer needed.
+      const fcp = performance.getEntriesByName('first-contentful-paint', 'paint')[0]?.startTime ?? null;
+      return { navigation: n, fcp, lcp: window.__lab.lcp, shifts: window.__lab.takeShifts(), resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
      });
      measurement.navigation = navigationTimings(measurement.navigation);
      Object.assign(measurement, summarizeLayoutShifts(shifts));
@@ -251,7 +253,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      const row = { profile, path, sample, cache, elapsed: Date.now() - started, diskHits, blockedWrites, ...measurement };
      results.push(row);
      write();
-     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'LCP', Math.round(row.lcp), 'CLS', row.cls.toFixed(3), 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
+     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'FCP', row.fcp === null ? 'none' : Math.round(row.fcp), 'LCP', Math.round(row.lcp), 'CLS', row.cls.toFixed(3), 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
     }
    } catch (error) {
     if (error instanceof FatalLabError) throw error;
