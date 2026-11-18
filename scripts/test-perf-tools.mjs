@@ -107,3 +107,14 @@ test('perf:measure loads pages without reduced motion unless --reduced-motion as
   for (const profile of lab.PROFILES) assert.equal(lab.contextOptions(profile, reduced).reducedMotion, 'reduce', profile);
   assert.throws(() => parseArgs(['--reduced-motion=no']), UsageError);
 });
+
+test('perf:measure counts TTFB from navigation start and keeps the server wait beside it', () => {
+  // A navigation entry with a redirect, DNS, TCP and TLS before the request.
+  const entry = { redirectStart: 1, redirectEnd: 31, domainLookupStart: 31, domainLookupEnd: 51, connectStart: 51, secureConnectionStart: 71, connectEnd: 101, requestStart: 102, responseStart: 182, responseEnd: 230, domContentLoadedEventEnd: 640, loadEventEnd: 900 };
+  const timings = lab.navigationTimings(entry);
+  assert.equal(timings.ttfb, 182, 'web-vitals TTFB is responseStart');
+  assert.equal(timings.serverWait, 80, 'the server wait is responseStart minus requestStart');
+  assert.deepEqual([timings.redirect, timings.dns, timings.connect, timings.tls, timings.download], [30, 20, 50, 30, 48]);
+  assert.deepEqual([timings.domContentLoaded, timings.load], [640, 900]);
+  assert.equal(lab.navigationTimings({ ...entry, secureConnectionStart: 0 }).tls, 0, 'plain http has no TLS time');
+});

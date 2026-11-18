@@ -81,6 +81,14 @@ export function contextOptions(profile, { reducedMotion = false } = {}) {
  return { viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 }, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile, colorScheme: 'light', reducedMotion: reducedMotion ? 'reduce' : 'no-preference', serviceWorkers: 'block' };
 }
 
+// Timings of one navigation entry. ttfb follows web-vitals: navigation start
+// to the first response byte, so redirect, DNS, TCP and TLS count. serverWait
+// keeps the request-to-first-byte gap, which the ttfb field held before
+// 18 November 2026.
+export function navigationTimings(n) {
+ return { ttfb: n.responseStart, serverWait: n.responseStart - n.requestStart, redirect: n.redirectEnd - n.redirectStart, dns: n.domainLookupEnd - n.domainLookupStart, connect: n.connectEnd - n.connectStart, tls: n.secureConnectionStart ? n.connectEnd - n.secureConnectionStart : 0, download: n.responseEnd - n.responseStart, domContentLoaded: n.domContentLoadedEventEnd, load: n.loadEventEnd };
+}
+
 // A failure every later load would repeat; it ends the run instead of one row.
 class FatalLabError extends Error {}
 
@@ -93,7 +101,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
  if (fixture) fixture.billing = { ...fixture.billing, enabled: false, launchOffer: false };
  let browser, chrome;
  const results = [];
- const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; EventTiming is lab interaction latency, NOT field INP' }, results }, null, 2) + '\n');
+ const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', ttfbDefinition: 'responseStart (web-vitals)', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; EventTiming is lab interaction latency, NOT field INP' }, results }, null, 2) + '\n');
  try {
   for (const profile of profiles) for (const path of routes) for (let sample = 0; sample < samples; sample++) {
    // A browser that cannot start fails every sample the same way: let it end the run.
@@ -143,10 +151,11 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      await page.goto(origin + path, { waitUntil: 'load', timeout: 60000 });
      await page.waitForTimeout(profile === 'mobile' ? 3000 : 1500);
      const measurement = await page.evaluate(() => {
-      const n = performance.getEntriesByType('navigation')[0];
+      const n = performance.getEntriesByType('navigation')[0].toJSON();
       const resources = performance.getEntriesByType('resource').map(r => ({ path: new URL(r.name).pathname, kind: r.initiatorType, start: r.startTime, duration: r.duration, ttfb: r.responseStart - r.requestStart, download: r.responseEnd - r.responseStart, transfer: r.transferSize, encoded: r.encodedBodySize, decoded: r.decodedBodySize, serverTiming: r.serverTiming.map(t => ({ name: t.name, duration: t.duration })) }));
-      return { navigation: { ttfb: n.responseStart - n.requestStart, dns: n.domainLookupEnd - n.domainLookupStart, connect: n.connectEnd - n.connectStart, tls: n.secureConnectionStart ? n.connectEnd - n.secureConnectionStart : 0, download: n.responseEnd - n.responseStart, domContentLoaded: n.domContentLoadedEventEnd, load: n.loadEventEnd }, ...window.__lab, resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
+      return { navigation: n, ...window.__lab, resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
      });
+     measurement.navigation = navigationTimings(measurement.navigation);
      // Local-only appearance/menu changes; no quiz/start/submit or sign-in action.
      let pressed = null;
      for (const name of INTERACTION_CONTROLS[profile]) {
@@ -164,7 +173,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      const row = { profile, path, sample, cache, elapsed: Date.now() - started, diskHits, blockedWrites, ...measurement };
      results.push(row);
      write();
-     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'LCP', Math.round(row.lcp), 'CLS', row.cls.toFixed(3), 'cacheHits', diskHits, 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
+     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'LCP', Math.round(row.lcp), 'CLS', row.cls.toFixed(3), 'cacheHits', diskHits, 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
     }
    } catch (error) {
     if (error instanceof FatalLabError) throw error;
