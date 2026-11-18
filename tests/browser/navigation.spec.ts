@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
 
 // A navigation keeps the current page on screen until the next one can draw

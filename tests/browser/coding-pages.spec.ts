@@ -1,4 +1,4 @@
-import { test, expect, type Page, type Route } from '@playwright/test';
+import { test, expect, type Page, type Route } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
 import { CODING_TASKS, playable } from '../../lib/coding/catalog';
 import { localAuth, storeFakeSession } from './fake-session';

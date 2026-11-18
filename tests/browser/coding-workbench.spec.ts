@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './console-clean';
 import { CODING_TASKS, playable } from '../../lib/coding/catalog';
 import { solutionFor } from '../../lib/coding/solutions';
 import { suiteCaseCount } from '../../lib/coding/react-hidden';

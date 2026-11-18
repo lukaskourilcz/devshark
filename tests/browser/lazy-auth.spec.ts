@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './console-clean';
 import { fakeSession, localAuth, projectUrl, sessionKey, storeFakeSession } from './fake-session';
 
 // devShark downloads @supabase/supabase-js only for a visitor who is signed in

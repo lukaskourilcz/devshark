@@ -1,4 +1,4 @@
-import { test, expect, type Page, type Route } from '@playwright/test';
+import { test, expect, type Page, type Route } from './console-clean';
 import { CODING_TASKS, playable } from '../../lib/coding/catalog';
 import { fakeUser, sessionKey } from './fake-session';
 import { fulfilTaskRead, isTaskRead } from './coding-task-read';

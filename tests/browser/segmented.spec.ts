@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
 
 // Astryx gives an unselected segment its hover rule in place of its

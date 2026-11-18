@@ -7,7 +7,7 @@ import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
 // nothing scrolls sideways, and leaving Software Engineer saves an empty
 // section list with the profile. Path enrollment is free; individual
 // activities carry the Premium boundary beyond the taster.
-import { test, expect, type Locator, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from './console-clean';
 import { readFileSync } from 'node:fs';
 import { fakeSession, fakeUser, localAuth, sessionKey } from './fake-session';
 import { inventoryFor, pathById, publicManifest } from '../../lib/learning-paths/catalog';

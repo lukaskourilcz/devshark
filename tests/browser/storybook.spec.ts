@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
 test.skip(!process.env.STORYBOOK_URL, 'Run with STORYBOOK_URL after starting the workshop');
 // Storybook's a11y addon runs axe in the same frame after each render, and a
