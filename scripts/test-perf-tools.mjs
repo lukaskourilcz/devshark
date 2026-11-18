@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { parseArgs, resolveOptions, UsageError } from './measure-web-performance.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const measure = join(root, 'scripts/measure-web-performance.mjs');
@@ -43,3 +44,19 @@ for (const [name, flags, mention] of [
     assert.equal(existsSync(run.output), false, 'a refused run writes no lab file');
   });
 }
+
+test('perf:measure reads a bare switch as on and splits a value at its first =', () => {
+  const args = parseArgs(['--fixture', '--url=https://devshark.app/?a=b', '--samples=3', '--routes=/quiz?mode=a=b,/learn']);
+  assert.deepEqual(args, { fixture: true, url: 'https://devshark.app/?a=b', samples: '3', routes: '/quiz?mode=a=b,/learn' });
+  const options = resolveOptions(args);
+  assert.equal(options.fixture, true);
+  assert.equal(options.origin, 'https://devshark.app');
+  assert.deepEqual(options.routes, ['/quiz?mode=a=b', '/learn']);
+  assert.equal(options.samples, 3);
+});
+
+test('perf:measure refuses flags it cannot read', () => {
+  for (const argv of [['--url'], ['--fixture=1'], ['--samples=3', '--samples=4'], ['learn'], ['--routes=/,'], ['--profiles=mobile,mobile'], ['--url=ftp://example.test'], ['--routes=//example.test'], ['--samples=1e1']]) {
+    assert.throws(() => resolveOptions(parseArgs(argv)), UsageError, argv.join(' '));
+  }
+});
