@@ -1,7 +1,10 @@
 import type { VercelRequest, VercelResponse } from '../lib/vercel-types.js';
-import { createServiceClient, jsonError, logEvent, withRequestContext } from '../lib/http';
+import { jsonError, logEvent, serviceClientOrNull, withRequestContext } from '../lib/http';
+import { rateLimiterMode } from '../lib/rate-limit';
 
-const service = createServiceClient();
+// Null without Supabase, or in production without a usable service-role key:
+// the probe then answers 503 instead of failing to load as the handlers do.
+const service = serviceClientOrNull();
 
 type DependencyStatus = 'ok' | 'down' | 'unconfigured';
 
@@ -47,7 +50,13 @@ function checkDependencies(): Promise<[DependencyStatus, DependencyStatus]> {
  * GET /api/health
  *
  * Liveness + readiness probe. Returns:
- *   { ok, supabase: 'ok' | 'down' | 'unconfigured', ts: ISO }
+ *   { ok, status, dependencies: { database, serviceRole, rateLimiter }, ts: ISO }
+ *
+ * `rateLimiter` is the limiter's live mode (lib/rate-limit.ts
+ * `rateLimiterMode`): `configured` when Upstash answers a PING,
+ * `memory-fallback` when it is configured and does not, and
+ * `in-memory-fallback` without Upstash. It does not change the status code,
+ * which stays the database checks'.
  *
  * Status code reflects readiness so a plain uptime monitor (UptimeRobot,
  * Better Stack) alerts without body parsing:
@@ -67,7 +76,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   // Private learning tables intentionally grant nothing to anonymous callers.
   // Readiness checks run on the server's authorized connection too; requiring
   // an anonymous SELECT would report a healthy, private database as down.
-  const [supabaseStatus, privilegedStatus] = await checkDependencies();
+  const [[supabaseStatus, privilegedStatus], rateLimiter] = await Promise.all([checkDependencies(), rateLimiterMode()]);
 
   const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
   const degraded = supabaseStatus === 'down' || privilegedStatus === 'down' ||
@@ -80,7 +89,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     dependencies: {
       database: supabaseStatus === 'ok' ? 'ok' : 'unavailable',
       serviceRole: privilegedStatus === 'ok' ? 'ok' : 'unavailable',
-      rateLimiter: process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN ? 'configured' : 'in-memory-fallback',
+      rateLimiter,
     },
     ts: new Date().toISOString(),
   });

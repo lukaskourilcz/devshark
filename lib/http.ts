@@ -183,21 +183,50 @@ export function withRequestContext<T>(
   })) as Promise<Awaited<T> | VercelResponse | void>;
 }
 
+/** Production without a usable service-role key. An accidentally copied
+ * public anon key counts as none: it cannot call the service-only learning
+ * RPCs and turns a clear configuration failure into opaque database
+ * permission errors. */
+function serviceKeyMissingInProduction(): boolean {
+  return IS_PROD && (!process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY === ANON_KEY);
+}
+
+const SERVICE_KEY_MISSING = 'SUPABASE_SERVICE_ROLE_KEY is not set (or is the anon key) in production: every handler that writes is disabled';
+let reportedMissingServiceKey = false;
+
 /**
- * Client for endpoints that read/write a user's own private rows. Prefers the
- * service-role key (bypasses RLS); falls back to the anon key for local dev.
+ * The service-role client, or null where the deploy has no Supabase or, in
+ * production, no usable service-role key. Only api/health.ts takes it this
+ * way: it reports that deploy as degraded (503, serviceRole unavailable)
+ * instead of failing to load.
  */
-export function createServiceClient(): SupabaseClient | null {
-  // Treat an accidentally copied public anon key as unconfigured. It cannot
-  // call the service-only learning RPCs and otherwise turns a clear readiness
-  // failure into opaque database permission errors.
-  if (IS_PROD && (
-    !process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY === ANON_KEY
-  )) return null;
+export function serviceClientOrNull(): SupabaseClient | null {
+  if (serviceKeyMissingInProduction()) return null;
   return SUPABASE_URL && SERVICE_KEY
     ? createClient(SUPABASE_URL, SERVICE_KEY, SERVER_SIDE_AUTH)
     : null;
+}
+
+/**
+ * Client for endpoints that read/write a user's own private rows. Prefers the
+ * service-role key (bypasses RLS); falls back to the anon key for local dev.
+ * Null where no Supabase is configured.
+ *
+ * In production with a Supabase URL and no usable service-role key it logs
+ * one error line and throws, so the function that calls it at load fails to
+ * start with a message naming the variable. It used to return null, and the
+ * deploy answered every request 503 not_configured with no log line saying
+ * why.
+ */
+export function createServiceClient(): SupabaseClient | null {
+  if (SUPABASE_URL && serviceKeyMissingInProduction()) {
+    if (!reportedMissingServiceKey) {
+      reportedMissingServiceKey = true;
+      logEvent('http', { level: 'error', category: 'configuration', reason: 'service_role_key_missing' });
+    }
+    throw new Error(SERVICE_KEY_MISSING);
+  }
+  return serviceClientOrNull();
 }
 
 /**

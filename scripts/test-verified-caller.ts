@@ -40,6 +40,7 @@
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { join } from 'node:path';
@@ -126,7 +127,10 @@ const SWEEPERS: Account[] = Array.from({ length: 12 }, (_, n) => ({
   email: `sweeper-${n}@example.invalid`,
   confirmed: true,
 }));
-const ACCOUNTS = [A, B, LISTED_UNCONFIRMED, LISTED_CONFIRMED, ROLE_ADMIN, EMAIL, SLOW, HANDLES_DOWN, SLOW_ERASURE, PROFILED, ...JWT_ACCOUNTS, ...SWEEPERS];
+// The account the closed-bucket checks redeem a voucher with, so its own
+// buckets hold nothing from the checks before them.
+const GUARDED: Account = { id: '1a2b3c4d-0000-4000-8000-000000000014', token: 'guarded-buckets', email: 'guarded@example.invalid', confirmed: true };
+const ACCOUNTS = [A, B, LISTED_UNCONFIRMED, LISTED_CONFIRMED, ROLE_ADMIN, EMAIL, SLOW, HANDLES_DOWN, SLOW_ERASURE, PROFILED, GUARDED, ...JWT_ACCOUNTS, ...SWEEPERS];
 /** Tokens the stand-in now refuses (a session ended elsewhere), and tokens
  * for which it answers 500, as Supabase Auth does when it is down. */
 const revokedTokens = new Set<string>();
@@ -174,6 +178,9 @@ let fdeFixtureVersion: number | undefined;
 const upstashCommands: string[] = [];
 /** While true the Upstash stand-in answers every command with HTTP 500. */
 let upstashFails = true;
+/** While true it drops the connection of every request carrying a SET, and
+ * answers the rest as healthy. */
+let upstashDropsSets = false;
 /** Healthy mode: requests counted per bucket key, and one-time claims taken. */
 const upstashCounts = new Map<string, number>();
 const upstashClaims = new Set<string>();
@@ -193,9 +200,12 @@ function pastLimiterPause() {
   if (behind > 0) clockSkew += behind;
 }
 /** Switch the Upstash stand-in. Back to healthy, the clock moves past the
- * pause the last failure started, or a bucket would keep to memory. */
-function upstashMode(mode: 'failing' | 'healthy') {
+ * pause the last failure started, or a bucket would keep to memory.
+ * `dropping-sets` is healthy but for a SET (a one-time claim), whose
+ * connection drops before any answer. */
+function upstashMode(mode: 'failing' | 'healthy' | 'dropping-sets') {
   upstashFails = mode === 'failing';
+  upstashDropsSets = mode === 'dropping-sets';
   if (!upstashFails) pastLimiterPause();
 }
 /** One Upstash command in healthy mode. @upstash/ratelimit's single-region
@@ -219,6 +229,7 @@ function upstashAnswer(command: unknown[]): unknown {
     upstashClaims.add(key);
     return 'OK';
   }
+  if (name === 'ping') return 'PONG';
   return 'OK';
 }
 // A Challenge run saved with this score finds the run already on the board
@@ -450,6 +461,11 @@ async function startStandIns() {
     const raw = await readBody(req);
     upstashCommands.push(raw);
     res.setHeader('content-type', 'application/json');
+    if (upstashDropsSets && /"set"/i.test(raw)) {
+      lastUpstashFailure = Date.now();
+      req.socket.destroy();
+      return;
+    }
     if (upstashFails) {
       lastUpstashFailure = Date.now();
       res.statusCode = 500;
@@ -1348,6 +1364,162 @@ async function main() {
     }
     console.log('PASS verified caller: a failing distributed limiter is not asked again straight away');
 
+    // ── buckets that close while Upstash fails (#638) ───────────────────
+    // A bucket kept in one instance's memory is no limit across a fleet of
+    // cold instances, so the buckets a script would guess or spam through
+    // (the admin gate, voucher codes, invite claims, question reports and
+    // the emailed cancellation page) refuse with 503 rate_limit_unavailable
+    // while Upstash fails, and spend nothing. So do sign-in reports, which
+    // take their own buckets so that no other account write closes with
+    // them. Every other bucket keeps to memory, so a quiz, the Learn map and
+    // a learning-preference save still answer.
+    {
+      const outcomeOf = (res: Response) => `${res.statusCode} ${errorCode(res) ?? ''}`.trim();
+      const voucherCount = `rl:${rateLimit.RATE_LIMITS.voucherRedeem.key}:user:${GUARDED.id}`;
+      const routes = async () => ({
+        admin: await user('fulfilment', { account: ROLE_ADMIN }),
+        voucher: await user('voucher', { method: 'POST', account: GUARDED, body: { code: 'SHARKCAMP2026' } }),
+        quiz: await call(questions as Handler, { query: { count: '2', categories: 'javascript' } }),
+        map: await call(roadmap as Handler, { query: { nonce: 'closed-buckets' } }),
+        signIn: await user('authevent', { method: 'POST', account: GUARDED, body: {} }),
+        preference: await user('learning-preference', { method: 'PUT', account: GUARDED, body: { schemaVersion: 1, baseTrack: 'frontend', specialization: null } }),
+      });
+      const passedLimits = (res: Response) => !['rate_limited', 'rate_limit_unavailable'].includes(errorCode(res) ?? '') && res.statusCode !== 401;
+      // Each bucket logs its first fallback in a pause with its policy, and
+      // every closed refusal on its own line, each with the request's id. A
+      // fresh pause first: the clock moves past the one before.
+      upstashMode('failing');
+      pastLimiterPause();
+      seen.length = 0;
+      const lines: Row[] = [];
+      const original = console.log;
+      console.log = (line: unknown) => {
+        try { lines.push(JSON.parse(String(line)) as Row); } catch { original(line); }
+      };
+      let down: Awaited<ReturnType<typeof routes>>;
+      try {
+        down = await routes();
+      } finally {
+        console.log = original;
+      }
+      const limiterLines = lines.filter((line) => line.route === 'rate-limit');
+      const fallbacks = limiterLines.filter((line) => line.reason === 'distributed_fallback');
+      const policyOf = (bucket: string) => fallbacks.filter((line) => line.bucket === bucket).map((line) => line.policy);
+      assert.deepEqual(policyOf('admin_gate'), ['closed'], `the admin gate logs its fallback once, closed (${JSON.stringify(limiterLines)})`);
+      assert.deepEqual(policyOf('voucher_redeem'), ['closed'], 'so does the voucher bucket');
+      assert.deepEqual(policyOf('quiz_session_address'), ['open'], 'a quiz\'s address bucket logs its fallback once, open');
+      assert.deepEqual(policyOf('user_mutation_address'), ['open'], 'an address bucket two writes took logs its fallback once in the pause');
+      assert.deepEqual(
+        limiterLines.filter((line) => line.reason === 'closed_refused').map((line) => [line.level, line.bucket]),
+        [['error', 'admin_gate'], ['error', 'voucher_redeem'], ['error', 'auth_event_address']],
+        'every closed refusal is an error line naming its bucket',
+      );
+      assert.ok(limiterLines.length > 0 && limiterLines.every((line) => typeof line.request_id === 'string' && line.request_id !== ''), 'each line carries the request id');
+      for (const label of ['admin', 'voucher', 'signIn'] as const) {
+        assert.equal(outcomeOf(down[label]), '503 rate_limit_unavailable', `the ${label} bucket closes while Upstash fails (${JSON.stringify(down[label].body)})`);
+        assert.equal(down[label].headers['retry-after'], '15', `and the ${label} refusal says when to retry`);
+      }
+      assert.equal(reads('/rest/v1/rpc/redeem_premium_voucher').length, 0, 'a refused redeem looks up no code');
+      assert.equal(down.quiz.statusCode, 200, `a quiz keeps to memory (${JSON.stringify(down.quiz.body)})`);
+      assert.equal(down.map.statusCode, 200, `and so does the Learn map (${JSON.stringify(down.map.body)})`);
+      assert.ok(!reads('/rest/v1/auth_events').some((one) => one.method === 'POST'), 'a refused sign-in report logs no event');
+      assert.ok(passedLimits(down.preference), `a learning-preference save keeps to memory (${outcomeOf(down.preference)})`);
+
+      // /api/health is a function of its own and takes no rate limit, so its
+      // instance would never learn of an outage from a bucket: it sends one
+      // PING of its own. Past the pause and any answer it kept, the PING
+      // fails, the probe reports memory-fallback (readiness stays the
+      // database's), and the failure pauses this instance's buckets too.
+      const pings = () => upstashCommands.filter((command) => /"ping"/i.test(command)).length;
+      clockSkew += 31_000;
+      upstashCommands.length = 0;
+      const downHealth = await call(health as Handler, {});
+      assert.equal(downHealth.statusCode, 200, `the limiter does not decide readiness (${JSON.stringify(downHealth.body)})`);
+      assert.equal(downHealth.body.dependencies.rateLimiter, 'memory-fallback', 'health reports the limiter on its memory while Upstash fails');
+      assert.equal(pings(), 1, 'after one PING of its own');
+      const asked = upstashCommands.length;
+      assert.equal((await call(questions as Handler, { query: { count: '2', categories: 'javascript' } })).statusCode, 200);
+      assert.equal(upstashCommands.length, asked, 'the failed PING paused the buckets');
+
+      upstashMode('healthy');
+      seen.length = 0;
+      const up = await routes();
+      assert.equal(up.admin.statusCode, 200, `with Upstash back the admin gate opens (${JSON.stringify(up.admin.body)})`);
+      assert.notEqual(errorCode(up.voucher), 'rate_limit_unavailable', 'and a voucher is redeemed');
+      assert.equal(reads('/rest/v1/rpc/redeem_premium_voucher').length, 1, 'which looks its code up');
+      assert.equal(upstashCounts.get(voucherCount), 1, 'the attempt refused during the outage spent nothing of the five an hour');
+      assert.equal(up.quiz.statusCode, 200);
+      assert.equal(up.map.statusCode, 200);
+      assert.equal(up.signIn.statusCode, 200, `with Upstash back a sign-in report is logged (${JSON.stringify(up.signIn.body)})`);
+      // Past the pause and the kept answer, probes that arrive together share
+      // one PING, and the answer is kept 30 s.
+      clockSkew += 31_000;
+      upstashCommands.length = 0;
+      const upHealth = await Promise.all([call(health as Handler, {}), call(health as Handler, {}), call(health as Handler, {})]);
+      for (const res of upHealth) {
+        assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+        assert.equal(res.body.dependencies.rateLimiter, 'configured', 'health reports a limiter that answered its PING');
+      }
+      assert.equal(pings(), 1, 'three probes at once send one PING');
+      assert.equal((await call(health as Handler, {})).body.dependencies.rateLimiter, 'configured');
+      assert.equal(pings(), 1, 'and a probe inside 30 s sends none');
+      assert.ok(passedLimits(up.preference), `and a learning-preference save passes (${outcomeOf(up.preference)})`);
+      upstashMode('failing');
+    }
+    console.log('PASS verified caller: the admin gate, voucher redemption and sign-in reports refuse with 503 while Upstash fails, a quiz, the Learn map and other account writes keep to memory');
+    console.log('PASS verified caller: /api/health reports memory-fallback from a PING of its own while Upstash fails, and configured with one shared PING kept 30 s');
+
+    // ── an Upstash client that fails to start ───────────────────────────
+    // A package that does not import (or a client that does not build) is
+    // an outage, not local development: one limiter_init_failed line with
+    // the error's name, a closed bucket refuses and an open one keeps to
+    // memory. Run in a fresh process whose @upstash/ratelimit throws on load.
+    {
+      const { build } = await import('esbuild');
+      const outfile = join(process.cwd(), 'node_modules/.cache/shark/limiter-start/rate-limit.cjs');
+      await build({
+        entryPoints: [join(process.cwd(), 'lib/rate-limit.ts')], bundle: true, platform: 'node', format: 'cjs', packages: 'external', outfile, logLevel: 'warning',
+        plugins: [{
+          name: 'broken-ratelimit',
+          setup(plugin) {
+            plugin.onResolve({ filter: /^@upstash\/ratelimit$/ }, () => ({ path: 'broken-ratelimit', namespace: 'stand-in' }));
+            plugin.onLoad({ filter: /.*/, namespace: 'stand-in' }, () => ({ contents: "throw new TypeError('stand-in: the package did not load');", loader: 'js' }));
+          },
+        }],
+      });
+      const probe = [
+        `const { enforceRateLimit } = require(${JSON.stringify(outfile)});`,
+        "const closed = { key: 'start_closed', capacity: 5, refillPerSecond: 1, onFailure: 'closed' };",
+        "const open = { key: 'start_open', capacity: 5, refillPerSecond: 1 };",
+        "const req = { headers: { 'x-forwarded-for': '10.9.9.9' }, socket: {} };",
+        'const response = () => ({ statusCode: 200, headers: {}, setHeader(key, value) { this.headers[key] = value; return this; }, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } });',
+        '(async () => {',
+        '  const statuses = [];',
+        '  for (const config of [closed, open, closed]) { const res = response(); statuses.push((await enforceRateLimit(req, res, config)) ? 200 : res.statusCode); }',
+        "  console.log('STATUSES ' + JSON.stringify(statuses));",
+        '})();',
+      ].join('\n');
+      const child = spawnSync(process.execPath, ['-e', probe], {
+        cwd: process.cwd(), encoding: 'utf8', timeout: 30_000,
+        env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '', UPSTASH_REDIS_REST_URL: 'http://127.0.0.1:9', UPSTASH_REDIS_REST_TOKEN: 'limiter-start' },
+      });
+      assert.equal(child.status, 0, child.stderr.slice(0, 600));
+      const out = child.stdout.split('\n').filter(Boolean);
+      assert.equal(out.find((line) => line.startsWith('STATUSES ')), 'STATUSES [503,200,503]', 'a closed bucket refuses and an open one keeps to memory');
+      const logged = out.filter((line) => line.startsWith('{')).map((line) => JSON.parse(line) as Row);
+      assert.deepEqual(
+        logged.filter((line) => line.reason === 'limiter_init_failed').map((line) => [line.level, line.error]),
+        [['error', 'TypeError']],
+        `a failed start is logged once, with the error's name (${child.stdout.slice(0, 600)})`,
+      );
+      assert.deepEqual(
+        logged.filter((line) => line.reason === 'distributed_fallback').map((line) => [line.bucket, line.policy]),
+        [['start_closed', 'closed'], ['start_open', 'open']],
+        'and each bucket logs its fallback once',
+      );
+    }
+    console.log('PASS verified caller: an Upstash client that fails to start is logged once, and closed buckets refuse');
+
     // ── what an escaped error logs ───────────────────────────────────────
     const { AuthError } = await import('../lib/auth');
     const escapedLogs = async (thrown: Error) => {
@@ -1529,6 +1701,24 @@ async function main() {
     const opened = await call(roadmap as Handler, { account: A, query: { resource: 'coding-task', id: design.id } });
     assert.equal(opened.statusCode, 404, JSON.stringify(opened.body));
     console.log('PASS verified caller: a one-time claim Upstash cannot record answers 503');
+
+    // A claim whose connection dropped is not sent again. The learner heard
+    // 503 claim_unavailable and retries the round; a SET still being retried
+    // behind that answer could land first and refuse the retry as a replay.
+    upstashMode('dropping-sets');
+    upstashCommands.length = 0;
+    const droppedClaim = 'once:placement:verified-caller-attempt-0002:1';
+    await assert.rejects(
+      rateLimit.claimOnce('placement:verified-caller-attempt-0002:1', 60),
+      (error: unknown) => error instanceof http.ServiceUnavailableError && error.code === 'claim_unavailable',
+      'a claim whose connection dropped is refused',
+    );
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+    // The stand-in answers no SET in this mode, so the count is the check: a
+    // second SET is a retry that could have taken the claim.
+    assert.equal(upstashCommands.filter((command) => command.includes(droppedClaim)).length, 1, 'and its SET is sent once, with no retry behind the 503');
+    upstashMode('failing');
+    console.log('PASS verified caller: a one-time claim is not retried after its 503');
 
     // ── an account made with an email and password ──────────────────────
     // From here on Upstash is healthy: sign-in reports and the admin desk.

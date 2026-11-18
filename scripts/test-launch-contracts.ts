@@ -5529,6 +5529,62 @@ async function main() {
   assert.equal(healthRes.headers.get('allow'), 'GET');
   assert.ok(healthRes.headers.has('x-request-id'));
 
+  // ── a production deploy without its service-role key (#638) ─────────────
+  // A handler that writes refuses to load, with a line and an error naming
+  // the variable: it used to load and answer 503 not_configured to every
+  // request, with nothing in the logs saying why. The anon key pasted into
+  // the variable counts as missing. api/health.ts still loads and answers
+  // 503 serviceRole unavailable. lib/http.ts reads its settings when it
+  // loads, so each runs in a fresh process, bundled as @vercel/node ships a
+  // function (CommonJS, packages external).
+  {
+    const { build } = await import('esbuild');
+    const outdir = join(process.cwd(), 'node_modules/.cache/shark/service-key');
+    const bundle = async (entry: string) => {
+      const outfile = join(outdir, `${entry.replace(/[/[\]]/g, '_').replace(/\.ts$/, '')}.cjs`);
+      await build({ entryPoints: [join(process.cwd(), entry)], bundle: true, platform: 'node', format: 'cjs', packages: 'external', outfile, logLevel: 'warning' });
+      return outfile;
+    };
+    const [userBundle, healthBundle] = await Promise.all([bundle('api/user/[op].ts'), bundle('api/health.ts')]);
+    const production = (serviceKey?: string) => ({
+      PATH: process.env.PATH ?? '',
+      HOME: process.env.HOME ?? '',
+      NODE_ENV: 'production',
+      // Nothing listens here: neither process may reach a database.
+      SUPABASE_URL: 'http://127.0.0.1:9',
+      SUPABASE_ANON_KEY: 'anon-production-check',
+      // Long enough that lib/quiz-tokens.ts does not refuse to load first.
+      SESSION_SECRET: 's'.repeat(32),
+      ...(serviceKey === undefined ? {} : { SUPABASE_SERVICE_ROLE_KEY: serviceKey }),
+    });
+    const load = (outfile: string, env: Record<string, string>, then = '') =>
+      spawnSync(process.execPath, ['-e', `const mod = require(${JSON.stringify(outfile)});\n${then}`], { cwd: process.cwd(), env, encoding: 'utf8', timeout: 30_000 });
+    const MISSING = 'SUPABASE_SERVICE_ROLE_KEY is not set (or is the anon key) in production: every handler that writes is disabled';
+    for (const [label, key] of [['no service-role key', undefined], ['the anon key as the service-role key', 'anon-production-check']] as const) {
+      const child = load(userBundle, production(key));
+      assert.notEqual(child.status, 0, `api/user/[op].ts must not load in production with ${label}`);
+      assert.ok(child.stderr.includes(MISSING), `and the error names the variable (${child.stderr.slice(0, 400)})`);
+      const lines = child.stdout.split('\n').filter(Boolean).map((line) => JSON.parse(line) as Record<string, unknown>);
+      assert.deepEqual(lines.map(({ level, reason }) => ({ level, reason })), [{ level: 'error', reason: 'service_role_key_missing' }], 'and one structured error line says why');
+      assert.ok(!child.stdout.includes('anon-production-check'), 'the line carries no key');
+    }
+    const loaded = load(userBundle, production('service-production-check'));
+    assert.equal(loaded.status, 0, `with its key it loads (${loaded.stderr.slice(0, 400)})`);
+    const probe = [
+      'const res = { statusCode: 200, headers: {}, body: undefined,',
+      '  setHeader(key, value) { this.headers[key.toLowerCase()] = value; return this; }, getHeader(key) { return this.headers[key.toLowerCase()]; },',
+      '  status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; }, end() { return this; } };',
+      "Promise.resolve(mod.default({ method: 'GET', headers: {}, query: {}, url: '/api/health' }, res))",
+      "  .then(() => { console.log('HEALTH ' + JSON.stringify({ status: res.statusCode, body: res.body })); process.exit(0); });",
+    ].join('\n');
+    const health = load(healthBundle, production(), probe);
+    assert.equal(health.status, 0, `api/health.ts loads without the key (${health.stderr.slice(0, 400)})`);
+    const answer = JSON.parse(health.stdout.split('\n').find((line) => line.startsWith('HEALTH '))!.slice('HEALTH '.length)) as { status: number; body: { dependencies: Record<string, string> } };
+    assert.equal(answer.status, 503, 'and answers 503');
+    assert.equal(answer.body.dependencies.serviceRole, 'unavailable', 'with the service role unavailable');
+    console.log('PASS launch: production without a service-role key fails at load, and health answers 503');
+  }
+
   // Learn must be browsable without a database write. This exercises the same
   // structure and first-level GET the client uses, and catches an accidental
   // subject lock or a question-bank failure.

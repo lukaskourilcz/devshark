@@ -9,8 +9,10 @@
 //      instances). Recommended for production.
 //
 //   2. In-memory token bucket (`checkRateLimit`) — the fallback used when
-//      Upstash isn't configured, or if a Redis call fails so we never hard-fail
-//      a request on the limiter. Buckets are keyed per (endpoint, caller): the
+//      Upstash isn't configured, or if a Redis call fails so an ordinary
+//      request never hard-fails on the limiter. A bucket marked
+//      `onFailure: 'closed'` refuses with 503 instead while a configured
+//      Upstash cannot answer (see `RateLimitConfig`). Buckets are keyed per (endpoint, caller): the
 //      identity a handler passes, always `user:<verified id>`, or the client
 //      IP when it passes none. A server-configured shared operation scope has
 //      one bucket across callers (used only after integration verification).
@@ -44,6 +46,18 @@ export interface RateLimitConfig {
   key: string;
   /** A server-configured operation budget shared across callers; never a user identity. */
   scope?: 'shared';
+  /**
+   * What the bucket does while Upstash is configured but cannot answer: a
+   * command failed and this instance is pausing (`LIMITER_PAUSE_MS`), or the
+   * client failed to start. `'open'`, the default, keeps to this instance's
+   * memory, so a quiz or a read still answers. `'closed'` refuses with 503
+   * `rate_limit_unavailable` and Retry-After, and spends nothing: one
+   * instance's memory is no limit across a fleet of cold instances, so a
+   * bucket a script would guess or spam through holds nothing during an
+   * outage. Without Upstash configured (local development) every bucket
+   * keeps to memory.
+   */
+  onFailure?: 'open' | 'closed';
 }
 
 /**
@@ -61,7 +75,9 @@ export interface RateLimitConfig {
 export const SHARED_NETWORK_SEATS = 32;
 
 export const RATE_LIMITS = {
-  admin: { key: 'admin_gate', capacity: 5, refillPerSecond: 1 },
+  // Closed while Upstash fails (`onFailure`): it is the only brake on
+  // guessing the legacy admin password.
+  admin: { key: 'admin_gate', capacity: 5, refillPerSecond: 1, onFailure: 'closed' },
   // Read-only export has one owner-controlled integration authority. Consume
   // this shared budget only after verifying its bearer, without learner Auth.
   marketingExport: { key: 'marketing_export', capacity: 20, refillPerSecond: 20 / 60, scope: 'shared' },
@@ -104,14 +120,21 @@ export const RATE_LIMITS = {
   // holds a class behind one NAT, which used to share three reports and got
   // 429 on the fourth; `questionReport` is then the verified account's own,
   // or the address's for a reporter without one, the rate it had before.
-  questionReport: { key: 'question_report', capacity: 3, refillPerSecond: 20 / 3600 },
-  questionReportAddress: { key: 'question_report_address', capacity: SHARED_NETWORK_SEATS * 3, refillPerSecond: (SHARED_NETWORK_SEATS * 20) / 3600 },
+  // Both close while Upstash fails: a report lands in the admin's queue.
+  questionReport: { key: 'question_report', capacity: 3, refillPerSecond: 20 / 3600, onFailure: 'closed' },
+  questionReportAddress: { key: 'question_report_address', capacity: SHARED_NETWORK_SEATS * 3, refillPerSecond: (SHARED_NETWORK_SEATS * 20) / 3600, onFailure: 'closed' },
   // Every write to `api/user/[op].ts`, in two tiers like play's: an address
   // backstop that holds a class behind one NAT, then `userMutation` keyed by
   // the verified account. A caller without an account keeps `userMutation` by
   // address, the rate it had before the split.
   userMutation: { key: 'user_mutation', capacity: 20, refillPerSecond: 20 / 60 },
   userMutationAddress: { key: 'user_mutation_address', capacity: SHARED_NETWORK_SEATS * 20, refillPerSecond: (SHARED_NETWORK_SEATS * 20) / 60 },
+  // A sign-in report (`op=authevent`) at the same rates, in buckets of its
+  // own so they can close while Upstash fails without closing every other
+  // account write. The client sends the report without waiting and sends it
+  // again after a 5xx, so a 503 loses nothing.
+  authEvent: { key: 'auth_event', capacity: 20, refillPerSecond: 20 / 60, onFailure: 'closed' },
+  authEventAddress: { key: 'auth_event_address', capacity: SHARED_NETWORK_SEATS * 20, refillPerSecond: (SHARED_NETWORK_SEATS * 20) / 60, onFailure: 'closed' },
   flashcardMutation: { key: 'flashcard_mutation', capacity: 20, refillPerSecond: 20 / 60 },
   roadmapAnswer: { key: 'roadmap_answer', capacity: 80, refillPerSecond: 80 / 60 },
   roadmapComplete: { key: 'roadmap_complete', capacity: 12, refillPerSecond: 12 / 60 },
@@ -203,19 +226,23 @@ export const RATE_LIMITS = {
   // Billing (#221). Checkout, the portal and the success-page lookup are keyed
   // by account (the `identity` argument); the public cancellation page by
   // address. The Stripe webhook has no limit: its signature is the gate.
+  // The cancellation page's two buckets close while Upstash fails: each
+  // confirmed form sends an email.
   billingCheckout: { key: 'billing_checkout', capacity: 10, refillPerSecond: 10 / 60 },
   billingPortal: { key: 'billing_portal', capacity: 10, refillPerSecond: 10 / 60 },
   billingSession: { key: 'billing_session', capacity: 20, refillPerSecond: 20 / 60 },
-  billingCancel: { key: 'billing_cancel', capacity: 5, refillPerSecond: 5 / 3600 },
+  billingCancel: { key: 'billing_cancel', capacity: 5, refillPerSecond: 5 / 3600, onFailure: 'closed' },
   // Opening and confirming the emailed link of the cancellation page.
-  billingCancelLink: { key: 'billing_cancel_link', capacity: 10, refillPerSecond: 10 / 3600 },
+  billingCancelLink: { key: 'billing_cancel_link', capacity: 10, refillPerSecond: 10 / 3600, onFailure: 'closed' },
   // An invite code is bound once, at sign-up (#228); keyed by account.
-  referralClaim: { key: 'referral_claim', capacity: 5, refillPerSecond: 5 / 3600 },
+  // Closed while Upstash fails, like the vouchers below: a code can be guessed.
+  referralClaim: { key: 'referral_claim', capacity: 5, refillPerSecond: 5 / 3600, onFailure: 'closed' },
   // Premium vouchers (migration 045). A code can be guessed, so every attempt
   // counts, a success included: five an hour per account, and ten an hour per
-  // address, so two people behind one router each keep their five.
-  voucherRedeem: { key: 'voucher_redeem', capacity: 5, refillPerSecond: 5 / 3600 },
-  voucherRedeemAddress: { key: 'voucher_redeem_address', capacity: 10, refillPerSecond: 10 / 3600 },
+  // address, so two people behind one router each keep their five. Both
+  // close while Upstash fails, or each cold instance would grant its own five.
+  voucherRedeem: { key: 'voucher_redeem', capacity: 5, refillPerSecond: 5 / 3600, onFailure: 'closed' },
+  voucherRedeemAddress: { key: 'voucher_redeem_address', capacity: 10, refillPerSecond: 10 / 3600, onFailure: 'closed' },
   // Reads a script can drive (`limitRead` below): the wallet, badges and a
   // friend lookup, the Learn map, plan and steps, and a leaderboard read the
   // CDN did not answer. Two tiers like the writes: an address backstop that
@@ -358,42 +385,68 @@ export function isDistributedRateLimitEnabled(): boolean {
   return !!(UPSTASH_URL && UPSTASH_TOKEN);
 }
 
-// One Ratelimit instance per config.key (per warm instance). `null` marks a
-// backend that failed to initialise, so we don't retry the import every call.
+// One Ratelimit instance per config.key (per warm instance).
 type UpstashLimiter = { limit: (id: string) => Promise<{ success: boolean; reset: number }> };
-const limiterCache = new Map<string, UpstashLimiter | null>();
-let redisClient: unknown | null | undefined; // undefined = not tried yet
+const limiterCache = new Map<string, UpstashLimiter>();
+type RedisClient = { ping: () => Promise<unknown> };
+let redisClient: Promise<RedisClient | null> | undefined; // undefined = not tried yet
+/** The packages failed to import or the client failed to build on this
+ * instance. Upstash is configured, so this is an outage, not local
+ * development: closed buckets refuse, and nothing retries the import. */
+let limiterStartFailed = false;
 
-async function getUpstashLimiter(config: RateLimitConfig): Promise<UpstashLimiter | null> {
-  if (!isDistributedRateLimitEnabled()) return null;
-  if (limiterCache.has(config.key)) return limiterCache.get(config.key) ?? null;
+/** Record a failed start, and say so once: every request falls back for the
+ * life of the instance. */
+function noteStartFailed(error: unknown): void {
+  if (limiterStartFailed) return;
+  limiterStartFailed = true;
+  logEvent('rate-limit', { level: 'error', reason: 'limiter_init_failed', error: error instanceof Error ? error.name : typeof error });
+}
 
-  try {
-    // Optional deps: `@ts-ignore` covers the "package not installed" case, and
-    // the `as any` casts keep the block from hard-coupling to Upstash's types
-    // (which may or may not be resolvable at typecheck time).
-    // @ts-ignore — optional dependency, resolved at runtime in production
-    const Ratelimit = ((await import('@upstash/ratelimit')) as any).Ratelimit;
-    // @ts-ignore — optional dependency, resolved at runtime in production
-    const Redis = ((await import('@upstash/redis')) as any).Redis;
-
-    if (redisClient === undefined) {
-      redisClient = new Redis({
+/** The instance's one Redis client, built on first use; null without
+ * Upstash, or after it failed to start. */
+function getRedis(): Promise<RedisClient | null> {
+  if (!isDistributedRateLimitEnabled() || limiterStartFailed) return Promise.resolve(null);
+  redisClient ??= (async () => {
+    try {
+      // Optional deps: `@ts-ignore` covers the "package not installed" case,
+      // and the `as any` casts keep the block from hard-coupling to Upstash's
+      // types (which may or may not be resolvable at typecheck time).
+      // @ts-ignore — optional dependency, resolved at runtime in production
+      const Redis = ((await import('@upstash/redis')) as any).Redis;
+      return new Redis({
         url: UPSTASH_URL as string,
         token: UPSTASH_TOKEN as string,
         // Abort the fetch as well as the caller's wait. A disconnected
         // response can be ambiguous, so never retry a bucket mutation.
         signal: () => AbortSignal.timeout(LIMITER_DEADLINE_MS),
         retry: { retries: 0 },
-      });
+      }) as RedisClient;
+    } catch (error) {
+      noteStartFailed(error);
+      return null;
     }
+  })();
+  return redisClient;
+}
+
+async function getUpstashLimiter(config: RateLimitConfig): Promise<UpstashLimiter | null> {
+  if (!isDistributedRateLimitEnabled() || limiterStartFailed) return null;
+  const cached = limiterCache.get(config.key);
+  if (cached) return cached;
+
+  try {
+    // @ts-ignore — optional dependency, resolved at runtime in production
+    const Ratelimit = ((await import('@upstash/ratelimit')) as any).Ratelimit;
+    const redis = await getRedis();
+    if (!redis) return null;
 
     // Map the token-bucket config onto a sliding window: `capacity` requests
     // per (capacity / refillPerSecond) seconds — i.e. the time it takes an
     // empty bucket to refill to full — which preserves the intended budget.
     const windowSeconds = Math.max(1, Math.round(config.capacity / config.refillPerSecond));
     const limiter = new Ratelimit({
-      redis: redisClient,
+      redis,
       limiter: Ratelimit.slidingWindow(config.capacity, `${windowSeconds} s`),
       prefix: `rl:${config.key}`,
       analytics: false,
@@ -402,9 +455,9 @@ async function getUpstashLimiter(config: RateLimitConfig): Promise<UpstashLimite
 
     limiterCache.set(config.key, limiter);
     return limiter;
-  } catch {
-    // Package missing or init failed — record the miss and fall back forever.
-    limiterCache.set(config.key, null);
+  } catch (error) {
+    // Package missing or init failed: fall back for the life of the instance.
+    noteStartFailed(error);
     return null;
   }
 }
@@ -430,11 +483,72 @@ async function withLimiterDeadline<T>(promise: Promise<T>): Promise<T> {
 // nothing.
 const LIMITER_PAUSE_MS = 15_000;
 let limiterPausedUntil = 0;
+/** The buckets that logged their fallback since the current pause began
+ * (or, after a failed start, since then), so a busy bucket logs one line a
+ * pause and not one a request. */
+const fallbackLogged = new Set<string>();
+
+/** Start a pause after a failed Upstash command. A new pause logs each
+ * bucket's fallback afresh. */
+function pauseLimiter(): void {
+  const now = Date.now();
+  if (now < limiterPausedUntil) return;
+  limiterPausedUntil = now + LIMITER_PAUSE_MS;
+  fallbackLogged.clear();
+}
+
+/** What one bucket decided: the request may go on, or it was refused with
+ * the 429 or the 503 just sent. */
+type Verdict = 'allowed' | 'limited' | 'unavailable';
+
+function memoryVerdict(req: VercelRequest, res: VercelResponse, config: RateLimitConfig, identity?: string): Verdict {
+  return checkRateLimit(req, res, config, identity) ? 'allowed' : 'limited';
+}
+
+/** Upstash is configured and cannot answer for this bucket: an open bucket
+ * keeps to this instance's memory, a closed one refuses with 503 and spends
+ * nothing (`RateLimitConfig.onFailure`). */
+function withoutUpstash(req: VercelRequest, res: VercelResponse, config: RateLimitConfig, identity?: string): Verdict {
+  const policy = config.onFailure ?? 'open';
+  if (!fallbackLogged.has(config.key)) {
+    fallbackLogged.add(config.key);
+    logEvent('rate-limit', { level: 'warn', reason: 'distributed_fallback', bucket: config.key, policy });
+  }
+  if (policy === 'open') return memoryVerdict(req, res, config, identity);
+  logEvent('rate-limit', { level: 'error', reason: 'closed_refused', bucket: config.key });
+  res.setHeader('Retry-After', String(LIMITER_PAUSE_MS / 1000));
+  jsonError(res, 503, 'rate_limit_unavailable', 'This could not be checked right now. Try again in a moment.');
+  return 'unavailable';
+}
+
+async function takeToken(req: VercelRequest, res: VercelResponse, config: RateLimitConfig, identity?: string): Promise<Verdict> {
+  if (!isDistributedRateLimitEnabled()) return memoryVerdict(req, res, config, identity);
+  if (Date.now() < limiterPausedUntil) return withoutUpstash(req, res, config, identity);
+  const limiter = await getUpstashLimiter(config);
+  if (!limiter) return withoutUpstash(req, res, config, identity);
+
+  try {
+    const id = config.scope === 'shared' ? 'shared' : identity ?? clientIp(req);
+    const { success, reset } = await withLimiterDeadline(limiter.limit(id));
+    if (success) return 'allowed';
+
+    const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
+    res.setHeader('Retry-After', String(retryAfter));
+    jsonError(res, 429, 'rate_limited', 'Too many requests. Try again shortly.');
+    return 'limited';
+  } catch {
+    // Redis unreachable mid-request: pause asking it, and let the bucket's
+    // policy decide this request.
+    pauseLimiter();
+    return withoutUpstash(req, res, config, identity);
+  }
+}
 
 /**
  * Enforce a rate limit, preferring the distributed Upstash backend and falling
  * back to the in-memory token bucket. Returns true if the request may proceed,
- * or false after writing a 429 (+ Retry-After) response.
+ * or false after writing a 429 (+ Retry-After) response, or, for a closed
+ * bucket while Upstash cannot answer, a 503 `rate_limit_unavailable`.
  *
  *   if (!(await enforceRateLimit(req, res, { key: 'admin_gate', capacity: 5, refillPerSecond: 1 }))) return;
  */
@@ -445,29 +559,57 @@ export async function enforceRateLimit(
   /** Who the bucket belongs to, such as `user:<id>`; the client IP when omitted. */
   identity?: string,
 ): Promise<boolean> {
-  if (Date.now() < limiterPausedUntil) return checkRateLimit(req, res, config, identity);
-  const limiter = await getUpstashLimiter(config);
-  if (!limiter) return checkRateLimit(req, res, config, identity);
+  return (await takeToken(req, res, config, identity)) === 'allowed';
+}
 
+/* -------------------------------------------------------------------------- */
+/* The limiter's mode, for /api/health                                        */
+/* -------------------------------------------------------------------------- */
+
+/** `configured`: Upstash answers. `memory-fallback`: Upstash is configured
+ * and does not answer, so open buckets keep to memory and closed ones refuse.
+ * `in-memory-fallback`: no Upstash is configured (local development). */
+export type RateLimiterMode = 'configured' | 'memory-fallback' | 'in-memory-fallback';
+
+const MODE_TTL_MS = 30_000;
+let modeAnswer: { at: number; mode: RateLimiterMode } | undefined;
+let modeProbe: Promise<RateLimiterMode> | null = null;
+
+async function pingUpstash(): Promise<RateLimiterMode> {
+  const redis = await getRedis();
+  if (!redis) return 'memory-fallback';
   try {
-    const id = config.scope === 'shared' ? 'shared' : identity ?? clientIp(req);
-    const { success, reset } = await withLimiterDeadline(limiter.limit(id));
-    if (success) return true;
-
-    const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
-    res.setHeader('Retry-After', String(retryAfter));
-    jsonError(res, 429, 'rate_limited', 'Too many requests. Try again shortly.');
-    return false;
+    await withLimiterDeadline(redis.ping());
+    return 'configured';
   } catch {
-    // Redis unreachable mid-request — never hard-fail on the limiter; fall back
-    // to the in-memory bucket so the endpoint stays available.
-    const now = Date.now();
-    if (now >= limiterPausedUntil) {
-      limiterPausedUntil = now + LIMITER_PAUSE_MS;
-      logEvent('rate-limit', { level: 'warn', reason: 'distributed_fallback' });
-    }
-    return checkRateLimit(req, res, config, identity);
+    pauseLimiter();
+    return 'memory-fallback';
   }
+}
+
+/**
+ * The limiter's live mode on this instance. /api/health is a function of its
+ * own and takes no rate limit, so its instance would never learn of an
+ * outage from a bucket: unless this instance is pausing after a failure or
+ * its client failed to start, it sends one PING through the limiter's client
+ * (the same 500 ms deadline, no retries), and a failed PING starts the pause.
+ * Probes that arrive together share the PING and its answer is kept 30 s, so
+ * a flood of probes costs at most two Upstash commands a minute.
+ */
+export async function rateLimiterMode(): Promise<RateLimiterMode> {
+  if (!isDistributedRateLimitEnabled()) return 'in-memory-fallback';
+  const now = Date.now();
+  if (limiterStartFailed || now < limiterPausedUntil) return 'memory-fallback';
+  if (modeAnswer && now - modeAnswer.at < MODE_TTL_MS) return modeAnswer.mode;
+  modeProbe ??= pingUpstash()
+    .then((mode) => {
+      modeAnswer = { at: Date.now(), mode };
+      return mode;
+    })
+    .finally(() => {
+      modeProbe = null;
+    });
+  return modeProbe;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -516,11 +658,14 @@ function noteAddressRefused(req: VercelRequest, address: RateLimitConfig): void 
 
 /** The address tier, with the caller's token checked meanwhile: the verified
  * caller's id (null for none) once the address bucket admitted the request,
- * or `false` after it sent the 429. */
+ * or `false` after it sent the 429 or a closed bucket's 503. Only a 429
+ * holds the address's token check back: a 503 says nothing about the
+ * address. */
 async function admitAddressThenCaller(req: VercelRequest, res: VercelResponse, address: RateLimitConfig): Promise<string | null | false> {
   const caller = callerCheckDuringAddressBucket(req, address);
-  if (!(await enforceRateLimit(req, res, address))) {
-    noteAddressRefused(req, address);
+  const verdict = await takeToken(req, res, address);
+  if (verdict !== 'allowed') {
+    if (verdict === 'limited') noteAddressRefused(req, address);
     return false;
   }
   return caller ?? verifiedCallerId(req);
@@ -536,7 +681,7 @@ async function admitAddressThenCaller(req: VercelRequest, res: VercelResponse, a
  * Supabase Auth after the bucket (#587, server item 2). A refused request
  * answers 429 whatever the token says, and an address refused on this
  * instance has its token checked only after the bucket admits it, for a
- * minute. Returns false after sending the 429.
+ * minute. Returns false after sending the 429 (or a closed bucket's 503).
  */
 export async function enforceAddressRateLimit(req: VercelRequest, res: VercelResponse, address: RateLimitConfig): Promise<boolean> {
   return (await admitAddressThenCaller(req, res, address)) !== false;
@@ -558,7 +703,7 @@ export async function enforceAddressRateLimit(req: VercelRequest, res: VercelRes
  *
  * The credentials are verified once per request (`verifiedCallerId`); the
  * handler's own `requireAuthSub`, `requireAuthResult` or `tryAuthOnce` reads
- * that result. Returns false after sending the 429.
+ * that result. Returns false after sending the 429 (or a closed bucket's 503).
  */
 export async function enforceClassRateLimit(
   req: VercelRequest,
@@ -669,7 +814,16 @@ function getOnceStore(): Promise<OnceStore | null> {
     try {
       // @ts-ignore — optional dependency, resolved at runtime in production
       const Redis = ((await import('@upstash/redis')) as any).Redis;
-      return new Redis({ url: UPSTASH_URL as string, token: UPSTASH_TOKEN as string }) as OnceStore;
+      return new Redis({
+        url: UPSTASH_URL as string,
+        token: UPSTASH_TOKEN as string,
+        // The limiter client's deadline and no retries. The caller has
+        // already been answered 503 when the deadline passes; a SET NX
+        // retried behind that answer could land and refuse the caller's own
+        // retry as a replay.
+        signal: () => AbortSignal.timeout(LIMITER_DEADLINE_MS),
+        retry: { retries: 0 },
+      }) as OnceStore;
     } catch {
       return null;
     }
