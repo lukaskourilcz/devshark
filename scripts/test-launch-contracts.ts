@@ -206,7 +206,7 @@ import { techniqueGroup, CODING_FOUNDATION_LEVELS, CODING_SECTION_TRACKS, hasLea
 import { CODING_SUMMARIES } from '../lib/coding/active';
 import { serverContentIndex } from '../lib/access';
 import { loadReviewStates, recordConceptReviews } from '../lib/concept-review';
-import { isRpcMissing, jsonPremiumRequired, PremiumRequiredError, requestMemo, requireAuthSub, UNSTORABLE_TEXT_MESSAGE, unstorableText, verifiedCallerId, withRequestContext } from '../lib/http';
+import { isRpcMissing, jsonPremiumRequired, MAX_QUERY_STRING, PremiumRequiredError, queryInt, queryString, requestMemo, requireAuthSub, UNSTORABLE_TEXT_MESSAGE, unstorableText, verifiedCallerId, withRequestContext } from '../lib/http';
 import { handleLeaderboardVisibility, limitUserWrite } from '../api/user/[op]';
 import { handleFriends, handleIdentity } from '../lib/friends-handlers';
 import { isValidHandle } from '../shared/handles';
@@ -3806,6 +3806,64 @@ function unstorableTextContracts() {
   console.log(`PASS unstorable text: ${cases.length} values, U+0000 and lone surrogates found at any depth, valid pairs kept, past the bound refused`);
 }
 
+/* ── strict query parameters (#638) ────────────────────────────────────────
+ *
+ * `parseInt` reads `1.9`, `1abc`, `1e3`, `+1` and `?x=1&x=2` as 1, and a
+ * handler served a request the URL does not describe. `queryString` takes
+ * one string of at most 256 characters; `queryInt` takes nine digits and
+ * nothing around them, inside the bounds. Absent is undefined, malformed is
+ * null, so a handler can tell a default from a 400. */
+function strictQueryContracts() {
+  const at = (value: unknown) => ({ query: value === undefined ? {} : { x: value } }) as never;
+  const strings: [label: string, value: unknown, expected: string | undefined | null][] = [
+    ['absent', undefined, undefined],
+    ['a word', 'javascript', 'javascript'],
+    ['an empty value', '', ''],
+    ['256 characters', 'a'.repeat(MAX_QUERY_STRING), 'a'.repeat(MAX_QUERY_STRING)],
+    ['257 characters', 'a'.repeat(MAX_QUERY_STRING + 1), null],
+    ['a repeated parameter', ['a', 'b'], null],
+    ['a one-entry array', ['a'], null],
+    ['an empty array', [], null],
+    ['a number', 7, null],
+  ];
+  for (const [label, value, expected] of strings) {
+    assert.equal(queryString(at(value), 'x'), expected, `queryString, ${label}: ${String(expected)}`);
+  }
+  assert.equal(queryString({ query: {} } as never, 'constructor'), undefined, 'an inherited name is absent, not Object.prototype.constructor');
+  assert.equal(queryString({ query: { x: undefined } } as never, 'x'), undefined, 'a key set to undefined is absent');
+
+  const level = { min: 1, max: 30 };
+  const ints: [label: string, value: unknown, expected: number | undefined | null, bounds?: { min: number; max: number }][] = [
+    ['absent', undefined, undefined],
+    ['1', '1', 1],
+    ['the upper bound', '30', 30],
+    ['leading zeros', '007', 7],
+    ['a fraction', '1.9', null],
+    ['a trailing dot', '1.', null],
+    ['an exponent', '1e3', null],
+    ['a plus sign', '+1', null],
+    ['a minus sign', '-1', null],
+    ['trailing junk', '1abc', null],
+    ['a leading space', ' 1', null],
+    ['a trailing space', '1 ', null],
+    ['hexadecimal', '0x1', null],
+    ['NaN', 'NaN', null],
+    ['Infinity', 'Infinity', null],
+    ['an empty value', '', null],
+    ['a repeated parameter', ['1', '2'], null],
+    ['a full-width digit', '\uFF11', null],
+    ['below the bounds', '0', null],
+    ['above the bounds', '31', null],
+    ['ten digits', '1000000000', null, { min: 0, max: Number.MAX_SAFE_INTEGER }],
+    ['nine digits', '999999999', 999_999_999, { min: 0, max: Number.MAX_SAFE_INTEGER }],
+    ['zero inside bounds from zero', '0', 0, { min: 0, max: 5 }],
+  ];
+  for (const [label, value, expected, bounds] of ints) {
+    assert.equal(queryInt(at(value), 'x', bounds ?? level), expected, `queryInt, ${label}: ${String(expected)}`);
+  }
+  console.log(`PASS strict query: ${strings.length + 2} string and ${ints.length} integer cases, arrays, fractions, exponents, signs and junk refused`);
+}
+
 /* ── input classes the handlers already refuse (#638) ─────────────────────
  *
  * The section-code-audit list of untrusted input, per handler that parses
@@ -6699,6 +6757,7 @@ async function main() {
   await productCleanupContracts();
   await inputClassContracts();
   unstorableTextContracts();
+  strictQueryContracts();
 
   console.log('Launch contracts passed: product identity, scope, token confidentiality, stable attempts, fairness-neutral rewards, rate limiting, health, 12-function budget, the free tier and Premium, billing, the launch price, the public Premium copy, the retired support settings, the progression graph, failure hints, retired sections, curation claims, the content-audit gate, spaced practice, interleaving, challenge runs, lesson figures, an unconfigured shop, coins, invitations, merchandise through Spreadshop, one erasure routine, Premium vouchers, the question of the day, and the webdev-bank contract BoardlessAI imports.');
 }
