@@ -34,10 +34,12 @@ const beforeFs = routes.slice(0, fsIndex < 0 ? routes.length : fsIndex);
 const missRoutes = fsIndex < 0 ? [] : routes.slice(fsIndex + 1, hitIndex < 0 ? routes.length : hitIndex);
 const hitRoutes = hitIndex < 0 ? [] : routes.slice(hitIndex + 1);
 // A Supabase that is not *.supabase.co (a local `supabase start`) has to be
-// allowed in connect-src, or the browser blocks sign-in. CSP_CONNECT_EXTRA
-// lists the extra sources, separated by spaces. Realtime (the Play rooms)
-// opens a socket on the same host, so each http(s) source also allows the
-// ws(s) source of its host and port.
+// allowed in the app's connect-src, or the browser blocks sign-in.
+// CSP_CONNECT_EXTRA lists the extra sources, separated by spaces. Realtime
+// (the Play rooms) opens a socket on the same host, so each http(s) source
+// also allows the ws(s) source of its host and port. Only the app policy (the
+// one with frame-ancestors 'none', as scripts/check-security.mjs finds it)
+// gets them: the coding worker keeps the connect-src vercel.json gives it.
 const extraSources = [];
 for (const source of (process.env.CSP_CONNECT_EXTRA ?? '').split(/\s+/).filter(Boolean)) {
   const web = /^(https?):\/\/([^/?#]+)/i.exec(source);
@@ -49,7 +51,7 @@ const extraConnect = extraSources.join(' ');
 if (extraConnect) {
   for (const route of routes) {
     const csp = route.headers?.['Content-Security-Policy'];
-    if (csp && /connect-src /.test(csp)) route.headers['Content-Security-Policy'] = csp.replace(/connect-src ([^;]*)/, `connect-src $1 ${extraConnect}`);
+    if (csp && /frame-ancestors 'none'/.test(csp) && /connect-src /.test(csp)) route.headers['Content-Security-Policy'] = csp.replace(/connect-src ([^;]*)/, `connect-src $1 ${extraConnect}`);
   }
 }
 const fill = (template, match) => template.replace(/\$(\d+)/g, (_, n) => match[Number(n)] ?? '');
