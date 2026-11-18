@@ -572,4 +572,79 @@ describe('a Shark Card answer that arrives after the account changed', () => {
 
     expect(JSON.parse(localStorage.getItem('devquiz:bookmarks') ?? '{}')).toEqual({ [QUIZ_CARD.question_id]: true });
   });
+
+  // /cards stays mounted while the account changes, and the deck keeps its
+  // Got it toast in component state: an Undo left over from the previous
+  // account would post that account's card into the next account's deck.
+  describe('the deck\'s Got it toast', () => {
+    const signInAs = (id: string) => { auth.value = { user: { id }, isAuthenticated: true, isLoading: false }; };
+    /** The deck on one query client that outlives the account change, as the app's does. */
+    function mountDeck(client: QueryClient) {
+      const tree = () => <QueryClientProvider client={client}><MemoryRouter><LanguageProvider><Flashcards /></LanguageProvider></MemoryRouter></QueryClientProvider>;
+      const view = render(tree());
+      /** lib/auth.tsx on another account's sign-in: forget the data, then hand the screens the new user. */
+      return (id: string) => {
+        act(() => { changeAccount(client); signInAs(id); });
+        view.rerender(tree());
+      };
+    }
+
+    it('takes the Undo away when another account signs in, so it posts nothing there', async () => {
+      signInAs('user-1');
+      const { sent } = serveDeck([LEARN_CARD]);
+      const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const switchTo = mountDeck(client);
+      fireEvent.click(await screen.findByRole('button', { name: 'Got it' }));
+      expect(await screen.findByRole('button', { name: 'Undo' })).toBeInTheDocument();
+
+      server.use(http.get('*/api/flashcards', () => HttpResponse.json({ cards: [NEXT_ACCOUNT_CARD] })));
+      switchTo('user-2');
+      expect(await screen.findByText(NEXT_ACCOUNT_CARD.question)).toBeInTheDocument();
+      const undo = screen.queryByRole('button', { name: 'Undo' });
+      if (undo) fireEvent.click(undo);
+      await act(async () => { await new Promise((resolve) => setTimeout(resolve, 20)); });
+
+      expect(undo).toBeNull();
+      expect(sent.filter((one) => one.method === 'POST')).toEqual([]);
+    });
+
+    it('shows no Undo for a Got it of the previous account that is answered after the change', async () => {
+      signInAs('user-1');
+      serveDeck([LEARN_CARD]);
+      const held = holdFlashcards('delete');
+      const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const switchTo = mountDeck(client);
+      fireEvent.click(await screen.findByRole('button', { name: 'Got it' }));
+      await waitFor(() => expect(held.answer).toBeDefined());
+
+      server.use(http.get('*/api/flashcards', () => HttpResponse.json({ cards: [NEXT_ACCOUNT_CARD] })));
+      switchTo('user-2');
+      expect(await screen.findByText(NEXT_ACCOUNT_CARD.question)).toBeInTheDocument();
+      await act(async () => { held.answer!(HttpResponse.json({ ok: true })); });
+      await act(async () => { await new Promise((resolve) => setTimeout(resolve, 20)); });
+
+      expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
+      expect(screen.queryByText('Card taken out of your Shark Cards.')).toBeNull();
+    });
+
+    it('says nothing on the next account\'s deck when the previous account\'s Got it fails late', async () => {
+      signInAs('user-1');
+      serveDeck([LEARN_CARD]);
+      const held = holdFlashcards('delete');
+      const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const switchTo = mountDeck(client);
+      fireEvent.click(await screen.findByRole('button', { name: 'Got it' }));
+      await waitFor(() => expect(held.answer).toBeDefined());
+
+      server.use(http.get('*/api/flashcards', () => HttpResponse.json({ cards: [NEXT_ACCOUNT_CARD] })));
+      switchTo('user-2');
+      expect(await screen.findByText(NEXT_ACCOUNT_CARD.question)).toBeInTheDocument();
+      await act(async () => {
+        held.answer!(HttpResponse.json({ error: { code: 'db_error', message: 'Could not delete card' } }, { status: 500 }));
+      });
+      await act(async () => { await new Promise((resolve) => setTimeout(resolve, 20)); });
+
+      expect(screen.queryByRole('alert')).toBeNull();
+    });
+  });
 });
