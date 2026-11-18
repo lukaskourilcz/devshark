@@ -178,6 +178,9 @@ let fdeFixtureVersion: number | undefined;
 const upstashCommands: string[] = [];
 /** While true the Upstash stand-in answers every command with HTTP 500. */
 let upstashFails = true;
+/** While true it drops the connection of every request carrying a SET, and
+ * answers the rest as healthy. */
+let upstashDropsSets = false;
 /** Healthy mode: requests counted per bucket key, and one-time claims taken. */
 const upstashCounts = new Map<string, number>();
 const upstashClaims = new Set<string>();
@@ -197,9 +200,12 @@ function pastLimiterPause() {
   if (behind > 0) clockSkew += behind;
 }
 /** Switch the Upstash stand-in. Back to healthy, the clock moves past the
- * pause the last failure started, or a bucket would keep to memory. */
-function upstashMode(mode: 'failing' | 'healthy') {
+ * pause the last failure started, or a bucket would keep to memory.
+ * `dropping-sets` is healthy but for a SET (a one-time claim), whose
+ * connection drops before any answer. */
+function upstashMode(mode: 'failing' | 'healthy' | 'dropping-sets') {
   upstashFails = mode === 'failing';
+  upstashDropsSets = mode === 'dropping-sets';
   if (!upstashFails) pastLimiterPause();
 }
 /** One Upstash command in healthy mode. @upstash/ratelimit's single-region
@@ -455,6 +461,11 @@ async function startStandIns() {
     const raw = await readBody(req);
     upstashCommands.push(raw);
     res.setHeader('content-type', 'application/json');
+    if (upstashDropsSets && /"set"/i.test(raw)) {
+      lastUpstashFailure = Date.now();
+      req.socket.destroy();
+      return;
+    }
     if (upstashFails) {
       lastUpstashFailure = Date.now();
       res.statusCode = 500;
@@ -1690,6 +1701,23 @@ async function main() {
     const opened = await call(roadmap as Handler, { account: A, query: { resource: 'coding-task', id: design.id } });
     assert.equal(opened.statusCode, 404, JSON.stringify(opened.body));
     console.log('PASS verified caller: a one-time claim Upstash cannot record answers 503');
+
+    // A claim whose connection dropped is not sent again. The learner heard
+    // 503 claim_unavailable and retries the round; a SET still being retried
+    // behind that answer could land first and refuse the retry as a replay.
+    upstashMode('dropping-sets');
+    upstashCommands.length = 0;
+    const droppedClaim = 'once:placement:verified-caller-attempt-0002:1';
+    await assert.rejects(
+      rateLimit.claimOnce('placement:verified-caller-attempt-0002:1', 60),
+      (error: unknown) => error instanceof http.ServiceUnavailableError && error.code === 'claim_unavailable',
+      'a claim whose connection dropped is refused',
+    );
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+    assert.equal(upstashCommands.filter((command) => command.includes(droppedClaim)).length, 1, 'and its SET is sent once, with no retry behind the 503');
+    assert.equal(upstashClaims.has(droppedClaim), false, 'so no late SET takes the claim');
+    upstashMode('failing');
+    console.log('PASS verified caller: a one-time claim is not retried after its 503');
 
     // ── an account made with an email and password ──────────────────────
     // From here on Upstash is healthy: sign-in reports and the admin desk.
