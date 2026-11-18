@@ -493,3 +493,28 @@ test('audit:performance summarizes a page whose runs all failed with empty stati
   assert.deepEqual(summary, { profile: 'mobile', route: '/', requestedUrl: 'http://127.0.0.1:9', runs: 2, failed: 2, median: empty, min: empty, max: empty, results: rows });
   assert.equal(lighthouse.summarize(rows, 1), rows, 'one run per profile keeps one row per audit');
 });
+
+test('audit:performance reads the LCP element, FCP, Speed Index, requests and machine speed from a report', () => {
+  const report = fakeReport({ lcp: 3800 });
+  report.audits['first-contentful-paint'] = { numericValue: 2700 };
+  report.audits['speed-index'] = { numericValue: 2900 };
+  report.audits['network-requests'] = { details: { items: Array.from({ length: 49 }, (_, i) => ({ url: `/assets/${i}.js` })) } };
+  // The shape Lighthouse 13 writes: a subpart table, then the node.
+  report.audits['lcp-breakdown-insight'] = { details: { type: 'list', items: [
+    { type: 'table', items: [{ subpart: 'timeToFirstByte', label: 'Time to first byte', duration: 12.6 }, { subpart: 'elementRenderDelay', label: 'Element render delay', duration: 167.2 }] },
+    { type: 'node', selector: 'section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_', nodeLabel: 'devShark keeps what sign-in, settings and progress need', snippet: '<p id="_r_4_">' },
+  ] } };
+  report.environment = { benchmarkIndex: 2482.5 };
+  report.configSettings = { throttlingMethod: 'simulate', throttling: { rttMs: 150, cpuSlowdownMultiplier: 4 } };
+  const row = lighthouse.reportRow(report);
+  assert.deepEqual(row.lcpElement, {
+    selector: 'section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_',
+    nodeLabel: 'devShark keeps what sign-in, settings and progress need',
+    subparts: { timeToFirstByte: 12.6, elementRenderDelay: 167.2 },
+  });
+  assert.deepEqual([row.fcpMs, row.lcpMs, row.speedIndexMs, row.requestCount, row.benchmarkIndex, row.throttlingMethod], [2700, 3800, 2900, 49, 2482.5, 'simulate']);
+  assert.deepEqual(row.throttling, { rttMs: 150, cpuSlowdownMultiplier: 4 });
+  // A report without these audits still gives a row, with null in their place.
+  const bare = lighthouse.reportRow(fakeReport());
+  assert.deepEqual([bare.fcpMs, bare.speedIndexMs, bare.lcpElement, bare.requestCount, bare.benchmarkIndex, bare.throttlingMethod, bare.throttling], [null, null, null, null, null, null, null]);
+});
