@@ -24,7 +24,10 @@
  *    503 instead of falling back to this instance's memory;
  *  - every op the twelve handlers route, against a database that answers
  *    every call with a raw Postgres error, answers without that error's
- *    text, and an unreadable plan answers 503 entitlement_unavailable.
+ *    text; against one that does not answer, it answers 503, never 500 or
+ *    504, except for the named exceptions;
+ *  - an Auth outage answers 503 auth_unavailable, an unreadable plan 503
+ *    entitlement_unavailable, and a duplicate insert 409 or a retry.
  *
  * Upstash is a second stand-in with two modes. Failing, it answers every
  * command with an error, so the rate limits run on their in-memory fallback;
@@ -221,14 +224,21 @@ function upstashAnswer(command: unknown[]): unknown {
 // A Challenge run saved with this score finds the run already on the board
 // with another one.
 const CONFLICTING_CHALLENGE_SCORE = 2;
-/** How PostgREST answers every table and routine: as stored, or with a raw
- * Postgres error (500, the marker text below). The marker holds no "does
- * not exist" or "schema cache", so no migration-missing branch takes it. */
-let dbMode: 'ok' | 'poisoned' = 'ok';
+/** How PostgREST answers every table and routine: as stored, with a raw
+ * Postgres error (500, the marker text below), or not until every handler
+ * deadline has passed. The marker holds no "does not exist" or "schema
+ * cache", so no migration-missing branch takes it. */
+let dbMode: 'ok' | 'poisoned' | 'hung' = 'ok';
 const POISON = { code: 'XX000', message: 'pg-raw-marker relation "secret" PGRST999', details: 'pg-raw-marker detail', hint: null };
 // Any echo of the poisoned answer: its message or details, a PostgREST code,
 // or its Postgres code. (The word "relation" alone is in the question bank.)
 const RAW_DATABASE_TEXT = /pg-raw-marker|PGRST|"XX000"/;
+const HUNG_DB_MS = 9_000;
+/** Room inserts the stand-in refuses as a clash on matches.code (23505). */
+let matchCodeClashes = 0;
+/** While true a garden connection's upsert meets migration 050's unique
+ * installation index (23505), as when two accounts finish at once. */
+let installationRace = false;
 // A stand-in GitHub (fetch to github.com and api.github.com never leaves the
 // machine): one user who owns one installation with no repositories.
 const GITHUB_OWNER = { id: 7_001, login: 'verified-caller-owner' };
@@ -257,10 +267,15 @@ async function listen(server: Server): Promise<number> {
 async function startStandIns() {
   const supabase = createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://stand-in');
-    if (dbMode === 'poisoned' && url.pathname.startsWith('/rest/v1/')) {
-      res.statusCode = 500;
-      res.setHeader('content-type', 'application/json');
-      res.end(JSON.stringify(POISON));
+    if (dbMode !== 'ok' && url.pathname.startsWith('/rest/v1/')) {
+      const answer = () => {
+        res.statusCode = 500;
+        res.setHeader('content-type', 'application/json');
+        res.end(JSON.stringify(POISON));
+      };
+      if (dbMode === 'poisoned') return answer();
+      const timer = setTimeout(answer, HUNG_DB_MS);
+      res.once('close', () => clearTimeout(timer));
       return;
     }
     if(url.pathname==='/rest/v1/user_stats'&&req.method==='GET'&&req.headers.apikey==='anon-verified-caller') {
@@ -352,6 +367,13 @@ async function startStandIns() {
     if (url.pathname === '/rest/v1/auth_events' && req.method === 'GET' && authEventsRead === 'missing') return send(404, { code: 'PGRST205', message: "Could not find the table 'public.auth_events' in the schema cache" });
     const filters = Object.fromEntries([...url.searchParams.entries()].filter(([, value]) => value.startsWith('eq.')).map(([key, value]) => [key, value.slice(3)]));
     seen.push({ method: req.method ?? 'GET', path: url.pathname, filters, body });
+    if (url.pathname === '/rest/v1/matches' && req.method === 'POST' && matchCodeClashes > 0) {
+      matchCodeClashes -= 1;
+      return send(409, { code: '23505', message: 'duplicate key value violates unique constraint "matches_code_key"' });
+    }
+    if (installationRace && url.pathname === '/rest/v1/github_connections' && req.method === 'POST') {
+      return send(409, { code: '23505', message: 'duplicate key value violates unique constraint "github_connections_installation_id_key"' });
+    }
     // The admin API reading one account (a learning preference), recorded
     // above so a check can count it.
     if (adminUser && req.method === 'GET') {
@@ -1846,6 +1868,7 @@ async function main() {
       ];
     };
     const leaked = (res: Response) => RAW_DATABASE_TEXT.test(JSON.stringify(res.body ?? null));
+    const outcome = (res: Response) => `${res.statusCode} ${errorCode(res) ?? ''}`.trim();
     // Every op of the twelve handlers, its database answering every table and
     // routine with a raw Postgres error: no answer carries that error's
     // message, details or code, whatever status it chose.
@@ -1887,6 +1910,81 @@ async function main() {
     assert.deepEqual([unreadablePlan.statusCode, errorCode(unreadablePlan)], [503, 'entitlement_unavailable'], 'an unreadable plan answers 503 entitlement_unavailable');
     console.log(`PASS verified caller: ${poisonedSweep.length} requests over every op of the twelve handlers answer a raw Postgres error without its text, and an unreadable plan answers 503`);
 
+    // The same ops with a database that does not answer before any handler
+    // deadline: a timeout is the database busy, 503, never 500 or 504. The
+    // exceptions are named, each with the reason or the finding that fixes it.
+    const TIMEOUT_EXCEPTIONS: Record<string, string> = {
+      // lib/github-handlers.ts: GitHub may have spent the one-time code by
+      // then, and the callback page sends the same code again after a 503.
+      'user POST github-connect-finish': 'answers 500 on purpose',
+      'Learn plan': 'F9-21',
+      'coding task': 'F9-20',
+      'coding state': 'F9-20',
+      'coding reveal': 'F9-20',
+      'user GET coding-progress': 'F9-20',
+      'user POST voucher': 'F9-22',
+      // lib/rewards/referral.ts answers 504; left for F16 (not an F9 file).
+      'user GET referral': 'F16',
+      'user POST referral': 'F16',
+    };
+    dbMode = 'hung';
+    let hungSweep: [string, Response][];
+    try {
+      hungSweep = await Promise.all(everyOp().map(async ([label, send]) => [label, await send()] as [string, Response]));
+    } finally {
+      dbMode = 'ok';
+    }
+    for (const [label, res] of hungSweep) {
+      assert.ok(!leaked(res), `${label} answers with raw database text after a hang (${outcome(res)})`);
+      if (label in TIMEOUT_EXCEPTIONS) continue;
+      assert.ok(res.statusCode !== 500 && res.statusCode !== 504, `${label} answers a hung database with ${outcome(res)}, not 503`);
+    }
+    for (const label of ['leaderboard global', 'Shark Cards GET', 'Learn level', 'play GET state', 'admin GET reports', 'user GET stats', 'user POST friends-request']) {
+      const res = hungSweep.find(([one]) => one === label)![1];
+      assert.equal(outcome(res), '503 upstream_timeout', `${label} answers a hung database 503 upstream_timeout`);
+    }
+    console.log(`PASS verified caller: every op but ${Object.keys(TIMEOUT_EXCEPTIONS).length} named ones answers a hung database 503, never 500 or 504`);
+
+    // Supabase Auth that is down decided nothing about the token: 503
+    // auth_unavailable on every handler, never 401 and never the admin's 403.
+    for (const [label, send] of [
+      ['user stats', () => user('stats', { account: AUTH_DOWN })],
+      ['Shark Cards', () => call(flashcards as Handler, { account: AUTH_DOWN, query: { subject: 'webdev' } })],
+      ['Learn progress', () => call(roadmap as Handler, { account: AUTH_DOWN, query: { resource: 'progress' } })],
+      ['play distribution', () => call(play as Handler, { account: AUTH_DOWN, query: { action: 'distribution', code: ROOM, q: '0' } })],
+      ['admin users', () => call(adminOps as Handler, { account: AUTH_DOWN, query: { op: 'users' } })],
+    ] as [string, () => Promise<Response>][]) {
+      const res = await send();
+      assert.equal(outcome(res), '503 auth_unavailable', `${label} answers an Auth outage 503 auth_unavailable (${JSON.stringify(res.body)})`);
+    }
+    console.log('PASS verified caller: an Auth outage answers 503 auth_unavailable across user ops, Shark Cards, Learn, Play and admin');
+
+    // A duplicate insert (23505) is a conflict or a retry, never a 500. Two
+    // accounts finishing a garden connect for one installation at once meet
+    // migration 050's unique index: 409 installation_taken. A room code
+    // drawn twice is drawn again. (A Shark Card save upserts on the card's
+    // primary key, its only unique key, so it cannot meet 23505.)
+    {
+      const account = SWEEPERS[11];
+      installationRace = true;
+      let raced: Response;
+      try {
+        raced = await user('github-connect-finish', { method: 'POST', account,
+          body: { installationId: GITHUB_INSTALLATION, state: tokens.encodeGithubConnectState(account.id), code: 'race-code' } });
+      } finally {
+        installationRace = false;
+      }
+      assert.equal(outcome(raced), '409 installation_taken', `a garden connect that lost the installation race answers 409 (${JSON.stringify(raced.body)})`);
+      seen.length = 0;
+      matchCodeClashes = 1;
+      const created = await call(play as Handler, { method: 'POST', account: SWEEPERS[10], query: { action: 'create' }, body: { mode: 'multiplayer', count: 5, categories: ['javascript'], duration_s: 30 } });
+      assert.equal(matchCodeClashes, 0, 'the stand-in refused the first room code');
+      assert.equal(created.statusCode, 200, `a room whose first code clashed opens with another (${JSON.stringify(created.body)})`);
+      const inserted = reads('/rest/v1/matches').filter((one) => one.method === 'POST').map((one) => (one.body as Row).code);
+      assert.equal(inserted.length, 2, 'the room is inserted twice');
+      assert.notEqual(inserted[0], inserted[1], 'with a new code the second time');
+    }
+    console.log('PASS verified caller: a duplicate insert answers 409 installation_taken or retries with a new room code');
 
     console.log('Verified-caller contracts passed: a token acts for its own account whatever user_id says, admin by confirmed address or role, private caching by default, read limits, and one-time claims that fail closed.');
   } finally {
