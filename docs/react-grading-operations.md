@@ -163,7 +163,14 @@ or asynchronous assertions. It also verifies detached async rejection reporting.
 It pins the learner engine's 85 globals (22 from the host) and the keys of each
 capability it hands out: `window`, `document`, elements, events, storage, the URL,
 abort and header objects, `Intl`, `crypto`, `performance` and React. A name added
-to `react-learner.ts` fails it until the list is updated. It runs in CI. `npm run test:launch` starts the actual guest bundle with production
+to `react-learner.ts` fails it until the list is updated. It runs in CI.
+
+`npm run test:grading-integrity` records every function the host hands a QuickJS
+context: `url` in the JavaScript grader, `capability`, `schedule` and `report` in
+the React learner engine, and no host reference or module loader in either. A new
+one fails the suite. It also pins the vendored wasm's 20 imports (19 host
+functions and its memory) and 75 exports beside the provenance hash, and checks
+that learner `import()` of `node:fs`, `std` or `os` rejects in both engines. `npm run test:launch` starts the actual guest bundle with production
 flags, checks deletion/nonce/count/serialization, resource exhaustion, UTC in
 multiple process zones and representative suites. `npm run test:react-isolation`
 builds the guest and starts it the same way, with a local HTTP server standing in
