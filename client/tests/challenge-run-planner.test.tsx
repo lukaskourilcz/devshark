@@ -133,6 +133,24 @@ it('sends one transition when the run actions are pressed before the request set
 });
 
 
+// Today's Start for a planned run turned busy only once advance.isPending
+// reached React, a task after the press: a double press sent two status
+// changes, navigated twice, and could show the refused second one's alert.
+it('sends one start from Today for a double press, and can start again once it settled', () => {
+  practice.session = { sessionId: 'run-1', status: 'scheduled', queue: ['js-digit-sum'], position: 0, minutes: 10, topic: null, estimatedMinutes: 5, order: 'sequential', count: 1, scheduledFor: '2026-12-01T10:00:00Z' };
+  let settle: (() => void) | undefined;
+  practice.advance.mockImplementation((_input, callbacks) => { settle = callbacks.onSettled; });
+  render(<MemoryRouter><LanguageProvider><ChallengeRunSection /></LanguageProvider></MemoryRouter>);
+  const start = screen.getByRole('button', { name: /^Start:/ });
+  fireEvent.click(start);
+  fireEvent.click(start);
+  expect(practice.advance).toHaveBeenCalledTimes(1);
+  expect(practice.advance.mock.calls[0][0]).toEqual({ sessionId: 'run-1', status: 'active' });
+  act(() => { settle?.(); });
+  fireEvent.click(start);
+  expect(practice.advance).toHaveBeenCalledTimes(2);
+});
+
 it.each([60_000, 60 * 86_400_000])('marks a scheduled run due on both screens after %i ms', (delay) => {
   vi.useFakeTimers();
   try {
