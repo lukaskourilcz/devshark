@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import * as lighthouse from './audit-performance.mjs';
+import * as bundle from './check-bundle.mjs';
 import * as lab from './measure-web-performance.mjs';
 import { parseArgs, resolveOptions, UsageError } from './measure-web-performance.mjs';
 
@@ -517,4 +518,25 @@ test('audit:performance reads the LCP element, FCP, Speed Index, requests and ma
   // A report without these audits still gives a row, with null in their place.
   const bare = lighthouse.reportRow(fakeReport());
   assert.deepEqual([bare.fcpMs, bare.speedIndexMs, bare.lcpElement, bare.requestCount, bare.benchmarkIndex, bare.throttlingMethod, bare.throttling], [null, null, null, null, null, null, null]);
+});
+
+test('check:bundle budgets the entry, modulepreload and stylesheet requests and lists preloaded fonts apart', () => {
+  // The tags a Vite build of client/index.html writes, in any attribute order.
+  const html = `<!doctype html><html><head>
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/manrope-latin-wght-normal-A1.woff2" />
+    <link href="/assets/inter-latin-wght-normal-B2.woff2" crossorigin as="font" rel="preload">
+    <link rel="preconnect" href="https://eu.i.posthog.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter">
+    <script type="module" crossorigin src="/assets/main-C3.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/react-D4.js">
+    <link rel="modulepreload" crossorigin href="/assets/react-D4.js">
+    <link rel="stylesheet" crossorigin href="/assets/main-E5.css">
+    <link rel="icon" href="/assets/favicon-F6.svg">
+    <script type="module" src="https://cdn.example.test/G7.js"></script>
+  </head><body></body></html>`;
+  assert.deepEqual(bundle.initialRequests(html), {
+    files: ['assets/main-C3.js', 'assets/react-D4.js', 'assets/main-E5.css'],
+    fonts: ['assets/manrope-latin-wght-normal-A1.woff2', 'assets/inter-latin-wght-normal-B2.woff2'],
+  });
+  assert.deepEqual(bundle.initialRequests('<html></html>'), { files: [], fonts: [] });
 });
