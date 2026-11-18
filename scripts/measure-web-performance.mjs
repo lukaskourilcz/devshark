@@ -257,6 +257,65 @@ export function emptyRequestCounts() {
 
 export const requestCount = requests => REQUEST_KINDS.reduce((sum, kind) => sum + requests[kind], 0);
 
+// The middle value of a list in the order compare gives (numbers ascending
+// by default). An even count takes the lower of the two middle values, so
+// every summary value is one a sample measured. null and undefined stay out;
+// an empty list gives null.
+export function median(values, compare = (a, b) => a - b) {
+ const sorted = values.filter(value => value !== null && value !== undefined).sort(compare);
+ return sorted.length ? sorted[Math.floor((sorted.length - 1) / 2)] : null;
+}
+
+// '<16' marks a press faster than the observer reports: it sorts below
+// every measured INP.
+const compareInp = (a, b) => (a === '<16' ? -1 : a) - (b === '<16' ? -1 : b);
+const CACHE_STATES = ['cold-browser', 'repeat-browser'];
+
+// One summary row per profile, path and cache state, in run order: the
+// median of each metric over the measured samples, and the LCP element of
+// the median-LCP sample. errors counts the samples a failure left without
+// a measurement; a failed setup or cold row costs the repeat row as well,
+// because the repeat row loads in the same page after it.
+export function summarizeRows(results) {
+ const groups = new Map();
+ const group = (profile, path, cache) => {
+  const key = JSON.stringify([profile, path, cache]);
+  if (!groups.has(key)) groups.set(key, { profile, path, cache, rows: [], errors: 0 });
+  return groups.get(key);
+ };
+ for (const row of results) {
+  if (!row.error) group(row.profile, row.path, row.cache).rows.push(row);
+  else for (const cache of row.cache === 'repeat-browser' ? [row.cache] : CACHE_STATES) group(row.profile, row.path, cache).errors++;
+ }
+ return [...groups.values()].map(({ profile, path, cache, rows, errors }) => {
+  const lcpRow = median(rows, (a, b) => a.lcp - b.lcp);
+  return {
+   profile, path, cache, samples: rows.length, errors,
+   ttfbMs: median(rows.map(row => row.navigation.ttfb)),
+   fcpMs: median(rows.map(row => row.fcp)),
+   lcpMs: lcpRow?.lcp ?? null,
+   lcpElement: lcpRow ? formatLcpElement(lcpRow.lcpElement) : null,
+   cls: median(rows.map(row => row.cls)),
+   tbtMs: median(rows.map(row => row.tbtMs)),
+   inpMs: median(rows.map(row => row.inpMs), compareInp),
+   requests: median(rows.map(row => row.requests && requestCount(row.requests))),
+  };
+ });
+}
+
+// What the run's pages asked for and what reached the origin, failed rows
+// included. forwarded counts the API reads Node sent to --api-origin.
+export function requestTotals(results, { forwarded = 0 } = {}) {
+ const totals = { requests: 0, api: 0, sent: 0, sentApi: 0, forwarded };
+ for (const { requests } of results) if (requests) {
+  totals.requests += requestCount(requests);
+  totals.api += requests.api;
+  totals.sent += requests.sent;
+  totals.sentApi += requests.sentApi;
+ }
+ return totals;
+}
+
 const formatInp = inpMs => typeof inpMs === 'number' ? Math.round(inpMs) : inpMs ?? 'none';
 
 // A failure every later load would repeat; it ends the run instead of one row.
@@ -298,7 +357,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
  const replaySummary = () => replay && { origin: apiOrigin, delayMs: apiDelayMs, forwarded: replay.reads.size, reads: [...replay.reads.values()].map(read => read.record), unlisted: [...replay.unlisted].map(([path, count]) => ({ path, count })) };
  let browser, chrome;
  const results = [];
- const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, apiOrigin, apiDelayMs: apiOrigin ? apiDelayMs : null, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', consent: consentByCache(consent), ttfbDefinition: 'responseStart (web-vitals)', clsDefinition: 'largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press', tbtDefinition: 'long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, apiReplay: replaySummary(), results }, null, 2) + '\n');
+ const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, apiOrigin, apiDelayMs: apiOrigin ? apiDelayMs : null, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', consent: consentByCache(consent), ttfbDefinition: 'responseStart (web-vitals)', clsDefinition: 'largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press', tbtDefinition: 'long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)', summaryDefinition: 'one row per profile, path and cache state: the median of each metric over the measured samples (the lower middle one for an even count, so each value is one a sample measured), the LCP element of the median-LCP sample, errors = samples a failure left without a measurement', requestsDefinition: 'requests the page made per kind at the lab interception; sent = responses the origin returned over the network, without cache hits or answers the lab fulfilled', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, apiReplay: replaySummary(), requestTotals: requestTotals(results, { forwarded: replay?.reads.size ?? 0 }), summary: summarizeRows(results), results }, null, 2) + '\n');
  try {
   for (const profile of profiles) for (const path of routes) for (let sample = 0; sample < samples; sample++) {
    // A browser that cannot start fails every sample the same way: let it end the run.
@@ -462,6 +521,10 @@ export async function main({ origin, routes, samples, profiles, output, access: 
    for (const { path, count } of unlisted) console.warn(`  ${count}x ${path}`);
   }
  }
+ const round = value => typeof value === 'number' ? Math.round(value) : value ?? '-';
+ console.table(summarizeRows(results).map(row => ({ profile: row.profile, path: row.path, cache: row.cache, samples: row.samples, errors: row.errors, ttfb: round(row.ttfbMs), fcp: round(row.fcpMs), lcp: round(row.lcpMs), cls: row.cls === null ? '-' : row.cls.toFixed(3), tbt: round(row.tbtMs), inp: round(row.inpMs), requests: round(row.requests), lcpElement: row.lcpElement ?? '-' })));
+ const totals = requestTotals(results, { forwarded: replay?.reads.size ?? 0 });
+ console.log(`perf:measure: the pages made ${totals.requests} requests, ${totals.api} of them to /api/; ${origin} answered ${totals.sent} over the network, ${totals.sentApi} of them API calls${replay ? `, and Node forwarded ${totals.forwarded} API reads to ${apiOrigin}` : ''}.`);
  const unpressed = results.filter(row => !row.error && !row.interaction.matched);
  if (unpressed.length) console.warn(`perf:measure: ${unpressed.length} of ${results.length} rows found no button to press and measure no interaction`);
  const failed = results.filter(row => row.error);
