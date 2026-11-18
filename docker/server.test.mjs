@@ -313,3 +313,17 @@ test('Docker adds the realtime socket of each origin CSP_CONNECT_EXTRA names', a
     'https://local-ref.supabase.example:8443/', 'wss://local-ref.supabase.example:8443',
   ]) assert.ok(connect.includes(source), `the app connect-src allows ${source}: ${connect.join(' ')}`);
 });
+
+// CSP_CONNECT_EXTRA is there so the app can sign in against a Supabase that is
+// not *.supabase.co. The adapter appended it to every connect-src, so the
+// coding worker, which runs learner code and talks to nothing but its own
+// origin on Vercel, could also reach that Supabase and its socket.
+test('Docker keeps the coding worker policy as vercel.json sets it when CSP_CONNECT_EXTRA is set', async (t) => {
+  const origin = await startAdapter(t, { files: SITE, env: { CSP_CONNECT_EXTRA: 'http://127.0.0.1:54321' } });
+  for (const pathname of ['/assets/coding-worker/worker-x.js', '/assets/coding-worker/missing.js']) {
+    const response = await fetch(origin + pathname, { signal: AbortSignal.timeout(5_000) });
+    await response.arrayBuffer();
+    const expected = vercelAnswer(config, pathname, isSiteFile).headers['content-security-policy'];
+    assert.equal(response.headers.get('content-security-policy'), expected, `${pathname}: the worker policy`);
+  }
+});
