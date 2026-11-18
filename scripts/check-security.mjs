@@ -216,8 +216,10 @@ if (url) {
   const mismatches = [];
   const requestHeaders = {};
   // In CI, Vercel's Protection Bypass for Automation secret opens a protected
-  // deployment without a share link.
-  const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  // deployment without a share link. The project protects only its
+  // *.vercel.app hosts, so the secret goes to those alone and never to a host
+  // outside Vercel that --url happens to name.
+  const bypass = origin.hostname.endsWith('.vercel.app') ? process.env.VERCEL_AUTOMATION_BYPASS_SECRET : undefined;
   if (bypass) requestHeaders['x-vercel-protection-bypass'] = bypass;
   // A share link (https://<deployment>/?_vercel_share=<token>, as the Vercel
   // MCP get_access_to_vercel_url returns it) trades its token for a
@@ -237,7 +239,7 @@ if (url) {
     const location = response.status >= 300 && response.status < 400 ? response.headers.get('location') : null;
     const target = location ? new URL(location, origin).hostname : '';
     if (target === 'vercel.com' || target.endsWith('.vercel.com')) {
-      assert.fail(`${origin.host}${pathname} answers ${response.status} to ${target}: the deployment sits behind Vercel Authentication. Pass a share link (--url='https://${origin.host}/?_vercel_share=<token>') or set VERCEL_AUTOMATION_BYPASS_SECRET${bypass ? ' to the project\'s current secret' : ''}.`);
+      assert.fail(`${origin.host}${pathname} answers ${response.status} to ${target}: the deployment sits behind Vercel Authentication. Pass a share link (--url='https://${origin.host}/?_vercel_share=<token>') or set VERCEL_AUTOMATION_BYPASS_SECRET${bypass ? ' to the project\'s current secret' : ' (sent to *.vercel.app hosts only)'}.`);
     }
     return { pathname, response, body: await response.text() };
   };
