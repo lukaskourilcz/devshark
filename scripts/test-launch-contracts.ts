@@ -4099,6 +4099,43 @@ async function oversizeBodyContracts() {
   console.log(`PASS oversize bodies: ${cases.filter((c) => c[6]).length} requests past 256 kB (1 MB for the webhooks) answer 413 unread, ${cases.filter((c) => !c[6]).length} within the caps pass`);
 }
 
+/* The id a request's logs and errors carry. Vercel sets x-vercel-id on
+ * every request; a client chooses X-Request-Id, and the browser sends none.
+ * The platform's id wins, so a script cannot stamp its log lines, the admin
+ * audit lines among them, with another request's id. Without x-vercel-id
+ * (local, Docker) the client's id is kept, and one that differs from the
+ * server's is logged as client_request_id beside it. */
+async function requestIdContracts() {
+  const vercelId = 'arn1::iad1::f9req-1763491200000-0a1b2c3d4e5f';
+  const clientId = 'req-chosen-by-a-script-0001';
+  const cases: [label: string, headers: Record<string, string>, expected: string | 'uuid', client: string | undefined][] = [
+    ['both headers', { 'x-vercel-id': vercelId, 'x-request-id': clientId }, vercelId, clientId],
+    ['only x-vercel-id', { 'x-vercel-id': vercelId }, vercelId, undefined],
+    ['only x-request-id (local, Docker)', { 'x-request-id': clientId }, clientId, undefined],
+    ['the same id in both', { 'x-vercel-id': vercelId, 'x-request-id': vercelId }, vercelId, undefined],
+    ['a malformed client id beside the Vercel id', { 'x-vercel-id': vercelId, 'x-request-id': 'has spaces in it' }, vercelId, undefined],
+    ['a malformed Vercel id', { 'x-vercel-id': 'x', 'x-request-id': clientId }, 'uuid', clientId],
+    ['neither header', {}, 'uuid', undefined],
+  ];
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+  let caller = 0;
+  for (const [label, headers, expected, client] of cases) {
+    caller += 1;
+    const req = { method: 'GET', url: '/api/quiz/questions', query: { difficulty: 'constructor' }, headers: { ...headers, 'x-forwarded-for': `10.64.8.${caller}` }, socket: {} };
+    const { res, lines, error } = await capturedCall(questionsHandler, req);
+    assert.equal(res.statusCode, 400, `${label}: the handler answers its own 400 (${JSON.stringify(res.body)})`);
+    const answered = res.headers.get('x-request-id');
+    if (expected === 'uuid') assert.match(String(answered), uuid, `${label}: the server makes its own id`);
+    else assert.equal(answered, expected, `${label}: X-Request-Id`);
+    assert.equal(error?.requestId, answered, `${label}: the error body carries the same id`);
+    const summary = lines.find((line) => line.route === 'request' && line.latency_ms !== undefined);
+    assert.equal(summary?.request_id, answered, `${label}: the request line carries the server id`);
+    assert.equal(summary?.client_request_id, client, `${label}: client_request_id ${client ?? 'absent'}`);
+    assert.ok(lines.every((line) => line.request_id === answered), `${label}: every log line carries the server id`);
+  }
+  console.log(`PASS request ids: ${cases.length} header combinations, x-vercel-id wins and a differing client id is logged beside it`);
+}
+
 async function main() {
   await adminDirectoryContracts();
   await practiceRunTransitionContracts();
@@ -6909,6 +6946,7 @@ async function main() {
   strictQueryContracts();
   await malformedBodyContracts();
   await oversizeBodyContracts();
+  await requestIdContracts();
 
   console.log('Launch contracts passed: product identity, scope, token confidentiality, stable attempts, fairness-neutral rewards, rate limiting, health, 12-function budget, the free tier and Premium, billing, the launch price, the public Premium copy, the retired support settings, the progression graph, failure hints, retired sections, curation claims, the content-audit gate, spaced practice, interleaving, challenge runs, lesson figures, an unconfigured shop, coins, invitations, merchandise through Spreadshop, one erasure routine, Premium vouchers, the question of the day, and the webdev-bank contract BoardlessAI imports.');
 }
