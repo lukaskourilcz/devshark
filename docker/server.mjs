@@ -232,10 +232,27 @@ function applyHeaderRoutes(list, pathname, headers) {
   }
 }
 
+// Vercel refuses a path whose percent escapes do not decode before any route
+// runs (400 Bad Request). Checking once here keeps every later
+// decodeURIComponent (staticFile, an API path parameter) from throwing, which
+// answered 500 and logged an error line per request.
+function decodable(pathname) {
+  try { decodeURIComponent(pathname); return true; } catch { return false; }
+}
+
 async function handle(req, res) {
   const url = new URL(req.url ?? '/', 'http://localhost');
   const pathname = url.pathname;
   const headers = {};
+
+  if (!decodable(pathname)) {
+    applyHeaderRoutes(beforeFs, pathname, headers);
+    for (const [name, value] of Object.entries(headers)) res.setHeader(name, value);
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.end('400 Bad Request');
+    return;
+  }
 
   for (const route of beforeFs) {
     if (!route.src) continue;
