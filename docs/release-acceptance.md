@@ -6786,3 +6786,62 @@ Docs: the api-operation and route-and-chunk skills now describe the new check.
 - `check:security --url` on a preview: the branch was not pushed.
 
 The remaining F10 findings (F10-06, F10-11 to F10-25, F10-27 to F10-30, F10-34 to F10-36) and the F10 owner and F16 items moved to #646.
+
+## Epic F11: Grading sandboxes: QuickJS, the React harness and resource limits (18 November 2026)
+
+Branch `claude/f11-grading-sandbox-limits`, issue #640, 14 commits. Eight findings landed. The branch changes no verdict, limit value, API shape or protected behaviour.
+
+### What changed
+
+- **F11-01**: `docs/react-grading-operations.md` gains "Upload per Submit". Each React Submit uploads `runner.cjs` (2,100,887 bytes, gzip 691,960) and an `input.json`. Across the 183 React reference solutions, `input.json` has a median of 22,224 bytes (gzip 5,680) and a maximum of 55,113 (gzip 11,672). The table names 819,611 bytes of upstream wasm that never runs and 345,671 bytes of unused QuickJS variants, and gives the esbuild metafile command that reproduces it.
+- **F11-02**: `lib/coding/sandbox.ts` counts grader threads from start to exit (`sandboxThreads()`). It exports the grace, memory, stack, tick, thread and idle limits as `SANDBOX_*` constants with unchanged values.
+- **F11-21**: `cutErrorText` moved to `shared/coding-error-text.ts` and `dumpThrown` to `lib/coding/vm-errors.ts`, and `react-runner.ts` dropped its copy. The React guest no longer bundles `sandbox.ts` or the QuickJS preludes: 2,100,887 bytes to 2,056,252 (gzip 691,960 to 679,802).
+- **F11-03**: new `npm run test:sandbox-limits`. It sends 16 cases through the worker thread at the deployed limits: 2.5 s deadline, 1.5 s grace, 64 MB heap, 1 MB stack, 10,000 ticks, 4 threads, 2 idle, 160 waiting, 5 s wait. Each case checks the verdict, the end time, which threads survive and that the next run grades.
+- **F11-04**: `test:grading-integrity` records every host function a QuickJS context receives. The grader gets `url`. The React engine gets `capability`, `schedule` and `report`. Neither gets a host reference or a module loader. The test also pins the vendored wasm's 20 imports and 75 exports beside its provenance hash, and checks that learner `import()` of `node:fs`, `std` or `os` rejects in both engines. The audit removed no binding, because grading uses each one it found.
+- **F11-05**: `test:react-authority` pins the React learner engine's 85 globals (22 from the host) and the keys of each capability. 26 network and Node names read `undefined` as bare globals, and 17 read `undefined` on `window`.
+- **F11-06**: `test:grading-integrity` checks that changes to `Object.prototype`, `Array.prototype`, `Function.prototype.constructor` and the globals stay inside the run that made them, in QuickJS and in the React engine. The host realm and the guest reporter stay clean.
+- **F11-07**: `test:react-isolation` starts the real guest bundle locally, with the VM's flags and environment and a local HTTP server standing in for the network. Learner code reaches no `XMLHttpRequest`, `WebSocket`, `EventSource`, worker, `navigator`, `require`, `process` or `WebAssembly`. Its `fetch` refuses without a fixture, and jsdom loads no resource and runs no inline script. Without `REACT_RUNNER_SNAPSHOT_ID` the VM part prints SKIP.
+- Review fix: the "Upload per Submit" baseline row now describes the old `sandbox.ts` import in the past tense.
+
+### Numbers from test:sandbox-limits (18 November 2026, shared 8-core machine)
+
+| Case | Result | Thread |
+|---|---|---|
+| Four busy-waits (plain, in a call, `Date.now`, `performance.now`) | timeout at 2,502 to 2,508 ms | kept |
+| Interval that never lets a call settle | timeout at 193 ms (tick limit) | kept |
+| Three native-call loops | host stop at 4,002 ms (deadline plus grace) | ended |
+| Allocating loop inside a call | out of memory; 32 MB fits, 80 MB fails; 1,666 ms | kept |
+| Recursion inside a call, at the top level | `stack overflow` in 11 ms, stack message in 24 ms | kept |
+| 200,000 `console.log` lines | 100 lines kept, 408 ms | kept |
+| Return values 41 levels deep or 10,001 entries wide | that call fails, the run goes on | kept |
+| Six runaway runs at once | at most 4 threads, all done in 5,052 ms | |
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm run typecheck:api` | pass |
+| `npm run typecheck:scripts` | pass |
+| `npm run typecheck:tooling --prefix client` | pass |
+| `npm run check:unused` | pass, no new Knip findings |
+| `npm run check:security` | pass |
+| `git diff --check origin/main...HEAD` | clean |
+| `npm run test:sandbox-limits` | pass, 16 cases, 31 s |
+| `npm run test:grading-integrity` | pass, 84 PASS lines, 84 s |
+| `npm run test:react-authority` | pass, 9 s |
+| `npm run test:react-isolation` | local part pass (5 PASS lines), VM part SKIP |
+| `npm run test:launch` | pass, 110 s |
+| `npm run test:react-engine` | pass, 272 s |
+| `npm run test:coding-auth` | pass, 4 s |
+| `npm run test:coding` | exit 1 at load average about 35: one wall-clock problem, the `react-easy3-dispatch-through-context` starter took 7,307 ms against a 6,000 ms budget; every other check passed |
+| `CODING_ONLY='^react-easy3-dispatch-through-context$' npm run test:coding` | pass, 121 s; the starter measured 1,914 to 2,172 ms in three direct runs |
+
+### Not run
+
+- `npm run test:harness` needs a client build. The branch changes no client file, catalog or solution, and CI's browser job runs it.
+- The client build, `check:bundle` and `check:public` had nothing to check: no client code or dependency changed.
+- `test:sql` and the production dependency audits had nothing to check: no SQL or lockfile changed.
+- `check:quickjs-build` had nothing to check: `lib/coding/vendor` and `quickjs-variant.ts` are unchanged.
+- The VM part of `test:react-isolation` needs `REACT_RUNNER_SNAPSHOT_ID` and Vercel Sandbox credentials, which the audit machine lacks.
+
+The remaining 29 findings of F11 (F11-08 to F11-20, F11-22 to F11-37) moved to #646.
