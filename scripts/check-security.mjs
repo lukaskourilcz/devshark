@@ -5,8 +5,13 @@ const config = JSON.parse(readFileSync('vercel.json', 'utf8'));
 // The header rules are `routes` that run before the filesystem check
 // (scripts/vercel-routing-contract.ts says why they are not `headers`).
 const headerRoutes = config.routes.slice(0, config.routes.findIndex(route => route.handle));
-const app = headerRoutes.find(route => route.src.startsWith('^/(?!'));
-const header = (route, name) => Object.entries(route.headers).find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1];
+const header = (route, name) => Object.entries(route.headers ?? {}).find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1];
+// The app policy is the one that forbids framing the page. Picking the rule by
+// its src shape picked whichever `^/(?!` rule came first, so a later document
+// rule written the same way would have been checked in its place.
+const appRules = headerRoutes.filter(route => /(?:^|;)\s*frame-ancestors\s+'none'\s*(?:;|$)/i.test(header(route, 'Content-Security-Policy') ?? ''));
+assert.equal(appRules.length, 1, `Exactly one header route may carry the app policy (frame-ancestors 'none'); found ${appRules.map(route => route.src).join(', ') || 'none'}`);
+const [app] = appRules;
 const csp = header(app, 'Content-Security-Policy');
 const boot = readFileSync('client/index.html', 'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
 const hash = `'sha256-${createHash('sha256').update(boot).digest('base64')}'`;
