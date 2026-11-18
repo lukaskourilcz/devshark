@@ -128,6 +128,32 @@ export function jsonError(res: VercelResponse, status: number, code: string, mes
   });
 }
 
+/** The message a handler answers with (400) for text `unstorableText` finds. */
+export const UNSTORABLE_TEXT_MESSAGE = 'Text cannot contain a NUL (U+0000) character or an unpaired surrogate';
+
+// A UTF-16 high surrogate with no low one after it, or a low one with no high
+// one before it. Without the `u` flag the pattern reads code units, which is
+// what a JavaScript string holds.
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+
+/**
+ * Whether `value` holds text Postgres text and JSONB cannot store: U+0000
+ * (22P05) or a lone UTF-16 surrogate. A JSON body can carry `"\ud800"`;
+ * JSON.stringify sends it on as that escape and Postgres refuses the whole
+ * argument (22P02, "Unicode low surrogate must follow a high surrogate"),
+ * which handlers answered with 500. Walks strings, arrays and plain objects,
+ * their keys included: the values, never the JSON text, so code that spells
+ * `\u0000` out still saves. A container nested deeper than `depth` counts as
+ * unstorable, so nothing past the bound reaches the database unchecked.
+ */
+export function unstorableText(value: unknown, depth = 8): boolean {
+  if (typeof value === 'string') return value.includes('\u0000') || LONE_SURROGATE.test(value);
+  if (value === null || typeof value !== 'object') return false;
+  if (depth <= 0) return true;
+  if (Array.isArray(value)) return value.some((one) => unstorableText(one, depth - 1));
+  return Object.entries(value).some(([key, one]) => unstorableText(key, depth) || unstorableText(one, depth - 1));
+}
+
 /** Thrown for content the caller's tier does not open (`lib/access.ts`).
  * `jsonPremiumRequired` and `withRequestContext` answer it with HTTP 402. */
 export class PremiumRequiredError extends Error {
