@@ -216,3 +216,24 @@ test('perf:measure names the LCP element of a row in one short line', () => {
   assert.equal(lab.formatLcpElement({ tag: null, id: null, classes: [], container: null, size: 400, url: null }), '(detached)');
   assert.equal(lab.formatLcpElement(null), 'none');
 });
+
+test('perf:measure loads the repeat row as a returning visitor who pressed Reject all', () => {
+  assert.equal(typeof lab.rejectedConsent, 'function', 'perf:measure builds the stored choice in rejectedConsent');
+  // client/src/lib/consent.ts reads the choice from this key, for this
+  // version, in the four fields persist() writes.
+  const consent = readFileSync(join(root, 'client/src/lib/consent.ts'), 'utf8');
+  const key = consent.match(/export const CONSENT_STORAGE_KEY = '([^']+)';/);
+  const version = consent.match(/export const CONSENT_VERSION = (\d+);/);
+  assert.ok(key && version, 'client/src/lib/consent.ts names its storage key and version');
+  assert.equal(lab.CONSENT_STORAGE_KEY, key[1]);
+  assert.deepEqual(lab.rejectedConsent(1_763_424_000_000), { version: Number(version[1]), analytics: false, marketing: false, decidedAt: 1_763_424_000_000 });
+  // A first visit always sees the banner; the repeat row has answered it
+  // unless --consent=undecided keeps the banner for older comparisons.
+  const plain = resolveOptions(parseArgs(['--url=http://127.0.0.1:4211']));
+  assert.equal(plain.consent, 'rejected');
+  assert.deepEqual(lab.consentByCache(plain.consent), { 'cold-browser': 'undecided', 'repeat-browser': 'rejected' });
+  const undecided = resolveOptions(parseArgs(['--url=http://127.0.0.1:4211', '--consent=undecided']));
+  assert.deepEqual(lab.consentByCache(undecided.consent), { 'cold-browser': 'undecided', 'repeat-browser': 'undecided' });
+  // Accepting would load PostHog and send a lab run's events to it.
+  for (const value of ['accepted', '']) assert.throws(() => resolveOptions(parseArgs(['--url=http://127.0.0.1:4211', `--consent=${value}`])), UsageError, value);
+});
