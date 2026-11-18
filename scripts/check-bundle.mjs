@@ -13,11 +13,32 @@
 //
 // The measurement follows index.html the way a browser does on a first visit:
 // the entry script, its modulepreload links and its stylesheets, each gzipped.
+// It also lists the largest JavaScript and CSS chunks of the whole build
+// (ten unless --largest=N says otherwise), initial or lazy, under `largest`
+// in artifacts/bundle.json.
+//
+// For the treemap of the same production-shaped build, run it with
+// ANALYZE=true: client/vite.config.ts then writes client/dist/bundle-stats.html
+// and bundle-stats.json, which stay after the check removes its own build.
 //
 //   npm run check:bundle
+//   npm run check:bundle -- --largest=20
+//   ANALYZE=true npm run check:bundle
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 import { gzipSync } from 'node:zlib';
+
+const USAGE = 'Usage: node scripts/check-bundle.mjs [--largest=<n>]\n  --largest=<n>  how many of the largest chunks to list, a whole number from 1 to 100 (default 10)';
+let largestCount = 10;
+for (const arg of process.argv.slice(2)) {
+  const match = arg.match(/^--largest=(\d+)$/);
+  if (!match || Number(match[1]) < 1 || Number(match[1]) > 100) {
+    console.error(`check:bundle: ${arg.startsWith('--largest') ? `--largest must be a whole number from 1 to 100, got "${arg}"` : `unknown argument "${arg}"`}\n\n${USAGE}`);
+    process.exit(2);
+  }
+  largestCount = Number(match[1]);
+}
 
 const budget = JSON.parse(readFileSync('docs/quality/bundle-budget.json', 'utf8'));
 const { outDir, env: shapedEnv } = budget.measuredBuild;
@@ -58,6 +79,19 @@ const monitoringFiles = readdirSync(`${outPath}/assets`).filter(name => /^sentry
 if (monitoringFiles.length !== 1) throw new Error('Expected one closed Sentry SDK chunk in the shaped build');
 const monitoringGzipBytes = gzipSync(readFileSync(`${outPath}/assets/${monitoringFiles[0]}`)).byteLength;
 
+// Every JavaScript and CSS file the build emitted, gzipped, largest first.
+// initial marks the ones a first visit requests.
+const initial = new Set(files);
+const largest = readdirSync(`${outPath}/assets`, { recursive: true })
+  .filter((name) => /\.(?:js|css)$/.test(name))
+  .map((name) => {
+    const file = `assets/${name.split(path.sep).join('/')}`;
+    return { file, gzipBytes: gzipSync(readFileSync(`${outPath}/${file}`)).byteLength, initial: initial.has(file) };
+  })
+  .sort((a, b) => b.gzipBytes - a.gzipBytes || a.file.localeCompare(b.file));
+const chunkCount = largest.length;
+largest.splice(largestCount);
+
 const placeholders = shaped.filter(([key]) => !['VITE_PRODUCT', 'VITE_LOCK_SUBJECT'].includes(key)).map(([key]) => key);
 const configuration = {
   build: `vite build --outDir ${outDir}`,
@@ -66,7 +100,7 @@ const configuration = {
 };
 
 mkdirSync('artifacts', { recursive: true });
-writeFileSync('artifacts/bundle.json', JSON.stringify({ configuration, initialGzipBytes, budget: budget.initialGzipBytes, monitoringGzipBytes, monitoringBudget: budget.monitoringGzipBytes, sizes }, null, 2) + '\n');
+writeFileSync('artifacts/bundle.json', JSON.stringify({ configuration, initialGzipBytes, budget: budget.initialGzipBytes, monitoringGzipBytes, monitoringBudget: budget.monitoringGzipBytes, sizes, chunkCount, largest }, null, 2) + '\n');
 rmSync(outPath, { recursive: true, force: true });
 
 console.log(`Measured a production-shaped build: ${configuration.product}, with placeholder ${placeholders.join(', ')}.`);
@@ -74,6 +108,10 @@ for (const { file, gzipBytes } of [...sizes].sort((a, b) => b.gzipBytes - a.gzip
   console.log(`  ${String(gzipBytes).padStart(7)}  ${file}`);
 }
 console.log(`Initial requests of index.html: ${files.length} files, ${initialGzipBytes} gzip bytes; budget ${budget.initialGzipBytes}. Lazy routes, the coding sandbox and fonts are measured separately by Lighthouse.`);
+console.log(`The ${largest.length} largest of ${chunkCount} JavaScript and CSS chunks, gzipped:`);
+for (const { file, gzipBytes, initial: first } of largest) {
+  console.log(`  ${String(gzipBytes).padStart(7)}  ${file}${first ? '  (initial)' : ''}`);
+}
 if (initialGzipBytes > budget.initialGzipBytes) {
   console.error(`Over budget by ${initialGzipBytes - budget.initialGzipBytes} gzip bytes.`);
   process.exitCode = 1;
