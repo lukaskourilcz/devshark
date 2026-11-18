@@ -177,6 +177,10 @@ const checkJsonLd = (text, where, canonical) => {
 let jsonLdBlocks = 0;
 /** Titles a search result would cut (F15-04), reported together at the end. */
 const longTitles = [];
+/** Descriptions too short or too long for a search result (F15-06), reported
+ * together at the end. */
+const DESCRIPTION_LENGTH = { min: 50, max: 160 };
+const offDescriptions = [];
 const sitemapHrefs = new Set(urls.map(url => url.href));
 assert.equal(sitemapHrefs.size, urls.length, 'the sitemap lists no URL twice');
 for (const url of urls) {
@@ -223,6 +227,13 @@ for (const pagePath of pagePaths) {
   if ((kind === 'listed' || kind === 'share-only') && [...title].length >= 60) longTitles.push({ pagePath, title, length: [...title].length });
   const description = one('meta[name="description"]');
   assert(description.trim(), `${pagePath}: a description`);
+  // F15-06: a search result shows about 160 characters of the description,
+  // and under 50 says too little about the page. Code points of the decoded
+  // text, as for the title.
+  const descriptionLength = [...description].length;
+  if ((kind === 'listed' || kind === 'share-only') && (descriptionLength < DESCRIPTION_LENGTH.min || descriptionLength > DESCRIPTION_LENGTH.max)) {
+    offDescriptions.push({ pagePath, description, length: descriptionLength });
+  }
   assert.equal(one('meta[property="og:description"]'), description, `${pagePath}: og:description is the description`);
   assert.equal(one('meta[name="twitter:description"]'), description, `${pagePath}: twitter:description is the description`);
   // Link previews on LinkedIn, Slack and iMessage need an absolute image URL.
@@ -365,4 +376,8 @@ assert(!readdirSync(`${dir}/assets`).some(file => /storybook|mocks|\.stories\./i
   const kinds = Object.entries(Object.groupBy(longTitles, ({ pagePath }) => pagePath.startsWith('/daily/') ? 'dated daily' : pagePath.startsWith('/coding/') ? 'coding task' : 'other')).map(([kind, list]) => `${list.length} ${kind}`).join(', ');
   assert.equal(longTitles.length, 0, `${longTitles.length} titles are 60 characters or longer (${kinds}); the longest:\n${shown.map(({ pagePath, title, length }) => `  ${length} ${pagePath}: ${title}`).join('\n')}${longTitles.length > shown.length ? `\n  and ${longTitles.length - shown.length} more` : ''}`);
 }
-console.log(`Public HTML passed: ${pagePaths.length} pages (${Object.entries(classCounts).map(([kind, count]) => `${count} ${kind}`).join(', ')}), ${urls.length} sitemap URLs, canonical, ${jsonLdBlocks} JSON-LD blocks against schema.org, teaching content, the Premium terms, ${tasks.length} coding share pages, ${SECTION_PAGES.length} Coding section pages, hidden system design, ${days.length} question-of-the-day pages, and no unexpected accented glyphs in ${codingChunks.length} coding chunks.`);
+{
+  const shown = offDescriptions.slice(0, 25);
+  assert.equal(offDescriptions.length, 0, `${offDescriptions.length} descriptions are outside ${DESCRIPTION_LENGTH.min} to ${DESCRIPTION_LENGTH.max} characters:\n${shown.map(({ pagePath, description, length }) => `  ${length} ${pagePath}: ${description}`).join('\n')}${offDescriptions.length > shown.length ? `\n  and ${offDescriptions.length - shown.length} more` : ''}`);
+}
+console.log(`Public HTML passed: ${pagePaths.length} pages (${Object.entries(classCounts).map(([kind, count]) => `${count} ${kind}`).join(', ')}), ${urls.length} sitemap URLs, canonical, titles under 60 and descriptions of ${DESCRIPTION_LENGTH.min} to ${DESCRIPTION_LENGTH.max} characters, ${jsonLdBlocks} JSON-LD blocks against schema.org, teaching content, the Premium terms, ${tasks.length} coding share pages, ${SECTION_PAGES.length} Coding section pages, hidden system design, ${days.length} question-of-the-day pages, and no unexpected accented glyphs in ${codingChunks.length} coding chunks.`);
