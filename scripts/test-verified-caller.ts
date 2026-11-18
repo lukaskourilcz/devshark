@@ -223,6 +223,7 @@ function upstashAnswer(command: unknown[]): unknown {
     upstashClaims.add(key);
     return 'OK';
   }
+  if (name === 'ping') return 'PONG';
   return 'OK';
 }
 // A Challenge run saved with this score finds the run already on the board
@@ -1413,6 +1414,22 @@ async function main() {
       assert.ok(!reads('/rest/v1/auth_events').some((one) => one.method === 'POST'), 'a refused sign-in report logs no event');
       assert.ok(passedLimits(down.preference), `a learning-preference save keeps to memory (${outcomeOf(down.preference)})`);
 
+      // /api/health is a function of its own and takes no rate limit, so its
+      // instance would never learn of an outage from a bucket: it sends one
+      // PING of its own. Past the pause and any answer it kept, the PING
+      // fails, the probe reports memory-fallback (readiness stays the
+      // database's), and the failure pauses this instance's buckets too.
+      const pings = () => upstashCommands.filter((command) => /"ping"/i.test(command)).length;
+      clockSkew += 31_000;
+      upstashCommands.length = 0;
+      const downHealth = await call(health as Handler, {});
+      assert.equal(downHealth.statusCode, 200, `the limiter does not decide readiness (${JSON.stringify(downHealth.body)})`);
+      assert.equal(downHealth.body.dependencies.rateLimiter, 'memory-fallback', 'health reports the limiter on its memory while Upstash fails');
+      assert.equal(pings(), 1, 'after one PING of its own');
+      const asked = upstashCommands.length;
+      assert.equal((await call(questions as Handler, { query: { count: '2', categories: 'javascript' } })).statusCode, 200);
+      assert.equal(upstashCommands.length, asked, 'the failed PING paused the buckets');
+
       upstashMode('healthy');
       seen.length = 0;
       const up = await routes();
@@ -1423,10 +1440,23 @@ async function main() {
       assert.equal(up.quiz.statusCode, 200);
       assert.equal(up.map.statusCode, 200);
       assert.equal(up.signIn.statusCode, 200, `with Upstash back a sign-in report is logged (${JSON.stringify(up.signIn.body)})`);
+      // Past the pause and the kept answer, probes that arrive together share
+      // one PING, and the answer is kept 30 s.
+      clockSkew += 31_000;
+      upstashCommands.length = 0;
+      const upHealth = await Promise.all([call(health as Handler, {}), call(health as Handler, {}), call(health as Handler, {})]);
+      for (const res of upHealth) {
+        assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+        assert.equal(res.body.dependencies.rateLimiter, 'configured', 'health reports a limiter that answered its PING');
+      }
+      assert.equal(pings(), 1, 'three probes at once send one PING');
+      assert.equal((await call(health as Handler, {})).body.dependencies.rateLimiter, 'configured');
+      assert.equal(pings(), 1, 'and a probe inside 30 s sends none');
       assert.ok(passedLimits(up.preference), `and a learning-preference save passes (${outcomeOf(up.preference)})`);
       upstashMode('failing');
     }
     console.log('PASS verified caller: the admin gate, voucher redemption and sign-in reports refuse with 503 while Upstash fails, a quiz, the Learn map and other account writes keep to memory');
+    console.log('PASS verified caller: /api/health reports memory-fallback from a PING of its own while Upstash fails, and configured with one shared PING kept 30 s');
 
     // ── an Upstash client that fails to start ───────────────────────────
     // A package that does not import (or a client that does not build) is
