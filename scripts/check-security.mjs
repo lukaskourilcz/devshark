@@ -165,7 +165,12 @@ const APP_POLICY = {
   'script-src': ["'self'", 'https://js.stripe.com', 'https://*.js.stripe.com', 'https://checkout.stripe.com', ...bootstrapHashes],
   'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
   'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
-  'img-src': ["'self'", 'data:', 'https:'],
+  // Google profile photos (the only avatar host lib/public-identity.ts and
+  // client/src/lib/auth.tsx accept), and Stripe's and Link's images in
+  // checkout, as Stripe's CSP guide lists them. data: carries the Play QR
+  // code and the SVG backgrounds in the built CSS. When merchandise returns,
+  // its image host joins this list.
+  'img-src': ["'self'", 'data:', 'https://*.googleusercontent.com', 'https://*.stripe.com', 'https://*.link.com'],
   // Stripe's API and Link; Supabase REST, Auth and the realtime socket; the
   // Sentry EU ingest host, which the DSN in client/src/lib/sentry.ts posts to
   // directly (no tunnel), so without it browser errors never arrive.
@@ -204,20 +209,17 @@ assert.deepEqual(policyDrift, [], `The app policy in vercel.json differs from AP
 // policy by editing vercel.json and APP_POLICY together.
 // - A bare scheme (https:, http:, wss:), * or scheme://* lets every host of
 //   that scheme in. data: and blob: name content the page made itself.
-//   img-src https: is the one such source left: F10-13 replaces it with the
-//   named image hosts and deletes its exception here.
 // - No 'unsafe-eval' or other unsafe keyword; 'unsafe-inline' only in
 //   style-src, never for scripts.
 // - No PostHog host: analytics reach PostHog through the same-origin /ingest
 //   proxy (vercel.json rewrites, client/src/lib/analytics.ts).
-const OPEN_SOURCE_EXCEPTIONS = new Set(['img-src https:']);
 const opensEveryHost = source => source === '*'
   || (/^[a-z][a-z0-9+.-]*:$/i.test(source) && !['data:', 'blob:'].includes(source.toLowerCase()))
   || /^[a-z][a-z0-9+.-]*:\/\/\*(?:[:/]|$)/i.test(source);
 const ruleBreaks = [];
 for (const [directive, sources] of appPolicy) {
   for (const source of sources) {
-    if (opensEveryHost(source) && !OPEN_SOURCE_EXCEPTIONS.has(`${directive} ${source}`)) ruleBreaks.push(`${directive} holds ${source}, which lets every host in; name the hosts`);
+    if (opensEveryHost(source)) ruleBreaks.push(`${directive} holds ${source}, which lets every host in; name the hosts`);
     if (/unsafe/i.test(source) && !(directive === 'style-src' && source === "'unsafe-inline'")) ruleBreaks.push(`${directive} holds ${source}; only style-src may hold an unsafe keyword, and only 'unsafe-inline'`);
   }
 }
