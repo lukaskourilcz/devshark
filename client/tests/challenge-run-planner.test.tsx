@@ -1,10 +1,15 @@
-import { beforeEach, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { ChallengeRunPlanner } from '../src/components/coding/ChallengeRunPlanner';
 import { ChallengeRunSection } from '../src/components/coding/ChallengeRunSection';
 import type { PracticeSession } from '../../shared/coding-api';
+import { clearAccountData } from '../src/lib/accountData';
+import { server } from './mocks/server';
 
 // Design audit P1.6: on the Coding home the planner is one row until opened,
 // and opening it shows the same form as before.
@@ -144,4 +149,42 @@ it.each([60_000, 60 * 86_400_000])('marks a scheduled run due on both screens af
   } finally {
     vi.useRealTimers();
   }
+});
+
+// A start, a step or a save still on the wire when the learner logs out, or
+// another account signs in, must not write its answer into the next account's
+// cache: ['coding', 'session'] and ['coding', 'bookmarks'] carry no account
+// id, and emptying the cache does not stop a mutation already sent. These are
+// the real hooks, not the mock the screens above use.
+describe('a run or saved list answered after the account changed', () => {
+  type Practice = typeof import('../src/coding/practice');
+  const RUN: PracticeSession = { sessionId: 'run-1', status: 'active', queue: ['js-digit-sum'], position: 0, minutes: 10, topic: null, estimatedMinutes: 5, order: 'sequential', count: 1, scheduledFor: null };
+  const cases = [
+    { name: 'a started run', hook: (p: Practice) => p.useStartSession(), input: { count: 3, order: 'sequential' }, key: ['coding', 'session'], answer: { session: RUN } },
+    { name: 'a started planned run', hook: (p: Practice) => p.useAdvanceSession(), input: { sessionId: 'run-1', status: 'active' }, key: ['coding', 'session'], answer: { session: RUN } },
+    { name: 'a saved challenge', hook: (p: Practice) => p.useSaveChallenge(), input: { op: 'save', taskId: 'js-digit-sum', saved: true }, key: ['coding', 'bookmarks'], answer: { saved: ['js-digit-sum'], collections: [] } },
+  ] as const;
+
+  it.each(cases)('leaves $name of the previous account out of the next account\'s cache', async ({ hook, input, key, answer }) => {
+    const practiceModule = await vi.importActual<Practice>('../src/coding/practice');
+    const held: { answer?: () => void } = {};
+    server.use(http.all('*/api/user/*', async ({ request }) => {
+      if (request.method === 'GET') return HttpResponse.json({ session: null });
+      await new Promise<void>((resolve) => { held.answer = resolve; });
+      return HttpResponse.json(answer);
+    }));
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+    const { result } = renderHook(() => hook(practiceModule), { wrapper });
+    act(() => { (result.current.mutate as (value: unknown) => void)(input); });
+    await waitFor(() => expect(held.answer).toBeDefined());
+
+    // What lib/auth.tsx does on a Log out or another account's sign-in.
+    clearAccountData();
+    client.clear();
+    await act(async () => { held.answer!(); });
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+
+    expect(client.getQueryData(key)).toBeUndefined();
+  });
 });
