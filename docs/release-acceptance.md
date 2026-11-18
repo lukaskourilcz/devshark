@@ -7125,3 +7125,37 @@ Branch `claude/f10b-browser-security-headers` has five commits. It was rebased o
 Not run: `--url` on a preview deployment (this stage does not push). `npm audit` (the branch changes no lockfile). `test:sql` (no SQL changed). `ci:parity` (it binds the shared ports). The production experiment was not repeated (request budget). After the deploy, run `npm run check:security -- --url=https://devshark.app`; it passes once production serves the new `img-src`.
 
 The rest of F10 (F10-14 to F10-36, except F10-06, F10-11, F10-12 and F10-13, plus the owner and cross-package items) stays in #646 for the next agent.
+
+## Epic F12 part 2: Client correctness: races, caches, lost work and account changes (18 November 2026)
+
+Branch claude/f12b-client-correctness, stacked on claude/f12-client-correctness. Each finding has a test commit that failed before the fix, followed by the fix commit.
+
+### What changed
+
+| Finding | Change | Before | After |
+|---|---|---|---|
+| F12-10 | The Shark Cards deck drops its "Card taken out ... Undo" toast in the render where the user id changes. The Got it and Undo callbacks set nothing once accountEpoch() moves. | A leftover Undo posted the previous account's card (`question_id: 'ada-card'`) into the next account's deck; 3 new cases failed | 33 of 33 shark-cards cases pass; the probe posts nothing |
+| F12-09 | useStartSession, useAdvanceSession and useSaveChallenge record the account epoch in onMutate and write ['coding','session'] or ['coding','bookmarks'] only while it holds. | A late answer left `{ session: { sessionId: 'ada-run' } }` in the next account's cache; 3 of 3 cases failed | 13 of 13 pass; the 19 coding test files that use these hooks pass (210 tests) |
+| F12-16 | A ref guards Today's planned-run Start. The ref is set at the press and cleared in onSettled, as the Coding home planner does. | Two clicks sent 2 status changes | 1 status change |
+| F12-23 | Today's run section, the planned run card and the planner form record accountEpoch() at each press. Their navigate, onDone and failure note run only while it holds. Today's failure note is the press's own state, tied to the run that failed, and replaces advance.isError. | A start answered after the account changed moved the next learner to the previous learner's task or showed them "Could not start the run"; 6 of 6 cases failed | 21 of 21 pass, including a case that keeps the refusal visible to the learner who pressed |
+
+### Checks
+
+| Check | Result |
+|---|---|
+| typecheck:tooling (client), on the F12-23 test commit and the fix commit | pass |
+| vitest challenge-run-planner, before and after the F12-23 fix | 6 failed / 14 passed before; 21 of 21 after |
+| vitest, the 9 files that render the run components | 81 of 81 pass |
+| test:client | 193 files, 1929 tests pass |
+| Client build with the CI env | pass |
+| check:bundle | initial requests 235522 of 241651 gzip bytes; monitoring SDK 49507 of 60000 |
+| check:unused | no new findings |
+| check:security | pass |
+| git diff --check | clean |
+
+### Not run
+
+- test:browser, check:responsive, Storybook: no layout or styling changed. The Today failure note keeps its element and text.
+- test:sql, npm audit, typecheck:api, typecheck:scripts, test:coding: the branch changes no SQL, lockfile, server code or scripts.
+
+The remaining F12 findings (F12-04, F12-11, F12-12, F12-13, F12-14, F12-15, F12-17, F12-18, F12-19) stay open in #646 for the next agent.
