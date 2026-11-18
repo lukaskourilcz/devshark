@@ -2,7 +2,9 @@
 -- after 077. Safe to re-run; the whole file is one transaction. Compatible
 -- with the code in production (a9882348): no handler, library, client file,
 -- routine body or cron job names a routine this file drops, and each drop
--- removes only that routine and its grants.
+-- removes only that routine and its grants. Production holds all eight
+-- routines, each executable by the service role alone, and its one cron job
+-- runs purge_expired_learning_data (read on 18 November 2026).
 --
 -- 1. The leaderboard and stats routines of 002, 004 and 005: the last definer
 --    routines in public that resolve tables through search_path=public.
@@ -17,9 +19,7 @@
 --    _v3 and its _v2 fallback; delete_learning_path_data (026), which no
 --    handler ever called; and credit_social_visit (041), which
 --    lib/rewards/coins.ts stopped calling when opening a social profile
---    stopped paying (design audit P0.3). Production has no
---    credit_social_visit (read on 18 November 2026), so IF EXISTS makes that
---    drop a no-op there.
+--    stopped paying (design audit P0.3).
 -- 3. grant_daily_queue_cards (047), the routine of the collectible card
 --    packs that owner decision 12 retired (1 October 2026). api/user/[op].ts
 --    answers op=cards with 410, and scripts/product-cleanup-contracts.ts
