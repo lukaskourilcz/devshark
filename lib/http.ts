@@ -154,6 +154,47 @@ export function unstorableText(value: unknown, depth = 8): boolean {
   return Object.entries(value).some(([key, one]) => unstorableText(key, depth) || unstorableText(one, depth - 1));
 }
 
+/** The longest query value `queryString` hands a handler. No parameter the
+ * API reads (a topic, a room code, a date, an id) comes near it. */
+export const MAX_QUERY_STRING = 256;
+
+/**
+ * One query parameter as a single string: undefined when the request does
+ * not carry it, null when it cannot be one value. `?x=a&x=b` arrives as an
+ * array, and `String(array)` or `.split()` on it served or crashed a request
+ * the URL does not describe; a value past `MAX_QUERY_STRING` characters is
+ * null too. A handler answers null with 400.
+ */
+export function queryString(req: Pick<VercelRequest, 'query'>, name: string): string | undefined | null {
+  const query = req.query ?? {};
+  if (!Object.hasOwn(query, name) || query[name] === undefined) return undefined;
+  const value = query[name];
+  return typeof value === 'string' && value.length <= MAX_QUERY_STRING ? value : null;
+}
+
+/** Nine digits at most, nothing around them: below 2^31, so Postgres
+ * integer holds every value that passes. */
+const QUERY_INT = /^\d{1,9}$/;
+
+/**
+ * One query parameter as a whole number from `min` to `max`: undefined when
+ * the request does not carry it, null for anything else. `parseInt` read
+ * `1.9`, `1abc` and `?x=1&x=2` as 1 and served level 1; this refuses a
+ * fraction, an exponent, a sign, a space, trailing junk, an empty value, an
+ * array and a number outside the bounds. A handler answers null with 400.
+ */
+export function queryInt(
+  req: Pick<VercelRequest, 'query'>,
+  name: string,
+  bounds: { min: number; max: number },
+): number | undefined | null {
+  const value = queryString(req, name);
+  if (value === undefined || value === null) return value;
+  if (!QUERY_INT.test(value)) return null;
+  const n = Number(value);
+  return n >= bounds.min && n <= bounds.max ? n : null;
+}
+
 /** Thrown for content the caller's tier does not open (`lib/access.ts`).
  * `jsonPremiumRequired` and `withRequestContext` answer it with HTTP 402. */
 export class PremiumRequiredError extends Error {
