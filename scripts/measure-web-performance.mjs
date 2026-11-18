@@ -64,7 +64,8 @@ export function parseArgs(argv, flags = FLAGS) {
  return args;
 }
 
-function list(value, flag) {
+// A comma-separated flag value as a list without empty or repeated entries.
+export function list(value, flag) {
  const entries = value.split(',');
  if (entries.includes('')) throw new UsageError(`--${flag} has an empty entry: "${value}"`);
  if (new Set(entries).size !== entries.length) throw new UsageError(`--${flag} names an entry twice: "${value}"`);

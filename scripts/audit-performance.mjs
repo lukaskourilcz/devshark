@@ -1,47 +1,75 @@
-// Lighthouse lab runs of one page on the mobile and desktop profiles. CI
-// runs it without flags against the local preview (quality.yml) and uploads
-// the reports and summary.json from artifacts/performance.
+// Lighthouse lab runs on the mobile and desktop profiles, of one page or of
+// a list of routes. CI runs it without flags against the local preview
+// (quality.yml) and uploads the reports and summary.json from
+// artifacts/performance: mobile.report.* and desktop.report.*. With
+// --routes each route gets <profile>-<slug>.report.*, such as
+// mobile-home.report.json for / and desktop-learn.report.html for /learn.
 //
 //   npm run audit:performance -- --url=https://devshark.app
+//   npm run audit:performance -- --url=http://127.0.0.1:4173 --routes=/,/learn
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium } from '@playwright/test';
-import { parseArgs, UsageError } from './measure-web-performance.mjs';
+import { list, parseArgs, UsageError } from './measure-web-performance.mjs';
 
 export const PROFILES = ['mobile', 'desktop'];
-const FLAGS = { url: 'value', output: 'value' };
+const FLAGS = { url: 'value', output: 'value', routes: 'value' };
 const DEFAULTS = { url: 'http://localhost:4173', output: 'artifacts/performance' };
 
 export const USAGE = `Usage: node scripts/audit-performance.mjs [flags]
   --url=<url>      page to audit, http or https (default ${DEFAULTS.url}, the CI preview)
+  --routes=<paths> comma-separated paths, each starting with one /, resolved against --url;
+                   each writes <profile>-<slug>.report.* (slug home for /, learn for /learn)
   --output=<dir>   folder for the reports and summary.json (default ${DEFAULTS.output})`;
 
+// The report name of a route: home for /, the path segments joined by '-'
+// otherwise, and a query after one more '-'. A character a file name should
+// not carry becomes '_'.
+export function routeSlug(route) {
+ const { pathname, search } = new URL(route, 'http://route.invalid');
+ const parts = pathname.split('/').filter(Boolean);
+ if (search) parts.push(search.slice(1));
+ return parts.length ? parts.join('-').replace(/[^A-Za-z0-9._-]/g, '_') : 'home';
+}
+
 // Checks the parsed flags and fills the defaults. Throws UsageError before
-// anything launches or writes.
+// anything launches or writes. pages lists what to audit: --url alone with
+// no slug, so its reports keep the names CI uploads, or one page per route.
 export function resolveOptions(args) {
  const url = args.url ?? DEFAULTS.url;
  let parsed;
  try { parsed = new URL(url); } catch { throw new UsageError(`--url is not a URL: "${url}"`); }
  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new UsageError(`--url must use http or https: "${url}"`);
- return { url, output: args.output ?? DEFAULTS.output };
+ let pages = [{ route: parsed.pathname + parsed.search, url, slug: null }];
+ if (args.routes !== undefined) {
+  const slugs = new Map();
+  pages = list(args.routes, 'routes').map(route => {
+   if (!route.startsWith('/') || route.startsWith('//')) throw new UsageError(`--routes entries must start with one /, got "${route}"`);
+   const slug = routeSlug(route);
+   if (slugs.has(slug)) throw new UsageError(`--routes "${slugs.get(slug)}" and "${route}" would both write ${slug} reports`);
+   slugs.set(slug, route);
+   return { route, url: new URL(route, parsed).href, slug };
+  });
+ }
+ return { url, output: args.output ?? DEFAULTS.output, pages };
 }
 
-export function main({ url, output }) {
+export function main({ output, pages }) {
  // CI installs Chromium through Playwright; an explicit Chrome path still wins.
  process.env.CHROME_PATH ||= chromium.executablePath();
  mkdirSync(output, { recursive: true });
  const results = [];
- for (const profile of PROFILES) {
-  const prefix = path.join(output, profile);
+ for (const { route, url, slug } of pages) for (const profile of PROFILES) {
+  const prefix = path.join(output, slug ? `${profile}-${slug}` : profile);
   const run = spawnSync(process.execPath, ['node_modules/lighthouse/cli/index.js', url,
    '--chrome-flags=--headless --no-sandbox --disable-dev-shm-usage', '--output=json', '--output=html', `--output-path=${prefix}`,
    '--only-categories=performance,accessibility,best-practices,seo', ...(profile === 'desktop' ? ['--preset=desktop'] : []), '--quiet'], { stdio: 'inherit', env: process.env });
   if (run.status !== 0) process.exit(run.status || 1);
   const lhr = JSON.parse(readFileSync(`${prefix}.report.json`, 'utf8'));
   if (lhr.runtimeError) throw new Error(lhr.runtimeError.message);
-  results.push({ profile, requestedUrl: url, finalUrl: lhr.finalDisplayedUrl, fetchTime: lhr.fetchTime,
+  results.push({ profile, route, requestedUrl: url, finalUrl: lhr.finalDisplayedUrl, fetchTime: lhr.fetchTime,
    lighthouseVersion: lhr.lighthouseVersion, scores: Object.fromEntries(Object.entries(lhr.categories).map(([key, value]) => [key, value.score])),
    lcpMs: lhr.audits['largest-contentful-paint'].numericValue, cls: lhr.audits['cumulative-layout-shift'].numericValue,
    tbtMs: lhr.audits['total-blocking-time'].numericValue, transferredBytes: lhr.audits['total-byte-weight'].numericValue,
@@ -49,7 +77,7 @@ export function main({ url, output }) {
   });
  }
  writeFileSync(path.join(output, 'summary.json'), JSON.stringify(results, null, 2) + '\n');
- console.table(results.map(({ profile, scores, lcpMs, cls, tbtMs }) => ({ profile, ...scores, lcpMs, cls, tbtMs })));
+ console.table(results.map(({ profile, route, scores, lcpMs, cls, tbtMs }) => ({ profile, route, ...scores, lcpMs, cls, tbtMs })));
  console.log('Lab results, not field Core Web Vitals; compare the same URL, build settings and test machine.');
 }
 
