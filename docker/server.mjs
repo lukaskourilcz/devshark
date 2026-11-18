@@ -240,10 +240,30 @@ function decodable(pathname) {
   try { decodeURIComponent(pathname); return true; } catch { return false; }
 }
 
+// upgrade-insecure-requests sends every same-origin subresource to https.
+// Vercel always answers over HTTPS, but this image is also reached over plain
+// HTTP at a LAN address, where the browser (which exempts only loopback) then
+// loads none of the scripts. Keep the token only for a request that came over
+// TLS or through a proxy that says it did.
+const UPGRADE = 'upgrade-insecure-requests';
+function overHttps(req) {
+  if (req.socket.encrypted) return true;
+  return String(req.headers['x-forwarded-proto'] ?? '').split(',')[0].trim().toLowerCase() === 'https';
+}
+function withoutUpgrade(policy) {
+  if (typeof policy !== 'string' || !policy.toLowerCase().includes(UPGRADE)) return policy;
+  return policy.split(';').map((directive) => directive.trim()).filter((directive) => directive && directive.toLowerCase() !== UPGRADE).join('; ');
+}
+function dropUpgradeToken(res) {
+  const setHeader = res.setHeader.bind(res);
+  res.setHeader = (name, value) => setHeader(name, String(name).toLowerCase() === 'content-security-policy' ? withoutUpgrade(value) : value);
+}
+
 async function handle(req, res) {
   const url = new URL(req.url ?? '/', 'http://localhost');
   const pathname = url.pathname;
   const headers = {};
+  if (!overHttps(req)) dropUpgradeToken(res);
 
   if (!decodable(pathname)) {
     applyHeaderRoutes(beforeFs, pathname, headers);
