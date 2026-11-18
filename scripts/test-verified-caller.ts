@@ -126,7 +126,10 @@ const SWEEPERS: Account[] = Array.from({ length: 12 }, (_, n) => ({
   email: `sweeper-${n}@example.invalid`,
   confirmed: true,
 }));
-const ACCOUNTS = [A, B, LISTED_UNCONFIRMED, LISTED_CONFIRMED, ROLE_ADMIN, EMAIL, SLOW, HANDLES_DOWN, SLOW_ERASURE, PROFILED, ...JWT_ACCOUNTS, ...SWEEPERS];
+// The account the closed-bucket checks redeem a voucher with, so its own
+// buckets hold nothing from the checks before them.
+const GUARDED: Account = { id: '1a2b3c4d-0000-4000-8000-000000000014', token: 'guarded-buckets', email: 'guarded@example.invalid', confirmed: true };
+const ACCOUNTS = [A, B, LISTED_UNCONFIRMED, LISTED_CONFIRMED, ROLE_ADMIN, EMAIL, SLOW, HANDLES_DOWN, SLOW_ERASURE, PROFILED, GUARDED, ...JWT_ACCOUNTS, ...SWEEPERS];
 /** Tokens the stand-in now refuses (a session ended elsewhere), and tokens
  * for which it answers 500, as Supabase Auth does when it is down. */
 const revokedTokens = new Set<string>();
@@ -1347,6 +1350,46 @@ async function main() {
       }
     }
     console.log('PASS verified caller: a failing distributed limiter is not asked again straight away');
+
+    // ── buckets that close while Upstash fails (#638) ───────────────────
+    // A bucket kept in one instance's memory is no limit across a fleet of
+    // cold instances, so the buckets a script would guess or spam through
+    // (the admin gate, voucher codes, invite claims, question reports and
+    // the emailed cancellation page) refuse with 503 rate_limit_unavailable
+    // while Upstash fails, and spend nothing. Every other bucket keeps to
+    // memory, so a quiz and the Learn map still answer.
+    {
+      const outcomeOf = (res: Response) => `${res.statusCode} ${errorCode(res) ?? ''}`.trim();
+      const voucherCount = `rl:${rateLimit.RATE_LIMITS.voucherRedeem.key}:user:${GUARDED.id}`;
+      const routes = async () => ({
+        admin: await user('fulfilment', { account: ROLE_ADMIN }),
+        voucher: await user('voucher', { method: 'POST', account: GUARDED, body: { code: 'SHARKCAMP2026' } }),
+        quiz: await call(questions as Handler, { query: { count: '2', categories: 'javascript' } }),
+        map: await call(roadmap as Handler, { query: { nonce: 'closed-buckets' } }),
+      });
+      upstashMode('failing');
+      seen.length = 0;
+      const down = await routes();
+      for (const label of ['admin', 'voucher'] as const) {
+        assert.equal(outcomeOf(down[label]), '503 rate_limit_unavailable', `the ${label} bucket closes while Upstash fails (${JSON.stringify(down[label].body)})`);
+        assert.equal(down[label].headers['retry-after'], '15', `and the ${label} refusal says when to retry`);
+      }
+      assert.equal(reads('/rest/v1/rpc/redeem_premium_voucher').length, 0, 'a refused redeem looks up no code');
+      assert.equal(down.quiz.statusCode, 200, `a quiz keeps to memory (${JSON.stringify(down.quiz.body)})`);
+      assert.equal(down.map.statusCode, 200, `and so does the Learn map (${JSON.stringify(down.map.body)})`);
+
+      upstashMode('healthy');
+      seen.length = 0;
+      const up = await routes();
+      assert.equal(up.admin.statusCode, 200, `with Upstash back the admin gate opens (${JSON.stringify(up.admin.body)})`);
+      assert.notEqual(errorCode(up.voucher), 'rate_limit_unavailable', 'and a voucher is redeemed');
+      assert.equal(reads('/rest/v1/rpc/redeem_premium_voucher').length, 1, 'which looks its code up');
+      assert.equal(upstashCounts.get(voucherCount), 1, 'the attempt refused during the outage spent nothing of the five an hour');
+      assert.equal(up.quiz.statusCode, 200);
+      assert.equal(up.map.statusCode, 200);
+      upstashMode('failing');
+    }
+    console.log('PASS verified caller: the admin gate and voucher redemption refuse with 503 while Upstash fails, a quiz and the Learn map keep to memory');
 
     // ── what an escaped error logs ───────────────────────────────────────
     const { AuthError } = await import('../lib/auth');
