@@ -74,3 +74,15 @@ test('F6-04: guest mode cannot borrow an authenticated profile or saved deck', (
   assert.equal(apiFixture('GET', api('/api/user/stats'), 'guest'), null);
   assert.equal(apiFixture('GET', api('/api/flashcards?subject=webdev'), 'guest'), null);
 });
+
+test('F6-04: coding progress supplies the fields consumed by the Coding dashboard', () => {
+  const result = apiFixture('GET', api('/api/user/[op]?op=coding-progress'));
+  assert.equal(result.status, 200);
+  assert.equal(typeof result.body.tasks, 'object');
+  assert.notEqual(result.body.tasks, null);
+  assert.ok(Array.isArray(result.body.due));
+  assert.ok(Number.isInteger(result.body.javascriptLevelsCleared));
+  assert.deepEqual(Object.keys(result.body.passedByTrack).sort(), ['javascript', 'typescript', 'react', 'system-design', 'algorithms'].sort());
+  for (const count of Object.values(result.body.passedByTrack)) assert.ok(Number.isInteger(count) && count >= 0);
+  assert.equal(Object.hasOwn(result.body, 'progress'), false, 'the handler returns tasks, not a progress wrapper');
+});
