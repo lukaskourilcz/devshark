@@ -433,10 +433,13 @@ async function getUpstashLimiter(config: RateLimitConfig): Promise<UpstashLimite
 
     limiterCache.set(config.key, limiter);
     return limiter;
-  } catch {
-    // Package missing or init failed: record the miss and fall back for the
-    // life of the instance.
-    limiterStartFailed = true;
+  } catch (error) {
+    // Package missing or init failed: record the miss, say so once, and fall
+    // back for the life of the instance.
+    if (!limiterStartFailed) {
+      limiterStartFailed = true;
+      logEvent('rate-limit', { level: 'error', reason: 'limiter_init_failed', error: error instanceof Error ? error.name : typeof error });
+    }
     return null;
   }
 }
@@ -462,6 +465,10 @@ async function withLimiterDeadline<T>(promise: Promise<T>): Promise<T> {
 // nothing.
 const LIMITER_PAUSE_MS = 15_000;
 let limiterPausedUntil = 0;
+/** The buckets that logged their fallback since the current pause began
+ * (or, after a failed start, since then), so a busy bucket logs one line a
+ * pause and not one a request. */
+const fallbackLogged = new Set<string>();
 
 /** What one bucket decided: the request may go on, or it was refused with
  * the 429 or the 503 just sent. */
@@ -475,7 +482,13 @@ function memoryVerdict(req: VercelRequest, res: VercelResponse, config: RateLimi
  * keeps to this instance's memory, a closed one refuses with 503 and spends
  * nothing (`RateLimitConfig.onFailure`). */
 function withoutUpstash(req: VercelRequest, res: VercelResponse, config: RateLimitConfig, identity?: string): Verdict {
-  if (config.onFailure !== 'closed') return memoryVerdict(req, res, config, identity);
+  const policy = config.onFailure ?? 'open';
+  if (!fallbackLogged.has(config.key)) {
+    fallbackLogged.add(config.key);
+    logEvent('rate-limit', { level: 'warn', reason: 'distributed_fallback', bucket: config.key, policy });
+  }
+  if (policy === 'open') return memoryVerdict(req, res, config, identity);
+  logEvent('rate-limit', { level: 'error', reason: 'closed_refused', bucket: config.key });
   res.setHeader('Retry-After', String(LIMITER_PAUSE_MS / 1000));
   jsonError(res, 503, 'rate_limit_unavailable', 'This could not be checked right now. Try again in a moment.');
   return 'unavailable';
@@ -498,11 +511,12 @@ async function takeToken(req: VercelRequest, res: VercelResponse, config: RateLi
     return 'limited';
   } catch {
     // Redis unreachable mid-request: pause asking it, and let the bucket's
-    // policy decide this request.
+    // policy decide this request. A new pause logs each bucket's fallback
+    // afresh.
     const now = Date.now();
     if (now >= limiterPausedUntil) {
       limiterPausedUntil = now + LIMITER_PAUSE_MS;
-      logEvent('rate-limit', { level: 'warn', reason: 'distributed_fallback' });
+      fallbackLogged.clear();
     }
     return withoutUpstash(req, res, config, identity);
   }
