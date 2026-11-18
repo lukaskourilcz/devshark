@@ -28,20 +28,24 @@ const SITE = {
   'coding/javascript/js-double-numbers/index.html': '<!doctype html><title>task fixture</title>\n',
 };
 
-async function startAdapter(t, { files = {} } = {}) {
+/** Starts docker/server.mjs over a scratch client/dist holding `files`.
+ * Lines the adapter writes to stderr also land in `stderr`. */
+async function startAdapter(t, { files = {}, stderr = [] } = {}) {
   const scratch = await mkdtemp(join(tmpdir(), 'devshark-docker-test-'));
   t.after(() => rm(scratch, { recursive: true, force: true }));
   const handlers = join(scratch, 'docker/dist/api');
   await Promise.all([
     mkdir(join(scratch, 'client/dist'), { recursive: true }),
-    mkdir(handlers, { recursive: true }),
+    mkdir(join(handlers, 'user'), { recursive: true }),
   ]);
   await Promise.all(Object.keys(files).map((file) => mkdir(dirname(join(scratch, 'client/dist', file)), { recursive: true })));
   await Promise.all([
     ...['docker/server.mjs', 'package.json', 'vercel.json'].map((file) =>
       copyFile(join(root, file), join(scratch, file))),
     ...Object.entries(files).map(([file, body]) => writeFile(join(scratch, 'client/dist', file), body)),
-    writeFile(join(handlers, 'manifest.json'), '["probe.cjs"]'),
+    writeFile(join(handlers, 'manifest.json'), '["probe.cjs","user/[op].cjs"]'),
+    // A dynamic segment, which the adapter decodes into the query.
+    writeFile(join(handlers, 'user/[op].cjs'), 'module.exports = (req, res) => res.json({ op: req.query.op });\n'),
     build({
       stdin: {
         contents: `
@@ -72,9 +76,13 @@ async function startAdapter(t, { files = {} } = {}) {
   const server = spawn(process.execPath, ['docker/server.mjs'], {
     cwd: scratch,
     env: { NODE_PATH: join(root, 'node_modules'), PORT: String(port) },
-    stdio: ['ignore', 'pipe', 'inherit'],
+    stdio: ['ignore', 'pipe', 'pipe'],
   });
   const lines = createInterface({ input: server.stdout });
+  createInterface({ input: server.stderr }).on('line', (line) => {
+    stderr.push(line);
+    process.stderr.write(`${line}\n`);
+  });
   const closed = once(server, 'close');
   t.after(async () => {
     lines.close();
@@ -209,4 +217,23 @@ test('Docker tries the rewrites in order and answers a page nothing serves with 
   assert.equal(response.status, 200);
   assert.match(response.headers.get('content-type') ?? '', /^text\/html/);
   assert.equal(body, APP_DOCUMENT, 'a task page with no prerendered file gets the app, which says the task does not exist');
+});
+
+// Vercel refuses a path whose percent escapes do not decode before any route
+// runs: 400 over HTTP/1.1, a reset stream over HTTP/2. decodeURIComponent threw
+// in the adapter instead, so each such request answered 500 without the
+// security headers and wrote an error line to the log.
+test('Docker answers a malformed percent escape with 400 and logs no error', async (t) => {
+  const stderr = [];
+  const origin = await startAdapter(t, { files: SITE, stderr });
+  for (const pathname of ['/assets/%E0%A4%A.js', '/premium/%E0%A4%A', '/api/user/%E0%A4%A']) {
+    const response = await fetch(origin + pathname, { redirect: 'manual', signal: AbortSignal.timeout(5_000) });
+    await response.arrayBuffer();
+    assert.equal(response.status, 400, `${pathname}: status`);
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff', `${pathname} keeps the main-phase headers`);
+  }
+  // A path parameter that decodes still reaches the handler.
+  const decoded = await fetch(`${origin}/api/user/caf%C3%A9`, { signal: AbortSignal.timeout(5_000) });
+  assert.deepEqual(await decoded.json(), { op: 'café' });
+  assert.deepEqual(stderr.filter((line) => line.includes('"level":"error"')), [], 'no error lines in the log');
 });
