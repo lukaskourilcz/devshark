@@ -24,6 +24,8 @@ process.env.VERCEL = '1';
 
 /** What a learner reads when the program itself ran out of stack. */
 const STACK_MESSAGE = 'The call stack ran out of room: the recursion went too deep, or a base case is never reached.';
+/** What a learner reads when the program itself ran out of memory. */
+const OUT_OF_MEMORY_MESSAGE = 'Out of memory.';
 /** Room on top of a limit for a CI runner shared with other jobs. */
 const MARGIN_MS = 1_000;
 /** The longest any single run may take: its deadline, the grace before the
@@ -148,6 +150,19 @@ await limitCase('an allocating loop inside a call', {
   assert.equal(run.results[1]?.pass, true, 'its memory is freed, and 32 MB fits under the limit');
   assert.deepEqual(run.results[2], { pass: false, actual: null, error: 'out of memory' }, '80 MB does not');
 }, 'kept');
+// Past 64 MB at the top level the whole program fails, and the learner reads
+// the fixed message, as for a thread that ran out of memory, in place of
+// QuickJS's "InternalError: out of memory".
+for (const [name, code] of [
+  ['an allocating loop at the top level', 'const kept = []; for (;;) kept.push(1);'],
+  ['a loop of 1 MB buffers at the top level', 'const kept = []; for (;;) kept.push(new Uint8Array(1024 * 1024));'],
+] as const) {
+  await limitCase(name, { code, calls: ['1'] }, (run) => {
+    assert.equal(run.codeError, OUT_OF_MEMORY_MESSAGE, `${name}: the learner reads the out-of-memory message`);
+    assert.equal(run.timedOut, false, `${name}: running out of memory is not a timeout`);
+    assert.deepEqual(run.results, [], `${name}: no call has a result`);
+  }, 'kept');
+}
 
 // ── stack: unbounded recursion fails the call or the program ─────────────
 await limitCase('unbounded recursion inside a call', {
