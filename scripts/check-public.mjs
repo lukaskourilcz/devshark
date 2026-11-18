@@ -28,7 +28,8 @@ assert(tasks.length > 700, 'the coding index was read');
 assert(!tasks.some(({ track }) => track === 'system-design'), 'the index the browser ships holds no system design task');
 // F15-01: every prerendered page has exactly one class, chosen by its address,
 // and its head and the sitemap must agree with that class.
-// - listed: in the sitemap, canonical to itself, indexable.
+// - listed: in the sitemap, canonical to itself, indexable. The home page's
+//   canonical is written by the app at runtime (RUNTIME_CANONICAL).
 // - alias: canonical to another listed page, not in the sitemap. Only
 //   /coding/review, which opens /coding (C4-4).
 // - share-only: canonical to itself and indexable, not in the sitemap. The
@@ -39,6 +40,12 @@ assert(!tasks.some(({ track }) => track === 'system-design'), 'the index the bro
 // A page that no rule or more than one rule matches fails: give a new page a
 // class here.
 const ALIASES = { '/coding/review': '/coding' };
+// F15-10: dist/index.html is the home page and also the shell the catch-all
+// rewrite (vercel.json) serves for every app route and every missing page.
+// A canonical in it told crawlers that /today, /profile and any 404 were
+// copies of the home page, so it names none; routeHead.ts writes the home
+// page's canonical and og:url when the app starts.
+const RUNTIME_CANONICAL = new Set(['/']);
 const TASK_PATHS = new Set(tasks.map(({ id, track }) => `/coding/${track}/${id}`));
 const PAGE_CLASSES = [
   ['listed', (pagePath) => pagePath === '/' || /^\/topics\/[a-z0-9-]+$/.test(pagePath) || APP_PAGES.includes(pagePath) || SITEMAP_CODING_PAGES.includes(pagePath)],
@@ -208,7 +215,8 @@ for (const pagePath of pagePaths) {
     assert.equal(canonical, null, `${pagePath} (noindex): no canonical`);
     assert.equal(ogUrls[0] ?? null, null, `${pagePath} (noindex): no og:url`);
   } else {
-    assert.equal(canonical, kind === 'alias' ? pageUrl(ALIASES[pagePath]) : url, `${pagePath} (${kind}): canonical`);
+    const expected = kind === 'alias' ? pageUrl(ALIASES[pagePath]) : RUNTIME_CANONICAL.has(pagePath) ? null : url;
+    assert.equal(canonical, expected, `${pagePath} (${kind}): ${expected ? 'canonical' : 'no canonical in the shell'}`);
     assert.equal(ogUrls[0] ?? null, canonical, `${pagePath} (${kind}): og:url matches the canonical`);
     // No robots line at all: a nofollow or a snippet limit costs an indexable
     // page as much as a noindex would.
