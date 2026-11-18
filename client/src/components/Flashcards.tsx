@@ -23,6 +23,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@astryxdesign/core/Badge';
 import { Button } from '@astryxdesign/core/Button';
 import { useAuth } from '../lib/auth';
+import { accountEpoch } from '../lib/accountData';
 import { useT } from '../i18n/LanguageContext';
 import { CATEGORY_LOOKUP, categoryLabelKey } from '../lib/categories';
 import type { CategoryType } from '../types/quiz';
@@ -68,10 +69,20 @@ function StudyLink({ card, t }: { card: Flashcard; t: TFn }) {
 function Flashcards({ embedded = false }: { embedded?: boolean }) {
   const t = useT();
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [index, setIndex] = useState(0);
   const [turned, setTurned] = useState(false);
   const [toast, setToast] = useState<{ kind: 'removed'; card: Flashcard } | { kind: 'error'; message: string } | null>(null);
+  // The deck stays mounted while the account changes (a Log out, or another
+  // account's sign-in), so a Got it toast of the account that left goes with
+  // it before the next deck draws: its Undo would post that account's card
+  // into the next account's deck.
+  const userId = user?.id ?? null;
+  const [toastOwner, setToastOwner] = useState(userId);
+  if (toastOwner !== userId) {
+    setToastOwner(userId);
+    setToast(null);
+  }
   const flipRef = useRef<HTMLButtonElement>(null);
   // After Got it, the next card's turn button takes the focus.
   const focusNext = useRef(false);
@@ -117,12 +128,15 @@ function Flashcards({ embedded = false }: { embedded?: boolean }) {
     setTurned(false);
   }, [at, count]);
 
+  // A press answered after the account changed says nothing on the next
+  // account's deck (lib/accountData.ts).
   const gotIt = () => {
     if (!card) return;
     const removed = card;
+    const epoch = accountEpoch();
     remove.mutate(removed.question_id, {
-      onSuccess: () => setToast({ kind: 'removed', card: removed }),
-      onError: (error) => setToast({ kind: 'error', message: `${t('sharkCards.removeFailed')} ${friendlyError(error)}` }),
+      onSuccess: () => { if (accountEpoch() === epoch) setToast({ kind: 'removed', card: removed }); },
+      onError: (error) => { if (accountEpoch() === epoch) setToast({ kind: 'error', message: `${t('sharkCards.removeFailed')} ${friendlyError(error)}` }); },
     });
     setTurned(false);
     focusNext.current = true;
@@ -130,8 +144,9 @@ function Flashcards({ embedded = false }: { embedded?: boolean }) {
 
   const undo = (removed: Flashcard) => {
     setToast(null);
+    const epoch = accountEpoch();
     restore.mutate(removed, {
-      onError: (error) => setToast({ kind: 'error', message: `${t('sharkCards.saveFailed')} ${friendlyError(error)}` }),
+      onError: (error) => { if (accountEpoch() === epoch) setToast({ kind: 'error', message: `${t('sharkCards.saveFailed')} ${friendlyError(error)}` }); },
     });
   };
 

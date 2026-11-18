@@ -7,6 +7,7 @@
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../lib/api';
+import { accountEpoch } from '../lib/accountData';
 import type {
   CodingBookmarkRequest,
   CodingBookmarksResponse,
@@ -44,6 +45,15 @@ export const startPracticeSession = (body: PracticeSessionStartRequest): Promise
 export const advancePracticeSession = (body: PracticeSessionAdvanceRequest): Promise<PracticeSessionResponse> =>
   apiFetch<PracticeSessionResponse>(SESSION, { method: 'PUT', body: JSON.stringify(body) });
 
+// A start, a step or a save still on the wire when the learner logs out, or
+// another account signs in, must not answer into the next account's cache:
+// these keys carry no account id, and emptying the cache (lib/auth.tsx) does
+// not stop a mutation already sent. onMutate notes the account epoch
+// (lib/accountData.ts), and the answer is written only while it holds.
+interface Sent { epoch: number }
+const noteAccount = (): Sent => ({ epoch: accountEpoch() });
+const sameAccount = (sent: Sent | undefined): boolean => sent?.epoch === accountEpoch();
+
 /** The learner's saved challenges and collections. Signed out there are none:
  * saving is an account feature, and the UI says so rather than pretending. */
 export const bookmarksQuery = queryOptions({
@@ -61,7 +71,10 @@ export function useSaveChallenge() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CodingBookmarkRequest) => writeBookmarks(input),
-    onSuccess: (data) => queryClient.setQueryData(practiceKeys.bookmarks(), data),
+    onMutate: noteAccount,
+    onSuccess: (data, _input, sent) => {
+      if (sameAccount(sent)) queryClient.setQueryData(practiceKeys.bookmarks(), data);
+    },
   });
 }
 
@@ -81,7 +94,10 @@ export function useStartSession() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: PracticeSessionStartRequest) => startPracticeSession(input),
-    onSuccess: (data) => queryClient.setQueryData(practiceKeys.session(), data),
+    onMutate: noteAccount,
+    onSuccess: (data, _input, sent) => {
+      if (sameAccount(sent)) queryClient.setQueryData(practiceKeys.session(), data);
+    },
   });
 }
 
@@ -89,6 +105,9 @@ export function useAdvanceSession() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: PracticeSessionAdvanceRequest) => advancePracticeSession(input),
-    onSuccess: (data) => queryClient.setQueryData(practiceKeys.session(), data),
+    onMutate: noteAccount,
+    onSuccess: (data, _input, sent) => {
+      if (sameAccount(sent)) queryClient.setQueryData(practiceKeys.session(), data);
+    },
   });
 }
