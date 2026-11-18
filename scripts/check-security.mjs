@@ -101,18 +101,26 @@ const APP_POLICY = {
   'form-action': ["'self'"],
   'worker-src': ["'self'", 'blob:'],
 };
-const appPolicy = parsePolicy(csp);
-const policyDrift = [];
-for (const directive of new Set([...appPolicy.keys(), ...Object.keys(APP_POLICY)])) {
-  const listed = appPolicy.get(directive) ?? [];
-  const expected = APP_POLICY[directive] ?? [];
-  const added = listed.filter(source => !expected.includes(source));
-  const missing = expected.filter(source => !listed.includes(source));
-  if (!appPolicy.has(directive)) policyDrift.push(`${directive}: missing from vercel.json`);
-  else if (!Object.hasOwn(APP_POLICY, directive)) policyDrift.push(`${directive}: in vercel.json, not in APP_POLICY`);
-  else if (added.length || missing.length) policyDrift.push(`${directive}: vercel.json adds [${added.join(' ')}] and lacks [${missing.join(' ')}]`);
-  else if (listed.length !== expected.length) policyDrift.push(`${directive}: vercel.json repeats a source`);
+/** How policy `actual` differs from policy `expected` (both from
+ * parsePolicy), directive by directive; sources may come in any order. The
+ * names say where each policy comes from. */
+function policyDifferences(actual, expected, actualName, expectedName) {
+  const differences = [];
+  for (const directive of new Set([...actual.keys(), ...expected.keys()])) {
+    const listed = actual.get(directive) ?? [];
+    const wanted = expected.get(directive) ?? [];
+    const added = listed.filter(source => !wanted.includes(source));
+    const missing = wanted.filter(source => !listed.includes(source));
+    if (!actual.has(directive)) differences.push(`${directive}: in ${expectedName}, not in ${actualName}`);
+    else if (!expected.has(directive)) differences.push(`${directive}: in ${actualName}, not in ${expectedName}`);
+    else if (added.length || missing.length) differences.push(`${directive}: ${actualName} adds [${added.join(' ')}] and lacks [${missing.join(' ')}]`);
+    else if (listed.length !== wanted.length) differences.push(`${directive}: ${actualName} repeats a source`);
+  }
+  return differences;
 }
+
+const appPolicy = parsePolicy(csp);
+const policyDrift = policyDifferences(appPolicy, new Map(Object.entries(APP_POLICY)), 'vercel.json', 'APP_POLICY');
 assert.deepEqual(policyDrift, [], `The app policy in vercel.json differs from APP_POLICY in scripts/check-security.mjs:\n  ${policyDrift.join('\n  ')}`);
 
 // Rules that hold whatever the table says, so a commit cannot loosen the
@@ -195,15 +203,53 @@ if (distArgument) {
 } else {
   console.log('Built pages not scanned: run npm run check:security -- --dist after npm run build to check their inline scripts.');
 }
-const url = process.argv.find(arg => arg.startsWith('--url='))?.slice(6);
+// --url=<deployment>: the deployment answers each probe path with the status
+// and the headers that vercel.json gives that path on Vercel
+// (scripts/vercel-headers.mjs models the routing). The probes cover each
+// policy vercel.json sets: two app documents, the main chunk and its source
+// map, the coding worker's directory, the sandbox page and its chunk, an API
+// answer and a redirect. Every difference is reported, not only the first.
+const url = process.argv.find(arg => arg.startsWith('--url='))?.slice('--url='.length);
 if (url) {
-  const origin = new URL(url); assert.equal(origin.protocol, 'https:');
-  for (const route of ['/', '/sandbox/index.html']) {
-    const response = await fetch(new URL(route, origin), { signal: AbortSignal.timeout(30_000) });
-    assert(response.ok, `${route}: ${response.status}`);
-    const live = response.headers.get('content-security-policy') || '';
-    assert(route === '/' ? bootstrapHashes.every(one => live.includes(one)) : live.includes("frame-ancestors 'self'"), `${route}: expected deployed CSP`);
-    assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
-    console.log(`${origin.origin}${route}: HTTPS ${response.status}, expected security headers present`);
+  const origin = new URL(url);
+  assert.equal(origin.protocol, 'https:', '--url must name an HTTPS deployment');
+  const mismatches = [];
+  const get = async pathname => {
+    const response = await fetch(new URL(pathname, origin), { redirect: 'manual', signal: AbortSignal.timeout(30_000) });
+    return { pathname, response, body: await response.text() };
+  };
+  const chunkOf = (page, prefix) => new RegExp(`<script\\b[^>]*\\bsrc="(${prefix}[^"]+\\.js)"`).exec(page.body)?.[1];
+  const home = await get('/');
+  const sandboxPage = await get('/sandbox/index.html');
+  const mainChunk = chunkOf(home, '/assets/');
+  const sandboxChunk = chunkOf(sandboxPage, '/sandbox/assets/');
+  if (!mainChunk) mismatches.push('/: names no /assets/*.js module script');
+  if (!sandboxChunk) mismatches.push('/sandbox/index.html: names no /sandbox/assets/*.js module script');
+  // Files the deployment holds at these paths; every other probe path names none.
+  const deployed = new Set(['/index.html', '/premium/index.html', '/sandbox/index.html', mainChunk, mainChunk && `${mainChunk}.map`, sandboxChunk].filter(Boolean));
+  const probes = [home, sandboxPage];
+  for (const pathname of ['/premium', mainChunk, mainChunk && `${mainChunk}.map`, sandboxChunk, '/assets/coding-worker/missing.js', '/api/settings', '/roadmap/specializations/fde']) {
+    if (pathname) probes.push(await get(pathname));
   }
+  for (const { pathname, response } of probes) {
+    const expected = vercelAnswer(config, pathname, path => deployed.has(path));
+    const before = mismatches.length;
+    if (expected.status !== null && response.status !== expected.status) {
+      mismatches.push(`${pathname}: status ${response.status}, vercel.json gives ${expected.status} (${expected.ends})`);
+    }
+    for (const [name, value] of Object.entries(expected.headers)) {
+      const actual = response.headers.get(name);
+      if (actual === value) continue;
+      if (actual !== null && name === 'content-security-policy') {
+        // The same directives and sources in another order are the same policy.
+        const differences = policyDifferences(parsePolicy(actual), parsePolicy(value), 'the deployed policy', 'vercel.json');
+        if (differences.length) mismatches.push(`${pathname}: ${differences.join('; ')}`);
+      } else {
+        mismatches.push(`${pathname}: ${name} is ${actual === null ? 'missing' : JSON.stringify(actual)}, vercel.json gives ${JSON.stringify(value)}`);
+      }
+    }
+    const matched = mismatches.length === before;
+    console.log(`${origin.origin}${pathname}: ${response.status}, ${matched ? `the ${Object.keys(expected.headers).length} headers vercel.json gives it match` : 'differs from vercel.json'}`);
+  }
+  assert.equal(mismatches.length, 0, `${origin.origin} differs from vercel.json:\n  ${mismatches.join('\n  ')}`);
 }
