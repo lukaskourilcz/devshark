@@ -4048,6 +4048,57 @@ async function malformedBodyContracts() {
   console.log(`PASS malformed bodies: ${cases.length} requests whose body getter throws answer 400 bad_request and log a warning with the request id`);
 }
 
+/* The platform accepts 4.5 MB, and Vercel's getter parses whatever came
+ * before a handler's own cap (a 64 kB path draft, 20 kB of code, 50 quiz
+ * answers) can look at it. A Content-Length past 256 kB, or 1 MB for the
+ * two signed webhooks, answers 413 before anything reads the body. */
+async function oversizeBodyContracts() {
+  const neverRead = () => new Error('the body must not be read');
+  const cases: [label: string, handler: (req: never, res: never) => unknown, method: string, url: string, query: Record<string, unknown>, length: number, refused: boolean][] = [
+    ['quiz submit, 300,000 bytes', submitHandler, 'POST', '/api/quiz/submit', {}, 300_000, true],
+    ['quiz submit, 4.5 MB', submitHandler, 'POST', '/api/quiz/submit', {}, 4_718_592, true],
+    ['user stats, 262,145 bytes', userHandler, 'POST', '/api/user/stats', { op: 'stats' }, 262_145, true],
+    ['admin save, 300,000 bytes', adminHandler, 'POST', '/api/admin/save', { op: 'save' }, 300_000, true],
+    ['a path draft, 300,000 bytes', userHandler, 'PUT', '/api/user/learning-path-draft', { op: 'learning-path-draft' }, 300_000, true],
+    ['the billing webhook, 1,048,577 bytes', userHandler, 'POST', '/api/user/billing-webhook', { op: 'billing-webhook' }, 1_048_577, true],
+    ['the payment webhook, 1,048,577 bytes', userHandler, 'POST', '/api/user/payment-webhook', { op: 'payment-webhook' }, 1_048_577, true],
+    ['quiz submit, 262,144 bytes', submitHandler, 'POST', '/api/quiz/submit', {}, 262_144, false],
+    ['a path draft, 64 kB and its envelope', userHandler, 'PUT', '/api/user/learning-path-draft', { op: 'learning-path-draft' }, 65_536 + 512, false],
+    ['the billing webhook, 600,000 bytes', userHandler, 'POST', '/api/user/billing-webhook', { op: 'billing-webhook' }, 600_000, false],
+    ['the payment webhook, 600,000 bytes', userHandler, 'POST', '/api/user/payment-webhook', { op: 'payment-webhook' }, 600_000, false],
+    ['the billing webhook, 1,048,576 bytes', userHandler, 'POST', '/api/user/billing-webhook', { op: 'billing-webhook' }, 1_048_576, false],
+  ];
+  let caller = 0;
+  for (const [label, handler, method, url, query, length, refused] of cases) {
+    caller += 1;
+    const req = lazyBodyRequest({
+      method, url, query,
+      headers: { 'content-type': 'application/json', 'content-length': String(length), 'x-forwarded-for': `10.64.7.${caller}` },
+    }, refused ? neverRead() : null, {});
+    const { res, lines, error } = await capturedCall(handler, req);
+    if (!refused) {
+      assert.notEqual(res.statusCode, 413, `${label} passes the cap (${JSON.stringify(res.body)})`);
+      assert.ok(req.reads > 0, `${label} reaches the body`);
+      continue;
+    }
+    assert.equal(res.statusCode, 413, `${label} answers 413 (${JSON.stringify(res.body)})`);
+    assert.equal(error?.code, 'too_large', `${label} answers too_large`);
+    assert.equal(error?.message, 'The request body is too large', `${label} says what is wrong`);
+    assertGenericError(label, error);
+    assert.equal(req.reads, 0, `${label} never reads, so never parses, the body`);
+    const refusal = lines.find((line) => line.status === 413 && line.category === 'too_large');
+    assert.equal(refusal?.level, 'warn', `${label} logs a warning`);
+    assert.equal(refusal?.request_id, res.headers.get('x-request-id'), `${label} logs the request id`);
+  }
+  // Without a Content-Length the platform's own 4.5 MB limit applies.
+  {
+    const req = lazyBodyRequest({ method: 'POST', url: '/api/quiz/submit', query: {}, headers: { 'content-type': 'application/json', 'x-forwarded-for': '10.64.7.200' } }, null, {});
+    const { res } = await capturedCall(submitHandler, req);
+    assert.notEqual(res.statusCode, 413, 'a request without a Content-Length passes to the platform limit');
+  }
+  console.log(`PASS oversize bodies: ${cases.filter((c) => c[6]).length} requests past 256 kB (1 MB for the webhooks) answer 413 unread, ${cases.filter((c) => !c[6]).length} within the caps pass`);
+}
+
 async function main() {
   await adminDirectoryContracts();
   await practiceRunTransitionContracts();
@@ -6857,6 +6908,7 @@ async function main() {
   unstorableTextContracts();
   strictQueryContracts();
   await malformedBodyContracts();
+  await oversizeBodyContracts();
 
   console.log('Launch contracts passed: product identity, scope, token confidentiality, stable attempts, fairness-neutral rewards, rate limiting, health, 12-function budget, the free tier and Premium, billing, the launch price, the public Premium copy, the retired support settings, the progression graph, failure hints, retired sections, curation claims, the content-audit gate, spaced practice, interleaving, challenge runs, lesson figures, an unconfigured shop, coins, invitations, merchandise through Spreadshop, one erasure routine, Premium vouchers, the question of the day, and the webdev-bank contract BoardlessAI imports.');
 }
