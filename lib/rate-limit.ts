@@ -814,7 +814,16 @@ function getOnceStore(): Promise<OnceStore | null> {
     try {
       // @ts-ignore — optional dependency, resolved at runtime in production
       const Redis = ((await import('@upstash/redis')) as any).Redis;
-      return new Redis({ url: UPSTASH_URL as string, token: UPSTASH_TOKEN as string }) as OnceStore;
+      return new Redis({
+        url: UPSTASH_URL as string,
+        token: UPSTASH_TOKEN as string,
+        // The limiter client's deadline and no retries. The caller has
+        // already been answered 503 when the deadline passes; a SET NX
+        // retried behind that answer could land and refuse the caller's own
+        // retry as a replay.
+        signal: () => AbortSignal.timeout(LIMITER_DEADLINE_MS),
+        retry: { retries: 0 },
+      }) as OnceStore;
     } catch {
       return null;
     }
