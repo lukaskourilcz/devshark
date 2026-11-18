@@ -63,8 +63,11 @@ export function routePhases(config: VercelConfig = readVercelConfig()): Record<P
   return phases;
 }
 
-// Vercel matches a route's `src` without regard to case unless the route says so.
-const routeMatches = (route: Route, path: string) => route.src !== undefined && new RegExp(route.src, 'i').test(path);
+// Vercel matches a route's `src` and a rewrite's `source` case-sensitively.
+// Measured on production (18 November 2026): /cs/topics answers 404 from the
+// retired-guide route and /CS/TOPICS 200 with the app shell; /premium serves
+// the Premium document (8,105 bytes) and /PREMIUM the home shell (5,549 bytes).
+const routeMatches = (route: Route, path: string) => route.src !== undefined && new RegExp(route.src).test(path);
 
 /** The headers the routes of one phase give a path, later routes winning, keys lower-cased. */
 export function phaseHeaders(path: string, phase: Phase, phases = routePhases()): Record<string, string> {
@@ -78,7 +81,8 @@ export function phaseHeaders(path: string, phase: Phase, phases = routePhases())
 
 /** A rewrite `source` (path-to-regexp 6, as Vercel reads it) as a RegExp, for
  * the shapes vercel.json uses: literal text, `:name` segments and `(...)`
- * groups, which are regular expressions already. */
+ * groups, which are regular expressions already. It matches case-sensitively,
+ * as production does (see routeMatches). */
 export function rewriteSourcePattern(source: string): RegExp {
   let pattern = '';
   for (let i = 0; i < source.length;) {
@@ -104,7 +108,7 @@ export function rewriteSourcePattern(source: string): RegExp {
       i += 1;
     }
   }
-  return new RegExp(`^${pattern}$`, 'i');
+  return new RegExp(`^${pattern}$`);
 }
 
 // Paths the contract asks about. The hashes are made up: what matters is the
@@ -180,7 +184,7 @@ export function vercelRoutingContracts(): void {
   const redirectOf = (path: string) => {
     const route = redirects.find((one) => routeMatches(one, path));
     if (!route) return null;
-    const match = new RegExp(route.src!, 'i').exec(path)!;
+    const match = new RegExp(route.src!).exec(path)!;
     return route.headers!.Location.replace(/\$(\d)/g, (_, index: string) => match[Number(index)] ?? '');
   };
   const MOVED: [string, string][] = [
