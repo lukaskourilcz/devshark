@@ -35,3 +35,8 @@ await (await import('./cold-start-contracts')).runIsolated('scripts/test-questio
 
 // The self-host adapter's IP and body-size boundaries, on a local fixture.
 execFileSync(process.execPath, ['--test', 'docker/server.test.mjs'], { stdio: 'inherit' });
+// perf:measure's flag checks and its lab helpers (interaction controls,
+// context options, TTFB, INP, session-window CLS, TBT, the LCP element line,
+// the repeat row's consent record and the --api-origin replay list) (#630);
+// no case sends a request or opens Chrome, which this CI job does not install.
+execFileSync(process.execPath, ['--test', 'scripts/test-perf-tools.mjs'], { stdio: 'inherit' });
