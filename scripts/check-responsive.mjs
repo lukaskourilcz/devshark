@@ -234,6 +234,11 @@ function normalizeRoute(route) {
 class UsageError extends Error {}
 
 function selectedMatrix() {
+  const zoomText = optionValue('--zoom') ?? (process.env.RESPONSIVE_ZOOM || '100');
+  if (!['100', '200', '400'].includes(zoomText)) {
+    throw new UsageError(`Invalid responsive zoom: ${zoomText}. Use 100, 200 or 400 percent.`);
+  }
+  const zoom = Number(zoomText);
   const routeFilter = commaList(optionValue('--routes') ?? process.env.RESPONSIVE_ROUTES);
   const widthFilter = commaList(optionValue('--widths') ?? process.env.RESPONSIVE_WIDTHS)
     ?.map((width) => {
@@ -253,7 +258,16 @@ function selectedMatrix() {
   if (unsupported?.length) {
     throw new UsageError(`Unsupported responsive width(s): ${unsupported.join(', ')}. Use one of: ${DEFAULT_VIEWPORTS.map(({ width }) => width).join(', ')}.`);
   }
-  return { routes, viewports: viewports.map((viewport) => ({ ...viewport, physicalWidth: viewport.width, physicalHeight: viewport.height })) };
+  return { routes, zoom, viewports: viewports.map((viewport) => ({
+    ...viewport,
+    physicalWidth: viewport.width,
+    physicalHeight: viewport.height,
+    width: Math.floor(viewport.width * 100 / zoom),
+    height: Math.floor(viewport.height * 100 / zoom),
+    deviceScaleFactor: (viewport.mobile ? 2 : 1) * zoom / 100,
+    zoom,
+    label: zoom === 100 ? viewport.label : `${viewport.label}@${zoom}%`,
+  })) };
 }
 
 function printHelp() {
@@ -269,6 +283,7 @@ Options:
   --base-url <url>    Running preview URL (default: ${DEFAULT_BASE})
   --output-dir <path> Keep failure screenshots at an explicit path
   --print-matrix      Print the selected route and viewport inventory as JSON
+  --zoom <percent>    Reflow at 100, 200 or 400 percent (RESPONSIVE_ZOOM)
   --help              Show this help
 
 The same settings are available through RESPONSIVE_ROUTES,
@@ -278,6 +293,7 @@ hosts on a runner without outbound network, and RESPONSIVE_THEME=dark to
 sweep the other theme. A route under /not-found-… is expected to render the
 not-found page; every other route must not.
 Failure screenshots use a temporary directory by default.`);
+  console.log('Zoom profiles keep the physical viewport and image pixel dimensions, shrink the CSS viewport and increase device pixel density. At 400 percent, 1280px becomes 320 CSS pixels. This synthetic full-page zoom does not establish physical-device keyboard behavior.');
 }
 
 // A DevTools command that has not answered by now is not going to. Long enough
@@ -448,7 +464,11 @@ async function probeRoute(session, baseUrl, route, vp, notFoundHeading) {
   await call('Emulation.setDeviceMetricsOverride', {
     width: vp.width,
     height: vp.height,
-    deviceScaleFactor: vp.mobile ? 2 : 1,
+    // Shrink the layout viewport and grow density together. Pinch scale alone
+    // would leave the layout unchanged, and density alone would not reflow it.
+    deviceScaleFactor: vp.deviceScaleFactor,
+    screenWidth: vp.physicalWidth,
+    screenHeight: vp.physicalHeight,
     mobile: vp.mobile,
   });
   // `mobile: true` does not make `(pointer: coarse)` match — touch emulation is
@@ -483,12 +503,18 @@ async function probeRoute(session, baseUrl, route, vp, notFoundHeading) {
   await new Promise((r) => setTimeout(r, 1500));
   const rendered = await evaluate(call, RENDERED);
   const problems = renderProblems(route, rendered, session.apiRequests, notFoundHeading);
+  const geometry = await evaluate(call, `({ width: innerWidth, height: innerHeight, density: devicePixelRatio, screenWidth: screen.width, screenHeight: screen.height })`);
+  if (Math.abs(geometry.width - vp.width) > 1 || Math.abs(geometry.height - vp.height) > 1 ||
+      Math.abs(geometry.density - vp.deviceScaleFactor) > 0.01 ||
+      geometry.screenWidth !== vp.physicalWidth || geometry.screenHeight !== vp.physicalHeight) {
+    problems.push(`zoom geometry differs: expected ${vp.width}x${vp.height} CSS at ${vp.deviceScaleFactor} density on ${vp.physicalWidth}x${vp.physicalHeight}, got ${JSON.stringify(geometry)}`);
+  }
   const data = await evaluate(call, PROBE);
   const clearance = await evaluate(call, CLEARANCE);
   if (process.env.RESPONSIVE_DEBUG === '1') {
     console.log(`  [debug] ${route} ${vp.label}: ${clearance.overlays} bottom overlay(s), ${clearance.covered.length} covered, h1 ${JSON.stringify(rendered.headings)}, api ${JSON.stringify(session.apiRequests)}`);
   }
-  return { route, viewport: vp.label, ready, covered: clearance.covered, problems, headings: rendered.headings, ...data };
+  return { route, viewport: vp.label, zoom: vp.zoom, geometry, physicalWidth: vp.physicalWidth, physicalHeight: vp.physicalHeight, ready, covered: clearance.covered, problems, headings: rendered.headings, ...data };
 }
 
 /** The heading of the not-found page, read from an address that cannot exist,
@@ -624,9 +650,9 @@ async function main() {
   if (typeof globalThis.WebSocket !== 'function') {
     throw new Error('Responsive checks require Node.js 22 or newer (the version declared in package.json).');
   }
-  const { routes, viewports } = selectedMatrix();
+  const { routes, viewports, zoom } = selectedMatrix();
   if (process.argv.includes('--print-matrix')) {
-    console.log(JSON.stringify({ routes, viewports, authMode: 'guest' }, null, 2));
+    console.log(JSON.stringify({ routes, viewports, zoom, authMode: 'guest' }, null, 2));
     return;
   }
   SERVER = await loadServerFixtures();
@@ -639,6 +665,7 @@ async function main() {
   await preflight(baseUrl);
   let session = await openBrowser(SEED, baseUrl);
   if (SEED) console.log(`  seeded theme=${THEME}`);
+  console.log(`  zoom=${zoom}%: physical viewport to effective CSS viewport: ${viewports.map((vp) => `${vp.physicalWidth}x${vp.physicalHeight} -> ${vp.width}x${vp.height} at ${vp.deviceScaleFactor} density`).join('; ')}`);
 
   let cleaned = false;
   const cleanup = () => {
@@ -737,6 +764,7 @@ async function main() {
       process.exitCode = 1;
     } else {
       console.log('\nAll clear — every route rendered its page, with no horizontal overflow, no child escaping its parent, nothing under the ocean footer.');
+      if (zoom !== 100) console.log('Synthetic full-page zoom reflow passed; physical browser keyboard and mobile safe-area behavior require their separate device checks.');
       if (!configuredOutput) rmSync(outDir, { recursive: true, force: true });
     }
   } finally {
