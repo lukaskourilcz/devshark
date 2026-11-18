@@ -12,6 +12,7 @@ import type { TranslationKey } from '../../i18n/translations';
 import { codingListCopy } from '../../i18n/translations.codingLists';
 import { useAdvanceSession, usePracticeSession, useStartSession } from '../../coding/practice';
 import { ApiError } from '../../lib/api';
+import { accountEpoch } from '../../lib/accountData';
 import { CODING_INDEX } from '../../../../shared/coding-index';
 import { CODING_SECTION_TRACKS, type CodingTrack } from '../../../../shared/coding-catalog';
 import { PRACTICE_RUN_COUNTS, type PracticeOrder, type PracticeSession } from '../../../../shared/coding-api';
@@ -110,8 +111,13 @@ function RunCard({ session, onDone, resumeInPrimary = false }: { session: Practi
     if (transitioning.current) return;
     transitioning.current = true;
     setError(null);
+    // The Coding home stays mounted while the account changes: an answer that
+    // lands after a Log out or another account's sign-in is not the next
+    // learner's to act on.
+    const epoch = accountEpoch();
     advance.mutate({ sessionId: session.sessionId, status }, {
       onSuccess: (data) => {
+        if (accountEpoch() !== epoch) return;
         if (status === 'active') {
           const first = data.session ? currentRunTask(data.session) : null;
           if (first) navigate(taskHref(first));
@@ -119,7 +125,7 @@ function RunCard({ session, onDone, resumeInPrimary = false }: { session: Practi
           onDone();
         }
       },
-      onError: () => setError(t('coding.run.failed')),
+      onError: () => { if (accountEpoch() === epoch) setError(t('coding.run.failed')); },
       onSettled: () => { transitioning.current = false; },
     });
   };
@@ -190,14 +196,17 @@ export function ChallengeRunPlanner({ signedIn, collapsible = false, resumeInPri
     const scheduledFor = later ? localToIso(at) : null;
     if (later && !scheduledFor) { setError(t('coding.run.badTime')); return; }
     starting.current = true;
+    // A start answered after the account changed is not the next learner's.
+    const epoch = accountEpoch();
     start.mutate({ count, order, ...(track ? { topic: track } : {}), ...(scheduledFor ? { scheduledFor } : {}) }, {
       onSettled: () => { starting.current = false; },
       onSuccess: (data) => {
         const run = data.session;
-        if (!run) return;
+        if (!run || accountEpoch() !== epoch) return;
         if (run.status === 'active') { const first = currentRunTask(run); if (first) navigate(taskHref(first)); }
       },
       onError: (failure) => {
+        if (accountEpoch() !== epoch) return;
         const code = failure instanceof ApiError ? failure.code : '';
         setError(t(code === 'nothing_eligible' ? 'coding.run.nothing' : code === 'migration_required' ? 'coding.run.unavailable' : 'coding.run.failed'));
       },

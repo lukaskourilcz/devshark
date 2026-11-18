@@ -235,6 +235,21 @@ describe('a run start answered after the account changed', () => {
     answerLate(held.callbacks, outcome);
     expectUntouched();
   });
+
+  // The account check must not hide a refusal from the learner who pressed.
+  it('still tells the same learner on Today and the Coding home when their start is refused', () => {
+    practice.session = PLANNED;
+    const held = holdAdvance();
+    const view = render(today());
+    fireEvent.click(screen.getByRole('button', { name: /^Start:/ }));
+    act(() => { held.callbacks?.onError?.(new Error('refused')); held.callbacks?.onSettled?.(); });
+    expect(screen.getByRole('alert')).toHaveTextContent('Could not start the run');
+    view.unmount();
+    mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Start now' }));
+    act(() => { held.callbacks?.onError?.(new Error('refused')); held.callbacks?.onSettled?.(); });
+    expect(screen.getByRole('alert')).toHaveTextContent('Could not start the run');
+  });
 });
 
 // A start, a step or a save still on the wire when the learner logs out, or

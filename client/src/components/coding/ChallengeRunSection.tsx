@@ -1,11 +1,12 @@
 // The learner's open challenge run, as a Today card: a planned run with the
 // moment it was planned for and a Start button, or an active run with how far
 // it has got and a link to the next challenge. Renders nothing without a run.
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useAdvanceSession, usePracticeSession } from '../../coding/practice';
+import { accountEpoch } from '../../lib/accountData';
 import { currentRunTask, formatWhen, runSummary, taskHref, usePracticeRunDue } from './ChallengeRunPlanner';
 
 const RunGlyph = ({ size = 20 }: { size?: number }) => (
@@ -31,6 +32,12 @@ export function ChallengeRunSection() {
   // reaches React, a task after the press, and a second press in that gap sent
   // a second status change. Declared before the early returns below.
   const starting = useRef(false);
+  // This section stays mounted while the account changes, so a start answered
+  // after a Log out or another account's sign-in neither moves the next
+  // learner to the previous learner's run nor tells them it failed. The
+  // failure is this press's, not the mutation's isError, which outlives the
+  // account that pressed, and it belongs to the run that failed to start.
+  const [failedRun, setFailedRun] = useState<string | null>(null);
   if (!session) return null;
   const scheduled = session.status === 'scheduled';
   const current = scheduled ? null : currentRunTask(session);
@@ -56,8 +63,16 @@ export function ChallengeRunSection() {
   const begin = () => {
     if (starting.current) return;
     starting.current = true;
-    advance.mutate({ sessionId: session.sessionId, status: 'active' }, {
-      onSuccess: (data) => { const first = data.session ? currentRunTask(data.session) : null; navigate(first ? taskHref(first) : '/coding'); },
+    setFailedRun(null);
+    const epoch = accountEpoch();
+    const run = session.sessionId;
+    advance.mutate({ sessionId: run, status: 'active' }, {
+      onSuccess: (data) => {
+        if (accountEpoch() !== epoch) return;
+        const first = data.session ? currentRunTask(data.session) : null;
+        navigate(first ? taskHref(first) : '/coding');
+      },
+      onError: () => { if (accountEpoch() === epoch) setFailedRun(run); },
       onSettled: () => { starting.current = false; },
     });
   };
@@ -72,7 +87,7 @@ export function ChallengeRunSection() {
             : <Link to={taskHref(current!)} className="today-card ss-panel ss-lift" aria-label={`${actionLabel}: ${meta}`}>{body}</Link>}
         </li>
       </ul>
-      {advance.isError && <p className="today-summary" role="alert">{t('coding.run.failed')}</p>}
+      {failedRun === session.sessionId && <p className="today-summary" role="alert">{t('coding.run.failed')}</p>}
     </section>
   );
 }
