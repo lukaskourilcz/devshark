@@ -86,3 +86,13 @@ test('F6-04: coding progress supplies the fields consumed by the Coding dashboar
   for (const count of Object.values(result.body.passedByTrack)) assert.ok(Number.isInteger(count) && count >= 0);
   assert.equal(Object.hasOwn(result.body, 'progress'), false, 'the handler returns tasks, not a progress wrapper');
 });
+
+test('F6-04: an unconnected GitHub fixture selects the visible connect state', () => {
+  const result = apiFixture('GET', api('/api/user/[op]?op=github-connection'));
+  assert.equal(result.status, 200);
+  assert.equal(result.body.available, true, 'the garden card remains in this fixture layout');
+  assert.equal(result.body.status, 'not_connected', 'the client must not fall into its connected branch');
+  for (const field of ['accountLogin', 'repoFullName', 'defaultBranch', 'lastCommitAt', 'lastError']) assert.equal(result.body[field], null, field);
+  assert.equal(result.body.queued, 0);
+  assert.equal(Object.hasOwn(result.body, 'connected'), false, 'the handler uses a status discriminant');
+});
