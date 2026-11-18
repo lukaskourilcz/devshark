@@ -23,8 +23,12 @@
  *  - with Upstash configured and failing, a one-time claim is refused with
  *    503 instead of falling back to this instance's memory.
  *
- * Upstash is a second stand-in that answers every command with an error, so
- * the rate limits here run on their in-memory fallback. Nothing leaves the
+ * Upstash is a second stand-in with two modes. Failing, it answers every
+ * command with an error, so the rate limits run on their in-memory fallback;
+ * the checks that drain an in-memory bucket, the limiter's pause and the
+ * claim outage use it. Healthy, it answers as Upstash does and counts each
+ * bucket without a window, so a bucket runs out after exactly its capacity;
+ * the admin, report and sign-in checks use it. Nothing leaves the
  * machine. */
 
 import assert from 'node:assert/strict';
@@ -151,6 +155,55 @@ const SLOW_PATH_OPEN = 'slow-path-open-attempt';
 const SLOW_PATH_ACCEPT = 'slow-path-accept-result';
 let fdeFixtureVersion: number | undefined;
 const upstashCommands: string[] = [];
+/** While true the Upstash stand-in answers every command with HTTP 500. */
+let upstashFails = true;
+/** Healthy mode: requests counted per bucket key, and one-time claims taken. */
+const upstashCounts = new Map<string, number>();
+const upstashClaims = new Set<string>();
+/** lib/rate-limit.ts keeps to its in-memory buckets for LIMITER_PAUSE_MS
+ * after an Upstash command fails. */
+const LIMITER_PAUSE_MS = 15_000;
+let lastUpstashFailure = Number.NEGATIVE_INFINITY;
+// The suite's clock: the system clock plus however far the checks moved it
+// on. Checks that stop the clock save and restore this function.
+const systemNow = Date.now;
+let clockSkew = 0;
+Date.now = () => systemNow() + clockSkew;
+/** Move the clock past the limiter's pause after the last failed command, so
+ * the next rate limit asks Upstash again instead of its in-memory bucket. */
+function pastLimiterPause() {
+  const behind = lastUpstashFailure + LIMITER_PAUSE_MS + 1_000 - Date.now();
+  if (behind > 0) clockSkew += behind;
+}
+/** Switch the Upstash stand-in. Back to healthy, the clock moves past the
+ * pause the last failure started, or a bucket would keep to memory. */
+function upstashMode(mode: 'failing' | 'healthy') {
+  upstashFails = mode === 'failing';
+  if (!upstashFails) pastLimiterPause();
+}
+/** One Upstash command in healthy mode. @upstash/ratelimit's single-region
+ * sliding window sends EVALSHA with KEYS[1] `rl:<bucket>:<caller>:<window>`
+ * and ARGV[1] the limit, and reads [remaining, limit] back, -1 refusing. The
+ * count ignores the window, so no check flakes on a window boundary. A
+ * one-time claim is SET NX: "OK" the first time, null after. */
+function upstashAnswer(command: unknown[]): unknown {
+  const name = String(command[0]).toLowerCase();
+  if (name === 'evalsha' || name === 'eval') {
+    const key = String(command[3]).replace(/:\d+$/, '');
+    const limit = Number(command[3 + Number(command[2])]);
+    const used = upstashCounts.get(key) ?? 0;
+    if (used >= limit) return [-1, limit];
+    upstashCounts.set(key, used + 1);
+    return [limit - used - 1, limit];
+  }
+  if (name === 'set' && command.slice(3).some((arg) => String(arg).toLowerCase() === 'nx')) {
+    const key = String(command[1]);
+    if (upstashClaims.has(key)) return null;
+    upstashClaims.add(key);
+    return 'OK';
+  }
+  return 'OK';
+}
 // A Challenge run saved with this score finds the run already on the board
 // with another one.
 const CONFLICTING_CHALLENGE_SCORE = 2;
@@ -320,12 +373,23 @@ async function startStandIns() {
     }
     send(404, { message: 'no route' });
   });
-  // Upstash, unreachable in all but name: every command fails.
+  // Upstash, failing (every command answers 500) or healthy. @upstash/redis
+  // sends one command as a JSON array, or a batch of them to /pipeline, and
+  // reads { result } per command.
   const upstash = createServer(async (req, res) => {
-    upstashCommands.push(await readBody(req));
-    res.statusCode = 500;
+    const raw = await readBody(req);
+    upstashCommands.push(raw);
     res.setHeader('content-type', 'application/json');
-    res.end(JSON.stringify({ error: 'ERR stand-in is down' }));
+    if (upstashFails) {
+      lastUpstashFailure = Date.now();
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: 'ERR stand-in is down' }));
+      return;
+    }
+    const pipeline = req.url === '/pipeline';
+    const parsed = JSON.parse(raw) as unknown[];
+    const results = (pipeline ? parsed as unknown[][] : [parsed]).map((command) => ({ result: upstashAnswer(command) }));
+    res.end(JSON.stringify(pipeline ? results : results[0]));
   });
   const [supabasePort, upstashPort] = await Promise.all([listen(supabase), listen(upstash)]);
   // lib/http.ts, lib/auth.ts, lib/admin-auth.ts and lib/rate-limit.ts read
@@ -670,6 +734,8 @@ async function main() {
     console.log('PASS verified caller: a garden op acts for the token\'s account');
 
     // ── the admin gate: a confirmed address, or the role ─────────────────
+    // The admin bucket runs on a healthy Upstash here, which counts it.
+    upstashMode('healthy');
     const fulfilment = (account?: Account, from?: string) => user('fulfilment', { account, from });
     const unconfirmed = await fulfilment(LISTED_UNCONFIRMED);
     assert.equal(unconfirmed.statusCode, 403, `an allow-listed address nobody confirmed is not an admin (${JSON.stringify(unconfirmed.body)})`);
@@ -701,6 +767,8 @@ async function main() {
     Date.now = clock;
     assert.deepEqual(gate.slice(0, -1).filter((status) => status !== 403), [], `the gate refuses a caller without a session (${gate.join(',')})`);
     assert.equal(gate.at(-1), 429, 'and the admin bucket runs out before the gate is asked again');
+    assert.equal(upstashCounts.get(`rl:${rateLimit.RATE_LIMITS.admin.key}:${gateAddress}`), rateLimit.RATE_LIMITS.admin.capacity,
+      'the healthy Upstash stand-in counted the admin bucket, not this instance\'s memory');
     console.log('PASS verified caller: the fulfilment op is rate-limited before its admin gate');
 
     // ── the admin console's API ──────────────────────────────────────────
@@ -816,6 +884,7 @@ async function main() {
     const stored = (reads('/rest/v1/question_edits').find((one) => one.method === 'POST')?.body as Row | undefined)?.explanation as string;
     assert.equal(stored, `${'a'.repeat(3_999)}🦈`, 'the cut keeps the emoji whole');
     console.log('PASS verified caller: an admin save cuts long text by code point');
+    upstashMode('failing');
 
     // ── nothing about one person in a shared cache ──────────────────────
     const personal: [string, Response][] = [
@@ -1104,9 +1173,11 @@ async function main() {
     // Every Upstash command fails here. A request still passes on the
     // in-memory bucket, and right after a failure the next one does not ask
     // Upstash again: a hung Upstash held each bucket for the whole deadline.
+    // The clock first moves past the pause an earlier failure started.
     {
+      pastLimiterPause();
       const clock = Date.now;
-      const later = clock() + 3_600_000;
+      const later = clock();
       Date.now = () => later;
       try {
         const bucket = { key: `limiter-pause-${later}`, capacity: 5, refillPerSecond: 1 };
@@ -1266,6 +1337,7 @@ async function main() {
     console.log('PASS verified caller: the admin report list summarises a reported question the gate has retired');
 
     // ── question reports ─────────────────────────────────────────────────
+    upstashMode('healthy');
     seen.length = 0;
     const reported = await call(submit as Handler, { method: 'POST', account: A, query: { resource: 'report' }, body: { question_id: 'q-report-1', reason: 'typo', detail: 'A typo in the second option' } });
     assert.equal(reported.statusCode, 200, JSON.stringify(reported.body));
@@ -1280,6 +1352,7 @@ async function main() {
     console.log('PASS verified caller: a question report is saved for its reporter, one holding U+0000 is refused, and a timed-out one answers 503');
 
     // ── one-time claims with Upstash configured and failing ──────────────
+    upstashMode('failing');
     upstashCommands.length = 0;
     await assert.rejects(
       rateLimit.claimOnce('placement:verified-caller-attempt-0001:1', 60),
@@ -1304,6 +1377,8 @@ async function main() {
     console.log('PASS verified caller: a one-time claim Upstash cannot record answers 503');
 
     // ── an account made with an email and password ──────────────────────
+    // From here on Upstash is healthy: sign-in reports and the admin desk.
+    upstashMode('healthy');
     seen.length = 0;
     authChecks = 0;
     const event = await user('authevent', { method: 'POST', account: EMAIL, body: {} });
