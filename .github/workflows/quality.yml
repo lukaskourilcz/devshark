@@ -89,7 +89,7 @@ jobs:
           VITE_SUPABASE_URL=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_URL")
           VITE_SUPABASE_ANON_KEY=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_ANON_KEY")
           export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY
-          npm run build && npm run check:public && npm run check:bundle
+          npm run build && npm run check:images && npm run check:public && npm run check:bundle
         id: build
         env:
           VITE_PRODUCT: devshark
@@ -153,7 +153,7 @@ jobs:
         run: |
           npm run preview --prefix client -- --host 0.0.0.0 --port 4173 > /tmp/preview.log 2>&1 &
           node scripts/wait-for-preview.mjs
-          npm run test:browser -- tests/browser/public.spec.ts
+          npm run test:browser -- tests/browser/public.spec.ts tests/browser/images.spec.ts
           npm run test:browser -- tests/browser/guide-startup.spec.ts tests/browser/profile-leaderboard-preferences.spec.ts tests/browser/profile-path-picker.spec.ts tests/browser/admin.spec.ts
           npm run test:browser -- tests/browser/evolving.spec.ts
           npm run test:browser -- tests/browser/coding-pages.spec.ts
