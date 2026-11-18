@@ -3,7 +3,7 @@
 // every navigation.
 import type { TranslationKey } from '../i18n/translations';
 import { CURRENT_PRODUCT } from './products';
-import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, NOINDEX_PATHS, PUBLIC_ORIGIN, metaDescription, premiumSchema, publicPage, topicFromPath, topicSchema } from './publicMetadata';
+import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, NOINDEX_PATHS, PUBLIC_ORIGIN, isPrivacyCopyKey, metaDescription, premiumSchema, prerenderedAppPage, publicPage, topicFromPath, topicSchema } from './publicMetadata';
 
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
@@ -126,6 +126,10 @@ export function readShareHead(): ShareHead | null {
   return { path, title: document.title, content, url };
 }
 
+/** The route whose head was written last: a description that loads later
+ * (the privacy policy's) lands only while its route is still showing. */
+let headPath: string | null = null;
+
 /**
  * Writes the head for `pathname`. A robots line marked `data-not-found`
  * belongs to the not-found page, which adds it while it shows and removes it
@@ -133,8 +137,14 @@ export function readShareHead(): ShareHead | null {
  */
 export function applyRouteHead(rawPath: string, t: Translate, shareHead: ShareHead | null = null): void {
   const pathname = trimSlash(rawPath);
+  headPath = pathname;
   const setMeta = (selector: string, value: string) => {
     document.querySelector<HTMLMetaElement>(selector)?.setAttribute('content', value);
+  };
+  const setDescription = (value: string) => {
+    setMeta('meta[name="description"]', value);
+    setMeta('meta[property="og:description"]', value);
+    setMeta('meta[name="twitter:description"]', value);
   };
   const clear = () => document
     .querySelectorAll('link[rel="canonical"], link[hreflang], #public-schema, meta[property="og:url"], meta[name="robots"]:not([data-not-found])')
@@ -155,23 +165,36 @@ export function applyRouteHead(rawPath: string, t: Translate, shareHead: ShareHe
   // /premium and /premium/cancel carry their own description and canonical,
   // the same ones the build writes into their static HTML, cut the same way.
   const page = publicPage(pathname);
+  // F15-11: an app route the build also writes a static page for.
+  const appPage = prerenderedAppPage(pathname);
+  const privacyCopy = appPage?.descriptionKeys.some(isPrivacyCopyKey) ?? false;
   const description = metaDescription(publicTopic
     ? publicTopic.topic.description
-    : page ? t(page.descriptionKey) : CURRENT_PRODUCT.description);
+    : page ? t(page.descriptionKey)
+    : appPage && !privacyCopy ? appPage.descriptionKeys.map((key) => t(key as TranslationKey)).join(' ')
+    : CURRENT_PRODUCT.description);
   const image = pathname === '/daily' ? PUBLIC_ORIGIN + DAILY_SHARE_IMAGE_PATH : BRAND_SHARE_IMAGE;
   const imageAlt = pathname === '/daily' ? document.title : BRAND_SHARE_IMAGE_ALT;
-  setMeta('meta[name="description"]', description);
+  setDescription(description);
   setMeta('meta[property="og:title"]', document.title);
-  setMeta('meta[property="og:description"]', description);
   setMeta('meta[property="og:image"]', image);
   setMeta('meta[property="og:image:alt"]', imageAlt);
   setMeta('meta[name="twitter:title"]', document.title);
-  setMeta('meta[name="twitter:description"]', description);
   setMeta('meta[name="twitter:image"]', image);
+  if (appPage && privacyCopy) {
+    // The privacy policy's words ship with the legal pages' chunk, not with
+    // the shell (translations.privacy.ts). The page loads them anyway; the
+    // description follows once they are here, unless the visitor moved on.
+    void import('../i18n/translations.privacy').then(({ privacyEn }) => {
+      if (headPath !== appPage.path) return;
+      const words = privacyEn as Record<string, string>;
+      setDescription(metaDescription(appPage.descriptionKeys.map((key) => (isPrivacyCopyKey(key) ? words[key] ?? '' : t(key))).join(' ')));
+    }, () => undefined);
+  }
   clear();
   const canonical = publicTopic
     ? PUBLIC_ORIGIN + pathname
-    : pathname === '/' ? PUBLIC_ORIGIN + '/' : page ? PUBLIC_ORIGIN + page.path : null;
+    : pathname === '/' ? PUBLIC_ORIGIN + '/' : page ? PUBLIC_ORIGIN + page.path : appPage ? PUBLIC_ORIGIN + appPage.path : null;
   // The build writes og:url beside every canonical it writes (vite.config.ts),
   // so the head a page arrived with and the one the app writes agree.
   if (canonical) {
