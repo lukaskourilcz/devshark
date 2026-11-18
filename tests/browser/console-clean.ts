@@ -8,10 +8,14 @@ import { test as base, type BrowserContext, type ConsoleMessage, type Page } fro
 // (daily.spec.ts and public.spec.ts open one with JavaScript off) belong to
 // another context and stay outside it.
 //
-// Chromium logs "Failed to load resource: ..." for every request that answers
-// 4xx or 5xx or is aborted. Specs answer those on purpose, so those lines do
-// not fail the test; their count and text go into the report as the
-// `console-network` attachment.
+// Two kinds of console error say nothing about the app and do not fail a
+// test; their count and text go into the report as the `console-ignored`
+// attachment. Chromium logs "Failed to load resource: ..." for every request
+// that answers 4xx or 5xx or is aborted, and specs answer those on purpose.
+// It logs "Blocked script execution in 'about:srcdoc' ..." when Playwright's
+// own page scripts meet a frame sandboxed without allow-scripts (the admin
+// email preview, sandbox=""); a srcdoc frame with no script of its own logs
+// it too.
 //
 // A spec that breaks the app on purpose (a dropped chunk) names the messages
 // it expects with allowConsoleErrors(page, ...patterns). A string matches
@@ -27,7 +31,10 @@ interface Problem {
   where: string;
 }
 
-const NETWORK_LINE = /^Failed to load resource\b/;
+const IGNORED_LINES = [
+  /^Failed to load resource\b/,
+  /^Blocked script execution in '[^']*' because the document's frame is sandboxed and the 'allow-scripts' permission is not set\.$/,
+];
 const allowed = new WeakMap<BrowserContext, Pattern[]>();
 
 /** Lets messages matching any pattern pass for the rest of this test. */
@@ -49,7 +56,7 @@ function locate(message: ConsoleMessage): string {
 export const test = base.extend<{ consoleClean: void }>({
   consoleClean: [async ({ context }, use, testInfo) => {
     const problems: Problem[] = [];
-    const network: string[] = [];
+    const ignored: string[] = [];
     const watched = new WeakSet<Page>();
     const watch = (page: Page) => {
       if (watched.has(page)) return;
@@ -57,7 +64,7 @@ export const test = base.extend<{ consoleClean: void }>({
       page.on('console', (message) => {
         if (message.type() !== 'error') return;
         const text = message.text();
-        if (NETWORK_LINE.test(text)) network.push(`${text} (${locate(message)})`);
+        if (IGNORED_LINES.some((line) => line.test(text))) ignored.push(`${text} (${locate(message)})`);
         else problems.push({ kind: 'console.error', text, where: locate(message) });
       });
       page.on('pageerror', (error) => {
@@ -70,9 +77,9 @@ export const test = base.extend<{ consoleClean: void }>({
     await use();
 
     context.off('page', watch);
-    if (network.length > 0) {
-      await testInfo.attach('console-network', {
-        body: `${network.length} network line(s), not counted as failures:\n${network.join('\n')}\n`,
+    if (ignored.length > 0) {
+      await testInfo.attach('console-ignored', {
+        body: `${ignored.length} line(s) from the network or a sandboxed frame, not counted as failures:\n${ignored.join('\n')}\n`,
         contentType: 'text/plain',
       });
     }
