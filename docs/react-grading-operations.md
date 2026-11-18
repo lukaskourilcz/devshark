@@ -144,7 +144,8 @@ with its hidden suite, both compiled fixtures and a 48-character nonce.
    no application code, environment files, submissions or credentials.
 3. Configure `REACT_RUNNER_SNAPSHOT_ID` for Production and Preview. Build creates
    the guest and CommonJS SDK bundles and checks packaging with require(ESM) off.
-4. Run `npm run test:react-isolation` with that snapshot. Verify a preview Submit
+4. Run `npm run test:react-isolation` with that snapshot; without it the suite
+   runs its local guest part and prints SKIP for the VM part. Verify a preview Submit
    before production promotion. Runtime dependency changes require a fresh
    snapshot; code-only changes are uploaded with each run and use the current one.
    Retain the previous snapshot for rollback. No billing/plan settings change.
@@ -161,8 +162,14 @@ DOM getters/symbols, React internals/exports, imports, intrinsics and synchronou
 or asynchronous assertions. It also verifies detached async rejection reporting.
 It runs in CI. `npm run test:launch` starts the actual guest bundle with production
 flags, checks deletion/nonce/count/serialization, resource exhaustion, UTC in
-multiple process zones and representative suites. These local checks do not
-replace the real microVM integration check.
+multiple process zones and representative suites. `npm run test:react-isolation`
+builds the guest and starts it the same way, with a local HTTP server standing in
+for the network: learner code reaches no `XMLHttpRequest`, `WebSocket`,
+`EventSource`, worker, `navigator`, `require`, `process` or `WebAssembly`, bare or
+on `window`; its `fetch` refuses without a fixture; and markup that names an image,
+stylesheet, script, frame, media or object loads nothing and runs no inline script
+or handler. Its VM part runs only with `REACT_RUNNER_SNAPSHOT_ID` set. These local
+checks do not replace the real microVM integration check.
 
 `.github/workflows/grading-monitor.yml` checks signed-out production reference and
 wrong submissions for `react-counter` and `js-double-numbers` every six hours and
