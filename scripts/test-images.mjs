@@ -308,6 +308,25 @@ test('internal SVG use and accessible-name references must resolve', (t) => {
   refused(data.run(), /broken\.svg[^\n]*#missing/);
 });
 
+test('an SVG data-id attribute cannot satisfy a use fragment reference', (t) => {
+  const data = fixture(t);
+  put(join(data.assetsDir, 'broken.svg'), SVG.replace('id="dev"', 'data-id="missing"').replace('href="#dev"', 'href="#missing"'));
+  refused(data.run(), /broken\.svg[^\n]*#missing/);
+});
+
+test('an SVG id inside an XML comment cannot satisfy a use fragment reference', (t) => {
+  const data = fixture(t);
+  put(join(data.assetsDir, 'broken.svg'), SVG.replace('href="#dev"', 'href="#missing"').replace('</svg>', '<!-- <path id="missing" d="M0 0h1v1Z"/> --></svg>'));
+  refused(data.run(), /broken\.svg[^\n]*#missing/);
+});
+
+test('SVG fragment ids decode XML numeric entities before matching references', (t) => {
+  const data = fixture(t);
+  put(join(data.assetsDir, 'escaped.svg'), SVG.replace('id="dev"', 'id="foo&#45;bar"').replace('href="#dev"', 'href="#foo-bar"'));
+  const run = data.run();
+  assert.equal(run.status, 0, run.output);
+});
+
 test('an invalid generated manifest fails with its path', (t) => {
   const data = fixture(t);
   put(join(data.distDir, 'manifest.webmanifest'), '{');
