@@ -35,8 +35,17 @@ const missRoutes = fsIndex < 0 ? [] : routes.slice(fsIndex + 1, hitIndex < 0 ? r
 const hitRoutes = hitIndex < 0 ? [] : routes.slice(hitIndex + 1);
 // A Supabase that is not *.supabase.co (a local `supabase start`) has to be
 // allowed in connect-src, or the browser blocks sign-in. CSP_CONNECT_EXTRA
-// lists the extra sources, separated by spaces.
-const extraConnect = (process.env.CSP_CONNECT_EXTRA ?? '').trim();
+// lists the extra sources, separated by spaces. Realtime (the Play rooms)
+// opens a socket on the same host, so each http(s) source also allows the
+// ws(s) source of its host and port.
+const extraSources = [];
+for (const source of (process.env.CSP_CONNECT_EXTRA ?? '').split(/\s+/).filter(Boolean)) {
+  const web = /^(https?):\/\/([^/?#]+)/i.exec(source);
+  for (const one of web ? [source, `${web[1].toLowerCase() === 'https' ? 'wss' : 'ws'}://${web[2]}`] : [source]) {
+    if (!extraSources.includes(one)) extraSources.push(one);
+  }
+}
+const extraConnect = extraSources.join(' ');
 if (extraConnect) {
   for (const route of routes) {
     const csp = route.headers?.['Content-Security-Policy'];
