@@ -237,3 +237,51 @@ test('perf:measure loads the repeat row as a returning visitor who pressed Rejec
   // Accepting would load PostHog and send a lab run's events to it.
   for (const value of ['accepted', '']) assert.throws(() => resolveOptions(parseArgs(['--url=http://127.0.0.1:4211', `--consent=${value}`])), UsageError, value);
 });
+
+test('perf:measure replays only the anonymous API reads on its list', () => {
+  assert.equal(typeof lab.replayableRead, 'function', 'perf:measure decides what --api-origin answers in replayableRead');
+  const read = (path) => lab.replayableRead(new URL(path, 'http://127.0.0.1:4211'));
+  for (const path of [
+    '/api/settings',
+    '/api/quiz/roadmap',
+    '/api/quiz/roadmap?resource=learning-path-catalog',
+    '/api/quiz/roadmap?resource=lesson&id=html-basics-1',
+    '/api/quiz/daily?qotd=2026-11-18',
+    '/api/quiz/questions?resource=curation',
+    '/api/quiz/challenge?resource=leaderboard&categories=html,css',
+    '/api/leaderboard?period=week&subject=webdev',
+  ]) assert.equal(read(path), true, path);
+  // The caller's own rows, a quiz batch, or any read the list does not name
+  // gets the fixture 503.
+  for (const path of [
+    '/api/leaderboard?period=30d&me=1',
+    '/api/quiz/roadmap?resource=progress',
+    '/api/quiz/roadmap?topic=html',
+    '/api/quiz/roadmap?resource=lesson&id=html-basics-1&level=2',
+    '/api/quiz/daily?categories=html',
+    '/api/quiz/questions?count=10',
+    '/api/quiz/challenge?categories=html',
+    '/api/user/stats',
+    '/api/settings?fresh=1',
+    '/api/flashcards?subject=webdev',
+  ]) assert.equal(read(path), false, path);
+});
+
+test('perf:measure takes --api-origin as an https or loopback origin with a bounded delay', () => {
+  const base = ['--url=http://127.0.0.1:4211'];
+  const plain = resolveOptions(parseArgs(base));
+  assert.equal(plain.apiOrigin, null, 'no replay unless asked');
+  const replay = resolveOptions(parseArgs([...base, '--api-origin=https://devshark.app']));
+  assert.equal(replay.apiOrigin, 'https://devshark.app');
+  assert.equal(replay.apiDelayMs, 120, 'the API delay of the #587 walk');
+  assert.equal(resolveOptions(parseArgs([...base, '--api-origin=http://127.0.0.1:3000', '--api-delay-ms=0'])).apiDelayMs, 0);
+  for (const flags of [
+    ['--api-origin=http://devshark.app'],
+    ['--api-origin=https://devshark.app/api'],
+    ['--api-origin=https://user:secret@devshark.app'],
+    ['--api-origin=devshark.app'],
+    ['--api-delay-ms=50'],
+    ['--api-origin=https://devshark.app', '--api-delay-ms=-1'],
+    ['--api-origin=https://devshark.app', '--api-delay-ms=10001'],
+  ]) assert.throws(() => resolveOptions(parseArgs([...base, ...flags])), UsageError, flags.join(' '));
+});
