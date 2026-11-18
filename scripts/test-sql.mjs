@@ -26,8 +26,15 @@
 // end with COMMIT, and apply a second time without an error and without
 // changing the catalog or any table's row count. Production applied 002 to 076
 // before these rules, so they keep their shape.
+//
+// Last, it runs Supabase's advisor lints (splinter, pinned in
+// supabase/advisors/splinter.sql) on the database the migrations built and
+// prints the count per lint. Any ERROR fails the suite, and so does any
+// SECURITY warning about the public or devshark_private schema.
+// SQL_ADVISORS_JSON=<file> writes every lint row there as JSON; on GitHub
+// Actions the rows also go into a collapsed group of the job log.
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const url = process.env.DATABASE_URL;
@@ -138,10 +145,11 @@ entries(kind, name, value) AS (
 SELECT kind || E'\\t' || name || E'\\t' || CASE WHEN kind = 'rows' THEN value ELSE md5(coalesce(value, '')) END
   FROM entries ORDER BY 1;`;
 
-function psql(args) {
+function psql(args, input) {
   return spawnSync('psql', [url, '-X', '-q', '-v', 'ON_ERROR_STOP=1', ...args], {
     encoding: 'utf8',
     env: { ...process.env, PGOPTIONS: '--client-min-messages=warning -c plpgsql.check_asserts=on' },
+    input,
     maxBuffer: 64 * 1024 * 1024,
   });
 }
@@ -351,8 +359,39 @@ function indent(text) {
 }
 
 const summary = `${tests.length} SQL test files · ${tests.length - failed - expected} passed · ${expected} known failures · ${failed} failed`;
-if (failed) {
-  console.error(summary);
-  process.exit(1);
+if (failed) console.error(summary);
+else console.log(summary);
+
+// 5. The advisor lints, after the tests so the index statistics include them.
+const advisorsPath = join(schemaDir, 'advisors', 'splinter.sql');
+const advisorSchemas = new Set(['public', 'devshark_private']);
+const lintStatements = splitStatements(readFileSync(advisorsPath, 'utf8'));
+const lintQuery = lintStatements.pop();
+const lintScript = [
+  'BEGIN',
+  ...lintStatements,
+  `SELECT coalesce(pg_catalog.jsonb_agg(pg_catalog.to_jsonb(lint)), '[]'::pg_catalog.jsonb) FROM (${lintQuery}) lint`,
+  'ROLLBACK',
+].join(';\n');
+const lints = JSON.parse(must(psql(['-A', '-t', '-f', '-'], `${lintScript};\n`), `Running supabase/advisors/splinter.sql`).trim());
+const blocking = lints.filter((lint) => lint.level === 'ERROR'
+  || (lint.level === 'WARN' && lint.categories.includes('SECURITY') && advisorSchemas.has(lint.metadata?.schema)));
+const counts = new Map();
+for (const lint of lints) {
+  const key = `${lint.level}\t${lint.categories.join('/')}\t${lint.name}`;
+  counts.set(key, (counts.get(key) ?? 0) + 1);
 }
-console.log(summary);
+const levelOrder = { ERROR: 0, WARN: 1, INFO: 2 };
+const rows = [...counts].map(([key, count]) => [...key.split('\t'), count])
+  .sort((a, b) => (levelOrder[a[0]] ?? 3) - (levelOrder[b[0]] ?? 3) || a[1].localeCompare(b[1]) || a[2].localeCompare(b[2]));
+console.log('Advisor lints (supabase/advisors/splinter.sql) on this database:');
+for (const [level, categories, name, count] of rows) console.log(`  ${level.padEnd(5)} ${categories.padEnd(22)} ${name.padEnd(52)} ${String(count).padStart(4)}`);
+if (process.env.SQL_ADVISORS_JSON) writeFileSync(process.env.SQL_ADVISORS_JSON, `${JSON.stringify(lints, null, 2)}\n`);
+if (process.env.GITHUB_ACTIONS === 'true') console.log(`::group::Advisor lint rows (JSON)\n${JSON.stringify(lints, null, 2)}\n::endgroup::`);
+const lintSummary = `${lints.length} advisor lints · ${blocking.length} blocking (ERROR, or a SECURITY warning on ${[...advisorSchemas].join(' or ')})`;
+if (blocking.length) {
+  console.error(lintSummary);
+  for (const lint of blocking) console.error(`  ${lint.level} ${lint.name}: ${lint.detail}`);
+} else console.log(lintSummary);
+
+if (failed || blocking.length) process.exit(1);
