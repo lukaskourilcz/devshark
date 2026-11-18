@@ -89,6 +89,38 @@ export function navigationTimings(n) {
  return { ttfb: n.responseStart, serverWait: n.responseStart - n.requestStart, redirect: n.redirectEnd - n.redirectStart, dns: n.domainLookupEnd - n.domainLookupStart, connect: n.connectEnd - n.connectStart, tls: n.secureConnectionStart ? n.connectEnd - n.secureConnectionStart : 0, download: n.responseEnd - n.responseStart, domContentLoaded: n.domContentLoadedEventEnd, load: n.loadEventEnd };
 }
 
+// INP of one sample from raw EventTiming entries. The entries of one press
+// (pointerdown, pointerup, click) share an interactionId, and an interaction
+// lasts as long as its longest entry. As in web-vitals, INP is the longest
+// interaction after skipping one per 50, and its parts come from the first
+// longest entry and the entries painted in the same frame (ends within 8 ms),
+// so a click handler that ran beside the pointerdown counts as processing. A
+// press faster than the observer's 16 ms threshold leaves no entry: it reads
+// '<16' when the browser registered it (pressed), and null otherwise.
+export function summarizeInteractions(entries, { pressed }) {
+ const byInteraction = new Map();
+ for (const entry of entries) {
+  if (!entry.interactionId) continue;
+  if (!byInteraction.has(entry.interactionId)) byInteraction.set(entry.interactionId, []);
+  byInteraction.get(entry.interactionId).push(entry);
+ }
+ const interactions = [...byInteraction.values()]
+  .map(group => ({ group, longest: group.reduce((a, b) => (b.duration > a.duration ? b : a)) }))
+  .sort((a, b) => b.longest.duration - a.longest.duration);
+ if (!interactions.length) return { inpMs: pressed ? '<16' : null, interactionCount: 0, inpParts: null };
+ const { group, longest } = interactions[Math.min(interactions.length - 1, Math.floor(interactions.length / 50))];
+ const paint = longest.startTime + longest.duration;
+ const frame = group.filter(entry => Math.abs(entry.startTime + entry.duration - paint) <= 8);
+ const processingEnd = Math.max(...frame.map(entry => entry.processingEnd));
+ return {
+  inpMs: longest.duration,
+  interactionCount: interactions.length,
+  inpParts: { event: frame.map(entry => entry.name).join(','), inputDelay: longest.processingStart - longest.startTime, processing: processingEnd - longest.processingStart, presentation: Math.max(0, paint - processingEnd) },
+ };
+}
+
+const formatInp = inpMs => typeof inpMs === 'number' ? Math.round(inpMs) : inpMs ?? 'none';
+
 // A failure every later load would repeat; it ends the run instead of one row.
 class FatalLabError extends Error {}
 
@@ -101,7 +133,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
  if (fixture) fixture.billing = { ...fixture.billing, enabled: false, launchOffer: false };
  let browser, chrome;
  const results = [];
- const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', ttfbDefinition: 'responseStart (web-vitals)', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; EventTiming is lab interaction latency, NOT field INP' }, results }, null, 2) + '\n');
+ const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', ttfbDefinition: 'responseStart (web-vitals)', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, results }, null, 2) + '\n');
  try {
   for (const profile of profiles) for (const path of routes) for (let sample = 0; sample < samples; sample++) {
    // A browser that cannot start fails every sample the same way: let it end the run.
@@ -138,10 +170,21 @@ export async function main({ origin, routes, samples, profiles, output, access: 
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: profile === 'mobile' ? 4 : 1 });
     await page.addInitScript(() => {
      localStorage.setItem('devquiz:color-mode', 'light');
-     window.__lab = { lcp: 0, cls: 0, interactions: [] };
+     window.__lab = { lcp: 0, cls: 0, events: [], firstInput: null };
      new PerformanceObserver(l => { for (const e of l.getEntries()) window.__lab.lcp = e.startTime; }).observe({ type: 'largest-contentful-paint', buffered: true });
      new PerformanceObserver(l => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__lab.cls += e.value; }).observe({ type: 'layout-shift', buffered: true });
-     new PerformanceObserver(l => { for (const e of l.getEntries()) if (e.interactionId) window.__lab.interactions.push({ name: e.name, duration: e.duration, inputDelay: e.processingStart - e.startTime }); }).observe({ type: 'event', durationThreshold: 16, buffered: true });
+     // Raw entries; summarizeInteractions() turns them into INP in Node.
+     const record = list => { for (const e of list) if (e.interactionId) window.__lab.events.push({ name: e.name, interactionId: e.interactionId, startTime: e.startTime, processingStart: e.processingStart, processingEnd: e.processingEnd, duration: e.duration }); };
+     const events = new PerformanceObserver(l => record(l.getEntries()));
+     events.observe({ type: 'event', durationThreshold: 16, buffered: true });
+     // The browser reports the first input of a page at any duration, so it
+     // tells a press under 16 ms apart from a press that never registered.
+     const recordFirst = list => { for (const e of list) window.__lab.firstInput ??= { name: e.name, duration: e.duration }; };
+     const first = new PerformanceObserver(l => recordFirst(l.getEntries()));
+     first.observe({ type: 'first-input', buffered: true });
+     // An entry exists once the frame after the press is presented: wait two
+     // frames, then take the entries the observer has not delivered yet.
+     window.__lab.flushEvents = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => { record(events.takeRecords()); recordFirst(first.takeRecords()); resolve({ events: window.__lab.events, firstInput: window.__lab.firstInput }); }, 0))));
     });
     for (cache of ['cold-browser', 'repeat-browser']) {
      let diskHits = 0;
@@ -153,7 +196,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      const measurement = await page.evaluate(() => {
       const n = performance.getEntriesByType('navigation')[0].toJSON();
       const resources = performance.getEntriesByType('resource').map(r => ({ path: new URL(r.name).pathname, kind: r.initiatorType, start: r.startTime, duration: r.duration, ttfb: r.responseStart - r.requestStart, download: r.responseEnd - r.responseStart, transfer: r.transferSize, encoded: r.encodedBodySize, decoded: r.decodedBodySize, serverTiming: r.serverTiming.map(t => ({ name: t.name, duration: t.duration })) }));
-      return { navigation: n, ...window.__lab, resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
+      return { navigation: n, lcp: window.__lab.lcp, cls: window.__lab.cls, resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
      });
      measurement.navigation = navigationTimings(measurement.navigation);
      // Local-only appearance/menu changes; no quiz/start/submit or sign-in action.
@@ -163,17 +206,24 @@ export async function main({ origin, routes, samples, profiles, output, access: 
       if (await button.count()) { pressed = { name, button }; break; }
      }
      measurement.interaction = { control: pressed?.name ?? INTERACTION_CONTROLS[profile].join(' or '), matched: Boolean(pressed) };
+     let clicked = false;
      if (pressed) {
-      try { await pressed.button.click({ timeout: 10000 }); } catch (error) { measurement.interaction.error = firstLine(error); }
+      try { await pressed.button.click({ timeout: 10000 }); clicked = true; } catch (error) { measurement.interaction.error = firstLine(error); }
       await page.waitForTimeout(250);
-      measurement.interactions = await page.evaluate(() => window.__lab.interactions);
-      await page.keyboard.press('Escape');
      } else console.warn(`perf:measure: no "${measurement.interaction.control}" button on ${profile} ${path}; this row measures no interaction`);
+     const { events, firstInput } = await page.evaluate(() => window.__lab.flushEvents());
+     if (clicked) {
+      measurement.interaction.registered = Boolean(firstInput);
+      if (firstInput) measurement.interaction.firstInput = { event: firstInput.name, ms: firstInput.duration };
+      if (!firstInput) console.warn(`perf:measure: the browser registered no input for the "${pressed.name}" press on ${profile} ${path}; this row has no INP`);
+     }
+     Object.assign(measurement, summarizeInteractions(events, { pressed: clicked && Boolean(firstInput) }));
+     if (pressed) await page.keyboard.press('Escape');
      cdp.off('Network.responseReceived', listener);
      const row = { profile, path, sample, cache, elapsed: Date.now() - started, diskHits, blockedWrites, ...measurement };
      results.push(row);
      write();
-     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'LCP', Math.round(row.lcp), 'CLS', row.cls.toFixed(3), 'cacheHits', diskHits, 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
+     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'LCP', Math.round(row.lcp), 'CLS', row.cls.toFixed(3), 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
     }
    } catch (error) {
     if (error instanceof FatalLabError) throw error;

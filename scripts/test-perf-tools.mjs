@@ -134,6 +134,18 @@ test('perf:measure turns EventTiming entries into one INP value per sample', () 
     interactionCount: 1,
     inpParts: { event: 'click', inputDelay: 10, processing: 40, presentation: 30 },
   });
+  // Entries painted in one frame tie on duration: the first names the
+  // interaction, and the click handler beside it counts as processing.
+  const oneFrame = [
+    { name: 'pointerdown', interactionId: 3, startTime: 1000, processingStart: 1007, processingEnd: 1014, duration: 224 },
+    { name: 'pointerup', interactionId: 3, startTime: 1002, processingStart: 1014, processingEnd: 1020, duration: 224 },
+    { name: 'click', interactionId: 3, startTime: 1003, processingStart: 1020, processingEnd: 1060, duration: 224 },
+  ];
+  assert.deepEqual(lab.summarizeInteractions(oneFrame, { pressed: true }), {
+    inpMs: 224,
+    interactionCount: 1,
+    inpParts: { event: 'pointerdown,pointerup,click', inputDelay: 7, processing: 53, presentation: 164 },
+  });
   // A press under the 16 ms threshold leaves no entry: fast, and measured.
   assert.deepEqual(lab.summarizeInteractions([], { pressed: true }), { inpMs: '<16', interactionCount: 0, inpParts: null });
   // No press, no value: a row that pressed nothing must not read as fast.
