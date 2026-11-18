@@ -43,7 +43,7 @@ Use with `shark-screen-implementation`, which owns the screen itself. This skill
 - Header rules live in `routes`, before `{ "handle": "filesystem" }`, each with `"continue": true`, `headers`, no `dest` and no `status`. A top-level `headers` property is refused: Vercel appends it after the hit phase, where it reaches existing files only.
 - The `handle` entries are `filesystem` then `hit`, once each. The `hit` phase may only add headers; the year-long `immutable` cache for `/assets/` lives there.
 - The filesystem phase starts with the 404 `no-store` rule for a missing asset. No rewrite may match an `/assets/` or `/sandbox/assets/` path, and the SPA fallback still serves `/`, `/coding` and `/profile`.
-- `scripts/check-security.mjs` reads the app's CSP from the first header route whose `src` starts with `^/(?!`. A new page-wide header rule needs another `src` shape, or it shadows the app's rule in that check.
+- `scripts/check-security.mjs` reads the app's CSP from the one header route whose policy holds `frame-ancestors 'none'`, and fails when no rule or two rules carry it. A new page-wide header rule (COOP, for example) may use any `src` shape as long as it sets no such policy.
 
 A prerender rewrite must sit before the SPA fallback in `vercel.json` `rewrites`: Vercel tries rewrites in order, and the fallback matches almost every path, so a rewrite after it is never reached. The contract checks that order only for `/coding/:track/:taskId` (`taskRewrite`) and the system-design paths. Add an assertion for a new rewrite to `vercelRoutingContracts()` beside `taskRewrite`, or nothing catches a misplaced one.
 

@@ -34,13 +34,24 @@ const beforeFs = routes.slice(0, fsIndex < 0 ? routes.length : fsIndex);
 const missRoutes = fsIndex < 0 ? [] : routes.slice(fsIndex + 1, hitIndex < 0 ? routes.length : hitIndex);
 const hitRoutes = hitIndex < 0 ? [] : routes.slice(hitIndex + 1);
 // A Supabase that is not *.supabase.co (a local `supabase start`) has to be
-// allowed in connect-src, or the browser blocks sign-in. CSP_CONNECT_EXTRA
-// lists the extra sources, separated by spaces.
-const extraConnect = (process.env.CSP_CONNECT_EXTRA ?? '').trim();
+// allowed in the app's connect-src, or the browser blocks sign-in.
+// CSP_CONNECT_EXTRA lists the extra sources, separated by spaces. Realtime
+// (the Play rooms) opens a socket on the same host, so each http(s) source
+// also allows the ws(s) source of its host and port. Only the app policy (the
+// one with frame-ancestors 'none', as scripts/check-security.mjs finds it)
+// gets them: the coding worker keeps the connect-src vercel.json gives it.
+const extraSources = [];
+for (const source of (process.env.CSP_CONNECT_EXTRA ?? '').split(/\s+/).filter(Boolean)) {
+  const web = /^(https?):\/\/([^/?#]+)/i.exec(source);
+  for (const one of web ? [source, `${web[1].toLowerCase() === 'https' ? 'wss' : 'ws'}://${web[2]}`] : [source]) {
+    if (!extraSources.includes(one)) extraSources.push(one);
+  }
+}
+const extraConnect = extraSources.join(' ');
 if (extraConnect) {
   for (const route of routes) {
     const csp = route.headers?.['Content-Security-Policy'];
-    if (csp && /connect-src /.test(csp)) route.headers['Content-Security-Policy'] = csp.replace(/connect-src ([^;]*)/, `connect-src $1 ${extraConnect}`);
+    if (csp && /frame-ancestors 'none'/.test(csp) && /connect-src /.test(csp)) route.headers['Content-Security-Policy'] = csp.replace(/connect-src ([^;]*)/, `connect-src $1 ${extraConnect}`);
   }
 }
 const fill = (template, match) => template.replace(/\$(\d+)/g, (_, n) => match[Number(n)] ?? '');
@@ -51,15 +62,19 @@ const rewrites = (vercel.rewrites ?? []).map(({ source, destination }) => {
   const pattern = source.replace(/:([A-Za-z]+)/g, (_, name) => { names.push(name); return '([^/]+)'; });
   return { regex: new RegExp(`^${pattern}$`), names, destination };
 });
-function rewrite(pathname) {
+// A rewrite is a check route on Vercel: when its destination is no file, the
+// next rewrites see the rewritten path. So a task page the build did not
+// prerender goes from /coding/:track/:taskId/index.html on to the app shell.
+function* rewriteTargets(pathname) {
+  let current = pathname;
   for (const rule of rewrites) {
-    const match = rule.regex.exec(pathname);
+    const match = rule.regex.exec(current);
     if (!match) continue;
     let target = rule.destination;
     rule.names.forEach((name, i) => { target = target.replaceAll(`:${name}`, match[i + 1]); });
-    return target.replace(/\$(\d+)/g, (_, n) => match[Number(n)] ?? '');
+    current = target.replace(/\$(\d+)/g, (_, n) => match[Number(n)] ?? '');
+    yield current;
   }
-  return null;
 }
 
 // ---- the twelve handlers: /api/user/[op] matches /api/user/anything ----
@@ -200,8 +215,15 @@ async function runApi(req, res, url) {
   }
 }
 
+// The header routes match the raw path, so the file must be the one the raw
+// path names. Decoding the whole path first turned an encoded separator into a
+// real one: /assets/coding-worker/..%2f..%2findex.html reached index.html under
+// the worker's headers. Decode segment by segment, and refuse a segment that
+// decodes to a dot segment, a separator or U+0000, as Vercel does with 404.
 function staticFile(pathname) {
-  const file = path.normalize(path.join(STATIC, decodeURIComponent(pathname)));
+  const segments = pathname.split('/').map((segment) => decodeURIComponent(segment));
+  if (segments.some((segment) => segment === '.' || segment === '..' || /[/\\\0]/.test(segment))) return null;
+  const file = path.join(STATIC, ...segments);
   if (!file.startsWith(STATIC + path.sep) && file !== STATIC) return null;
   try { return statSync(file).isFile() ? file : null; } catch { return null; }
 }
@@ -221,10 +243,47 @@ function applyHeaderRoutes(list, pathname, headers) {
   }
 }
 
+// Vercel refuses a path whose percent escapes do not decode before any route
+// runs (400 Bad Request). Checking once here keeps every later
+// decodeURIComponent (staticFile, an API path parameter) from throwing, which
+// answered 500 and logged an error line per request.
+function decodable(pathname) {
+  try { decodeURIComponent(pathname); return true; } catch { return false; }
+}
+
+// upgrade-insecure-requests sends every same-origin subresource to https.
+// Vercel always answers over HTTPS, but this image is also reached over plain
+// HTTP at a LAN address, where the browser (which exempts only loopback) then
+// loads none of the scripts. Keep the token only for a request that came over
+// TLS or through a proxy that says it did.
+const UPGRADE = 'upgrade-insecure-requests';
+function overHttps(req) {
+  if (req.socket.encrypted) return true;
+  return String(req.headers['x-forwarded-proto'] ?? '').split(',')[0].trim().toLowerCase() === 'https';
+}
+function withoutUpgrade(policy) {
+  if (typeof policy !== 'string' || !policy.toLowerCase().includes(UPGRADE)) return policy;
+  return policy.split(';').map((directive) => directive.trim()).filter((directive) => directive && directive.toLowerCase() !== UPGRADE).join('; ');
+}
+function dropUpgradeToken(res) {
+  const setHeader = res.setHeader.bind(res);
+  res.setHeader = (name, value) => setHeader(name, String(name).toLowerCase() === 'content-security-policy' ? withoutUpgrade(value) : value);
+}
+
 async function handle(req, res) {
   const url = new URL(req.url ?? '/', 'http://localhost');
   const pathname = url.pathname;
   const headers = {};
+  if (!overHttps(req)) dropUpgradeToken(res);
+
+  if (!decodable(pathname)) {
+    applyHeaderRoutes(beforeFs, pathname, headers);
+    for (const [name, value] of Object.entries(headers)) res.setHeader(name, value);
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.end('400 Bad Request');
+    return;
+  }
 
   for (const route of beforeFs) {
     if (!route.src) continue;
@@ -240,6 +299,15 @@ async function handle(req, res) {
     if (route.dest) {
       const file = staticFile(fill(route.dest, match));
       if (file) { sendFile(res, file, route.status ?? 200, { ...headers, ...route.headers }); return; }
+      continue;
+    }
+    // A bare status ends the request before the filesystem check, as on
+    // Vercel: the 404 that blocks a path even where a file sits under it.
+    if (route.status) {
+      res.statusCode = route.status;
+      for (const [name, value] of Object.entries({ ...headers, ...route.headers })) res.setHeader(name, fill(value, match));
+      res.end();
+      return;
     }
   }
 
@@ -265,19 +333,27 @@ async function handle(req, res) {
     }
   }
 
-  const target = rewrite(pathname);
-  if (target && /^https?:\/\//.test(target)) {
-    // The PostHog ingest proxy is not part of the image; analytics stay off.
-    res.statusCode = 404;
-    res.end();
-    return;
+  for (const target of rewriteTargets(pathname)) {
+    if (/^https?:\/\//.test(target)) {
+      // The PostHog ingest proxy is not part of the image; analytics stay off.
+      res.statusCode = 404;
+      res.end();
+      return;
+    }
+    const file = staticFile(target);
+    if (file) {
+      applyHeaderRoutes(hitRoutes, target, headers);
+      sendFile(res, file, 200, headers);
+      return;
+    }
   }
-  const file = target ? staticFile(target) : null;
-  if (file) { sendFile(res, file, 200, headers); return; }
-  const notFound = staticFile('/index.html');
-  if (notFound) { sendFile(res, notFound, 404, headers); return; }
+  // Nothing serves the path: Vercel's own plain-text 404 with the headers the
+  // routes before the filesystem check gave it. Answering with index.html ran
+  // the app under the sandbox policy at /sandbox/<missing>.
+  for (const [name, value] of Object.entries(headers)) res.setHeader(name, value);
   res.statusCode = 404;
-  res.end();
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.end('The page could not be found\n\nNOT_FOUND\n');
 }
 
 if (!existsSync(STATIC)) {
