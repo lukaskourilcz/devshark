@@ -132,3 +132,19 @@ test('the image guard detects missing metadata and oversized legacy rasters', as
     '[missing alt]: raster exceeds 1.5x displayed device pixels',
   ]));
 });
+
+test('the image guard checks resource pixels before srcset density correction', async ({ page }) => {
+  await page.setContent('<main><h1>Density fixture</h1></main>');
+  await page.evaluate(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 1000;
+    const image = new Image(10, 10);
+    image.alt = 'Oversized density fixture';
+    image.decoding = 'async';
+    image.srcset = `${canvas.toDataURL('image/png')} 100x`;
+    image.style.width = image.style.height = '10px';
+    document.querySelector('main')!.append(image);
+  });
+  const checked = await imageFindings(page);
+  expect(checked.findings).toContain('Oversized density fixture: raster exceeds 1.5x displayed device pixels');
+});
