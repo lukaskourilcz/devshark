@@ -93,6 +93,32 @@ for (const pagePath of pagePaths) {
     assert(!noindex, `${pagePath} (${kind}): indexable, no robots noindex`);
   }
   assert.equal(listed, kind === 'listed', `${pagePath} (${kind}): ${kind === 'listed' ? 'in' : 'not in'} the sitemap`);
+  // F15-02: the title, description and image a crawler reads are the ones
+  // every link preview reads, each tag written once.
+  const one = (selector) => {
+    const nodes = doc.querySelectorAll(selector);
+    assert.equal(nodes.length, 1, `${pagePath}: exactly one ${selector}`);
+    return nodes[0].getAttribute('content') ?? '';
+  };
+  assert.equal(doc.querySelectorAll('title').length, 1, `${pagePath}: exactly one title`);
+  const title = doc.title;
+  assert.equal(one('meta[property="og:title"]'), title, `${pagePath}: og:title is the title`);
+  assert.equal(one('meta[name="twitter:title"]'), title, `${pagePath}: twitter:title is the title`);
+  if (pagePath !== '/') assert(title.endsWith(' · devShark'), `${pagePath}: the title "${title}" ends with " · devShark"`);
+  const description = one('meta[name="description"]');
+  assert(description.trim(), `${pagePath}: a description`);
+  assert.equal(one('meta[property="og:description"]'), description, `${pagePath}: og:description is the description`);
+  assert.equal(one('meta[name="twitter:description"]'), description, `${pagePath}: twitter:description is the description`);
+  // Link previews on LinkedIn, Slack and iMessage need an absolute image URL.
+  const image = one('meta[property="og:image"]');
+  assert.match(image, /^https:\/\/devshark\.app\//, `${pagePath}: og:image is absolute under https://devshark.app/`);
+  assert.equal(one('meta[name="twitter:image"]'), image, `${pagePath}: twitter:image is og:image`);
+  assert(one('meta[property="og:image:alt"]').trim(), `${pagePath}: og:image:alt is not empty`);
+  assert.equal(one('meta[name="twitter:card"]'), 'summary_large_image', `${pagePath}: twitter:card summary_large_image`);
+  assert.equal(doc.documentElement.getAttribute('lang'), 'en', `${pagePath}: html lang en`);
+  assert.equal(doc.querySelectorAll('link[hreflang]').length, 0, `${pagePath}: English only, no hreflang`);
+  // The h1 a visitor without JavaScript sees, in the body or its noscript.
+  assert.equal(doc.querySelectorAll('h1').length, 1, `${pagePath}: one static h1`);
   classCounts[kind]++;
 }
 for (const [alias, target] of Object.entries(ALIASES)) {
@@ -105,17 +131,10 @@ const price = (plan) => tiers.match(new RegExp(`${plan}: '([0-9.]+)'`))?.[1];
 for (const url of urls) {
   const file = path.join(dir, url.pathname, 'index.html');
   const doc = new JSDOM(readFileSync(file, 'utf8')).window.document;
-  // Link previews on LinkedIn, Slack and iMessage need an absolute image URL.
-  for (const selector of ['meta[property="og:image"]', 'meta[name="twitter:image"]']) {
-    assert.match(doc.querySelector(selector)?.getAttribute('content') ?? '', /^https:\/\/devshark\.app\//, `${url}: ${selector} is absolute`);
-  }
   if (url.pathname === '/') continue;
-  assert.equal(doc.querySelectorAll('h1').length, 1, `${url}: one static h1`);
   // Checked as section pages below.
   if (SITEMAP_CODING_PAGES.includes(url.pathname)) continue;
   if (APP_PAGES.includes(url.pathname)) {
-    assert.equal(doc.documentElement.lang, 'en');
-    assert.equal(doc.querySelectorAll('link[hreflang]').length, 0, `${url}: English only`);
     const text = doc.querySelector('#root').textContent;
     if (LEARN_SECTION_PAGES.includes(url.pathname)) {
       assert(!doc.querySelector('#public-schema'), `${url}: preview makes no certification or paid-course schema claim`);
@@ -145,10 +164,7 @@ for (const url of urls) {
     }
     continue;
   }
-  assert.equal(doc.documentElement.lang, 'en');
   assert.equal(doc.querySelectorAll('details').length, 3, 'Practice is present without JS');
-  assert.equal(doc.querySelectorAll('link[hreflang]').length, 0);
-  for (const alternate of doc.querySelectorAll('link[hreflang]')) assert(existsSync(path.join(dir, new URL(alternate.href).pathname, 'index.html')));
   const schema = JSON.parse(doc.querySelector('#public-schema').textContent);
   assert.equal(schema['@type'], 'LearningResource'); assert.equal(schema.url, url.href); assert.equal(schema.inLanguage, 'en');
   // A guide is free to read without an account; Premium is not a guide.
@@ -178,7 +194,6 @@ const SECTION_PAGES = ['/coding', '/coding/review', ...CODING_TRACK_PAGES];
 for (const pagePath of SECTION_PAGES) {
   const doc = new JSDOM(readFileSync(path.join(dir, pagePath, 'index.html'), 'utf8')).window.document;
   assert.notEqual(doc.title, home.title, `${pagePath}: its own title`);
-  assert.equal(doc.querySelector('meta[property="og:title"]').getAttribute('content'), doc.title, `${pagePath}: og:title is the title`);
   assert.notEqual(doc.querySelector('meta[name="description"]').getAttribute('content'), homeDescription, `${pagePath}: its own description`);
 }
 const rewrites = JSON.parse(readFileSync('vercel.json', 'utf8')).rewrites;
