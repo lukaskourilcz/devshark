@@ -1,6 +1,7 @@
 // The learner's open challenge run, as a Today card: a planned run with the
 // moment it was planned for and a Start button, or an active run with how far
 // it has got and a link to the next challenge. Renders nothing without a run.
+import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -26,6 +27,10 @@ export function ChallengeRunSection() {
   const advance = useAdvanceSession();
   const session = query.data?.session ?? null;
   const due = usePracticeRunDue(session?.status === 'scheduled' ? session.scheduledFor : null);
+  // One start at a time: the button turns busy only once advance.isPending
+  // reaches React, a task after the press, and a second press in that gap sent
+  // a second status change. Declared before the early returns below.
+  const starting = useRef(false);
   if (!session) return null;
   const scheduled = session.status === 'scheduled';
   const current = scheduled ? null : currentRunTask(session);
@@ -48,9 +53,14 @@ export function ChallengeRunSection() {
       </span>
     </>
   );
-  const begin = () => advance.mutate({ sessionId: session.sessionId, status: 'active' }, {
-    onSuccess: (data) => { const first = data.session ? currentRunTask(data.session) : null; navigate(first ? taskHref(first) : '/coding'); },
-  });
+  const begin = () => {
+    if (starting.current) return;
+    starting.current = true;
+    advance.mutate({ sessionId: session.sessionId, status: 'active' }, {
+      onSuccess: (data) => { const first = data.session ? currentRunTask(data.session) : null; navigate(first ? taskHref(first) : '/coding'); },
+      onSettled: () => { starting.current = false; },
+    });
+  };
 
   return (
     <section className="today-section" aria-label={t('today.runSection')}>
