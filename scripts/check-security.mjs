@@ -67,10 +67,34 @@ for (const directive of new Set([...appPolicy.keys(), ...Object.keys(APP_POLICY)
   else if (listed.length !== expected.length) policyDrift.push(`${directive}: vercel.json repeats a source`);
 }
 assert.deepEqual(policyDrift, [], `The app policy in vercel.json differs from APP_POLICY in scripts/check-security.mjs:\n  ${policyDrift.join('\n  ')}`);
-const scripts = appPolicy.get('script-src').join(' ');
-assert(!scripts.includes("'unsafe-inline'") && !scripts.includes("'unsafe-eval'"), 'App scripts must not allow inline execution or eval');
-const connections = appPolicy.get('connect-src');
-assert(!connections.some(source => source === '*' || source === 'https:' || source === 'https://*.sentry.io'), 'connect-src must name hosts, not open every origin');
+
+// Rules that hold whatever the table says, so a commit cannot loosen the
+// policy by editing vercel.json and APP_POLICY together.
+// - A bare scheme (https:, http:, wss:), * or scheme://* lets every host of
+//   that scheme in. data: and blob: name content the page made itself.
+//   img-src https: is the one such source left: F10-13 replaces it with the
+//   named image hosts and deletes its exception here.
+// - No 'unsafe-eval' or other unsafe keyword; 'unsafe-inline' only in
+//   style-src, never for scripts.
+// - No PostHog host: analytics reach PostHog through the same-origin /ingest
+//   proxy (vercel.json rewrites, client/src/lib/analytics.ts).
+const OPEN_SOURCE_EXCEPTIONS = new Set(['img-src https:']);
+const opensEveryHost = source => source === '*'
+  || (/^[a-z][a-z0-9+.-]*:$/i.test(source) && !['data:', 'blob:'].includes(source.toLowerCase()))
+  || /^[a-z][a-z0-9+.-]*:\/\/\*(?:[:/]|$)/i.test(source);
+const ruleBreaks = [];
+for (const [directive, sources] of appPolicy) {
+  for (const source of sources) {
+    if (opensEveryHost(source) && !OPEN_SOURCE_EXCEPTIONS.has(`${directive} ${source}`)) ruleBreaks.push(`${directive} holds ${source}, which lets every host in; name the hosts`);
+    if (/unsafe/i.test(source) && !(directive === 'style-src' && source === "'unsafe-inline'")) ruleBreaks.push(`${directive} holds ${source}; only style-src may hold an unsafe keyword, and only 'unsafe-inline'`);
+  }
+}
+for (const route of headerRoutes) {
+  for (const [directive, sources] of parsePolicy(header(route, 'Content-Security-Policy') ?? '')) {
+    for (const source of sources.filter(one => /posthog/i.test(one))) ruleBreaks.push(`${route.src}: ${directive} names ${source}; PostHog goes through the same-origin /ingest proxy`);
+  }
+}
+assert.deepEqual(ruleBreaks, [], `A policy in vercel.json breaks a rule in scripts/check-security.mjs:\n  ${ruleBreaks.join('\n  ')}`);
 assert.equal(header(app, 'X-Content-Type-Options'), 'nosniff');
 assert.equal(header(app, 'X-Frame-Options'), 'DENY');
 assert.match(header(app, 'Strict-Transport-Security'), /max-age=63072000/);
