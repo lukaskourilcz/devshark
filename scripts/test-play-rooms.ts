@@ -16,7 +16,10 @@
  * - the Play switch in the app settings turns every action off;
  * - a room names each player itself: the Google name, else the sharkname,
  *   else "Player" and a number, never the part of the address before the @
- *   an older client sent for an account without a Google name.
+ *   an older client sent for an account without a Google name;
+ * - malformed input (an unknown action, a list where a code belongs, a
+ *   fractional or out-of-range index, a topic named `constructor`) answers
+ *   400 or 404 before any room is read or written.
  *
  * Nothing leaves the machine. */
 
@@ -38,6 +41,8 @@ const USERS = {
   // Host the rooms of the later checks: one account may open five rooms a minute.
   three: { id: '5d0c6a52-3f7e-4b8e-9c1a-0a1b2c3d4e04', token: 'play-contract-three', email: 'edsger.dijkstra@example.com', identities: [emailIdentity('edsger.dijkstra@example.com')] },
   four: { id: '5d0c6a52-3f7e-4b8e-9c1a-0a1b2c3d4e05', token: 'play-contract-four', email: 'barbara.liskov@example.com', identities: [emailIdentity('barbara.liskov@example.com')] },
+  // Sends the malformed requests, so they spend no other account's budget.
+  five: { id: '5d0c6a52-3f7e-4b8e-9c1a-0a1b2c3d4e06', token: 'play-contract-five', email: 'frances.allen@example.com', identities: [emailIdentity('frances.allen@example.com')] },
 } as const;
 type Who = keyof typeof USERS;
 
@@ -62,6 +67,8 @@ const faults: Array<{ method: string; path: string; status: number; body: Row | 
 const DB_DOWN = { code: 'XX000', details: null, hint: null, message: 'the database could not answer' };
 /** The arguments of every match_scoreboard call, in order. */
 const scoreboardCalls: Row[] = [];
+/** Every PostgREST request, as "METHOD /rest/v1/path", in order. */
+const restCalls: string[] = [];
 
 const readBody = (req: IncomingMessage) => new Promise<string>((resolve) => {
   let text = '';
@@ -157,6 +164,7 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     return;
   }
 
+  if (url.pathname.startsWith('/rest/v1/')) restCalls.push(`${req.method} ${url.pathname}`);
   const fault = faults.findIndex((one) => one.method === req.method && one.path === url.pathname);
   if (fault >= 0) {
     const [one] = faults.splice(fault, 1);
@@ -737,6 +745,43 @@ async function main() {
       assert.equal(closed.statusCode, 409, 'a heartbeat cannot update a room already finished');
       assert.equal(closed.body.error.code, 'bad_state');
       assert.equal(row.last_heartbeat_at, finishedAt);
+    }
+    // Input classes every action already refuses (#638): each answers 400 or
+    // 404 with the generic error body, and no room, seat, answer or routine
+    // is read or written for it.
+    {
+      const malformed: [string, 'GET' | 'POST', string, Row, number, string][] = [
+        ['an unknown action', 'GET', 'no-such-action', {}, 404, 'unknown_action'],
+        ['constructor as the action', 'GET', 'constructor', {}, 404, 'unknown_action'],
+        ['__proto__ as the action', 'POST', '__proto__', {}, 404, 'unknown_action'],
+        ['a topic list that is a string', 'POST', 'create', { mode: 'multiplayer', count: 5, categories: 'javascript' }, 400, 'bad_request'],
+        ['a topic list with a number in it', 'POST', 'create', { mode: 'multiplayer', count: 5, categories: ['javascript', 7] }, 400, 'bad_request'],
+        ['constructor as a topic', 'POST', 'create', { mode: 'multiplayer', count: 5, categories: ['constructor'] }, 400, 'invalid_subject_scope'],
+        ['__proto__ as a topic', 'POST', 'create', { mode: 'multiplayer', count: 5, categories: ['__proto__'] }, 400, 'invalid_subject_scope'],
+        ['a join code that is a list', 'POST', 'join', { code: ['ABC123'] }, 400, 'bad_request'],
+        ['a join code longer than any code', 'POST', 'join', { code: 'A'.repeat(17) }, 400, 'bad_request'],
+        ['a state code repeated in the query', 'GET', 'state', { code: ['ABC123', 'DEF456'] }, 400, 'bad_request'],
+        ['constructor as a control action', 'POST', 'control', { code: 'ABC123', action: 'constructor' }, 400, 'bad_request'],
+        ['a control code that is a list', 'POST', 'control', { code: ['ABC123'], action: 'start' }, 400, 'bad_request'],
+        ['a fractional question index', 'POST', 'answer', { code: 'ABC123', question_idx: 1.5, selected_idx: 0 }, 400, 'bad_request'],
+        ['a question index sent as text', 'POST', 'answer', { code: 'ABC123', question_idx: '1', selected_idx: 0 }, 400, 'bad_request'],
+        ['an option index past every option', 'POST', 'answer', { code: 'ABC123', question_idx: 0, selected_idx: 26 }, 400, 'bad_request'],
+        ['a fractional option index', 'POST', 'answer', { code: 'ABC123', question_idx: 0, selected_idx: 0.5 }, 400, 'bad_request'],
+        ['a distribution index that is no number', 'GET', 'distribution', { code: 'ABC123', q: 'NaN' }, 400, 'bad_request'],
+        ['a negative distribution index', 'GET', 'distribution', { code: 'ABC123', q: '-1' }, 400, 'bad_request'],
+        ['a distribution code repeated in the query', 'GET', 'distribution', { code: ['ABC123', 'DEF456'], q: '0' }, 400, 'bad_request'],
+        ['a heartbeat code that is a list', 'POST', 'heartbeat', { code: ['ABC123'] }, 400, 'bad_request'],
+      ];
+      for (const [label, method, action, input, status, code] of malformed) {
+        restCalls.length = 0;
+        const refused = await call('five', method, action, input);
+        assert.equal(refused.statusCode, status, `${label} answers ${status} (${JSON.stringify(refused.body)})`);
+        assert.equal(refused.body?.error?.code, code, `${label} answers ${code}`);
+        assert.equal(typeof refused.body.error.message, 'string', `${label} carries a message`);
+        assert.deepEqual(Object.keys(refused.body.error).filter((key) => !['code', 'message', 'requestId'].includes(key)), [], `${label} answers the generic error body`);
+        const touched = restCalls.filter((one) => /\/rest\/v1\/(matches|match_participants|match_answers|rpc\/)/.test(one));
+        assert.deepEqual(touched, [], `${label} reads and writes no room`);
+      }
     }
   } finally {
     server.close();

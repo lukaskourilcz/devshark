@@ -206,8 +206,8 @@ import { techniqueGroup, CODING_FOUNDATION_LEVELS, CODING_SECTION_TRACKS, hasLea
 import { CODING_SUMMARIES } from '../lib/coding/active';
 import { serverContentIndex } from '../lib/access';
 import { loadReviewStates, recordConceptReviews } from '../lib/concept-review';
-import { isRpcMissing, jsonPremiumRequired, PremiumRequiredError, requestMemo, requireAuthSub, verifiedCallerId, withRequestContext } from '../lib/http';
-import { handleLeaderboardVisibility, limitUserWrite } from '../api/user/[op]';
+import { isRpcMissing, jsonPremiumRequired, MAX_QUERY_STRING, PremiumRequiredError, queryInt, queryString, requestMemo, requireAuthSub, UNSTORABLE_TEXT_MESSAGE, unstorableText, verifiedCallerId, withRequestContext } from '../lib/http';
+import userHandler, { handleLeaderboardVisibility, limitUserWrite } from '../api/user/[op]';
 import { handleFriends, handleIdentity } from '../lib/friends-handlers';
 import { isValidHandle } from '../shared/handles';
 import { accountExists, handleAdminEntitlements, handleEntitlement, parseValidUntil, toEntitlementResponse } from '../lib/entitlements';
@@ -3764,6 +3764,378 @@ async function practiceRunTransitionContracts() {
   assert.equal(replaced.res.statusCode, 409, 'a start response cannot direct the learner back to a replaced run');
 }
 
+/* ── text Postgres cannot store (#638) ─────────────────────────────────────
+ *
+ * Postgres text and JSONB refuse U+0000 (22P05) and a lone UTF-16
+ * surrogate (22P02), each failing the whole write. `unstorableText` finds
+ * either in a request value, keys included, at any depth up to its bound,
+ * and counts a container nested past the bound as unstorable. */
+function unstorableTextContracts() {
+  // JSON carries a lone surrogate, and JSON.stringify sends it to Postgres
+  // as the escape it refuses.
+  assert.equal(JSON.parse('"x\\ud800y"'), 'x\ud800y');
+  assert.equal(JSON.stringify('x\ud800y'), '"x\\ud800y"');
+  const nest = (levels: number, leaf: unknown): unknown => Array.from({ length: levels }).reduce<unknown>((inner) => ({ inner }), leaf);
+  const cases: [label: string, value: unknown, unstorable: boolean, depth?: number][] = [
+    ['U+0000', 'before\u0000after', true],
+    ['a lone high surrogate', 'x\ud800y', true],
+    ['a lone high surrogate at the end', 'shark \ud83e', true],
+    ['a lone low surrogate', 'x\udc00y', true],
+    ['a lone low surrogate at the start', '\udd88 fin', true],
+    ['two high surrogates before one low', '\ud83e\ud83e\udd88', true],
+    ['an emoji, a valid pair', 'shark \ud83e\udd88', false],
+    ['the escape spelled out as text', 'print("\\u0000")', false],
+    ['plain text', 'useState', false],
+    ['an empty string', '', false],
+    ['a number, a boolean and null', [7, true, null], false],
+    ['U+0000 nested in an array in an object', { options: ['a', ['b', 'c\u0000']] }, true],
+    ['a lone surrogate nested in objects', { a: { b: { c: 'x\udc00' } } }, true],
+    ['U+0000 in a key', { ['key\u0000']: 1 }, true],
+    ['a lone surrogate in a key', { ['\ud800']: 'value' }, true],
+    ['an emoji nested in objects', { a: [{ b: '\ud83e\udd88' }] }, false],
+    ['eight containers deep', nest(8, 'ok'), false],
+    ['nine containers deep, past the bound', nest(9, 'ok'), true],
+    ['two containers past a bound of one', nest(2, 'ok'), true, 1],
+    ['one container within a bound of one', nest(1, 'ok'), false, 1],
+    ['a string past the bound is still read', nest(1, 'x\u0000'), true, 1],
+  ];
+  for (const [label, value, unstorable, depth] of cases) {
+    assert.equal(depth === undefined ? unstorableText(value) : unstorableText(value, depth), unstorable, `${label}: ${unstorable ? 'unstorable' : 'storable'}`);
+  }
+  assert.match(UNSTORABLE_TEXT_MESSAGE, /U\+0000/, 'the message names the character');
+  console.log(`PASS unstorable text: ${cases.length} values, U+0000 and lone surrogates found at any depth, valid pairs kept, past the bound refused`);
+}
+
+/* ── strict query parameters (#638) ────────────────────────────────────────
+ *
+ * `parseInt` reads `1.9`, `1abc`, `1e3`, `+1` and `?x=1&x=2` as 1, and a
+ * handler served a request the URL does not describe. `queryString` takes
+ * one string of at most 256 characters; `queryInt` takes nine digits and
+ * nothing around them, inside the bounds. Absent is undefined, malformed is
+ * null, so a handler can tell a default from a 400. */
+function strictQueryContracts() {
+  const at = (value: unknown) => ({ query: value === undefined ? {} : { x: value } }) as never;
+  const strings: [label: string, value: unknown, expected: string | undefined | null][] = [
+    ['absent', undefined, undefined],
+    ['a word', 'javascript', 'javascript'],
+    ['an empty value', '', ''],
+    ['256 characters', 'a'.repeat(MAX_QUERY_STRING), 'a'.repeat(MAX_QUERY_STRING)],
+    ['257 characters', 'a'.repeat(MAX_QUERY_STRING + 1), null],
+    ['a repeated parameter', ['a', 'b'], null],
+    ['a one-entry array', ['a'], null],
+    ['an empty array', [], null],
+    ['a number', 7, null],
+  ];
+  for (const [label, value, expected] of strings) {
+    assert.equal(queryString(at(value), 'x'), expected, `queryString, ${label}: ${String(expected)}`);
+  }
+  assert.equal(queryString({ query: {} } as never, 'constructor'), undefined, 'an inherited name is absent, not Object.prototype.constructor');
+  assert.equal(queryString({ query: { x: undefined } } as never, 'x'), undefined, 'a key set to undefined is absent');
+
+  const level = { min: 1, max: 30 };
+  const ints: [label: string, value: unknown, expected: number | undefined | null, bounds?: { min: number; max: number }][] = [
+    ['absent', undefined, undefined],
+    ['1', '1', 1],
+    ['the upper bound', '30', 30],
+    ['leading zeros', '007', 7],
+    ['a fraction', '1.9', null],
+    ['a trailing dot', '1.', null],
+    ['an exponent', '1e3', null],
+    ['a plus sign', '+1', null],
+    ['a minus sign', '-1', null],
+    ['trailing junk', '1abc', null],
+    ['a leading space', ' 1', null],
+    ['a trailing space', '1 ', null],
+    ['hexadecimal', '0x1', null],
+    ['NaN', 'NaN', null],
+    ['Infinity', 'Infinity', null],
+    ['an empty value', '', null],
+    ['a repeated parameter', ['1', '2'], null],
+    ['a full-width digit', '\uFF11', null],
+    ['below the bounds', '0', null],
+    ['above the bounds', '31', null],
+    ['ten digits', '1000000000', null, { min: 0, max: Number.MAX_SAFE_INTEGER }],
+    ['nine digits', '999999999', 999_999_999, { min: 0, max: Number.MAX_SAFE_INTEGER }],
+    ['zero inside bounds from zero', '0', 0, { min: 0, max: 5 }],
+  ];
+  for (const [label, value, expected, bounds] of ints) {
+    assert.equal(queryInt(at(value), 'x', bounds ?? level), expected, `queryInt, ${label}: ${String(expected)}`);
+  }
+  console.log(`PASS strict query: ${strings.length + 2} string and ${ints.length} integer cases, arrays, fractions, exponents, signs and junk refused`);
+}
+
+/* ── input classes the handlers already refuse (#638) ─────────────────────
+ *
+ * The section-code-audit list of untrusted input, per handler that parses
+ * its input without a database: a list where one value belongs (a query
+ * parameter repeated), a calendar date Postgres cannot store, U+0000, an
+ * unknown resource, a lookup by `constructor` or `__proto__`, a number that
+ * is no integer, an id or a list past its cap. Each answers 400, 404 or 413
+ * with the generic `{ error: { code, message } }` body. No database is
+ * configured here, so nothing can reach one; the verified-caller and play
+ * suites hold the handlers that need one before they parse. */
+async function inputClassContracts() {
+  type Case = [label: string, handler: (req: never, res: never) => unknown, method: 'GET' | 'POST', query: Record<string, unknown>, body: unknown, status: number, code: string];
+  const answers = (count: number) => Object.fromEntries(Array.from({ length: count }, (_, i) => [`q-${i}`, 0]));
+  const cases: Case[] = [
+    ['questions: a repeated difficulty', questionsHandler, 'GET', { difficulty: ['easy', 'mixed'] }, undefined, 400, 'bad_request'],
+    ['questions: constructor as the difficulty', questionsHandler, 'GET', { difficulty: 'constructor' }, undefined, 400, 'bad_request'],
+    ['questions: constructor as a category', questionsHandler, 'GET', { categories: 'constructor' }, undefined, 400, 'bad_request'],
+    ['questions: __proto__ as a category', questionsHandler, 'GET', { categories: '__proto__' }, undefined, 400, 'bad_request'],
+    ['questions: U+0000 in a category', questionsHandler, 'GET', { categories: 'java\u0000script' }, undefined, 400, 'bad_request'],
+    ['questions: an unknown resource', questionsHandler, 'GET', { resource: 'no-such-resource' }, undefined, 404, 'unknown_resource'],
+    ['questions: constructor as the resource', questionsHandler, 'GET', { resource: 'constructor' }, undefined, 404, 'unknown_resource'],
+    ['daily: 2026-02-30', dailyHandler, 'GET', { date: '2026-02-30' }, undefined, 400, 'bad_request'],
+    ['daily: year 0000', dailyHandler, 'GET', { date: '0000-01-01' }, undefined, 400, 'bad_request'],
+    ['daily: a repeated date', dailyHandler, 'GET', { date: ['2026-11-18', '2026-11-17'] }, undefined, 400, 'bad_request'],
+    ['daily: U+0000 in the date', dailyHandler, 'GET', { date: '2026-11-18\u0000' }, undefined, 400, 'bad_request'],
+    ['daily: constructor as a category', dailyHandler, 'GET', { categories: 'constructor' }, undefined, 400, 'invalid_subject_scope'],
+    ['daily: __proto__ as a category', dailyHandler, 'GET', { categories: '__proto__' }, undefined, 400, 'invalid_subject_scope'],
+    ['question of the day: 2026-02-30', dailyHandler, 'GET', { qotd: '2026-02-30' }, undefined, 400, 'bad_request'],
+    ['question of the day: year 0000', dailyHandler, 'GET', { qotd: '0000-01-01' }, undefined, 404, 'qotd_before_start'],
+    ['question of the day: constructor', dailyHandler, 'GET', { qotd: 'constructor' }, undefined, 400, 'bad_request'],
+    ['submit: 51 answers', submitHandler, 'POST', {}, { sessionId: 'x', answers: answers(51) }, 413, 'too_many_answers'],
+    ['submit: answers as a list', submitHandler, 'POST', {}, { sessionId: 'x', answers: [0, 1] }, 400, 'bad_request'],
+    ['submit: a session id as a list', submitHandler, 'POST', {}, { sessionId: ['x'], answers: { a: 0 } }, 400, 'bad_request'],
+    ['submit: a fractional answer index', submitHandler, 'POST', {}, { sessionId: 'x', answers: { a: 0.5 } }, 400, 'bad_request'],
+    ['submit: an answer index sent as text', submitHandler, 'POST', {}, { sessionId: 'x', answers: { a: '1' } }, 400, 'bad_request'],
+    ['submit: an answer index sent as a boolean', submitHandler, 'POST', {}, { sessionId: 'x', answers: { a: true } }, 400, 'bad_request'],
+    ['submit: a question id past 64 characters', submitHandler, 'POST', {}, { sessionId: 'x', answers: { ['q'.repeat(65)]: 0 } }, 400, 'bad_request'],
+    ['submit: a session id past 16,384 characters', submitHandler, 'POST', {}, { sessionId: 'x'.repeat(16_385), answers: { a: 0 } }, 400, 'bad_request'],
+    ['submit: a body that is no object', submitHandler, 'POST', {}, 'not-json', 400, 'bad_request'],
+    ['Learn: constructor as the topic', roadmapHandler, 'GET', { topic: 'constructor' }, undefined, 400, 'bad_request'],
+    ['Learn: __proto__ as the topic', roadmapHandler, 'GET', { topic: '__proto__' }, undefined, 400, 'bad_request'],
+    ['Learn: a repeated topic', roadmapHandler, 'GET', { topic: ['javascript', 'css'] }, undefined, 400, 'bad_request'],
+    ['Learn: U+0000 in the topic', roadmapHandler, 'GET', { topic: 'java\u0000script' }, undefined, 400, 'bad_request'],
+    ['Learn: a level that is no number', roadmapHandler, 'GET', { topic: 'javascript', level: 'NaN' }, undefined, 400, 'bad_request'],
+    ['Learn: constructor as the level', roadmapHandler, 'GET', { topic: 'javascript', level: 'constructor' }, undefined, 400, 'bad_request'],
+    ['Learn: level 0', roadmapHandler, 'GET', { topic: 'javascript', level: '0' }, undefined, 400, 'bad_request'],
+    ['Learn: a level past the topic', roadmapHandler, 'GET', { topic: 'javascript', level: '999' }, undefined, 400, 'bad_request'],
+    ['Learn: a part test that is no number', roadmapHandler, 'GET', { topic: 'javascript', test: 'NaN' }, undefined, 400, 'bad_request'],
+    ['Learn: a part test past the parts', roadmapHandler, 'GET', { topic: 'javascript', test: '9' }, undefined, 400, 'bad_request'],
+    ['Learn: a checkpoint that is no number', roadmapHandler, 'GET', { topic: 'javascript', checkpoint: 'abc' }, undefined, 400, 'bad_request'],
+    ['placement: constructor as the subject', roadmapHandler, 'GET', { resource: 'placement', subject: 'constructor' }, undefined, 400, 'invalid_subject_scope'],
+    ['placement: __proto__ as the subject', roadmapHandler, 'GET', { resource: 'placement', subject: '__proto__' }, undefined, 400, 'invalid_subject_scope'],
+    ['placement: a repeated subject', roadmapHandler, 'GET', { resource: 'placement', subject: ['webdev', 'webdev'] }, undefined, 400, 'invalid_subject_scope'],
+    ['placement: a token that is a list', roadmapHandler, 'POST', { resource: 'placement' }, { placementToken: ['x'], answers: {} }, 400, 'invalid_session'],
+    ['coding task: constructor as the id', roadmapHandler, 'GET', { resource: 'coding-task', id: 'constructor' }, undefined, 404, 'not_found'],
+    ['coding task: __proto__ as the id', roadmapHandler, 'GET', { resource: 'coding-task', id: '__proto__' }, undefined, 404, 'not_found'],
+    ['coding task: a repeated id', roadmapHandler, 'GET', { resource: 'coding-task', id: ['a', 'b'] }, undefined, 400, 'bad_request'],
+    ['coding task: an id longer than any task id', roadmapHandler, 'GET', { resource: 'coding-task', id: 'x'.repeat(500) }, undefined, 404, 'not_found'],
+    ['coding brief: constructor as the id', roadmapHandler, 'GET', { resource: 'coding-brief', id: 'constructor' }, undefined, 404, 'not_found'],
+    ['coding brief: a repeated id', roadmapHandler, 'GET', { resource: 'coding-brief', id: ['a', 'b'] }, undefined, 400, 'bad_request'],
+    ['coding state: constructor as the id', roadmapHandler, 'GET', { resource: 'coding-state', id: 'constructor' }, undefined, 404, 'not_found'],
+    ['coding approaches: constructor as the id', roadmapHandler, 'GET', { resource: 'coding-approaches', id: 'constructor' }, undefined, 404, 'not_found'],
+    ['learning paths: an unknown resource', roadmapHandler, 'GET', { resource: 'learning-path-no-such-resource' }, undefined, 404, 'not_found'],
+    ['lesson: constructor as the topic', roadmapHandler, 'GET', { resource: 'lesson', topic: 'constructor', level: '1' }, undefined, 400, 'bad_request'],
+    ['lesson: __proto__ as the topic', roadmapHandler, 'GET', { resource: 'lesson', topic: '__proto__', level: '1' }, undefined, 400, 'bad_request'],
+    ['lesson: a repeated topic', roadmapHandler, 'GET', { resource: 'lesson', topic: ['javascript'], level: '1' }, undefined, 400, 'bad_request'],
+    ['lesson: a level that is no number', roadmapHandler, 'GET', { resource: 'lesson', topic: 'javascript', level: 'NaN' }, undefined, 400, 'bad_request'],
+  ];
+  let caller = 0;
+  for (const [label, handler, method, query, body, status, code] of cases) {
+    caller += 1;
+    const res = mockResponse();
+    await handler({
+      method, url: '/api/input-class', query, body,
+      headers: { 'x-forwarded-for': `10.63.8.${caller % 250}` },
+    } as never, res as never);
+    const error = (res.body as { error?: Record<string, unknown> } | undefined)?.error;
+    assert.equal(res.statusCode, status, `${label} answers ${status} (${JSON.stringify(res.body)})`);
+    assert.equal(error?.code, code, `${label} answers ${code}`);
+    assert.equal(typeof error?.message, 'string', `${label} carries a message`);
+    assert.deepEqual(Object.keys(error ?? {}).filter((key) => !['code', 'message', 'requestId'].includes(key)), [],
+      `${label} answers the generic error body`);
+  }
+  console.log(`PASS input classes: ${cases.length} malformed requests to questions, daily, submit and Learn answer 400, 404 or 413 with the generic body`);
+}
+
+/* ── the request envelope (#638) ───────────────────────────────────────────
+ *
+ * Vercel's Node runtime (@vercel/node `addHelpers`) buffers the body before
+ * the handler runs and defines `req.body` as a lazy getter that parses it on
+ * first read. Broken JSON throws ApiError(400, 'Invalid JSON') from the
+ * getter, and a malformed Content-Type makes the content-type parser throw a
+ * TypeError from it, on a GET with an empty body too. `setLazyProp` keeps
+ * only a value, so a getter that threw throws again on every read. */
+class VercelApiError extends Error {
+  constructor(readonly statusCode: number, message: string) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+/** A request as @vercel/node hands it over, its body a getter that throws
+ * `failure` on every read (or answers `body`), counting the reads. */
+function lazyBodyRequest(init: { method: string; url: string; query: Record<string, unknown>; headers: Record<string, string> }, failure: Error | null, body?: unknown) {
+  const req: Record<string, unknown> & { reads: number } = { ...init, socket: {}, reads: 0 };
+  Object.defineProperty(req, 'body', {
+    configurable: true,
+    enumerable: true,
+    get: () => {
+      req.reads += 1;
+      if (failure) throw failure;
+      return body;
+    },
+  });
+  return req;
+}
+
+/** The handler's answer and the log lines it wrote. */
+async function capturedCall(handler: (req: never, res: never) => unknown, req: unknown) {
+  const res = mockResponse();
+  const lines: Record<string, unknown>[] = [];
+  const realLog = console.log;
+  console.log = (line?: unknown) => {
+    try { lines.push(JSON.parse(String(line))); } catch { /* not a structured line */ }
+  };
+  try {
+    await handler(req as never, res as never);
+  } finally {
+    console.log = realLog;
+  }
+  return { res, lines, error: (res.body as { error?: Record<string, unknown> } | undefined)?.error };
+}
+
+function assertGenericError(label: string, error: Record<string, unknown> | undefined) {
+  assert.deepEqual(Object.keys(error ?? {}).filter((key) => !['code', 'message', 'requestId'].includes(key)), [],
+    `${label} answers the generic error body`);
+}
+
+async function malformedBodyContracts() {
+  const invalidJson = () => new VercelApiError(400, 'Invalid JSON');
+  // content-type's parse() throws this for "application/json; charset".
+  const badContentType = () => new TypeError('invalid parameter format');
+  const cases: [label: string, handler: (req: never, res: never) => unknown, method: string, url: string, query: Record<string, unknown>, contentType: string, failure: () => Error][] = [
+    ['quiz submit, broken JSON', submitHandler, 'POST', '/api/quiz/submit', {}, 'application/json', invalidJson],
+    ['user stats, broken JSON', userHandler, 'POST', '/api/user/stats', { op: 'stats' }, 'application/json', invalidJson],
+    ['user stats GET, a malformed Content-Type', userHandler, 'GET', '/api/user/stats', { op: 'stats' }, 'application/json; charset', badContentType],
+    ['admin save, broken JSON', adminHandler, 'POST', '/api/admin/save', { op: 'save' }, 'application/json', invalidJson],
+    ['admin GET, a malformed Content-Type', adminHandler, 'GET', '/api/admin/questions', { op: 'questions' }, 'application/json; charset', badContentType],
+    ['Learn GET, a malformed Content-Type', roadmapHandler, 'GET', '/api/quiz/roadmap', { topic: 'javascript', level: '1' }, 'text/plain; =x', badContentType],
+  ];
+  let caller = 0;
+  for (const [label, handler, method, url, query, contentType, failure] of cases) {
+    caller += 1;
+    const req = lazyBodyRequest({ method, url, query, headers: { 'content-type': contentType, 'x-forwarded-for': `10.64.6.${caller}` } }, failure());
+    const { res, lines, error } = await capturedCall(handler, req);
+    assert.equal(res.statusCode, 400, `${label} answers 400, not 500 (${JSON.stringify(res.body)})`);
+    assert.equal(error?.code, 'bad_request', `${label} answers bad_request`);
+    assert.equal(error?.message, 'The request body is not valid JSON', `${label} says what is wrong`);
+    assertGenericError(label, error);
+    const requestId = res.headers.get('x-request-id');
+    assert.equal(error?.requestId, requestId, `${label} names its request id`);
+    const refusal = lines.find((line) => line.status === 400 && line.category === 'invalid_body');
+    assert.equal(refusal?.level, 'warn', `${label} logs a warning, not an error`);
+    assert.equal(refusal?.request_id, requestId, `${label} logs the request id`);
+    assert.ok(!lines.some((line) => line.level === 'error'), `${label} logs no error`);
+  }
+
+  // A readable body is read once and handed on: the handler gets the same
+  // value, and a GET without a Content-Type reads as nothing.
+  {
+    const req = lazyBodyRequest({ method: 'POST', url: '/api/quiz/submit', query: {}, headers: { 'content-type': 'application/json', 'x-forwarded-for': '10.64.6.200' } }, null, { sessionId: ['x'], answers: { a: 0 } });
+    const { res, error } = await capturedCall(submitHandler, req);
+    assert.equal(res.statusCode, 400, JSON.stringify(res.body));
+    assert.notEqual(error?.message, 'The request body is not valid JSON', 'a readable body reaches the handler, which answers its own 400');
+  }
+  // Any other failure of the getter stays a server fault.
+  {
+    const req = lazyBodyRequest({ method: 'POST', url: '/api/quiz/submit', query: {}, headers: { 'content-type': 'application/json', 'x-forwarded-for': '10.64.6.201' } }, new RangeError('stream torn'));
+    const { res } = await capturedCall(submitHandler, req);
+    assert.equal(res.statusCode, 500, `a getter that fails for another reason is no client error (${JSON.stringify(res.body)})`);
+  }
+  console.log(`PASS malformed bodies: ${cases.length} requests whose body getter throws answer 400 bad_request and log a warning with the request id`);
+}
+
+/* The platform accepts 4.5 MB, and Vercel's getter parses whatever came
+ * before a handler's own cap (a 64 kB path draft, 20 kB of code, 50 quiz
+ * answers) can look at it. A Content-Length past 256 kB, or 1 MB for the
+ * two signed webhooks, answers 413 before anything reads the body. */
+async function oversizeBodyContracts() {
+  const neverRead = () => new Error('the body must not be read');
+  const cases: [label: string, handler: (req: never, res: never) => unknown, method: string, url: string, query: Record<string, unknown>, length: number, refused: boolean][] = [
+    ['quiz submit, 300,000 bytes', submitHandler, 'POST', '/api/quiz/submit', {}, 300_000, true],
+    ['quiz submit, 4.5 MB', submitHandler, 'POST', '/api/quiz/submit', {}, 4_718_592, true],
+    ['user stats, 262,145 bytes', userHandler, 'POST', '/api/user/stats', { op: 'stats' }, 262_145, true],
+    ['admin save, 300,000 bytes', adminHandler, 'POST', '/api/admin/save', { op: 'save' }, 300_000, true],
+    ['a path draft, 300,000 bytes', userHandler, 'PUT', '/api/user/learning-path-draft', { op: 'learning-path-draft' }, 300_000, true],
+    ['the billing webhook, 1,048,577 bytes', userHandler, 'POST', '/api/user/billing-webhook', { op: 'billing-webhook' }, 1_048_577, true],
+    ['the payment webhook, 1,048,577 bytes', userHandler, 'POST', '/api/user/payment-webhook', { op: 'payment-webhook' }, 1_048_577, true],
+    ['quiz submit, 262,144 bytes', submitHandler, 'POST', '/api/quiz/submit', {}, 262_144, false],
+    ['a path draft, 64 kB and its envelope', userHandler, 'PUT', '/api/user/learning-path-draft', { op: 'learning-path-draft' }, 65_536 + 512, false],
+    ['the billing webhook, 600,000 bytes', userHandler, 'POST', '/api/user/billing-webhook', { op: 'billing-webhook' }, 600_000, false],
+    ['the payment webhook, 600,000 bytes', userHandler, 'POST', '/api/user/payment-webhook', { op: 'payment-webhook' }, 600_000, false],
+    ['the billing webhook, 1,048,576 bytes', userHandler, 'POST', '/api/user/billing-webhook', { op: 'billing-webhook' }, 1_048_576, false],
+  ];
+  let caller = 0;
+  for (const [label, handler, method, url, query, length, refused] of cases) {
+    caller += 1;
+    const req = lazyBodyRequest({
+      method, url, query,
+      headers: { 'content-type': 'application/json', 'content-length': String(length), 'x-forwarded-for': `10.64.7.${caller}` },
+    }, refused ? neverRead() : null, {});
+    const { res, lines, error } = await capturedCall(handler, req);
+    if (!refused) {
+      assert.notEqual(res.statusCode, 413, `${label} passes the cap (${JSON.stringify(res.body)})`);
+      assert.ok(req.reads > 0, `${label} reaches the body`);
+      continue;
+    }
+    assert.equal(res.statusCode, 413, `${label} answers 413 (${JSON.stringify(res.body)})`);
+    assert.equal(error?.code, 'too_large', `${label} answers too_large`);
+    assert.equal(error?.message, 'The request body is too large', `${label} says what is wrong`);
+    assertGenericError(label, error);
+    assert.equal(req.reads, 0, `${label} never reads, so never parses, the body`);
+    const refusal = lines.find((line) => line.status === 413 && line.category === 'too_large');
+    assert.equal(refusal?.level, 'warn', `${label} logs a warning`);
+    assert.equal(refusal?.request_id, res.headers.get('x-request-id'), `${label} logs the request id`);
+  }
+  // Without a Content-Length the platform's own 4.5 MB limit applies.
+  {
+    const req = lazyBodyRequest({ method: 'POST', url: '/api/quiz/submit', query: {}, headers: { 'content-type': 'application/json', 'x-forwarded-for': '10.64.7.200' } }, null, {});
+    const { res } = await capturedCall(submitHandler, req);
+    assert.notEqual(res.statusCode, 413, 'a request without a Content-Length passes to the platform limit');
+  }
+  console.log(`PASS oversize bodies: ${cases.filter((c) => c[6]).length} requests past 256 kB (1 MB for the webhooks) answer 413 unread, ${cases.filter((c) => !c[6]).length} within the caps pass`);
+}
+
+/* The id a request's logs and errors carry. Vercel sets x-vercel-id on
+ * every request; a client chooses X-Request-Id, and the browser sends none.
+ * The platform's id wins, so a script cannot stamp its log lines, the admin
+ * audit lines among them, with another request's id. Without x-vercel-id
+ * (local, Docker) the client's id is kept, and one that differs from the
+ * server's is logged as client_request_id beside it. */
+async function requestIdContracts() {
+  const vercelId = 'arn1::iad1::f9req-1763491200000-0a1b2c3d4e5f';
+  const clientId = 'req-chosen-by-a-script-0001';
+  const cases: [label: string, headers: Record<string, string>, expected: string | 'uuid', client: string | undefined][] = [
+    ['both headers', { 'x-vercel-id': vercelId, 'x-request-id': clientId }, vercelId, clientId],
+    ['only x-vercel-id', { 'x-vercel-id': vercelId }, vercelId, undefined],
+    ['only x-request-id (local, Docker)', { 'x-request-id': clientId }, clientId, undefined],
+    ['the same id in both', { 'x-vercel-id': vercelId, 'x-request-id': vercelId }, vercelId, undefined],
+    ['a malformed client id beside the Vercel id', { 'x-vercel-id': vercelId, 'x-request-id': 'has spaces in it' }, vercelId, undefined],
+    ['a malformed Vercel id', { 'x-vercel-id': 'x', 'x-request-id': clientId }, 'uuid', clientId],
+    ['neither header', {}, 'uuid', undefined],
+  ];
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+  let caller = 0;
+  for (const [label, headers, expected, client] of cases) {
+    caller += 1;
+    const req = { method: 'GET', url: '/api/quiz/questions', query: { difficulty: 'constructor' }, headers: { ...headers, 'x-forwarded-for': `10.64.8.${caller}` }, socket: {} };
+    const { res, lines, error } = await capturedCall(questionsHandler, req);
+    assert.equal(res.statusCode, 400, `${label}: the handler answers its own 400 (${JSON.stringify(res.body)})`);
+    const answered = res.headers.get('x-request-id');
+    if (expected === 'uuid') assert.match(String(answered), uuid, `${label}: the server makes its own id`);
+    else assert.equal(answered, expected, `${label}: X-Request-Id`);
+    assert.equal(error?.requestId, answered, `${label}: the error body carries the same id`);
+    const summary = lines.find((line) => line.route === 'request' && line.latency_ms !== undefined);
+    assert.equal(summary?.request_id, answered, `${label}: the request line carries the server id`);
+    assert.equal(summary?.client_request_id, client, `${label}: client_request_id ${client ?? 'absent'}`);
+    assert.ok(lines.every((line) => line.request_id === answered), `${label}: every log line carries the server id`);
+  }
+  console.log(`PASS request ids: ${cases.length} header combinations, x-vercel-id wins and a differing client id is logged beside it`);
+}
+
 async function main() {
   await adminDirectoryContracts();
   await practiceRunTransitionContracts();
@@ -6569,6 +6941,12 @@ async function main() {
   monthlyXpContracts();
   await identityContracts();
   await productCleanupContracts();
+  await inputClassContracts();
+  unstorableTextContracts();
+  strictQueryContracts();
+  await malformedBodyContracts();
+  await oversizeBodyContracts();
+  await requestIdContracts();
 
   console.log('Launch contracts passed: product identity, scope, token confidentiality, stable attempts, fairness-neutral rewards, rate limiting, health, 12-function budget, the free tier and Premium, billing, the launch price, the public Premium copy, the retired support settings, the progression graph, failure hints, retired sections, curation claims, the content-audit gate, spaced practice, interleaving, challenge runs, lesson figures, an unconfigured shop, coins, invitations, merchandise through Spreadshop, one erasure routine, Premium vouchers, the question of the day, and the webdev-bank contract BoardlessAI imports.');
 }

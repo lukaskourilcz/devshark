@@ -95,6 +95,12 @@ The code for email and password sign-in is done (`client/src/lib/emailAuth.ts`).
   Say which to keep; an agent turns off the rest (each is one constant or one code path). [imp:3] [owner:me] [time:20m] [kind:decision]
 - [ ] **Decide on the old interview-prepper progress** — get the legacy Firestore export, or decide to discard that progress. To import: `npm run import:interview-prepper -- --input export.json --user-id <id>` as a dry run, then with `--apply`, and check the result. Only then retire interview-prepper's Firebase and Vercel projects and its old OpenAI key; deleting them first loses the progress. [imp:2] [owner:me] [time:1h] [kind:decision]
 
+## Decided during the Epic F audit (18 November 2026)
+
+Agents took these reversible choices themselves, as you asked. Each line says how to undo it.
+
+- [x] **Cap request bodies at 256 kB, 1 MB for the webhooks (F9, #638)** — `withRequestContext` in `lib/http.ts` answers 413 `too_large` when Content-Length exceeds 256 kB, or 1 MB for `op=billing-webhook` and `op=payment-webhook`, before Vercel parses the body. The largest legitimate body is a 64 kB learning-path draft or submission. Revert: raise `MAX_BODY_BYTES` or `MAX_WEBHOOK_BODY_BYTES` in `lib/http.ts`, or delete the `oversizeBody` check, and change the launch contract with it. [imp:2] [owner:ai] [time:done] [kind:decision]
+
 ## Payments (#221)
 
 Stripe resources, prices and every gate before sales open are in `STRIPE_INTEGRATION_TODO.md`. Production runs with `BILLING_ENABLED=false`.

@@ -27,12 +27,87 @@ const IS_PROD =
 const SERVER_SIDE_AUTH = { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: timedSupabaseFetch } } as const;
 const requestContext = new AsyncLocalStorage<{ requestId: string; memo?: Map<string, Promise<unknown>> }>();
 
-function incomingRequestId(req: VercelRequest): string {
-  const raw = req.headers['x-request-id'] ?? req.headers['x-vercel-id'];
+const REQUEST_ID = /^[A-Za-z0-9._:/-]{6,128}$/;
+
+function headerId(req: VercelRequest, name: string): { sent: boolean; id: string | undefined } {
+  const raw = req.headers?.[name];
   const value = Array.isArray(raw) ? raw[0] : raw;
-  return typeof value === 'string' && /^[A-Za-z0-9._:/-]{6,128}$/.test(value)
-    ? value
-    : randomUUID();
+  return { sent: value !== undefined, id: typeof value === 'string' && REQUEST_ID.test(value) ? value : undefined };
+}
+
+/**
+ * The id a request's logs and errors carry. Vercel sets x-vercel-id on every
+ * request, and it wins: X-Request-Id is the caller's choice (the browser
+ * sends none), and taking it first let a script stamp its log lines, the
+ * admin audit lines among them, with another request's id. Where Vercel
+ * sets none (local, Docker) the caller's id is kept. A well-formed caller id
+ * that differs from the one chosen is returned as `clientRequestId`, for the
+ * request line to log beside it.
+ */
+function incomingRequestIds(req: VercelRequest): { requestId: string; clientRequestId?: string } {
+  const vercel = headerId(req, 'x-vercel-id');
+  const client = headerId(req, 'x-request-id').id;
+  if (!vercel.sent) return { requestId: client ?? randomUUID() };
+  const requestId = vercel.id ?? randomUUID();
+  return client && client !== requestId ? { requestId, clientRequestId: client } : { requestId };
+}
+
+/** The largest body a request may declare. The biggest legitimate one is a
+ * learning-path submission or draft (64 kB, shared/learning-path-api.ts);
+ * the platform itself accepts 4.5 MB. */
+const MAX_BODY_BYTES = 256 * 1024;
+/** The cap for the two signed webhooks, whose sender decides the size. */
+const MAX_WEBHOOK_BODY_BYTES = 1024 * 1024;
+const WEBHOOK_OPS: ReadonlySet<string> = new Set(['billing-webhook', 'payment-webhook']);
+
+/** The op a router serves, read for the body cap only: the query getter
+ * parses the URL, and a cap must not fail the request. */
+function requestOp(req: VercelRequest): string {
+  try {
+    const op = req.query?.op;
+    return typeof op === 'string' ? op.toLowerCase() : '';
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Whether the request declares a body past its cap. Vercel's runtime has
+ * already buffered the bytes, but parses them only when something reads
+ * `req.body`, and every handler's own cap reads it first: a 4.5 MB quiz
+ * submit cost the parse (80 ms for 1.8 MB of keys) before its answer count
+ * was looked at. Refusing on Content-Length saves that parse. A request
+ * without one passes on to the platform's limit.
+ */
+function oversizeBody(req: VercelRequest): boolean {
+  const raw = req.headers?.['content-length'];
+  const declared = Array.isArray(raw) ? raw[0] : raw;
+  if (typeof declared !== 'string' || !/^\d{1,16}$/.test(declared)) return false;
+  const cap = WEBHOOK_OPS.has(requestOp(req)) ? MAX_WEBHOOK_BODY_BYTES : MAX_BODY_BYTES;
+  return Number(declared) > cap;
+}
+
+/**
+ * Whether the request's body cannot be read. Vercel's Node runtime parses the
+ * body on its first read, from a getter (@vercel/node `setLazyProp`), and
+ * throws from that read: ApiError(400, 'Invalid JSON') for broken JSON and,
+ * from the content-type parser, a TypeError for a malformed Content-Type, on
+ * any method and for an empty body too. The getter keeps no failure, so
+ * every later read throws again, and a handler, `requireAuth`'s local
+ * fallback or the admin password check met it and answered 500. Reading it
+ * once here costs nothing more: an empty body parses to '' or {} and a
+ * handler reads the value this read leaves behind. Any other failure is
+ * thrown on to the 500 path.
+ */
+function unreadableBody(req: VercelRequest): boolean {
+  try {
+    void req.body;
+    return false;
+  } catch (error) {
+    if (error instanceof TypeError) return true;
+    if (error && typeof error === 'object' && (error as { statusCode?: unknown }).statusCode === 400) return true;
+    throw error;
+  }
 }
 
 /** Give every handler/log/error a correlation id without logging request bodies. */
@@ -41,7 +116,7 @@ export function withRequestContext<T>(
   res: VercelResponse,
   run: () => T,
 ): Promise<Awaited<T> | VercelResponse | void> {
-  const requestId = incomingRequestId(req);
+  const { requestId, clientRequestId } = incomingRequestIds(req);
   res.setHeader('X-Request-Id', requestId);
   // Most answers are about the caller (stats, XP, a wallet, a room's host view
   // with its answers), so none is stored by a shared cache unless its handler
@@ -50,7 +125,21 @@ export function withRequestContext<T>(
   res.setHeader('Cache-Control', 'private, no-store');
   const started = Date.now();
   return requestContext.run({ requestId }, () => withServerTiming(res, async () => {
+    // A body the request cannot hand over is the caller's fault: a warning,
+    // never the 500 path's error.
+    const refuseBody = (status: number, category: string, code: string, message: string) => {
+      logEvent('request', {
+        level: 'warn',
+        method: req.method ?? 'UNKNOWN',
+        path: req.url?.split('?')[0] ?? 'unknown',
+        status,
+        category,
+      });
+      return jsonError(res, status, code, message);
+    };
     try {
+      if (oversizeBody(req)) return refuseBody(413, 'too_large', 'too_large', 'The request body is too large');
+      if (unreadableBody(req)) return refuseBody(400, 'invalid_body', 'bad_request', 'The request body is not valid JSON');
       return await run();
     } catch (error) {
       // A refusal of locked content is an answer, not a failure.
@@ -84,6 +173,7 @@ export function withRequestContext<T>(
       return jsonError(res, 500, 'internal_error', 'Internal error');
     } finally {
       logEvent('request', {
+        ...(clientRequestId ? { client_request_id: clientRequestId } : {}),
         method: req.method ?? 'UNKNOWN',
         path: req.url?.split('?')[0] ?? 'unknown',
         status: res.statusCode ?? 200,
@@ -126,6 +216,73 @@ export function jsonError(res: VercelResponse, status: number, code: string, mes
   return res.status(status).json({
     error: { ...detail, code, message, ...(requestContext.getStore()?.requestId ? { requestId: requestContext.getStore()!.requestId } : {}) },
   });
+}
+
+/** The message a handler answers with (400) for text `unstorableText` finds. */
+export const UNSTORABLE_TEXT_MESSAGE = 'Text cannot contain a NUL (U+0000) character or an unpaired surrogate';
+
+// A UTF-16 high surrogate with no low one after it, or a low one with no high
+// one before it. Without the `u` flag the pattern reads code units, which is
+// what a JavaScript string holds.
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+
+/**
+ * Whether `value` holds text Postgres text and JSONB cannot store: U+0000
+ * (22P05) or a lone UTF-16 surrogate. A JSON body can carry `"\ud800"`;
+ * JSON.stringify sends it on as that escape and Postgres refuses the whole
+ * argument (22P02, "Unicode low surrogate must follow a high surrogate"),
+ * which handlers answered with 500. Walks strings, arrays and plain objects,
+ * their keys included: the values, never the JSON text, so code that spells
+ * `\u0000` out still saves. A container nested deeper than `depth` counts as
+ * unstorable, so nothing past the bound reaches the database unchecked.
+ */
+export function unstorableText(value: unknown, depth = 8): boolean {
+  if (typeof value === 'string') return value.includes('\u0000') || LONE_SURROGATE.test(value);
+  if (value === null || typeof value !== 'object') return false;
+  if (depth <= 0) return true;
+  if (Array.isArray(value)) return value.some((one) => unstorableText(one, depth - 1));
+  return Object.entries(value).some(([key, one]) => unstorableText(key, depth) || unstorableText(one, depth - 1));
+}
+
+/** The longest query value `queryString` hands a handler. No parameter the
+ * API reads (a topic, a room code, a date, an id) comes near it. */
+export const MAX_QUERY_STRING = 256;
+
+/**
+ * One query parameter as a single string: undefined when the request does
+ * not carry it, null when it cannot be one value. `?x=a&x=b` arrives as an
+ * array, and `String(array)` or `.split()` on it served or crashed a request
+ * the URL does not describe; a value past `MAX_QUERY_STRING` characters is
+ * null too. A handler answers null with 400.
+ */
+export function queryString(req: Pick<VercelRequest, 'query'>, name: string): string | undefined | null {
+  const query = req.query ?? {};
+  if (!Object.hasOwn(query, name) || query[name] === undefined) return undefined;
+  const value = query[name];
+  return typeof value === 'string' && value.length <= MAX_QUERY_STRING ? value : null;
+}
+
+/** Nine digits at most, nothing around them: below 2^31, so Postgres
+ * integer holds every value that passes. */
+const QUERY_INT = /^\d{1,9}$/;
+
+/**
+ * One query parameter as a whole number from `min` to `max`: undefined when
+ * the request does not carry it, null for anything else. `parseInt` read
+ * `1.9`, `1abc` and `?x=1&x=2` as 1 and served level 1; this refuses a
+ * fraction, an exponent, a sign, a space, trailing junk, an empty value, an
+ * array and a number outside the bounds. A handler answers null with 400.
+ */
+export function queryInt(
+  req: Pick<VercelRequest, 'query'>,
+  name: string,
+  bounds: { min: number; max: number },
+): number | undefined | null {
+  const value = queryString(req, name);
+  if (value === undefined || value === null) return value;
+  if (!QUERY_INT.test(value)) return null;
+  const n = Number(value);
+  return n >= bounds.min && n <= bounds.max ? n : null;
 }
 
 /** Thrown for content the caller's tier does not open (`lib/access.ts`).
