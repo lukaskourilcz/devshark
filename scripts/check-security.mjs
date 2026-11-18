@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { join, sep } from 'node:path';
+import { vercelAnswer } from './vercel-headers.mjs';
 const config = JSON.parse(readFileSync('vercel.json', 'utf8'));
 // The header rules are `routes` that run before the filesystem check
 // (scripts/vercel-routing-contract.ts says why they are not `headers`).
@@ -45,6 +47,19 @@ function inlineScripts(html) {
 }
 
 const sourceHash = text => `'sha256-${createHash('sha256').update(text).digest('base64')}'`;
+
+/** Whether `policy` (from parsePolicy) lets an inline script with `text` run:
+ * one of its hashes matches, or it allows 'unsafe-inline' and names no hash or
+ * nonce (either of which turns 'unsafe-inline' off). */
+function inlineScriptAllowed(policy, text) {
+  const sources = policy.get('script-src-elem') ?? policy.get('script-src') ?? policy.get('default-src');
+  if (!sources) return true;
+  const hashes = sources.map(source => /^'sha(256|384|512)-([^']+)'$/i.exec(source)).filter(Boolean);
+  if (hashes.some(([, bits, digest]) => createHash(`sha${bits}`).update(text).digest('base64') === digest)) return true;
+  return sources.includes("'unsafe-inline'") && hashes.length === 0
+    && !sources.some(source => /^'nonce-/i.test(source) || source === "'strict-dynamic'");
+}
+
 // Every script client/index.html runs inline, today the theme bootstrap.
 const bootstrapHashes = inlineScripts(readFileSync('client/index.html', 'utf8')).scripts.map(sourceHash);
 
@@ -139,6 +154,47 @@ assert(sandboxCsp.includes("form-action 'none'"), 'Native form events must never
 assert(readFileSync('client/sandbox/index.html', 'utf8').includes("form-action 'none'"), 'Local preview must also block form navigation');
 assert(!header(sandbox, 'X-Frame-Options'), 'Do not deny the exercise frame');
 console.log('Security policy contracts passed: main app, theme bootstrap, isolated coding frame.');
+
+// The built pages: the prerender and the build may change a bootstrap's bytes
+// or add an inline script, which production would block while the checks on
+// client/index.html pass. --dist scans client/dist, --dist=<dir> another
+// build. Each page is checked against the policy vercel.json serves it with.
+const distArgument = process.argv.find(arg => arg === '--dist' || arg.startsWith('--dist='));
+if (distArgument) {
+  const dist = distArgument === '--dist' ? 'client/dist' : distArgument.slice('--dist='.length);
+  assert(existsSync(join(dist, 'index.html')), `--dist: ${dist} holds no index.html; run npm run build first`);
+  const isFile = pathname => existsSync(join(dist, pathname)) && statSync(join(dist, pathname)).isFile();
+  const pages = readdirSync(dist, { recursive: true }).filter(file => file.endsWith('.html')).sort();
+  const blocked = [];
+  const hashes = new Set();
+  let checked = 0;
+  let dataBlocks = 0;
+  let unserved = 0;
+  for (const page of pages) {
+    const pathname = `/${page.split(sep).join('/')}`;
+    const answer = vercelAnswer(config, pathname, isFile);
+    // A page that a route answers before the filesystem (the retired
+    // /cs/topics guides) never reaches a browser as itself.
+    if (answer.ends !== 'file') { unserved += 1; continue; }
+    const found = inlineScripts(readFileSync(join(dist, page), 'utf8'));
+    dataBlocks += found.dataBlocks;
+    const policy = answer.headers['content-security-policy'];
+    if (policy === undefined) {
+      if (found.scripts.length) blocked.push(`${pathname}: served with no Content-Security-Policy`);
+      continue;
+    }
+    const parsed = parsePolicy(policy);
+    for (const text of found.scripts) {
+      checked += 1;
+      hashes.add(sourceHash(text));
+      if (!inlineScriptAllowed(parsed, text)) blocked.push(`${pathname}: its policy blocks the inline script ${sourceHash(text)}`);
+    }
+  }
+  assert.equal(blocked.length, 0, `${blocked.length} inline script${blocked.length === 1 ? '' : 's'} of the built pages would not run:\n  ${blocked.slice(0, 20).join('\n  ')}${blocked.length > 20 ? `\n  and ${blocked.length - 20} more` : ''}`);
+  console.log(`Built pages in ${dist}: ${pages.length} HTML files, ${checked} inline scripts checked (${hashes.size} distinct) and allowed by their policy, ${dataBlocks} data blocks skipped${unserved ? `, ${unserved} page${unserved === 1 ? '' : 's'} a route answers first` : ''}.`);
+} else {
+  console.log('Built pages not scanned: run npm run check:security -- --dist after npm run build to check their inline scripts.');
+}
 const url = process.argv.find(arg => arg.startsWith('--url='))?.slice(6);
 if (url) {
   const origin = new URL(url); assert.equal(origin.protocol, 'https:');
