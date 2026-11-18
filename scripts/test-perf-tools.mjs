@@ -345,3 +345,35 @@ test('perf:measure summarizes each profile, path and cache state with request to
   // The failed cold row's requests still reached the origin and count.
   assert.deepEqual(lab.requestTotals(results, { forwarded: 4 }), { requests: 2 * 32 + 2 * 33 + 5, api: 5, sent: 31 + 32 + 31 + 32 + 2, sentApi: 5, forwarded: 4 });
 });
+
+const audit = join(root, 'scripts/audit-performance.mjs');
+
+// Runs audit:performance with Chrome pointed at a file that does not exist,
+// so a run that gets past its flag checks fails at once instead of loading a page.
+function runAudit(t, flags, { url = closedOrigin } = {}) {
+  const scratch = mkdtempSync(join(tmpdir(), 'devshark-audit-tools-'));
+  t.after(() => rmSync(scratch, { recursive: true, force: true }));
+  const output = join(scratch, 'performance');
+  const result = spawnSync(process.execPath, [audit, ...(url ? [`--url=${url}`] : []), ...flags, `--output=${output}`], {
+    cwd: root,
+    encoding: 'utf8',
+    timeout: 60_000,
+    env: { ...process.env, CHROME_PATH: join(scratch, 'no-such-chrome') },
+  });
+  return { ...result, output };
+}
+
+for (const [name, flags, mention, url] of [
+  ['a misspelt flag', ['--route=/learn'], /--route\b/],
+  ['a stray argument', ['learn'], /learn/],
+  ['a URL it cannot load', [], /--url/, 'ftp://example.test'],
+]) {
+  test(`audit:performance refuses ${name} before it creates the output folder`, (t) => {
+    const run = runAudit(t, flags, { url });
+    assert.equal(run.error, undefined, 'the process ran to its end');
+    assert.equal(run.status, 2, `exit code 2 (stderr: ${run.stderr.trim()})`);
+    assert.match(run.stderr, /Usage: /);
+    assert.match(run.stderr, mention);
+    assert.equal(existsSync(run.output), false, 'a refused run creates no output folder');
+  });
+}
