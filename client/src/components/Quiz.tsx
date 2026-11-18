@@ -50,6 +50,7 @@ import { announceVerifiedQuestXp, announceXpHeld, awardQuestXp, syncXpWithServer
 import { useGameConfig } from '../lib/gameConfig';
 import { ReportDialog } from './ReportDialog';
 import { capture } from '../lib/analytics';
+import { reportError } from '../lib/sentry';
 import { MotionPop, MotionItem } from '../lib/motion';
 import { RadioCardGroup, RadioCard } from './ui/RadioCards';
 import {
@@ -760,13 +761,14 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
             if (saved.xpHeld) announceXpHeld({ on: 'questions', count: saved.xpHeld.questions, availableAt: saved.xpHeld.availableAt });
             await syncXpWithServer({ announceRankUp: saved.applied });
           } catch (writeError) {
+            // apiFetch turns every HTTP and network failure into an ApiError,
+            // and the result screen already shows those (waiting to sync, or
+            // could not be saved). Anything else is a fault in this code:
+            // monitoring hears of it, the console does not.
+            if (!(writeError instanceof ApiError)) reportError(writeError, { during: recorded ? 'result-saved' : 'result-save' });
             if (accountEpoch() !== epoch) return;
             // A later XP refresh failure cannot undo a confirmed save.
-            if (recorded) {
-              console.error('Account refresh failed:', writeError);
-              return;
-            }
-            console.error('Stat write failed:', writeError);
+            if (recorded) return;
             // Refused (expired or invalid) can never be recorded: drop it and
             // say so. Anything else waits in the queue and is sent again.
             if (isReceiptRefused(writeError)) {
