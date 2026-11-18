@@ -391,7 +391,7 @@ test('audit:performance names each route\'s reports after its path', () => {
 
 test('audit:performance keeps CI\'s single page without --routes and resolves routes against --url', () => {
   const plain = lighthouse.resolveOptions({});
-  assert.deepEqual(plain, { url: 'http://localhost:4173', output: 'artifacts/performance', pages: [{ route: '/', url: 'http://localhost:4173', slug: null }] });
+  assert.deepEqual(plain, { url: 'http://localhost:4173', output: 'artifacts/performance', pages: [{ route: '/', url: 'http://localhost:4173', slug: null }], runs: 1 });
   const routes = lighthouse.resolveOptions({ url: 'https://devshark.app/learn', routes: '/,/topics/javascript-closures' });
   assert.deepEqual(routes.pages, [
     { route: '/', url: 'https://devshark.app/', slug: 'home' },
