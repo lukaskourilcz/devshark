@@ -13,6 +13,9 @@
 //
 // The measurement follows index.html the way a browser does on a first visit:
 // the entry script, its modulepreload links and its stylesheets, each gzipped.
+// The fonts index.html preloads download on the same visit; the check lists
+// them beside the budget with their file size (WOFF2 is compressed already)
+// and leaves them out of it.
 // It also lists the largest JavaScript and CSS chunks of the whole build
 // (ten unless --largest=N says otherwise), initial or lazy, under `largest`
 // in artifacts/bundle.json.
@@ -32,20 +35,27 @@ import { gzipSync } from 'node:zlib';
 
 const USAGE = 'Usage: node scripts/check-bundle.mjs [--largest=<n>]\n  --largest=<n>  how many of the largest chunks to list, a whole number from 1 to 100 (default 10)';
 
-// Every same-origin request index.html starts on its own: module entry,
-// modulepreload links and stylesheets, as paths under assets/.
+// Every same-origin request index.html starts on its own, as paths under
+// assets/: files holds the module entry, modulepreload links and
+// stylesheets the budget counts, fonts the <link rel="preload" as="font">
+// files it does not.
 export function initialRequests(html) {
-  const requests = [];
+  const files = [];
+  const fonts = [];
   for (const tag of html.match(/<(?:script|link)\b[^>]*>/g) ?? []) {
     const attr = (name) => tag.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1];
     const isEntry = tag.startsWith('<script') && attr('type') === 'module' && attr('src');
+    const isLink = tag.startsWith('<link');
     const rel = attr('rel');
-    const isPreload = tag.startsWith('<link') && (rel === 'modulepreload' || rel === 'stylesheet');
-    const url = isEntry ? attr('src') : isPreload ? attr('href') : undefined;
-    if (url && url.startsWith('/assets/')) requests.push(url.slice(1));
+    const isPreload = isLink && (rel === 'modulepreload' || rel === 'stylesheet');
+    const isFont = isLink && rel === 'preload' && attr('as') === 'font';
+    const url = isEntry ? attr('src') : isPreload || isFont ? attr('href') : undefined;
+    if (url && url.startsWith('/assets/')) (isFont ? fonts : files).push(url.slice(1));
   }
-  return [...new Set(requests)];
+  return { files: [...new Set(files)], fonts: [...new Set(fonts)] };
 }
+
+const bytes = (count) => count.toLocaleString('en-US');
 
 // Builds the production-shaped client, sizes it and removes it again.
 function measureBuild(largestCount) {
@@ -66,11 +76,13 @@ function measureBuild(largestCount) {
   }
 
   const html = readFileSync(`${outPath}/index.html`, 'utf8');
-  const files = initialRequests(html);
+  const { files, fonts } = initialRequests(html);
   if (files.length === 0) throw new Error(`No initial requests found in ${outPath}/index.html`);
 
   const sizes = files.map((file) => ({ file, gzipBytes: gzipSync(readFileSync(`${outPath}/${file}`)).byteLength }));
   const initialGzipBytes = sizes.reduce((sum, item) => sum + item.gzipBytes, 0);
+  const preloadedFonts = fonts.map((file) => ({ file, bytes: readFileSync(`${outPath}/${file}`).byteLength }));
+  const preloadedFontBytes = preloadedFonts.reduce((sum, item) => sum + item.bytes, 0);
   // The SDK starts during bootstrap even though it is a dynamic chunk. Budget
   // it separately so an open namespace cannot silently retain Replay/profiling.
   const monitoringFiles = readdirSync(`${outPath}/assets`).filter(name => /^sentry-sdk-.*\.js$/.test(name));
@@ -98,14 +110,18 @@ function measureBuild(largestCount) {
   };
 
   mkdirSync('artifacts', { recursive: true });
-  writeFileSync('artifacts/bundle.json', JSON.stringify({ configuration, initialGzipBytes, budget: budget.initialGzipBytes, monitoringGzipBytes, monitoringBudget: budget.monitoringGzipBytes, sizes, chunkCount, largest }, null, 2) + '\n');
+  writeFileSync('artifacts/bundle.json', JSON.stringify({ configuration, initialGzipBytes, budget: budget.initialGzipBytes, monitoringGzipBytes, monitoringBudget: budget.monitoringGzipBytes, sizes, preloadedFontBytes, preloadedFonts, chunkCount, largest }, null, 2) + '\n');
   rmSync(outPath, { recursive: true, force: true });
 
   console.log(`Measured a production-shaped build: ${configuration.product}, with placeholder ${placeholders.join(', ')}.`);
   for (const { file, gzipBytes } of [...sizes].sort((a, b) => b.gzipBytes - a.gzipBytes)) {
     console.log(`  ${String(gzipBytes).padStart(7)}  ${file}`);
   }
-  console.log(`Initial requests of index.html: ${files.length} files, ${initialGzipBytes} gzip bytes; budget ${budget.initialGzipBytes}. Lazy routes, the coding sandbox and fonts are measured separately by Lighthouse.`);
+  console.log(`Initial requests of index.html: ${files.length} files, ${initialGzipBytes} gzip bytes; budget ${budget.initialGzipBytes}. Lazy routes and the coding sandbox are measured separately by Lighthouse.`);
+  console.log(`Preloaded fonts: ${preloadedFonts.length} files, ${bytes(preloadedFontBytes)} bytes (not budgeted)`);
+  for (const { file, bytes: size } of preloadedFonts) {
+    console.log(`  ${String(size).padStart(7)}  ${file}`);
+  }
   console.log(`The ${largest.length} largest of ${chunkCount} JavaScript and CSS chunks, gzipped:`);
   for (const { file, gzipBytes, initial: first } of largest) {
     console.log(`  ${String(gzipBytes).padStart(7)}  ${file}${first ? '  (initial)' : ''}`);
