@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
 
 // P1.3 (docs/design/product-ux-audit.md): text painted on a coloured fill used

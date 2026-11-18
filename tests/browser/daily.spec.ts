@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
 
 // The marketing launch pages (#239): the public question of the day and the

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './console-clean';
 import { SUBJECT_SCOPE_CATALOG } from '../../shared/subject-catalog';
 
 for (const theme of ['light', 'dark'] as const) {

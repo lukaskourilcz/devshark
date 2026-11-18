@@ -1,5 +1,5 @@
 import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
 import { localAuth, storeFakeSession, userWith } from './fake-session';

@@ -1,5 +1,5 @@
 import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
 import { pathCatalog, roadmapStructure } from '../../scripts/responsive-fixtures';

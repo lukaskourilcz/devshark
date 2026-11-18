@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, allowConsoleErrors, type Page } from './console-clean';
 import { CODING_TASKS, playable } from '../../lib/coding/catalog';
 import { localAuth, storeFakeSession } from './fake-session';
 import { fulfilTaskRead, isTaskRead } from './coding-task-read';
@@ -15,6 +15,17 @@ const CODING_PAGE = /\/assets\/CodingSection-[\w-]+\.js$/;
 // A chunk the Coding page imports and the landing page does not load.
 const CODING_DEPENDENCY = /\/assets\/coding-catalog-[\w-]+\.js$/;
 const CODING_LINK = 'nav.ss-nav-center a[href="/coding"]';
+
+// What the console shows when a test drops a chunk on purpose. The route and
+// part boundaries catch the failed import, and React logs each error a
+// boundary caught (React 19's default onCaughtError). A chunk the Coding page
+// imports fails the page's own import, so that message names CodingSection.
+// Offline, the page's stylesheet fails first in Vite's preload helper.
+// Chromium logs a module answered with index.html itself. Each test allows
+// only the lines of the chunk it drops (console-clean.ts).
+const importFailed = (chunk: string) => new RegExp(`^TypeError: Failed to fetch dynamically imported module: \\S+/assets/${chunk}-[\\w-]+\\.js`);
+const CSS_PRELOAD_FAILED = /^Error: Unable to preload CSS for \/assets\/[\w-]+\.css/;
+const HTML_FOR_MODULE = /^Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "text\/html"/;
 
 async function prepare(page: Page, reducedMotion: 'reduce' | 'no-preference' = 'reduce') {
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -70,6 +81,7 @@ for (const { name, pattern } of [
   test(`${name} fails to load: the shell stays, the nav still works, Try again brings the page back`, async ({ page }) => {
     const { documents } = await prepare(page);
     const chunk = await dropChunk(page, pattern);
+    allowConsoleErrors(page, importFailed('CodingSection'));
 
     await page.locator(CODING_LINK).click();
     const panel = panelOf(page);
@@ -137,6 +149,7 @@ test('the account widget’s code fails to load: the header keeps a retry in its
   await localAuth(page);
   await storeFakeSession(page);
   const account = await dropChunk(page, /\/assets\/AuthButton-[\w-]+\.js$/);
+  allowConsoleErrors(page, importFailed('AuthButton'));
   const { documents } = await prepare(page);
   const retry = page.getByRole('button', { name: 'Account did not load. Try again' });
   await expect(retry).toBeVisible();
@@ -170,6 +183,7 @@ test('the upgrade sheet’s code fails to load: the sheet closes with a message,
     json: { error: { code: 'premium_required', message: 'Premium opens this', kind: 'coding-task', ref: TASK } },
   }));
   const sheet = await dropChunk(page, /\/assets\/UpgradeSheet-[\w-]+\.js$/);
+  allowConsoleErrors(page, importFailed('UpgradeSheet'));
 
   await page.goto(`/coding/javascript/${TASK}`);
   await expect(page.getByRole('alert').filter({ hasText: 'Network error. Check your connection and try again.' })).toBeVisible();
@@ -189,6 +203,7 @@ test('a second press for the upgrade sheet after its code failed asks the networ
     json: { error: { code: 'premium_required', message: 'Premium opens this', kind: 'coding-task', ref: TASK } },
   }));
   const sheet = await dropChunk(page, /\/assets\/UpgradeSheet-[\w-]+\.js$/);
+  allowConsoleErrors(page, importFailed('UpgradeSheet'));
 
   // The 402 opens the sheet, its code fails, and the page says why.
   await page.goto(`/coding/javascript/${TASK}`);
@@ -216,6 +231,7 @@ test('the friends tab’s code fails to load: the profile stays, and Retry bring
   // A learner with no stats yet; every other read answers 503.
   await page.route((url) => url.pathname === '/api/user/stats', (route) => route.fulfill({ json: { data: null } }));
   const friends = await dropChunk(page, /\/assets\/FriendsPanel-[\w-]+\.js$/);
+  allowConsoleErrors(page, importFailed('FriendsPanel'));
 
   await page.goto('/profile');
   await page.getByRole('tab', { name: 'Friends' }).click();
@@ -328,6 +344,7 @@ test('a supabase-js download that fails on a sign-in click neither reloads nor r
 test('offline: no reload, and the page comes back with the connection, without a press', async ({ page, context }) => {
   const { documents } = await prepare(page);
   await context.setOffline(true);
+  allowConsoleErrors(page, CSS_PRELOAD_FAILED, importFailed('CodingSection'));
   await page.locator(CODING_LINK).click();
   const panel = panelOf(page);
   await expect(panel).toContainText('Network error');
@@ -346,12 +363,13 @@ test('offline: no reload, and the page comes back with the connection, without a
 // with a 404 that no cache keeps (vercel.json), `vite preview` with index.html,
 // as devshark.app did before HARDEN.
 const GONE = [
-  { answer: 'a 404 that no cache keeps', fulfill: () => ({ status: 404, contentType: 'text/plain; charset=utf-8', headers: { 'cache-control': 'no-store' }, body: 'The page could not be found\n\nNOT_FOUND\n' }) },
-  { answer: 'index.html', fulfill: (index: string) => ({ status: 200, contentType: 'text/html; charset=utf-8', body: index }) },
+  { answer: 'a 404 that no cache keeps', fulfill: () => ({ status: 404, contentType: 'text/plain; charset=utf-8', headers: { 'cache-control': 'no-store' }, body: 'The page could not be found\n\nNOT_FOUND\n' }), logs: [importFailed('CodingSection')] },
+  { answer: 'index.html', fulfill: (index: string) => ({ status: 200, contentType: 'text/html; charset=utf-8', body: index }), logs: [importFailed('CodingSection'), HTML_FOR_MODULE] },
 ];
 
-for (const { answer, fulfill } of GONE) test(`a newer build on the server reloads once when the old chunk answers ${answer}; the loop guard then keeps the panel until Try again`, async ({ page }) => {
+for (const { answer, fulfill, logs } of GONE) test(`a newer build on the server reloads once when the old chunk answers ${answer}; the loop guard then keeps the panel until Try again`, async ({ page }) => {
   const { documents } = await prepare(page);
+  allowConsoleErrors(page, ...logs);
   const index = await (await page.request.get('/')).text();
   const entry = index.match(/\/assets\/main-[\w-]+\.js/)?.[0];
   expect(entry, 'the entry script in index.html').toBeTruthy();
@@ -382,4 +400,37 @@ for (const { answer, fulfill } of GONE) test(`a newer build on the server reload
   await panel.getByRole('button', { name: 'Try again' }).click();
   await expect(codingHeading(page)).toBeVisible();
   expect(documents.length).toBeGreaterThanOrEqual(2);
+});
+
+test('a newer build on the server: the old chunk answers a 404 that no cache keeps, the page reloads once into the new build and draws without a press', async ({ page }) => {
+  const { documents } = await prepare(page);
+  const index = await (await page.request.get('/')).text();
+  const entry = index.match(/\/assets\/main-[\w-]+\.js/)?.[0];
+  expect(entry, 'the entry script in index.html').toBeTruthy();
+
+  // A deploy replaced the build: the old Coding chunk is gone, and a fresh
+  // index.html names another entry script. The reload's document is the new
+  // build, in which the Coding chunk exists.
+  let deployed = true;
+  await page.route(CODING_PAGE, (route) => (deployed
+    ? route.fulfill(GONE[0].fulfill(index))
+    : route.continue()));
+  await page.route((url) => url.pathname === '/', (route) => (deployed && route.request().resourceType() === 'fetch'
+    ? route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: index.replace(entry!, '/assets/main-NEWBUILD.js') })
+    : route.continue()));
+  await page.route((url) => url.pathname === '/coding', (route) => {
+    if (route.request().resourceType() === 'document') deployed = false;
+    return route.continue();
+  });
+
+  await page.locator(CODING_LINK).click();
+  await expect(codingHeading(page)).toBeVisible();
+  expect(documents).toHaveLength(2);
+  await expect(page).toHaveURL(/\/coding$/);
+  await expect(panelOf(page)).toHaveCount(0);
+  await expectShell(page);
+  // Drawn, it stays: no second reload follows.
+  await page.waitForTimeout(600);
+  expect(documents).toHaveLength(2);
+  await expect(codingHeading(page)).toBeVisible();
 });

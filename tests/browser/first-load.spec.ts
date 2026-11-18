@@ -1,4 +1,4 @@
-import { test, expect, type Page, type Route } from '@playwright/test';
+import { test, expect, type Page, type Route } from './console-clean';
 import { localAuth, storeFakeSession } from './fake-session';
 
 // The first frame of a visit already has the shell's final geometry.

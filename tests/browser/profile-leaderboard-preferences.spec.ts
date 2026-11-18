@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './console-clean';
 import { readFileSync } from 'node:fs';
 import { fakeUser, localAuth, storeFakeSession } from './fake-session';
 

@@ -12,6 +12,7 @@ import { addFlashcard, removeFlashcard, type Flashcard } from './flashcards';
 import { flashcardsQuery } from './queries';
 import { useSubject } from './subjects';
 import { addBookmark, removeBookmark, useBookmarks } from './bookmarks';
+import { accountEpoch } from './accountData';
 
 /** A graded question, as every surface that shows an explanation has it. */
 export interface GradedQuestion {
@@ -42,6 +43,14 @@ function restoreCard(deck: Flashcard[] | undefined, previous: Flashcard[], id: s
   return next;
 }
 
+// A save or removal still on the wire when the learner logs out, or another
+// account signs in, must not answer into the next account's deck or this
+// device's bookmarks: emptying the cache does not stop a mutation already
+// sent. onMutate notes the account epoch (lib/accountData.ts) first, and
+// every later step checks it.
+interface Sent { epoch: number; previous?: Flashcard[] }
+const sameAccount = (sent: Sent | undefined): sent is Sent => sent?.epoch === accountEpoch();
+
 /** Save a card, optimistically: it is in the deck at once, and back out if
  * the server refuses. The device's own bookmark list follows, so Profile and
  * the bookmark badge agree with the deck. */
@@ -57,8 +66,10 @@ export function useSaveSharkCard() {
       correct_answer: card.correct_answer,
       explanation: card.explanation,
     }),
-    onMutate: async (card) => {
+    onMutate: async (card): Promise<Sent> => {
+      const epoch = accountEpoch();
       await queryClient.cancelQueries({ queryKey: key });
+      if (epoch !== accountEpoch()) return { epoch };
       const previous = queryClient.getQueryData<Flashcard[]>(key);
       // Only a deck that was read is updated: a guess at an unread deck would
       // stand in for the real one.
@@ -68,9 +79,10 @@ export function useSaveSharkCard() {
           ...previous.filter((one) => one.question_id !== card.question_id),
         ]);
       }
-      return { previous };
+      return { epoch, previous };
     },
-    onSuccess: (_data, card) => {
+    onSuccess: (_data, card, sent) => {
+      if (!sameAccount(sent)) return;
       addBookmark({
         id: card.question_id,
         question: card.question,
@@ -80,13 +92,14 @@ export function useSaveSharkCard() {
         explanation: card.explanation ?? '',
       });
     },
-    onError: (_error, card, context) => {
-      if (context?.previous) {
-        const previous = context.previous;
-        queryClient.setQueryData<Flashcard[]>(key, (deck) => restoreCard(deck, previous, card.question_id));
-      }
+    onError: (_error, card, sent) => {
+      if (!sameAccount(sent) || !sent.previous) return;
+      const previous = sent.previous;
+      queryClient.setQueryData<Flashcard[]>(key, (deck) => restoreCard(deck, previous, card.question_id));
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
+    onSettled: (_data, _error, _card, sent) => {
+      if (sameAccount(sent)) return queryClient.invalidateQueries({ queryKey: key });
+    },
   });
 }
 
@@ -98,18 +111,21 @@ export function useRemoveSharkCard() {
   const key = flashcardsQuery(subject).queryKey;
   return useMutation({
     mutationFn: (questionId: string) => removeFlashcard(questionId),
-    onMutate: async (questionId) => {
+    onMutate: async (questionId): Promise<Sent> => {
+      const epoch = accountEpoch();
       await queryClient.cancelQueries({ queryKey: key });
+      if (epoch !== accountEpoch()) return { epoch };
       const previous = queryClient.getQueryData<Flashcard[]>(key);
       if (previous) queryClient.setQueryData<Flashcard[]>(key, previous.filter((one) => one.question_id !== questionId));
-      return { previous };
+      return { epoch, previous };
     },
-    onSuccess: (_data, questionId) => removeBookmark(questionId),
-    onError: (_error, id, context) => {
-      if (context?.previous) {
-        const previous = context.previous;
-        queryClient.setQueryData<Flashcard[]>(key, (deck) => restoreCard(deck, previous, id));
-      }
+    onSuccess: (_data, questionId, sent) => {
+      if (sameAccount(sent)) removeBookmark(questionId);
+    },
+    onError: (_error, id, sent) => {
+      if (!sameAccount(sent) || !sent.previous) return;
+      const previous = sent.previous;
+      queryClient.setQueryData<Flashcard[]>(key, (deck) => restoreCard(deck, previous, id));
     },
   });
 }
