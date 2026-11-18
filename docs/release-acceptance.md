@@ -7009,3 +7009,44 @@ check:bundle on this branch, production-shaped build (`VITE_PRODUCT=devshark`, `
 - check:bundle `--url`: F1-17 is not implemented.
 
 The rest of F1 (F1-17 to F1-36, F1-40, F1-44, F1-45 and F1-46: the cold-start tool, the image inventory and every production baseline record) is in #646 for the next agent.
+
+## Epic F2 part 2: Dependencies, advisories and update automation (18 November 2026)
+
+Part 2 ran on `claude/f2b-dependencies-advisories`, stacked on the first-run branch that merged as #651. The owner stopped the run at 22:27 to hand Epic F to another agent. By then the branch held four commits, one per finding, all in `client/package.json` and `client/package-lock.json`. The closeout review found no regression and added no commit.
+
+| Finding | Change | Commit |
+|---|---|---|
+| F2-08 | prettier 3.9.6 to 3.9.10 for GHSA-4cm8-f57v-mqm6 (production; Storybook's copy dedupes to it) | `0c76d59d` |
+| F2-09 | dompurify 3.4.17 to 3.4.18 under posthog-js for GHSA-qm7q-q8h9-jg8q, lockfile only | `94374ff5` |
+| F2-13 | open 11.0.0 to 11.0.4 under rollup-plugin-visualizer, lifting powershell-utils 0.1.0 to 0.2.1 (GHSA-x2gq-3jjh-794h, dev only) and wsl-utils 0.3.1 to 1.0.1 | `e2086e25` |
+| F2-14 | jsdom ^30.1.3 and `@types/jsdom` ^30.0.0 in the client's devDependencies, so client tests load `client/node_modules/jsdom` 30.1.3 instead of the grader's root 30.0.1 | `431930bf` |
+
+| Measure | First-run head | Part-2 head `431930bf` |
+|---|---|---|
+| `npm audit --omit=dev`, root and client | 0 and 0 | 0 and 0 |
+| `npm audit`, root and client | 0 and 0 | 0 and 0 |
+| Client lockfile entries | 633 | 670 |
+| Client entries without `dev: true` | 215 | 215 |
+| `npm run audit:upstream` | 12 advisories on 19 installed versions (16 production) | 9 advisories on 16 versions (14 production) |
+| Client matches in `audit:upstream` | 4: prettier, dompurify, powershell-utils, tldts | 1: tldts 7.4.12 (dev) |
+| `check:bundle` initial requests | 235,520 gzip bytes | 235,522 gzip bytes (budget 241,651) |
+
+Checks on `431930bf`, Node 22.23.4 and npm 10.9.9:
+
+| Check | Result |
+|---|---|
+| `git diff --check` against the first-run branch | clean |
+| `npm ci --dry-run --prefix client`, `npm ls` in root and client | pass, no errors |
+| `npm run check:security`, `npm run check:unused` | pass; knip reports 0 findings |
+| `typecheck:api`, `typecheck:scripts`, `typecheck:tooling --prefix client` | pass |
+| Client vitest `tests/coding-actions.test.tsx`, `tests/utc-day.test.tsx` | 16 tests pass |
+| `npm run build` with the CI env, then `check:bundle` | pass |
+| `ANALYZE=true npm run build --prefix client` | writes `dist/bundle-stats.html` and `bundle-stats.json` |
+| `npm run test:client` | 1,903 tests in 193 files pass |
+| `npm run test:launch` | pass, run without the client build env as CI runs it |
+| `npm run test:coding` | pass: 814 tasks, 769 issued, solutions proven, payloads answer-free |
+| `npm run build:storybook` and `tests/browser/storybook.spec.ts` | pass, 6 tests |
+
+Not run: `check:quickjs-build` needs emsdk and Python 3.10, which the audit machine lacks. The quality workflow's quickjs job runs it because the client lockfile changed and `scripts/rebuild-quickjs-sort.mjs` loads the client's prettier. `test:sql` had no SQL to test. The main browser suite and `check:responsive` were skipped because no route, markup or style changed.
+
+The other 26 part-2 findings (F2-10 to F2-12, F2-15 to F2-36 and F2-46) and the eight owner and cross-package F2 items stay unticked in #646 for the next agent, starting with F2-10.
