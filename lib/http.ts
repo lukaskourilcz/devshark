@@ -27,12 +27,29 @@ const IS_PROD =
 const SERVER_SIDE_AUTH = { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: timedSupabaseFetch } } as const;
 const requestContext = new AsyncLocalStorage<{ requestId: string; memo?: Map<string, Promise<unknown>> }>();
 
-function incomingRequestId(req: VercelRequest): string {
-  const raw = req.headers['x-request-id'] ?? req.headers['x-vercel-id'];
+const REQUEST_ID = /^[A-Za-z0-9._:/-]{6,128}$/;
+
+function headerId(req: VercelRequest, name: string): { sent: boolean; id: string | undefined } {
+  const raw = req.headers?.[name];
   const value = Array.isArray(raw) ? raw[0] : raw;
-  return typeof value === 'string' && /^[A-Za-z0-9._:/-]{6,128}$/.test(value)
-    ? value
-    : randomUUID();
+  return { sent: value !== undefined, id: typeof value === 'string' && REQUEST_ID.test(value) ? value : undefined };
+}
+
+/**
+ * The id a request's logs and errors carry. Vercel sets x-vercel-id on every
+ * request, and it wins: X-Request-Id is the caller's choice (the browser
+ * sends none), and taking it first let a script stamp its log lines, the
+ * admin audit lines among them, with another request's id. Where Vercel
+ * sets none (local, Docker) the caller's id is kept. A well-formed caller id
+ * that differs from the one chosen is returned as `clientRequestId`, for the
+ * request line to log beside it.
+ */
+function incomingRequestIds(req: VercelRequest): { requestId: string; clientRequestId?: string } {
+  const vercel = headerId(req, 'x-vercel-id');
+  const client = headerId(req, 'x-request-id').id;
+  if (!vercel.sent) return { requestId: client ?? randomUUID() };
+  const requestId = vercel.id ?? randomUUID();
+  return client && client !== requestId ? { requestId, clientRequestId: client } : { requestId };
 }
 
 /** The largest body a request may declare. The biggest legitimate one is a
@@ -99,7 +116,7 @@ export function withRequestContext<T>(
   res: VercelResponse,
   run: () => T,
 ): Promise<Awaited<T> | VercelResponse | void> {
-  const requestId = incomingRequestId(req);
+  const { requestId, clientRequestId } = incomingRequestIds(req);
   res.setHeader('X-Request-Id', requestId);
   // Most answers are about the caller (stats, XP, a wallet, a room's host view
   // with its answers), so none is stored by a shared cache unless its handler
@@ -156,6 +173,7 @@ export function withRequestContext<T>(
       return jsonError(res, 500, 'internal_error', 'Internal error');
     } finally {
       logEvent('request', {
+        ...(clientRequestId ? { client_request_id: clientRequestId } : {}),
         method: req.method ?? 'UNKNOWN',
         path: req.url?.split('?')[0] ?? 'unknown',
         status: res.statusCode ?? 200,
