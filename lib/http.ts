@@ -35,6 +35,29 @@ function incomingRequestId(req: VercelRequest): string {
     : randomUUID();
 }
 
+/**
+ * Whether the request's body cannot be read. Vercel's Node runtime parses the
+ * body on its first read, from a getter (@vercel/node `setLazyProp`), and
+ * throws from that read: ApiError(400, 'Invalid JSON') for broken JSON and,
+ * from the content-type parser, a TypeError for a malformed Content-Type, on
+ * any method and for an empty body too. The getter keeps no failure, so
+ * every later read throws again, and a handler, `requireAuth`'s local
+ * fallback or the admin password check met it and answered 500. Reading it
+ * once here costs nothing more: an empty body parses to '' or {} and a
+ * handler reads the value this read leaves behind. Any other failure is
+ * thrown on to the 500 path.
+ */
+function unreadableBody(req: VercelRequest): boolean {
+  try {
+    void req.body;
+    return false;
+  } catch (error) {
+    if (error instanceof TypeError) return true;
+    if (error && typeof error === 'object' && (error as { statusCode?: unknown }).statusCode === 400) return true;
+    throw error;
+  }
+}
+
 /** Give every handler/log/error a correlation id without logging request bodies. */
 export function withRequestContext<T>(
   req: VercelRequest,
@@ -51,6 +74,16 @@ export function withRequestContext<T>(
   const started = Date.now();
   return requestContext.run({ requestId }, () => withServerTiming(res, async () => {
     try {
+      if (unreadableBody(req)) {
+        logEvent('request', {
+          level: 'warn',
+          method: req.method ?? 'UNKNOWN',
+          path: req.url?.split('?')[0] ?? 'unknown',
+          status: 400,
+          category: 'invalid_body',
+        });
+        return jsonError(res, 400, 'bad_request', 'The request body is not valid JSON');
+      }
       return await run();
     } catch (error) {
       // A refusal of locked content is an answer, not a failure.
