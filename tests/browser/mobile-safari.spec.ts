@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { test, expect, type Page } from './console-clean';
-import { codingTaskRead } from '../../scripts/responsive-fixtures';
+import { codingTaskRead, pathCatalog, roadmapStructure } from '../../scripts/responsive-fixtures';
+import { localAuth, storeFakeSession } from './fake-session';
 
 const settings = JSON.parse(readFileSync('tests/fixtures/api-settings.json', 'utf8'));
 const codingCss = resolve('client/src/coding/Coding.css');
@@ -31,6 +32,36 @@ async function openEditor(page: Page) {
   const useEditor = page.getByRole('button', { name: 'Use the editor here', exact: true });
   if (await useEditor.isVisible()) await useEditor.click();
   await expect(page.locator('.cm-content')).toBeVisible();
+}
+
+async function openProfile(page: Page) {
+  await prepare(page);
+  // Reuse the responsive runner's invented learner and wire bodies. A
+  // variable import keeps the native .mjs helper outside TS's module graph.
+  const fixturePath = resolve('scripts/check-responsive.mjs');
+  const { apiFixture, fixtureSession } = await import(fixturePath);
+  const user = fixtureSession().user;
+  await storeFakeSession(page, user);
+  await localAuth(page, { user: () => user });
+  const misses: string[] = [];
+  await page.route('**/api/**', (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (url.pathname === '/api/quiz/roadmap' && url.searchParams.get('resource') === 'learning-path-catalog') {
+      return route.fulfill({ json: pathCatalog() });
+    }
+    if (url.pathname === '/api/quiz/roadmap' && !url.searchParams.has('resource')) {
+      return route.fulfill({ json: roadmapStructure() });
+    }
+    const fixture = apiFixture(request.method(), url);
+    if (fixture) return route.fulfill({ status: fixture.status, json: fixture.body });
+    misses.push(`${request.method()} ${url.pathname}${url.search}`);
+    return route.fulfill({ status: 503, json: { error: { code: 'offline', message: 'Local browser fixture missing' } } });
+  });
+  await page.goto('/profile');
+  await expect(page.locator('.sn-card input.sn-input')).toBeVisible();
+  await expect(page.locator('.sn-card input[type="radio"]')).toHaveCount(4);
+  return misses;
 }
 
 async function editorFonts(page: Page) {
@@ -138,6 +169,45 @@ test.describe('touch editor typography', () => {
     await expect(dialog).toBeHidden();
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(trigger).toBeFocused();
+  });
+
+  test('the Profile sharkname input provides a 44px actual field target', async ({ page }) => {
+    const misses = await openProfile(page);
+    const field = page.getByRole('textbox', { name: 'Sharkname', exact: true });
+    await field.scrollIntoViewIfNeeded();
+    const bounds = await field.boundingBox();
+    expect(bounds!.width).toBeGreaterThanOrEqual(44);
+    expect(bounds!.height).toBeGreaterThanOrEqual(44);
+    await field.focus();
+    await expect(field).toBeFocused();
+    expect(misses).toEqual([]);
+  });
+
+  test('Profile radio labels provide 44px targets without enlarging the visual radio', async ({ page }) => {
+    const misses = await openProfile(page);
+    const radios = page.locator('.sn-card input[type="radio"]');
+    const geometry = await radios.evaluateAll((elements) => elements.map((input) => {
+      const radio = input as HTMLInputElement;
+      const wrapper = radio.parentElement!.getBoundingClientRect();
+      const mark = radio.parentElement!.querySelector('[aria-hidden="true"]')!.getBoundingClientRect();
+      const targets = [radio, ...(radio.labels ?? [])].map((target) => {
+        const bounds = target.getBoundingClientRect();
+        return { width: bounds.width, height: bounds.height };
+      });
+      return { name: [...(radio.labels ?? [])].map((label) => label.textContent).join(' '), wrapper: { width: wrapper.width, height: wrapper.height }, mark: { width: mark.width, height: mark.height }, targets };
+    }));
+    for (const radio of geometry) {
+      expect(radio.targets.some((target) => target.width >= 44 && target.height >= 44), JSON.stringify(radio)).toBe(true);
+      expect(radio.wrapper).toEqual({ width: 24, height: 24 });
+      expect(radio.mark).toEqual({ width: 22, height: 22 });
+    }
+    const checked = page.locator('.sn-see input[type="radio"]:checked');
+    const label = page.locator('.sn-see label').filter({ hasText: /^Sharkname$/ }).first();
+    const labelBounds = await label.boundingBox();
+    await label.click({ position: { x: labelBounds!.width / 2, y: labelBounds!.height - 2 } });
+    await expect(checked).toBeFocused();
+    await expect(checked).toBeChecked();
+    expect(misses).toEqual([]);
   });
 });
 
