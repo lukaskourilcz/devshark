@@ -2,7 +2,7 @@
 // where its explanation was shown, reviewed later as a card that explains the
 // topic. Invented cards; the wire shape is the real /api/flashcards one.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, renderHook, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { readFileSync } from 'node:fs';
 import { http, HttpResponse } from 'msw';
@@ -13,6 +13,8 @@ import Flashcards from '../src/components/Flashcards';
 import Collection from '../src/components/Collection';
 import { SaveSharkCard } from '../src/components/SaveSharkCard';
 import type { Flashcard } from '../src/lib/flashcards';
+import { useRemoveSharkCard, useSaveSharkCard } from '../src/lib/sharkCards';
+import { clearAccountData } from '../src/lib/accountData';
 import { server } from './mocks/server';
 
 const auth = vi.hoisted(() => ({ value: { user: null as { id: string } | null, isAuthenticated: false, isLoading: false } }));
@@ -486,5 +488,88 @@ describe('Save as Shark Card', () => {
   it('renders nothing for a signed-out visitor', async () => {
     await mount(<SaveSharkCard question={question} correctIndex={0} explanation="Why" />);
     expect(screen.queryByRole('button')).toBeNull();
+  });
+});
+
+// A save or a removal still on the wire when the learner logs out, or another
+// account signs in, answers into the next account's page. lib/auth.tsx empties
+// the query cache and clearAccountData empties this device's lists, but
+// neither stops a mutation already sent, so its callbacks must check the
+// account epoch themselves.
+describe('a Shark Card answer that arrives after the account changed', () => {
+  const DECK = ['flashcards', 'webdev'];
+  const NEXT_ACCOUNT_CARD: Flashcard = {
+    question_id: 'rm-css-4', question: 'Which unit follows the root font size?', category: 'css',
+    correct_answer: 'rem', explanation: null, created_at: '2026-10-02T09:00:00Z',
+  };
+  /** What lib/auth.tsx does on a Log out or another account's sign-in. */
+  const changeAccount = (client: QueryClient) => {
+    clearAccountData();
+    client.clear();
+  };
+  const hookWrapper = (client: QueryClient) => ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  );
+  /** Holds one request to /api/flashcards until the test answers it. */
+  function holdFlashcards(method: 'post' | 'delete') {
+    const held: { answer?: (response: Response) => void } = {};
+    server.use(http[method]('*/api/flashcards', () => new Promise<Response>((resolve) => { held.answer = resolve; })));
+    return held;
+  }
+
+  it('writes nothing to the next account\'s deck or bookmarks when a save lands late', async () => {
+    const held = holdFlashcards('post');
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(DECK, [QUIZ_CARD]);
+    const { result } = renderHook(() => useSaveSharkCard(), { wrapper: hookWrapper(client) });
+    act(() => {
+      result.current.mutate({ ...LEARN_CARD, options: ['"object"', '"null"'], correctIndex: 0 });
+    });
+    await waitFor(() => expect(held.answer).toBeDefined());
+
+    changeAccount(client);
+    client.setQueryData(DECK, [NEXT_ACCOUNT_CARD]);
+    await act(async () => { held.answer!(HttpResponse.json({ card: LEARN_CARD })); });
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+
+    expect(localStorage.getItem('devquiz:bookmarks')).toBeNull();
+    expect(localStorage.getItem('devquiz:bookmarked-questions')).toBeNull();
+    expect(client.getQueryData(DECK)).toEqual([NEXT_ACCOUNT_CARD]);
+  });
+
+  it('puts no card of the previous account into the next account\'s deck when a removal fails late', async () => {
+    const held = holdFlashcards('delete');
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(DECK, [QUIZ_CARD, LEARN_CARD]);
+    const { result } = renderHook(() => useRemoveSharkCard(), { wrapper: hookWrapper(client) });
+    act(() => { result.current.mutate(QUIZ_CARD.question_id); });
+    await waitFor(() => expect(held.answer).toBeDefined());
+    expect(client.getQueryData(DECK)).toEqual([LEARN_CARD]);
+
+    changeAccount(client);
+    client.setQueryData(DECK, [NEXT_ACCOUNT_CARD]);
+    await act(async () => {
+      held.answer!(HttpResponse.json({ error: { code: 'db_error', message: 'Could not remove card' } }, { status: 500 }));
+    });
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+
+    expect(client.getQueryData(DECK)).toEqual([NEXT_ACCOUNT_CARD]);
+  });
+
+  it('keeps the next account\'s bookmark of the same question when a removal succeeds late', async () => {
+    const held = holdFlashcards('delete');
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(DECK, [QUIZ_CARD]);
+    const { result } = renderHook(() => useRemoveSharkCard(), { wrapper: hookWrapper(client) });
+    act(() => { result.current.mutate(QUIZ_CARD.question_id); });
+    await waitFor(() => expect(held.answer).toBeDefined());
+
+    changeAccount(client);
+    // The next learner saved the same question on this device.
+    localStorage.setItem('devquiz:bookmarks', JSON.stringify({ [QUIZ_CARD.question_id]: true }));
+    await act(async () => { held.answer!(HttpResponse.json({ ok: true })); });
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+
+    expect(JSON.parse(localStorage.getItem('devquiz:bookmarks') ?? '{}')).toEqual({ [QUIZ_CARD.question_id]: true });
   });
 });
