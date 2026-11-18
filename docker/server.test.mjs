@@ -5,15 +5,30 @@ import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { request } from 'node:http';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { createInterface } from 'node:readline';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import { headerNames, readVercelConfig, vercelAnswer } from '../scripts/vercel-headers.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 
-async function startAdapter(t) {
+// A built client in miniature: one file of each kind vercel.json routes.
+const APP_DOCUMENT = '<!doctype html><title>devShark fixture app</title>\n';
+const SITE = {
+  'index.html': APP_DOCUMENT,
+  'assets/main-x.js': 'export {};\n',
+  'assets/main-x.js.map': '{"version":3,"sources":[],"mappings":""}\n',
+  'assets/coding-worker/worker-x.js': 'self.onmessage = () => {};\n',
+  'sandbox/index.html': '<!doctype html><title>sandbox fixture</title>\n',
+  'sandbox/assets/index-x.js': 'export {};\n',
+  'brand/x.svg': '<svg xmlns="http://www.w3.org/2000/svg"/>\n',
+  'premium/index.html': '<!doctype html><title>premium fixture</title>\n',
+  'coding/javascript/js-double-numbers/index.html': '<!doctype html><title>task fixture</title>\n',
+};
+
+async function startAdapter(t, { files = {} } = {}) {
   const scratch = await mkdtemp(join(tmpdir(), 'devshark-docker-test-'));
   t.after(() => rm(scratch, { recursive: true, force: true }));
   const handlers = join(scratch, 'docker/dist/api');
@@ -21,9 +36,11 @@ async function startAdapter(t) {
     mkdir(join(scratch, 'client/dist'), { recursive: true }),
     mkdir(handlers, { recursive: true }),
   ]);
+  await Promise.all(Object.keys(files).map((file) => mkdir(dirname(join(scratch, 'client/dist', file)), { recursive: true })));
   await Promise.all([
     ...['docker/server.mjs', 'package.json', 'vercel.json'].map((file) =>
       copyFile(join(root, file), join(scratch, file))),
+    ...Object.entries(files).map(([file, body]) => writeFile(join(scratch, 'client/dist', file), body)),
     writeFile(join(handlers, 'manifest.json'), '["probe.cjs"]'),
     build({
       stdin: {
@@ -68,11 +85,11 @@ async function startAdapter(t) {
     once(lines, 'line', { signal: AbortSignal.timeout(5_000) }),
     closed.then(([code]) => { throw new Error(`Docker adapter exited with code ${code}`); }),
   ]);
-  return `http://127.0.0.1:${port}/api/probe`;
+  return `http://127.0.0.1:${port}`;
 }
 
 test('Docker API uses the peer address even when a client spoofs proxy headers', async (t) => {
-  const url = await startAdapter(t);
+  const url = `${await startAdapter(t)}/api/probe`;
   const statuses = [];
   for (const headers of [
     { 'x-forwarded-for': '192.0.2.1' },
@@ -90,7 +107,7 @@ test('Docker API uses the peer address even when a client spoofs proxy headers',
 });
 
 test('Docker API answers 413 as soon as a body crosses the limit', async (t) => {
-  const url = await startAdapter(t);
+  const url = `${await startAdapter(t)}/api/probe`;
   const limit = 4.5 * 1024 * 1024;
   const atLimit = await fetch(url, {
     method: 'POST',
@@ -122,4 +139,36 @@ test('Docker API answers 413 as soon as a body crosses the limit', async (t) => 
     req.write(oversized);
   });
   assert.deepEqual(chunked, [413, 'close']);
+});
+
+// The adapter reads vercel.json itself, so a header rule cannot be missing
+// from it, but the phases can: which rules run before the filesystem check,
+// which only once a file matched, and what answers a path with no file.
+// scripts/vercel-headers.mjs models Vercel's answer from the same vercel.json.
+test('Docker answers each path with the headers vercel.json gives it on Vercel', async (t) => {
+  const origin = await startAdapter(t, { files: SITE });
+  const config = readVercelConfig(root);
+  const names = headerNames(config);
+  const isFile = (pathname) => Object.hasOwn(SITE, pathname.slice(1));
+  const paths = [
+    '/', '/premium', '/coding/javascript/js-double-numbers',
+    ...Object.keys(SITE).map((file) => `/${file}`),
+    '/cs/topics', '/roadmap/specializations/fde', '/assets/missing-x.js', '/api/probe',
+  ];
+  for (const pathname of paths) {
+    const expected = vercelAnswer(config, pathname, isFile);
+    const response = await fetch(origin + pathname, { redirect: 'manual', signal: AbortSignal.timeout(5_000) });
+    await response.arrayBuffer();
+    if (expected.status !== null) assert.equal(response.status, expected.status, `${pathname} (${expected.ends}): status`);
+    for (const name of names) {
+      const actual = response.headers.get(name) ?? undefined;
+      if (name === 'cache-control' && expected.headers[name] === undefined) {
+        // vercel.json leaves this one to the server: Vercel sends
+        // public, max-age=0, must-revalidate, the adapter no-cache on HTML.
+        assert.ok(actual === undefined || actual === 'no-cache', `${pathname}: vercel.json sets no Cache-Control, the adapter sent ${actual}`);
+        continue;
+      }
+      assert.equal(actual, expected.headers[name], `${pathname} (${expected.ends}): ${name}`);
+    }
+  }
 });
