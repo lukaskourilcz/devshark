@@ -388,11 +388,47 @@ export function isDistributedRateLimitEnabled(): boolean {
 // One Ratelimit instance per config.key (per warm instance).
 type UpstashLimiter = { limit: (id: string) => Promise<{ success: boolean; reset: number }> };
 const limiterCache = new Map<string, UpstashLimiter>();
-let redisClient: unknown | null | undefined; // undefined = not tried yet
+type RedisClient = { ping: () => Promise<unknown> };
+let redisClient: Promise<RedisClient | null> | undefined; // undefined = not tried yet
 /** The packages failed to import or the client failed to build on this
  * instance. Upstash is configured, so this is an outage, not local
  * development: closed buckets refuse, and nothing retries the import. */
 let limiterStartFailed = false;
+
+/** Record a failed start, and say so once: every request falls back for the
+ * life of the instance. */
+function noteStartFailed(error: unknown): void {
+  if (limiterStartFailed) return;
+  limiterStartFailed = true;
+  logEvent('rate-limit', { level: 'error', reason: 'limiter_init_failed', error: error instanceof Error ? error.name : typeof error });
+}
+
+/** The instance's one Redis client, built on first use; null without
+ * Upstash, or after it failed to start. */
+function getRedis(): Promise<RedisClient | null> {
+  if (!isDistributedRateLimitEnabled() || limiterStartFailed) return Promise.resolve(null);
+  redisClient ??= (async () => {
+    try {
+      // Optional deps: `@ts-ignore` covers the "package not installed" case,
+      // and the `as any` casts keep the block from hard-coupling to Upstash's
+      // types (which may or may not be resolvable at typecheck time).
+      // @ts-ignore — optional dependency, resolved at runtime in production
+      const Redis = ((await import('@upstash/redis')) as any).Redis;
+      return new Redis({
+        url: UPSTASH_URL as string,
+        token: UPSTASH_TOKEN as string,
+        // Abort the fetch as well as the caller's wait. A disconnected
+        // response can be ambiguous, so never retry a bucket mutation.
+        signal: () => AbortSignal.timeout(LIMITER_DEADLINE_MS),
+        retry: { retries: 0 },
+      }) as RedisClient;
+    } catch (error) {
+      noteStartFailed(error);
+      return null;
+    }
+  })();
+  return redisClient;
+}
 
 async function getUpstashLimiter(config: RateLimitConfig): Promise<UpstashLimiter | null> {
   if (!isDistributedRateLimitEnabled() || limiterStartFailed) return null;
@@ -400,31 +436,17 @@ async function getUpstashLimiter(config: RateLimitConfig): Promise<UpstashLimite
   if (cached) return cached;
 
   try {
-    // Optional deps: `@ts-ignore` covers the "package not installed" case, and
-    // the `as any` casts keep the block from hard-coupling to Upstash's types
-    // (which may or may not be resolvable at typecheck time).
     // @ts-ignore — optional dependency, resolved at runtime in production
     const Ratelimit = ((await import('@upstash/ratelimit')) as any).Ratelimit;
-    // @ts-ignore — optional dependency, resolved at runtime in production
-    const Redis = ((await import('@upstash/redis')) as any).Redis;
-
-    if (redisClient === undefined) {
-      redisClient = new Redis({
-        url: UPSTASH_URL as string,
-        token: UPSTASH_TOKEN as string,
-        // Abort the fetch as well as the caller's wait. A disconnected
-        // response can be ambiguous, so never retry a bucket mutation.
-        signal: () => AbortSignal.timeout(LIMITER_DEADLINE_MS),
-        retry: { retries: 0 },
-      });
-    }
+    const redis = await getRedis();
+    if (!redis) return null;
 
     // Map the token-bucket config onto a sliding window: `capacity` requests
     // per (capacity / refillPerSecond) seconds — i.e. the time it takes an
     // empty bucket to refill to full — which preserves the intended budget.
     const windowSeconds = Math.max(1, Math.round(config.capacity / config.refillPerSecond));
     const limiter = new Ratelimit({
-      redis: redisClient,
+      redis,
       limiter: Ratelimit.slidingWindow(config.capacity, `${windowSeconds} s`),
       prefix: `rl:${config.key}`,
       analytics: false,
@@ -434,12 +456,8 @@ async function getUpstashLimiter(config: RateLimitConfig): Promise<UpstashLimite
     limiterCache.set(config.key, limiter);
     return limiter;
   } catch (error) {
-    // Package missing or init failed: record the miss, say so once, and fall
-    // back for the life of the instance.
-    if (!limiterStartFailed) {
-      limiterStartFailed = true;
-      logEvent('rate-limit', { level: 'error', reason: 'limiter_init_failed', error: error instanceof Error ? error.name : typeof error });
-    }
+    // Package missing or init failed: fall back for the life of the instance.
+    noteStartFailed(error);
     return null;
   }
 }
@@ -469,6 +487,15 @@ let limiterPausedUntil = 0;
  * (or, after a failed start, since then), so a busy bucket logs one line a
  * pause and not one a request. */
 const fallbackLogged = new Set<string>();
+
+/** Start a pause after a failed Upstash command. A new pause logs each
+ * bucket's fallback afresh. */
+function pauseLimiter(): void {
+  const now = Date.now();
+  if (now < limiterPausedUntil) return;
+  limiterPausedUntil = now + LIMITER_PAUSE_MS;
+  fallbackLogged.clear();
+}
 
 /** What one bucket decided: the request may go on, or it was refused with
  * the 429 or the 503 just sent. */
@@ -511,13 +538,8 @@ async function takeToken(req: VercelRequest, res: VercelResponse, config: RateLi
     return 'limited';
   } catch {
     // Redis unreachable mid-request: pause asking it, and let the bucket's
-    // policy decide this request. A new pause logs each bucket's fallback
-    // afresh.
-    const now = Date.now();
-    if (now >= limiterPausedUntil) {
-      limiterPausedUntil = now + LIMITER_PAUSE_MS;
-      fallbackLogged.clear();
-    }
+    // policy decide this request.
+    pauseLimiter();
     return withoutUpstash(req, res, config, identity);
   }
 }
@@ -538,6 +560,56 @@ export async function enforceRateLimit(
   identity?: string,
 ): Promise<boolean> {
   return (await takeToken(req, res, config, identity)) === 'allowed';
+}
+
+/* -------------------------------------------------------------------------- */
+/* The limiter's mode, for /api/health                                        */
+/* -------------------------------------------------------------------------- */
+
+/** `configured`: Upstash answers. `memory-fallback`: Upstash is configured
+ * and does not answer, so open buckets keep to memory and closed ones refuse.
+ * `in-memory-fallback`: no Upstash is configured (local development). */
+export type RateLimiterMode = 'configured' | 'memory-fallback' | 'in-memory-fallback';
+
+const MODE_TTL_MS = 30_000;
+let modeAnswer: { at: number; mode: RateLimiterMode } | undefined;
+let modeProbe: Promise<RateLimiterMode> | null = null;
+
+async function pingUpstash(): Promise<RateLimiterMode> {
+  const redis = await getRedis();
+  if (!redis) return 'memory-fallback';
+  try {
+    await withLimiterDeadline(redis.ping());
+    return 'configured';
+  } catch {
+    pauseLimiter();
+    return 'memory-fallback';
+  }
+}
+
+/**
+ * The limiter's live mode on this instance. /api/health is a function of its
+ * own and takes no rate limit, so its instance would never learn of an
+ * outage from a bucket: unless this instance is pausing after a failure or
+ * its client failed to start, it sends one PING through the limiter's client
+ * (the same 500 ms deadline, no retries), and a failed PING starts the pause.
+ * Probes that arrive together share the PING and its answer is kept 30 s, so
+ * a flood of probes costs at most two Upstash commands a minute.
+ */
+export async function rateLimiterMode(): Promise<RateLimiterMode> {
+  if (!isDistributedRateLimitEnabled()) return 'in-memory-fallback';
+  const now = Date.now();
+  if (limiterStartFailed || now < limiterPausedUntil) return 'memory-fallback';
+  if (modeAnswer && now - modeAnswer.at < MODE_TTL_MS) return modeAnswer.mode;
+  modeProbe ??= pingUpstash()
+    .then((mode) => {
+      modeAnswer = { at: Date.now(), mode };
+      return mode;
+    })
+    .finally(() => {
+      modeProbe = null;
+    });
+  return modeProbe;
 }
 
 /* -------------------------------------------------------------------------- */
