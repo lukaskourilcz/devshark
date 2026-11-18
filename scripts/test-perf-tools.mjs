@@ -368,6 +368,8 @@ for (const [name, flags, mention, url] of [
   ['a misspelt flag', ['--route=/learn'], /--route\b/],
   ['a route without a leading slash', ['--routes=learn'], /--routes/],
   ['two routes that share a report name', ['--routes=/learn,/learn/'], /--routes/],
+  ['zero runs', ['--runs=0'], /--runs/],
+  ['more runs than it allows', ['--runs=11'], /--runs/],
   ['a stray argument', ['learn'], /learn/],
   ['a URL it cannot load', [], /--url/, 'ftp://example.test'],
 ]) {
@@ -461,4 +463,32 @@ test('audit:performance records a Lighthouse runtime error as an error row', (t)
   assert.equal(run.results[0].error, undefined);
   assert.deepEqual(run.results[1], { profile: 'desktop', route: '/', requestedUrl: 'http://127.0.0.1:9', run: 1, error: `${runtimeError.code}: ${runtimeError.message}` });
   assert.deepEqual(run.summary, run.results);
+});
+
+test('audit:performance keeps every run\'s report and summarizes the runs of each profile and page', (t) => {
+  const pages = [{ route: '/learn', url: 'http://127.0.0.1:9/learn', slug: 'learn' }];
+  // Mobile LCP per run: 3000, 2600, 4100; the second desktop run fails.
+  const lcps = [3000, 2600, 4100];
+  const run = auditWith(t, pages, (profile, route, call) => {
+    if (profile === 'mobile') return fakeReport({ performance: [0.8, 0.9, 0.6][call - 1], lcp: lcps[call - 1], cls: 0.01 * call, tbt: 100 * call });
+    return call === 5 ? 1 : fakeReport({ performance: 0.99, lcp: 800, tbt: 0 });
+  }, { runs: 3 });
+  assert.deepEqual(run.calls.map((call) => call.prefix.slice(run.output.length + 1)), ['mobile-learn-run1', 'mobile-learn-run2', 'mobile-learn-run3', 'desktop-learn-run1', 'desktop-learn-run2', 'desktop-learn-run3']);
+  assert.equal(run.results.length, 6, 'main returns every audit');
+  assert.deepEqual(run.summary.map(({ profile, route, runs, failed }) => [profile, route, runs, failed]), [['mobile', '/learn', 3, 0], ['desktop', '/learn', 3, 1]]);
+  const [mobile, desktop] = run.summary;
+  assert.deepEqual(mobile.median, { performance: 0.8, lcpMs: 3000, cls: 0.02, tbtMs: 200 });
+  assert.deepEqual(mobile.min, { performance: 0.6, lcpMs: 2600, cls: 0.01, tbtMs: 100 });
+  assert.deepEqual(mobile.max, { performance: 0.9, lcpMs: 4100, cls: 0.03, tbtMs: 300 });
+  assert.deepEqual(mobile.results.map((row) => row.run), [1, 2, 3]);
+  assert.deepEqual(desktop.median, { performance: 0.99, lcpMs: 800, cls: 0, tbtMs: 0 }, 'the median of the two finished runs');
+  assert.equal(desktop.results[1].error, 'Lighthouse exited with code 1');
+});
+
+test('audit:performance summarizes a page whose runs all failed with empty statistics', () => {
+  const rows = [1, 2].map((run) => ({ profile: 'mobile', route: '/', requestedUrl: 'http://127.0.0.1:9', run, error: 'Lighthouse exited with code 1' }));
+  const [summary] = lighthouse.summarize(rows, 2);
+  const empty = { performance: null, lcpMs: null, cls: null, tbtMs: null };
+  assert.deepEqual(summary, { profile: 'mobile', route: '/', requestedUrl: 'http://127.0.0.1:9', runs: 2, failed: 2, median: empty, min: empty, max: empty, results: rows });
+  assert.equal(lighthouse.summarize(rows, 1), rows, 'one run per profile keeps one row per audit');
 });
