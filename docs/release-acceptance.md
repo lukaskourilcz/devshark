@@ -6674,3 +6674,64 @@ Advisors before. Local splinter on a fresh build: 39 `auth_rls_initplan` WARN, 3
 - `ci:parity`: it binds ports other agents need.
 
 The remaining 40 findings of F8 (F8-04 to F8-43) moved to #646. They cover the definer allow-list and RLS invariant tests, the search_path, EXECUTE and grant migrations, the index drops and additions, the purge schedule and the docs.
+
+## Epic F9: API input validation, auth failure modes and rate-limit policy (18 November 2026)
+
+Branch `claude/f9-api-input-auth-rate-limits`, issue #638, 17 commits on `origin/main`. No API success shape changed, and `api/` still holds twelve handler files.
+
+### What changed
+
+- **F9-01** The Upstash stand-in in `scripts/test-verified-caller.ts` gets two modes. Healthy mode counts each bucket the way Upstash does, and failing mode answers every command with 500. The admin, report and sign-in checks now run against a counting limiter. Test only.
+- **F9-02** 117 cases pin the input classes the handlers already refuse: 20 play actions (`scripts/test-play-rooms.ts`); 53 questions, daily, submit and Learn requests (launch contracts); 44 user, leaderboard, Shark Cards, Challenge, admin and report requests (verified caller). Each answers 400, 404 or 413 with the generic `{ error: { code, message } }` body and writes nothing.
+- **F9-03** The verified-caller suite calls every op of the twelve handlers, 135 requests in all, against a database that answers every call with a raw Postgres error. No response carries that error's message, a `PGRST` code or `XX000`. A guard reads the op lists from the router sources, so a new op cannot skip the sweep. Against a hung database every op answers 503, never 500 or 504, apart from nine named exceptions. An Auth outage answers 503 `auth_unavailable` on five handlers. An unreadable plan answers 503 `entitlement_unavailable`. A garden installation race answers 409 `installation_taken`, and a clashing room code retries with a new code.
+- **F9-04** `lib/http.ts` exports `unstorableText` and `UNSTORABLE_TEXT_MESSAGE`. They find U+0000 and lone UTF-16 surrogates at any depth, keys included, and 21 unit cases cover them. No handler calls them yet.
+- **F9-05** `lib/http.ts` exports `queryString` and `queryInt`. They refuse arrays, fractions, exponents, signs, trailing junk and values outside the bounds, and 34 unit cases cover them. No handler calls them yet.
+- **F9-06** `withRequestContext` reads `req.body` once before the handler runs. Broken JSON or a malformed Content-Type now answers 400 `bad_request` "The request body is not valid JSON" with a warning line, where it used to answer 500 `internal_error`.
+- **F9-07** A Content-Length over 256 kB (1 MB for `op=billing-webhook` and `op=payment-webhook`) answers 413 `too_large` before Vercel parses the body. NEEDED.md records the caps and how to revert them.
+- **F9-08** The request id comes from `x-vercel-id` whenever Vercel sets it. A client's `X-Request-Id` counts only where Vercel sets none (local, Docker). A differing client id is logged as `client_request_id`.
+
+### Before and after
+
+| Measure | Before | After |
+|---|---|---|
+| Quiz submit with broken JSON | 500 `internal_error` | 400 `bad_request` |
+| User stats POST with broken JSON (suite without a database) | 503 | 400 |
+| Admin save, admin GET with an unreadable body | 403 | 400 |
+| Learn GET with a malformed Content-Type | 200 | 400 |
+| JSON.parse of a refused 1.84 MB quiz submit, 150,000 keys (Node 22.23, median of 7) | 81.8 ms | 0 ms, refused unread |
+| Largest body a handler parses | 4.5 MB (platform limit) | 256 kB, 1 MB for the two webhooks |
+| `X-Request-Id` when a script sends both headers | the script's `req-chosen-by-a-script-0001` | the `x-vercel-id` |
+| Ops swept for raw Postgres text | 0 | 135 requests, none leak |
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm run typecheck:api` | pass |
+| `npm run typecheck:scripts` | pass |
+| `npm run typecheck:tooling --prefix client` | pass |
+| `npm run test:launch` (launch contracts, play rooms, verified caller, marketing) | pass, 72 PASS lines |
+| Launch contracts with `lib/http.ts` at the F9-08 test commit | fail as expected: `both headers: X-Request-Id` |
+| `npm run test:coding-auth` | pass |
+| `npm run test:grading-integrity` | pass |
+| `npm run test:performance` | pass |
+| `npm run test:path-authority` | pass |
+| `npm run test:react-authority` | pass |
+| `npm run test:paths` | pass |
+| `npm run test:billing` | pass, 47 checks |
+| `npm run test:fallbacks` | pass |
+| `npm run test:garden` | pass |
+| `npm run test:live-grading` | pass |
+| `npm run check:unused` | pass, no new Knip findings |
+| `npm run check:security` | pass |
+| `git diff --check origin/main...HEAD` | pass |
+
+### Not run
+
+- `npm run build`, `check:public`, `check:bundle`, `test:browser`, `check:responsive` and `test:client`: the branch changes no client code, route or dependency.
+- `npm run test:coding`: it checks authored coding content, which the branch does not touch.
+- `npm run test:sql`: no SQL changed.
+- `npm audit --omit=dev` in root and client: no lockfile changed.
+- `npm run ci:parity`: it binds ports other agents need. Its steps ran one by one above.
+
+The remaining findings of F9 (F9-09 to F9-49, including handler adoption of the new helpers, the rate-limit failure policy, the health fields, webhook hardening and the Bruno requests) moved to #646.
