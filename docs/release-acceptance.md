@@ -7159,3 +7159,48 @@ Branch claude/f12b-client-correctness, stacked on claude/f12-client-correctness.
 - test:sql, npm audit, typecheck:api, typecheck:scripts, test:coding: the branch changes no SQL, lockfile, server code or scripts.
 
 The remaining F12 findings (F12-04, F12-11, F12-12, F12-13, F12-14, F12-15, F12-17, F12-18, F12-19) stay open in #646 for the next agent.
+
+## Epic F15 part 2: SEO, public pages and observability (18 November 2026)
+
+Branch `claude/f15b-seo-observability`, stacked on `claude/f15-seo-observability`. The owner stopped the run while batch 1 was in flight. This branch carries the two findings that batch finished.
+
+### What changed
+
+- **F15-10** (7980d047 test, 593818bb fix): `client/dist/index.html` no longer names a canonical or og:url. vercel.json's catch-all serves that file for every app route and every missing page, so `/today`, `/profile` and any 404 used to claim to be copies of the home page in their raw HTML. `routeHead.ts` writes the home canonical when the app starts. `grep -c canonical client/dist/index.html`: 1 before, 0 after.
+- **F15-11** (399ce655 test, 1d6e2acd fix): the build writes `privacy/index.html` and `terms/index.html`, each with its own title, a description cut from the page's lead, a canonical, og:url, and the live h1 and lead in a noscript. The sitemap lists both, with lastmod 2026-10-14 (PRIVACY_UPDATED) and 2026-10-09 (LEGAL_UPDATED) read from `LegalPages.tsx`. The build fails if either constant stops matching. `routeHead.ts` writes the same canonical and description. The privacy lead loads with `translations.privacy.ts` and is written only while `/privacy` is still the current route. No legal text changed.
+
+### Numbers
+
+| Measure | Before | After |
+|---|---|---|
+| Canonical tags in the app shell | 1 | 0 |
+| Prerendered pages (check:public) | 912 | 914 |
+| Listed pages and sitemap URLs | 17 | 19 |
+| LegalPages chunk | 34.67 kB | 13.96 kB + 20.80 kB `translations.privacy` |
+| Initial requests of index.html (gzip) | 235520 B | 235545 B (budget 241651) |
+
+### Checks
+
+| Check | Result |
+|---|---|
+| `vitest run tests/route-head.test.tsx` | 43 of 43 passed (2 failed before the fix) |
+| `npm run typecheck:tooling --prefix client` | exit 0 |
+| `npm run build` with the CI env | exit 0 |
+| `npm run check:public` | passed: 914 pages, 19 listed, 19 sitemap URLs |
+| `npm run check:bundle` | passed: 235545 of 241651 gzip bytes |
+| `playwright test tests/browser/public.spec.ts` on the preview (port 4225) | 9 of 9 passed |
+| curl `/privacy`, `/terms`, `/privacy/` on the preview | each page's own title, canonical and noscript h1 |
+| `npm run test:launch` | exit 0 |
+| `npm run test:client` | 1911 of 1911 passed in 193 files |
+| `npm run check:unused` | no new findings |
+| `npm run check:security` | passed |
+| `git diff --check` over the branch | clean |
+
+### Not run
+
+- `check:responsive`: no visible change with JavaScript on.
+- `test:sql` and both `npm audit --omit=dev` runs: no SQL or lockfile changed.
+- `typecheck:api` and `typecheck:scripts`: no server code or TypeScript script changed.
+- The curl of `/privacy` on a Vercel preview: the branch is not pushed yet. Until F15-55 adds the rewrites, Vercel answers both pages through its directory index. A read-only GET of `https://devshark.app/sandbox` confirms that behaviour.
+
+Every other F15 finding, F15-09 and F15-12 through F15-57 included, stays in #646 for the next agent.
