@@ -119,6 +119,28 @@ export function summarizeInteractions(entries, { pressed }) {
  };
 }
 
+// CLS of one sample from raw layout-shift entries, as web-vitals computes it:
+// a shift less than 1 s after the window's last shift and less than 5 s after
+// its first joins that window, any other opens a new one, and CLS is the
+// largest window. Shifts flagged hadRecentInput stay out of the windows.
+// clsSum keeps the plain sum the cls field held before 18 November 2026.
+// The lab reads shifts before its own press, so clsInputFlagged holds only
+// shifts Chromium flagged without a press: phone emulation has flagged a
+// first-load shift on this app that way (docs/release-acceptance.md).
+export function summarizeLayoutShifts(shifts) {
+ let cls = 0, clsSum = 0, clsInputFlagged = 0, session = null;
+ for (const shift of [...shifts].sort((a, b) => a.startTime - b.startTime)) {
+  if (shift.hadRecentInput) { clsInputFlagged += shift.value; continue; }
+  clsSum += shift.value;
+  if (session && shift.startTime - session.last < 1000 && shift.startTime - session.first < 5000) {
+   session.value += shift.value;
+   session.last = shift.startTime;
+  } else session = { first: shift.startTime, last: shift.startTime, value: shift.value };
+  cls = Math.max(cls, session.value);
+ }
+ return { cls, clsSum, clsInputFlagged };
+}
+
 const formatInp = inpMs => typeof inpMs === 'number' ? Math.round(inpMs) : inpMs ?? 'none';
 
 // A failure every later load would repeat; it ends the run instead of one row.
@@ -133,7 +155,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
  if (fixture) fixture.billing = { ...fixture.billing, enabled: false, launchOffer: false };
  let browser, chrome;
  const results = [];
- const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', ttfbDefinition: 'responseStart (web-vitals)', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, results }, null, 2) + '\n');
+ const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', ttfbDefinition: 'responseStart (web-vitals)', clsDefinition: 'largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, results }, null, 2) + '\n');
  try {
   for (const profile of profiles) for (const path of routes) for (let sample = 0; sample < samples; sample++) {
    // A browser that cannot start fails every sample the same way: let it end the run.
@@ -170,9 +192,14 @@ export async function main({ origin, routes, samples, profiles, output, access: 
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: profile === 'mobile' ? 4 : 1 });
     await page.addInitScript(() => {
      localStorage.setItem('devquiz:color-mode', 'light');
-     window.__lab = { lcp: 0, cls: 0, events: [], firstInput: null };
+     window.__lab = { lcp: 0, shifts: [], events: [], firstInput: null };
      new PerformanceObserver(l => { for (const e of l.getEntries()) window.__lab.lcp = e.startTime; }).observe({ type: 'largest-contentful-paint', buffered: true });
-     new PerformanceObserver(l => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__lab.cls += e.value; }).observe({ type: 'layout-shift', buffered: true });
+     // Raw shifts; summarizeLayoutShifts() turns them into CLS in Node.
+     // takeShifts() adds the entries the observer has not delivered yet.
+     const keepShifts = list => { for (const e of list) window.__lab.shifts.push({ startTime: e.startTime, value: e.value, hadRecentInput: e.hadRecentInput }); };
+     const shifts = new PerformanceObserver(l => keepShifts(l.getEntries()));
+     shifts.observe({ type: 'layout-shift', buffered: true });
+     window.__lab.takeShifts = () => { keepShifts(shifts.takeRecords()); return window.__lab.shifts; };
      // Raw entries; summarizeInteractions() turns them into INP in Node.
      const record = list => { for (const e of list) if (e.interactionId) window.__lab.events.push({ name: e.name, interactionId: e.interactionId, startTime: e.startTime, processingStart: e.processingStart, processingEnd: e.processingEnd, duration: e.duration }); };
      const events = new PerformanceObserver(l => record(l.getEntries()));
@@ -193,12 +220,13 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      const started = Date.now();
      await page.goto(origin + path, { waitUntil: 'load', timeout: 60000 });
      await page.waitForTimeout(profile === 'mobile' ? 3000 : 1500);
-     const measurement = await page.evaluate(() => {
+     const { shifts, ...measurement } = await page.evaluate(() => {
       const n = performance.getEntriesByType('navigation')[0].toJSON();
       const resources = performance.getEntriesByType('resource').map(r => ({ path: new URL(r.name).pathname, kind: r.initiatorType, start: r.startTime, duration: r.duration, ttfb: r.responseStart - r.requestStart, download: r.responseEnd - r.responseStart, transfer: r.transferSize, encoded: r.encodedBodySize, decoded: r.decodedBodySize, serverTiming: r.serverTiming.map(t => ({ name: t.name, duration: t.duration })) }));
-      return { navigation: n, lcp: window.__lab.lcp, cls: window.__lab.cls, resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
+      return { navigation: n, lcp: window.__lab.lcp, shifts: window.__lab.takeShifts(), resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
      });
      measurement.navigation = navigationTimings(measurement.navigation);
+     Object.assign(measurement, summarizeLayoutShifts(shifts));
      // Local-only appearance/menu changes; no quiz/start/submit or sign-in action.
      let pressed = null;
      for (const name of INTERACTION_CONTROLS[profile]) {
