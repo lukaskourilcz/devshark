@@ -9,7 +9,7 @@ import { PRODUCT_CATALOG, resolveCatalogProductId } from './product-catalog';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { TopicArticle, topicPath } from './src/components/topics/TopicArticle';
-import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, PUBLIC_ORIGIN, PUBLIC_PAGES, codingShareDescription, premiumSchema, topicSchema } from './src/lib/publicMetadata';
+import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, PUBLIC_ORIGIN, PUBLIC_PAGES, codingShareDescription, metaDescription, premiumSchema, topicSchema } from './src/lib/publicMetadata';
 import { TOPIC_LANDINGS } from './src/lib/topicCatalog';
 import { PremiumCancelStaticArticle, PremiumStaticArticle, type Translate } from './src/components/PremiumFacts';
 import { en, type TranslationKey } from './src/i18n/translations';
@@ -201,7 +201,7 @@ function productMetadata(env: Record<string, string>): Plugin {
   const renderHtml = (html: string) => html
     .split('__PRODUCT_NAME__').join(product.brand)
     .split('__PRODUCT_TITLE__').join(title)
-    .split('__PRODUCT_DESCRIPTION__').join(description)
+    .split('__PRODUCT_DESCRIPTION__').join(metaDescription(description))
     .split('__PRODUCT_SHARE_IMAGE__').join(BRAND_SHARE_IMAGE)
     .split('__PRODUCT_SHARE_IMAGE_ALT__').join(BRAND_SHARE_IMAGE_ALT);
 
@@ -258,11 +258,13 @@ function productMetadata(env: Record<string, string>): Plugin {
           .replace(/(<meta property="og:image:alt" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(alt) + end)
         : html;
       /** The shell with a page's own title, description, canonical URL and
-       * image. No URL writes no canonical; no image keeps the shell's. */
+       * image. No URL writes no canonical; no image keeps the shell's. The
+       * description is cut to fit a search result (metaDescription); the
+       * page body shows it whole. */
       const pageHead = (html: string, page: { title: string; description: string; url: string | null; image: string | null; imageAlt: string }) =>
         withImage(html, page.image, page.imageAlt)
           .replace(/<title>[^<]*<\/title>/, `<title>${escape(page.title)}</title>`)
-          .replace(/(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(page.description) + end)
+          .replace(/(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(metaDescription(page.description)) + end)
           .replace(/(<meta (?:name|property)="(?:og:title|twitter:title)" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(page.title) + end)
           .replace('</head>', page.url ? `<link rel="canonical" href="${page.url}" /><meta property="og:url" content="${page.url}" /></head>` : '</head>');
       const writePage = async (pagePath: string, html: string) => {
@@ -272,7 +274,7 @@ function productMetadata(env: Record<string, string>): Plugin {
       };
       for (const topic of topics) {
         const topicTitle = `${topic.title} · ${product.brand}`;
-        const description = topic.description;
+        const description = metaDescription(topic.description);
         const url = origin + topicPath(topic.slug);
         const schema = JSON.stringify(topicSchema(topicTitle, description, url)).replace(/</g, '\\u003c');
         const links = `<link rel="canonical" href="${url}" />`;
@@ -295,7 +297,8 @@ function productMetadata(env: Record<string, string>): Plugin {
       for (const page of PUBLIC_PAGES) {
         const url = origin + page.path;
         const pageTitle = en[page.titleKey];
-        const description = en[page.descriptionKey];
+        // The body below shows the page copy whole; the head carries the cut.
+        const description = metaDescription(en[page.descriptionKey]);
         const schema = page.schema === 'premium'
           ? `<script id="public-schema" type="application/ld+json">${JSON.stringify(premiumSchema(pageTitle, description, url)).replace(/</g, '\\u003c')}</script>`
           : '';

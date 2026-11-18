@@ -3,7 +3,7 @@
 // every navigation.
 import type { TranslationKey } from '../i18n/translations';
 import { CURRENT_PRODUCT } from './products';
-import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, NOINDEX_PATHS, PUBLIC_ORIGIN, premiumSchema, publicPage, topicFromPath, topicSchema } from './publicMetadata';
+import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, NOINDEX_PATHS, PUBLIC_ORIGIN, metaDescription, premiumSchema, publicPage, topicFromPath, topicSchema } from './publicMetadata';
 
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
@@ -153,11 +153,11 @@ export function applyRouteHead(rawPath: string, t: Translate, shareHead: ShareHe
   const publicTopic = topicFromPath(pathname);
   document.title = routeTitle(pathname, t);
   // /premium and /premium/cancel carry their own description and canonical,
-  // the same ones the build writes into their static HTML.
+  // the same ones the build writes into their static HTML, cut the same way.
   const page = publicPage(pathname);
-  const description = publicTopic
+  const description = metaDescription(publicTopic
     ? publicTopic.topic.description
-    : page ? t(page.descriptionKey) : CURRENT_PRODUCT.description;
+    : page ? t(page.descriptionKey) : CURRENT_PRODUCT.description);
   const image = pathname === '/daily' ? PUBLIC_ORIGIN + DAILY_SHARE_IMAGE_PATH : BRAND_SHARE_IMAGE;
   const imageAlt = pathname === '/daily' ? document.title : BRAND_SHARE_IMAGE_ALT;
   setMeta('meta[name="description"]', description);
