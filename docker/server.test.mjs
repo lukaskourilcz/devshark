@@ -159,10 +159,15 @@ const config = readVercelConfig(root);
 const isSiteFile = (pathname) => Object.hasOwn(SITE, pathname.slice(1));
 
 /** Requests `pathname` and compares the status and every header name
- * vercel.json sets with Vercel's answer under `vercelConfig`. Returns the body. */
+ * vercel.json sets with Vercel's answer under `vercelConfig`. Returns the body.
+ * The request says it came over HTTPS, as every request to Vercel does. */
 async function assertVercelAnswer(origin, pathname, vercelConfig = config) {
   const expected = vercelAnswer(vercelConfig, pathname, isSiteFile);
-  const response = await fetch(origin + pathname, { redirect: 'manual', signal: AbortSignal.timeout(5_000) });
+  const response = await fetch(origin + pathname, {
+    redirect: 'manual',
+    headers: { 'x-forwarded-proto': 'https' },
+    signal: AbortSignal.timeout(5_000),
+  });
   const body = await response.text();
   if (expected.status !== null) assert.equal(response.status, expected.status, `${pathname} (${expected.ends}): status`);
   for (const name of headerNames(vercelConfig)) {
@@ -262,4 +267,30 @@ test('Docker answers a status-only route before the filesystem check', async (t)
   const { response: script } = await assertVercelAnswer(origin, '/assets/main-x.js', blocksMaps);
   assert.equal(script.status, 200);
   assert.match(script.headers.get('cache-control') ?? '', /immutable/);
+});
+
+// upgrade-insecure-requests makes the browser fetch every same-origin
+// subresource over https, and browsers exempt only loopback. With the token in
+// the app policy, the image reached over plain HTTP at a LAN address loaded
+// none of its scripts (9 of 10 requests failed with ERR_SSL_PROTOCOL_ERROR).
+// The adapter keeps the token only for a request that came over TLS or through
+// a proxy that says it did.
+test('Docker drops upgrade-insecure-requests from the CSP of a plain-HTTP request', async (t) => {
+  const TOKEN = 'upgrade-insecure-requests';
+  const routes = structuredClone(config.routes);
+  for (const route of routes) {
+    const csp = route.headers?.['Content-Security-Policy'];
+    if (csp && !csp.includes(TOKEN)) route.headers['Content-Security-Policy'] = `${csp}; ${TOKEN}`;
+  }
+  const upgrades = { ...config, routes };
+  const origin = await startAdapter(t, { files: SITE, vercelConfig: upgrades });
+  for (const pathname of ['/', '/assets/main-x.js', '/sandbox/index.html', '/assets/missing-x.js', '/sandbox/nope']) {
+    const plain = await fetch(origin + pathname, { redirect: 'manual', signal: AbortSignal.timeout(5_000) });
+    await plain.arrayBuffer();
+    const withoutToken = vercelAnswer(config, pathname, isSiteFile).headers['content-security-policy'];
+    assert.equal(plain.headers.get('content-security-policy'), withoutToken, `${pathname} over plain HTTP: the policy without ${TOKEN}`);
+
+    const { response: forwarded } = await assertVercelAnswer(origin, pathname, upgrades);
+    assert.ok(forwarded.headers.get('content-security-policy')?.endsWith(`; ${TOKEN}`), `${pathname} behind an HTTPS proxy keeps ${TOKEN}`);
+  }
 });
