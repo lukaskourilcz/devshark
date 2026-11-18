@@ -4,16 +4,25 @@
 // port nothing listens on.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import * as lab from './measure-web-performance.mjs';
 import { parseArgs, resolveOptions, UsageError } from './measure-web-performance.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const measure = join(root, 'scripts/measure-web-performance.mjs');
 const closedOrigin = 'http://127.0.0.1:9';
+const translations = readFileSync(join(root, 'client/src/i18n/translations.ts'), 'utf8');
+
+// The English label the app renders for a translation key.
+function label(key) {
+  const match = translations.match(new RegExp(`'${key.replaceAll('.', '\\.')}': '([^']*)'`));
+  assert.ok(match, `client/src/i18n/translations.ts defines ${key}`);
+  return match[1];
+}
 
 function runMeasure(t, flags, { url = closedOrigin } = {}) {
   const scratch = mkdtempSync(join(tmpdir(), 'devshark-perf-tools-'));
@@ -76,4 +85,14 @@ test('perf:measure defaults to the Epic F routes, three samples and a lab file u
   assert.equal(options.samples, 3);
   assert.deepEqual(options.profiles, ['mobile', 'desktop']);
   assert.equal(options.output, 'artifacts/performance/web-lab.json');
+});
+
+test('perf:measure presses a button the app renders at each profile width', () => {
+  assert.ok(lab.INTERACTION_CONTROLS, 'perf:measure names the buttons it presses per profile');
+  // The menu button is display:none from 1024px (app-shell.css), so the 1440px
+  // desktop profile presses the footer theme toggle, which names the mode it
+  // switches to.
+  assert.deepEqual(lab.INTERACTION_CONTROLS.mobile, [label('nav.menu')]);
+  assert.deepEqual(lab.INTERACTION_CONTROLS.desktop, [label('footer.darkMode'), label('footer.lightMode')]);
+  assert.deepEqual(Object.keys(lab.INTERACTION_CONTROLS), lab.PROFILES);
 });
