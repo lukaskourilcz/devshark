@@ -685,6 +685,14 @@
   align-self: stretch;
   min-height: var(--ss-control-height) !important;
 }
+/* RadioList's circle stays at its authored size. Its associated label is
+   also clickable, so give the words a full control-height press target. */
+.astryx-radio-list-item label {
+  display: inline-flex;
+  align-items: flex-start;
+  min-height: var(--ss-control-height);
+  min-width: var(--ss-control-height);
+}
 
 /* A page action (UX audit shell-public-02): the 44px floor above plus one
    type: 20px inline padding and 16px/600 text, on the pill the Apple layer
