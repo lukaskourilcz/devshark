@@ -175,6 +175,8 @@ const checkJsonLd = (text, where, canonical) => {
   }
 };
 let jsonLdBlocks = 0;
+/** Titles a search result would cut (F15-04), reported together at the end. */
+const longTitles = [];
 const sitemapHrefs = new Set(urls.map(url => url.href));
 assert.equal(sitemapHrefs.size, urls.length, 'the sitemap lists no URL twice');
 for (const url of urls) {
@@ -216,6 +218,9 @@ for (const pagePath of pagePaths) {
   assert.equal(one('meta[property="og:title"]'), title, `${pagePath}: og:title is the title`);
   assert.equal(one('meta[name="twitter:title"]'), title, `${pagePath}: twitter:title is the title`);
   if (pagePath !== '/') assert(title.endsWith(' · devShark'), `${pagePath}: the title "${title}" ends with " · devShark"`);
+  // F15-04: search results cut a title near 60 characters. Counted in code
+  // points of the decoded title, so '&amp;' is one.
+  if ((kind === 'listed' || kind === 'share-only') && [...title].length >= 60) longTitles.push({ pagePath, title, length: [...title].length });
   const description = one('meta[name="description"]');
   assert(description.trim(), `${pagePath}: a description`);
   assert.equal(one('meta[property="og:description"]'), description, `${pagePath}: og:description is the description`);
@@ -355,4 +360,9 @@ for (const file of codingChunks) {
 assert(readFileSync(`${dir}/robots.txt`, 'utf8').includes(`Sitemap: ${urls[0].origin}/sitemap.xml`));
 assert(!existsSync(`${dir}/mockServiceWorker.js`), 'Mocks must never ship with the app');
 assert(!readdirSync(`${dir}/assets`).some(file => /storybook|mocks|\.stories\./i.test(file)));
+{
+  const shown = [...longTitles].sort((one, other) => other.length - one.length).slice(0, 25);
+  const kinds = Object.entries(Object.groupBy(longTitles, ({ pagePath }) => pagePath.startsWith('/daily/') ? 'dated daily' : pagePath.startsWith('/coding/') ? 'coding task' : 'other')).map(([kind, list]) => `${list.length} ${kind}`).join(', ');
+  assert.equal(longTitles.length, 0, `${longTitles.length} titles are 60 characters or longer (${kinds}); the longest:\n${shown.map(({ pagePath, title, length }) => `  ${length} ${pagePath}: ${title}`).join('\n')}${longTitles.length > shown.length ? `\n  and ${longTitles.length - shown.length} more` : ''}`);
+}
 console.log(`Public HTML passed: ${pagePaths.length} pages (${Object.entries(classCounts).map(([kind, count]) => `${count} ${kind}`).join(', ')}), ${urls.length} sitemap URLs, canonical, ${jsonLdBlocks} JSON-LD blocks against schema.org, teaching content, the Premium terms, ${tasks.length} coding share pages, ${SECTION_PAGES.length} Coding section pages, hidden system design, ${days.length} question-of-the-day pages, and no unexpected accented glyphs in ${codingChunks.length} coding chunks.`);
