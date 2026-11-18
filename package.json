@@ -32,7 +32,7 @@
     "build:storybook": "npm run build:storybook --prefix client",
     "audit:unused": "knip --reporter json",
     "audit:upstream": "node scripts/audit-upstream-advisories.mjs",
-    "check:unused": "node scripts/check-unused.mjs",
+    "check:unused": "node scripts/check-unused.mjs && node scripts/check-dependency-placement.mjs",
     "check:public": "node scripts/check-public.mjs && npm run check:design",
     "check:design": "node scripts/test-design-contract.mjs && node scripts/check-design-contract.mjs",
     "check:security": "node scripts/check-security.mjs",
