@@ -207,7 +207,7 @@ import { CODING_SUMMARIES } from '../lib/coding/active';
 import { serverContentIndex } from '../lib/access';
 import { loadReviewStates, recordConceptReviews } from '../lib/concept-review';
 import { isRpcMissing, jsonPremiumRequired, MAX_QUERY_STRING, PremiumRequiredError, queryInt, queryString, requestMemo, requireAuthSub, UNSTORABLE_TEXT_MESSAGE, unstorableText, verifiedCallerId, withRequestContext } from '../lib/http';
-import { handleLeaderboardVisibility, limitUserWrite } from '../api/user/[op]';
+import userHandler, { handleLeaderboardVisibility, limitUserWrite } from '../api/user/[op]';
 import { handleFriends, handleIdentity } from '../lib/friends-handlers';
 import { isValidHandle } from '../shared/handles';
 import { accountExists, handleAdminEntitlements, handleEntitlement, parseValidUntil, toEntitlementResponse } from '../lib/entitlements';
@@ -3950,6 +3950,104 @@ async function inputClassContracts() {
   console.log(`PASS input classes: ${cases.length} malformed requests to questions, daily, submit and Learn answer 400, 404 or 413 with the generic body`);
 }
 
+/* ── the request envelope (#638) ───────────────────────────────────────────
+ *
+ * Vercel's Node runtime (@vercel/node `addHelpers`) buffers the body before
+ * the handler runs and defines `req.body` as a lazy getter that parses it on
+ * first read. Broken JSON throws ApiError(400, 'Invalid JSON') from the
+ * getter, and a malformed Content-Type makes the content-type parser throw a
+ * TypeError from it, on a GET with an empty body too. `setLazyProp` keeps
+ * only a value, so a getter that threw throws again on every read. */
+class VercelApiError extends Error {
+  constructor(readonly statusCode: number, message: string) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+/** A request as @vercel/node hands it over, its body a getter that throws
+ * `failure` on every read (or answers `body`), counting the reads. */
+function lazyBodyRequest(init: { method: string; url: string; query: Record<string, unknown>; headers: Record<string, string> }, failure: Error | null, body?: unknown) {
+  const req: Record<string, unknown> & { reads: number } = { ...init, socket: {}, reads: 0 };
+  Object.defineProperty(req, 'body', {
+    configurable: true,
+    enumerable: true,
+    get: () => {
+      req.reads += 1;
+      if (failure) throw failure;
+      return body;
+    },
+  });
+  return req;
+}
+
+/** The handler's answer and the log lines it wrote. */
+async function capturedCall(handler: (req: never, res: never) => unknown, req: unknown) {
+  const res = mockResponse();
+  const lines: Record<string, unknown>[] = [];
+  const realLog = console.log;
+  console.log = (line?: unknown) => {
+    try { lines.push(JSON.parse(String(line))); } catch { /* not a structured line */ }
+  };
+  try {
+    await handler(req as never, res as never);
+  } finally {
+    console.log = realLog;
+  }
+  return { res, lines, error: (res.body as { error?: Record<string, unknown> } | undefined)?.error };
+}
+
+function assertGenericError(label: string, error: Record<string, unknown> | undefined) {
+  assert.deepEqual(Object.keys(error ?? {}).filter((key) => !['code', 'message', 'requestId'].includes(key)), [],
+    `${label} answers the generic error body`);
+}
+
+async function malformedBodyContracts() {
+  const invalidJson = () => new VercelApiError(400, 'Invalid JSON');
+  // content-type's parse() throws this for "application/json; charset".
+  const badContentType = () => new TypeError('invalid parameter format');
+  const cases: [label: string, handler: (req: never, res: never) => unknown, method: string, url: string, query: Record<string, unknown>, contentType: string, failure: () => Error][] = [
+    ['quiz submit, broken JSON', submitHandler, 'POST', '/api/quiz/submit', {}, 'application/json', invalidJson],
+    ['user stats, broken JSON', userHandler, 'POST', '/api/user/stats', { op: 'stats' }, 'application/json', invalidJson],
+    ['user stats GET, a malformed Content-Type', userHandler, 'GET', '/api/user/stats', { op: 'stats' }, 'application/json; charset', badContentType],
+    ['admin save, broken JSON', adminHandler, 'POST', '/api/admin/save', { op: 'save' }, 'application/json', invalidJson],
+    ['admin GET, a malformed Content-Type', adminHandler, 'GET', '/api/admin/questions', { op: 'questions' }, 'application/json; charset', badContentType],
+    ['Learn GET, a malformed Content-Type', roadmapHandler, 'GET', '/api/quiz/roadmap', { topic: 'javascript', level: '1' }, 'text/plain; =x', badContentType],
+  ];
+  let caller = 0;
+  for (const [label, handler, method, url, query, contentType, failure] of cases) {
+    caller += 1;
+    const req = lazyBodyRequest({ method, url, query, headers: { 'content-type': contentType, 'x-forwarded-for': `10.64.6.${caller}` } }, failure());
+    const { res, lines, error } = await capturedCall(handler, req);
+    assert.equal(res.statusCode, 400, `${label} answers 400, not 500 (${JSON.stringify(res.body)})`);
+    assert.equal(error?.code, 'bad_request', `${label} answers bad_request`);
+    assert.equal(error?.message, 'The request body is not valid JSON', `${label} says what is wrong`);
+    assertGenericError(label, error);
+    const requestId = res.headers.get('x-request-id');
+    assert.equal(error?.requestId, requestId, `${label} names its request id`);
+    const refusal = lines.find((line) => line.status === 400 && line.category === 'invalid_body');
+    assert.equal(refusal?.level, 'warn', `${label} logs a warning, not an error`);
+    assert.equal(refusal?.request_id, requestId, `${label} logs the request id`);
+    assert.ok(!lines.some((line) => line.level === 'error'), `${label} logs no error`);
+  }
+
+  // A readable body is read once and handed on: the handler gets the same
+  // value, and a GET without a Content-Type reads as nothing.
+  {
+    const req = lazyBodyRequest({ method: 'POST', url: '/api/quiz/submit', query: {}, headers: { 'content-type': 'application/json', 'x-forwarded-for': '10.64.6.200' } }, null, { sessionId: ['x'], answers: { a: 0 } });
+    const { res, error } = await capturedCall(submitHandler, req);
+    assert.equal(res.statusCode, 400, JSON.stringify(res.body));
+    assert.notEqual(error?.message, 'The request body is not valid JSON', 'a readable body reaches the handler, which answers its own 400');
+  }
+  // Any other failure of the getter stays a server fault.
+  {
+    const req = lazyBodyRequest({ method: 'POST', url: '/api/quiz/submit', query: {}, headers: { 'content-type': 'application/json', 'x-forwarded-for': '10.64.6.201' } }, new RangeError('stream torn'));
+    const { res } = await capturedCall(submitHandler, req);
+    assert.equal(res.statusCode, 500, `a getter that fails for another reason is no client error (${JSON.stringify(res.body)})`);
+  }
+  console.log(`PASS malformed bodies: ${cases.length} requests whose body getter throws answer 400 bad_request and log a warning with the request id`);
+}
+
 async function main() {
   await adminDirectoryContracts();
   await practiceRunTransitionContracts();
@@ -6758,6 +6856,7 @@ async function main() {
   await inputClassContracts();
   unstorableTextContracts();
   strictQueryContracts();
+  await malformedBodyContracts();
 
   console.log('Launch contracts passed: product identity, scope, token confidentiality, stable attempts, fairness-neutral rewards, rate limiting, health, 12-function budget, the free tier and Premium, billing, the launch price, the public Premium copy, the retired support settings, the progression graph, failure hints, retired sections, curation claims, the content-audit gate, spaced practice, interleaving, challenge runs, lesson figures, an unconfigured shop, coins, invitations, merchandise through Spreadshop, one erasure routine, Premium vouchers, the question of the day, and the webdev-bank contract BoardlessAI imports.');
 }
