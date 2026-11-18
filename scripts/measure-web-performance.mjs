@@ -11,12 +11,16 @@ export const PROFILES = ['mobile', 'desktop'];
 // 1024px, so the 1440px desktop profile presses the footer theme toggle,
 // which names the mode it switches to.
 export const INTERACTION_CONTROLS = { mobile: ['Open navigation menu'], desktop: ['Dark mode', 'Light mode'] };
-const FLAGS = { url: 'value', routes: 'value', samples: 'value', profiles: 'value', output: 'value', access: 'value', fixture: 'switch', 'reduced-motion': 'switch' };
+const FLAGS = { url: 'value', routes: 'value', samples: 'value', profiles: 'value', output: 'value', access: 'value', consent: 'value', fixture: 'switch', 'reduced-motion': 'switch' };
+// The cookie choice of the repeat-browser row. No mode accepts: a yes would
+// load PostHog and send the lab's page views to it.
+export const CONSENT_MODES = ['rejected', 'undecided'];
 // No default origin: a bare run would send 64 page loads to production.
 const DEFAULTS = {
  routes: '/,/learn,/coding,/quiz,/daily,/premium,/topics/javascript-closures,/leaderboard',
  samples: 3,
  output: 'artifacts/performance/web-lab.json',
+ consent: 'rejected',
 };
 
 export const USAGE = `Usage: node scripts/measure-web-performance.mjs --url=<origin> [flags]
@@ -25,6 +29,9 @@ export const USAGE = `Usage: node scripts/measure-web-performance.mjs --url=<ori
   --samples=<n>         loads per route and profile, a whole number from 1 to 10 (default ${DEFAULTS.samples})
   --profiles=<names>    comma-separated, any of ${PROFILES.join(',')} (default ${PROFILES.join(',')})
   --output=<file>       lab JSON to write (default ${DEFAULTS.output})
+  --consent=<choice>    the repeat row's cookie choice: rejected, a returning visitor who
+                        pressed Reject all (default), or undecided, the banner still open
+                        as in runs before 18 November 2026; the cold row is always undecided
   --fixture             answer the origin's API GETs from tests/fixtures/api-settings.json
   --reduced-motion      load pages as a visitor who asked for reduced motion (default: no preference)
   --access=<file>       JSON whose url authorizes a preview before each load`;
@@ -69,7 +76,9 @@ export function resolveOptions(args) {
  for (const profile of profiles) if (!PROFILES.includes(profile)) throw new UsageError(`--profiles accepts ${PROFILES.join(' and ')}, got "${profile}"`);
  const routes = list(args.routes ?? DEFAULTS.routes, 'routes');
  for (const route of routes) if (!route.startsWith('/') || route.startsWith('//')) throw new UsageError(`--routes entries must start with one /, got "${route}"`);
- return { origin: url.origin, routes, samples: Number(samples), profiles, output: args.output ?? DEFAULTS.output, access: args.access ?? null, fixture: args.fixture === true, reducedMotion: args['reduced-motion'] === true };
+ const consent = args.consent ?? DEFAULTS.consent;
+ if (!CONSENT_MODES.includes(consent)) throw new UsageError(`--consent accepts ${CONSENT_MODES.join(' or ')}, got "${consent}"`);
+ return { origin: url.origin, routes, samples: Number(samples), profiles, output: args.output ?? DEFAULTS.output, access: args.access ?? null, fixture: args.fixture === true, reducedMotion: args['reduced-motion'] === true, consent };
 }
 
 // The browser context of one sample. Reduced motion stays off unless
@@ -79,6 +88,23 @@ export function resolveOptions(args) {
 export function contextOptions(profile, { reducedMotion = false } = {}) {
  const mobile = profile === 'mobile';
  return { viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 }, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile, colorScheme: 'light', reducedMotion: reducedMotion ? 'reduce' : 'no-preference', serviceWorkers: 'block' };
+}
+
+// client/src/lib/consent.ts keeps the visitor's cookie choice under this key.
+export const CONSENT_STORAGE_KEY = 'devshark:consent';
+
+// The record "Reject all" stores, in the fields persist() writes. The press
+// also writes a devshark_consent cookie copy that nothing reads today, so the
+// lab stores the localStorage record only.
+export function rejectedConsent(now) {
+ return { version: 1, analytics: false, marketing: false, decidedAt: now };
+}
+
+// The cookie choice each row of a sample loads under. A first visit sees the
+// banner, and its paragraph is the LCP element of a cold row; a returning
+// visitor who answered it never sees it again.
+export function consentByCache(consent) {
+ return { 'cold-browser': 'undecided', 'repeat-browser': consent };
 }
 
 // Timings of one navigation entry. ttfb follows web-vitals: navigation start
@@ -176,14 +202,14 @@ class FatalLabError extends Error {}
 
 const firstLine = error => String(error?.message ?? error).split('\n')[0];
 
-export async function main({ origin, routes, samples, profiles, output, access: accessFile, fixture: useFixture, reducedMotion = false }) {
+export async function main({ origin, routes, samples, profiles, output, access: accessFile, fixture: useFixture, reducedMotion = false, consent = DEFAULTS.consent }) {
  mkdirSync(dirname(output), { recursive: true });
  const access = accessFile ? JSON.parse(readFileSync(accessFile, 'utf8')) : null;
  const fixture = useFixture ? JSON.parse(readFileSync('tests/fixtures/api-settings.json', 'utf8')) : null;
  if (fixture) fixture.billing = { ...fixture.billing, enabled: false, launchOffer: false };
  let browser, chrome;
  const results = [];
- const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', ttfbDefinition: 'responseStart (web-vitals)', clsDefinition: 'largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press', tbtDefinition: 'long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, results }, null, 2) + '\n');
+ const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', consent: consentByCache(consent), ttfbDefinition: 'responseStart (web-vitals)', clsDefinition: 'largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press', tbtDefinition: 'long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, results }, null, 2) + '\n');
  try {
   for (const profile of profiles) for (const path of routes) for (let sample = 0; sample < samples; sample++) {
    // A browser that cannot start fails every sample the same way: let it end the run.
@@ -257,6 +283,9 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      let diskHits = 0;
      const listener = e => { if (e.response.fromDiskCache || e.response.fromPrefetchCache) diskHits++; };
      cdp.on('Network.responseReceived', listener);
+     // The repeat row stores the choice on the cold row's page, same origin,
+     // before it navigates: no banner press, nothing sent.
+     if (consentByCache(consent)[cache] === 'rejected') await page.evaluate(([key, record]) => localStorage.setItem(key, JSON.stringify(record)), [CONSENT_STORAGE_KEY, rejectedConsent(Date.now())]);
      const started = Date.now();
      await page.goto(origin + path, { waitUntil: 'load', timeout: 60000 });
      await page.waitForTimeout(profile === 'mobile' ? 3000 : 1500);
@@ -265,7 +294,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
       const resources = performance.getEntriesByType('resource').map(r => ({ path: new URL(r.name).pathname, kind: r.initiatorType, start: r.startTime, duration: r.duration, ttfb: r.responseStart - r.requestStart, download: r.responseEnd - r.responseStart, transfer: r.transferSize, encoded: r.encodedBodySize, decoded: r.decodedBodySize, serverTiming: r.serverTiming.map(t => ({ name: t.name, duration: t.duration })) }));
       // The paint timeline keeps first-contentful-paint, no observer needed.
       const fcp = performance.getEntriesByName('first-contentful-paint', 'paint')[0]?.startTime ?? null;
-      return { navigation: n, fcp, lcp: window.__lab.lcp, lcpElement: window.__lab.lcpElement, shifts: window.__lab.takeShifts(), longTasks: window.__lab.takeLongTasks(), measuredAt: performance.now(), resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
+      return { navigation: n, fcp, lcp: window.__lab.lcp, lcpElement: window.__lab.lcpElement, shifts: window.__lab.takeShifts(), longTasks: window.__lab.takeLongTasks(), measuredAt: performance.now(), consentBanner: Boolean(document.querySelector('.ss-consent')), resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
      });
      measurement.navigation = navigationTimings(measurement.navigation);
      Object.assign(measurement, summarizeLayoutShifts(shifts), summarizeLongTasks(longTasks, { fcp: measurement.fcp, end: measurement.measuredAt }));
@@ -290,10 +319,10 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      Object.assign(measurement, summarizeInteractions(events, { pressed: clicked && Boolean(firstInput) }));
      if (pressed) await page.keyboard.press('Escape');
      cdp.off('Network.responseReceived', listener);
-     const row = { profile, path, sample, cache, elapsed: Date.now() - started, diskHits, blockedWrites, ...measurement };
+     const row = { profile, path, sample, cache, consent: consentByCache(consent)[cache], elapsed: Date.now() - started, diskHits, blockedWrites, ...measurement };
      results.push(row);
      write();
-     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'FCP', row.fcp === null ? 'none' : Math.round(row.fcp), 'LCP', Math.round(row.lcp), 'lcpElement', formatLcpElement(row.lcpElement), 'CLS', row.cls.toFixed(3), 'TBT', row.tbtMs === null ? 'none' : Math.round(row.tbtMs), 'longTasks', row.longTasks.count, 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
+     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'FCP', row.fcp === null ? 'none' : Math.round(row.fcp), 'LCP', Math.round(row.lcp), 'lcpElement', formatLcpElement(row.lcpElement), 'CLS', row.cls.toFixed(3), 'TBT', row.tbtMs === null ? 'none' : Math.round(row.tbtMs), 'longTasks', row.longTasks.count, 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'consent', row.consent, 'banner', row.consentBanner ? 'shown' : 'none', 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
     }
    } catch (error) {
     if (error instanceof FatalLabError) throw error;
