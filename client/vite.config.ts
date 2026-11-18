@@ -64,6 +64,20 @@ const HIDDEN_CODING_PATH = '/coding/system-design';
 const QOTD_FUTURE_DAYS = 45;
 const dailyDateLabel = (iso: string) =>
   new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`));
+/** The date in a dated daily page's title, "12 Sep 2026": the long label
+ * pushed 120 of those titles past 60 characters. The abbreviations are fixed
+ * here because en-GB's short September is "Sept" in current ICU, which put
+ * "DSA Foundations question of the day, 14 Sept 2026 · devShark" at 60. The
+ * visible kicker, the image alt and the share image keep the long date. */
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+const dailyTitleDate = (iso: string) => {
+  const [year, month, day] = iso.split('-').map(Number);
+  return `${day} ${SHORT_MONTHS[month - 1]} ${year}`;
+};
+/** Search results cut a title near 60 characters (check:public, F15-04).
+ * The first candidate under that wins; the last one is the floor. */
+const TITLE_LIMIT = 60;
+const fitTitle = (...candidates: string[]) => candidates.find((one) => [...one].length < TITLE_LIMIT) ?? candidates[candidates.length - 1];
 
 // `ANALYZE=true npm run build` emits a treemap of the bundle to
 // dist/bundle-stats.html (open it to inspect the design-system/router/app split) plus a
@@ -312,7 +326,13 @@ function productMetadata(env: Record<string, string>): Plugin {
         const difficulty = en[`coding.difficulty.${task.difficulty}` as TranslationKey] ?? task.difficulty;
         const pagePath = `/coding/${task.track}/${task.id}`;
         const image = `/og/coding/${task.id}.png`;
-        const pageTitle = `${task.title} · ${track} coding challenge · ${product.brand}`;
+        // The track and "coding challenge" while they fit, then the track,
+        // then the task alone.
+        const pageTitle = fitTitle(
+          `${task.title} · ${track} coding challenge · ${product.brand}`,
+          `${task.title} · ${track} · ${product.brand}`,
+          `${task.title} · ${product.brand}`,
+        );
         const description = codingShareDescription({ difficulty, track, brand: product.brand, ...coding });
         if ((await writeOgCard(path.join(outDir, image), {
           kind: 'coding', title: task.title, track, difficulty, free: task.free === true, freeCount: coding.free, totalCount: coding.total,
@@ -360,7 +380,7 @@ function productMetadata(env: Record<string, string>): Plugin {
         const track = en[`category.${qotdTrack(date)}` as TranslationKey];
         const dateLabel = dailyDateLabel(date);
         const pagePath = qotdPath(date);
-        const pageTitle = `${translate('daily.title', { track })}, ${dateLabel} · ${product.brand}`;
+        const pageTitle = `${translate('daily.title', { track })}, ${dailyTitleDate(date)} · ${product.brand}`;
         const description = en['daily.description'];
         const image = qotdImagePath(date);
         if ((await writeOgCard(path.join(outDir, image), { kind: 'daily', track, dateLabel })) === 'drawn') drawn++;
