@@ -1714,8 +1714,9 @@ async function main() {
       'a claim whose connection dropped is refused',
     );
     await new Promise((resolve) => setTimeout(resolve, 1_000));
+    // The stand-in answers no SET in this mode, so the count is the check: a
+    // second SET is a retry that could have taken the claim.
     assert.equal(upstashCommands.filter((command) => command.includes(droppedClaim)).length, 1, 'and its SET is sent once, with no retry behind the 503');
-    assert.equal(upstashClaims.has(droppedClaim), false, 'so no late SET takes the claim');
     upstashMode('failing');
     console.log('PASS verified caller: a one-time claim is not retried after its 503');
 
