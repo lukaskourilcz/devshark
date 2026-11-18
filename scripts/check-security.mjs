@@ -15,13 +15,61 @@ const [app] = appRules;
 const csp = header(app, 'Content-Security-Policy');
 const boot = readFileSync('client/index.html', 'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
 const hash = `'sha256-${createHash('sha256').update(boot).digest('base64')}'`;
-const scripts = csp.split(';').find(part => part.trim().startsWith('script-src '));
-assert(scripts.includes(hash), 'Prepaint script must match its CSP hash');
+
+/** A policy as a Map from directive name to its sources, as written. */
+function parsePolicy(policy) {
+  const directives = new Map();
+  for (const part of policy.split(';')) {
+    const [name, ...sources] = part.trim().split(/\s+/).filter(Boolean);
+    if (!name) continue;
+    // A browser obeys the first copy of a directive and ignores the rest.
+    assert(!directives.has(name.toLowerCase()), `${name} appears twice in one policy`);
+    directives.set(name.toLowerCase(), sources);
+  }
+  return directives;
+}
+
+// The app document's policy, directive by directive. vercel.json must list
+// exactly these sources (in any order) and no other directive, so a host added
+// to img-src, script-src or connect-src fails here: change vercel.json and
+// this table in the same commit.
+const STRIPE_FRAMES = ["'self'", 'https://js.stripe.com', 'https://*.js.stripe.com', 'https://hooks.stripe.com', 'https://checkout.stripe.com', 'https://link.com', 'https://*.link.com'];
+const APP_POLICY = {
+  'default-src': ["'self'"],
+  // Stripe.js for checkout (client/src/lib/stripeCheckoutForm.ts), and the
+  // theme bootstrap in client/index.html by its hash.
+  'script-src': ["'self'", 'https://js.stripe.com', 'https://*.js.stripe.com', 'https://checkout.stripe.com', hash],
+  'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+  'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
+  'img-src': ["'self'", 'data:', 'https:'],
+  // Stripe's API and Link; Supabase REST, Auth and the realtime socket; the
+  // Sentry EU ingest host, which the DSN in client/src/lib/sentry.ts posts to
+  // directly (no tunnel), so without it browser errors never arrive.
+  'connect-src': ["'self'", 'https://api.stripe.com', 'https://checkout.stripe.com', 'https://link.com', 'https://*.link.com', 'https://*.supabase.co', 'wss://*.supabase.co', 'https://*.ingest.de.sentry.io'],
+  // Stripe's checkout, Link and 3-D Secure frames.
+  'frame-src': STRIPE_FRAMES,
+  'child-src': STRIPE_FRAMES,
+  'frame-ancestors': ["'none'"],
+  'base-uri': ["'self'"],
+  'form-action': ["'self'"],
+  'worker-src': ["'self'", 'blob:'],
+};
+const appPolicy = parsePolicy(csp);
+const policyDrift = [];
+for (const directive of new Set([...appPolicy.keys(), ...Object.keys(APP_POLICY)])) {
+  const listed = appPolicy.get(directive) ?? [];
+  const expected = APP_POLICY[directive] ?? [];
+  const added = listed.filter(source => !expected.includes(source));
+  const missing = expected.filter(source => !listed.includes(source));
+  if (!appPolicy.has(directive)) policyDrift.push(`${directive}: missing from vercel.json`);
+  else if (!Object.hasOwn(APP_POLICY, directive)) policyDrift.push(`${directive}: in vercel.json, not in APP_POLICY`);
+  else if (added.length || missing.length) policyDrift.push(`${directive}: vercel.json adds [${added.join(' ')}] and lacks [${missing.join(' ')}]`);
+  else if (listed.length !== expected.length) policyDrift.push(`${directive}: vercel.json repeats a source`);
+}
+assert.deepEqual(policyDrift, [], `The app policy in vercel.json differs from APP_POLICY in scripts/check-security.mjs:\n  ${policyDrift.join('\n  ')}`);
+const scripts = appPolicy.get('script-src').join(' ');
 assert(!scripts.includes("'unsafe-inline'") && !scripts.includes("'unsafe-eval'"), 'App scripts must not allow inline execution or eval');
-for (const directive of ["frame-ancestors 'none'", "base-uri 'self'", "form-action 'self'"]) assert(csp.includes(directive));
-const connections = csp.split(';').map(part => part.trim()).find(part => part.startsWith('connect-src '))?.split(/\s+/) ?? [];
-// The Sentry SDK posts errors straight to its EU ingest host (the DSN in client/src/lib/sentry.ts sets no tunnel).
-assert(connections.includes('https://*.ingest.de.sentry.io'), 'connect-src must allow the Sentry EU ingest host, or browser errors never arrive');
+const connections = appPolicy.get('connect-src');
 assert(!connections.some(source => source === '*' || source === 'https:' || source === 'https://*.sentry.io'), 'connect-src must name hosts, not open every origin');
 assert.equal(header(app, 'X-Content-Type-Options'), 'nosniff');
 assert.equal(header(app, 'X-Frame-Options'), 'DENY');
