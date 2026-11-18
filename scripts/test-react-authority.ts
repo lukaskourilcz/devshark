@@ -117,6 +117,69 @@ console.log('PASS React authority: DOM, intrinsics, modules, elements, synchrono
 }
 console.log('PASS React authority: thrown strings, promises and hostile errors reach the verdict through the guarded dump');
 
+// The learner engine's globals and the keys of every capability it hands
+// learner code (lib/coding/react-learner.ts: the read lists and the globals
+// it encodes). A name added there fails here until it is listed, so each new
+// way out of the engine is a reviewed change. jsdom's window has
+// XMLHttpRequest and WebSocket; the window capability shows neither, and its
+// fetch reads undefined because jsdom has none (the global fetch is the
+// fixture guard). Before the lockdown below, which freezes this process.
+{
+  const split = (names: string) => names.split(' ');
+  const engineBuiltIns = split('AggregateError Array ArrayBuffer BigInt BigInt64Array BigUint64Array Boolean DataView Date Error EvalError FinalizationRegistry Float16Array Float32Array Float64Array Function Infinity Int16Array Int32Array Int8Array InternalError Iterator JSON Map Math NaN Number Object Promise Proxy RangeError ReferenceError Reflect RegExp Set SharedArrayBuffer String Symbol SyntaxError TypeError URIError Uint16Array Uint32Array Uint8Array Uint8ClampedArray WeakMap WeakRef WeakSet console decodeURI decodeURIComponent encodeURI encodeURIComponent escape eval globalThis isFinite isNaN parseFloat parseInt queueMicrotask undefined unescape');
+  const hostGlobals = split('AbortController DOMException Element HTMLElement HTMLInputElement Headers Intl Node URL URLSearchParams cancelAnimationFrame clearInterval clearTimeout crypto document fetch localStorage performance requestAnimationFrame setInterval setTimeout window');
+  const web = split('signal aborted reason abort throwIfAborted addEventListener removeEventListener ok status statusText headers url json text clone get set append delete has keys values entries toString href search searchParams pathname origin');
+  const pinned: Record<string, unknown> = {
+    globals: [...engineBuiltIns, ...hostGlobals].sort(),
+    window: split('document console innerWidth innerHeight localStorage sessionStorage location addEventListener removeEventListener dispatchEvent getComputedStyle matchMedia requestAnimationFrame cancelAnimationFrame setTimeout clearTimeout setInterval clearInterval fetch'),
+    document: split('activeElement body documentElement title querySelector querySelectorAll getElementById createElement addEventListener removeEventListener'),
+    element: split('nodeType nodeName tagName textContent innerHTML value checked disabled id name type title tabIndex selectionStart selectionEnd parentElement parentNode children childNodes firstChild lastChild nextSibling previousSibling ownerDocument dataset style className classList isConnected contains focus blur select setSelectionRange getAttribute setAttribute removeAttribute hasAttribute querySelector querySelectorAll appendChild removeChild addEventListener removeEventListener getBoundingClientRect click closest matches'),
+    event: split('type target currentTarget relatedTarget key code keyCode which isComposing button buttons clientX clientY shiftKey ctrlKey altKey metaKey defaultPrevented preventDefault stopPropagation persist nativeEvent'),
+    storage: split('getItem setItem removeItem clear key length'),
+    // URL, URLSearchParams, AbortController, AbortSignal and Headers share one read list.
+    web: [web, web, web, web, web],
+    intl: split('DateTimeFormat NumberFormat Collator PluralRules RelativeTimeFormat ListFormat DisplayNames'),
+    crypto: ['randomUUID'],
+    performance: ['now'],
+    react: split('Children Component Fragment PureComponent cloneElement createContext createElement forwardRef isValidElement memo startTransition use useActionState useCallback useContext useDeferredValue useEffect useId useImperativeHandle useInsertionEffect useLayoutEffect useMemo useOptimistic useReducer useRef useState useSyncExternalStore useTransition version'),
+    // Neither the network nor Node: no XMLHttpRequest, WebSocket, EventSource,
+    // worker, navigator, require, process or WebAssembly, bare or on window.
+    unreachable: 'undefined '.repeat(26).trim(),
+    unreachableOnWindow: 'undefined '.repeat(17).trim(),
+    generated: ['TypeError: Dynamic code generation is disabled', 'TypeError: Dynamic code generation is disabled', 'TypeError: Dynamic code generation is disabled'],
+  };
+  const appSource = `import React from 'react';
+const seen = {};
+const kinds = (target, names) => names.map((name) => typeof target[name]).join(' ');
+const refused = (run) => { try { run(); return 'ran'; } catch (error) { return error.name + ': ' + error.message; } };
+export function probe() {
+  const controller = new AbortController();
+  return JSON.stringify({
+    globals: Object.getOwnPropertyNames(globalThis).sort(),
+    window: Object.keys(window), document: Object.keys(document), element: Object.keys(document.body), event: seen.event,
+    storage: Object.keys(localStorage),
+    web: [new URL('https://a.b/?q=1'), new URLSearchParams('q=1'), controller, controller.signal, new Headers()].map((value) => Object.keys(value)),
+    intl: Object.keys(Intl), crypto: Object.keys(crypto), performance: Object.keys(performance), react: Object.keys(React).sort(),
+    unreachable: kinds(globalThis, ['XMLHttpRequest', 'WebSocket', 'EventSource', 'Worker', 'SharedWorker', 'navigator', 'require', 'process', 'module', 'importScripts', 'WebAssembly', 'Atomics', 'Buffer', 'global', 'postMessage', 'BroadcastChannel', 'Request', 'Response', 'indexedDB', 'caches', 'sessionStorage', 'open', 'print', 'std', 'os', 'scriptArgs']),
+    unreachableOnWindow: kinds(window, ['XMLHttpRequest', 'WebSocket', 'EventSource', 'Worker', 'navigator', 'process', 'require', 'fetch', 'open', 'postMessage', 'top', 'parent', 'frames', 'self', 'opener', 'eval', 'Function']),
+    generated: [() => eval('1'), () => Function('return 1')(), () => (() => {}).constructor('return 1')()].map(refused),
+  });
+}
+export default function App() { return <button onClick={(event) => { seen.event = Object.keys(event); }}>probe</button>; }`;
+  const suite = `import React from 'react';
+import { render, fireEvent } from '@testing-library/react';
+import App, { probe } from './App';
+const pinned = ${JSON.stringify(pinned)};
+let seen = null;
+test('probe', () => { const { container } = render(<App />); fireEvent.click(container.querySelector('button')); seen = JSON.parse(probe()); });
+for (const name of Object.keys(pinned)) test(name, () => { expect(seen[name]).toEqual(pinned[name]); });`;
+  const listed = await runReactSuite({ suite, appSource });
+  assert.equal(listed.compileError, null, JSON.stringify(listed));
+  assert.deepEqual(listed.cases.map((one) => one.name), ['probe', ...Object.keys(pinned)]);
+  for (const one of listed.cases) assert.equal(one.status, 'pass', `${one.name}: ${one.error}`);
+  console.log(`PASS React authority: the learner engine has ${(pinned.globals as string[]).length} globals, ${hostGlobals.length} of them from the host, and pinned capability keys; no network or Node name is reachable`);
+}
+
 // The guest freezes every standard built-in before learner code runs
 // (lib/coding/realm-lockdown.ts). The list is checked against the names a
 // fresh realm of this Node has: SuppressedError, DisposableStack and
