@@ -7097,3 +7097,31 @@ Branch `claude/f9b-api-input-auth-rate-limits` is stacked on `claude/f9-api-inpu
 These were not run because the diff changes no client code, dependency, lockfile, SQL or grading code: the client build, client, browser and responsive checks, `test:sql`, `npm audit`, and the grading suites. `ci:parity` stayed off because it binds shared ports. The branch is not pushed.
 
 The rest of F9 (F9-15 to F9-49) remains open in #646 for the next agent.
+
+## Epic F10 part 2: Browser security: CSP, headers, source maps and the sandbox origin (18 November 2026)
+
+Branch `claude/f10b-browser-security-headers` has five commits. It was rebased onto `main` at 8979bc43 after F12's Playwright guard landed.
+
+- **F10-11.** `check:security --url` now reads the deployed main chunk and extracts each `https://<ref>.supabase.co`, the Sentry ingest host and project from the DSN, and the host passed to `startPostHog`. It fails when the deployed `connect-src` blocks the REST URL, the realtime socket (wss), the Sentry envelope URL or the PostHog capture URL. It also fails when it finds no Supabase URL or no PostHog call. A table of 17 cases pins its CSP Level 3 matcher. Production: Supabase `rvlybcjdpafwyeuojvhl`, Sentry `o4511808879001600.ingest.de.sentry.io`, PostHog `/ingest`, 4 of 4 connections allowed.
+- **F10-06.** `tests/browser/csp.spec.ts` serves the app under the shipped headers through `docker/server.mjs`. It fails on any `securitypolicyviolation` event in any frame and on any CSP report in the page or worker console. It visits `/`, `/learn/web-developer`, `/premium`, `/topics/javascript-closures` and `/daily`, opens the cookie settings and the sign-in dialog, runs a JavaScript task and a React task to a full pass, and loads a Google profile photo on `/profile`. Against vite preview it skips with a message. It takes `test` and `expect` from `console-clean`.
+- **F10-12.** `docs/audit/csp-experiments-2026-11.md` records both experiments per component. With `style-src 'self'`, one component breaks: the CodeMirror editor (2 refused `<style>` elements; `.cm-editor` computes `display: block` instead of `flex`). That held on 31 local routes, 8 narrow dark routes and 5 production routes (119 GET requests, no POST, no other host). Astryx, Motion, React style props and the 912 prerendered pages report nothing. Satori runs at build time. In report-only mode, Trusted Types reports the Run worker's `Worker` constructor (2 per Run) and the route head's JSON-LD `textContent`. Decisions: `style-src` keeps `'unsafe-inline'`, and the app sends no Trusted Types header until the report collector (F10-31) exists.
+- **F10-13.** `img-src` changes from `'self' data: https:` to `'self' data: https://*.googleusercontent.com https://*.stripe.com https://*.link.com`. With the old value, `check:security` and the routing contract both fail.
+
+| Check | Result |
+| --- | --- |
+| `npm run check:security` | pass |
+| `npm run check:security -- --dist` (CI build env) | pass: 913 HTML files, 912 inline scripts allowed |
+| `npm run check:security -- --url=https://devshark.app` | exit 1 until deploy: production still sends `img-src https:`; bundle hosts 4 of 4 allowed |
+| `typecheck:scripts`, `typecheck:api`, `typecheck:tooling --prefix client` | pass |
+| `npm run check:unused` | pass |
+| `npm run test:launch` | pass |
+| `node --test docker/server.test.mjs` | 11 of 11 |
+| `npm run build` with the CI env | pass |
+| `csp.spec.ts` against `docker/server.mjs` | 3 of 3 |
+| 32-route CSP sweep against `docker/server.mjs` (/, /learn, /quiz, /coding, /daily, /premium, sign-in dialog and 25 more) | 0 violations |
+| sign-in, daily, navigation, launch-offer, coding-pages and learning-release specs against `docker/server.mjs` | 89 of 90; `learning-release.spec.ts:229` flaked once and then passed 6 of 6 |
+| `git diff --check origin/main...HEAD` | clean |
+
+Not run: `--url` on a preview deployment (this stage does not push). `npm audit` (the branch changes no lockfile). `test:sql` (no SQL changed). `ci:parity` (it binds the shared ports). The production experiment was not repeated (request budget). After the deploy, run `npm run check:security -- --url=https://devshark.app`; it passes once production serves the new `img-src`.
+
+The rest of F10 (F10-14 to F10-36, except F10-06, F10-11, F10-12 and F10-13, plus the owner and cross-package items) stays in #646 for the next agent.
