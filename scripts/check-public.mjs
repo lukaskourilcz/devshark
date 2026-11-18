@@ -64,6 +64,117 @@ const pageUrl = (pagePath) => `${ORIGIN}${pagePath}`;
 // so '&amp;' in a title counts as one character.
 const parser = new (new JSDOM('').window.DOMParser)();
 const readPage = (pagePath) => parser.parseFromString(readFileSync(path.join(dir, pagePath, 'index.html'), 'utf8'), 'text/html');
+// F15-03: the schema.org types the site emits and the properties a page may
+// give each, with the kinds of value schema.org expects (https://schema.org/
+// <Type>, read 18 Nov 2026). Each list is a subset of what schema.org defines.
+// Where schema.org also takes a type the site never emits (Person,
+// ImageObject, DefinedTerm, QuantitativeValue), the table leaves it out. A
+// misspelt property, an unknown type or a value of the wrong kind fails; add a
+// new type or property here from schema.org before a page emits it.
+const SCHEMA_PARENT = { LearningResource: 'CreativeWork', WebSite: 'CreativeWork', CreativeWork: 'Thing', Organization: 'Thing', Offer: 'Thing', UnitPriceSpecification: 'PriceSpecification', PriceSpecification: 'Thing' };
+const isSchemaType = (type, expected) => {
+  for (let one = type; one; one = SCHEMA_PARENT[one]) if (one === expected) return true;
+  return false;
+};
+const THING = { additionalType: ['Text', 'URL'], alternateName: ['Text'], description: ['Text'], identifier: ['Text', 'URL'], image: ['URL'], mainEntityOfPage: ['CreativeWork', 'URL'], name: ['Text'], sameAs: ['URL'], url: ['URL'] };
+const CREATIVE_WORK = {
+  ...THING, about: ['Thing'], abstract: ['Text'], author: ['Organization'], copyrightHolder: ['Organization'], copyrightYear: ['Number'], creator: ['Organization'],
+  dateCreated: ['Date', 'DateTime'], dateModified: ['Date', 'DateTime'], datePublished: ['Date', 'DateTime'], educationalLevel: ['Text', 'URL'], educationalUse: ['Text'], headline: ['Text'],
+  inLanguage: ['Language'], isAccessibleForFree: ['Boolean'], isFamilyFriendly: ['Boolean'], isPartOf: ['CreativeWork', 'URL'], keywords: ['Text', 'URL'],
+  learningResourceType: ['Text'], license: ['CreativeWork', 'URL'], offers: ['Offer'], provider: ['Organization'], publisher: ['Organization'], teaches: ['Text'], text: ['Text'],
+  thumbnailUrl: ['URL'], timeRequired: ['Duration'], typicalAgeRange: ['Text'], version: ['Number', 'Text'],
+};
+const PRICE_SPECIFICATION = { ...THING, maxPrice: ['Number'], minPrice: ['Number'], price: ['Price'], priceCurrency: ['Currency'], validFrom: ['Date', 'DateTime'], validThrough: ['Date', 'DateTime'], valueAddedTaxIncluded: ['Boolean'] };
+const SCHEMA_TYPES = {
+  LearningResource: { ...CREATIVE_WORK, assesses: ['Text'], competencyRequired: ['Text', 'URL'] },
+  WebSite: { ...CREATIVE_WORK, issn: ['Text'] },
+  Organization: { ...THING, email: ['Text'], founder: ['Organization'], foundingDate: ['Date'], legalName: ['Text'], logo: ['URL'], slogan: ['Text'] },
+  Offer: {
+    ...THING, availability: ['URL'], category: ['Text', 'Thing', 'URL'], eligibleRegion: ['Text'], price: ['Price'], priceCurrency: ['Currency'],
+    priceSpecification: ['PriceSpecification'], priceValidUntil: ['Date'], seller: ['Organization'], validFrom: ['Date', 'DateTime'], validThrough: ['Date', 'DateTime'],
+  },
+  UnitPriceSpecification: { ...PRICE_SPECIFICATION, billingDuration: ['Duration', 'Number'], billingIncrement: ['Number'], billingStart: ['Number'], priceType: ['Text', 'URL'], unitCode: ['Text', 'URL'], unitText: ['Text'] },
+};
+const CURRENCIES = new Set(Intl.supportedValuesOf('currency'));
+const VALUE_KINDS = {
+  Text: (value) => typeof value === 'string' && value.trim() !== '',
+  URL: (value) => typeof value === 'string' && URL.canParse(value) && new URL(value).protocol === 'https:',
+  Boolean: (value) => typeof value === 'boolean',
+  Number: (value) => Number.isFinite(value),
+  // schema.org: digits with '.' as the decimal point, as a Number or Text.
+  Price: (value) => (Number.isFinite(value) && value >= 0) || (typeof value === 'string' && /^\d+(?:\.\d+)?$/.test(value)),
+  // ISO 4217.
+  Currency: (value) => CURRENCIES.has(value),
+  // ISO 8601 durations and dates.
+  Duration: (value) => typeof value === 'string' && /^P(?=\d|T\d)(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?(?:T(?=\d)(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/.test(value),
+  Date: (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)),
+  DateTime: (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/.test(value) && !Number.isNaN(Date.parse(value)),
+  // A BCP 47 tag in its canonical form.
+  Language: (value) => {
+    try { return Intl.getCanonicalLocales(value)[0] === value; } catch { return false; }
+  },
+};
+/** One node and everything under it. `expected` lists the types schema.org
+ * takes where the node sits (null at the top); `ids` holds the block's nodes
+ * by @id, so `{ "@id": … }` can stand for one of them. */
+const checkSchemaNode = (node, expected, where, ids) => {
+  assert(node !== null && typeof node === 'object' && !Array.isArray(node), `${where}: a JSON-LD node`);
+  if (Object.keys(node).length === 1 && Object.hasOwn(node, '@id')) {
+    const target = ids.get(node['@id']);
+    assert(target, `${where}: ${node['@id']} names a node in the same block`);
+    assert(!expected || expected.some(type => isSchemaType(target['@type'], type)), `${where}: ${node['@id']} is a ${expected?.join(' or ')}`);
+    return;
+  }
+  const type = node['@type'];
+  assert(typeof type === 'string' && Object.hasOwn(SCHEMA_TYPES, type), `${where}: @type ${JSON.stringify(type)} is a known schema.org type (${Object.keys(SCHEMA_TYPES).join(', ')})`);
+  assert(!expected || expected.some(one => isSchemaType(type, one)), `${where}: a ${type} where schema.org takes ${expected?.join(' or ')}`);
+  for (const [key, value] of Object.entries(node)) {
+    if (key === '@type') continue;
+    if (key === '@id') {
+      assert(VALUE_KINDS.URL(value), `${where}: @id is an absolute https URL`);
+      continue;
+    }
+    assert(Object.hasOwn(SCHEMA_TYPES[type], key), `${where}: ${type} has no property "${key}" on schema.org`);
+    const kinds = SCHEMA_TYPES[type][key];
+    const types = kinds.filter(kind => !Object.hasOwn(VALUE_KINDS, kind));
+    const items = Array.isArray(value) ? value : [value];
+    assert(items.length > 0, `${where}: ${key} is not empty`);
+    for (const item of items) {
+      if (types.length && item !== null && typeof item === 'object') checkSchemaNode(item, types, `${where} > ${key}`, ids);
+      else assert(kinds.some(kind => Object.hasOwn(VALUE_KINDS, kind) && VALUE_KINDS[kind](item)), `${where}: ${key} ${JSON.stringify(item)} is not a ${kinds.join(' or ')}`);
+    }
+  }
+};
+/** One application/ld+json block: it parses, names https://schema.org as its
+ * context, and each top node (or each node of its @graph) that has a url gives
+ * the page's canonical. */
+const checkJsonLd = (text, where, canonical) => {
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (error) {
+    assert.fail(`${where}: JSON-LD does not parse (${error.message})`);
+  }
+  assert(data !== null && typeof data === 'object' && !Array.isArray(data), `${where}: JSON-LD is one object`);
+  const { '@context': context, ...top } = data;
+  assert.equal(context, 'https://schema.org', `${where}: @context is https://schema.org`);
+  const graph = Object.hasOwn(top, '@graph');
+  if (graph) assert(Object.keys(top).length === 1 && Array.isArray(top['@graph']) && top['@graph'].length > 0, `${where}: @graph is a list of nodes and nothing sits beside it`);
+  const nodes = graph ? top['@graph'] : [top];
+  const ids = new Map();
+  const collect = (value) => {
+    if (Array.isArray(value)) return value.forEach(collect);
+    if (value === null || typeof value !== 'object') return;
+    if (typeof value['@id'] === 'string' && Object.keys(value).length > 1) ids.set(value['@id'], value);
+    Object.values(value).forEach(collect);
+  };
+  collect(nodes);
+  for (const node of nodes) {
+    checkSchemaNode(node, null, `${where} ${node?.['@type'] ?? 'node'}`, ids);
+    if (Object.hasOwn(node, 'url')) assert.equal(node.url, canonical, `${where}: the ${node['@type']} url is the page canonical`);
+  }
+};
+let jsonLdBlocks = 0;
 const sitemapHrefs = new Set(urls.map(url => url.href));
 assert.equal(sitemapHrefs.size, urls.length, 'the sitemap lists no URL twice');
 for (const url of urls) {
@@ -119,6 +230,10 @@ for (const pagePath of pagePaths) {
   assert.equal(doc.querySelectorAll('link[hreflang]').length, 0, `${pagePath}: English only, no hreflang`);
   // The h1 a visitor without JavaScript sees, in the body or its noscript.
   assert.equal(doc.querySelectorAll('h1').length, 1, `${pagePath}: one static h1`);
+  for (const block of doc.querySelectorAll('script[type="application/ld+json"]')) {
+    checkJsonLd(block.textContent, `${pagePath}: JSON-LD`, canonical ?? url);
+    jsonLdBlocks++;
+  }
   classCounts[kind]++;
 }
 for (const [alias, target] of Object.entries(ALIASES)) {
@@ -240,4 +355,4 @@ for (const file of codingChunks) {
 assert(readFileSync(`${dir}/robots.txt`, 'utf8').includes(`Sitemap: ${urls[0].origin}/sitemap.xml`));
 assert(!existsSync(`${dir}/mockServiceWorker.js`), 'Mocks must never ship with the app');
 assert(!readdirSync(`${dir}/assets`).some(file => /storybook|mocks|\.stories\./i.test(file)));
-console.log(`Public HTML passed: ${pagePaths.length} pages (${Object.entries(classCounts).map(([kind, count]) => `${count} ${kind}`).join(', ')}), ${urls.length} sitemap URLs, canonical, schema, teaching content, the Premium terms, ${tasks.length} coding share pages, ${SECTION_PAGES.length} Coding section pages, hidden system design, ${days.length} question-of-the-day pages, and no unexpected accented glyphs in ${codingChunks.length} coding chunks.`);
+console.log(`Public HTML passed: ${pagePaths.length} pages (${Object.entries(classCounts).map(([kind, count]) => `${count} ${kind}`).join(', ')}), ${urls.length} sitemap URLs, canonical, ${jsonLdBlocks} JSON-LD blocks against schema.org, teaching content, the Premium terms, ${tasks.length} coding share pages, ${SECTION_PAGES.length} Coding section pages, hidden system design, ${days.length} question-of-the-day pages, and no unexpected accented glyphs in ${codingChunks.length} coding chunks.`);
