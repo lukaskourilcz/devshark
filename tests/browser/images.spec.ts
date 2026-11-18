@@ -36,7 +36,12 @@ async function imageFindings(page: Page) {
       if (!/^data:image\/(?:avif|webp)[;,]/i.test(source) && !/\.(?:avif|webp)(?:[?#]|$)/i.test(source)) {
         findings.push(`${name}: selected raster is not AVIF or WebP`);
       }
-      if (image.naturalWidth > box.width * devicePixelRatio * 1.5 || image.naturalHeight > box.height * devicePixelRatio * 1.5) {
+      // naturalWidth on a srcset image already includes the density correction.
+      // Decode its selected URL alone to inspect the actual resource pixels.
+      const resource = new Image();
+      resource.src = source;
+      await resource.decode();
+      if (resource.naturalWidth > box.width * devicePixelRatio * 1.5 || resource.naturalHeight > box.height * devicePixelRatio * 1.5) {
         findings.push(`${name}: raster exceeds 1.5x displayed device pixels`);
       }
     }
