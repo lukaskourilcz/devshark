@@ -6735,3 +6735,54 @@ Branch `claude/f9-api-input-auth-rate-limits`, issue #638, 17 commits on `origin
 - `npm run ci:parity`: it binds ports other agents need. Its steps ran one by one above.
 
 The remaining findings of F9 (F9-09 to F9-49, including handler adoption of the new helpers, the rate-limit failure policy, the health fields, webhook hardening and the Bruno requests) moved to #646.
+
+## Epic F10: Browser security: CSP, headers, source maps and the sandbox origin (18 November 2026)
+
+Issue #639, branch `claude/f10-browser-security-headers`, 30 commits. `vercel.json` is unchanged: this branch makes the Docker adapter answer as Vercel does and makes `check:security` guard the policy it already has. No policy change landed: img-src, object-src, COOP, CORP, the ACAO scope and source maps are all still open.
+
+### What changed
+
+Docker adapter (`docker/server.mjs`, `docker/server.test.mjs`, new `scripts/vercel-headers.mjs`):
+
+- F10-01: `scripts/vercel-headers.mjs` works out from `vercel.json` how Vercel answers each path. `docker/server.test.mjs` compares the status and every header name `vercel.json` sets on 16 paths of a fixture build.
+- F10-02: static paths decode one segment at a time. `/assets/coding-worker/..%2f..%2findex.html` went from 200 (the app document under the worker policy, with a year-long immutable cache) to 404 `no-store`, as on Vercel.
+- F10-42: rewrites run in order, and a path nothing serves gets Vercel's plain-text 404. `/sandbox/nope` and `/topics/a/b` went from a 404 carrying the 5,549-byte app document to 404 text/plain. `/coding/javascript/no-such-task` went from 404 to 200 with the app shell, matching production.
+- F10-03: a path whose percent escapes do not decode now answers 400 with the main-phase headers. `/assets/%E0%A4%A.js`, `/premium/%E0%A4%A` and `/api/user/%E0%A4%A` used to answer 500 and write an error line each; now they answer 400 and the log stays clean.
+- F10-04: a main-phase route with a bare status ends the request, so a future `.map` block holds in the image too. Fixture result: 200 with the map body became 404 `no-store`.
+- F10-05: a plain-HTTP request gets its CSP without `upgrade-insecure-requests`. With the token on and the image opened at a LAN address, 9 of 10 requests used to fail with ERR_SSL_PROTOCOL_ERROR; now 35 of 35 load.
+- F10-45: each http(s) source in `CSP_CONNECT_EXTRA` also allows its ws(s) socket for Play realtime. Connect-src violations went from 1 to 0. Review fix f2127230 adds the sources to the app policy only; the coding worker keeps `connect-src 'self'`.
+
+Routing contract: F10-26 makes `scripts/vercel-routing-contract.ts` match route `src` and rewrite `source` case-sensitively, as production does. On production, `/cs/topics` answers 404 and `/CS/TOPICS` answers 200.
+
+`check:security` (`scripts/check-security.mjs`):
+
+- F10-08: the check finds the app rule by `frame-ancestors 'none'`. `APP_POLICY` pins every directive and source. Whatever the table says, the check refuses open sources (`*`, a bare scheme, `scheme://*`), any unsafe keyword other than `'unsafe-inline'` in `style-src`, and any PostHog host. Five scratch policies the old check passed now fail.
+- F10-07: the check hashes every inline script of `client/index.html`. `--dist` checks the built pages: 913 HTML files, 912 inline scripts, 1 distinct hash, 6 data blocks skipped.
+- F10-09: `--url` compares nine deployed paths with the status and headers `vercel.json` gives them. It refuses a header `vercel.json` withholds from a path, and it checks each deployed page's inline scripts against the policy deployed with that page.
+- F10-10: at Vercel Authentication, `--url` stops with one line. It reads a protected deployment through a share link, accepts the noindex Vercel adds on `*.vercel.app`, and sends `VERCEL_AUTOMATION_BYPASS_SECRET` when it is set. Review fix 502108fa sends the secret only to `*.vercel.app` hosts. Against a local stand-in at 127.0.0.1, 8 of 8 probes carried the secret before the fix and 0 of 8 after.
+
+Docs: the api-operation and route-and-chunk skills now describe the new check.
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm run typecheck:api`, `npm run typecheck:scripts` | exit 0 each |
+| `npm run check:security` | exit 0 |
+| `npm run check:security -- --dist` (CI-env build) | exit 0; 913 pages, 912 inline scripts, 1 distinct hash |
+| `npm run check:security -- --url=https://devshark.app` | exit 0; nine probes match `vercel.json` |
+| `npm run check:unused` | exit 0; no new findings |
+| `node --test docker/server.test.mjs` | 11 of 11 pass |
+| `npm run test:performance` | exit 0 (runs the Docker test) |
+| `npm run test:launch` | exit 0; the routing contract is included |
+| `git diff --check origin/main...HEAD` | clean |
+
+### Not run
+
+- `npm run build`, `check:public`, `check:bundle`, `test:client`, `test:browser`, `test:harness` and `check:responsive`: the branch changes no client code and no `vercel.json`.
+- `test:sql`: no SQL changed.
+- `npm audit`: no lockfile changed.
+- `ci:parity`: it binds the shared ports 4173 and 6006.
+- `check:security --url` on a preview: the branch was not pushed.
+
+The remaining F10 findings (F10-06, F10-11 to F10-25, F10-27 to F10-30, F10-34 to F10-36) and the F10 owner and F16 items moved to #646.
