@@ -13,8 +13,40 @@ const appRules = headerRoutes.filter(route => /(?:^|;)\s*frame-ancestors\s+'none
 assert.equal(appRules.length, 1, `Exactly one header route may carry the app policy (frame-ancestors 'none'); found ${appRules.map(route => route.src).join(', ') || 'none'}`);
 const [app] = appRules;
 const csp = header(app, 'Content-Security-Policy');
-const boot = readFileSync('client/index.html', 'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
-const hash = `'sha256-${createHash('sha256').update(boot).digest('base64')}'`;
+
+// The type values a browser runs as script (the HTML standard's JavaScript MIME
+// type essences, module, and the two JSON types it still checks against
+// script-src). Any other type is a data block, such as application/ld+json.
+const SCRIPT_TYPES = new Set([
+  '', 'module', 'importmap', 'speculationrules',
+  'application/ecmascript', 'application/javascript', 'application/x-ecmascript', 'application/x-javascript',
+  'text/ecmascript', 'text/javascript', 'text/javascript1.0', 'text/javascript1.1', 'text/javascript1.2',
+  'text/javascript1.3', 'text/javascript1.4', 'text/javascript1.5', 'text/jscript', 'text/livescript',
+  'text/x-ecmascript', 'text/x-javascript',
+]);
+
+/** The inline <script> elements of an HTML page whose text the page's policy
+ * must allow, and the number of data blocks skipped. A script with src is
+ * external, an empty one never runs, and a script inside a comment is text. */
+function inlineScripts(html) {
+  const scripts = [];
+  let dataBlocks = 0;
+  for (const match of html.matchAll(/<!--[\s\S]*?(?:-->|$)|<script\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/script\s*>/gi)) {
+    if (match[0].startsWith('<!--')) continue;
+    const attributes = new Map([...match[1].matchAll(/([^\s"'=<>/]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g)]
+      .map(([, name, double, single, bare]) => [name.toLowerCase(), double ?? single ?? bare ?? '']));
+    if (attributes.has('src')) continue;
+    const language = attributes.get('language');
+    const type = attributes.has('type') ? attributes.get('type') : language ? `text/${language}` : '';
+    if (!SCRIPT_TYPES.has(type.trim().toLowerCase())) dataBlocks += 1;
+    else if (match[2] !== '') scripts.push(match[2]);
+  }
+  return { scripts, dataBlocks };
+}
+
+const sourceHash = text => `'sha256-${createHash('sha256').update(text).digest('base64')}'`;
+// Every script client/index.html runs inline, today the theme bootstrap.
+const bootstrapHashes = inlineScripts(readFileSync('client/index.html', 'utf8')).scripts.map(sourceHash);
 
 /** A policy as a Map from directive name to its sources, as written. */
 function parsePolicy(policy) {
@@ -36,9 +68,9 @@ function parsePolicy(policy) {
 const STRIPE_FRAMES = ["'self'", 'https://js.stripe.com', 'https://*.js.stripe.com', 'https://hooks.stripe.com', 'https://checkout.stripe.com', 'https://link.com', 'https://*.link.com'];
 const APP_POLICY = {
   'default-src': ["'self'"],
-  // Stripe.js for checkout (client/src/lib/stripeCheckoutForm.ts), and the
-  // theme bootstrap in client/index.html by its hash.
-  'script-src': ["'self'", 'https://js.stripe.com', 'https://*.js.stripe.com', 'https://checkout.stripe.com', hash],
+  // Stripe.js for checkout (client/src/lib/stripeCheckoutForm.ts), and each
+  // inline script of client/index.html by its hash.
+  'script-src': ["'self'", 'https://js.stripe.com', 'https://*.js.stripe.com', 'https://checkout.stripe.com', ...bootstrapHashes],
   'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
   'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
   'img-src': ["'self'", 'data:', 'https:'],
@@ -114,7 +146,7 @@ if (url) {
     const response = await fetch(new URL(route, origin), { signal: AbortSignal.timeout(30_000) });
     assert(response.ok, `${route}: ${response.status}`);
     const live = response.headers.get('content-security-policy') || '';
-    assert(live.includes(route === '/' ? hash : "frame-ancestors 'self'"), `${route}: expected deployed CSP`);
+    assert(route === '/' ? bootstrapHashes.every(one => live.includes(one)) : live.includes("frame-ancestors 'self'"), `${route}: expected deployed CSP`);
     assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
     console.log(`${origin.origin}${route}: HTTPS ${response.status}, expected security headers present`);
   }
