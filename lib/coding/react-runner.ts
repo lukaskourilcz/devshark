@@ -14,7 +14,7 @@ import { types } from 'node:util';
 import { transform } from 'sucrase';
 import { failUncancelledSubmits, FETCH_STUB_SOURCE, type FormSubmitTarget } from '../../shared/coding-react-support';
 import { createMiniJest, type MiniJestRun } from '../../shared/coding-mini-jest';
-import { LOG_LINE_CUT, MAX_LOG_LINE_CHARS } from '../../shared/coding-evaluate';
+import { cutErrorText } from '../../shared/coding-error-text';
 import { LOCAL_FETCH_SOURCE } from '../../shared/coding-fullstack-support';
 import { UTC_TIME_SOURCE, type UtcTimeOptions } from '../../shared/coding-utc-time';
 import { createReactLearner, type ReactLearner } from './react-learner';
@@ -243,17 +243,6 @@ function holdRejections(starting: boolean) {
     if (runsInFlight === 0) process.off('unhandledRejection', ignoreRejection);
   }, 0);
 }
-
-/** Error text in the verdict, cut the way a console line is. A message the
- * component threw, or a failed `toBe` on 300 000 characters it rendered, went
- * into the verdict whole; the API refuses a verdict line past 256 000
- * characters (react-guest.ts), so the learner's own mistake read as a grader
- * outage. The cut never splits a surrogate pair. */
-const cutErrorText = (text: string): string => {
-  if (text.length <= MAX_LOG_LINE_CHARS) return text;
-  const last = text.charCodeAt(MAX_LOG_LINE_CHARS - 1);
-  return text.slice(0, last >= 0xd800 && last <= 0xdbff ? MAX_LOG_LINE_CHARS - 1 : MAX_LOG_LINE_CHARS) + LOG_LINE_CUT;
-};
 
 export interface ReactSuiteOutcome extends MiniJestRun {
   /** Set when the component or the suite could not be compiled or loaded. */

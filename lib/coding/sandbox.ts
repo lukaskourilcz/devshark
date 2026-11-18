@@ -15,10 +15,12 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { Worker } from 'node:worker_threads';
-import { newQuickJSWASMModuleFromVariant, shouldInterruptAfterDeadline, type QuickJSContext, type QuickJSWASMModule, type QuickJSHandle } from 'quickjs-emscripten';
+import { newQuickJSWASMModuleFromVariant, shouldInterruptAfterDeadline, type QuickJSWASMModule, type QuickJSHandle } from 'quickjs-emscripten';
 import variant from './quickjs-variant';
 import type { EvaluateResult } from '../../shared/coding-evaluate';
 import { LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, MAX_LOGS, PROBE_IS_INDEX_SOURCE, PROBE_LINE, TIMEOUT_MESSAGE, deepEqual, displayValue } from '../../shared/coding-evaluate';
+import { cutErrorText } from '../../shared/coding-error-text';
+import { dumpThrown } from './vm-errors';
 import { CONSOLE_SOURCE } from '../../shared/coding-console';
 import { UTC_TIME_SOURCE } from '../../shared/coding-utc-time';
 import { TASK_RUNTIME_POLICY_SOURCE, type TaskRuntimePolicy } from '../../shared/coding-task-runtime';
@@ -63,31 +65,6 @@ const OUT_OF_MEMORY_MESSAGE = 'Out of memory.';
 const HIDDEN_RUN_MESSAGES: ReadonlySet<string> = new Set([TIMEOUT_MESSAGE, STACK_MESSAGE, NEVER_SETTLED_MESSAGE, STOPPED_MESSAGE, OUT_OF_MEMORY_MESSAGE]);
 /** What a hidden run that failed any other way reports. */
 export const HIDDEN_RUN_FAILED_MESSAGE = 'A hidden check could not run.';
-
-/** Error text the program produced, cut the way a console line is. A
- * top-level `throw 'x'.repeat(5e6)` came back whole as the run's error, five
- * megabytes in one Submit response. The cut never splits a surrogate pair. */
-export const cutErrorText = (text: string): string => {
-  if (text.length <= MAX_LOG_LINE_CHARS) return text;
-  const last = text.charCodeAt(MAX_LOG_LINE_CHARS - 1);
-  return text.slice(0, last >= 0xd800 && last <= 0xdbff ? MAX_LOG_LINE_CHARS - 1 : MAX_LOG_LINE_CHARS) + LOG_LINE_CUT;
-};
-
-/** What a program threw, read out of the VM, with its handle released.
- *
- * `dump` releases a promise handle itself, and learner code can throw a
- * promise. Releasing it a second time threw "Lifetime not alive", which
- * came back as the run's error in place of what the code threw. A promise
- * rejected with another promise trips the same double release inside
- * `dump` itself (it releases the inner promise, then frees it again), so
- * that error reads as an unreadable thrown value (undefined) instead. The
- * React learner engine (react-learner.ts) reads its throws the same way. */
-export const dumpThrown = (vm: QuickJSContext, handle: QuickJSHandle): unknown => {
-  try { return vm.dump(handle); } catch (error) {
-    if ((error as Error | undefined)?.name === 'QuickJSUseAfterFree') return undefined;
-    throw error;
-  } finally { if (handle.alive) handle.dispose(); }
-};
 
 /** Where the host's URL parser waits for the program, which takes it and
  * deletes the name before any learner code runs. */
