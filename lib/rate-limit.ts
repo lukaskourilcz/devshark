@@ -129,6 +129,12 @@ export const RATE_LIMITS = {
   // address, the rate it had before the split.
   userMutation: { key: 'user_mutation', capacity: 20, refillPerSecond: 20 / 60 },
   userMutationAddress: { key: 'user_mutation_address', capacity: SHARED_NETWORK_SEATS * 20, refillPerSecond: (SHARED_NETWORK_SEATS * 20) / 60 },
+  // A sign-in report (`op=authevent`) at the same rates, in buckets of its
+  // own so they can close while Upstash fails without closing every other
+  // account write. The client sends the report without waiting and sends it
+  // again after a 5xx, so a 503 loses nothing.
+  authEvent: { key: 'auth_event', capacity: 20, refillPerSecond: 20 / 60, onFailure: 'closed' },
+  authEventAddress: { key: 'auth_event_address', capacity: SHARED_NETWORK_SEATS * 20, refillPerSecond: (SHARED_NETWORK_SEATS * 20) / 60, onFailure: 'closed' },
   flashcardMutation: { key: 'flashcard_mutation', capacity: 20, refillPerSecond: 20 / 60 },
   roadmapAnswer: { key: 'roadmap_answer', capacity: 80, refillPerSecond: 80 / 60 },
   roadmapComplete: { key: 'roadmap_complete', capacity: 12, refillPerSecond: 12 / 60 },

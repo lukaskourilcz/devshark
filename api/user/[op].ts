@@ -158,18 +158,18 @@ const FRESH_AUTH_OPS: ReadonlySet<string> = new Set([
  *
  * Stripe's signature gates the billing webhook, so a burst of retries never
  * meets a 429 meant for people; a learning-path draft autosave takes its own
- * two tiers in `handlePathDraft`. Returns false after sending the 429.
+ * two tiers in `handlePathDraft`. A sign-in report has two tiers of its own
+ * at the same rates (`RATE_LIMITS.authEvent`). Returns false after sending
+ * the 429, or a closed bucket's 503.
  */
 export async function limitUserWrite(req: VercelRequest, res: VercelResponse, op: string): Promise<boolean> {
   if (req.method === 'GET' || op === 'billing-webhook' || op === 'learning-path-draft') return true;
-  const deleting = op === 'delete-account';
   // The token is checked while the address bucket answers (lib/rate-limit.ts).
-  return enforceClassRateLimit(
-    req,
-    res,
-    deleting ? RATE_LIMITS.accountDeleteAddress : RATE_LIMITS.userMutationAddress,
-    deleting ? RATE_LIMITS.accountDelete : RATE_LIMITS.userMutation,
-  );
+  if (op === 'delete-account') return enforceClassRateLimit(req, res, RATE_LIMITS.accountDeleteAddress, RATE_LIMITS.accountDelete);
+  // A sign-in report's buckets close while Upstash fails; the other writes'
+  // keep to memory.
+  if (op === 'authevent') return enforceClassRateLimit(req, res, RATE_LIMITS.authEventAddress, RATE_LIMITS.authEvent);
+  return enforceClassRateLimit(req, res, RATE_LIMITS.userMutationAddress, RATE_LIMITS.userMutation);
 }
 
 /** GETs a script can drive for more than a row: the wallet settles grants,
