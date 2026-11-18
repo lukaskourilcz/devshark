@@ -200,7 +200,8 @@ for (const pagePath of pagePaths) {
   const ogUrls = [...doc.querySelectorAll('meta[property="og:url"]')].map(meta => meta.getAttribute('content'));
   assert(canonicals.length <= 1 && ogUrls.length <= 1, `${pagePath}: at most one canonical and one og:url`);
   const canonical = canonicals[0] ?? null;
-  const noindex = [...doc.querySelectorAll('meta[name="robots"]')].some(meta => /\b(?:noindex|none)\b/i.test(meta.getAttribute('content') ?? ''));
+  const robots = [...doc.querySelectorAll('meta[name="robots"]')].map(meta => meta.getAttribute('content') ?? '');
+  const noindex = robots.some(content => /\b(?:noindex|none)\b/i.test(content));
   const listed = sitemapHrefs.has(url);
   if (kind === 'noindex') {
     assert(noindex, `${pagePath} (noindex): robots noindex in the HTML`);
@@ -209,7 +210,9 @@ for (const pagePath of pagePaths) {
   } else {
     assert.equal(canonical, kind === 'alias' ? pageUrl(ALIASES[pagePath]) : url, `${pagePath} (${kind}): canonical`);
     assert.equal(ogUrls[0] ?? null, canonical, `${pagePath} (${kind}): og:url matches the canonical`);
-    assert(!noindex, `${pagePath} (${kind}): indexable, no robots noindex`);
+    // No robots line at all: a nofollow or a snippet limit costs an indexable
+    // page as much as a noindex would.
+    assert.deepEqual(robots, [], `${pagePath} (${kind}): indexable, no robots line`);
   }
   assert.equal(listed, kind === 'listed', `${pagePath} (${kind}): ${kind === 'listed' ? 'in' : 'not in'} the sitemap`);
   // F15-02: the title, description and image a crawler reads are the ones
