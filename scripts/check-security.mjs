@@ -254,6 +254,10 @@ if (url) {
   // (public, max-age=0, must-revalidate, or what a function sets),
   // Access-Control-Allow-Origin: * on static files, and HSTS max-age=63072000.
   const PLATFORM_HEADERS = new Set(['cache-control', 'access-control-allow-origin', 'strict-transport-security']);
+  // Vercel also marks every *.vercel.app deployment URL noindex, so search
+  // engines index only the production domain.
+  const fromPlatform = (name, value) => PLATFORM_HEADERS.has(name)
+    || (name === 'x-robots-tag' && value === 'noindex' && origin.hostname.endsWith('.vercel.app'));
   const namedHeaders = headerNames(config);
   for (const { pathname, response, body } of probes) {
     const expected = vercelAnswer(config, pathname, path => deployed.has(path));
@@ -275,7 +279,7 @@ if (url) {
     // A header vercel.json withholds from this path, such as X-Frame-Options
     // on the sandbox frame, must not arrive from somewhere else.
     for (const name of namedHeaders) {
-      if (expected.headers[name] === undefined && !PLATFORM_HEADERS.has(name) && response.headers.has(name)) {
+      if (expected.headers[name] === undefined && response.headers.has(name) && !fromPlatform(name, response.headers.get(name))) {
         mismatches.push(`${pathname}: sends ${name}: ${JSON.stringify(response.headers.get(name))}, which vercel.json does not give this path`);
       }
     }
