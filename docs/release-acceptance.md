@@ -6479,3 +6479,33 @@ Focused local checks before the release gate: 117 tests passed across admin data
 API/client/script type checks, the design contract, the production client build and the launch contracts passed. The first launch run caught missing server noindex headers for the new admin paths; the Vercel route was added and the rerun passed, including real admin-gate checks for the new operations. Full CI parity and the required remote `verify`/`sql` gate are the remaining release evidence; this entry does not claim a merged or deployed admin UI. Emails is an actual read-only preview/configuration screen, not an email editor or delivery log. No email was sent, and no real user redeemed a voucher during verification.
 
 The first full local parity attempt (Node 22, head a0e7313f) and the remote static job found a tooling type error: the new client-located API tests imported server-only rate-limit code into the browser tooling library target. The run was stopped after preserving its logs. Server tests moved into the existing Node launch-contract suite; client type targets and application code were not weakened. A fresh complete run is required on the corrected head.
+
+## Epic F2 dependencies, 18 November 2026: baseline
+
+F2 took these numbers on the branch base `a9882348` (main) before its first change, with Node 22.23.4 and npm 10.9.9. Later F2 commits and the F2 closeout compare against them.
+
+| Measure | Command | Root | Client |
+|---|---|---|---|
+| Production audit | `npm audit --omit=dev`, `--prefix client` | 0 vulnerabilities | 0 vulnerabilities |
+| Full audit | `npm audit`, `--prefix client` | 0 vulnerabilities | 0 vulnerabilities |
+| Lockfile entries without `dev: true` | count of `packages` in each `package-lock.json` | 122 of 315 (193 dev) | 346 of 633 (287 dev) |
+| Registry signatures | `npm audit signatures` | 249 verified, 76 with attestations | 532 verified, 186 with attestations |
+| Outdated packages | `npm outdated --json` | 18 | 41 |
+| Unreviewed maintainer advisories | `npm run audit:upstream` | 9 advisories | 8 advisories |
+
+CI run [43261918893](https://github.com/lukaskourilcz/devshark/actions/runs/43261918893) on `a9882348` (12 November) passed. Its static job prints "found 0 vulnerabilities" twice for the step `npm audit --omit=dev && npm audit --omit=dev --prefix client`, which takes no flag. Six of its seven jobs carry the warning "Node.js 20 is deprecated" for `actions/checkout@v4` and `actions/setup-node@v4`.
+
+The glob chain the brief names: picomatch 4.0.7 in both lockfiles (the client also holds 2.3.2 under micromatch, dev only), fdir 6.5.0, tinyglobby 0.2.17 and sucrase 3.35.1, sucrase's latest release (`npm view sucrase version`).
+
+The brief counted 4 high in the root and 6 high in the client. Those counts came from GHSA-fc5q-39xc-vjpf (picomatch <= 4.0.7, ReDoS, no fixed release). GitHub reviewed it at 15:56 UTC on 17 November and withdrew it at 15:38 UTC on 18 November (`gh api /advisories/GHSA-fc5q-39xc-vjpf`). No lockfile change cleared the audits: picomatch has been 4.0.7 in the root lockfile since `6f17c88a` and in the client lockfile since `abdba472`, both in September, and `dac52178` left it alone. CI passed on 12 November because the advisory was still unreviewed then.
+
+`npm run audit:upstream` (added in F2) lists 16 advisories that maintainers published in their repositories and GitHub has not yet reviewed. They match 23 installed package versions, 21 of them production:
+
+- Root: undici 7.30.1 and 8.12.3 (GHSA-mqg3-3v4r-cm32 high, GHSA-3g9m-rv3r-w5w2, GHSA-5rm8-gv32-r954, GHSA-7xg3-fphp-28hg, GHSA-9v6h-8rgp-m69f, GHSA-r4pc-4jcp-7pqc), tldts 7.4.11 (GHSA-mf82-cgp5-3vmq), @asamuzakjp/css-color 6.0.7 (GHSA-6g4c-jm42-jc5r) and, dev only through lighthouse, @opentelemetry/resources 2.11.0 (GHSA-qrww-3xmv-qhgm high).
+- Client: vite 6.4.5 (GHSA-p4f5-76q4-ffq7 critical), react-router 7.18.3 (GHSA-2rq8-3rm6-2w8f and GHSA-qhgm-jj2j-75wj high, GHSA-mjj8-rxh9-q8f5), prettier 3.9.6 (GHSA-4cm8-f57v-mqm6), dompurify 3.4.17 (GHSA-qm7q-q8h9-jg8q), tldts 7.4.12 (GHSA-mf82-cgp5-3vmq) and, dev only, powershell-utils 0.1.0 (GHSA-x2gq-3jjh-794h high).
+
+When GitHub reviews them, the unflagged static audit step fails on every pull request. The scan reads 748 package versions in 415 repositories; 24 lockfile entries name no GitHub repository and go unscanned. It drops esbuild's GHSA-gv7w-rqvm-qjhr: the repository entry names the deno ecosystem and GitHub withdrew the global entry on 17 June.
+
+Dev tools the brief names: neither the global database (the full client audit) nor the maintainers' repositories list an open advisory for vitest 5.0.3, storybook 10.6.6, purgecss 9.1.0, knip 6.35.1 or rollup-plugin-visualizer 7.0.1. storybook's October advisories GHSA-f2ph-cmg5-wxc8 (critical) and GHSA-px85-f4q5-jh77 (high) are fixed in 10.6.2. rollup-plugin-visualizer pulls open 11.0.0, which pulls powershell-utils 0.1.0. The client lockfile counts vitest 5.0.3 and @vitest/mocker 5.0.3 as production packages, because the client lists @testing-library/jest-dom, which names vitest as a peer, under `dependencies`.
+
+Unused code: `docs/quality/unused-baseline.json` holds 1 entry (the file `client/src/lib/eligibility.ts`) and `npm run check:unused` reports 0 findings, so the entry is stale. `npm run audit:unused`, which reports every issue type, finds 275 unused exports, 125 unused types, 19 duplicate exports and 1 unlisted binary (`psql` in `scripts/test-sql.mjs`), with no unused files or dependencies.
