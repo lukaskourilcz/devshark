@@ -268,6 +268,15 @@ async function handle(req, res) {
     if (route.dest) {
       const file = staticFile(fill(route.dest, match));
       if (file) { sendFile(res, file, route.status ?? 200, { ...headers, ...route.headers }); return; }
+      continue;
+    }
+    // A bare status ends the request before the filesystem check, as on
+    // Vercel: the 404 that blocks a path even where a file sits under it.
+    if (route.status) {
+      res.statusCode = route.status;
+      for (const [name, value] of Object.entries({ ...headers, ...route.headers })) res.setHeader(name, fill(value, match));
+      res.end();
+      return;
     }
   }
 
