@@ -235,6 +235,28 @@ export function formatLcpElement(element) {
  return [element.container, name, element.url].filter(Boolean).join(' ');
 }
 
+// The kinds a row counts the requests of its page under, as the lab's
+// interception sees them. blocked: the lab failed the request (a write, or
+// an origin other than fonts.gstatic.com); api: a request to the origin's
+// /api/, whoever answered it; the rest by the browser's resource type.
+export const REQUEST_KINDS = ['document', 'script', 'stylesheet', 'font', 'image', 'api', 'other', 'blocked'];
+const RESOURCE_KINDS = { Document: 'document', Script: 'script', Stylesheet: 'stylesheet', Font: 'font', Image: 'image' };
+
+export function requestKind(resourceType, url, origin, { blocked = false } = {}) {
+ if (blocked) return 'blocked';
+ if (url.origin === origin && url.pathname.startsWith('/api/')) return 'api';
+ return RESOURCE_KINDS[resourceType] ?? 'other';
+}
+
+// The request counters of one row. sent counts the responses the origin
+// itself returned over the network (sentApi the /api/ ones among them): no
+// browser cache hit, no answer the lab fulfilled from a fixture or a replay.
+export function emptyRequestCounts() {
+ return { ...Object.fromEntries(REQUEST_KINDS.map(kind => [kind, 0])), sent: 0, sentApi: 0 };
+}
+
+export const requestCount = requests => REQUEST_KINDS.reduce((sum, kind) => sum + requests[kind], 0);
+
 const formatInp = inpMs => typeof inpMs === 'number' ? Math.round(inpMs) : inpMs ?? 'none';
 
 // A failure every later load would repeat; it ends the run instead of one row.
@@ -282,7 +304,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
    // A browser that cannot start fails every sample the same way: let it end the run.
    browser = await chromium.launch({ executablePath: process.env.CHROME_BIN, args: ['--disk-cache-size=8388608', '--media-cache-size=2097152', '--disable-gpu-shader-disk-cache'] });
    chrome ??= browser.version();
-   let context, cache = null;
+   let context, cache = null, requests = null;
    // One failed navigation (a timeout, an empty 404, a reset) costs its own
    // sample only; the remaining routes, samples and profiles still run.
    try {
@@ -295,23 +317,34 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      } catch { throw new FatalLabError('Preview authorization failed'); }
     }
     const page = await context.newPage(), cdp = await context.newCDPSession(page);
-    // Writes the lab refused during the current row's navigation; each row
-    // starts again from zero.
+    // Writes the lab refused and requests by kind during the current row's
+    // navigation; each row starts again from zero. fulfilled holds the
+    // Network ids of the answers the lab made up, which never reach the origin.
     let blockedWrites = 0;
+    const fulfilled = new Set(), memoryHits = new Set();
     await cdp.send('Network.enable');
     await cdp.send('Fetch.enable', { patterns: [{ urlPattern: '*', requestStage: 'Request' }] });
+    cdp.on('Network.requestServedFromCache', e => memoryHits.add(e.requestId));
     cdp.on('Fetch.requestPaused', async e => {
      const url = new URL(e.request.url);
      const apiRead = url.origin === origin && url.pathname.startsWith('/api/') && e.request.method === 'GET';
-     if (apiRead && replay && !(fixture && url.pathname === '/api/settings') && replayableRead(url)) {
+     const replayed = apiRead && replay && !(fixture && url.pathname === '/api/settings') && replayableRead(url);
+     const answered = !replayed && apiRead && (fixture || replay);
+     const write = !['GET', 'HEAD', 'OPTIONS'].includes(e.request.method);
+     const blocked = !replayed && !answered && (write || (url.origin !== origin && !url.hostname.endsWith('fonts.gstatic.com')));
+     // Counted before the first await, so a request lands in the row whose
+     // navigation started it.
+     if (requests) requests[requestKind(e.resourceType, url, origin, { blocked })]++;
+     if (replayed || answered) fulfilled.add(e.networkId);
+     if (blocked && write) blockedWrites++;
+     if (replayed) {
       const [copy] = await Promise.all([replayRead(url.pathname + url.search), new Promise(resolve => setTimeout(resolve, apiDelayMs))]);
       await cdp.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: copy.status, responseHeaders: [{ name: 'Content-Type', value: copy.contentType }, { name: 'Cache-Control', value: copy.cacheControl }], body: copy.body.toString('base64') }).catch(() => {});
-     } else if (apiRead && (fixture || replay)) {
+     } else if (answered) {
       if (replay && !(fixture && url.pathname === '/api/settings')) replay.unlisted.set(url.pathname + url.search, (replay.unlisted.get(url.pathname + url.search) ?? 0) + 1);
       const body = fixture && url.pathname === '/api/settings' ? fixture : { error: { code: 'fixture_only', message: 'Isolated measurement' } };
       await cdp.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: fixture && url.pathname === '/api/settings' ? 200 : 503, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }, { name: 'Cache-Control', value: 'no-store' }], body: Buffer.from(JSON.stringify(body)).toString('base64') }).catch(() => {});
-     } else if (!['GET', 'HEAD', 'OPTIONS'].includes(e.request.method) || (url.origin !== origin && !url.hostname.endsWith('fonts.gstatic.com'))) {
-      if (!['GET', 'HEAD', 'OPTIONS'].includes(e.request.method)) blockedWrites++;
+     } else if (blocked) {
       await cdp.send('Fetch.failRequest', { requestId: e.requestId, errorReason: 'BlockedByClient' }).catch(() => {});
      } else await cdp.send('Fetch.continueRequest', { requestId: e.requestId }).catch(() => {});
     });
@@ -356,7 +389,15 @@ export async function main({ origin, routes, samples, profiles, output, access: 
     for (cache of ['cold-browser', 'repeat-browser']) {
      let diskHits = 0;
      blockedWrites = 0;
-     const listener = e => { if (e.response.fromDiskCache || e.response.fromPrefetchCache) diskHits++; };
+     requests = emptyRequestCounts();
+     const listener = e => {
+      const { response } = e;
+      if (response.fromDiskCache || response.fromPrefetchCache) diskHits++;
+      else if (!response.fromServiceWorker && !fulfilled.has(e.requestId) && !memoryHits.has(e.requestId) && URL.canParse(response.url) && new URL(response.url).origin === origin) {
+       requests.sent++;
+       if (new URL(response.url).pathname.startsWith('/api/')) requests.sentApi++;
+      }
+     };
      cdp.on('Network.responseReceived', listener);
      // The repeat row stores the choice on the cold row's page, same origin,
      // before it navigates: no banner press, nothing sent.
@@ -394,14 +435,14 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      Object.assign(measurement, summarizeInteractions(events, { pressed: clicked && Boolean(firstInput) }));
      if (pressed) await page.keyboard.press('Escape');
      cdp.off('Network.responseReceived', listener);
-     const row = { profile, path, sample, cache, consent: consentByCache(consent)[cache], elapsed: Date.now() - started, diskHits, blockedWrites, ...measurement };
+     const row = { profile, path, sample, cache, consent: consentByCache(consent)[cache], elapsed: Date.now() - started, diskHits, blockedWrites, requests: { ...requests }, ...measurement };
      results.push(row);
      write();
-     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'FCP', row.fcp === null ? 'none' : Math.round(row.fcp), 'LCP', Math.round(row.lcp), 'lcpElement', formatLcpElement(row.lcpElement), 'CLS', row.cls.toFixed(3), 'TBT', row.tbtMs === null ? 'none' : Math.round(row.tbtMs), 'longTasks', row.longTasks.count, 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'consent', row.consent, 'banner', row.consentBanner ? 'shown' : 'none', 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
+     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'FCP', row.fcp === null ? 'none' : Math.round(row.fcp), 'LCP', Math.round(row.lcp), 'lcpElement', formatLcpElement(row.lcpElement), 'CLS', row.cls.toFixed(3), 'TBT', row.tbtMs === null ? 'none' : Math.round(row.tbtMs), 'longTasks', row.longTasks.count, 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'requests', requestCount(requests), 'sent', requests.sent, 'consent', row.consent, 'banner', row.consentBanner ? 'shown' : 'none', 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
     }
    } catch (error) {
     if (error instanceof FatalLabError) throw error;
-    const row = { profile, path, sample, cache, error: firstLine(error) };
+    const row = { profile, path, sample, cache, error: firstLine(error), ...(requests && { requests: { ...requests } }) };
     results.push(row);
     write();
     console.log(profile, path, sample, cache ?? 'setup', 'FAILED', row.error);
