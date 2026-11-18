@@ -473,6 +473,69 @@ function codingDatabase(options: { forfeitAfterReveal?: boolean; firstVerifiedPa
   console.log('PASS integrity: a React verdict does not wait for the VM\'s stop where the runtime keeps the function alive for it');
 }
 
+// ── work handed over after the response never rejects (F11, #640) ───────
+// afterResponse promises two things the React grader's stop relies on: what
+// it hands to waitUntil is settled and never a rejection, so a failed stop
+// cannot surface as an unhandled rejection after the answer went out; and
+// where the runtime cannot keep the function alive (no hook, or a hook that
+// throws), the caller waits for the work, so nothing runs past the response
+// unowned. The block above covers a stop that resolves; these cover one that
+// rejects and a hook that refuses.
+{
+  const { afterResponse } = await import('../lib/coding/after-response');
+  const contextKey = Symbol.for('@vercel/request-context');
+  const holder = globalThis as unknown as Record<symbol, unknown>;
+  const realContext = holder[contextKey];
+  const within = (promise: Promise<unknown>, ms: number) => Promise.race([promise.then(() => 'resolved', () => 'rejected'), new Promise<string>((resolve) => setTimeout(() => resolve('pending'), ms))]);
+  /** Work that rejects only when the test says so. */
+  const rejectLater = () => {
+    let fail: (error: Error) => void = () => undefined;
+    const work = new Promise<never>((_resolve, reject) => { fail = reject; });
+    return { work, fail: () => fail(new Error('stop failed')) };
+  };
+  try {
+    // A hook: the caller goes on at once, and the runtime holds a promise
+    // that resolves when the work rejects.
+    const handed: Promise<unknown>[] = [];
+    holder[contextKey] = { get: () => ({ waitUntil: (promise: Promise<unknown>) => { handed.push(promise); } }) };
+    const withHook = rejectLater();
+    assert.equal(await within(afterResponse(withHook.work), 50), 'resolved', 'with waitUntil the caller goes on before the work settles');
+    assert.equal(handed.length, 1, 'the work was handed to the runtime');
+    assert.equal(await within(handed[0], 50), 'pending', 'what was handed waits for the work');
+    withHook.fail();
+    assert.equal(await within(handed[0], 1_000), 'resolved', 'and resolves, never rejects, when the work fails');
+
+    // No hook: the caller waits for the work and hears no rejection.
+    delete holder[contextKey];
+    const noHook = rejectLater();
+    const waited = afterResponse(noHook.work);
+    assert.equal(await within(waited, 50), 'pending', 'without a hook the caller waits for the work');
+    noHook.fail();
+    assert.equal(await within(waited, 1_000), 'resolved', 'and goes on, without a rejection, once the work failed');
+
+    // A hook that throws: the same as no hook.
+    let refused = 0;
+    holder[contextKey] = { get: () => ({ waitUntil: () => { refused += 1; throw new Error('waitUntil refused'); } }) };
+    const refusedWork = rejectLater();
+    const fallback = afterResponse(refusedWork.work);
+    assert.equal(refused, 1, 'the hook was asked');
+    assert.equal(await within(fallback, 50), 'pending', 'a hook that throws leaves the caller waiting for the work');
+    refusedWork.fail();
+    assert.equal(await within(fallback, 1_000), 'resolved', 'which goes on, without a rejection, once the work failed');
+
+    // A request context whose getter throws counts as no hook too.
+    holder[contextKey] = { get: () => { throw new Error('no request context'); } };
+    let finish: () => void = () => undefined;
+    const plain = afterResponse(new Promise<void>((resolve) => { finish = resolve; }));
+    assert.equal(await within(plain, 50), 'pending', 'a context that cannot be read leaves the caller waiting');
+    finish();
+    assert.equal(await within(plain, 1_000), 'resolved');
+  } finally {
+    if (realContext === undefined) delete holder[contextKey]; else holder[contextKey] = realContext;
+  }
+  console.log('PASS integrity: work handed over after the response settles without a rejection, and the caller waits for it where the runtime cannot hold it');
+}
+
 // ── a checkpoint hands over nothing that passes its milestone ───────────
 // A pass of a checkpoint (`…-start`) and a reveal there serve that
 // checkpoint's own reference and no boards; that reference fails the
