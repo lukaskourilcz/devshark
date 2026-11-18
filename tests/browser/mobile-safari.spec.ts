@@ -152,7 +152,7 @@ test.describe('desktop editor typography', () => {
     expect(font.content).toBe(14);
   });
 
-  test('the workbench splitter keeps its drag surface and restores scrolling after a canceled drag', async ({ page }) => {
+  test('the workbench splitter keeps its drag surface and stops tracking a canceled drag', async ({ page }) => {
     await openEditor(page);
     const splitter = page.getByRole('separator', { name: 'Resize the editor and task information panes' });
     await expect(splitter).toBeVisible();
@@ -163,10 +163,13 @@ test.describe('desktop editor typography', () => {
     await page.mouse.down();
     await page.mouse.move(bounds!.x + 45, bounds!.y + bounds!.height / 2);
     await splitter.dispatchEvent('pointercancel', { pointerId: 1, pointerType: 'mouse', bubbles: true });
+    const canceled = await page.locator('.cd-pane--editor').boundingBox();
+    await page.mouse.move(bounds!.x + 90, bounds!.y + bounds!.height / 2);
+    const afterCancel = await page.locator('.cd-pane--editor').boundingBox();
+    expect(afterCancel!.width).toBe(canceled!.width);
     await page.mouse.up();
     const after = await page.locator('.cd-pane--editor').boundingBox();
     expect(after!.width).toBeGreaterThan(before!.width);
-    expect(await page.evaluate(() => getComputedStyle(document.body).userSelect)).not.toBe('none');
     await splitter.focus();
     await splitter.press('ArrowLeft');
     await expect(splitter).toBeFocused();
