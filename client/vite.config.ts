@@ -397,7 +397,11 @@ function productMetadata(env: Record<string, string>): Plugin {
       const fallback = `<main class="ss-public-fallback ss-info-page"><h1>${escape(title)}</h1><p>${escape(description)}</p><ul class="ss-topic-links">${topics.map(topic => `<li><a href="${topicPath(topic.slug)}">${escape(topic.title)}</a></li>`).join('')}</ul></main>`;
       await writeFile(path.join(outDir, 'index.html'), indexHtml.replace('</head>', `<link rel="canonical" href="${origin}/" /><meta property="og:url" content="${origin}/" /></head>`).replace('<div id="root"></div>', `<div id="root"><noscript>${fallback}</noscript></div>`));
       await writeFile(path.join(outDir, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(url => `<url><loc>${url}</loc></url>`).join('')}</urlset>`);
-      await writeFile(path.join(outDir, 'robots.txt'), `User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /sandbox/\nDisallow: /dev\nSitemap: ${origin}/sitemap.xml\n`);
+      // Crawlers stay out of the API, the React sandbox, /dev, the admin
+      // workspace and the PostHog proxy. /admin keeps its X-Robots-Tag
+      // noindex (vercel.json) for crawlers that fetch it anyway.
+      const disallow = ['/api/', '/sandbox/', '/dev', '/admin', '/ingest/'];
+      await writeFile(path.join(outDir, 'robots.txt'), `User-agent: *\nAllow: /\n${disallow.map((prefix) => `Disallow: ${prefix}\n`).join('')}Sitemap: ${origin}/sitemap.xml\n`);
     },
   };
 }
