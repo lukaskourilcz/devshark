@@ -6615,3 +6615,62 @@ All four `npm audit` runs (root and client, with and without `--omit=dev`) repor
 - `npm run test:sql`: no SQL changed.
 
 The remaining F2 findings (F2-08 to F2-44 and F2-46, among them Dependabot, the GitHub Actions upgrades, the unused-baseline cleanup and the dependency documentation) moved to #646.
+
+## Epic F8: Database: RLS, security definer routines, indexes and advisors (18 November 2026)
+
+Branch `claude/f8-database-hardening`: six commits on `main` `a9882348`. The branch adds no migration, so nothing waits to be applied to production (`rvlybcjdpafwyeuojvhl`).
+
+### What changed
+
+- **F8-01** After every schema file, `scripts/test-sql.mjs` runs a check that fails with "left a transaction open" when the file ran BEGIN without COMMIT. Before this, psql rolled such a file back on exit without an error. Files numbered 077 and up must start with BEGIN, set `lock_timeout` and `statement_timeout` in the next two statements and end with COMMIT. The script applies each of them a second time and fails if the second apply errors or changes a catalog fingerprint (routines with ACLs, relations, columns, constraints, indexes, policies, triggers, types, comments, default privileges, publications, extensions, cron jobs) or any row count in `public` and `devshark_private`. Files 002 to 076 keep the shape production applied, and 11 of them (003, 005, 008, 011, 012, 013, 024, 032, 033, 048, 064) still fail a second apply.
+- **F8-44** `supabase/advisors/splinter.sql` vendors the Supabase advisor lints at splinter `cc529aa9`: 31 lints, the PostgreSQL License notice, and a body whose sha256 `e652eb2b…` matches upstream. `test:sql` runs it after the behaviour tests inside BEGIN and ROLLBACK and prints the count per lint. It writes the rows to `SQL_ADVISORS_JSON` when that variable is set and to a collapsed group on GitHub Actions. It fails on any ERROR and on any SECURITY warning in `public` or `devshark_private`.
+- **F8-02** `supabase/bench/seed.sql` loads 20,000 synthetic learners (1,343 MB) into a `createdb -T` copy of a `test:sql` database. It refuses a database named `postgres` and a second run. `supabase/bench/explain.sql` prints `EXPLAIN (ANALYZE, BUFFERS)` for 17 reads inside a read-only transaction and runs the SQL routines' bodies from `pg_proc` as generic plans. `medians.mjs` turns seven runs into medians, spread and pages.
+- **F8-03** `supabase/bench/results-2026-11.md` records the before numbers, the noise between two seeded copies, the daily purge and the advisor counts.
+- **Review fix** The 077+ shape check used to split `CREATE FUNCTION … BEGIN ATOMIC … END` bodies at their inner semicolons and reject a valid migration with "found END". The splitter now counts parentheses and BEGIN, CASE and END the way psql's lexer does. It returns the same statements as before on the 151 SQL files under `supabase/`.
+
+### Numbers
+
+Before, 20,000 learners, Postgres 17.11, median of seven runs on copy A (load 10.3). No read has an after number: this branch changes no index or policy.
+
+| Read | Median ms | Pages |
+|---|---:|---:|
+| `subject_leaderboard`, all time | 466.9 | 15,266 |
+| `window_leaderboard`, 30 days | 145.0 | 4,820 |
+| `category_leaderboard`, javascript, all time | 134.8 | 15,116 |
+| `window_leaderboard_rank`, 30 days | 66.8 | 3,983 |
+| `month_xp_leaderboard` | 46.0 | 1,901 |
+| Hall of Fame name check in `allocate_shark_name` | 22.6 | 3,131 |
+| `daily_leaderboard_v2` | 10.7 | 2,222 |
+| `friend_list` | 5.01 | 547 |
+| `purge_expired_learning_data()`, 120-day backlog | 565 cold, 155 to 248 warm | |
+
+A second seeded copy gave the same plan nodes and pages on all 17 reads. Its medians ran 0.42 to 0.61 times copy A's at load 2.7 and 1.10 to 2.17 times at load 98.
+
+Advisors before. Local splinter on a fresh build: 39 `auth_rls_initplan` WARN, 33 `rls_enabled_no_policy` INFO, 23 `unused_index` INFO, 1 `no_primary_key` INFO, with no ERROR and no security WARN. Production `get_advisors` on 18 November: security 33 INFO; performance 39 `auth_rls_initplan`, 16 `unused_index`, 1 `no_primary_key` and 1 `auth_db_connections_absolute`.
+
+`test:sql` before: 71/71 passed, with no transaction, shape or advisor check. After: 71/71 passed and 96 lints with 0 blocking. Nine throwaway 077 files with a broken shape or grant each fail it, and the two well-formed probes (guarded, BEGIN ATOMIC) pass.
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm run test:sql` on a fresh empty Postgres 17.11 database | 76 schema files applied; 71 passed, 0 known failures, 0 failed; 96 lints, 0 blocking |
+| Throwaway 077 probes through `test:sql` | no BEGIN, no COMMIT, COMMIT midway, no timeouts, unguarded policy, unguarded INSERT, drifting routine, anon EXECUTE on `delete_user_data` and a definer view each fail; the guarded and BEGIN ATOMIC probes pass |
+| Old and new statement splitter on 151 SQL files | identical output |
+| `explain.sql` x7 on seeded copy B, `heavy --exclusive` | same plans and pages as copy A |
+| `npm run test:launch` | pass |
+| `npm run check:unused` | no new findings |
+| `npm run check:security` | pass |
+| `git diff --check origin/main...HEAD` | clean |
+| `node --check` on `scripts/test-sql.mjs` and `supabase/bench/medians.mjs` | ok |
+
+### Not run
+
+- `test:sql` on `supabase/postgres:17.6.1.171`: this machine has no Docker, so the pull request's `sql` job runs it first. That image includes the migration that turns pg_graphql off, so the GraphQL exposure lints return nothing there.
+- `typecheck:*`: the branch changes no TypeScript.
+- Client build, bundle, public and browser checks: no client code changed.
+- `npm audit`: no lockfile changed.
+- `test:fallbacks` and `test:billing`: no migration or server code changed.
+- `ci:parity`: it binds ports other agents need.
+
+The remaining 40 findings of F8 (F8-04 to F8-43) moved to #646. They cover the definer allow-list and RLS invariant tests, the search_path, EXECUTE and grant migrations, the index drops and additions, the purge schedule and the docs.
