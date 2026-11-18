@@ -28,6 +28,7 @@ import { evolvingStage } from '../shared/evolving';
 import { createMiniJest } from '../shared/coding-mini-jest';
 import { runReactSuite } from '../lib/coding/react-runner';
 import { withHiddenCases } from '../lib/coding/react-hidden';
+import { guestResultLine, readGuestResult, serializeGuestResult } from '../lib/coding/react-guest';
 import { allPassed, evaluateCalls, hiddenGlobalMessage, LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, TIMEOUT_MESSAGE } from '../shared/coding-evaluate';
 import { CHECKER_GLOBALS, CHECKER_MEMBERS } from '../shared/coding-checker-globals';
 import { nodeTypeScriptChecker } from '../lib/coding/ts-check-node';
@@ -1600,6 +1601,93 @@ export default function App() { const [count, setCount] = useState(0); return <b
     'the wasm exports 75 functions',
   );
   console.log('PASS integrity: QuickJS gets one host function in the grader and three in the React engine, no module loader, and the wasm imports 20 names and exports 75');
+}
+
+// ── prototype pollution stays inside the run that made it (F11-06) ───────
+// The attacks above replace globals and Array.prototype.toJSON. Here learner
+// code changes Object.prototype, Array.prototype, Function.prototype and the
+// globals the controller could lean on. The controller took its intrinsics
+// before the learner's code ran, so the run's own values still read right;
+// every run gets a fresh QuickJS runtime (runInQuickJS), so neither the
+// hidden run nor the next run on the thread sees the change, and the host
+// realm that decodes the results never does.
+{
+  const source = `const pollute = () => {
+  Object.prototype.x = 1; Object.prototype.toString = () => 'pwn'; Object.prototype.toJSON = () => 'pwn';
+  Array.prototype.push = () => 0; Array.prototype[0] = 'p0';
+  Function.prototype.constructor = null; Object.prototype.constructor = null;
+  globalThis.JSON = null; globalThis.Object = null; globalThis.Array = null; globalThis.String = null;
+  return { kept: [1, 2], text: 'a' };
+};
+const kept = () => ({ kept: [1, 2], text: 'a' });
+const clean = () => [({}).x, [].push(1), [, 2][0], typeof Function.prototype.constructor, JSON.stringify({ a: [1] }), String([1, 2])];
+const owned = () => JSON.parse('{"__proto__":{"x":1},"a":2}');`;
+  const unchanged = [undefined, 1, undefined, 'function', '{"a":[1]}', '1,2'];
+  const checks = await runChecks({
+    code: source,
+    // The calls run in order before any result is encoded, so each result
+    // is encoded after pollute() has run, and a wrong one still fails.
+    visible: [{ call: 'pollute()', expected: { kept: [1, 2], text: 'a' } }, { call: 'kept()', expected: { kept: [1, 2], text: 'b' } }, { call: 'clean()', expected: unchanged }],
+    hidden: [{ call: 'clean()', expected: unchanged }, { call: '({}).hasOwnProperty("x")', expected: false }],
+    shuffle: (list) => list,
+  });
+  assert.equal(checks.visible.codeError, null, JSON.stringify(checks.visible));
+  assert.deepEqual(checks.visible.results.map((one) => one.pass), [true, false, false], `the run's own values still compare right: ${JSON.stringify(checks.visible.results)}`);
+  assert.deepEqual(checks.visible.results.slice(0, 2).map((one) => one.actual), ['{"kept":[1,2],"text":"a"}', '{"kept":[1,2],"text":"a"}'], 'and display right');
+  assert.ok(checks.visible.results[2].error, 'the run that polluted its realm sees the change itself');
+  assert.deepEqual(checks.hidden?.results.map((one) => one.pass), [true, true], `the hidden run starts clean: ${JSON.stringify(checks.hidden)}`);
+  const next = await runInSandbox({ code: source, calls: ['clean()'], expectations: [unchanged] });
+  assert.equal(next.results[0]?.pass, true, `the next run on the thread starts clean: ${JSON.stringify(next)}`);
+  // In this thread: the host realm that decodes the results keeps its
+  // prototypes, and an own __proto__ key in a result is data.
+  const hostPush = Array.prototype.push;
+  // owned() runs before pollute() replaces JSON, and both results are
+  // encoded after it.
+  const inThread = await runInQuickJS({
+    code: source,
+    calls: ['owned()', 'owned()', 'pollute()'],
+    expectations: [JSON.parse('{"__proto__":{"x":1},"a":2}'), { a: 2 }, { kept: [1, 2], text: 'a' }],
+  });
+  assert.deepEqual(inThread.results.map((one) => one.pass), [true, false, true], JSON.stringify(inThread));
+  assert.equal(inThread.results[0].actual, '{"__proto__":{"x":1},"a":2}', 'an own __proto__ key is compared and shown as a key');
+  assert.ok(!Object.hasOwn(Object.prototype, 'x') && ({} as { x?: unknown }).x === undefined, 'the host Object.prototype has no x');
+  assert.equal(Array.prototype.push, hostPush, 'the host Array.prototype.push is untouched');
+  assert.equal(JSON.stringify({ a: [1] }), '{"a":[1]}', 'the host JSON and toJSON are untouched');
+
+  // The React learner engine freezes its own prototypes and refuses
+  // constructor lookups; the page realm the suite runs in, the realm that
+  // writes the verdict, and the next run see none of it.
+  const pollutedSuite = `import React from 'react';
+import { render } from '@testing-library/react';
+import App, { tried } from './App';
+test('the page realm is untouched', () => { const { container } = render(<App />); expect(container.textContent).toBe('undefined 1'); expect(({}).x).toBe(undefined); expect([].push(1)).toBe(1); expect(Object.getOwnPropertyNames(Object.prototype)).not.toContain('x'); });
+test('every attempt was refused', () => { expect(tried()).toEqual(${JSON.stringify(Array(8).fill('TypeError').join(' '))}); });`;
+  const polluted = await runReactSuite({
+    suite: pollutedSuite,
+    appSource: `import React from 'react';
+const refused = [];
+const attempt = (run) => { try { run(); refused.push('changed'); } catch (error) { refused.push(error.name); } };
+attempt(() => { Object.prototype.x = 1; });
+attempt(() => { Object.prototype.toJSON = () => 'pwn'; });
+attempt(() => { Array.prototype.push = () => 0; });
+attempt(() => { Array.prototype[0] = 'p0'; });
+attempt(() => ({}).constructor.constructor('return this')());
+attempt(() => [].constructor.constructor('return this')());
+attempt(() => { Object.getPrototypeOf(document.body).x = 1; });
+attempt(() => { document.body.constructor.prototype.x = 1; });
+export const tried = () => refused.join(' ');
+export default function App() { return <p>{String(({}).x) + ' ' + [].push(1)}</p>; }`,
+  });
+  assert.equal(polluted.compileError, null, JSON.stringify(polluted));
+  assert.deepEqual(polluted.cases.map((one) => one.status), ['pass', 'pass'], JSON.stringify(polluted));
+  const nonce = 'b'.repeat(48);
+  const reported = readGuestResult(guestResultLine(nonce, serializeGuestResult(polluted)), nonce, pollutedSuite);
+  assert.equal(reported.passed, 2, 'the guest reporter reads the run as it ran');
+  assert.ok(!Object.hasOwn(Object.prototype, 'x') && Array.prototype.push === hostPush, 'the host realm is untouched after a React run');
+  const reference = CODING_TASKS.find((task) => task.id === 'react-easy2-disclosure')!;
+  const after = await runReactSuite({ suite: withHiddenCases(reference.suite!, solutionFor(reference.id)!.hiddenSuite), appSource: solutionFor(reference.id)!.solution });
+  assert.ok(after.compileError === null && after.failed === 0 && after.passed > 0, `the next reference run passes: ${JSON.stringify(after)}`);
+  console.log('PASS integrity: prototype pollution leaves the run\'s own results, the hidden run, the next run and the host realm unchanged, in QuickJS and in the React engine');
 }
 
 // ── console output is capped by size (CODE-13) ───────────────────────────
