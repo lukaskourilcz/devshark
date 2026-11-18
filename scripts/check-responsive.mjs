@@ -20,6 +20,7 @@ import { spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir, platform } from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { CLEARANCE } from './responsive-clearance.mjs';
 import { closeBrowserProcess } from './responsive-browser-process.mjs';
 
@@ -110,6 +111,19 @@ const DEFAULT_VIEWPORTS = [
 // The launched deployment's public settings, which every page reads; the same
 // body the client tests use, checked against api/settings.ts by test:launch.
 const SETTINGS = JSON.parse(readFileSync(new URL('../tests/fixtures/api-settings.json', import.meta.url), 'utf8'));
+const ACCOUNT = JSON.parse(readFileSync(new URL('../tests/fixtures/responsive-account.json', import.meta.url), 'utf8'));
+const BUDGET = JSON.parse(readFileSync(new URL('../docs/quality/bundle-budget.json', import.meta.url), 'utf8'));
+const AUTH_ORIGIN = new URL(BUDGET.measuredBuild.env.VITE_SUPABASE_URL).origin;
+
+/** A local session that no server issued. Fetch interception supplies Auth. */
+export function fixtureSession() {
+  const now = Math.floor(Date.now() / 1000);
+  const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
+  return {
+    access_token: `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ sub: ACCOUNT.user.id, aud: 'authenticated', role: 'authenticated', iat: now, exp: now + 3600 })}.${Buffer.from('responsive-fixture-not-a-signature').toString('base64url')}`,
+    refresh_token: 'responsive-fixture-refresh', token_type: 'bearer', expires_in: 3600, expires_at: now + 3600, user: ACCOUNT.user,
+  };
+}
 // The roadmap structure, the path catalog and a coding task, built from the
 // server's own modules (scripts/responsive-fixtures.ts), bundled once here.
 let SERVER;
@@ -194,9 +208,50 @@ API_FIXTURES.push(
   { method: 'GET', match: (url) => decodeURIComponent(url.pathname) === '/api/user/[op]' && url.searchParams.get('op') === 'shop', body: () => SHOP },
 );
 
-function apiFixture(method, url) {
+export function apiFixture(method, url, authMode = 'signed-in') {
+  if (url.origin === AUTH_ORIGIN && authMode === 'signed-in') {
+    if (method === 'OPTIONS' && ['/auth/v1/user', '/auth/v1/token'].includes(url.pathname)) return { status: 204, body: null };
+    if (method === 'GET' && url.pathname === '/auth/v1/user') return { status: 200, body: ACCOUNT.user };
+    if (method === 'POST' && url.pathname === '/auth/v1/token' && url.searchParams.get('grant_type') === 'refresh_token') return { status: 200, body: fixtureSession() };
+  }
+  if (url.pathname.startsWith('/auth/')) return null;
+  const userRoute = decodeURIComponent(url.pathname).match(/^\/api\/user\/([^/]+)$/);
+  const op = userRoute && (userRoute[1] === '[op]' ? url.searchParams.get('op') : userRoute[1]);
+  if (authMode === 'signed-in') {
+    if (method === 'POST' && op === 'authevent') return { status: 200, body: { ok: true } };
+    if (method === 'GET') {
+      const bodies = {
+        stats: { data: { ...ACCOUNT.stats, last_quiz_date: new Date().toISOString().slice(0, 10) } },
+        entitlement: { tier: 'free', source: null, currentPeriodEnd: null, cancelAtPeriodEnd: false, inGrace: false, validUntil: null },
+        xp: { data: { quest_xp: 200, by_subject: { webdev: 200 } } },
+        freezes: { remaining: 2, period: new Date().toISOString().slice(0, 7), used: [], shieldUntil: null, shieldDays: [], shieldSupported: true },
+        advisor: { weakAreas: [{ category: 'javascript', accuracyPct: 65, answered: 20 }], suggestedWeek: [{ day: 1, category: 'javascript', focus: 'practice' }], generatedAt: new Date().toISOString() },
+        'leaderboard-name': { mode: 'nickname', nickname: 'responsiveShark1', accountName: ACCOUNT.user.user_metadata.full_name, showPhoto: false },
+        'friends-handle': { handle: 'responsiveShark1', discoverable: true, country: null, canChangeAt: null },
+        identity: { showRealName: false, showPhoto: false, realName: ACCOUNT.user.user_metadata.full_name, photo: null },
+        'friends-list': { friends: [], requests: [] },
+        'learning-preference': { preference: ACCOUNT.user.user_metadata.devquiz_learning_preference_v1, legacyTrack: 'frontend', profile: ACCOUNT.user.user_metadata.devquiz_learner_profile_v2, missingProfileFields: [] },
+        'learning-path-enrollment': { enrollments: [] },
+        'coding-bookmarks': { saved: ['js-double-numbers'], collections: [] },
+        'practice-session': { session: null },
+        'coding-progress': { progress: {} },
+        'github-connection': { connected: false, repositories: [], selectedRepo: null, lastSyncAt: null },
+        wallet: ACCOUNT.wallet,
+        orders: { orders: [] },
+      };
+      if (op && Object.hasOwn(bodies, op)) return { status: 200, body: bodies[op] };
+      if (url.pathname === '/api/flashcards') return { status: 200, body: { cards: ACCOUNT.cards } };
+      if (url.pathname === ROADMAP && url.searchParams.get('resource') === 'progress') return { status: 200, body: { data: ACCOUNT.progress, extra: { unlocked: [], wallets: { webdev: { balance: 350 } }, inventories: {} } } };
+      if (url.pathname === '/api/quiz/questions' && url.searchParams.get('resource') === 'due') return { status: 200, body: { due: [], estimatedMinutes: 0 } };
+    }
+  }
   const fixture = API_FIXTURES.find((one) => one.method === method && one.match(url));
-  return fixture ? { status: fixture.status ?? 200, body: fixture.body(url) } : null;
+  if (!fixture) return null;
+  const body = fixture.body(url);
+  if (authMode === 'signed-in' && url.pathname === ROADMAP && ['coding-task', 'coding-state'].includes(url.searchParams.get('resource'))) {
+    return { status: fixture.status ?? 200, body: { ...body, signedIn: true } };
+  }
+  return { status: fixture.status ?? 200, body };
 }
 
 // A route under /not-found-… is there to measure the not-found page itself.
@@ -234,6 +289,8 @@ function normalizeRoute(route) {
 class UsageError extends Error {}
 
 function selectedMatrix() {
+  const authMode = optionValue('--auth') ?? (process.env.RESPONSIVE_AUTH || 'signed-in');
+  if (!['signed-in', 'guest'].includes(authMode)) throw new UsageError(`Invalid responsive auth mode: ${authMode}. Use signed-in or guest.`);
   const zoomText = optionValue('--zoom') ?? (process.env.RESPONSIVE_ZOOM || '100');
   if (!['100', '200', '400'].includes(zoomText)) {
     throw new UsageError(`Invalid responsive zoom: ${zoomText}. Use 100, 200 or 400 percent.`);
@@ -258,7 +315,7 @@ function selectedMatrix() {
   if (unsupported?.length) {
     throw new UsageError(`Unsupported responsive width(s): ${unsupported.join(', ')}. Use one of: ${DEFAULT_VIEWPORTS.map(({ width }) => width).join(', ')}.`);
   }
-  return { routes, zoom, viewports: viewports.map((viewport) => ({
+  return { routes, zoom, authMode, viewports: viewports.map((viewport) => ({
     ...viewport,
     physicalWidth: viewport.width,
     physicalHeight: viewport.height,
@@ -284,6 +341,7 @@ Options:
   --output-dir <path> Keep failure screenshots at an explicit path
   --print-matrix      Print the selected route and viewport inventory as JSON
   --zoom <percent>    Reflow at 100, 200 or 400 percent (RESPONSIVE_ZOOM)
+  --auth <mode>       Local signed-in fixture (default) or guest
   --help              Show this help
 
 The same settings are available through RESPONSIVE_ROUTES,
@@ -445,15 +503,30 @@ const PROBE = `(() => {
 const RENDERED = `(() => ({
   mounted: (document.getElementById('root')?.childElementCount ?? 0) > 0,
   headings: [...document.querySelectorAll('h1')].map((h) => h.textContent.trim()).filter(Boolean),
+  pathname: location.pathname,
+  readyMarkers: [['profile', '.de-profile-identity'], ['cards', '.sc-card'], ['today', '.today-card'], ['shop', '.rw-wallet__amount']].filter(([, selector]) => document.querySelector(selector)).map(([name]) => name),
 }))()`;
 
-function renderProblems(route, rendered, apiRequests, notFoundHeading) {
+export function renderProblems(route, rendered, apiRequests, notFoundHeading, authMode = 'signed-in') {
   const problems = [];
   if (!rendered.mounted) problems.push('the app did not mount (#root is empty)');
   if (rendered.headings.length === 0) problems.push('no <h1>: the page did not draw its heading');
   const notFound = rendered.headings.includes(notFoundHeading);
   if (isNotFoundProbe(route) && !notFound) problems.push('expected the not-found page');
   if (!isNotFoundProbe(route) && notFound) problems.push(`landed on the not-found page ("${notFoundHeading}")`);
+  const expected = new URL(route, 'https://responsive.invalid').pathname;
+  const redirects = {
+    '/learn': ['/learn/web-developer'], '/coding/review': ['/coding'], '/classroom': ['/play'],
+    '/learn/forward-deployed-engineer': ['/learn/web-developer'],
+    '/learn/forward-deployed-engineer/path': ['/learn/web-developer'],
+  };
+  if (rendered.pathname && rendered.pathname !== expected && !redirects[expected]?.includes(rendered.pathname)) {
+    problems.push(`requested route ${expected} landed on ${rendered.pathname}`);
+  }
+  const requiredMarker = { '/profile': 'profile', '/cards': 'cards', '/today': 'today', '/shop': 'shop' }[expected];
+  if (authMode === 'signed-in' && requiredMarker && !rendered.readyMarkers?.includes(requiredMarker)) {
+    problems.push(`${requiredMarker} content is not ready; a heading or sign-in gate does not establish this route`);
+  }
   const unanswered = [...new Set(apiRequests.filter((one) => !one.answered).map((one) => one.request))];
   if (unanswered.length) problems.push(`asked the API for data with no fixture in this script: ${unanswered.join(', ')}`);
   return problems;
@@ -502,7 +575,7 @@ async function probeRoute(session, baseUrl, route, vp, notFoundHeading) {
     .catch(() => undefined);
   await new Promise((r) => setTimeout(r, 1500));
   const rendered = await evaluate(call, RENDERED);
-  const problems = renderProblems(route, rendered, session.apiRequests, notFoundHeading);
+  const problems = renderProblems(route, rendered, session.apiRequests, notFoundHeading, session.authMode);
   const geometry = await evaluate(call, `({ width: innerWidth, height: innerHeight, density: devicePixelRatio, screenWidth: screen.width, screenHeight: screen.height })`);
   if (Math.abs(geometry.width - vp.width) > 1 || Math.abs(geometry.height - vp.height) > 1 ||
       Math.abs(geometry.density - vp.deviceScaleFactor) > 0.01 ||
@@ -561,7 +634,7 @@ let browserGeneration = 0;
  * remaining route goes unmeasured. Relaunching costs a couple of seconds and
  * recovers the rest of the sweep, which is worth far more than the seconds.
  */
-async function openBrowser(seed, baseUrl) {
+async function openBrowser(seed, baseUrl, authMode) {
   const userData = mkdtempSync(path.join(tmpdir(), 'shark-responsive-profile-'));
   const debugPort = Number.parseInt(process.env.RESPONSIVE_DEBUG_PORT ?? '', 10)
     || 9300 + ((process.pid + browserGeneration++) % 500);
@@ -612,18 +685,24 @@ async function openBrowser(seed, baseUrl) {
       if (msg.method !== 'Fetch.requestPaused') return;
       const { requestId, request } = msg.params;
       const url = new URL(request.url);
-      const fixture = apiFixture(request.method, url);
+      const baseOrigin = new URL(baseUrl).origin;
+      const apiOrAuth = (url.origin === baseOrigin && url.pathname.startsWith('/api/')) || url.pathname.startsWith('/auth/v1/');
+      if (!apiOrAuth && (url.origin === baseOrigin || url.protocol === 'data:' || url.protocol === 'about:')) {
+        call('Fetch.continueRequest', { requestId }).catch(() => undefined);
+        return;
+      }
+      const fixture = apiOrAuth ? apiFixture(request.method, url, authMode) : null;
       apiRequests.push({ request: `${request.method} ${url.pathname}${url.search}`, answered: Boolean(fixture) });
       const { status, body } = fixture
         ?? { status: 503, body: { error: { code: 'not_configured', message: 'The responsive sweep has no fixture for this request' } } };
       call('Fetch.fulfillRequest', {
         requestId,
         responseCode: status,
-        responseHeaders: [{ name: 'Content-Type', value: 'application/json' }, { name: 'Cache-Control', value: 'no-store' }],
-        body: Buffer.from(JSON.stringify(body)).toString('base64'),
+        responseHeaders: [{ name: 'Content-Type', value: 'application/json' }, { name: 'Cache-Control', value: 'no-store' }, { name: 'Access-Control-Allow-Origin', value: baseOrigin }, { name: 'Access-Control-Allow-Methods', value: 'GET,POST,OPTIONS' }, { name: 'Access-Control-Allow-Headers', value: 'authorization,apikey,content-type,x-client-info,x-supabase-api-version' }],
+        body: Buffer.from(status === 204 ? '' : JSON.stringify(body)).toString('base64'),
       }).catch(() => undefined);
     });
-    await call('Fetch.enable', { patterns: [{ urlPattern: `${new URL(baseUrl).origin}/api/*`, requestStage: 'Request' }] });
+    await call('Fetch.enable', { patterns: [{ urlPattern: '*', requestStage: 'Request' }] });
     // Sandboxed runners cannot reach the Google Fonts hosts, so every document
     // waits out its font requests and never fires `load`. Blocking them makes
     // an offline run fast and deterministic; the page then measures with the
@@ -634,7 +713,7 @@ async function openBrowser(seed, baseUrl) {
         urls: ['*://fonts.googleapis.com/*', '*://fonts.gstatic.com/*', '*://www.google.com/*'],
       });
     }
-    return { call, close, ws, apiRequests };
+    return { call, close, ws, apiRequests, authMode };
   } catch (err) {
     close();
     throw err;
@@ -650,9 +729,9 @@ async function main() {
   if (typeof globalThis.WebSocket !== 'function') {
     throw new Error('Responsive checks require Node.js 22 or newer (the version declared in package.json).');
   }
-  const { routes, viewports, zoom } = selectedMatrix();
+  const { routes, viewports, zoom, authMode } = selectedMatrix();
   if (process.argv.includes('--print-matrix')) {
-    console.log(JSON.stringify({ routes, viewports, zoom, authMode: 'guest' }, null, 2));
+    console.log(JSON.stringify({ routes, viewports, zoom, authMode }, null, 2));
     return;
   }
   SERVER = await loadServerFixtures();
@@ -663,7 +742,13 @@ async function main() {
     : mkdtempSync(path.join(tmpdir(), 'shark-responsive-shots-'));
   mkdirSync(outDir, { recursive: true });
   await preflight(baseUrl);
-  let session = await openBrowser(SEED, baseUrl);
+  const sessionKey = `sb-${new URL(AUTH_ORIGIN).hostname.split('.')[0]}-auth-token`;
+  const authSeed = authMode === 'signed-in'
+    ? `try { localStorage.setItem(${JSON.stringify(sessionKey)}, ${JSON.stringify(JSON.stringify(fixtureSession()))}); sessionStorage.setItem('devquiz:auth-reported', '1'); } catch (e) {}`
+    : '';
+  const seed = SEED + authSeed;
+  let session = await openBrowser(seed, baseUrl, authMode);
+  console.log(`  fixture auth=${authMode}; unlisted API, Auth and external requests are blocked`);
   if (SEED) console.log(`  seeded theme=${THEME}`);
   console.log(`  zoom=${zoom}%: physical viewport to effective CSS viewport: ${viewports.map((vp) => `${vp.physicalWidth}x${vp.physicalHeight} -> ${vp.width}x${vp.height} at ${vp.deviceScaleFactor} density`).join('; ')}`);
 
@@ -696,7 +781,7 @@ async function main() {
           process.stdout.write(`  ..... ${vp.label.padEnd(10)} ${route}  (restarting the browser)\n`);
           try {
             session.close();
-            session = await openBrowser(SEED, baseUrl);
+            session = await openBrowser(seed, baseUrl, authMode);
             r = await probeRoute(session, baseUrl, route, vp, notFoundHeading);
           } catch (second) {
             const reason = second instanceof Error ? second.message : String(second);
@@ -772,7 +857,9 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(err instanceof UsageError ? 2 : 1);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(err instanceof UsageError ? 2 : 1);
+  });
+}
