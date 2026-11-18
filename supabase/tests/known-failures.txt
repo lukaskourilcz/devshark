@@ -6,13 +6,6 @@
 # any other way, or passing, fails the suite until the line is removed, so this
 # list only shrinks. Never add a line to make a new failure go away: fix the SQL.
 
-# Four definer routines in public still run on search_path=public (#637):
-# record_quiz_result, record_category_stats, global_leaderboard and
-# daily_leaderboard. Nothing calls them; the migration that drops them removes
-# this line. Migration 077 moved match_question_distribution and
-# touch_updated_at to an empty search_path.
-250-security-definer-allowlist.test.sql: definer invariants:
-
 # The browser policies in public break the RLS invariants (#637): 39 own-row
 # policies wrap auth.uid() in a cast instead of a bare subselect, ten sit on
 # tables anon and authenticated cannot read, and 18 apply to public.
