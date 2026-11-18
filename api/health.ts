@@ -1,7 +1,9 @@
 import type { VercelRequest, VercelResponse } from '../lib/vercel-types.js';
-import { createServiceClient, jsonError, logEvent, withRequestContext } from '../lib/http';
+import { jsonError, logEvent, serviceClientOrNull, withRequestContext } from '../lib/http';
 
-const service = createServiceClient();
+// Null without Supabase, or in production without a usable service-role key:
+// the probe then answers 503 instead of failing to load as the handlers do.
+const service = serviceClientOrNull();
 
 type DependencyStatus = 'ok' | 'down' | 'unconfigured';
 
