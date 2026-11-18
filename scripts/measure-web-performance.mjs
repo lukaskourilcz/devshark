@@ -160,6 +160,15 @@ export function summarizeLongTasks(tasks, { fcp, end }) {
  return { longTasks: { count: long.length, longest: long.reduce((longest, task) => Math.max(longest, task.duration), 0) }, tbtMs };
 }
 
+// The LCP element of a row as one short line for the log, such as
+// 'section.ss-consent p#_r_4_.ss-consent__body'. tag is null when the browser
+// had already dropped the element from the entry.
+export function formatLcpElement(element) {
+ if (!element) return 'none';
+ const name = element.tag ? element.tag + (element.id ? '#' + element.id : '') + element.classes.map(className => '.' + className).join('') : '(detached)';
+ return [element.container, name, element.url].filter(Boolean).join(' ');
+}
+
 const formatInp = inpMs => typeof inpMs === 'number' ? Math.round(inpMs) : inpMs ?? 'none';
 
 // A failure every later load would repeat; it ends the run instead of one row.
@@ -211,8 +220,15 @@ export async function main({ origin, routes, samples, profiles, output, access: 
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: profile === 'mobile' ? 4 : 1 });
     await page.addInitScript(() => {
      localStorage.setItem('devquiz:color-mode', 'light');
-     window.__lab = { lcp: 0, shifts: [], longTasks: [], events: [], firstInput: null };
-     new PerformanceObserver(l => { for (const e of l.getEntries()) window.__lab.lcp = e.startTime; }).observe({ type: 'largest-contentful-paint', buffered: true });
+     window.__lab = { lcp: 0, lcpElement: null, shifts: [], longTasks: [], events: [], firstInput: null };
+     // The element is read when the entry arrives: entry.element turns null
+     // once the node leaves the page. container is the closest section or
+     // main around it, by its first class.
+     const describe = (entry, el = entry.element) => {
+      const box = el?.parentElement?.closest('section, main');
+      return { tag: el ? el.tagName.toLowerCase() : null, id: el?.id || null, classes: el ? [...el.classList].slice(0, 2) : [], container: box ? box.tagName.toLowerCase() + [...box.classList].slice(0, 1).map(name => '.' + name).join('') : null, size: entry.size, url: entry.url || null };
+     };
+     new PerformanceObserver(l => { for (const e of l.getEntries()) { window.__lab.lcp = e.startTime; window.__lab.lcpElement = describe(e); } }).observe({ type: 'largest-contentful-paint', buffered: true });
      // Raw shifts; summarizeLayoutShifts() turns them into CLS in Node.
      // takeShifts() adds the entries the observer has not delivered yet.
      const keepShifts = list => { for (const e of list) window.__lab.shifts.push({ startTime: e.startTime, value: e.value, hadRecentInput: e.hadRecentInput }); };
@@ -249,7 +265,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
       const resources = performance.getEntriesByType('resource').map(r => ({ path: new URL(r.name).pathname, kind: r.initiatorType, start: r.startTime, duration: r.duration, ttfb: r.responseStart - r.requestStart, download: r.responseEnd - r.responseStart, transfer: r.transferSize, encoded: r.encodedBodySize, decoded: r.decodedBodySize, serverTiming: r.serverTiming.map(t => ({ name: t.name, duration: t.duration })) }));
       // The paint timeline keeps first-contentful-paint, no observer needed.
       const fcp = performance.getEntriesByName('first-contentful-paint', 'paint')[0]?.startTime ?? null;
-      return { navigation: n, fcp, lcp: window.__lab.lcp, shifts: window.__lab.takeShifts(), longTasks: window.__lab.takeLongTasks(), measuredAt: performance.now(), resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
+      return { navigation: n, fcp, lcp: window.__lab.lcp, lcpElement: window.__lab.lcpElement, shifts: window.__lab.takeShifts(), longTasks: window.__lab.takeLongTasks(), measuredAt: performance.now(), resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
      });
      measurement.navigation = navigationTimings(measurement.navigation);
      Object.assign(measurement, summarizeLayoutShifts(shifts), summarizeLongTasks(longTasks, { fcp: measurement.fcp, end: measurement.measuredAt }));
@@ -277,7 +293,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      const row = { profile, path, sample, cache, elapsed: Date.now() - started, diskHits, blockedWrites, ...measurement };
      results.push(row);
      write();
-     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'FCP', row.fcp === null ? 'none' : Math.round(row.fcp), 'LCP', Math.round(row.lcp), 'CLS', row.cls.toFixed(3), 'TBT', row.tbtMs === null ? 'none' : Math.round(row.tbtMs), 'longTasks', row.longTasks.count, 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
+     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'FCP', row.fcp === null ? 'none' : Math.round(row.fcp), 'LCP', Math.round(row.lcp), 'lcpElement', formatLcpElement(row.lcpElement), 'CLS', row.cls.toFixed(3), 'TBT', row.tbtMs === null ? 'none' : Math.round(row.tbtMs), 'longTasks', row.longTasks.count, 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
     }
    } catch (error) {
     if (error instanceof FatalLabError) throw error;

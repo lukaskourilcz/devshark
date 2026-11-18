@@ -206,3 +206,13 @@ test('perf:measure sums blocking time over long tasks from FCP to the measuremen
   assert.deepEqual(lab.summarizeLongTasks(afterPaint, { fcp: null, end: 5000 }), { longTasks: { count: 2, longest: 120 }, tbtMs: null });
   assert.deepEqual(lab.summarizeLongTasks([], window), { longTasks: { count: 0, longest: 0 }, tbtMs: 0 });
 });
+
+test('perf:measure names the LCP element of a row in one short line', () => {
+  assert.equal(typeof lab.formatLcpElement, 'function', 'perf:measure formats lcpElement for its log line');
+  const banner = { tag: 'p', id: '_r_4_', classes: ['ss-consent__body'], container: 'section.ss-consent', size: 21000, url: null };
+  assert.equal(lab.formatLcpElement(banner), 'section.ss-consent p#_r_4_.ss-consent__body');
+  const hero = { tag: 'img', id: null, classes: ['hero__art', 'is-wide'], container: 'main.page', size: 90000, url: 'http://127.0.0.1:4211/hero.webp' };
+  assert.equal(lab.formatLcpElement(hero), 'main.page img.hero__art.is-wide http://127.0.0.1:4211/hero.webp');
+  assert.equal(lab.formatLcpElement({ tag: null, id: null, classes: [], container: null, size: 400, url: null }), '(detached)');
+  assert.equal(lab.formatLcpElement(null), 'none');
+});
