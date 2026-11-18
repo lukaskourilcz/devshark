@@ -401,3 +401,36 @@ for (const { answer, fulfill, logs } of GONE) test(`a newer build on the server 
   await expect(codingHeading(page)).toBeVisible();
   expect(documents.length).toBeGreaterThanOrEqual(2);
 });
+
+test('a newer build on the server: the old chunk answers a 404 that no cache keeps, the page reloads once into the new build and draws without a press', async ({ page }) => {
+  const { documents } = await prepare(page);
+  const index = await (await page.request.get('/')).text();
+  const entry = index.match(/\/assets\/main-[\w-]+\.js/)?.[0];
+  expect(entry, 'the entry script in index.html').toBeTruthy();
+
+  // A deploy replaced the build: the old Coding chunk is gone, and a fresh
+  // index.html names another entry script. The reload's document is the new
+  // build, in which the Coding chunk exists.
+  let deployed = true;
+  await page.route(CODING_PAGE, (route) => (deployed
+    ? route.fulfill(GONE[0].fulfill(index))
+    : route.continue()));
+  await page.route((url) => url.pathname === '/', (route) => (deployed && route.request().resourceType() === 'fetch'
+    ? route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: index.replace(entry!, '/assets/main-NEWBUILD.js') })
+    : route.continue()));
+  await page.route((url) => url.pathname === '/coding', (route) => {
+    if (route.request().resourceType() === 'document') deployed = false;
+    return route.continue();
+  });
+
+  await page.locator(CODING_LINK).click();
+  await expect(codingHeading(page)).toBeVisible();
+  expect(documents).toHaveLength(2);
+  await expect(page).toHaveURL(/\/coding$/);
+  await expect(panelOf(page)).toHaveCount(0);
+  await expectShell(page);
+  // Drawn, it stays: no second reload follows.
+  await page.waitForTimeout(600);
+  expect(documents).toHaveLength(2);
+  await expect(codingHeading(page)).toBeVisible();
+});
