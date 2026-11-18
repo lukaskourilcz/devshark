@@ -30,8 +30,9 @@ const SITE = {
 
 /** Starts docker/server.mjs over a scratch client/dist holding `files`.
  * Lines the adapter writes to stderr also land in `stderr`. `vercelConfig`
- * replaces the repository's vercel.json in the scratch copy. */
-async function startAdapter(t, { files = {}, stderr = [], vercelConfig } = {}) {
+ * replaces the repository's vercel.json in the scratch copy; `env` adds to
+ * the adapter's environment. */
+async function startAdapter(t, { files = {}, stderr = [], vercelConfig, env = {} } = {}) {
   const scratch = await mkdtemp(join(tmpdir(), 'devshark-docker-test-'));
   t.after(() => rm(scratch, { recursive: true, force: true }));
   const handlers = join(scratch, 'docker/dist/api');
@@ -77,7 +78,7 @@ async function startAdapter(t, { files = {}, stderr = [], vercelConfig } = {}) {
 
   const server = spawn(process.execPath, ['docker/server.mjs'], {
     cwd: scratch,
-    env: { NODE_PATH: join(root, 'node_modules'), PORT: String(port) },
+    env: { ...env, NODE_PATH: join(root, 'node_modules'), PORT: String(port) },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   const lines = createInterface({ input: server.stdout });
@@ -293,4 +294,22 @@ test('Docker drops upgrade-insecure-requests from the CSP of a plain-HTTP reques
     const { response: forwarded } = await assertVercelAnswer(origin, pathname, upgrades);
     assert.ok(forwarded.headers.get('content-security-policy')?.endsWith(`; ${TOKEN}`), `${pathname} behind an HTTPS proxy keeps ${TOKEN}`);
   }
+});
+
+// The Dockerfile sets CSP_CONNECT_EXTRA to VITE_SUPABASE_URL, an http(s)
+// origin. Play rooms subscribe to Supabase Realtime over ws(s) on the same
+// host, so with only the http source the browser blocked the socket and Play
+// fell back to polling. Each http(s) source brings its socket source along.
+test('Docker adds the realtime socket of each origin CSP_CONNECT_EXTRA names', async (t) => {
+  const origin = await startAdapter(t, {
+    files: SITE,
+    env: { CSP_CONNECT_EXTRA: 'http://127.0.0.1:54321 https://local-ref.supabase.example:8443/' },
+  });
+  const response = await fetch(`${origin}/`, { signal: AbortSignal.timeout(5_000) });
+  await response.arrayBuffer();
+  const connect = /(?:^|;)\s*connect-src ([^;]*)/.exec(response.headers.get('content-security-policy') ?? '')?.[1].split(/\s+/) ?? [];
+  for (const source of [
+    'http://127.0.0.1:54321', 'ws://127.0.0.1:54321',
+    'https://local-ref.supabase.example:8443/', 'wss://local-ref.supabase.example:8443',
+  ]) assert.ok(connect.includes(source), `the app connect-src allows ${source}: ${connect.join(' ')}`);
 });
