@@ -8,11 +8,13 @@ The header and the mobile menu show `BrandLogo`: the V9 fin and wave beside a pl
 
 The fin paths and wave stroke are the V9 ones, unchanged. The fin and wave stand as tall as the wordmark: the fin tip aligns with the top of the lettering and the bottom of the wave stroke with its bottom. The gap is 28% of the wordmark height. The fin and "dev" use `--brand-accent`; "Shark" uses `--brand-ink` in light mode and white in dark mode. The logo has fixed dimensions (about 166 × 22 px in the header, 151 × 20 px in the mobile menu), needs no font and takes the home link's accessible name. The two lettering paths share one hashed SVG request, cached apart from JavaScript, and the SVG `use` instances inherit their theme colours from `BrandLogo`.
 
-`scripts/render-og-image.mjs --logo-svg` exports the same lockup to `client/public/brand/approved/navbar-logo-ink.svg`, which the share images use.
+`node scripts/render-og-image.mjs --logo-svg --out docs/brand/source/approved/navbar-logo-ink.svg` exports the same lockup to the [approved share-image source](source/approved/navbar-logo-ink.svg), which the share-image build reads.
 
 ## The V9 kit
 
-The kit lives in [`client/public/brand/v9/`](../../client/public/brand/v9/README.md). Compared with the earlier one-wave revision (`client/public/brand/devshark-approved/`), V9 moves the fin up to the top ascender line, draws the wave as thick as the letter stems, and sets the lettering optically bolder with rounded corners. The owner's generator produced every file from one geometry; the lettering is outlines, so no file depends on a font, and every PNG has a transparent background. The generator, the HTML brand manual and the change list stay in the owner's archive.
+The kit lives in [`docs/brand/source/v9/`](source/v9/README.md). Compared with the [earlier one-wave revision](source/devshark-approved/README.md), V9 moves the fin up to the top ascender line, draws the wave as thick as the letter stems, and sets the lettering optically bolder with rounded corners. The owner's generator produced every file from one geometry; the lettering is outlines, so no file depends on a font, and every PNG has a transparent background. The generator, the HTML brand manual and the change list stay in the owner's archive.
+
+The source archive keeps the original artwork and provenance. The build and regeneration scripts read the [approved lockup](source/approved/navbar-logo-ink.svg), the V9 fin and the [Open Graph background](source/og/architecture-current.webp) from this directory. Vite serves the optimized root icons and final share images from `client/public/`; it does not copy the source archive into the website. Optimize served copies while preserving their geometry, `viewBox` and externally referenced SVG IDs.
 
 ### Files
 
@@ -36,7 +38,7 @@ PNG widths: 2400 px for horizontal logos, 1600 px for stacked, 1024 px for symbo
 - `favicon.ico` with 16, 32 and 48 px PNG layers.
 - `app-icon.svg`, `app-icon-180.png`, `-192`, `-512`: a white fin on a square green tile. The platform adds the corner radius.
 
-The app serves copies from the root of `client/public/`: `/favicon.ico`, `/favicon.svg`, `/favicon-white.svg`, `/favicon-16.png`, `/favicon-32.png`, `/favicon-48.png`, `/apple-touch-icon.png` (the 180 px app icon), `/icon-192.png`, `/icon-512.png` and `/icon.svg` (the app icon). `scripts/render-og-image.mjs` renders `/og-image.png` from the horizontal logo.
+The app serves these icons from the root of `client/public/`: `/favicon.ico`, `/favicon.svg`, `/favicon-white.svg`, `/favicon-32.png`, `/apple-touch-icon.png` (the 180 px app icon), `/icon-192.png`, `/icon-512.png` and `/icon.svg` (the app icon). The ICO retains its 16, 32 and 48 px layers; separate 16 and 48 px PNG copies stay in the source archive. `client/vite.config.ts` generates the manifest and references the app icons. `scripts/render-og-image.mjs` renders `/og-image.png` from the approved lockup and archived background.
 
 ## Rules
 
