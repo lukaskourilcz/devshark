@@ -170,7 +170,12 @@ context: `url` in the JavaScript grader, `capability`, `schedule` and `report` i
 the React learner engine, and no host reference or module loader in either. A new
 one fails the suite. It also pins the vendored wasm's 20 imports (19 host
 functions and its memory) and 75 exports beside the provenance hash, and checks
-that learner `import()` of `node:fs`, `std` or `os` rejects in both engines. `npm run test:launch` starts the actual guest bundle with production
+that learner `import()` of `node:fs`, `std` or `os` rejects in both engines.
+Learner code that changes `Object.prototype`, `Array.prototype`,
+`Function.prototype.constructor` or the globals changes only its own run: in the
+JavaScript grader its results still compare right and the hidden run and the
+next run start clean; in the React engine each attempt throws, and the page
+realm, the guest's reporter and the next reference run are unchanged. `npm run test:launch` starts the actual guest bundle with production
 flags, checks deletion/nonce/count/serialization, resource exhaustion, UTC in
 multiple process zones and representative suites. `npm run test:react-isolation`
 builds the guest and starts it the same way, with a local HTTP server standing in
