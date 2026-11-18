@@ -28,3 +28,16 @@ test('F6-01: the default matrix names the learner routes covered by release acce
   }
 });
 
+test('F6-02: 820px and 1366px profiles are selectable beside the existing landscape profile', () => {
+  const selected = matrix(['--routes=/', '--widths=820,1024,1366']);
+  assert.deepEqual(selected.viewports.map(({ physicalWidth }) => physicalWidth), [820, 1024, 1366]);
+  const landscape = selected.viewports.find(({ physicalWidth }) => physicalWidth === 1024);
+  assert.equal(landscape.physicalHeight, 768);
+});
+
+test('F6-02: malformed width input cannot silently select a different profile', () => {
+  const result = run(['--widths=390garbage']);
+  assert.equal(result.status, 2, 'invalid matrix input uses the usage exit code');
+  assert.match(result.stderr, /width.*390garbage|390garbage.*width/i);
+});
+
