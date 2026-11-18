@@ -200,8 +200,15 @@ async function runApi(req, res, url) {
   }
 }
 
+// The header routes match the raw path, so the file must be the one the raw
+// path names. Decoding the whole path first turned an encoded separator into a
+// real one: /assets/coding-worker/..%2f..%2findex.html reached index.html under
+// the worker's headers. Decode segment by segment, and refuse a segment that
+// decodes to a dot segment, a separator or U+0000, as Vercel does with 404.
 function staticFile(pathname) {
-  const file = path.normalize(path.join(STATIC, decodeURIComponent(pathname)));
+  const segments = pathname.split('/').map((segment) => decodeURIComponent(segment));
+  if (segments.some((segment) => segment === '.' || segment === '..' || /[/\\\0]/.test(segment))) return null;
+  const file = path.join(STATIC, ...segments);
   if (!file.startsWith(STATIC + path.sep) && file !== STATIC) return null;
   try { return statSync(file).isFile() ? file : null; } catch { return null; }
 }
