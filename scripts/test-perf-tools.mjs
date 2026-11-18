@@ -156,3 +156,28 @@ test('perf:measure turns EventTiming entries into one INP value per sample', () 
   assert.equal(summary.interactionCount, 60);
   assert.equal(summary.inpMs, 74, 'the second-longest of 60 interactions');
 });
+
+test('perf:measure reports CLS as the largest session window of layout shifts', () => {
+  assert.equal(typeof lab.summarizeLayoutShifts, 'function', 'perf:measure computes CLS in summarizeLayoutShifts');
+  // Shifts at 0 and 500 ms share a window; 3000 ms is more than 1 s after
+  // the last one and opens a second window. CLS is the larger window, not
+  // the 0.875 sum the lab reported before.
+  const shifts = [
+    { startTime: 0, value: 0.25, hadRecentInput: false },
+    { startTime: 500, value: 0.125, hadRecentInput: false },
+    { startTime: 3000, value: 0.5, hadRecentInput: false },
+  ];
+  assert.deepEqual(lab.summarizeLayoutShifts(shifts), { cls: 0.5, clsSum: 0.875, clsInputFlagged: 0 });
+  // A window ends 5 s after its first shift, however close the shifts sit.
+  const steady = Array.from({ length: 7 }, (_, i) => ({ startTime: i * 900, value: 0.0625, hadRecentInput: false }));
+  assert.deepEqual(lab.summarizeLayoutShifts(steady), { cls: 0.375, clsSum: 0.4375, clsInputFlagged: 0 });
+  // A shift Chromium flags as recent input counts in clsInputFlagged only.
+  // It cannot bridge two windows either: 0 and 1200 ms sit 1.2 s apart.
+  const flagged = [
+    { startTime: 0, value: 0.25, hadRecentInput: false },
+    { startTime: 600, value: 0.5, hadRecentInput: true },
+    { startTime: 1200, value: 0.125, hadRecentInput: false },
+  ];
+  assert.deepEqual(lab.summarizeLayoutShifts(flagged), { cls: 0.25, clsSum: 0.375, clsInputFlagged: 0.5 });
+  assert.deepEqual(lab.summarizeLayoutShifts([]), { cls: 0, clsSum: 0, clsInputFlagged: 0 });
+});
