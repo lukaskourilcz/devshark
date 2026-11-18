@@ -7050,3 +7050,50 @@ Checks on `431930bf`, Node 22.23.4 and npm 10.9.9:
 Not run: `check:quickjs-build` needs emsdk and Python 3.10, which the audit machine lacks. The quality workflow's quickjs job runs it because the client lockfile changed and `scripts/rebuild-quickjs-sort.mjs` loads the client's prettier. `test:sql` had no SQL to test. The main browser suite and `check:responsive` were skipped because no route, markup or style changed.
 
 The other 26 part-2 findings (F2-10 to F2-12, F2-15 to F2-36 and F2-46) and the eight owner and cross-package F2 items stay unticked in #646 for the next agent, starting with F2-10.
+
+## Epic F9 part 2: API input validation, auth failure modes and rate-limit policy (18 November 2026)
+
+Branch `claude/f9b-api-input-auth-rate-limits` is stacked on `claude/f9-api-input-auth-rate-limits` and holds 13 commits that touch 6 files (+525/−87). It adds no handler file, so `api/` still holds twelve. The owner stopped the run at 22:27. This run finished the batch that was in progress (F9-09 to F9-14) and started nothing new.
+
+### What changed
+
+- **F9-09:** in production with a Supabase URL, `createServiceClient()` now logs one `service_role_key_missing` line and throws at load when the service-role key is missing or equals the anon key. Before, every handler loaded and answered 503 `not_configured` with no log line naming the variable. `api/health.ts` takes `serviceClientOrNull()` and still answers 503 with `serviceRole: unavailable`.
+- **F9-10:** `RateLimitConfig.onFailure` (`open` by default, or `closed`). While a configured Upstash fails, pauses or fails to start, a closed bucket answers 503 `rate_limit_unavailable` with `Retry-After: 15` and spends nothing. These buckets are closed: the admin gate, both voucher buckets, the referral claim, both question-report buckets, and the billing cancellation page and its emailed link. A 503 no longer marks an address as refused.
+- **F9-11:** `op=authevent` has its own `authEvent` and `authEventAddress` buckets at `userMutation`'s rates, both closed, so sign-in reports can close without closing other account writes.
+- **F9-12:** each bucket logs one `distributed_fallback` warning per pause, naming the `bucket` and its `policy`. Each closed refusal writes a `closed_refused` error line, and a failed Upstash start writes one `limiter_init_failed` line with the error's name. Every line carries the request id.
+- **F9-13:** `/api/health` reports `rateLimiter: memory-fallback` when a configured Upstash does not answer the probe's own PING. Before, it reported `configured` through an outage. The HTTP status still follows the database checks.
+- **F9-14:** the one-time-claim Redis client now uses the limiter's 500 ms abort signal and `retries: 0`, so a SET NX no longer retries for about four seconds after the learner got 503 `claim_unavailable`.
+
+### Numbers
+
+| Measure | Before | After |
+|---|---|---|
+| SETs per one-time claim, 1 s after a dropped connection (stand-in) | 4 | 1 |
+| Upstash PINGs for three concurrent health probes | n/a | 1 |
+| Upstash PINGs for a health probe inside the 30 s cache | n/a | 0 |
+| Voucher attempts counted against the five-an-hour budget for a request refused during the outage | 1 (memory) | 0 |
+| `rateLimiter` reported by health during a stand-in Upstash outage | `configured` | `memory-fallback` |
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm run typecheck:api` | pass |
+| `npm run typecheck:scripts` | pass |
+| `npm run check:security` | pass |
+| `npm run check:unused` | pass, no new findings |
+| `git diff --check claude/f9-api-input-auth-rate-limits...HEAD` | pass |
+| `npm run test:launch` (heavy) | pass, 237 s |
+| `npm run test:billing` (heavy) | pass, 47 checks |
+| `npm run test:performance` (heavy) | pass |
+| `npm run test:coding-auth` (heavy) | pass |
+| `npm run test:path-authority` (heavy) | pass |
+| `npm run test:paths` (heavy) | pass |
+| `npm run test:fallbacks` (heavy) | pass |
+| `npm run test:garden` (heavy) | pass |
+
+### Not run
+
+These were not run because the diff changes no client code, dependency, lockfile, SQL or grading code: the client build, client, browser and responsive checks, `test:sql`, `npm audit`, and the grading suites. `ci:parity` stayed off because it binds shared ports. The branch is not pushed.
+
+The rest of F9 (F9-15 to F9-49) remains open in #646 for the next agent.
