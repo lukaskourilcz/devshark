@@ -128,7 +128,10 @@ const emit = line => {
   logChars += text.length;
   logs[logs.length] = text;
 };
+// Past the cap emit drops the line, so the arguments are not turned into
+// JSON first: a loop that logs a big array would spend the deadline there.
 const format = value => {
+  if (logsCut || logs.length >= ${MAX_LOGS}) return '';
   if (typeof value === 'string') return value;
   try { const text = stringify(value); return text === undefined ? string(value) : text; } catch { return '[unprintable]'; }
 };
