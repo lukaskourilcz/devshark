@@ -41,3 +41,32 @@ test('F6-02: malformed width input cannot silently select a different profile', 
   assert.match(result.stderr, /width.*390garbage|390garbage.*width/i);
 });
 
+for (const [zoom, width, height] of [[200, 640, 400], [400, 320, 200]]) {
+  test(`F6-03: ${zoom} percent zoom reflows a 1280px viewport to ${width} CSS pixels`, () => {
+    const selected = matrix(['--routes=/', '--widths=1280'], { RESPONSIVE_ZOOM: String(zoom) });
+    assert.equal(selected.zoom, zoom);
+    assert.equal(selected.viewports.length, 1);
+    const viewport = selected.viewports[0];
+    assert.equal(viewport.physicalWidth, 1280);
+    assert.equal(viewport.physicalHeight, 800);
+    assert.equal(viewport.width, width);
+    assert.equal(viewport.height, height);
+    assert.equal(viewport.mobile, false, 'browser zoom preserves the desktop input mode');
+  });
+}
+
+test('F6-03: ordinary scale preserves the selected CSS viewport', () => {
+  const selected = matrix(['--routes=/', '--widths=390']);
+  assert.equal(selected.zoom, 100);
+  assert.equal(selected.viewports[0].physicalWidth, 390);
+  assert.equal(selected.viewports[0].width, 390);
+  assert.equal(selected.viewports[0].height, 844);
+});
+
+for (const zoom of ['abc', '0', '125', '125junk', '1000', '200.5']) {
+  test(`F6-03: invalid zoom ${zoom} fails before a browser or preview is required`, () => {
+    const result = run(['--routes=/', '--widths=1280'], { RESPONSIVE_ZOOM: zoom });
+    assert.equal(result.status, 2, 'invalid zoom uses the usage exit code');
+    assert.match(result.stderr, /zoom/i);
+  });
+}
