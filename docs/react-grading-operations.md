@@ -160,7 +160,10 @@ starters, wrong/static variants, time budgets and the rest of the catalogue.
 `npm run test:react-authority` checks the private Promise kernel and attacks on
 DOM getters/symbols, React internals/exports, imports, intrinsics and synchronous
 or asynchronous assertions. It also verifies detached async rejection reporting.
-It runs in CI. `npm run test:launch` starts the actual guest bundle with production
+It pins the learner engine's 85 globals (22 from the host) and the keys of each
+capability it hands out: `window`, `document`, elements, events, storage, the URL,
+abort and header objects, `Intl`, `crypto`, `performance` and React. A name added
+to `react-learner.ts` fails it until the list is updated. It runs in CI. `npm run test:launch` starts the actual guest bundle with production
 flags, checks deletion/nonce/count/serialization, resource exhaustion, UTC in
 multiple process zones and representative suites. `npm run test:react-isolation`
 builds the guest and starts it the same way, with a local HTTP server standing in
