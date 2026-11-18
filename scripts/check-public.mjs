@@ -188,6 +188,8 @@ for (const url of urls) {
   assert(existsSync(path.join(dir, url.pathname, 'index.html')), `${url}: in the sitemap without a page`);
 }
 const classCounts = { listed: 0, alias: 0, 'share-only': 0, noindex: 0 };
+/** Pages a crawler or a link preview may fetch: every class but noindex. */
+const crawlablePaths = [];
 for (const pagePath of pagePaths) {
   const classes = classesOf(pagePath);
   assert.equal(classes.length, 1, `${pagePath}: ${classes.length ? `more than one class (${classes.join(', ')})` : 'no class; give the page one in scripts/check-public.mjs'}`);
@@ -251,6 +253,7 @@ for (const pagePath of pagePaths) {
     jsonLdBlocks++;
   }
   classCounts[kind]++;
+  if (kind !== 'noindex') crawlablePaths.push(pagePath);
 }
 for (const [alias, target] of Object.entries(ALIASES)) {
   assert(pagePaths.includes(alias) && pagePaths.includes(target), `${alias}: it and its canonical ${target} are both built`);
@@ -368,7 +371,19 @@ for (const file of codingChunks) {
   const found = readFileSync(`${dir}/assets/${file}`, 'utf8').match(UNEXPECTED_DIACRITICS) ?? [];
   assert.equal(found.length, 0, `${file}: ${found.length} unexpected accented glyphs in a coding chunk`);
 }
-assert(readFileSync(`${dir}/robots.txt`, 'utf8').includes(`Sitemap: ${urls[0].origin}/sitemap.xml`));
+// F15-08: robots.txt, rule by rule. Crawlers stay out of the API, the React
+// sandbox, /dev, the admin workspace and the PostHog proxy (/ingest/). A
+// Disallow is a path prefix, so no listed or share page, with or without its
+// trailing slash, may start with one: Twitterbot, for one, obeys robots.txt
+// before it draws a link preview.
+const ROBOTS_LINES = ['User-agent: *', 'Allow: /', 'Disallow: /api/', 'Disallow: /sandbox/', 'Disallow: /dev', 'Disallow: /admin', 'Disallow: /ingest/', `Sitemap: ${ORIGIN}/sitemap.xml`];
+const robotsLines = readFileSync(`${dir}/robots.txt`, 'utf8').trimEnd().split('\n');
+assert.deepEqual(robotsLines, ROBOTS_LINES, 'robots.txt carries exactly the expected rules');
+const disallowed = robotsLines.filter(line => line.startsWith('Disallow: ')).map(line => line.slice('Disallow: '.length));
+for (const pagePath of crawlablePaths) {
+  const rule = disallowed.find(prefix => pagePath.startsWith(prefix) || `${pagePath}/`.startsWith(prefix));
+  assert.equal(rule, undefined, `${pagePath}: robots.txt disallows it (Disallow: ${rule})`);
+}
 assert(!existsSync(`${dir}/mockServiceWorker.js`), 'Mocks must never ship with the app');
 assert(!readdirSync(`${dir}/assets`).some(file => /storybook|mocks|\.stories\./i.test(file)));
 {
@@ -380,4 +395,4 @@ assert(!readdirSync(`${dir}/assets`).some(file => /storybook|mocks|\.stories\./i
   const shown = offDescriptions.slice(0, 25);
   assert.equal(offDescriptions.length, 0, `${offDescriptions.length} descriptions are outside ${DESCRIPTION_LENGTH.min} to ${DESCRIPTION_LENGTH.max} characters:\n${shown.map(({ pagePath, description, length }) => `  ${length} ${pagePath}: ${description}`).join('\n')}${offDescriptions.length > shown.length ? `\n  and ${offDescriptions.length - shown.length} more` : ''}`);
 }
-console.log(`Public HTML passed: ${pagePaths.length} pages (${Object.entries(classCounts).map(([kind, count]) => `${count} ${kind}`).join(', ')}), ${urls.length} sitemap URLs, canonical, titles under 60 and descriptions of ${DESCRIPTION_LENGTH.min} to ${DESCRIPTION_LENGTH.max} characters, ${jsonLdBlocks} JSON-LD blocks against schema.org, teaching content, the Premium terms, ${tasks.length} coding share pages, ${SECTION_PAGES.length} Coding section pages, hidden system design, ${days.length} question-of-the-day pages, and no unexpected accented glyphs in ${codingChunks.length} coding chunks.`);
+console.log(`Public HTML passed: ${pagePaths.length} pages (${Object.entries(classCounts).map(([kind, count]) => `${count} ${kind}`).join(', ')}), ${urls.length} sitemap URLs, canonical, titles under 60 and descriptions of ${DESCRIPTION_LENGTH.min} to ${DESCRIPTION_LENGTH.max} characters, ${ROBOTS_LINES.length} robots.txt lines that block none of ${crawlablePaths.length} crawlable pages, ${jsonLdBlocks} JSON-LD blocks against schema.org, teaching content, the Premium terms, ${tasks.length} coding share pages, ${SECTION_PAGES.length} Coding section pages, hidden system design, ${days.length} question-of-the-day pages, and no unexpected accented glyphs in ${codingChunks.length} coding chunks.`);
