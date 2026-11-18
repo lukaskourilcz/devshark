@@ -72,6 +72,10 @@
     "vite": "^6.4.5",
     "vitest": "5.0.3"
   },
+  "//overrides": {
+    "satori": "GHSA-px8p-9vwx-vf98: satori pins fflate 0.7.3; drop when satori allows fflate >=0.7.5",
+    "@storybook/react-vite": "GHSA-3g3m-2fjr-6pw4: docgen ^0.7 uses glob 13; 0.9.1 uses tinyglobby; drop when Storybook requires docgen >=0.9"
+  },
   "overrides": {
     "satori": {
       "fflate": "0.7.5"
