@@ -4,11 +4,13 @@
 // port nothing listens on.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import * as lighthouse from './audit-performance.mjs';
+import * as bundle from './check-bundle.mjs';
 import * as lab from './measure-web-performance.mjs';
 import { parseArgs, resolveOptions, UsageError } from './measure-web-performance.mjs';
 
@@ -285,3 +287,272 @@ test('perf:measure takes --api-origin as an https or loopback origin with a boun
     ['--api-origin=https://devshark.app', '--api-delay-ms=10001'],
   ]) assert.throws(() => resolveOptions(parseArgs([...base, ...flags])), UsageError, flags.join(' '));
 });
+
+test('perf:measure takes the middle sample as the median and drops missing values', () => {
+  assert.equal(typeof lab.median, 'function', 'perf:measure exports its median helper');
+  assert.equal(lab.median([640, 512, 2200]), 640, 'three samples: the middle one');
+  assert.equal(lab.median([4, 1, 3, 2]), 2, 'an even count takes the lower middle value, one a sample measured');
+  assert.equal(lab.median([null, 7, undefined]), 7);
+  assert.equal(lab.median([]), null);
+  assert.equal(lab.median([null]), null);
+  // A press under 16 ms sorts below every measured INP.
+  const byInp = (a, b) => (a === '<16' ? -1 : a) - (b === '<16' ? -1 : b);
+  assert.equal(lab.median(['<16', 40, '<16'], byInp), '<16');
+  assert.equal(lab.median([88, '<16', 40], byInp), 40);
+});
+
+test('perf:measure counts each request under one kind', () => {
+  const origin = 'https://devshark.app';
+  const kind = (resourceType, path, options) => lab.requestKind(resourceType, new URL(path, origin), origin, options);
+  assert.equal(kind('Document', '/learn'), 'document');
+  assert.equal(kind('Script', '/assets/index-abc.js'), 'script');
+  assert.equal(kind('Stylesheet', '/assets/index-abc.css'), 'stylesheet');
+  assert.equal(kind('Font', '/fonts/inter.woff2'), 'font');
+  assert.equal(kind('Image', '/brand/v9/fin.svg'), 'image');
+  assert.equal(kind('Fetch', '/api/settings'), 'api', 'an API read counts as api whoever answers it');
+  assert.equal(kind('XHR', '/api/quiz/roadmap'), 'api');
+  assert.equal(kind('Manifest', '/manifest.webmanifest'), 'other');
+  assert.equal(lab.requestKind('Fetch', new URL('https://eu.i.posthog.com/api/e'), origin), 'other', 'another origin\'s /api/ is not the app\'s API');
+  assert.equal(kind('Fetch', '/api/user/stats', { blocked: true }), 'blocked', 'a request the lab failed counts as blocked only');
+  const counts = lab.emptyRequestCounts();
+  assert.deepEqual(Object.keys(counts), [...lab.REQUEST_KINDS, 'sent', 'sentApi']);
+  assert.equal(lab.requestCount({ ...counts, script: 27, api: 1, blocked: 2, sent: 30, sentApi: 1 }), 30, 'sent and sentApi are not kinds');
+});
+
+test('perf:measure summarizes each profile, path and cache state with request totals', () => {
+  const requests = (script, sent) => ({ ...lab.emptyRequestCounts(), document: 1, script, api: 1, sent, sentApi: 1 });
+  const row = (sample, cache, lcp, extra = {}) => ({ profile: 'mobile', path: '/', sample, cache, navigation: { ttfb: 100 + sample }, fcp: lcp - 100, lcp, lcpElement: { tag: 'h1', id: null, classes: [`s${sample}`], container: null, size: 1, url: null }, cls: sample / 100, tbtMs: sample * 10, inpMs: 40 + sample, requests: requests(30 + sample, 31 + sample), ...extra });
+  const results = [
+    row(0, 'cold-browser', 2400),
+    row(0, 'repeat-browser', 700),
+    row(1, 'cold-browser', 2100, { inpMs: '<16' }),
+    row(1, 'repeat-browser', 650),
+    // A failed cold row: the repeat row of that sample never loaded.
+    { profile: 'mobile', path: '/', sample: 2, cache: 'cold-browser', error: 'timeout', requests: requests(3, 2) },
+    // A failed setup on another route: neither row loaded.
+    { profile: 'desktop', path: '/learn', sample: 0, cache: null, error: 'net::ERR_CONNECTION_REFUSED' },
+  ];
+  const summary = lab.summarizeRows(results);
+  assert.deepEqual(summary.map(({ profile, path, cache, samples, errors }) => [profile, path, cache, samples, errors]), [
+    ['mobile', '/', 'cold-browser', 2, 1],
+    ['mobile', '/', 'repeat-browser', 2, 1],
+    ['desktop', '/learn', 'cold-browser', 0, 1],
+    ['desktop', '/learn', 'repeat-browser', 0, 1],
+  ]);
+  const [cold] = summary;
+  assert.equal(cold.lcpMs, 2100, 'the lower middle of two samples');
+  assert.equal(cold.lcpElement, 'h1.s1', 'the LCP element of the median-LCP sample');
+  assert.deepEqual([cold.ttfbMs, cold.fcpMs, cold.cls, cold.tbtMs, cold.inpMs, cold.requests], [100, 2000, 0, 0, '<16', 32]);
+  assert.deepEqual(summary[2], { profile: 'desktop', path: '/learn', cache: 'cold-browser', samples: 0, errors: 1, ttfbMs: null, fcpMs: null, lcpMs: null, lcpElement: null, cls: null, tbtMs: null, inpMs: null, requests: null });
+  // The failed cold row's requests still reached the origin and count.
+  assert.deepEqual(lab.requestTotals(results, { forwarded: 4 }), { requests: 2 * 32 + 2 * 33 + 5, api: 5, sent: 31 + 32 + 31 + 32 + 2, sentApi: 5, forwarded: 4 });
+});
+
+const audit = join(root, 'scripts/audit-performance.mjs');
+
+// Runs audit:performance with Chrome pointed at a file that does not exist,
+// so a run that gets past its flag checks fails at once instead of loading a page.
+function runAudit(t, flags, { url = closedOrigin } = {}) {
+  const scratch = mkdtempSync(join(tmpdir(), 'devshark-audit-tools-'));
+  t.after(() => rmSync(scratch, { recursive: true, force: true }));
+  const output = join(scratch, 'performance');
+  const result = spawnSync(process.execPath, [audit, ...(url ? [`--url=${url}`] : []), ...flags, `--output=${output}`], {
+    cwd: root,
+    encoding: 'utf8',
+    timeout: 60_000,
+    env: { ...process.env, CHROME_PATH: join(scratch, 'no-such-chrome') },
+  });
+  return { ...result, output };
+}
+
+for (const [name, flags, mention, url] of [
+  ['a misspelt flag', ['--route=/learn'], /--route\b/],
+  ['a route without a leading slash', ['--routes=learn'], /--routes/],
+  ['two routes that share a report name', ['--routes=/learn,/learn/'], /--routes/],
+  ['zero runs', ['--runs=0'], /--runs/],
+  ['more runs than it allows', ['--runs=11'], /--runs/],
+  ['a stray argument', ['learn'], /learn/],
+  ['a URL it cannot load', [], /--url/, 'ftp://example.test'],
+]) {
+  test(`audit:performance refuses ${name} before it creates the output folder`, (t) => {
+    const run = runAudit(t, flags, { url });
+    assert.equal(run.error, undefined, 'the process ran to its end');
+    assert.equal(run.status, 2, `exit code 2 (stderr: ${run.stderr.trim()})`);
+    assert.match(run.stderr, /Usage: /);
+    assert.match(run.stderr, mention);
+    assert.equal(existsSync(run.output), false, 'a refused run creates no output folder');
+  });
+}
+
+test('audit:performance names each route\'s reports after its path', () => {
+  assert.equal(lighthouse.routeSlug('/'), 'home');
+  assert.equal(lighthouse.routeSlug('/learn'), 'learn');
+  assert.equal(lighthouse.routeSlug('/learn/'), 'learn');
+  assert.equal(lighthouse.routeSlug('/topics/javascript-closures'), 'topics-javascript-closures');
+  assert.equal(lighthouse.routeSlug('/quiz?mode=daily'), 'quiz-mode_daily', 'a query stays apart from the path');
+});
+
+test('audit:performance keeps CI\'s single page without --routes and resolves routes against --url', () => {
+  const plain = lighthouse.resolveOptions({});
+  assert.deepEqual(plain, { url: 'http://localhost:4173', output: 'artifacts/performance', pages: [{ route: '/', url: 'http://localhost:4173', slug: null }], runs: 1 });
+  const routes = lighthouse.resolveOptions({ url: 'https://devshark.app/learn', routes: '/,/topics/javascript-closures' });
+  assert.deepEqual(routes.pages, [
+    { route: '/', url: 'https://devshark.app/', slug: 'home' },
+    { route: '/topics/javascript-closures', url: 'https://devshark.app/topics/javascript-closures', slug: 'topics-javascript-closures' },
+  ]);
+  for (const value of ['learn', '//example.test', '/,', '/learn,/learn']) {
+    assert.throws(() => lighthouse.resolveOptions({ routes: value }), UsageError, value);
+  }
+});
+
+// A Lighthouse report with the fields audit:performance reads, and nothing else.
+function fakeReport({ performance = 0.9, lcp = 2000, cls = 0, tbt = 100, runtimeError } = {}) {
+  return {
+    finalDisplayedUrl: 'http://127.0.0.1:9/', fetchTime: '2026-11-18T12:00:00.000Z', lighthouseVersion: '13.4.1', runWarnings: [],
+    ...(runtimeError && { runtimeError }),
+    categories: { performance: { score: performance }, accessibility: { score: 1 } },
+    audits: {
+      'largest-contentful-paint': { numericValue: lcp },
+      'cumulative-layout-shift': { numericValue: cls },
+      'total-blocking-time': { numericValue: tbt },
+      'total-byte-weight': { numericValue: 400000 },
+    },
+  };
+}
+
+// Runs audit:performance's main in this process with a stand-in for
+// Lighthouse: answer(profile, route, call) returns a report to write and
+// exit 0, a number to exit with and write nothing, or [status, report].
+function auditWith(t, pages, answer, options = {}) {
+  const scratch = mkdtempSync(join(tmpdir(), 'devshark-audit-main-'));
+  t.after(() => rmSync(scratch, { recursive: true, force: true }));
+  const output = join(scratch, 'performance');
+  for (const method of ['table', 'log', 'warn', 'error']) t.mock.method(console, method, () => {});
+  t.mock.method(process, 'exit', (code) => { throw new Error(`process.exit(${code})`); });
+  const calls = [];
+  const fake = (url, profile, prefix) => {
+    const route = pages.find((page) => page.url === url).route;
+    calls.push({ profile, route, prefix });
+    const reply = answer(profile, route, calls.length);
+    const [status, report] = Array.isArray(reply) ? reply : typeof reply === 'number' ? [reply, null] : [0, reply];
+    if (report) writeFileSync(`${prefix}.report.json`, JSON.stringify(report));
+    return status;
+  };
+  const prepare = options.prepare ?? (() => {});
+  mkdirSync(output, { recursive: true });
+  prepare(output);
+  const results = lighthouse.main({ output, pages, runs: options.runs ?? 1 }, { lighthouse: fake });
+  return { results, calls, output, summary: JSON.parse(readFileSync(join(output, 'summary.json'), 'utf8')) };
+}
+
+const homePage = [{ route: '/', url: 'http://127.0.0.1:9', slug: null }];
+
+test('audit:performance keeps going when one Lighthouse run fails and records the failure', (t) => {
+  // A report an earlier run left behind must not stand in for a failed run.
+  const prepare = (output) => writeFileSync(join(output, 'mobile.report.json'), JSON.stringify(fakeReport({ lcp: 1 })));
+  const run = auditWith(t, homePage, (profile) => (profile === 'mobile' ? 1 : fakeReport({ lcp: 900 })), { prepare });
+  assert.deepEqual(run.calls.map((call) => call.profile), ['mobile', 'desktop'], 'the desktop audit still runs');
+  assert.deepEqual(run.results[0], { profile: 'mobile', route: '/', requestedUrl: 'http://127.0.0.1:9', run: 1, error: 'Lighthouse exited with code 1' });
+  assert.equal(run.results[1].lcpMs, 900);
+  assert.deepEqual(run.summary, run.results, 'summary.json holds the finished row and the error row');
+  assert.equal(existsSync(join(run.output, 'mobile.report.json')), false, 'the stale report is gone');
+});
+
+test('audit:performance records a Lighthouse runtime error as an error row', (t) => {
+  const runtimeError = { code: 'ERRORED_DOCUMENT_REQUEST', message: 'Lighthouse was unable to reliably load the page you requested.' };
+  const run = auditWith(t, homePage, (profile) => (profile === 'desktop' ? [1, fakeReport({ runtimeError })] : fakeReport()));
+  assert.equal(run.results[0].error, undefined);
+  assert.deepEqual(run.results[1], { profile: 'desktop', route: '/', requestedUrl: 'http://127.0.0.1:9', run: 1, error: `${runtimeError.code}: ${runtimeError.message}` });
+  assert.deepEqual(run.summary, run.results);
+});
+
+test('audit:performance keeps every run\'s report and summarizes the runs of each profile and page', (t) => {
+  const pages = [{ route: '/learn', url: 'http://127.0.0.1:9/learn', slug: 'learn' }];
+  // Mobile LCP per run: 3000, 2600, 4100; the second desktop run fails.
+  const lcps = [3000, 2600, 4100];
+  const run = auditWith(t, pages, (profile, route, call) => {
+    if (profile === 'mobile') return fakeReport({ performance: [0.8, 0.9, 0.6][call - 1], lcp: lcps[call - 1], cls: 0.01 * call, tbt: 100 * call });
+    return call === 5 ? 1 : fakeReport({ performance: 0.99, lcp: 800, tbt: 0 });
+  }, { runs: 3 });
+  assert.deepEqual(run.calls.map((call) => call.prefix.slice(run.output.length + 1)), ['mobile-learn-run1', 'mobile-learn-run2', 'mobile-learn-run3', 'desktop-learn-run1', 'desktop-learn-run2', 'desktop-learn-run3']);
+  assert.equal(run.results.length, 6, 'main returns every audit');
+  assert.deepEqual(run.summary.map(({ profile, route, runs, failed }) => [profile, route, runs, failed]), [['mobile', '/learn', 3, 0], ['desktop', '/learn', 3, 1]]);
+  const [mobile, desktop] = run.summary;
+  const unread = { fcpMs: null, speedIndexMs: null, benchmarkIndex: null };
+  assert.deepEqual(mobile.median, { performance: 0.8, lcpMs: 3000, cls: 0.02, tbtMs: 200, ...unread });
+  assert.deepEqual(mobile.min, { performance: 0.6, lcpMs: 2600, cls: 0.01, tbtMs: 100, ...unread });
+  assert.deepEqual(mobile.max, { performance: 0.9, lcpMs: 4100, cls: 0.03, tbtMs: 300, ...unread });
+  assert.deepEqual(mobile.results.map((row) => row.run), [1, 2, 3]);
+  assert.deepEqual(desktop.median, { performance: 0.99, lcpMs: 800, cls: 0, tbtMs: 0, ...unread }, 'the median of the two finished runs');
+  assert.equal(desktop.results[1].error, 'Lighthouse exited with code 1');
+});
+
+test('audit:performance summarizes a page whose runs all failed with empty statistics', () => {
+  const rows = [1, 2].map((run) => ({ profile: 'mobile', route: '/', requestedUrl: 'http://127.0.0.1:9', run, error: 'Lighthouse exited with code 1' }));
+  const [summary] = lighthouse.summarize(rows, 2);
+  const empty = { performance: null, fcpMs: null, lcpMs: null, speedIndexMs: null, cls: null, tbtMs: null, benchmarkIndex: null };
+  assert.deepEqual(summary, { profile: 'mobile', route: '/', requestedUrl: 'http://127.0.0.1:9', runs: 2, failed: 2, median: empty, min: empty, max: empty, results: rows });
+  assert.equal(lighthouse.summarize(rows, 1), rows, 'one run per profile keeps one row per audit');
+});
+
+test('audit:performance reads the LCP element, FCP, Speed Index, requests and machine speed from a report', () => {
+  const report = fakeReport({ lcp: 3800 });
+  report.audits['first-contentful-paint'] = { numericValue: 2700 };
+  report.audits['speed-index'] = { numericValue: 2900 };
+  report.audits['network-requests'] = { details: { items: Array.from({ length: 49 }, (_, i) => ({ url: `/assets/${i}.js` })) } };
+  // The shape Lighthouse 13 writes: a subpart table, then the node.
+  report.audits['lcp-breakdown-insight'] = { details: { type: 'list', items: [
+    { type: 'table', items: [{ subpart: 'timeToFirstByte', label: 'Time to first byte', duration: 12.6 }, { subpart: 'elementRenderDelay', label: 'Element render delay', duration: 167.2 }] },
+    { type: 'node', selector: 'section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_', nodeLabel: 'devShark keeps what sign-in, settings and progress need', snippet: '<p id="_r_4_">' },
+  ] } };
+  report.environment = { benchmarkIndex: 2482.5 };
+  report.configSettings = { throttlingMethod: 'simulate', throttling: { rttMs: 150, cpuSlowdownMultiplier: 4 } };
+  const row = lighthouse.reportRow(report);
+  assert.deepEqual(row.lcpElement, {
+    selector: 'section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_',
+    nodeLabel: 'devShark keeps what sign-in, settings and progress need',
+    subparts: { timeToFirstByte: 12.6, elementRenderDelay: 167.2 },
+  });
+  assert.deepEqual([row.fcpMs, row.lcpMs, row.speedIndexMs, row.requestCount, row.benchmarkIndex, row.throttlingMethod], [2700, 3800, 2900, 49, 2482.5, 'simulate']);
+  assert.deepEqual(row.throttling, { rttMs: 150, cpuSlowdownMultiplier: 4 });
+  // A report without these audits still gives a row, with null in their place.
+  const bare = lighthouse.reportRow(fakeReport());
+  assert.deepEqual([bare.fcpMs, bare.speedIndexMs, bare.lcpElement, bare.requestCount, bare.benchmarkIndex, bare.throttlingMethod, bare.throttling], [null, null, null, null, null, null, null]);
+});
+
+test('check:bundle budgets the entry, modulepreload and stylesheet requests and lists preloaded fonts apart', () => {
+  // The tags a Vite build of client/index.html writes, in any attribute order.
+  const html = `<!doctype html><html><head>
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/manrope-latin-wght-normal-A1.woff2" />
+    <link href="/assets/inter-latin-wght-normal-B2.woff2" crossorigin as="font" rel="preload">
+    <link rel="preconnect" href="https://eu.i.posthog.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter">
+    <script type="module" crossorigin src="/assets/main-C3.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/react-D4.js">
+    <link rel="modulepreload" crossorigin href="/assets/react-D4.js">
+    <link rel="stylesheet" crossorigin href="/assets/main-E5.css">
+    <link rel="icon" href="/assets/favicon-F6.svg">
+    <script type="module" src="https://cdn.example.test/G7.js"></script>
+  </head><body></body></html>`;
+  assert.deepEqual(bundle.initialRequests(html), {
+    files: ['assets/main-C3.js', 'assets/react-D4.js', 'assets/main-E5.css'],
+    fonts: ['assets/manrope-latin-wght-normal-A1.woff2', 'assets/inter-latin-wght-normal-B2.woff2'],
+  });
+  assert.deepEqual(bundle.initialRequests('<html></html>'), { files: [], fonts: [] });
+});
+
+for (const [name, flag, mention] of [
+  ['zero largest chunks', '--largest=0', /--largest must be a whole number from 1 to 100/],
+  ['more largest chunks than it lists', '--largest=101', /--largest must be a whole number from 1 to 100/],
+  ['a largest count that is not a number', '--largest=ten', /--largest must be a whole number from 1 to 100/],
+  ['a misspelt flag', '--larges=3', /unknown argument "--larges=3"/],
+]) {
+  test(`check:bundle refuses ${name} before it starts a build`, () => {
+    const run = spawnSync(process.execPath, [join(root, 'scripts/check-bundle.mjs'), flag], { cwd: root, encoding: 'utf8', timeout: 30_000 });
+    assert.equal(run.error, undefined, 'the process ran to its end');
+    assert.equal(run.status, 2, `exit code 2 (stderr: ${run.stderr.trim()})`);
+    assert.match(run.stderr, mention);
+    assert.match(run.stderr, /Usage: /);
+    assert.equal(run.stdout, '', 'nothing built, nothing measured');
+  });
+}
