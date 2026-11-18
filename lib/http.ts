@@ -35,6 +35,41 @@ function incomingRequestId(req: VercelRequest): string {
     : randomUUID();
 }
 
+/** The largest body a request may declare. The biggest legitimate one is a
+ * learning-path submission or draft (64 kB, shared/learning-path-api.ts);
+ * the platform itself accepts 4.5 MB. */
+const MAX_BODY_BYTES = 256 * 1024;
+/** The cap for the two signed webhooks, whose sender decides the size. */
+const MAX_WEBHOOK_BODY_BYTES = 1024 * 1024;
+const WEBHOOK_OPS: ReadonlySet<string> = new Set(['billing-webhook', 'payment-webhook']);
+
+/** The op a router serves, read for the body cap only: the query getter
+ * parses the URL, and a cap must not fail the request. */
+function requestOp(req: VercelRequest): string {
+  try {
+    const op = req.query?.op;
+    return typeof op === 'string' ? op.toLowerCase() : '';
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Whether the request declares a body past its cap. Vercel's runtime has
+ * already buffered the bytes, but parses them only when something reads
+ * `req.body`, and every handler's own cap reads it first: a 4.5 MB quiz
+ * submit cost the parse (80 ms for 1.8 MB of keys) before its answer count
+ * was looked at. Refusing on Content-Length saves that parse. A request
+ * without one passes on to the platform's limit.
+ */
+function oversizeBody(req: VercelRequest): boolean {
+  const raw = req.headers?.['content-length'];
+  const declared = Array.isArray(raw) ? raw[0] : raw;
+  if (typeof declared !== 'string' || !/^\d{1,16}$/.test(declared)) return false;
+  const cap = WEBHOOK_OPS.has(requestOp(req)) ? MAX_WEBHOOK_BODY_BYTES : MAX_BODY_BYTES;
+  return Number(declared) > cap;
+}
+
 /**
  * Whether the request's body cannot be read. Vercel's Node runtime parses the
  * body on its first read, from a getter (@vercel/node `setLazyProp`), and
@@ -73,17 +108,21 @@ export function withRequestContext<T>(
   res.setHeader('Cache-Control', 'private, no-store');
   const started = Date.now();
   return requestContext.run({ requestId }, () => withServerTiming(res, async () => {
+    // A body the request cannot hand over is the caller's fault: a warning,
+    // never the 500 path's error.
+    const refuseBody = (status: number, category: string, code: string, message: string) => {
+      logEvent('request', {
+        level: 'warn',
+        method: req.method ?? 'UNKNOWN',
+        path: req.url?.split('?')[0] ?? 'unknown',
+        status,
+        category,
+      });
+      return jsonError(res, status, code, message);
+    };
     try {
-      if (unreadableBody(req)) {
-        logEvent('request', {
-          level: 'warn',
-          method: req.method ?? 'UNKNOWN',
-          path: req.url?.split('?')[0] ?? 'unknown',
-          status: 400,
-          category: 'invalid_body',
-        });
-        return jsonError(res, 400, 'bad_request', 'The request body is not valid JSON');
-      }
+      if (oversizeBody(req)) return refuseBody(413, 'too_large', 'too_large', 'The request body is too large');
+      if (unreadableBody(req)) return refuseBody(400, 'invalid_body', 'bad_request', 'The request body is not valid JSON');
       return await run();
     } catch (error) {
       // A refusal of locked content is an answer, not a failure.
