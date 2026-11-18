@@ -6509,3 +6509,698 @@ When GitHub reviews them, the unflagged static audit step fails on every pull re
 Dev tools the brief names: neither the global database (the full client audit) nor the maintainers' repositories list an open advisory for vitest 5.0.3, storybook 10.6.6, purgecss 9.1.0, knip 6.35.1 or rollup-plugin-visualizer 7.0.1. storybook's October advisories GHSA-f2ph-cmg5-wxc8 (critical) and GHSA-px85-f4q5-jh77 (high) are fixed in 10.6.2. rollup-plugin-visualizer pulls open 11.0.0, which pulls powershell-utils 0.1.0. The client lockfile counts vitest 5.0.3 and @vitest/mocker 5.0.3 as production packages, because the client lists @testing-library/jest-dom, which names vitest as a peer, under `dependencies`.
 
 Unused code: `docs/quality/unused-baseline.json` holds 1 entry (the file `client/src/lib/eligibility.ts`) and `npm run check:unused` reports 0 findings, so the entry is stale. `npm run audit:unused`, which reports every issue type, finds 275 unused exports, 125 unused types, 19 duplicate exports and 1 unlisted binary (`psql` in `scripts/test-sql.mjs`), with no unused files or dependencies.
+
+## Epic F1: Baseline measurements and audit tooling (18 November 2026)
+
+Branch `claude/f1-baseline-measurements` (#630) holds 24 commits on `a9882348`. They rebuild `perf:measure` (`scripts/measure-web-performance.mjs`) so its lab rows report LCP, CLS, TBT and INP the way Core Web Vitals defines them. `scripts/test-perf-tools.mjs` pins the new behaviour, and `npm run test:performance` runs it with no browser. The run stopped before the measurement batches began, so this branch adds no baseline number of brief section 5.
+
+### What changed
+
+| Finding | Change | Before | After |
+|---|---|---|---|
+| F1-01, F1-02 | `parseArgs()` splits a flag at its first `=`, reads a bare switch as on, refuses unknown, repeated and malformed flags, and exits 2 with the usage text before Chrome starts. | `--samples=abc` ran zero loads and exited 0; a bare `--fixture` stayed off | exit 2 with a usage message; 5 of 5 refusal cases pass (0 of 5 on `a9882348`) |
+| F1-10 | `--url` is required. Defaults: the eight Epic F routes, three samples, `artifacts/performance/web-lab.json`. | a bare run sent 64 page loads to devshark.app and overwrote an October file under /tmp | a bare run exits 2 |
+| F1-03 | Each sample runs in its own try/catch and records an error row; the run exits 1 at the end. | one failed `/learn` load ended the run | the `/` rows still measure (LCP 712 and 112 ms); the `/learn` row carries the error |
+| F1-04 | Mobile presses "Open navigation menu"; desktop presses the footer "Dark mode" or "Light mode" toggle. Each row records whether a button matched. | desktop: 0 of 4 rows recorded an interaction | 16 of 16 rows on both profiles |
+| F1-09 | Pages load with `reducedMotion: 'no-preference'`; `--reduced-motion` restores the old setting. | 0 of 8 rows loaded the motion-features chunk | 8 of 8 (14,319 bytes transferred) |
+| F1-07 | `navigation.ttfb` is `responseStart`, as web-vitals counts it; `navigation.serverWait` keeps the old request-to-first-byte gap. | TTFB left out redirect, DNS, TCP and TLS | mobile `/` cold: TTFB 168 ms, serverWait 150 ms |
+| F1-05 | `summarizeInteractions()` gives one INP per row with input delay, processing and presentation; `'<16'` for a fast press, null when nothing was pressed. | a raw entry list that counted each press three times | 32 of 32 rows carry a numeric INP |
+| F1-06 | `summarizeLayoutShifts()` reports CLS as the largest session window, keeps the plain sum as `clsSum` and input-flagged shifts as `clsInputFlagged`. | the test example summed to 0.875 | 0.5, the largest window |
+| F1-08 | Rows carry FCP, long tasks (count, longest) and TBT summed from FCP to the measurement point, as Lighthouse sums it. | no FCP, long tasks or TBT | mobile `/` cold: 3 long tasks, longest 149 ms, TBT 5 ms |
+| F1-47 | Each row names its LCP element (`lcpElement`). | LCP time only | mobile cold rows name the cookie banner paragraph; desktop `/` names the hero `h1` |
+| F1-43 | The repeat row loads as a visitor who pressed Reject all (`--consent=rejected`, the default); `--consent=undecided` keeps the banner. | repeat rows showed the banner and named it as LCP | mobile `/learn` repeat names `main p.rm-section-line` |
+| F1-42 | `--api-origin=<origin>` answers allow-listed anonymous API reads from one Node GET per read per run, held `--api-delay-ms` (default 120) before each answer. | with `--fixture`, `/learn` and `/leaderboard` rendered their error state on a local preview | 8 of 8 rows rendered their page; the run sent 2 GETs to devshark.app and served 8 page requests from them |
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `node --test scripts/test-perf-tools.mjs` | 19 of 19 pass |
+| the same file against the lab script of `d0d0fc25` | 17 pass, 2 fail: the replay cases fail without F1-42, as intended |
+| `npm run test:performance` | exit 0 |
+| `npm run typecheck:scripts` | exit 0 |
+| `npm run typecheck:api` | exit 0 |
+| `npm run check:unused` | exit 0, no new Knip findings |
+| `git diff --check origin/main...HEAD` | clean |
+| local preview on 4211 + `node scripts/measure-web-performance.mjs --url=http://127.0.0.1:4211 --fixture --api-origin=https://devshark.app --routes=/learn,/leaderboard --samples=1` | exit 0, 8 of 8 rows, 2 production GETs, 0 blocked writes |
+
+### Not run
+
+- Client build, `check:bundle`, `test:client`, `test:browser`, `check:responsive` and `typecheck:tooling`: the branch changes no client code, build config or dependency.
+- Both `npm audit --omit=dev` runs: no lockfile changed. `test:sql`: no SQL changed. `check:security`: no header or CSP changed.
+- `npm run ci:parity`: it binds ports 4173 and 6006, which parallel agents need.
+- `audit:performance`, `perf:cold-start` and every baseline measurement of brief section 5: those findings never started.
+
+The remaining F1 findings (F1-11 to F1-36, F1-40, F1-41 and F1-44 to F1-46) moved to #646.
+
+## Epic F2: Dependencies, advisories and update automation (18 November 2026)
+
+Branch `claude/f2-dependencies-advisories`, 9 commits on `a9882348`, checked at head `ad925b4e` with Node 22.23.4 and npm 10.9.9.
+
+All four `npm audit` runs (root and client, with and without `--omit=dev`) report 0 vulnerabilities before and after. The brief's 4 high in the root and 6 high in the client came from GHSA-fc5q-39xc-vjpf (picomatch), which GitHub withdrew on 18 November. The branch fixes advisories that maintainers have published and GitHub has not reviewed yet, so the unflagged static audit keeps passing when those reviews land.
+
+### What changed
+
+- F2-01: `npm run audit:upstream` (`scripts/audit-upstream-advisories.mjs`) checks every installed package against the advisories published in its own GitHub repository. It needs a token and about 420 requests, so CI does not run it. semver 7.8.6 joins the root devDependencies.
+- F2-02: the baseline numbers sit above, under "Epic F2 dependencies, 18 November 2026: baseline".
+- F2-03: `scripts/check-dependency-placement.mjs` runs inside `check:unused`. It fails when a package the browser loads is a client devDependency, when a client dependency loads nowhere, when a package the handlers, the React guest bundle or the TypeScript checker worker loads at run time is a root devDependency, or when an override names no GHSA advisory.
+- F2-04: `@testing-library/jest-dom` moves to client devDependencies. As a production dependency it pulled vitest, vite, msw, rollup and esbuild into the production audit.
+- F2-45: `typescript` moves to client dependencies as `^5.9.3`, because the runner worker downloads it for TypeScript tasks.
+- F2-05: a top-level `"//overrides"` object in `client/package.json` names the advisory behind each override: satori > fflate (GHSA-px8p-9vwx-vf98) and Storybook's docgen plugin (GHSA-3g3m-2fjr-6pw4). npm rejects a `//` key inside `overrides`.
+- F2-06: vite 6.4.5 to 6.4.6 for GHSA-p4f5-76q4-ffq7 (critical, dev server only).
+- F2-07: react-router-dom and react-router 7.18.3 to 7.18.5, with the floor at `^7.18.5`, past GHSA-2rq8-3rm6-2w8f, GHSA-qhgm-jj2j-75wj and GHSA-mjj8-rxh9-q8f5. All three sit in server, Framework or RSC code that library mode never runs.
+- Review fix: the header of the audit:upstream script no longer points to `docs/packages.md`, which does not cover the script.
+
+### Numbers
+
+| Measure | Before (`a9882348`) | After (`ad925b4e`) |
+|---|---|---|
+| `npm audit --omit=dev`, root / client | 0 / 0 | 0 / 0 |
+| `npm audit` (full), root / client | 0 / 0 | 0 / 0 |
+| `npm run audit:upstream` | 16 advisories over 23 versions (21 production) | 12 over 19 (16 production) |
+| Client lockfile entries without `dev: true` | 346 of 633 | 215 of 633 |
+| Root lockfile entries without `dev: true` | 122 of 315 | 122 of 316 |
+| react-router / react-router-dom | 7.18.3 | 7.18.5 |
+| vite | 6.4.5 | 6.4.6 |
+| `check:bundle` initial gzip bytes (budget 241,651) | 235,518 | 235,520 |
+| `docs/quality/unused-baseline.json` entries | 1 | 1 (unchanged) |
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm ci --dry-run`, root and client | pass |
+| `npm run check:unused` | pass; placement guard: 27 client and 13 root runtime packages in dependencies |
+| Placement guard against the base `client/package.json`, and with root jsdom moved to devDependencies | fails with the expected problems (4, then 1) |
+| `npm audit --omit=dev` / `--prefix client` | 0 vulnerabilities / 0 vulnerabilities |
+| `npm audit` / `--prefix client` | 0 vulnerabilities / 0 vulnerabilities |
+| `npm run typecheck:api` | pass |
+| `npm run typecheck:scripts` | pass |
+| `npm run typecheck:tooling --prefix client` | pass |
+| `npm run build` (CI build env) | pass |
+| `npm run check:bundle` | pass: 235,520 of 241,651 gzip bytes; monitoring SDK 49,508 of 60,000 |
+| `npm run test:client` | pass: 1,903 tests in 193 files |
+| `npm run test:launch` | pass |
+| `npm run test:coding` | pass: 814 tasks, 769 issued, solutions proven, payloads answer-free |
+| `npm run test:browser -- navigation.spec.ts route-errors.spec.ts` (preview on :4212) | 23 passed |
+| `npm run audit:upstream` | exit 1 by design: 12 unreviewed advisories over 19 versions, all moved to remaining work |
+| `git diff --check origin/main...HEAD` | clean |
+
+### Not run
+
+- `npm run check:quickjs-build`: needs emsdk and Python 3.10; this machine has no emcc and Python 3.9.6. The quickjs CI job runs it because `package.json` changed.
+- `npm run build:storybook`: passed on the vite commit in the earlier batch; not re-run in this stage.
+- Full `test:browser` and `check:responsive`: only the navigation and route-error specs ran, because the router upgrade is the only change that reaches the browser.
+- `npm run ci:parity`: binds ports other agents were using; its steps ran one by one.
+- `npm run test:sql`: no SQL changed.
+
+The remaining F2 findings (F2-08 to F2-44 and F2-46, among them Dependabot, the GitHub Actions upgrades, the unused-baseline cleanup and the dependency documentation) moved to #646.
+
+## Epic F8: Database: RLS, security definer routines, indexes and advisors (18 November 2026)
+
+Branch `claude/f8-database-hardening`: six commits on `main` `a9882348`. The branch adds no migration, so nothing waits to be applied to production (`rvlybcjdpafwyeuojvhl`).
+
+### What changed
+
+- **F8-01** After every schema file, `scripts/test-sql.mjs` runs a check that fails with "left a transaction open" when the file ran BEGIN without COMMIT. Before this, psql rolled such a file back on exit without an error. Files numbered 077 and up must start with BEGIN, set `lock_timeout` and `statement_timeout` in the next two statements and end with COMMIT. The script applies each of them a second time and fails if the second apply errors or changes a catalog fingerprint (routines with ACLs, relations, columns, constraints, indexes, policies, triggers, types, comments, default privileges, publications, extensions, cron jobs) or any row count in `public` and `devshark_private`. Files 002 to 076 keep the shape production applied, and 11 of them (003, 005, 008, 011, 012, 013, 024, 032, 033, 048, 064) still fail a second apply.
+- **F8-44** `supabase/advisors/splinter.sql` vendors the Supabase advisor lints at splinter `cc529aa9`: 31 lints, the PostgreSQL License notice, and a body whose sha256 `e652eb2b…` matches upstream. `test:sql` runs it after the behaviour tests inside BEGIN and ROLLBACK and prints the count per lint. It writes the rows to `SQL_ADVISORS_JSON` when that variable is set and to a collapsed group on GitHub Actions. It fails on any ERROR and on any SECURITY warning in `public` or `devshark_private`.
+- **F8-02** `supabase/bench/seed.sql` loads 20,000 synthetic learners (1,343 MB) into a `createdb -T` copy of a `test:sql` database. It refuses a database named `postgres` and a second run. `supabase/bench/explain.sql` prints `EXPLAIN (ANALYZE, BUFFERS)` for 17 reads inside a read-only transaction and runs the SQL routines' bodies from `pg_proc` as generic plans. `medians.mjs` turns seven runs into medians, spread and pages.
+- **F8-03** `supabase/bench/results-2026-11.md` records the before numbers, the noise between two seeded copies, the daily purge and the advisor counts.
+- **Review fix** The 077+ shape check used to split `CREATE FUNCTION … BEGIN ATOMIC … END` bodies at their inner semicolons and reject a valid migration with "found END". The splitter now counts parentheses and BEGIN, CASE and END the way psql's lexer does. It returns the same statements as before on the 151 SQL files under `supabase/`.
+
+### Numbers
+
+Before, 20,000 learners, Postgres 17.11, median of seven runs on copy A (load 10.3). No read has an after number: this branch changes no index or policy.
+
+| Read | Median ms | Pages |
+|---|---:|---:|
+| `subject_leaderboard`, all time | 466.9 | 15,266 |
+| `window_leaderboard`, 30 days | 145.0 | 4,820 |
+| `category_leaderboard`, javascript, all time | 134.8 | 15,116 |
+| `window_leaderboard_rank`, 30 days | 66.8 | 3,983 |
+| `month_xp_leaderboard` | 46.0 | 1,901 |
+| Hall of Fame name check in `allocate_shark_name` | 22.6 | 3,131 |
+| `daily_leaderboard_v2` | 10.7 | 2,222 |
+| `friend_list` | 5.01 | 547 |
+| `purge_expired_learning_data()`, 120-day backlog | 565 cold, 155 to 248 warm | |
+
+A second seeded copy gave the same plan nodes and pages on all 17 reads. Its medians ran 0.42 to 0.61 times copy A's at load 2.7 and 1.10 to 2.17 times at load 98.
+
+Advisors before. Local splinter on a fresh build: 39 `auth_rls_initplan` WARN, 33 `rls_enabled_no_policy` INFO, 23 `unused_index` INFO, 1 `no_primary_key` INFO, with no ERROR and no security WARN. Production `get_advisors` on 18 November: security 33 INFO; performance 39 `auth_rls_initplan`, 16 `unused_index`, 1 `no_primary_key` and 1 `auth_db_connections_absolute`.
+
+`test:sql` before: 71/71 passed, with no transaction, shape or advisor check. After: 71/71 passed and 96 lints with 0 blocking. Nine throwaway 077 files with a broken shape or grant each fail it, and the two well-formed probes (guarded, BEGIN ATOMIC) pass.
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm run test:sql` on a fresh empty Postgres 17.11 database | 76 schema files applied; 71 passed, 0 known failures, 0 failed; 96 lints, 0 blocking |
+| Throwaway 077 probes through `test:sql` | no BEGIN, no COMMIT, COMMIT midway, no timeouts, unguarded policy, unguarded INSERT, drifting routine, anon EXECUTE on `delete_user_data` and a definer view each fail; the guarded and BEGIN ATOMIC probes pass |
+| Old and new statement splitter on 151 SQL files | identical output |
+| `explain.sql` x7 on seeded copy B, `heavy --exclusive` | same plans and pages as copy A |
+| `npm run test:launch` | pass |
+| `npm run check:unused` | no new findings |
+| `npm run check:security` | pass |
+| `git diff --check origin/main...HEAD` | clean |
+| `node --check` on `scripts/test-sql.mjs` and `supabase/bench/medians.mjs` | ok |
+
+### Not run
+
+- `test:sql` on `supabase/postgres:17.6.1.171`: this machine has no Docker, so the pull request's `sql` job runs it first. That image includes the migration that turns pg_graphql off, so the GraphQL exposure lints return nothing there.
+- `typecheck:*`: the branch changes no TypeScript.
+- Client build, bundle, public and browser checks: no client code changed.
+- `npm audit`: no lockfile changed.
+- `test:fallbacks` and `test:billing`: no migration or server code changed.
+- `ci:parity`: it binds ports other agents need.
+
+The remaining 40 findings of F8 (F8-04 to F8-43) moved to #646. They cover the definer allow-list and RLS invariant tests, the search_path, EXECUTE and grant migrations, the index drops and additions, the purge schedule and the docs.
+
+## Epic F9: API input validation, auth failure modes and rate-limit policy (18 November 2026)
+
+Branch `claude/f9-api-input-auth-rate-limits`, issue #638, 17 commits on `origin/main`. No API success shape changed, and `api/` still holds twelve handler files.
+
+### What changed
+
+- **F9-01** The Upstash stand-in in `scripts/test-verified-caller.ts` gets two modes. Healthy mode counts each bucket the way Upstash does, and failing mode answers every command with 500. The admin, report and sign-in checks now run against a counting limiter. Test only.
+- **F9-02** 117 cases pin the input classes the handlers already refuse: 20 play actions (`scripts/test-play-rooms.ts`); 53 questions, daily, submit and Learn requests (launch contracts); 44 user, leaderboard, Shark Cards, Challenge, admin and report requests (verified caller). Each answers 400, 404 or 413 with the generic `{ error: { code, message } }` body and writes nothing.
+- **F9-03** The verified-caller suite calls every op of the twelve handlers, 135 requests in all, against a database that answers every call with a raw Postgres error. No response carries that error's message, a `PGRST` code or `XX000`. A guard reads the op lists from the router sources, so a new op cannot skip the sweep. Against a hung database every op answers 503, never 500 or 504, apart from nine named exceptions. An Auth outage answers 503 `auth_unavailable` on five handlers. An unreadable plan answers 503 `entitlement_unavailable`. A garden installation race answers 409 `installation_taken`, and a clashing room code retries with a new code.
+- **F9-04** `lib/http.ts` exports `unstorableText` and `UNSTORABLE_TEXT_MESSAGE`. They find U+0000 and lone UTF-16 surrogates at any depth, keys included, and 21 unit cases cover them. No handler calls them yet.
+- **F9-05** `lib/http.ts` exports `queryString` and `queryInt`. They refuse arrays, fractions, exponents, signs, trailing junk and values outside the bounds, and 34 unit cases cover them. No handler calls them yet.
+- **F9-06** `withRequestContext` reads `req.body` once before the handler runs. Broken JSON or a malformed Content-Type now answers 400 `bad_request` "The request body is not valid JSON" with a warning line, where it used to answer 500 `internal_error`.
+- **F9-07** A Content-Length over 256 kB (1 MB for `op=billing-webhook` and `op=payment-webhook`) answers 413 `too_large` before Vercel parses the body. NEEDED.md records the caps and how to revert them.
+- **F9-08** The request id comes from `x-vercel-id` whenever Vercel sets it. A client's `X-Request-Id` counts only where Vercel sets none (local, Docker). A differing client id is logged as `client_request_id`.
+
+### Before and after
+
+| Measure | Before | After |
+|---|---|---|
+| Quiz submit with broken JSON | 500 `internal_error` | 400 `bad_request` |
+| User stats POST with broken JSON (suite without a database) | 503 | 400 |
+| Admin save, admin GET with an unreadable body | 403 | 400 |
+| Learn GET with a malformed Content-Type | 200 | 400 |
+| JSON.parse of a refused 1.84 MB quiz submit, 150,000 keys (Node 22.23, median of 7) | 81.8 ms | 0 ms, refused unread |
+| Largest body a handler parses | 4.5 MB (platform limit) | 256 kB, 1 MB for the two webhooks |
+| `X-Request-Id` when a script sends both headers | the script's `req-chosen-by-a-script-0001` | the `x-vercel-id` |
+| Ops swept for raw Postgres text | 0 | 135 requests, none leak |
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm run typecheck:api` | pass |
+| `npm run typecheck:scripts` | pass |
+| `npm run typecheck:tooling --prefix client` | pass |
+| `npm run test:launch` (launch contracts, play rooms, verified caller, marketing) | pass, 72 PASS lines |
+| Launch contracts with `lib/http.ts` at the F9-08 test commit | fail as expected: `both headers: X-Request-Id` |
+| `npm run test:coding-auth` | pass |
+| `npm run test:grading-integrity` | pass |
+| `npm run test:performance` | pass |
+| `npm run test:path-authority` | pass |
+| `npm run test:react-authority` | pass |
+| `npm run test:paths` | pass |
+| `npm run test:billing` | pass, 47 checks |
+| `npm run test:fallbacks` | pass |
+| `npm run test:garden` | pass |
+| `npm run test:live-grading` | pass |
+| `npm run check:unused` | pass, no new Knip findings |
+| `npm run check:security` | pass |
+| `git diff --check origin/main...HEAD` | pass |
+
+### Not run
+
+- `npm run build`, `check:public`, `check:bundle`, `test:browser`, `check:responsive` and `test:client`: the branch changes no client code, route or dependency.
+- `npm run test:coding`: it checks authored coding content, which the branch does not touch.
+- `npm run test:sql`: no SQL changed.
+- `npm audit --omit=dev` in root and client: no lockfile changed.
+- `npm run ci:parity`: it binds ports other agents need. Its steps ran one by one above.
+
+The remaining findings of F9 (F9-09 to F9-49, including handler adoption of the new helpers, the rate-limit failure policy, the health fields, webhook hardening and the Bruno requests) moved to #646.
+
+## Epic F10: Browser security: CSP, headers, source maps and the sandbox origin (18 November 2026)
+
+Issue #639, branch `claude/f10-browser-security-headers`, 30 commits. `vercel.json` is unchanged: this branch makes the Docker adapter answer as Vercel does and makes `check:security` guard the policy it already has. No policy change landed: img-src, object-src, COOP, CORP, the ACAO scope and source maps are all still open.
+
+### What changed
+
+Docker adapter (`docker/server.mjs`, `docker/server.test.mjs`, new `scripts/vercel-headers.mjs`):
+
+- F10-01: `scripts/vercel-headers.mjs` works out from `vercel.json` how Vercel answers each path. `docker/server.test.mjs` compares the status and every header name `vercel.json` sets on 16 paths of a fixture build.
+- F10-02: static paths decode one segment at a time. `/assets/coding-worker/..%2f..%2findex.html` went from 200 (the app document under the worker policy, with a year-long immutable cache) to 404 `no-store`, as on Vercel.
+- F10-42: rewrites run in order, and a path nothing serves gets Vercel's plain-text 404. `/sandbox/nope` and `/topics/a/b` went from a 404 carrying the 5,549-byte app document to 404 text/plain. `/coding/javascript/no-such-task` went from 404 to 200 with the app shell, matching production.
+- F10-03: a path whose percent escapes do not decode now answers 400 with the main-phase headers. `/assets/%E0%A4%A.js`, `/premium/%E0%A4%A` and `/api/user/%E0%A4%A` used to answer 500 and write an error line each; now they answer 400 and the log stays clean.
+- F10-04: a main-phase route with a bare status ends the request, so a future `.map` block holds in the image too. Fixture result: 200 with the map body became 404 `no-store`.
+- F10-05: a plain-HTTP request gets its CSP without `upgrade-insecure-requests`. With the token on and the image opened at a LAN address, 9 of 10 requests used to fail with ERR_SSL_PROTOCOL_ERROR; now 35 of 35 load.
+- F10-45: each http(s) source in `CSP_CONNECT_EXTRA` also allows its ws(s) socket for Play realtime. Connect-src violations went from 1 to 0. Review fix f2127230 adds the sources to the app policy only; the coding worker keeps `connect-src 'self'`.
+
+Routing contract: F10-26 makes `scripts/vercel-routing-contract.ts` match route `src` and rewrite `source` case-sensitively, as production does. On production, `/cs/topics` answers 404 and `/CS/TOPICS` answers 200.
+
+`check:security` (`scripts/check-security.mjs`):
+
+- F10-08: the check finds the app rule by `frame-ancestors 'none'`. `APP_POLICY` pins every directive and source. Whatever the table says, the check refuses open sources (`*`, a bare scheme, `scheme://*`), any unsafe keyword other than `'unsafe-inline'` in `style-src`, and any PostHog host. Five scratch policies the old check passed now fail.
+- F10-07: the check hashes every inline script of `client/index.html`. `--dist` checks the built pages: 913 HTML files, 912 inline scripts, 1 distinct hash, 6 data blocks skipped.
+- F10-09: `--url` compares nine deployed paths with the status and headers `vercel.json` gives them. It refuses a header `vercel.json` withholds from a path, and it checks each deployed page's inline scripts against the policy deployed with that page.
+- F10-10: at Vercel Authentication, `--url` stops with one line. It reads a protected deployment through a share link, accepts the noindex Vercel adds on `*.vercel.app`, and sends `VERCEL_AUTOMATION_BYPASS_SECRET` when it is set. Review fix 502108fa sends the secret only to `*.vercel.app` hosts. Against a local stand-in at 127.0.0.1, 8 of 8 probes carried the secret before the fix and 0 of 8 after.
+
+Docs: the api-operation and route-and-chunk skills now describe the new check.
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm run typecheck:api`, `npm run typecheck:scripts` | exit 0 each |
+| `npm run check:security` | exit 0 |
+| `npm run check:security -- --dist` (CI-env build) | exit 0; 913 pages, 912 inline scripts, 1 distinct hash |
+| `npm run check:security -- --url=https://devshark.app` | exit 0; nine probes match `vercel.json` |
+| `npm run check:unused` | exit 0; no new findings |
+| `node --test docker/server.test.mjs` | 11 of 11 pass |
+| `npm run test:performance` | exit 0 (runs the Docker test) |
+| `npm run test:launch` | exit 0; the routing contract is included |
+| `git diff --check origin/main...HEAD` | clean |
+
+### Not run
+
+- `npm run build`, `check:public`, `check:bundle`, `test:client`, `test:browser`, `test:harness` and `check:responsive`: the branch changes no client code and no `vercel.json`.
+- `test:sql`: no SQL changed.
+- `npm audit`: no lockfile changed.
+- `ci:parity`: it binds the shared ports 4173 and 6006.
+- `check:security --url` on a preview: the branch was not pushed.
+
+The remaining F10 findings (F10-06, F10-11 to F10-25, F10-27 to F10-30, F10-34 to F10-36) and the F10 owner and F16 items moved to #646.
+
+## Epic F11: Grading sandboxes: QuickJS, the React harness and resource limits (18 November 2026)
+
+Branch `claude/f11-grading-sandbox-limits`, issue #640, 14 commits. Eight findings landed. The branch changes no verdict, limit value, API shape or protected behaviour.
+
+### What changed
+
+- **F11-01**: `docs/react-grading-operations.md` gains "Upload per Submit". Each React Submit uploads `runner.cjs` (2,100,887 bytes, gzip 691,960) and an `input.json`. Across the 183 React reference solutions, `input.json` has a median of 22,224 bytes (gzip 5,680) and a maximum of 55,113 (gzip 11,672). The table names 819,611 bytes of upstream wasm that never runs and 345,671 bytes of unused QuickJS variants, and gives the esbuild metafile command that reproduces it.
+- **F11-02**: `lib/coding/sandbox.ts` counts grader threads from start to exit (`sandboxThreads()`). It exports the grace, memory, stack, tick, thread and idle limits as `SANDBOX_*` constants with unchanged values.
+- **F11-21**: `cutErrorText` moved to `shared/coding-error-text.ts` and `dumpThrown` to `lib/coding/vm-errors.ts`, and `react-runner.ts` dropped its copy. The React guest no longer bundles `sandbox.ts` or the QuickJS preludes: 2,100,887 bytes to 2,056,252 (gzip 691,960 to 679,802).
+- **F11-03**: new `npm run test:sandbox-limits`. It sends 16 cases through the worker thread at the deployed limits: 2.5 s deadline, 1.5 s grace, 64 MB heap, 1 MB stack, 10,000 ticks, 4 threads, 2 idle, 160 waiting, 5 s wait. Each case checks the verdict, the end time, which threads survive and that the next run grades.
+- **F11-04**: `test:grading-integrity` records every host function a QuickJS context receives. The grader gets `url`. The React engine gets `capability`, `schedule` and `report`. Neither gets a host reference or a module loader. The test also pins the vendored wasm's 20 imports and 75 exports beside its provenance hash, and checks that learner `import()` of `node:fs`, `std` or `os` rejects in both engines. The audit removed no binding, because grading uses each one it found.
+- **F11-05**: `test:react-authority` pins the React learner engine's 85 globals (22 from the host) and the keys of each capability. 26 network and Node names read `undefined` as bare globals, and 17 read `undefined` on `window`.
+- **F11-06**: `test:grading-integrity` checks that changes to `Object.prototype`, `Array.prototype`, `Function.prototype.constructor` and the globals stay inside the run that made them, in QuickJS and in the React engine. The host realm and the guest reporter stay clean.
+- **F11-07**: `test:react-isolation` starts the real guest bundle locally, with the VM's flags and environment and a local HTTP server standing in for the network. Learner code reaches no `XMLHttpRequest`, `WebSocket`, `EventSource`, worker, `navigator`, `require`, `process` or `WebAssembly`. Its `fetch` refuses without a fixture, and jsdom loads no resource and runs no inline script. Without `REACT_RUNNER_SNAPSHOT_ID` the VM part prints SKIP.
+- Review fix: the "Upload per Submit" baseline row now describes the old `sandbox.ts` import in the past tense.
+
+### Numbers from test:sandbox-limits (18 November 2026, shared 8-core machine)
+
+| Case | Result | Thread |
+|---|---|---|
+| Four busy-waits (plain, in a call, `Date.now`, `performance.now`) | timeout at 2,502 to 2,508 ms | kept |
+| Interval that never lets a call settle | timeout at 193 ms (tick limit) | kept |
+| Three native-call loops | host stop at 4,002 ms (deadline plus grace) | ended |
+| Allocating loop inside a call | out of memory; 32 MB fits, 80 MB fails; 1,666 ms | kept |
+| Recursion inside a call, at the top level | `stack overflow` in 11 ms, stack message in 24 ms | kept |
+| 200,000 `console.log` lines | 100 lines kept, 408 ms | kept |
+| Return values 41 levels deep or 10,001 entries wide | that call fails, the run goes on | kept |
+| Six runaway runs at once | at most 4 threads, all done in 5,052 ms | |
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm run typecheck:api` | pass |
+| `npm run typecheck:scripts` | pass |
+| `npm run typecheck:tooling --prefix client` | pass |
+| `npm run check:unused` | pass, no new Knip findings |
+| `npm run check:security` | pass |
+| `git diff --check origin/main...HEAD` | clean |
+| `npm run test:sandbox-limits` | pass, 16 cases, 31 s |
+| `npm run test:grading-integrity` | pass, 84 PASS lines, 84 s |
+| `npm run test:react-authority` | pass, 9 s |
+| `npm run test:react-isolation` | local part pass (5 PASS lines), VM part SKIP |
+| `npm run test:launch` | pass, 110 s |
+| `npm run test:react-engine` | pass, 272 s |
+| `npm run test:coding-auth` | pass, 4 s |
+| `npm run test:coding` | exit 1 at load average about 35: one wall-clock problem, the `react-easy3-dispatch-through-context` starter took 7,307 ms against a 6,000 ms budget; every other check passed |
+| `CODING_ONLY='^react-easy3-dispatch-through-context$' npm run test:coding` | pass, 121 s; the starter measured 1,914 to 2,172 ms in three direct runs |
+
+### Not run
+
+- `npm run test:harness` needs a client build. The branch changes no client file, catalog or solution, and CI's browser job runs it.
+- The client build, `check:bundle` and `check:public` had nothing to check: no client code or dependency changed.
+- `test:sql` and the production dependency audits had nothing to check: no SQL or lockfile changed.
+- `check:quickjs-build` had nothing to check: `lib/coding/vendor` and `quickjs-variant.ts` are unchanged.
+- The VM part of `test:react-isolation` needs `REACT_RUNNER_SNAPSHOT_ID` and Vercel Sandbox credentials, which the audit machine lacks.
+
+The remaining 29 findings of F11 (F11-08 to F11-20, F11-22 to F11-37) moved to #646.
+
+## Epic F12: Client correctness: races, caches, lost work and account changes (18 November 2026)
+
+Branch `claude/f12-client-correctness`, 10 commits on `a9882348`, issue #641. Seven findings shipped. Two of them are bug fixes, each with its test committed first.
+
+### What changed
+
+- **F12-01** (`321eba01`): `tests/browser/console-clean.ts` re-exports `@playwright/test` with an auto fixture on the test's browser context. A console.error, an uncaught error or an unhandled rejection in any page of that context now fails the test. When the test already failed, the fixture attaches the list instead of throwing, so the first failure stays the reported one. Chromium's "Failed to load resource" lines go into a report attachment without failing the test. `allowConsoleErrors(page, ...patterns)` lets a spec that breaks the app on purpose name the lines it expects. Before this commit no spec failed on console.error.
+- **F12-02** (`c0f7a915` test, `4984840d` fix): Quiz no longer logs a failed or refused result save, or a failed XP refresh, to console.error. The result screen already shows those states. Any error that is not an ApiError still goes to Sentry through `reportError`.
+- **F12-03** (`831dfd24`, `bf4dcbea`): 31 of 32 browser specs take `test` and `expect` from `./console-clean`. `playwright.config.ts` refuses to start while a spec imports a value from `@playwright/test`, except `public.spec.ts` and `consent-network.spec.ts`, which belong to F15 this wave. The helper treats the sandboxed srcdoc notice as noise, because Playwright's own page scripts cause it. Each test in `route-errors.spec.ts` allows only the console lines of the chunk it drops.
+- **F12-05** (`355d57ee`): `route-errors.spec.ts` covers a deploy that removed the old Coding chunk. The page reloads once (two documents), draws the Coding heading without an error panel, and does not reload again 600 ms later.
+- **F12-06** (`cdc58d37`): new `tests/browser/offline.spec.ts`. It takes the browser offline during the quiz's stats write and expects "Waiting to sync", the offline toast and the queued receipt. Back online, it expects exactly one delivered write and "Saved to your account". A later reconnect sends nothing.
+- **F12-07** (`5e80e1e5`): `account-switch-cache.test.tsx` lists 31 query key prefixes:
+  - 6 carry the account id;
+  - 18 hold caller data under a shared key and rely on `queryClient.clear()` at an account change;
+  - 7 are the same for every caller.
+
+  The test checks that none of the 24 caller-data keys still holds data when the next account first renders. It runs after a sign-in over another account, after a sign-out and after `clearAccountData` alone. A scan of the 98 places in `client/src` that write a key fails on an unlisted root, a stale entry or a key shape it cannot read.
+- **F12-08** (`32766292` test, `60f0c381` fix): `useSaveSharkCard` and `useRemoveSharkCard` record `accountEpoch()` in onMutate. onSuccess, onError and onSettled then return early once the account has changed. A late answer can no longer write the previous learner's question into the next account's bookmarks or deck, and can no longer delete the next account's bookmark.
+
+### Numbers
+
+| Measure | Before | After |
+| --- | --- | --- |
+| `client/tests/quiz.test.tsx` | 66 of 74 pass | 74 of 74 |
+| Shark Card late-answer cases | 0 of 3 pass | 3 of 3 (30 of 30 in the file) |
+| `route-errors.spec.ts` under console-clean | 5 of 14 pass | 15 of 15 (one new test) |
+| `admin.spec.ts` under console-clean | 1 of 3 pass | 3 of 3 |
+| Browser specs on console-clean | 0 of 31 | 31 of 32 |
+| Initial gzip bytes (`check:bundle`) | | 235,530 of 241,651 budget |
+| Monitoring SDK gzip bytes | | 49,507 of 60,000 budget |
+
+The review stage re-ran both test-then-fix pairs against the `origin/main` source. The 8 Quiz cases and the 3 Shark Card cases fail there and pass on the branch.
+
+### Checks
+
+| Command | Result |
+| --- | --- |
+| `npm run build` with the CI build env | exit 0 |
+| `npm run test:browser` (full suite, preview on 4222) | 249 passed, 25 skipped, 0 failed |
+| `npx playwright test tests/browser/offline.spec.ts --repeat-each=3` | 3 passed |
+| `tests/browser/storybook.spec.ts` against Storybook on 6222 | 6 passed (a cold warm-up run timed out once on the first heading, with no console error) |
+| `npm run test:client` | 1,915 tests in 193 files passed |
+| `npm run typecheck:api` | pass |
+| `npm run typecheck:scripts` | pass |
+| `npm run typecheck:tooling --prefix client` | pass |
+| `npm run check:public` | pass |
+| `npm run check:bundle` | pass |
+| `npm run check:unused` | no new findings |
+| `npm run check:security` | pass |
+| `git diff --check origin/main...HEAD` | clean |
+
+### Not run
+
+- `test:sql`: the branch changes no SQL.
+- `npm audit --omit=dev`: no lockfile changed.
+- `check:responsive`: the branch changes no layout or markup.
+- `npm run ci:parity`: it binds the shared ports 4173 and 6006, so its steps ran one by one instead.
+- The server and coding suites: the branch has no server change.
+
+CI runs only the specs that `quality.yml` names, so it will not run `offline.spec.ts` until someone adds that line, which is F12-22.
+
+The remaining findings of F12 (F12-04 and F12-09 to F12-23) moved to #646.
+
+## Epic F15: SEO, public pages and observability (18 November 2026)
+
+Branch `claude/f15-seo-observability`, issue #644, ten commits. The changes sit in the productMetadata plugin of `client/vite.config.ts`, `client/src/lib/publicMetadata.ts`, `client/src/lib/routeHead.ts`, `client/tests/route-head.test.tsx` and `scripts/check-public.mjs`.
+
+### What changed
+
+- F15-01: check:public walks all 912 prerendered pages in `client/dist` and gives each one class: 17 listed, 1 alias (`/coding/review`), 893 share-only (769 coding tasks, 124 dated daily pages) and 1 noindex (hidden system design). The class fixes the canonical, og:url, robots line and sitemap membership. The listed class now sets the sitemap count, which used to be a literal 17.
+- F15-02: every classified page carries each head tag once. og and twitter titles, descriptions and images must match the page's own, with `twitter:card summary_large_image`, `lang="en"`, no hreflang and one static h1.
+- F15-03: every JSON-LD block must parse and validate against a table of schema.org types and properties (6 blocks on this build).
+- F15-04 and F15-05: titles stay under 60 characters. A coding task title drops "coding challenge", then the track, until it fits. A dated daily title carries a short date such as "14 Sep 2026".
+- F15-06 and F15-07: descriptions stay between 50 and 160 characters. `metaDescription()` cuts a long page text after its last whole sentence that fits, at build and in `applyRouteHead`. The visible page copy stays unchanged.
+- F15-08: robots.txt now disallows `/admin` and `/ingest/`. check:public compares the file line by line and fails when a Disallow prefix covers a crawlable page.
+- Review fix: check:public now fails on any robots meta on a listed, alias or share-only page. The F15-01 rewrite had narrowed main's rule for the seven Coding section pages to noindex only, so a `nofollow` passed.
+
+### Numbers
+
+| Measure | Before (main a9882348) | After |
+|---|---|---|
+| Share-only titles of 60 characters or more | 463 of 893 (longest 87) | 0 (longest 59) |
+| Descriptions over 160 characters | 2: `/coding/fullstack` 182, `/premium/cancel` 170 | 0: 125 and 121 |
+| robots.txt Disallow rules | 3 | 5 |
+| Pages whose whole head check:public reads | 17 sitemap pages, plus og:image on task pages | 912 |
+| JSON-LD blocks validated against schema.org types | 0 | 6 |
+| Initial load, check:bundle | budget 241,651 gzip bytes | 235,520 gzip bytes in 5 files |
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm run build` with the CI build env | pass |
+| `npm run check:public` | pass: 912 pages, 17 sitemap URLs, 8 robots.txt lines, 6 JSON-LD blocks, design contract ok |
+| `npm run check:bundle` | pass: 235,520 of 241,651 gzip bytes; monitoring SDK 49,507 of 60,000 |
+| `npm run test:client` | pass: 193 files, 1,908 tests |
+| `npx vitest run tests/route-head.test.tsx` (client) | pass: 40 tests |
+| `npm run test:browser -- tests/browser/public.spec.ts tests/browser/daily.spec.ts tests/browser/coding-pages.spec.ts` against a preview | pass: 41 tests |
+| `npm run typecheck:api` | pass |
+| `npm run typecheck:scripts` | pass |
+| `npm run typecheck:tooling --prefix client` | pass |
+| `npm run check:security` | pass |
+| `git diff --check origin/main...HEAD` | pass |
+
+### Not run
+
+- `npm run test:launch`, `npm run test:sql` and both `npm audit --omit=dev` runs: the branch changes no server code, SQL or lockfile.
+- `npm run check:responsive`: no visible layout change.
+- `tests/browser/consent-network.spec.ts`: not written yet.
+- The ten-event Sentry PII read: this session has no Sentry access, so the owner has to do it.
+- The 30-day Vercel runtime-error read: not started.
+
+Every other F15 finding moved to #646.
+
+## Epic F1 part 2: Baseline measurements and audit tooling (18 November 2026)
+
+Branch `claude/f1b-baseline-measurements`, stacked on `claude/f1-baseline-measurements`. Part 2 changes the lab tools only. It records no production baseline numbers; those findings stay open.
+
+### What changed
+
+| Finding | Change |
+| --- | --- |
+| F1-11 | perf:measure counts each row's requests by kind (document, script, stylesheet, font, image, api, other, blocked) and the responses the origin itself sent. It resets `blockedWrites` per navigation (the repeat row used to add the cold row's count), writes `summary` (medians per profile, path and cache state) and `requestTotals` into the lab JSON, and prints both. |
+| F1-12 | audit:performance refuses unknown flags with exit 2 before it creates the output folder. It takes `--routes=/,/learn` and writes `<profile>-<slug>.report.*` per route. Without `--routes` it writes the same files CI uploads. |
+| F1-41 | A failed Lighthouse run becomes an error row, the other runs continue, the old reports of that prefix are deleted first, summary.json is rewritten after every audit, and the script exits 1 at the end. |
+| F1-13 | `--runs=N` (1 to 10, default 1) keeps a `-run<k>` report per run and writes the median, min and max per profile and page. |
+| F1-14 | Each summary row carries `fcpMs`, `speedIndexMs`, `lcpElement` (selector, label, subparts), `requestCount`, `benchmarkIndex` and the throttling settings. |
+| F1-15 | check:bundle lists the largest JavaScript and CSS chunks of the shaped build (`--largest=N`, 1 to 100, default 10) under `largest` in artifacts/bundle.json. `sizes` is unchanged. |
+| F1-16 | check:bundle prints the fonts index.html preloads on their own unbudgeted line and writes `preloadedFontBytes` and `preloadedFonts`. The budget and its comparison are unchanged. |
+| Review | perf:measure's request handler no longer declares a boolean named `write`, which hid the lab-file writer. New tests pin check:bundle's index.html reader and its `--largest` checks. |
+
+### Numbers
+
+check:bundle on this branch, production-shaped build (`VITE_PRODUCT=devshark`, `VITE_LOCK_SUBJECT=webdev`, placeholders from `measuredBuild.env`), 18 November 2026:
+
+| Measure | Value |
+| --- | --- |
+| Initial requests of index.html | 5 files, 235,518 gzip bytes; budget 241,651 |
+| Preloaded fonts (not budgeted) | 2 files, 73,092 bytes: Inter 48,256, Manrope 24,836 |
+| Monitoring SDK | 49,507 gzip bytes; budget 60,000 |
+| JavaScript and CSS chunks in the build | 222 (the coding worker's chunks under assets/coding-worker included) |
+| Ten largest, gzip bytes | coding-worker/ts-compiler 1,091,349; Editor 172,118; EmailRichTextEditor 130,606; main 121,458 (initial); posthogClient 93,372; babel 82,985; estree 61,866; react 56,793 (initial); supabase 55,233; sentry-sdk 49,507 |
+
+### Checks
+
+| Command | Result |
+| --- | --- |
+| `node --test scripts/test-perf-tools.mjs` | 41 of 41 pass |
+| `npm run test:performance` (heavy lock) | exit 0, no failing case |
+| `npm run check:bundle` (heavy lock) | exit 0, numbers above |
+| `npm run typecheck:scripts` | exit 0 |
+| `npm run typecheck:api` | exit 0 |
+| `npm run check:unused` | exit 0, no new findings |
+| `npm run check:security` | exit 0 |
+| `git diff --check claude/f1-baseline-measurements...HEAD` | clean |
+
+### Not run
+
+- Lighthouse and perf:measure runs against a local preview for the manual verify steps of F1-11, F1-12, F1-13, F1-14 and F1-41. The finishing stage shared the machine with five other agents. Stand-in Lighthouse tests and helper unit tests cover these code paths.
+- Client typecheck, the CI-env client build and the browser checks: no client code changed. test:sql: no SQL changed. npm audit: no lockfile changed.
+- check:bundle `--url`: F1-17 is not implemented.
+
+The rest of F1 (F1-17 to F1-36, F1-40, F1-44, F1-45 and F1-46: the cold-start tool, the image inventory and every production baseline record) is in #646 for the next agent.
+
+## Epic F2 part 2: Dependencies, advisories and update automation (18 November 2026)
+
+Part 2 ran on `claude/f2b-dependencies-advisories`, stacked on the first-run branch that merged as #651. The owner stopped the run at 22:27 to hand Epic F to another agent. By then the branch held four commits, one per finding, all in `client/package.json` and `client/package-lock.json`. The closeout review found no regression and added no commit.
+
+| Finding | Change | Commit |
+|---|---|---|
+| F2-08 | prettier 3.9.6 to 3.9.10 for GHSA-4cm8-f57v-mqm6 (production; Storybook's copy dedupes to it) | `0c76d59d` |
+| F2-09 | dompurify 3.4.17 to 3.4.18 under posthog-js for GHSA-qm7q-q8h9-jg8q, lockfile only | `94374ff5` |
+| F2-13 | open 11.0.0 to 11.0.4 under rollup-plugin-visualizer, lifting powershell-utils 0.1.0 to 0.2.1 (GHSA-x2gq-3jjh-794h, dev only) and wsl-utils 0.3.1 to 1.0.1 | `e2086e25` |
+| F2-14 | jsdom ^30.1.3 and `@types/jsdom` ^30.0.0 in the client's devDependencies, so client tests load `client/node_modules/jsdom` 30.1.3 instead of the grader's root 30.0.1 | `431930bf` |
+
+| Measure | First-run head | Part-2 head `431930bf` |
+|---|---|---|
+| `npm audit --omit=dev`, root and client | 0 and 0 | 0 and 0 |
+| `npm audit`, root and client | 0 and 0 | 0 and 0 |
+| Client lockfile entries | 633 | 670 |
+| Client entries without `dev: true` | 215 | 215 |
+| `npm run audit:upstream` | 12 advisories on 19 installed versions (16 production) | 9 advisories on 16 versions (14 production) |
+| Client matches in `audit:upstream` | 4: prettier, dompurify, powershell-utils, tldts | 1: tldts 7.4.12 (dev) |
+| `check:bundle` initial requests | 235,520 gzip bytes | 235,522 gzip bytes (budget 241,651) |
+
+Checks on `431930bf`, Node 22.23.4 and npm 10.9.9:
+
+| Check | Result |
+|---|---|
+| `git diff --check` against the first-run branch | clean |
+| `npm ci --dry-run --prefix client`, `npm ls` in root and client | pass, no errors |
+| `npm run check:security`, `npm run check:unused` | pass; knip reports 0 findings |
+| `typecheck:api`, `typecheck:scripts`, `typecheck:tooling --prefix client` | pass |
+| Client vitest `tests/coding-actions.test.tsx`, `tests/utc-day.test.tsx` | 16 tests pass |
+| `npm run build` with the CI env, then `check:bundle` | pass |
+| `ANALYZE=true npm run build --prefix client` | writes `dist/bundle-stats.html` and `bundle-stats.json` |
+| `npm run test:client` | 1,903 tests in 193 files pass |
+| `npm run test:launch` | pass, run without the client build env as CI runs it |
+| `npm run test:coding` | pass: 814 tasks, 769 issued, solutions proven, payloads answer-free |
+| `npm run build:storybook` and `tests/browser/storybook.spec.ts` | pass, 6 tests |
+
+Not run: `check:quickjs-build` needs emsdk and Python 3.10, which the audit machine lacks. The quality workflow's quickjs job runs it because the client lockfile changed and `scripts/rebuild-quickjs-sort.mjs` loads the client's prettier. `test:sql` had no SQL to test. The main browser suite and `check:responsive` were skipped because no route, markup or style changed.
+
+The other 26 part-2 findings (F2-10 to F2-12, F2-15 to F2-36 and F2-46) and the eight owner and cross-package F2 items stay unticked in #646 for the next agent, starting with F2-10.
+
+## Epic F9 part 2: API input validation, auth failure modes and rate-limit policy (18 November 2026)
+
+Branch `claude/f9b-api-input-auth-rate-limits` is stacked on `claude/f9-api-input-auth-rate-limits` and holds 13 commits that touch 6 files (+525/−87). It adds no handler file, so `api/` still holds twelve. The owner stopped the run at 22:27. This run finished the batch that was in progress (F9-09 to F9-14) and started nothing new.
+
+### What changed
+
+- **F9-09:** in production with a Supabase URL, `createServiceClient()` now logs one `service_role_key_missing` line and throws at load when the service-role key is missing or equals the anon key. Before, every handler loaded and answered 503 `not_configured` with no log line naming the variable. `api/health.ts` takes `serviceClientOrNull()` and still answers 503 with `serviceRole: unavailable`.
+- **F9-10:** `RateLimitConfig.onFailure` (`open` by default, or `closed`). While a configured Upstash fails, pauses or fails to start, a closed bucket answers 503 `rate_limit_unavailable` with `Retry-After: 15` and spends nothing. These buckets are closed: the admin gate, both voucher buckets, the referral claim, both question-report buckets, and the billing cancellation page and its emailed link. A 503 no longer marks an address as refused.
+- **F9-11:** `op=authevent` has its own `authEvent` and `authEventAddress` buckets at `userMutation`'s rates, both closed, so sign-in reports can close without closing other account writes.
+- **F9-12:** each bucket logs one `distributed_fallback` warning per pause, naming the `bucket` and its `policy`. Each closed refusal writes a `closed_refused` error line, and a failed Upstash start writes one `limiter_init_failed` line with the error's name. Every line carries the request id.
+- **F9-13:** `/api/health` reports `rateLimiter: memory-fallback` when a configured Upstash does not answer the probe's own PING. Before, it reported `configured` through an outage. The HTTP status still follows the database checks.
+- **F9-14:** the one-time-claim Redis client now uses the limiter's 500 ms abort signal and `retries: 0`, so a SET NX no longer retries for about four seconds after the learner got 503 `claim_unavailable`.
+
+### Numbers
+
+| Measure | Before | After |
+|---|---|---|
+| SETs per one-time claim, 1 s after a dropped connection (stand-in) | 4 | 1 |
+| Upstash PINGs for three concurrent health probes | n/a | 1 |
+| Upstash PINGs for a health probe inside the 30 s cache | n/a | 0 |
+| Voucher attempts counted against the five-an-hour budget for a request refused during the outage | 1 (memory) | 0 |
+| `rateLimiter` reported by health during a stand-in Upstash outage | `configured` | `memory-fallback` |
+
+### Checks
+
+| Command | Result |
+|---|---|
+| `npm run typecheck:api` | pass |
+| `npm run typecheck:scripts` | pass |
+| `npm run check:security` | pass |
+| `npm run check:unused` | pass, no new findings |
+| `git diff --check claude/f9-api-input-auth-rate-limits...HEAD` | pass |
+| `npm run test:launch` (heavy) | pass, 237 s |
+| `npm run test:billing` (heavy) | pass, 47 checks |
+| `npm run test:performance` (heavy) | pass |
+| `npm run test:coding-auth` (heavy) | pass |
+| `npm run test:path-authority` (heavy) | pass |
+| `npm run test:paths` (heavy) | pass |
+| `npm run test:fallbacks` (heavy) | pass |
+| `npm run test:garden` (heavy) | pass |
+
+### Not run
+
+These were not run because the diff changes no client code, dependency, lockfile, SQL or grading code: the client build, client, browser and responsive checks, `test:sql`, `npm audit`, and the grading suites. `ci:parity` stayed off because it binds shared ports. The branch is not pushed.
+
+The rest of F9 (F9-15 to F9-49) remains open in #646 for the next agent.
+
+## Epic F10 part 2: Browser security: CSP, headers, source maps and the sandbox origin (18 November 2026)
+
+Branch `claude/f10b-browser-security-headers` has five commits. It was rebased onto `main` at 8979bc43 after F12's Playwright guard landed.
+
+- **F10-11.** `check:security --url` now reads the deployed main chunk and extracts each `https://<ref>.supabase.co`, the Sentry ingest host and project from the DSN, and the host passed to `startPostHog`. It fails when the deployed `connect-src` blocks the REST URL, the realtime socket (wss), the Sentry envelope URL or the PostHog capture URL. It also fails when it finds no Supabase URL or no PostHog call. A table of 17 cases pins its CSP Level 3 matcher. Production: Supabase `rvlybcjdpafwyeuojvhl`, Sentry `o4511808879001600.ingest.de.sentry.io`, PostHog `/ingest`, 4 of 4 connections allowed.
+- **F10-06.** `tests/browser/csp.spec.ts` serves the app under the shipped headers through `docker/server.mjs`. It fails on any `securitypolicyviolation` event in any frame and on any CSP report in the page or worker console. It visits `/`, `/learn/web-developer`, `/premium`, `/topics/javascript-closures` and `/daily`, opens the cookie settings and the sign-in dialog, runs a JavaScript task and a React task to a full pass, and loads a Google profile photo on `/profile`. Against vite preview it skips with a message. It takes `test` and `expect` from `console-clean`.
+- **F10-12.** `docs/audit/csp-experiments-2026-11.md` records both experiments per component. With `style-src 'self'`, one component breaks: the CodeMirror editor (2 refused `<style>` elements; `.cm-editor` computes `display: block` instead of `flex`). That held on 31 local routes, 8 narrow dark routes and 5 production routes (119 GET requests, no POST, no other host). Astryx, Motion, React style props and the 912 prerendered pages report nothing. Satori runs at build time. In report-only mode, Trusted Types reports the Run worker's `Worker` constructor (2 per Run) and the route head's JSON-LD `textContent`. Decisions: `style-src` keeps `'unsafe-inline'`, and the app sends no Trusted Types header until the report collector (F10-31) exists.
+- **F10-13.** `img-src` changes from `'self' data: https:` to `'self' data: https://*.googleusercontent.com https://*.stripe.com https://*.link.com`. With the old value, `check:security` and the routing contract both fail.
+
+| Check | Result |
+| --- | --- |
+| `npm run check:security` | pass |
+| `npm run check:security -- --dist` (CI build env) | pass: 913 HTML files, 912 inline scripts allowed |
+| `npm run check:security -- --url=https://devshark.app` | exit 1 until deploy: production still sends `img-src https:`; bundle hosts 4 of 4 allowed |
+| `typecheck:scripts`, `typecheck:api`, `typecheck:tooling --prefix client` | pass |
+| `npm run check:unused` | pass |
+| `npm run test:launch` | pass |
+| `node --test docker/server.test.mjs` | 11 of 11 |
+| `npm run build` with the CI env | pass |
+| `csp.spec.ts` against `docker/server.mjs` | 3 of 3 |
+| 32-route CSP sweep against `docker/server.mjs` (/, /learn, /quiz, /coding, /daily, /premium, sign-in dialog and 25 more) | 0 violations |
+| sign-in, daily, navigation, launch-offer, coding-pages and learning-release specs against `docker/server.mjs` | 89 of 90; `learning-release.spec.ts:229` flaked once and then passed 6 of 6 |
+| `git diff --check origin/main...HEAD` | clean |
+
+Not run: `--url` on a preview deployment (this stage does not push). `npm audit` (the branch changes no lockfile). `test:sql` (no SQL changed). `ci:parity` (it binds the shared ports). The production experiment was not repeated (request budget). After the deploy, run `npm run check:security -- --url=https://devshark.app`; it passes once production serves the new `img-src`.
+
+The rest of F10 (F10-14 to F10-36, except F10-06, F10-11, F10-12 and F10-13, plus the owner and cross-package items) stays in #646 for the next agent.
+
+## Epic F12 part 2: Client correctness: races, caches, lost work and account changes (18 November 2026)
+
+Branch claude/f12b-client-correctness, stacked on claude/f12-client-correctness. Each finding has a test commit that failed before the fix, followed by the fix commit.
+
+### What changed
+
+| Finding | Change | Before | After |
+|---|---|---|---|
+| F12-10 | The Shark Cards deck drops its "Card taken out ... Undo" toast in the render where the user id changes. The Got it and Undo callbacks set nothing once accountEpoch() moves. | A leftover Undo posted the previous account's card (`question_id: 'ada-card'`) into the next account's deck; 3 new cases failed | 33 of 33 shark-cards cases pass; the probe posts nothing |
+| F12-09 | useStartSession, useAdvanceSession and useSaveChallenge record the account epoch in onMutate and write ['coding','session'] or ['coding','bookmarks'] only while it holds. | A late answer left `{ session: { sessionId: 'ada-run' } }` in the next account's cache; 3 of 3 cases failed | 13 of 13 pass; the 19 coding test files that use these hooks pass (210 tests) |
+| F12-16 | A ref guards Today's planned-run Start. The ref is set at the press and cleared in onSettled, as the Coding home planner does. | Two clicks sent 2 status changes | 1 status change |
+| F12-23 | Today's run section, the planned run card and the planner form record accountEpoch() at each press. Their navigate, onDone and failure note run only while it holds. Today's failure note is the press's own state, tied to the run that failed, and replaces advance.isError. | A start answered after the account changed moved the next learner to the previous learner's task or showed them "Could not start the run"; 6 of 6 cases failed | 21 of 21 pass, including a case that keeps the refusal visible to the learner who pressed |
+
+### Checks
+
+| Check | Result |
+|---|---|
+| typecheck:tooling (client), on the F12-23 test commit and the fix commit | pass |
+| vitest challenge-run-planner, before and after the F12-23 fix | 6 failed / 14 passed before; 21 of 21 after |
+| vitest, the 9 files that render the run components | 81 of 81 pass |
+| test:client | 193 files, 1929 tests pass |
+| Client build with the CI env | pass |
+| check:bundle | initial requests 235522 of 241651 gzip bytes; monitoring SDK 49507 of 60000 |
+| check:unused | no new findings |
+| check:security | pass |
+| git diff --check | clean |
+
+### Not run
+
+- test:browser, check:responsive, Storybook: no layout or styling changed. The Today failure note keeps its element and text.
+- test:sql, npm audit, typecheck:api, typecheck:scripts, test:coding: the branch changes no SQL, lockfile, server code or scripts.
+
+The remaining F12 findings (F12-04, F12-11, F12-12, F12-13, F12-14, F12-15, F12-17, F12-18, F12-19) stay open in #646 for the next agent.
+
+## Epic F15 part 2: SEO, public pages and observability (18 November 2026)
+
+Branch `claude/f15b-seo-observability`, stacked on `claude/f15-seo-observability`. The owner stopped the run while batch 1 was in flight. This branch carries the two findings that batch finished.
+
+### What changed
+
+- **F15-10** (7980d047 test, 593818bb fix): `client/dist/index.html` no longer names a canonical or og:url. vercel.json's catch-all serves that file for every app route and every missing page, so `/today`, `/profile` and any 404 used to claim to be copies of the home page in their raw HTML. `routeHead.ts` writes the home canonical when the app starts. `grep -c canonical client/dist/index.html`: 1 before, 0 after.
+- **F15-11** (399ce655 test, 1d6e2acd fix): the build writes `privacy/index.html` and `terms/index.html`, each with its own title, a description cut from the page's lead, a canonical, og:url, and the live h1 and lead in a noscript. The sitemap lists both, with lastmod 2026-10-14 (PRIVACY_UPDATED) and 2026-10-09 (LEGAL_UPDATED) read from `LegalPages.tsx`. The build fails if either constant stops matching. `routeHead.ts` writes the same canonical and description. The privacy lead loads with `translations.privacy.ts` and is written only while `/privacy` is still the current route. No legal text changed.
+
+### Numbers
+
+| Measure | Before | After |
+|---|---|---|
+| Canonical tags in the app shell | 1 | 0 |
+| Prerendered pages (check:public) | 912 | 914 |
+| Listed pages and sitemap URLs | 17 | 19 |
+| LegalPages chunk | 34.67 kB | 13.96 kB + 20.80 kB `translations.privacy` |
+| Initial requests of index.html (gzip) | 235520 B | 235545 B (budget 241651) |
+
+### Checks
+
+| Check | Result |
+|---|---|
+| `vitest run tests/route-head.test.tsx` | 43 of 43 passed (2 failed before the fix) |
+| `npm run typecheck:tooling --prefix client` | exit 0 |
+| `npm run build` with the CI env | exit 0 |
+| `npm run check:public` | passed: 914 pages, 19 listed, 19 sitemap URLs |
+| `npm run check:bundle` | passed: 235545 of 241651 gzip bytes |
+| `playwright test tests/browser/public.spec.ts` on the preview (port 4225) | 9 of 9 passed |
+| curl `/privacy`, `/terms`, `/privacy/` on the preview | each page's own title, canonical and noscript h1 |
+| `npm run test:launch` | exit 0 |
+| `npm run test:client` | 1911 of 1911 passed in 193 files |
+| `npm run check:unused` | no new findings |
+| `npm run check:security` | passed |
+| `git diff --check` over the branch | clean |
+
+### Not run
+
+- `check:responsive`: no visible change with JavaScript on.
+- `test:sql` and both `npm audit --omit=dev` runs: no SQL or lockfile changed.
+- `typecheck:api` and `typecheck:scripts`: no server code or TypeScript script changed.
+- The curl of `/privacy` on a Vercel preview: the branch is not pushed yet. Until F15-55 adds the rewrites, Vercel answers both pages through its directory index. A read-only GET of `https://devshark.app/sandbox` confirms that behaviour.
+
+Every other F15 finding, F15-09 and F15-12 through F15-57 included, stays in #646 for the next agent.
