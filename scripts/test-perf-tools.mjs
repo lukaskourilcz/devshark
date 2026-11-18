@@ -285,3 +285,63 @@ test('perf:measure takes --api-origin as an https or loopback origin with a boun
     ['--api-origin=https://devshark.app', '--api-delay-ms=10001'],
   ]) assert.throws(() => resolveOptions(parseArgs([...base, ...flags])), UsageError, flags.join(' '));
 });
+
+test('perf:measure takes the middle sample as the median and drops missing values', () => {
+  assert.equal(typeof lab.median, 'function', 'perf:measure exports its median helper');
+  assert.equal(lab.median([640, 512, 2200]), 640, 'three samples: the middle one');
+  assert.equal(lab.median([4, 1, 3, 2]), 2, 'an even count takes the lower middle value, one a sample measured');
+  assert.equal(lab.median([null, 7, undefined]), 7);
+  assert.equal(lab.median([]), null);
+  assert.equal(lab.median([null]), null);
+  // A press under 16 ms sorts below every measured INP.
+  const byInp = (a, b) => (a === '<16' ? -1 : a) - (b === '<16' ? -1 : b);
+  assert.equal(lab.median(['<16', 40, '<16'], byInp), '<16');
+  assert.equal(lab.median([88, '<16', 40], byInp), 40);
+});
+
+test('perf:measure counts each request under one kind', () => {
+  const origin = 'https://devshark.app';
+  const kind = (resourceType, path, options) => lab.requestKind(resourceType, new URL(path, origin), origin, options);
+  assert.equal(kind('Document', '/learn'), 'document');
+  assert.equal(kind('Script', '/assets/index-abc.js'), 'script');
+  assert.equal(kind('Stylesheet', '/assets/index-abc.css'), 'stylesheet');
+  assert.equal(kind('Font', '/fonts/inter.woff2'), 'font');
+  assert.equal(kind('Image', '/brand/v9/fin.svg'), 'image');
+  assert.equal(kind('Fetch', '/api/settings'), 'api', 'an API read counts as api whoever answers it');
+  assert.equal(kind('XHR', '/api/quiz/roadmap'), 'api');
+  assert.equal(kind('Manifest', '/manifest.webmanifest'), 'other');
+  assert.equal(lab.requestKind('Fetch', new URL('https://eu.i.posthog.com/api/e'), origin), 'other', 'another origin\'s /api/ is not the app\'s API');
+  assert.equal(kind('Fetch', '/api/user/stats', { blocked: true }), 'blocked', 'a request the lab failed counts as blocked only');
+  const counts = lab.emptyRequestCounts();
+  assert.deepEqual(Object.keys(counts), [...lab.REQUEST_KINDS, 'sent', 'sentApi']);
+  assert.equal(lab.requestCount({ ...counts, script: 27, api: 1, blocked: 2, sent: 30, sentApi: 1 }), 30, 'sent and sentApi are not kinds');
+});
+
+test('perf:measure summarizes each profile, path and cache state with request totals', () => {
+  const requests = (script, sent) => ({ ...lab.emptyRequestCounts(), document: 1, script, api: 1, sent, sentApi: 1 });
+  const row = (sample, cache, lcp, extra = {}) => ({ profile: 'mobile', path: '/', sample, cache, navigation: { ttfb: 100 + sample }, fcp: lcp - 100, lcp, lcpElement: { tag: 'h1', id: null, classes: [`s${sample}`], container: null, size: 1, url: null }, cls: sample / 100, tbtMs: sample * 10, inpMs: 40 + sample, requests: requests(30 + sample, 31 + sample), ...extra });
+  const results = [
+    row(0, 'cold-browser', 2400),
+    row(0, 'repeat-browser', 700),
+    row(1, 'cold-browser', 2100, { inpMs: '<16' }),
+    row(1, 'repeat-browser', 650),
+    // A failed cold row: the repeat row of that sample never loaded.
+    { profile: 'mobile', path: '/', sample: 2, cache: 'cold-browser', error: 'timeout', requests: requests(3, 2) },
+    // A failed setup on another route: neither row loaded.
+    { profile: 'desktop', path: '/learn', sample: 0, cache: null, error: 'net::ERR_CONNECTION_REFUSED' },
+  ];
+  const summary = lab.summarizeRows(results);
+  assert.deepEqual(summary.map(({ profile, path, cache, samples, errors }) => [profile, path, cache, samples, errors]), [
+    ['mobile', '/', 'cold-browser', 2, 1],
+    ['mobile', '/', 'repeat-browser', 2, 1],
+    ['desktop', '/learn', 'cold-browser', 0, 1],
+    ['desktop', '/learn', 'repeat-browser', 0, 1],
+  ]);
+  const [cold] = summary;
+  assert.equal(cold.lcpMs, 2100, 'the lower middle of two samples');
+  assert.equal(cold.lcpElement, 'h1.s1', 'the LCP element of the median-LCP sample');
+  assert.deepEqual([cold.ttfbMs, cold.fcpMs, cold.cls, cold.tbtMs, cold.inpMs, cold.requests], [100, 2000, 0, 0, '<16', 32]);
+  assert.deepEqual(summary[2], { profile: 'desktop', path: '/learn', cache: 'cold-browser', samples: 0, errors: 1, ttfbMs: null, fcpMs: null, lcpMs: null, lcpElement: null, cls: null, tbtMs: null, inpMs: null, requests: null });
+  // The failed cold row's requests still reached the origin and count.
+  assert.deepEqual(lab.requestTotals(results, { forwarded: 4 }), { requests: 2 * 32 + 2 * 33 + 5, api: 5, sent: 31 + 32 + 31 + 32 + 2, sentApi: 5, forwarded: 4 });
+});
