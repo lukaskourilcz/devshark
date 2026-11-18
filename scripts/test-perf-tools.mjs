@@ -4,7 +4,7 @@
 // port nothing listens on.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -400,4 +400,65 @@ test('audit:performance keeps CI\'s single page without --routes and resolves ro
   for (const value of ['learn', '//example.test', '/,', '/learn,/learn']) {
     assert.throws(() => lighthouse.resolveOptions({ routes: value }), UsageError, value);
   }
+});
+
+// A Lighthouse report with the fields audit:performance reads, and nothing else.
+function fakeReport({ performance = 0.9, lcp = 2000, cls = 0, tbt = 100, runtimeError } = {}) {
+  return {
+    finalDisplayedUrl: 'http://127.0.0.1:9/', fetchTime: '2026-11-18T12:00:00.000Z', lighthouseVersion: '13.4.1', runWarnings: [],
+    ...(runtimeError && { runtimeError }),
+    categories: { performance: { score: performance }, accessibility: { score: 1 } },
+    audits: {
+      'largest-contentful-paint': { numericValue: lcp },
+      'cumulative-layout-shift': { numericValue: cls },
+      'total-blocking-time': { numericValue: tbt },
+      'total-byte-weight': { numericValue: 400000 },
+    },
+  };
+}
+
+// Runs audit:performance's main in this process with a stand-in for
+// Lighthouse: answer(profile, route, call) returns a report to write and
+// exit 0, a number to exit with and write nothing, or [status, report].
+function auditWith(t, pages, answer, options = {}) {
+  const scratch = mkdtempSync(join(tmpdir(), 'devshark-audit-main-'));
+  t.after(() => rmSync(scratch, { recursive: true, force: true }));
+  const output = join(scratch, 'performance');
+  for (const method of ['table', 'log', 'warn', 'error']) t.mock.method(console, method, () => {});
+  t.mock.method(process, 'exit', (code) => { throw new Error(`process.exit(${code})`); });
+  const calls = [];
+  const fake = (url, profile, prefix) => {
+    const route = pages.find((page) => page.url === url).route;
+    calls.push({ profile, route, prefix });
+    const reply = answer(profile, route, calls.length);
+    const [status, report] = Array.isArray(reply) ? reply : typeof reply === 'number' ? [reply, null] : [0, reply];
+    if (report) writeFileSync(`${prefix}.report.json`, JSON.stringify(report));
+    return status;
+  };
+  const prepare = options.prepare ?? (() => {});
+  mkdirSync(output, { recursive: true });
+  prepare(output);
+  const results = lighthouse.main({ output, pages, runs: options.runs ?? 1 }, { lighthouse: fake });
+  return { results, calls, output, summary: JSON.parse(readFileSync(join(output, 'summary.json'), 'utf8')) };
+}
+
+const homePage = [{ route: '/', url: 'http://127.0.0.1:9', slug: null }];
+
+test('audit:performance keeps going when one Lighthouse run fails and records the failure', (t) => {
+  // A report an earlier run left behind must not stand in for a failed run.
+  const prepare = (output) => writeFileSync(join(output, 'mobile.report.json'), JSON.stringify(fakeReport({ lcp: 1 })));
+  const run = auditWith(t, homePage, (profile) => (profile === 'mobile' ? 1 : fakeReport({ lcp: 900 })), { prepare });
+  assert.deepEqual(run.calls.map((call) => call.profile), ['mobile', 'desktop'], 'the desktop audit still runs');
+  assert.deepEqual(run.results[0], { profile: 'mobile', route: '/', requestedUrl: 'http://127.0.0.1:9', run: 1, error: 'Lighthouse exited with code 1' });
+  assert.equal(run.results[1].lcpMs, 900);
+  assert.deepEqual(run.summary, run.results, 'summary.json holds the finished row and the error row');
+  assert.equal(existsSync(join(run.output, 'mobile.report.json')), false, 'the stale report is gone');
+});
+
+test('audit:performance records a Lighthouse runtime error as an error row', (t) => {
+  const runtimeError = { code: 'ERRORED_DOCUMENT_REQUEST', message: 'Lighthouse was unable to reliably load the page you requested.' };
+  const run = auditWith(t, homePage, (profile) => (profile === 'desktop' ? [1, fakeReport({ runtimeError })] : fakeReport()));
+  assert.equal(run.results[0].error, undefined);
+  assert.deepEqual(run.results[1], { profile: 'desktop', route: '/', requestedUrl: 'http://127.0.0.1:9', run: 1, error: `${runtimeError.code}: ${runtimeError.message}` });
+  assert.deepEqual(run.summary, run.results);
 });
