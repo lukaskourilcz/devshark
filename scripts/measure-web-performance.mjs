@@ -7,15 +7,15 @@ import { pathToFileURL } from 'node:url';
 
 export const PROFILES = ['mobile', 'desktop'];
 const FLAGS = { url: 'value', routes: 'value', samples: 'value', profiles: 'value', output: 'value', access: 'value', fixture: 'switch' };
+// No default origin: a bare run would send 64 page loads to production.
 const DEFAULTS = {
- url: 'https://devshark.app',
- routes: '/,/quiz,/learn,/coding,/leaderboard,/premium,/topics/javascript-closures,/big-o',
- samples: 2,
- output: '/tmp/devshark-performance-2026-10-17/production-before.json',
+ routes: '/,/learn,/coding,/quiz,/daily,/premium,/topics/javascript-closures,/leaderboard',
+ samples: 3,
+ output: 'artifacts/performance/web-lab.json',
 };
 
-export const USAGE = `Usage: node scripts/measure-web-performance.mjs [flags]
-  --url=<origin>        origin to load (default ${DEFAULTS.url})
+export const USAGE = `Usage: node scripts/measure-web-performance.mjs --url=<origin> [flags]
+  --url=<origin>        origin to load, required (http://127.0.0.1:<port> for a local preview)
   --routes=<paths>      comma-separated paths, each starting with / (default ${DEFAULTS.routes})
   --samples=<n>         loads per route and profile, a whole number from 1 to 10 (default ${DEFAULTS.samples})
   --profiles=<names>    comma-separated, any of ${PROFILES.join(',')} (default ${PROFILES.join(',')})
@@ -53,8 +53,9 @@ function list(value, flag) {
 // Checks the parsed flags and fills the defaults. Throws UsageError before
 // anything launches or writes.
 export function resolveOptions(args) {
+ if (args.url === undefined) throw new UsageError('--url is required; name the origin to measure');
  let url;
- try { url = new URL(args.url ?? DEFAULTS.url); } catch { throw new UsageError(`--url is not a URL: "${args.url}"`); }
+ try { url = new URL(args.url); } catch { throw new UsageError(`--url is not a URL: "${args.url}"`); }
  if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new UsageError(`--url must use http or https: "${args.url}"`);
  const samples = args.samples ?? String(DEFAULTS.samples);
  if (!/^\d+$/.test(samples) || Number(samples) < 1 || Number(samples) > 10) throw new UsageError(`--samples must be a whole number from 1 to 10, got "${samples}"`);
