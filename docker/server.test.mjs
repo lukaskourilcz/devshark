@@ -145,30 +145,48 @@ test('Docker API answers 413 as soon as a body crosses the limit', async (t) => 
 // from it, but the phases can: which rules run before the filesystem check,
 // which only once a file matched, and what answers a path with no file.
 // scripts/vercel-headers.mjs models Vercel's answer from the same vercel.json.
+const config = readVercelConfig(root);
+const isSiteFile = (pathname) => Object.hasOwn(SITE, pathname.slice(1));
+
+/** Requests `pathname` and compares the status and every header name
+ * vercel.json sets with Vercel's answer. Returns the body. */
+async function assertVercelAnswer(origin, pathname) {
+  const expected = vercelAnswer(config, pathname, isSiteFile);
+  const response = await fetch(origin + pathname, { redirect: 'manual', signal: AbortSignal.timeout(5_000) });
+  const body = await response.text();
+  if (expected.status !== null) assert.equal(response.status, expected.status, `${pathname} (${expected.ends}): status`);
+  for (const name of headerNames(config)) {
+    const actual = response.headers.get(name) ?? undefined;
+    if (name === 'cache-control' && expected.headers[name] === undefined) {
+      // vercel.json leaves this one to the server: Vercel sends
+      // public, max-age=0, must-revalidate, the adapter no-cache on HTML.
+      assert.ok(actual === undefined || actual === 'no-cache', `${pathname}: vercel.json sets no Cache-Control, the adapter sent ${actual}`);
+      continue;
+    }
+    assert.equal(actual, expected.headers[name], `${pathname} (${expected.ends}): ${name}`);
+  }
+  return { response, body };
+}
+
 test('Docker answers each path with the headers vercel.json gives it on Vercel', async (t) => {
   const origin = await startAdapter(t, { files: SITE });
-  const config = readVercelConfig(root);
-  const names = headerNames(config);
-  const isFile = (pathname) => Object.hasOwn(SITE, pathname.slice(1));
   const paths = [
     '/', '/premium', '/coding/javascript/js-double-numbers',
     ...Object.keys(SITE).map((file) => `/${file}`),
     '/cs/topics', '/roadmap/specializations/fde', '/assets/missing-x.js', '/api/probe',
   ];
-  for (const pathname of paths) {
-    const expected = vercelAnswer(config, pathname, isFile);
-    const response = await fetch(origin + pathname, { redirect: 'manual', signal: AbortSignal.timeout(5_000) });
-    await response.arrayBuffer();
-    if (expected.status !== null) assert.equal(response.status, expected.status, `${pathname} (${expected.ends}): status`);
-    for (const name of names) {
-      const actual = response.headers.get(name) ?? undefined;
-      if (name === 'cache-control' && expected.headers[name] === undefined) {
-        // vercel.json leaves this one to the server: Vercel sends
-        // public, max-age=0, must-revalidate, the adapter no-cache on HTML.
-        assert.ok(actual === undefined || actual === 'no-cache', `${pathname}: vercel.json sets no Cache-Control, the adapter sent ${actual}`);
-        continue;
-      }
-      assert.equal(actual, expected.headers[name], `${pathname} (${expected.ends}): ${name}`);
-    }
-  }
+  for (const pathname of paths) await assertVercelAnswer(origin, pathname);
 });
+
+// The header routes match the raw path, so an encoded ../ must not reach a
+// file the raw path does not name: /assets/coding-worker/..%2f..%2findex.html
+// served the app document under the worker's policy (no frame-ancestors, no
+// X-Frame-Options) with a year-long immutable cache. Vercel answers 404.
+for (const pathname of ['/assets/coding-worker/..%2f..%2findex.html', '/sandbox/..%2findex.html']) {
+  test(`Docker serves no file through an encoded ../ (${pathname})`, async (t) => {
+    const origin = await startAdapter(t, { files: SITE });
+    const { response, body } = await assertVercelAnswer(origin, pathname);
+    assert.equal(response.status, 404);
+    assert.notEqual(body, APP_DOCUMENT, 'the app document must not answer under another path\'s policy');
+  });
+}
