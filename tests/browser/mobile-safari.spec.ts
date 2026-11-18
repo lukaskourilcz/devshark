@@ -64,6 +64,81 @@ test.describe('touch editor typography', () => {
     expect(font.editor).toBe(16);
     expect(font.content).toBe(16);
   });
+
+  test('the fixed shell follows a smaller available viewport without horizontal scrolling', async ({ page }) => {
+    await prepare(page);
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    for (const height of [844, 480, 844]) {
+      await page.setViewportSize({ width: 390, height });
+      const geometry = await page.locator('.ss-app-root').evaluate((root) => {
+        const bounds = root.getBoundingClientRect();
+        const main = document.getElementById('main-content')!.getBoundingClientRect();
+        return {
+          rootHeight: bounds.height, viewportHeight: innerHeight,
+          cssViewportHeight: visualViewport?.height ?? innerHeight,
+          pageWidth: document.documentElement.scrollWidth, viewportWidth: innerWidth,
+          mainTop: main.top, mainBottom: main.bottom,
+        };
+      });
+      expect(Math.abs(geometry.rootHeight - height)).toBeLessThanOrEqual(1);
+      expect(geometry.viewportHeight).toBe(height);
+      expect(geometry.cssViewportHeight).toBeGreaterThan(0);
+      expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewportWidth);
+      expect(geometry.mainTop).toBeGreaterThanOrEqual(0);
+      expect(geometry.mainBottom).toBeLessThanOrEqual(height + 1);
+    }
+    // Headless WebKit reports no physical notch inset. This covers the
+    // available layout viewport; an iPhone keyboard/notch needs device QA.
+    expect(await page.locator('meta[name="viewport"]').getAttribute('content')).toContain('width=device-width');
+  });
+
+  test('the editor stays focusable and reachable after the viewport shrinks', async ({ page }) => {
+    await openEditor(page);
+    await page.setViewportSize({ width: 390, height: 460 });
+    const editor = page.locator('.cm-content');
+    await editor.fill('const answer = 42;');
+    await editor.scrollIntoViewIfNeeded();
+    await expect(editor).toBeFocused();
+    await expect(editor).toBeInViewport({ ratio: 0.5 });
+    await expect(editor).toHaveText('const answer = 42;');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const scale = await page.evaluate(() => visualViewport?.scale ?? 1);
+    expect(scale).toBe(1);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(editor).toBeFocused();
+  });
+
+  test('the sign-in dialog scrolls its form into view and restores focus when dismissed', async ({ page }) => {
+    await prepare(page);
+    await page.goto('/');
+    const trigger = page.getByRole('button', { name: 'Sign in', exact: true }).first();
+    await trigger.click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByRole('button', { name: 'Continue with Google' })).toBeVisible();
+    await page.setViewportSize({ width: 390, height: 460 });
+    const email = dialog.getByLabel('Email', { exact: true });
+    await email.fill('learner@example.test');
+    await email.scrollIntoViewIfNeeded();
+    await expect(email).toBeFocused();
+    await expect(email).toBeInViewport();
+    const field = await email.boundingBox();
+    expect(field!.height).toBeGreaterThanOrEqual(44);
+    const submit = dialog.getByRole('button', { name: 'Sign in', exact: true });
+    await submit.scrollIntoViewIfNeeded();
+    await expect(submit).toBeInViewport();
+    const geometry = await dialog.evaluate((element) => ({
+      dialogWidth: element.getBoundingClientRect().width,
+      viewportWidth: innerWidth,
+      pageWidth: document.documentElement.scrollWidth,
+    }));
+    expect(geometry.dialogWidth).toBeLessThanOrEqual(geometry.viewportWidth);
+    expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewportWidth);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(trigger).toBeFocused();
+  });
 });
 
 test.describe('desktop editor typography', () => {
@@ -75,5 +150,25 @@ test.describe('desktop editor typography', () => {
     expect(font.coarse).toBe(false);
     expect(font.editor).toBe(14);
     expect(font.content).toBe(14);
+  });
+
+  test('the workbench splitter keeps its drag surface and restores scrolling after a canceled drag', async ({ page }) => {
+    await openEditor(page);
+    const splitter = page.getByRole('separator', { name: 'Resize the editor and task information panes' });
+    await expect(splitter).toBeVisible();
+    expect(await splitter.evaluate((element) => getComputedStyle(element).touchAction)).toBe('none');
+    const before = await page.locator('.cd-pane--editor').boundingBox();
+    const bounds = await splitter.boundingBox();
+    await page.mouse.move(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(bounds!.x + 45, bounds!.y + bounds!.height / 2);
+    await splitter.dispatchEvent('pointercancel', { pointerId: 1, pointerType: 'mouse', bubbles: true });
+    await page.mouse.up();
+    const after = await page.locator('.cd-pane--editor').boundingBox();
+    expect(after!.width).toBeGreaterThan(before!.width);
+    expect(await page.evaluate(() => getComputedStyle(document.body).userSelect)).not.toBe('none');
+    await splitter.focus();
+    await splitter.press('ArrowLeft');
+    await expect(splitter).toBeFocused();
   });
 });
