@@ -214,15 +214,26 @@ if (url) {
   const origin = new URL(url);
   assert.equal(origin.protocol, 'https:', '--url must name an HTTPS deployment');
   const mismatches = [];
+  const requestHeaders = {};
+  // A share link (https://<deployment>/?_vercel_share=<token>, as the Vercel
+  // MCP get_access_to_vercel_url returns it) trades its token for a
+  // _vercel_jwt cookie on the first request; every probe sends the cookie.
+  if (origin.searchParams.has('_vercel_share')) {
+    const response = await fetch(origin, { redirect: 'manual', signal: AbortSignal.timeout(30_000) });
+    await response.arrayBuffer();
+    const jwt = response.headers.getSetCookie().map(cookie => /^_vercel_jwt=([^;]+)/.exec(cookie)?.[1]).find(Boolean);
+    assert(jwt, `${origin.host}: the share link answered ${response.status} without a _vercel_jwt cookie; it may have expired, so ask for a new one`);
+    requestHeaders.cookie = `_vercel_jwt=${jwt}`;
+  }
   const get = async pathname => {
-    const response = await fetch(new URL(pathname, origin), { redirect: 'manual', signal: AbortSignal.timeout(30_000) });
+    const response = await fetch(new URL(pathname, origin), { redirect: 'manual', headers: requestHeaders, signal: AbortSignal.timeout(30_000) });
     // A preview behind Vercel Authentication answers every path with a
     // redirect to vercel.com's sign-in, which would read as a missing header
     // on every probe.
     const location = response.status >= 300 && response.status < 400 ? response.headers.get('location') : null;
     const target = location ? new URL(location, origin).hostname : '';
     if (target === 'vercel.com' || target.endsWith('.vercel.com')) {
-      assert.fail(`${origin.host}${pathname} answers ${response.status} to ${target}: the deployment sits behind Vercel Authentication, so check:security cannot read its headers.`);
+      assert.fail(`${origin.host}${pathname} answers ${response.status} to ${target}: the deployment sits behind Vercel Authentication. Pass a share link: --url='https://${origin.host}/?_vercel_share=<token>'.`);
     }
     return { pathname, response, body: await response.text() };
   };
