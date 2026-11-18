@@ -40,6 +40,7 @@
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { join } from 'node:path';
@@ -1372,9 +1373,36 @@ async function main() {
         preference: await user('learning-preference', { method: 'PUT', account: GUARDED, body: { schemaVersion: 1, baseTrack: 'frontend', specialization: null } }),
       });
       const passedLimits = (res: Response) => !['rate_limited', 'rate_limit_unavailable'].includes(errorCode(res) ?? '') && res.statusCode !== 401;
+      // Each bucket logs its first fallback in a pause with its policy, and
+      // every closed refusal on its own line, each with the request's id. A
+      // fresh pause first: the clock moves past the one before.
       upstashMode('failing');
+      pastLimiterPause();
       seen.length = 0;
-      const down = await routes();
+      const lines: Row[] = [];
+      const original = console.log;
+      console.log = (line: unknown) => {
+        try { lines.push(JSON.parse(String(line)) as Row); } catch { original(line); }
+      };
+      let down: Awaited<ReturnType<typeof routes>>;
+      try {
+        down = await routes();
+      } finally {
+        console.log = original;
+      }
+      const limiterLines = lines.filter((line) => line.route === 'rate-limit');
+      const fallbacks = limiterLines.filter((line) => line.reason === 'distributed_fallback');
+      const policyOf = (bucket: string) => fallbacks.filter((line) => line.bucket === bucket).map((line) => line.policy);
+      assert.deepEqual(policyOf('admin_gate'), ['closed'], `the admin gate logs its fallback once, closed (${JSON.stringify(limiterLines)})`);
+      assert.deepEqual(policyOf('voucher_redeem'), ['closed'], 'so does the voucher bucket');
+      assert.deepEqual(policyOf('quiz_session_address'), ['open'], 'a quiz\'s address bucket logs its fallback once, open');
+      assert.deepEqual(policyOf('user_mutation_address'), ['open'], 'an address bucket two writes took logs its fallback once in the pause');
+      assert.deepEqual(
+        limiterLines.filter((line) => line.reason === 'closed_refused').map((line) => [line.level, line.bucket]),
+        [['error', 'admin_gate'], ['error', 'voucher_redeem'], ['error', 'auth_event_address']],
+        'every closed refusal is an error line naming its bucket',
+      );
+      assert.ok(limiterLines.length > 0 && limiterLines.every((line) => typeof line.request_id === 'string' && line.request_id !== ''), 'each line carries the request id');
       for (const label of ['admin', 'voucher', 'signIn'] as const) {
         assert.equal(outcomeOf(down[label]), '503 rate_limit_unavailable', `the ${label} bucket closes while Upstash fails (${JSON.stringify(down[label].body)})`);
         assert.equal(down[label].headers['retry-after'], '15', `and the ${label} refusal says when to retry`);
@@ -1399,6 +1427,57 @@ async function main() {
       upstashMode('failing');
     }
     console.log('PASS verified caller: the admin gate, voucher redemption and sign-in reports refuse with 503 while Upstash fails, a quiz, the Learn map and other account writes keep to memory');
+
+    // ── an Upstash client that fails to start ───────────────────────────
+    // A package that does not import (or a client that does not build) is
+    // an outage, not local development: one limiter_init_failed line with
+    // the error's name, a closed bucket refuses and an open one keeps to
+    // memory. Run in a fresh process whose @upstash/ratelimit throws on load.
+    {
+      const { build } = await import('esbuild');
+      const outfile = join(process.cwd(), 'node_modules/.cache/shark/limiter-start/rate-limit.cjs');
+      await build({
+        entryPoints: [join(process.cwd(), 'lib/rate-limit.ts')], bundle: true, platform: 'node', format: 'cjs', packages: 'external', outfile, logLevel: 'warning',
+        plugins: [{
+          name: 'broken-ratelimit',
+          setup(plugin) {
+            plugin.onResolve({ filter: /^@upstash\/ratelimit$/ }, () => ({ path: 'broken-ratelimit', namespace: 'stand-in' }));
+            plugin.onLoad({ filter: /.*/, namespace: 'stand-in' }, () => ({ contents: "throw new TypeError('stand-in: the package did not load');", loader: 'js' }));
+          },
+        }],
+      });
+      const probe = [
+        `const { enforceRateLimit } = require(${JSON.stringify(outfile)});`,
+        "const closed = { key: 'start_closed', capacity: 5, refillPerSecond: 1, onFailure: 'closed' };",
+        "const open = { key: 'start_open', capacity: 5, refillPerSecond: 1 };",
+        "const req = { headers: { 'x-forwarded-for': '10.9.9.9' }, socket: {} };",
+        'const response = () => ({ statusCode: 200, headers: {}, setHeader(key, value) { this.headers[key] = value; return this; }, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } });',
+        '(async () => {',
+        '  const statuses = [];',
+        '  for (const config of [closed, open, closed]) { const res = response(); statuses.push((await enforceRateLimit(req, res, config)) ? 200 : res.statusCode); }',
+        "  console.log('STATUSES ' + JSON.stringify(statuses));",
+        '})();',
+      ].join('\n');
+      const child = spawnSync(process.execPath, ['-e', probe], {
+        cwd: process.cwd(), encoding: 'utf8', timeout: 30_000,
+        env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '', UPSTASH_REDIS_REST_URL: 'http://127.0.0.1:9', UPSTASH_REDIS_REST_TOKEN: 'limiter-start' },
+      });
+      assert.equal(child.status, 0, child.stderr.slice(0, 600));
+      const out = child.stdout.split('\n').filter(Boolean);
+      assert.equal(out.find((line) => line.startsWith('STATUSES ')), 'STATUSES [503,200,503]', 'a closed bucket refuses and an open one keeps to memory');
+      const logged = out.filter((line) => line.startsWith('{')).map((line) => JSON.parse(line) as Row);
+      assert.deepEqual(
+        logged.filter((line) => line.reason === 'limiter_init_failed').map((line) => [line.level, line.error]),
+        [['error', 'TypeError']],
+        `a failed start is logged once, with the error's name (${child.stdout.slice(0, 600)})`,
+      );
+      assert.deepEqual(
+        logged.filter((line) => line.reason === 'distributed_fallback').map((line) => [line.bucket, line.policy]),
+        [['start_closed', 'closed'], ['start_open', 'open']],
+        'and each bucket logs its fallback once',
+      );
+    }
+    console.log('PASS verified caller: an Upstash client that fails to start is logged once, and closed buckets refuse');
 
     // ── what an escaped error logs ───────────────────────────────────────
     const { AuthError } = await import('../lib/auth');
