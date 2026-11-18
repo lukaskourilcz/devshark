@@ -3,9 +3,12 @@ import { checkSortParity } from './coding-sort-contract';
 import { checkCodingTaskRuntimePolicy } from './coding-task-runtime-contracts';
 import { createCodingSession as encodeCodingSession } from '../lib/coding/session';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
+import { QuickJSContext, QuickJSRuntime } from 'quickjs-emscripten';
+import vendoredQuickJS from '../lib/coding/vendor/quickjs-node24.cjs';
 import { HIDDEN_RUN_FAILED_MESSAGE, runChecks, runInQuickJS, runInSandbox, sandboxPool, SANDBOX_MAX_WAITING, SANDBOX_SLOT_WAIT_MS, SANDBOX_WORKER_FILE } from '../lib/coding/sandbox';
 import { checkTypes, TRANSPILE_FAILED_MESSAGE, TS_CHECK_MAX_WAITING, TS_CHECK_SLOT_WAIT_MS, TS_CHECK_WORKER_FILE, TYPE_CHECK_DEADLINE_MS, TYPE_CHECK_STOPPED_MESSAGE } from '../lib/coding/ts-check-pool';
 import { GRADING_PER_CALLER, GRADING_PER_TASK, GraderBusyError, gradingItem, threadSlots } from '../lib/coding/grader-capacity';
@@ -25,6 +28,7 @@ import { evolvingStage } from '../shared/evolving';
 import { createMiniJest } from '../shared/coding-mini-jest';
 import { runReactSuite } from '../lib/coding/react-runner';
 import { withHiddenCases } from '../lib/coding/react-hidden';
+import { guestResultLine, readGuestResult, serializeGuestResult } from '../lib/coding/react-guest';
 import { allPassed, evaluateCalls, hiddenGlobalMessage, LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, TIMEOUT_MESSAGE } from '../shared/coding-evaluate';
 import { CHECKER_GLOBALS, CHECKER_MEMBERS } from '../shared/coding-checker-globals';
 import { nodeTypeScriptChecker } from '../lib/coding/ts-check-node';
@@ -1507,6 +1511,183 @@ const fillDays = (readings: readonly Reading[]): Reading[] => {
   assert.deepEqual(localeRun.results.map((one) => one.actual ?? one.error), localeSubmit.results.map((one) => one.actual ?? one.error), 'Run and Submit format and sort alike');
   assert.deepEqual(localeSubmit.results.slice(0, 9).map((one) => one.actual), localeNode.results.map((one) => one.actual), 'as an en-US browser does');
   console.log('PASS integrity: Run lacks what the grader lacks, says so, and formats as the grader does');
+}
+
+// ── each engine reaches the host functions listed here, and no others (F11-04) ──
+// CHECKER_GLOBALS pins the names learner code sees, not what stands behind
+// them. A host function can wait in a prelude's closure, as the URL parser
+// does, and a rebuilt wasm can import more of the host than this one. So this
+// block records every function and host reference the host hands a QuickJS
+// context during one grader run and one React run, pins the vendored
+// module's imports and exports next to its provenance hash, and checks that
+// learner code loads no module in either engine. A new binding fails here
+// until it is listed.
+{
+  const contexts = QuickJSContext.prototype;
+  const runtimes = QuickJSRuntime.prototype;
+  const { newFunctionWithOptions, newHostRef } = contexts;
+  const { setModuleLoader } = runtimes;
+  const handed: string[] = [];
+  // newFunction and newConstructorFunction both go through newFunctionWithOptions.
+  contexts.newFunctionWithOptions = function (this: QuickJSContext, args) {
+    handed.push(`function ${args.name ?? ''}`);
+    return newFunctionWithOptions.call(this, args);
+  };
+  contexts.newHostRef = function (this: QuickJSContext, value: object) {
+    handed.push('host reference');
+    return newHostRef.call(this, value);
+  } as typeof newHostRef;
+  runtimes.setModuleLoader = function (this: QuickJSRuntime, ...args: Parameters<typeof setModuleLoader>) {
+    handed.push('module loader');
+    return setModuleLoader.apply(this, args);
+  };
+  const load = 'const load = (name) => import(name).then(() => "loaded", (error) => String(error && error.message));';
+  try {
+    // In this thread, so the wrappers above see the run.
+    const graded = await runInQuickJS({
+      code: `${load}\nconst search = (text) => new URL(text).search;`,
+      calls: ['search("https://a.b/?q=1")', 'Promise.all(["node:fs", "std", "os"].map(load))'],
+      expectations: ['?q=1', ["could not load module 'node:fs'", "could not load module 'std'", "could not load module 'os'"]],
+    });
+    assert.deepEqual(graded.results.map((one) => one.pass), [true, true], JSON.stringify(graded));
+    assert.deepEqual(handed.splice(0), ['function url'], 'a grader run hands QuickJS one host function, the URL parser, and no module loader');
+    const react = await runReactSuite({
+      suite: `import React from 'react';
+import { render, fireEvent } from '@testing-library/react';
+import App, { load } from './App';
+test('renders and updates', () => { const { container } = render(<App />); fireEvent.click(container.querySelector('button')); expect(container.textContent).toBe('1'); });
+test('loads no module', async () => { expect(await Promise.all(['node:fs', 'fs', 'std', 'os', 'react'].map(load))).toEqual(["Cannot find module 'node:fs'", "Cannot find module 'fs'", "Cannot find module 'std'", "Cannot find module 'os'", 'loaded']); });`,
+      appSource: `import React, { useState } from 'react';
+export ${load}
+export default function App() { const [count, setCount] = useState(0); return <button onClick={() => setCount(count + 1)}>{count}</button>; }`,
+    });
+    assert.deepEqual(react.cases.map((one) => one.status), ['pass', 'pass'], JSON.stringify(react));
+    assert.deepEqual(handed.splice(0), ['function capability', 'function schedule', 'function report'], 'a React run hands the learner engine three host functions and no module loader');
+    // A static import resolves through the same fixed list.
+    const fixed = await runReactSuite({
+      suite: `import App from './App';\ntest('renders', () => { expect(typeof App).toBe('function'); });`,
+      appSource: `import { readFileSync } from 'node:fs';\nexport const read = readFileSync;\nexport default function App() { return null; }`,
+    });
+    assert.equal(fixed.compileError, "compiling App: Cannot find module 'node:fs'", JSON.stringify(fixed));
+    handed.splice(0);
+  } finally {
+    contexts.newFunctionWithOptions = newFunctionWithOptions;
+    contexts.newHostRef = newHostRef;
+    runtimes.setModuleLoader = setModuleLoader;
+  }
+
+  // The wasm both engines load (quickjs-variant.ts), checked against its
+  // provenance. Its imports are all it can call in the host. Emscripten
+  // minified their names: a.s calls a host function, a.i asks the interrupt
+  // handler, a.h and a.g load and resolve a module (no loader is set, so they
+  // refuse), a.t frees a host reference, and the other fifteen are the C
+  // library's: assert and abort, the clock, the time zone and a timer, heap
+  // growth, environment strings, stdout and file stubs, keep-alive and exit.
+  // A rebuild that imports anything more fails here.
+  const wasm = Buffer.from(vendoredQuickJS, 'base64');
+  const provenance = JSON.parse(readFileSync(join(process.cwd(), 'lib/coding/vendor/provenance.json'), 'utf8')) as { artifact: { wasmSha256: string } };
+  assert.equal(createHash('sha256').update(wasm).digest('hex'), provenance.artifact.wasmSha256, 'the engines load the wasm the provenance names');
+  const compiled = new WebAssembly.Module(wasm);
+  assert.deepEqual(
+    WebAssembly.Module.imports(compiled).map(({ module, name, kind }) => `${module}.${name} ${kind}`),
+    [...'bcdefghijklmnopqrst'].map((name) => `a.${name} function`).concat('a.a memory'),
+    'the wasm imports nineteen host functions and its memory',
+  );
+  const exported = WebAssembly.Module.exports(compiled);
+  assert.ok(exported.every(({ kind }) => kind === 'function'), 'the wasm exports functions only');
+  assert.deepEqual(
+    exported.map(({ name }) => name),
+    'u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z _ $ aa ba ca da ea fa ga ha ia ja ka la ma na oa pa qa ra sa ta ua va wa xa ya za Aa Ba Ca Da Ea Fa Ga Ha Ia Ja Ka La Ma Na Oa'.split(' '),
+    'the wasm exports 75 functions',
+  );
+  console.log('PASS integrity: QuickJS gets one host function in the grader and three in the React engine, no module loader, and the wasm imports 20 names and exports 75');
+}
+
+// ── prototype pollution stays inside the run that made it (F11-06) ───────
+// The attacks above replace globals and Array.prototype.toJSON. Here learner
+// code changes Object.prototype, Array.prototype, Function.prototype and the
+// globals the controller could lean on. The controller took its intrinsics
+// before the learner's code ran, so the run's own values still read right;
+// every run gets a fresh QuickJS runtime (runInQuickJS), so neither the
+// hidden run nor the next run on the thread sees the change, and the host
+// realm that decodes the results never does.
+{
+  const source = `const pollute = () => {
+  Object.prototype.x = 1; Object.prototype.toString = () => 'pwn'; Object.prototype.toJSON = () => 'pwn';
+  Array.prototype.push = () => 0; Array.prototype[0] = 'p0';
+  Function.prototype.constructor = null; Object.prototype.constructor = null;
+  globalThis.JSON = null; globalThis.Object = null; globalThis.Array = null; globalThis.String = null;
+  return { kept: [1, 2], text: 'a' };
+};
+const kept = () => ({ kept: [1, 2], text: 'a' });
+const clean = () => [({}).x, [].push(1), [, 2][0], typeof Function.prototype.constructor, JSON.stringify({ a: [1] }), String([1, 2])];
+const owned = () => JSON.parse('{"__proto__":{"x":1},"a":2}');`;
+  const unchanged = [undefined, 1, undefined, 'function', '{"a":[1]}', '1,2'];
+  const checks = await runChecks({
+    code: source,
+    // The calls run in order before any result is encoded, so each result
+    // is encoded after pollute() has run, and a wrong one still fails.
+    visible: [{ call: 'pollute()', expected: { kept: [1, 2], text: 'a' } }, { call: 'kept()', expected: { kept: [1, 2], text: 'b' } }, { call: 'clean()', expected: unchanged }],
+    hidden: [{ call: 'clean()', expected: unchanged }, { call: '({}).hasOwnProperty("x")', expected: false }],
+    shuffle: (list) => list,
+  });
+  assert.equal(checks.visible.codeError, null, JSON.stringify(checks.visible));
+  assert.deepEqual(checks.visible.results.map((one) => one.pass), [true, false, false], `the run's own values still compare right: ${JSON.stringify(checks.visible.results)}`);
+  assert.deepEqual(checks.visible.results.slice(0, 2).map((one) => one.actual), ['{"kept":[1,2],"text":"a"}', '{"kept":[1,2],"text":"a"}'], 'and display right');
+  assert.ok(checks.visible.results[2].error, 'the run that polluted its realm sees the change itself');
+  assert.deepEqual(checks.hidden?.results.map((one) => one.pass), [true, true], `the hidden run starts clean: ${JSON.stringify(checks.hidden)}`);
+  const next = await runInSandbox({ code: source, calls: ['clean()'], expectations: [unchanged] });
+  assert.equal(next.results[0]?.pass, true, `the next run on the thread starts clean: ${JSON.stringify(next)}`);
+  // In this thread: the host realm that decodes the results keeps its
+  // prototypes, and an own __proto__ key in a result is data.
+  const hostPush = Array.prototype.push;
+  // owned() runs before pollute() replaces JSON, and both results are
+  // encoded after it.
+  const inThread = await runInQuickJS({
+    code: source,
+    calls: ['owned()', 'owned()', 'pollute()'],
+    expectations: [JSON.parse('{"__proto__":{"x":1},"a":2}'), { a: 2 }, { kept: [1, 2], text: 'a' }],
+  });
+  assert.deepEqual(inThread.results.map((one) => one.pass), [true, false, true], JSON.stringify(inThread));
+  assert.equal(inThread.results[0].actual, '{"__proto__":{"x":1},"a":2}', 'an own __proto__ key is compared and shown as a key');
+  assert.ok(!Object.hasOwn(Object.prototype, 'x') && ({} as { x?: unknown }).x === undefined, 'the host Object.prototype has no x');
+  assert.equal(Array.prototype.push, hostPush, 'the host Array.prototype.push is untouched');
+  assert.equal(JSON.stringify({ a: [1] }), '{"a":[1]}', 'the host JSON and toJSON are untouched');
+
+  // The React learner engine freezes its own prototypes and refuses
+  // constructor lookups; the page realm the suite runs in, the realm that
+  // writes the verdict, and the next run see none of it.
+  const pollutedSuite = `import React from 'react';
+import { render } from '@testing-library/react';
+import App, { tried } from './App';
+test('the page realm is untouched', () => { const { container } = render(<App />); expect(container.textContent).toBe('undefined 1'); expect(({}).x).toBe(undefined); expect([].push(1)).toBe(1); expect(Object.getOwnPropertyNames(Object.prototype)).not.toContain('x'); });
+test('every attempt was refused', () => { expect(tried()).toEqual(${JSON.stringify(Array(8).fill('TypeError').join(' '))}); });`;
+  const polluted = await runReactSuite({
+    suite: pollutedSuite,
+    appSource: `import React from 'react';
+const refused = [];
+const attempt = (run) => { try { run(); refused.push('changed'); } catch (error) { refused.push(error.name); } };
+attempt(() => { Object.prototype.x = 1; });
+attempt(() => { Object.prototype.toJSON = () => 'pwn'; });
+attempt(() => { Array.prototype.push = () => 0; });
+attempt(() => { Array.prototype[0] = 'p0'; });
+attempt(() => ({}).constructor.constructor('return this')());
+attempt(() => [].constructor.constructor('return this')());
+attempt(() => { Object.getPrototypeOf(document.body).x = 1; });
+attempt(() => { document.body.constructor.prototype.x = 1; });
+export const tried = () => refused.join(' ');
+export default function App() { return <p>{String(({}).x) + ' ' + [].push(1)}</p>; }`,
+  });
+  assert.equal(polluted.compileError, null, JSON.stringify(polluted));
+  assert.deepEqual(polluted.cases.map((one) => one.status), ['pass', 'pass'], JSON.stringify(polluted));
+  const nonce = 'b'.repeat(48);
+  const reported = readGuestResult(guestResultLine(nonce, serializeGuestResult(polluted)), nonce, pollutedSuite);
+  assert.equal(reported.passed, 2, 'the guest reporter reads the run as it ran');
+  assert.ok(!Object.hasOwn(Object.prototype, 'x') && Array.prototype.push === hostPush, 'the host realm is untouched after a React run');
+  const reference = CODING_TASKS.find((task) => task.id === 'react-easy2-disclosure')!;
+  const after = await runReactSuite({ suite: withHiddenCases(reference.suite!, solutionFor(reference.id)!.hiddenSuite), appSource: solutionFor(reference.id)!.solution });
+  assert.ok(after.compileError === null && after.failed === 0 && after.passed > 0, `the next reference run passes: ${JSON.stringify(after)}`);
+  console.log('PASS integrity: prototype pollution leaves the run\'s own results, the hidden run, the next run and the host realm unchanged, in QuickJS and in the React engine');
 }
 
 // ── console output is capped by size (CODE-13) ───────────────────────────

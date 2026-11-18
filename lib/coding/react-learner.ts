@@ -4,7 +4,8 @@ import { types } from 'node:util';
 import type { Context } from 'node:vm';
 import { REACT_PROMISE_SOURCE } from './react-promise-source';
 import { UTC_TIME_SOURCE } from '../../shared/coding-utc-time';
-import { cutErrorText, dumpThrown } from './sandbox';
+import { cutErrorText } from '../../shared/coding-error-text';
+import { dumpThrown } from './vm-errors';
 
 // Only serialized values cross the WASM boundary. React, the DOM, the suite,
 // matchers and verdict never enter the learner engine as JavaScript objects.

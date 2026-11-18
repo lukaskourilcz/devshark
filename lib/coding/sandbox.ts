@@ -15,10 +15,12 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { Worker } from 'node:worker_threads';
-import { newQuickJSWASMModuleFromVariant, shouldInterruptAfterDeadline, type QuickJSContext, type QuickJSWASMModule, type QuickJSHandle } from 'quickjs-emscripten';
+import { newQuickJSWASMModuleFromVariant, shouldInterruptAfterDeadline, type QuickJSWASMModule, type QuickJSHandle } from 'quickjs-emscripten';
 import variant from './quickjs-variant';
 import type { EvaluateResult } from '../../shared/coding-evaluate';
 import { LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, MAX_LOGS, PROBE_IS_INDEX_SOURCE, PROBE_LINE, TIMEOUT_MESSAGE, deepEqual, displayValue } from '../../shared/coding-evaluate';
+import { cutErrorText } from '../../shared/coding-error-text';
+import { dumpThrown } from './vm-errors';
 import { CONSOLE_SOURCE } from '../../shared/coding-console';
 import { UTC_TIME_SOURCE } from '../../shared/coding-utc-time';
 import { TASK_RUNTIME_POLICY_SOURCE, type TaskRuntimePolicy } from '../../shared/coding-task-runtime';
@@ -45,9 +47,12 @@ export interface SandboxInput {
 }
 
 export const SANDBOX_DEADLINE_MS = 2_500;
-const MEMORY_BYTES = 64 * 1024 * 1024;
-const STACK_BYTES = 1024 * 1024;
-const MAX_TICKS = 10_000;
+/** QuickJS heap per run. */
+export const SANDBOX_MEMORY_BYTES = 64 * 1024 * 1024;
+/** QuickJS stack per run. */
+export const SANDBOX_STACK_BYTES = 1024 * 1024;
+/** Rounds of jobs and timers a run may take before it counts as a timeout. */
+export const SANDBOX_MAX_TICKS = 10_000;
 /** What a learner sees when their call chain ran out of stack. Named rather
  * than inlined so the message reads the same wherever the overflow surfaces. */
 const STACK_MESSAGE = 'The call stack ran out of room: the recursion went too deep, or a base case is never reached.';
@@ -60,31 +65,6 @@ const OUT_OF_MEMORY_MESSAGE = 'Out of memory.';
 const HIDDEN_RUN_MESSAGES: ReadonlySet<string> = new Set([TIMEOUT_MESSAGE, STACK_MESSAGE, NEVER_SETTLED_MESSAGE, STOPPED_MESSAGE, OUT_OF_MEMORY_MESSAGE]);
 /** What a hidden run that failed any other way reports. */
 export const HIDDEN_RUN_FAILED_MESSAGE = 'A hidden check could not run.';
-
-/** Error text the program produced, cut the way a console line is. A
- * top-level `throw 'x'.repeat(5e6)` came back whole as the run's error, five
- * megabytes in one Submit response. The cut never splits a surrogate pair. */
-export const cutErrorText = (text: string): string => {
-  if (text.length <= MAX_LOG_LINE_CHARS) return text;
-  const last = text.charCodeAt(MAX_LOG_LINE_CHARS - 1);
-  return text.slice(0, last >= 0xd800 && last <= 0xdbff ? MAX_LOG_LINE_CHARS - 1 : MAX_LOG_LINE_CHARS) + LOG_LINE_CUT;
-};
-
-/** What a program threw, read out of the VM, with its handle released.
- *
- * `dump` releases a promise handle itself, and learner code can throw a
- * promise. Releasing it a second time threw "Lifetime not alive", which
- * came back as the run's error in place of what the code threw. A promise
- * rejected with another promise trips the same double release inside
- * `dump` itself (it releases the inner promise, then frees it again), so
- * that error reads as an unreadable thrown value (undefined) instead. The
- * React learner engine (react-learner.ts) reads its throws the same way. */
-export const dumpThrown = (vm: QuickJSContext, handle: QuickJSHandle): unknown => {
-  try { return vm.dump(handle); } catch (error) {
-    if ((error as Error | undefined)?.name === 'QuickJSUseAfterFree') return undefined;
-    throw error;
-  } finally { if (handle.alive) handle.dispose(); }
-};
 
 /** Where the host's URL parser waits for the program, which takes it and
  * deletes the name before any learner code runs. */
@@ -339,11 +319,11 @@ export const SANDBOX_WORKER_FILE = 'lib/coding/generated/quickjs-sandbox.cjs';
 /** How long past the run's own deadline the thread may take to answer
  * before it is stopped. A run the interrupt handler catches answers well
  * inside it. */
-const WORKER_GRACE_MS = 1_500;
+export const SANDBOX_WORKER_GRACE_MS = 1_500;
 /** How long a new thread may take to load QuickJS and pick up the run. */
 const WORKER_BOOT_MS = 10_000;
 /** Threads running at once; further runs wait for one to finish. */
-const MAX_WORKERS = 4;
+export const SANDBOX_MAX_THREADS = 4;
 /** Runs that may wait for a thread; one more is told the grader is busy. A
  * class of SHARED_NETWORK_SEATS submitting at once queues two runs each, and
  * correct runs drain in milliseconds, so the wait limit below bounds the
@@ -354,10 +334,12 @@ export const SANDBOX_MAX_WAITING = 160;
  * one; a Submit makes two runs, and both waits fit the function's limit. */
 export const SANDBOX_SLOT_WAIT_MS = 5_000;
 /** Threads kept loaded between runs. */
-const IDLE_WORKERS = 2;
+export const SANDBOX_IDLE_THREADS = 2;
 
 const idleWorkers: Worker[] = [];
-const slots = threadSlots({ threads: MAX_WORKERS, waiting: SANDBOX_MAX_WAITING, waitMs: SANDBOX_SLOT_WAIT_MS, name: 'sandbox' });
+/** Threads started and not yet exited: busy, idle or being stopped. */
+let liveThreads = 0;
+const slots = threadSlots({ threads: SANDBOX_MAX_THREADS, waiting: SANDBOX_MAX_WAITING, waitMs: SANDBOX_SLOT_WAIT_MS, name: 'sandbox' });
 /** Runs holding a slot now, warm-ups (`warmSandbox`) excluded. */
 let running = 0;
 const boot = bootBackoff();
@@ -384,6 +366,7 @@ const stopped = (codeError: string, timedOut: boolean): EvaluateResult => ({ res
 
 function newWorker(file: string): Worker {
   const worker = new Worker(file, { resourceLimits: { maxOldGenerationSizeMb: 192 } });
+  liveThreads++;
   // An idle thread must not keep the process alive (a run in flight holds a
   // timer that does), and one that dies while idle leaves the pool quietly.
   worker.unref();
@@ -393,6 +376,8 @@ function newWorker(file: string): Worker {
   };
   worker.on('error', forget);
   worker.on('exit', forget);
+  // A thread emits 'exit' once, after an 'error' too.
+  worker.once('exit', () => { liveThreads--; });
   return worker;
 }
 
@@ -409,7 +394,7 @@ function runOnWorker(file: string, input: SandboxInput): Promise<EvaluateResult>
       worker.off('message', onMessage);
       worker.off('error', onFailure);
       worker.off('exit', onFailure);
-      if (keep && idleWorkers.length < IDLE_WORKERS) idleWorkers.push(worker);
+      if (keep && idleWorkers.length < SANDBOX_IDLE_THREADS) idleWorkers.push(worker);
       else void worker.terminate();
     };
     const finish = (result: EvaluateResult) => {
@@ -431,7 +416,7 @@ function runOnWorker(file: string, input: SandboxInput): Promise<EvaluateResult>
         clearTimeout(timer);
         // The run measures its own deadline from here. A run the interrupt
         // handler cannot reach is stopped with the thread.
-        timer = setTimeout(() => finish(stopped(TIMEOUT_MESSAGE, true)), (input.deadlineMs ?? SANDBOX_DEADLINE_MS) + WORKER_GRACE_MS);
+        timer = setTimeout(() => finish(stopped(TIMEOUT_MESSAGE, true)), (input.deadlineMs ?? SANDBOX_DEADLINE_MS) + SANDBOX_WORKER_GRACE_MS);
         return;
       }
       settle(reply.type === 'done');
@@ -510,7 +495,7 @@ const WARM_INPUT: SandboxInput = { code: '', calls: [], expectations: [] };
  * Only when nothing would use it otherwise: no thread is loaded or being
  * warmed, no run holds a slot, the worker bundle is there and no failed start
  * is pausing new threads. It takes a slot like a run, so it never adds a
- * thread beyond MAX_WORKERS, and a warm-up that fails is not counted as a
+ * thread beyond SANDBOX_MAX_THREADS, and a warm-up that fails is not counted as a
  * failed start: the next run tries a thread of its own and decides that. No
  * learner code is involved, and each run still gets a fresh QuickJS runtime
  * and context. The cost is one idle thread on an instance that served a task
@@ -533,14 +518,19 @@ export function warmSandbox(): void {
 /** The pool as tests and diagnostics see it. */
 export const sandboxPool = (): { idle: number; warming: boolean } => ({ idle: idleWorkers.length, warming: warming !== null });
 
+/** Grader threads alive now, busy or idle, including one being stopped until
+ * it has exited. A test reads it to see that the thread a runaway run held
+ * was ended, which `sandboxPool` (idle threads only) cannot show. */
+export const sandboxThreads = (): number => liveThreads;
+
 /** Runs one program in this thread. The worker entry calls this; everything
  * else goes through `runInSandbox`. */
 export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult> {
   const QuickJS = await getModule();
   const runtime = QuickJS.newRuntime();
   const deadline = Date.now() + (input.deadlineMs ?? SANDBOX_DEADLINE_MS);
-  runtime.setMemoryLimit(input.memoryBytes ?? MEMORY_BYTES);
-  runtime.setMaxStackSize(STACK_BYTES);
+  runtime.setMemoryLimit(input.memoryBytes ?? SANDBOX_MEMORY_BYTES);
+  runtime.setMaxStackSize(SANDBOX_STACK_BYTES);
   runtime.setInterruptHandler(shouldInterruptAfterDeadline(deadline));
   const vm = runtime.newContext();
   // The host's URL parser (sandbox-web-apis.ts). Strings in, one string of
@@ -599,7 +589,7 @@ export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult>
     }
     driver = evaluated.value;
 
-    for (let tick = 0; tick < MAX_TICKS; tick++) {
+    for (let tick = 0; tick < SANDBOX_MAX_TICKS; tick++) {
       const jobs = runtime.executePendingJobs();
       if (jobs.error) {
         const error = dumpError(jobs.error) as { message?: string } | string;

@@ -75,6 +75,66 @@ covers every possible incorrect solution or a platform penetration-test claim.
 - The existing roadmap handler allows 45 seconds; Submit waits up to 50 seconds.
   Exactly twelve physical API handlers remain.
 
+## Upload per Submit
+
+Measured 18 November 2026 (Epic F, F11) on the branch point of
+`claude/f11-grading-sandbox-limits`, after `node scripts/build-react-runner.mjs`.
+Every React Submit writes two files into a fresh VM. The SDK packs them into one
+gzipped tar stream, so the gzip column is close to what crosses the network.
+
+| File in the VM | Bytes | gzip |
+|---|---:|---:|
+| `runner.cjs` (`lib/coding/generated/react-sandbox.cjs`) | 2,100,887 | 691,960 |
+| `input.json`, median of the 183 React tasks' reference solutions | 22,224 | 5,680 |
+| `input.json`, largest of the 183 | 55,113 | 11,672 |
+
+The API also loads `lib/coding/generated/vercel-sandbox.cjs` (2,306,351 bytes),
+the bundled SDK. It runs in the function and never enters the VM.
+`lib/coding/generated/quickjs-sandbox.cjs` (1,676,943 bytes, gzip 607,983) is the
+QuickJS grader's worker thread for JavaScript and TypeScript, also never uploaded.
+
+What `runner.cjs` carries, by esbuild's `bytesInOutput`:
+
+| Input | Bytes | Used at run time |
+|---|---:|---|
+| `@jitl/quickjs-singlefile-cjs-release-sync/dist/index.js` | 844,280 | Its loader and FFI only. 819,611 bytes of it are one template literal holding the upstream wasm, which never runs: `quickjs-variant.ts` always supplies `wasmModule`. |
+| `lib/coding/vendor/quickjs-node24.cjs` | 670,988 | Yes: the pinned Node 24 wasm, base64. |
+| Four `@jitl/quickjs-wasmfile-*` variants (debug and release, sync and asyncify), module and index files | 345,671 | No. `quickjs-emscripten`'s index imports them; nothing calls them. |
+| `quickjs-emscripten-core` | 78,126 | Yes. |
+| `sandbox-web-apis.ts`, `coding-locale.ts`, `grader-capacity.ts`, `sandbox.ts` | 44,771 | No. At the baseline `react-learner.ts` imported two error helpers from `sandbox.ts`, and the QuickJS preludes came with them. The first trim below removed these four files. |
+| `coding-console.ts` | 3,543 | No. `coding-evaluate.ts` imports it for Run's console, and esbuild keeps `CONSOLE_SOURCE` because the template interpolates a constant. |
+| Everything else (the learner engine, the runner, mini-jest, UTC time, realm lockdown, the guest) | 110,302 | Yes. |
+| esbuild module wrappers and the `"use strict"` banner | 3,206 | Yes. |
+
+Reproduce the table from the repository root:
+
+```sh
+node --input-type=module -e "
+import { build } from 'esbuild';
+import { createRequire } from 'node:module';
+const req = createRequire(process.cwd() + '/package.json');
+const { metafile } = await build({
+  entryPoints: ['scripts/react-sandbox-entry.ts'], outfile: 'guest.cjs', write: false, metafile: true,
+  bundle: true, platform: 'node', format: 'cjs', packages: 'external', target: 'node24', banner: { js: '\"use strict\";' },
+  plugins: [{ name: 'quickjs', setup(b) { b.onResolve({ filter: /^(?:quickjs-emscripten(?:-core)?|@jitl\/quickjs-[^/]+)(?:\/.*)?$/ }, (a) => ({ path: req.resolve(a.path, { paths: [a.resolveDir] }) })); } }],
+});
+const [output] = Object.values(metafile.outputs);
+console.log(output.bytes, 'guest.cjs');
+for (const [file, { bytesInOutput }] of Object.entries(output.inputs).sort((a, b) => b[1].bytesInOutput - a[1].bytesInOutput)) console.log(bytesInOutput, file);
+"
+```
+
+The input sizes come from `JSON.stringify` of the `GuestInput` that
+`runIsolatedReactSuite` writes, built for each React task's reference solution
+with its hidden suite, both compiled fixtures and a 48-character nonce.
+
+### Trims since the baseline
+
+| Change | `runner.cjs` bytes | gzip |
+|---|---:|---:|
+| Baseline above | 2,100,887 | 691,960 |
+| Error helpers moved to `shared/coding-error-text.ts` and `lib/coding/vm-errors.ts`, so the guest no longer imports `sandbox.ts` | 2,056,252 | 679,802 |
+
 ## Configuration and rollout
 
 1. Authenticate the Sandbox SDK with Vercel OIDC, or local operator credentials
@@ -84,7 +144,8 @@ covers every possible incorrect solution or a platform penetration-test claim.
    no application code, environment files, submissions or credentials.
 3. Configure `REACT_RUNNER_SNAPSHOT_ID` for Production and Preview. Build creates
    the guest and CommonJS SDK bundles and checks packaging with require(ESM) off.
-4. Run `npm run test:react-isolation` with that snapshot. Verify a preview Submit
+4. Run `npm run test:react-isolation` with that snapshot; without it the suite
+   runs its local guest part and prints SKIP for the VM part. Verify a preview Submit
    before production promotion. Runtime dependency changes require a fresh
    snapshot; code-only changes are uploaded with each run and use the current one.
    Retain the previous snapshot for rollback. No billing/plan settings change.
@@ -99,10 +160,31 @@ starters, wrong/static variants, time budgets and the rest of the catalogue.
 `npm run test:react-authority` checks the private Promise kernel and attacks on
 DOM getters/symbols, React internals/exports, imports, intrinsics and synchronous
 or asynchronous assertions. It also verifies detached async rejection reporting.
-It runs in CI. `npm run test:launch` starts the actual guest bundle with production
+It pins the learner engine's 85 globals (22 from the host) and the keys of each
+capability it hands out: `window`, `document`, elements, events, storage, the URL,
+abort and header objects, `Intl`, `crypto`, `performance` and React. A name added
+to `react-learner.ts` fails it until the list is updated. It runs in CI.
+
+`npm run test:grading-integrity` records every function the host hands a QuickJS
+context: `url` in the JavaScript grader, `capability`, `schedule` and `report` in
+the React learner engine, and no host reference or module loader in either. A new
+one fails the suite. It also pins the vendored wasm's 20 imports (19 host
+functions and its memory) and 75 exports beside the provenance hash, and checks
+that learner `import()` of `node:fs`, `std` or `os` rejects in both engines.
+Learner code that changes `Object.prototype`, `Array.prototype`,
+`Function.prototype.constructor` or the globals changes only its own run: in the
+JavaScript grader its results still compare right and the hidden run and the
+next run start clean; in the React engine each attempt throws, and the page
+realm, the guest's reporter and the next reference run are unchanged. `npm run test:launch` starts the actual guest bundle with production
 flags, checks deletion/nonce/count/serialization, resource exhaustion, UTC in
-multiple process zones and representative suites. These local checks do not
-replace the real microVM integration check.
+multiple process zones and representative suites. `npm run test:react-isolation`
+builds the guest and starts it the same way, with a local HTTP server standing in
+for the network: learner code reaches no `XMLHttpRequest`, `WebSocket`,
+`EventSource`, worker, `navigator`, `require`, `process` or `WebAssembly`, bare or
+on `window`; its `fetch` refuses without a fixture; and markup that names an image,
+stylesheet, script, frame, media or object loads nothing and runs no inline script
+or handler. Its VM part runs only with `REACT_RUNNER_SNAPSHOT_ID` set. These local
+checks do not replace the real microVM integration check.
 
 `.github/workflows/grading-monitor.yml` checks signed-out production reference and
 wrong submissions for `react-counter` and `js-double-numbers` every six hours and
