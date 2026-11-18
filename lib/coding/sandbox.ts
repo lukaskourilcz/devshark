@@ -582,10 +582,11 @@ export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult>
     try { logs = readLogs(); } catch { /* the VM may be unusable after an interrupt */ }
     return { results: [], logs, codeError: cutErrorText(message), timedOut };
   };
-  /** QuickJS's own stack overflow, as the program sees it. A learner's
+  /** An error QuickJS itself raised when a limit stopped the program:
+   * `stack overflow` or `out of memory`. A learner's
    * `throw new Error("stack overflow in my parser")` is not one. */
-  const isQuickJSStackOverflow = (error: unknown) =>
-    typeof error === 'object' && error !== null && (error as { name?: unknown }).name === 'InternalError' && (error as { message?: unknown }).message === 'stack overflow';
+  const isQuickJSLimit = (error: unknown, message: 'stack overflow' | 'out of memory') =>
+    typeof error === 'object' && error !== null && (error as { name?: unknown }).name === 'InternalError' && (error as { message?: unknown }).message === message;
   /** An overflow the host itself hit: QuickJS's error passed on by a driver
    * call, V8's RangeError, or the WebAssembly abort a run that exhausted the
    * stack can leave behind. No text the program produced reaches the catch
@@ -598,7 +599,8 @@ export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult>
     if (evaluated.error) {
       const error = dumpError(evaluated.error) as { message?: string; name?: string } | string;
       if (interrupted) return failure(TIMEOUT_MESSAGE, true);
-      if (isQuickJSStackOverflow(error)) return failure(STACK_MESSAGE);
+      if (isQuickJSLimit(error, 'stack overflow')) return failure(STACK_MESSAGE);
+      if (isQuickJSLimit(error, 'out of memory')) return failure(OUT_OF_MEMORY_MESSAGE);
       const message = typeof error === 'string' ? error : `${error?.name ?? 'Error'}: ${error?.message ?? 'failed'}`;
       return failure(message.replace(/^SyntaxError: /, 'SyntaxError: '));
     }
