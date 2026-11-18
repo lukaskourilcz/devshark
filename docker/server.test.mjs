@@ -29,8 +29,9 @@ const SITE = {
 };
 
 /** Starts docker/server.mjs over a scratch client/dist holding `files`.
- * Lines the adapter writes to stderr also land in `stderr`. */
-async function startAdapter(t, { files = {}, stderr = [] } = {}) {
+ * Lines the adapter writes to stderr also land in `stderr`. `vercelConfig`
+ * replaces the repository's vercel.json in the scratch copy. */
+async function startAdapter(t, { files = {}, stderr = [], vercelConfig } = {}) {
   const scratch = await mkdtemp(join(tmpdir(), 'devshark-docker-test-'));
   t.after(() => rm(scratch, { recursive: true, force: true }));
   const handlers = join(scratch, 'docker/dist/api');
@@ -40,8 +41,9 @@ async function startAdapter(t, { files = {}, stderr = [] } = {}) {
   ]);
   await Promise.all(Object.keys(files).map((file) => mkdir(dirname(join(scratch, 'client/dist', file)), { recursive: true })));
   await Promise.all([
-    ...['docker/server.mjs', 'package.json', 'vercel.json'].map((file) =>
+    ...['docker/server.mjs', 'package.json', ...(vercelConfig ? [] : ['vercel.json'])].map((file) =>
       copyFile(join(root, file), join(scratch, file))),
+    ...(vercelConfig ? [writeFile(join(scratch, 'vercel.json'), JSON.stringify(vercelConfig))] : []),
     ...Object.entries(files).map(([file, body]) => writeFile(join(scratch, 'client/dist', file), body)),
     writeFile(join(handlers, 'manifest.json'), '["probe.cjs","user/[op].cjs"]'),
     // A dynamic segment, which the adapter decodes into the query.
@@ -157,13 +159,13 @@ const config = readVercelConfig(root);
 const isSiteFile = (pathname) => Object.hasOwn(SITE, pathname.slice(1));
 
 /** Requests `pathname` and compares the status and every header name
- * vercel.json sets with Vercel's answer. Returns the body. */
-async function assertVercelAnswer(origin, pathname) {
-  const expected = vercelAnswer(config, pathname, isSiteFile);
+ * vercel.json sets with Vercel's answer under `vercelConfig`. Returns the body. */
+async function assertVercelAnswer(origin, pathname, vercelConfig = config) {
+  const expected = vercelAnswer(vercelConfig, pathname, isSiteFile);
   const response = await fetch(origin + pathname, { redirect: 'manual', signal: AbortSignal.timeout(5_000) });
   const body = await response.text();
   if (expected.status !== null) assert.equal(response.status, expected.status, `${pathname} (${expected.ends}): status`);
-  for (const name of headerNames(config)) {
+  for (const name of headerNames(vercelConfig)) {
     const actual = response.headers.get(name) ?? undefined;
     if (name === 'cache-control' && expected.headers[name] === undefined) {
       // vercel.json leaves this one to the server: Vercel sends
@@ -236,4 +238,28 @@ test('Docker answers a malformed percent escape with 400 and logs no error', asy
   const decoded = await fetch(`${origin}/api/user/caf%C3%A9`, { signal: AbortSignal.timeout(5_000) });
   assert.deepEqual(await decoded.json(), { op: 'café' });
   assert.deepEqual(stderr.filter((line) => line.includes('"level":"error"')), [], 'no error lines in the log');
+});
+
+// A main-phase route with a status and neither a Location nor a dest ends the
+// request on Vercel, as the filesystem-phase 404 does. The adapter skipped
+// such a route and served the file, so a rule that blocks the public source
+// maps would hold on Vercel and not in the image.
+test('Docker answers a status-only route before the filesystem check', async (t) => {
+  const routes = structuredClone(config.routes);
+  routes.splice(routes.findIndex((route) => route.handle === 'filesystem'), 0, {
+    src: '^/(?:sandbox/)?assets/.+\\.map$',
+    status: 404,
+    headers: { 'Cache-Control': 'no-store' },
+  });
+  const blocksMaps = { ...config, routes };
+  const origin = await startAdapter(t, { files: SITE, vercelConfig: blocksMaps });
+  const { response, body } = await assertVercelAnswer(origin, '/assets/main-x.js.map', blocksMaps);
+  assert.equal(response.status, 404);
+  assert.equal(response.headers.get('cache-control'), 'no-store', 'the route\'s own header, not the immutable asset cache');
+  assert.equal(response.headers.get('x-content-type-options'), 'nosniff', 'the main-phase headers before it');
+  assert.notEqual(body, SITE['assets/main-x.js.map'], 'the map is not served');
+  // The script next to it is still a file with the year-long cache.
+  const { response: script } = await assertVercelAnswer(origin, '/assets/main-x.js', blocksMaps);
+  assert.equal(script.status, 200);
+  assert.match(script.headers.get('cache-control') ?? '', /immutable/);
 });

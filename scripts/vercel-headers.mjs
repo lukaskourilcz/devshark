@@ -6,8 +6,9 @@
 // The model follows Vercel's phases (scripts/vercel-routing-contract.ts says
 // why the header rules are routes):
 // 1. Every main-phase route whose `src` matches adds its headers, in order,
-//    until a route without `continue` ends the request: a redirect, or a
-//    `dest` answered with the route's status.
+//    until a route without `continue` ends the request: a redirect, a `dest`
+//    answered with the route's status, or a bare status (the 404 that blocks
+//    a path whether or not a file sits there).
 // 2. A path that names a file (or a function under /api/) is served; a file
 //    also gets the headers of the hit-phase routes.
 // 3. A path that names nothing meets the filesystem-phase routes: the no-store
@@ -95,8 +96,8 @@ function headersOf(routes, pathname, headers = {}) {
 
 /**
  * How Vercel answers `pathname`. `isFile(path)` says whether the deployment
- * holds a static file at that path. `ends` is one of redirect, route, file,
- * function, missing, rewrite, proxy or not-found; `status` is null where the
+ * holds a static file at that path. `ends` is one of redirect, route, status,
+ * file, function, missing, rewrite, proxy or not-found; `status` is null where the
  * function or the proxied host decides it; `headers` maps lower-cased names
  * to the values vercel.json gives them, and leaves out what the platform adds.
  */
@@ -111,6 +112,7 @@ export function vercelAnswer(config, pathname, isFile) {
     const own = Object.fromEntries(Object.entries(lowerKeys(route.headers)).map(([name, value]) => [name, fillGroups(value, match)]));
     if (own.location !== undefined && route.status) return { ends: 'redirect', status: route.status, headers: { ...headers, ...own } };
     if (route.dest) return { ends: 'route', status: route.status ?? 200, file: fillGroups(route.dest, match), headers: { ...headers, ...own } };
+    if (route.status) return { ends: 'status', status: route.status, headers: { ...headers, ...own } };
   }
 
   if (pathname === '/api' || pathname.startsWith('/api/')) return { ends: 'function', status: null, headers };
