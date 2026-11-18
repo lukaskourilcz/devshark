@@ -6845,3 +6845,66 @@ Branch `claude/f11-grading-sandbox-limits`, issue #640, 14 commits. Eight findin
 - The VM part of `test:react-isolation` needs `REACT_RUNNER_SNAPSHOT_ID` and Vercel Sandbox credentials, which the audit machine lacks.
 
 The remaining 29 findings of F11 (F11-08 to F11-20, F11-22 to F11-37) moved to #646.
+
+## Epic F12: Client correctness: races, caches, lost work and account changes (18 November 2026)
+
+Branch `claude/f12-client-correctness`, 10 commits on `a9882348`, issue #641. Seven findings shipped. Two of them are bug fixes, each with its test committed first.
+
+### What changed
+
+- **F12-01** (`321eba01`): `tests/browser/console-clean.ts` re-exports `@playwright/test` with an auto fixture on the test's browser context. A console.error, an uncaught error or an unhandled rejection in any page of that context now fails the test. When the test already failed, the fixture attaches the list instead of throwing, so the first failure stays the reported one. Chromium's "Failed to load resource" lines go into a report attachment without failing the test. `allowConsoleErrors(page, ...patterns)` lets a spec that breaks the app on purpose name the lines it expects. Before this commit no spec failed on console.error.
+- **F12-02** (`c0f7a915` test, `4984840d` fix): Quiz no longer logs a failed or refused result save, or a failed XP refresh, to console.error. The result screen already shows those states. Any error that is not an ApiError still goes to Sentry through `reportError`.
+- **F12-03** (`831dfd24`, `bf4dcbea`): 31 of 32 browser specs take `test` and `expect` from `./console-clean`. `playwright.config.ts` refuses to start while a spec imports a value from `@playwright/test`, except `public.spec.ts` and `consent-network.spec.ts`, which belong to F15 this wave. The helper treats the sandboxed srcdoc notice as noise, because Playwright's own page scripts cause it. Each test in `route-errors.spec.ts` allows only the console lines of the chunk it drops.
+- **F12-05** (`355d57ee`): `route-errors.spec.ts` covers a deploy that removed the old Coding chunk. The page reloads once (two documents), draws the Coding heading without an error panel, and does not reload again 600 ms later.
+- **F12-06** (`cdc58d37`): new `tests/browser/offline.spec.ts`. It takes the browser offline during the quiz's stats write and expects "Waiting to sync", the offline toast and the queued receipt. Back online, it expects exactly one delivered write and "Saved to your account". A later reconnect sends nothing.
+- **F12-07** (`5e80e1e5`): `account-switch-cache.test.tsx` lists 31 query key prefixes:
+  - 6 carry the account id;
+  - 18 hold caller data under a shared key and rely on `queryClient.clear()` at an account change;
+  - 7 are the same for every caller.
+
+  The test checks that none of the 24 caller-data keys still holds data when the next account first renders. It runs after a sign-in over another account, after a sign-out and after `clearAccountData` alone. A scan of the 98 places in `client/src` that write a key fails on an unlisted root, a stale entry or a key shape it cannot read.
+- **F12-08** (`32766292` test, `60f0c381` fix): `useSaveSharkCard` and `useRemoveSharkCard` record `accountEpoch()` in onMutate. onSuccess, onError and onSettled then return early once the account has changed. A late answer can no longer write the previous learner's question into the next account's bookmarks or deck, and can no longer delete the next account's bookmark.
+
+### Numbers
+
+| Measure | Before | After |
+| --- | --- | --- |
+| `client/tests/quiz.test.tsx` | 66 of 74 pass | 74 of 74 |
+| Shark Card late-answer cases | 0 of 3 pass | 3 of 3 (30 of 30 in the file) |
+| `route-errors.spec.ts` under console-clean | 5 of 14 pass | 15 of 15 (one new test) |
+| `admin.spec.ts` under console-clean | 1 of 3 pass | 3 of 3 |
+| Browser specs on console-clean | 0 of 31 | 31 of 32 |
+| Initial gzip bytes (`check:bundle`) | | 235,530 of 241,651 budget |
+| Monitoring SDK gzip bytes | | 49,507 of 60,000 budget |
+
+The review stage re-ran both test-then-fix pairs against the `origin/main` source. The 8 Quiz cases and the 3 Shark Card cases fail there and pass on the branch.
+
+### Checks
+
+| Command | Result |
+| --- | --- |
+| `npm run build` with the CI build env | exit 0 |
+| `npm run test:browser` (full suite, preview on 4222) | 249 passed, 25 skipped, 0 failed |
+| `npx playwright test tests/browser/offline.spec.ts --repeat-each=3` | 3 passed |
+| `tests/browser/storybook.spec.ts` against Storybook on 6222 | 6 passed (a cold warm-up run timed out once on the first heading, with no console error) |
+| `npm run test:client` | 1,915 tests in 193 files passed |
+| `npm run typecheck:api` | pass |
+| `npm run typecheck:scripts` | pass |
+| `npm run typecheck:tooling --prefix client` | pass |
+| `npm run check:public` | pass |
+| `npm run check:bundle` | pass |
+| `npm run check:unused` | no new findings |
+| `npm run check:security` | pass |
+| `git diff --check origin/main...HEAD` | clean |
+
+### Not run
+
+- `test:sql`: the branch changes no SQL.
+- `npm audit --omit=dev`: no lockfile changed.
+- `check:responsive`: the branch changes no layout or markup.
+- `npm run ci:parity`: it binds the shared ports 4173 and 6006, so its steps ran one by one instead.
+- The server and coding suites: the branch has no server change.
+
+CI runs only the specs that `quality.yml` names, so it will not run `offline.spec.ts` until someone adds that line, which is F12-22.
+
+The remaining findings of F12 (F12-04 and F12-09 to F12-23) moved to #646.
