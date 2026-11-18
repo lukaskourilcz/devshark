@@ -190,3 +190,23 @@ for (const pathname of ['/assets/coding-worker/..%2f..%2findex.html', '/sandbox/
     assert.notEqual(body, APP_DOCUMENT, 'the app document must not answer under another path\'s policy');
   });
 }
+
+// A rewrite is a check route: when its destination is no file, Vercel goes on
+// to the next rewrite with the rewritten path, and a path nothing serves gets
+// Vercel's own plain-text 404. The adapter took the first matching rewrite
+// only and answered everything else with index.html, so it ran the app under
+// the sandbox policy at /sandbox/<missing> and refused a task page the build
+// did not prerender, which Vercel serves with the app (C3-17).
+test('Docker tries the rewrites in order and answers a page nothing serves with a plain 404', async (t) => {
+  const origin = await startAdapter(t, { files: SITE });
+  for (const pathname of ['/sandbox/nope', '/topics/a/b']) {
+    const { response, body } = await assertVercelAnswer(origin, pathname);
+    assert.equal(response.status, 404, `${pathname}: status`);
+    assert.match(response.headers.get('content-type') ?? '', /^text\/plain/, `${pathname}: content type`);
+    assert.notEqual(body, APP_DOCUMENT, `${pathname} must not answer with the app document`);
+  }
+  const { response, body } = await assertVercelAnswer(origin, '/coding/javascript/no-such-task');
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type') ?? '', /^text\/html/);
+  assert.equal(body, APP_DOCUMENT, 'a task page with no prerendered file gets the app, which says the task does not exist');
+});
