@@ -11,6 +11,7 @@ import { deflateSync } from 'node:zlib';
 
 const checker = fileURLToPath(new URL('./check-images.mjs', import.meta.url));
 const SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-labelledby="brand"><title id="brand">devShark</title><path id="dev" d="M4 28 16 4 28 28Z"/><use href="#dev"/></svg>';
+const pngs = new Map();
 
 function crc32(bytes) {
   let value = 0xffffffff;
@@ -32,6 +33,8 @@ function chunk(type, data) {
 }
 
 function png(width, height) {
+  const key = `${width}x${height}`;
+  if (pngs.has(key)) return Buffer.from(pngs.get(key));
   const header = Buffer.alloc(13);
   header.writeUInt32BE(width);
   header.writeUInt32BE(height, 4);
@@ -44,7 +47,62 @@ function png(width, height) {
       pixels.set([45, 122, 45, 255], offset);
     }
   }
-  return Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), chunk('IHDR', header), chunk('IDAT', deflateSync(pixels)), chunk('IEND', Buffer.alloc(0))]);
+  const result = Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), chunk('IHDR', header), chunk('IDAT', deflateSync(pixels)), chunk('IEND', Buffer.alloc(0))]);
+  pngs.set(key, result);
+  return Buffer.from(result);
+}
+
+function box(type, data) {
+  const header = Buffer.alloc(8);
+  header.writeUInt32BE(data.length + 8);
+  header.write(type, 4);
+  return Buffer.concat([header, data]);
+}
+
+function avif(width, height) {
+  const extents = (w, h) => {
+    const value = Buffer.alloc(12);
+    value.writeUInt32BE(w, 4);
+    value.writeUInt32BE(h, 8);
+    return box('ispe', value);
+  };
+  const primary = Buffer.from([0, 0, 0, 0, 0, 1]);
+  // Item 1 uses property 2. Property 1 belongs to another item, so a
+  // substring search for the first ispe would report the wrong dimensions.
+  const association = Buffer.from([0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 2]);
+  return Buffer.concat([
+    box('ftyp', Buffer.from('6176696600000000617669666d696631', 'hex')),
+    box('meta', Buffer.concat([Buffer.alloc(4), box('pitm', primary), box('iprp', Buffer.concat([
+      box('ipco', Buffer.concat([extents(4000, 4000), extents(width, height)])), box('ipma', association),
+    ]))])),
+  ]);
+}
+
+function webp(width, height, kind) {
+  let payload;
+  if (kind === 'VP8X') {
+    payload = Buffer.alloc(10);
+    payload.writeUIntLE(width - 1, 4, 3);
+    payload.writeUIntLE(height - 1, 7, 3);
+  } else if (kind === 'VP8L') {
+    payload = Buffer.alloc(6);
+    payload[0] = 0x2f;
+    payload.writeUInt32LE(((height - 1) << 14) | (width - 1), 1);
+  } else {
+    payload = Buffer.alloc(10);
+    Buffer.from('9d012a', 'hex').copy(payload, 3);
+    payload.writeUInt16LE(width, 6);
+    payload.writeUInt16LE(height, 8);
+  }
+  const image = Buffer.alloc(payload.length + 8);
+  image.write(kind);
+  image.writeUInt32LE(payload.length, 4);
+  payload.copy(image, 8);
+  const header = Buffer.alloc(12);
+  header.write('RIFF');
+  header.writeUInt32LE(image.length + 4, 4);
+  header.write('WEBP', 8);
+  return Buffer.concat([header, image]);
 }
 
 function ico(sizes) {
@@ -193,6 +251,61 @@ test('an existing icon with invalid bytes fails even when its extension and mani
   const data = fixture(t);
   put(join(data.distDir, 'icon-192.png'), 'not a PNG');
   refused(data.run(), /icon-192\.png[^\n]*(?:invalid|PNG|metadata|format)/i);
+});
+
+test('ICO directory dimensions must match the embedded PNG frame', (t) => {
+  const data = fixture(t);
+  const invalid = ico([32]);
+  invalid[6] = invalid[7] = 16;
+  put(join(data.publicDir, 'incorrect.ico'), invalid);
+  refused(data.run(), /incorrect\.ico[^\n]*(?:16x16|32x32|dimension)/i);
+});
+
+test('a Windows cursor cannot pass as an ICO just by its extension', (t) => {
+  const data = fixture(t);
+  const invalid = ico([32]);
+  invalid.writeUInt16LE(2, 2);
+  put(join(data.publicDir, 'cursor.ico'), invalid);
+  refused(data.run(), /cursor\.ico[^\n]*(?:type|ICO)/i);
+});
+
+for (const kind of ['VP8X', 'VP8L', 'VP8 ']) {
+  test(`WebP ${kind.trim()} metadata enforces the actual share dimensions`, (t) => {
+    const data = fixture(t);
+    put(join(data.distDir, 'og', 'too-wide.webp'), webp(1201, 630, kind));
+    refused(data.run(), /too-wide\.webp[^\n]*1201x630/);
+  });
+}
+
+test('AVIF reads the primary item rather than another item or an ispe substring', (t) => {
+  const data = fixture(t);
+  put(join(data.distDir, 'og', 'valid.avif'), avif(1200, 630));
+  const run = data.run();
+  assert.equal(run.status, 0, run.output);
+  put(join(data.distDir, 'og', 'too-tall.avif'), avif(1200, 631));
+  refused(data.run(), /too-tall\.avif[^\n]*1200x631/);
+});
+
+test('JPEG dimensions come from a bounded SOF segment', (t) => {
+  const data = fixture(t);
+  const jpeg = Buffer.from('ffd8ffc0000b08027704b001011100ffd9', 'hex');
+  put(join(data.distDir, 'og', 'too-tall.jpg'), jpeg);
+  refused(data.run(), /too-tall\.jpg[^\n]*1200x631/);
+});
+
+test('the external wordmark retains both dev and shark fragment ids', (t) => {
+  const data = fixture(t);
+  put(join(data.assetsDir, 'devshark-wordmark.svg'), SVG);
+  refused(data.run(), /devshark-wordmark\.svg[^\n]*#shark/);
+  put(join(data.assetsDir, 'devshark-wordmark.svg'), SVG.replace('</svg>', '<path id="shark" d="M1 1h1v1Z"/></svg>'));
+  const run = data.run();
+  assert.equal(run.status, 0, run.output);
+});
+
+test('internal SVG use and accessible-name references must resolve', (t) => {
+  const data = fixture(t);
+  put(join(data.assetsDir, 'broken.svg'), SVG.replace('href="#dev"', 'href="#missing"'));
+  refused(data.run(), /broken\.svg[^\n]*#missing/);
 });
 
 test('an invalid generated manifest fails with its path', (t) => {
