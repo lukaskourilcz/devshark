@@ -181,3 +181,28 @@ test('perf:measure reports CLS as the largest session window of layout shifts', 
   assert.deepEqual(lab.summarizeLayoutShifts(flagged), { cls: 0.25, clsSum: 0.375, clsInputFlagged: 0.5 });
   assert.deepEqual(lab.summarizeLayoutShifts([]), { cls: 0, clsSum: 0, clsInputFlagged: 0 });
 });
+
+test('perf:measure sums blocking time over long tasks from FCP to the measurement point', () => {
+  assert.equal(typeof lab.summarizeLongTasks, 'function', 'perf:measure computes TBT in summarizeLongTasks');
+  const window = { fcp: 1000, end: 5000 };
+  // 40 ms blocks nothing; 80 and 120 ms block 30 and 70 ms.
+  const afterPaint = [
+    { startTime: 1200, duration: 40 },
+    { startTime: 1500, duration: 80 },
+    { startTime: 2500, duration: 120 },
+  ];
+  assert.deepEqual(lab.summarizeLongTasks(afterPaint, window), { longTasks: { count: 2, longest: 120 }, tbtMs: 100 });
+  // A task that ends before FCP counts as a long task but blocks nothing;
+  // one that spans FCP or the measurement point counts only its part
+  // inside: 900 + 180 ms keeps 80 ms (30 blocked), 4950 + 300 ms keeps 50 (0).
+  const edges = [
+    { startTime: 300, duration: 200 },
+    { startTime: 900, duration: 180 },
+    ...afterPaint,
+    { startTime: 4950, duration: 300 },
+  ];
+  assert.deepEqual(lab.summarizeLongTasks(edges, window), { longTasks: { count: 5, longest: 300 }, tbtMs: 130 });
+  // No contentful paint, no TBT window.
+  assert.deepEqual(lab.summarizeLongTasks(afterPaint, { fcp: null, end: 5000 }), { longTasks: { count: 2, longest: 120 }, tbtMs: null });
+  assert.deepEqual(lab.summarizeLongTasks([], window), { longTasks: { count: 0, longest: 0 }, tbtMs: 0 });
+});

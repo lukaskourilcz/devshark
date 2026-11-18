@@ -141,6 +141,25 @@ export function summarizeLayoutShifts(shifts) {
  return { cls, clsSum, clsInputFlagged };
 }
 
+// Long tasks and total blocking time of one sample, from the 'longtask'
+// entries the page observed under the lab's CPU throttle. longTasks covers
+// every task of 50 ms or more from navigation start to the measurement point.
+// tbtMs follows Lighthouse's sum: each long task clipped to the span from
+// first contentful paint to the measurement point, less 50 ms. Lighthouse
+// simulates its TBT; this one is observed. null when nothing painted.
+export function summarizeLongTasks(tasks, { fcp, end }) {
+ const long = tasks.filter(task => task.duration >= 50 && task.startTime < end);
+ let tbtMs = null;
+ if (fcp !== null) {
+  tbtMs = 0;
+  for (const task of long) {
+   const blocked = Math.min(task.startTime + task.duration, end) - Math.max(task.startTime, fcp);
+   if (blocked > 50) tbtMs += blocked - 50;
+  }
+ }
+ return { longTasks: { count: long.length, longest: long.reduce((longest, task) => Math.max(longest, task.duration), 0) }, tbtMs };
+}
+
 const formatInp = inpMs => typeof inpMs === 'number' ? Math.round(inpMs) : inpMs ?? 'none';
 
 // A failure every later load would repeat; it ends the run instead of one row.
@@ -155,7 +174,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
  if (fixture) fixture.billing = { ...fixture.billing, enabled: false, launchOffer: false };
  let browser, chrome;
  const results = [];
- const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', ttfbDefinition: 'responseStart (web-vitals)', clsDefinition: 'largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, results }, null, 2) + '\n');
+ const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', ttfbDefinition: 'responseStart (web-vitals)', clsDefinition: 'largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press', tbtDefinition: 'long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, results }, null, 2) + '\n');
  try {
   for (const profile of profiles) for (const path of routes) for (let sample = 0; sample < samples; sample++) {
    // A browser that cannot start fails every sample the same way: let it end the run.
@@ -192,7 +211,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: profile === 'mobile' ? 4 : 1 });
     await page.addInitScript(() => {
      localStorage.setItem('devquiz:color-mode', 'light');
-     window.__lab = { lcp: 0, shifts: [], events: [], firstInput: null };
+     window.__lab = { lcp: 0, shifts: [], longTasks: [], events: [], firstInput: null };
      new PerformanceObserver(l => { for (const e of l.getEntries()) window.__lab.lcp = e.startTime; }).observe({ type: 'largest-contentful-paint', buffered: true });
      // Raw shifts; summarizeLayoutShifts() turns them into CLS in Node.
      // takeShifts() adds the entries the observer has not delivered yet.
@@ -200,6 +219,11 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      const shifts = new PerformanceObserver(l => keepShifts(l.getEntries()));
      shifts.observe({ type: 'layout-shift', buffered: true });
      window.__lab.takeShifts = () => { keepShifts(shifts.takeRecords()); return window.__lab.shifts; };
+     // Raw long tasks; summarizeLongTasks() turns them into TBT in Node.
+     const keepTasks = list => { for (const e of list) window.__lab.longTasks.push({ startTime: e.startTime, duration: e.duration }); };
+     const tasks = new PerformanceObserver(l => keepTasks(l.getEntries()));
+     tasks.observe({ type: 'longtask', buffered: true });
+     window.__lab.takeLongTasks = () => { keepTasks(tasks.takeRecords()); return window.__lab.longTasks; };
      // Raw entries; summarizeInteractions() turns them into INP in Node.
      const record = list => { for (const e of list) if (e.interactionId) window.__lab.events.push({ name: e.name, interactionId: e.interactionId, startTime: e.startTime, processingStart: e.processingStart, processingEnd: e.processingEnd, duration: e.duration }); };
      const events = new PerformanceObserver(l => record(l.getEntries()));
@@ -220,15 +244,15 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      const started = Date.now();
      await page.goto(origin + path, { waitUntil: 'load', timeout: 60000 });
      await page.waitForTimeout(profile === 'mobile' ? 3000 : 1500);
-     const { shifts, ...measurement } = await page.evaluate(() => {
+     const { shifts, longTasks, ...measurement } = await page.evaluate(() => {
       const n = performance.getEntriesByType('navigation')[0].toJSON();
       const resources = performance.getEntriesByType('resource').map(r => ({ path: new URL(r.name).pathname, kind: r.initiatorType, start: r.startTime, duration: r.duration, ttfb: r.responseStart - r.requestStart, download: r.responseEnd - r.responseStart, transfer: r.transferSize, encoded: r.encodedBodySize, decoded: r.decodedBodySize, serverTiming: r.serverTiming.map(t => ({ name: t.name, duration: t.duration })) }));
       // The paint timeline keeps first-contentful-paint, no observer needed.
       const fcp = performance.getEntriesByName('first-contentful-paint', 'paint')[0]?.startTime ?? null;
-      return { navigation: n, fcp, lcp: window.__lab.lcp, shifts: window.__lab.takeShifts(), resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
+      return { navigation: n, fcp, lcp: window.__lab.lcp, shifts: window.__lab.takeShifts(), longTasks: window.__lab.takeLongTasks(), measuredAt: performance.now(), resources, heading: document.querySelector('h1')?.textContent?.trim(), buttons: [...document.querySelectorAll('button')].map(b => b.getAttribute('aria-label') || b.textContent?.trim()).slice(0, 20) };
      });
      measurement.navigation = navigationTimings(measurement.navigation);
-     Object.assign(measurement, summarizeLayoutShifts(shifts));
+     Object.assign(measurement, summarizeLayoutShifts(shifts), summarizeLongTasks(longTasks, { fcp: measurement.fcp, end: measurement.measuredAt }));
      // Local-only appearance/menu changes; no quiz/start/submit or sign-in action.
      let pressed = null;
      for (const name of INTERACTION_CONTROLS[profile]) {
@@ -253,7 +277,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      const row = { profile, path, sample, cache, elapsed: Date.now() - started, diskHits, blockedWrites, ...measurement };
      results.push(row);
      write();
-     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'FCP', row.fcp === null ? 'none' : Math.round(row.fcp), 'LCP', Math.round(row.lcp), 'CLS', row.cls.toFixed(3), 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
+     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'FCP', row.fcp === null ? 'none' : Math.round(row.fcp), 'LCP', Math.round(row.lcp), 'CLS', row.cls.toFixed(3), 'TBT', row.tbtMs === null ? 'none' : Math.round(row.tbtMs), 'longTasks', row.longTasks.count, 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
     }
    } catch (error) {
     if (error instanceof FatalLabError) throw error;
