@@ -36,10 +36,9 @@ jobs:
       - run: npm run test:sql
         env:
           DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/postgres
-  # verify used to run every gate in one job and reached 44 minutes of a
-  # 60-minute cap on 21 October. The gates now run as parallel jobs, and the
-  # job named verify (the required check) passes only when every one of them
-  # passed: a skipped or cancelled gate fails it.
+  # verify requires every gate, including the shared build producer. A
+  # skipped or cancelled gate fails it. Consumers verify the build head and
+  # hashes before running the static and browser checks against those bytes.
   quickjs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -66,7 +65,41 @@ jobs:
             fi
           fi
           npm run check:quickjs-build
+  client-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            client/package-lock.json
+      - run: npm ci --no-audit && npm ci --no-audit --prefix client
+      - run: |
+          # The browser checks below run against this build, so it signs in the
+          # way production does: with the placeholder Supabase project that
+          # check:bundle measures with. tests/browser/lazy-auth.spec.ts needs it.
+          VITE_SUPABASE_URL=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_URL")
+          VITE_SUPABASE_ANON_KEY=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_ANON_KEY")
+          export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY
+          npm run build
+        id: build
+        env:
+          VITE_PRODUCT: devshark
+          VITE_LOCK_SUBJECT: webdev
+      - run: npm run check:ci-build-artifact
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quality-client-${{ github.sha }}
+          path: artifacts/client-build.tar
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
   static:
+    needs: client-build
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -89,6 +122,11 @@ jobs:
           [[ "$BINARY_BASE_SHA" =~ ^[a-f0-9]{40}$ && "$BINARY_BASE_SHA" != "0000000000000000000000000000000000000000" ]] || exit 1
           git fetch --no-tags --depth=1 origin "$BINARY_BASE_SHA"
           npm run check:binary-size
+      - uses: actions/download-artifact@v4
+        with:
+          name: quality-client-${{ github.sha }}
+          path: artifacts
+      - run: node scripts/ci-build-artifact.mjs restore artifacts/client-build.tar
       - run: |
           # The browser checks below run against this build, so it signs in the
           # way production does: with the placeholder Supabase project that
@@ -96,8 +134,8 @@ jobs:
           VITE_SUPABASE_URL=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_URL")
           VITE_SUPABASE_ANON_KEY=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_ANON_KEY")
           export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY
-          npm run build && npm run check:images && npm run check:public && npm run check:bundle
-        id: build
+          npm run check:images && npm run check:public && npm run check:bundle
+        id: check-build
         env:
           VITE_PRODUCT: devshark
           VITE_LOCK_SUBJECT: webdev
@@ -131,6 +169,7 @@ jobs:
       - run: npm ci --no-audit && npm ci --no-audit --prefix client
       - run: npm run test:coding
   browser:
+    needs: client-build
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -143,43 +182,25 @@ jobs:
             package-lock.json
             client/package-lock.json
       - run: npm ci --no-audit && npm ci --no-audit --prefix client
-      - run: |
-          # The browser checks below run against this build, so it signs in the
-          # way production does: with the placeholder Supabase project that
-          # check:bundle measures with. tests/browser/lazy-auth.spec.ts needs it.
-          VITE_SUPABASE_URL=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_URL")
-          VITE_SUPABASE_ANON_KEY=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_ANON_KEY")
-          export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY
-          npm run build
+      - uses: actions/download-artifact@v4
+        with:
+          name: quality-client-${{ github.sha }}
+          path: artifacts
+      - run: node scripts/ci-build-artifact.mjs restore artifacts/client-build.tar
         id: build
-        env:
-          VITE_PRODUCT: devshark
-          VITE_LOCK_SUBJECT: webdev
+      - name: Read installed browser revision
+        id: playwright
+        run: echo "revision=$(node -p "require('node:crypto').createHash('sha256').update(require('node:fs').readFileSync('node_modules/playwright-core/browsers.json')).digest('hex')")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-chromium-${{ steps.playwright.outputs.revision }}
       - run: npx playwright install --with-deps chromium
       - name: Browser checks
         run: |
           npm run preview --prefix client -- --host 0.0.0.0 --port 4173 > /tmp/preview.log 2>&1 &
           node scripts/wait-for-preview.mjs
-          npm run test:browser -- --project=chromium tests/browser/public.spec.ts tests/browser/images.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/guide-startup.spec.ts tests/browser/profile-leaderboard-preferences.spec.ts tests/browser/profile-path-picker.spec.ts tests/browser/admin.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/evolving.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/coding-pages.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/coding-workbench.spec.ts tests/browser/mobile-safari.spec.ts tests/browser/consent-reflow.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/coding-drafts.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/learning-release.spec.ts tests/browser/learn-sections.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/fde-hub.spec.ts tests/browser/fde-taster.spec.ts tests/browser/fde-positioning.spec.ts tests/browser/interview-shelf.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/path-content-shapes.spec.ts tests/browser/portfolio-export.spec.ts tests/browser/diagnostic-overview.spec.ts tests/browser/dsa-advanced.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/segmented.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/on-accent.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/navigation.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/lazy-auth.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/sign-in.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/route-errors.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/first-load.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/home-sample.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/routes-axe.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/daily.spec.ts
-          npm run test:browser -- --project=chromium tests/browser/launch-offer.spec.ts
+          npm run test:browser -- --project=chromium --workers=2 tests/browser/public.spec.ts tests/browser/images.spec.ts tests/browser/guide-startup.spec.ts tests/browser/profile-leaderboard-preferences.spec.ts tests/browser/profile-path-picker.spec.ts tests/browser/admin.spec.ts tests/browser/evolving.spec.ts tests/browser/coding-pages.spec.ts tests/browser/coding-workbench.spec.ts tests/browser/mobile-safari.spec.ts tests/browser/consent-reflow.spec.ts tests/browser/coding-drafts.spec.ts tests/browser/learning-release.spec.ts tests/browser/learn-sections.spec.ts tests/browser/fde-hub.spec.ts tests/browser/fde-taster.spec.ts tests/browser/fde-positioning.spec.ts tests/browser/interview-shelf.spec.ts tests/browser/path-content-shapes.spec.ts tests/browser/portfolio-export.spec.ts tests/browser/diagnostic-overview.spec.ts tests/browser/dsa-advanced.spec.ts tests/browser/segmented.spec.ts tests/browser/on-accent.spec.ts tests/browser/navigation.spec.ts tests/browser/lazy-auth.spec.ts tests/browser/sign-in.spec.ts tests/browser/route-errors.spec.ts tests/browser/first-load.spec.ts tests/browser/home-sample.spec.ts tests/browser/routes-axe.spec.ts tests/browser/daily.spec.ts tests/browser/launch-offer.spec.ts tests/browser/triage-private.spec.ts
           export CHROME_BIN=$(node -e "console.log(require('@playwright/test').chromium.executablePath())")
           TOPIC=javascript-closures
           npm run check:responsive -- --routes /,/quiz,/topics/$TOPIC,/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 360,390,430,768,820,1024,1280,1366,1440
@@ -206,11 +227,11 @@ jobs:
             client/storybook-static/
           retention-days: 14
   verify:
-    needs: [quickjs, static, tests, coding, browser]
+    needs: [quickjs, client-build, static, tests, coding, browser]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - run: echo "quickjs=${{ needs.quickjs.result }} static=${{ needs.static.result }} tests=${{ needs.tests.result }} coding=${{ needs.coding.result }} browser=${{ needs.browser.result }}"
+      - run: echo "quickjs=${{ needs.quickjs.result }} client-build=${{ needs.client-build.result }} static=${{ needs.static.result }} tests=${{ needs.tests.result }} coding=${{ needs.coding.result }} browser=${{ needs.browser.result }}"
       - if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}
         run: exit 1

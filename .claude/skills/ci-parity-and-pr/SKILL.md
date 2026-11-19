@@ -5,33 +5,28 @@ description: Reproduce the `verify` CI job locally with `npm run ci:parity`, the
 
 # CI parity and pull requests
 
-`main` is protected: GitHub merges a pull request only when the `verify` and `sql` jobs of `.github/workflows/quality.yml` pass, for admins too, and refuses force-pushes (CLAUDE.md, "Git workflow"). The `verify` gates run 59 steps as five parallel jobs of at most 30 minutes each, and the job named `verify` passes only when all five passed. A step you skip locally can cost a whole CI cycle: PR #401 passed a short local check list and then failed `check:bundle` by 182 gzip bytes ("15 October — PR #401 initial-load correction" in `docs/release-acceptance.md`).
+`main` is protected: GitHub merges a pull request only when the `verify` and `sql` jobs of `.github/workflows/quality.yml` pass, for admins too, and refuses force-pushes (CLAUDE.md, "Git workflow"). The `verify` gates run 41 steps across six jobs of at most 30 minutes each, and the job named `verify` passes only when all six passed. A step you skip locally can cost a whole CI cycle: PR #401 passed a short local check list and then failed `check:bundle` by 182 gzip bytes ("15 October — PR #401 initial-load correction" in `docs/release-acceptance.md`).
 
 `scripts/ci-parity.mjs` runs the same steps in the same order with the same environment and prints each step's real result. Before it runs anything it reads `quality.yml` and checks two things: the job's `npm` and `npx playwright` commands, in order and with their env prefixes, must equal the plan's, and every other line of the job (setup, `env:`, `if:`, shell glue) must equal `KNOWN_GLUE` in the script. On any difference it exits 2 and prints the first one. Change `PLAN` or `KNOWN_GLUE` and the table below in the same commit as the workflow.
 
 ## The `verify` sequence
 
-The commands come from `.github/workflows/quality.yml`, where the gates run as five parallel jobs: `quickjs` (steps 1-2), `static` (3-15), `tests` and `coding` (16-28), and `browser` (29-59). The job named `verify` needs all five and fails when any of them failed, was cancelled or was skipped; it is the required check. `ci:parity` runs the jobs one after another in this order, and counts a command an earlier job already ran (`npm ci`, the browser job's build) once. Step ids are in the second column.
+The commands come from `.github/workflows/quality.yml`. `client-build` produces one artifact with the complete client and generated runner outputs. `static` and `browser` depend on that producer and verify its commit and SHA-256 inventory before using it. The local runner builds and packs once instead of downloading its own artifact. `verify` requires all six non-SQL jobs and rejects skipped or cancelled jobs.
 
 | # | Step id | Command | Notes |
 |---|---|---|---|
-| 1 | `install` | `npm ci --no-audit && npm ci --no-audit --prefix client` | Runs locally when `node_modules` or `client/node_modules` is missing, or with `--install`. Install-time advisory reports are redundant; the explicit production audit steps remain required. |
-| 2 | `check:quickjs-build` | `npm run check:quickjs-build` | CI skips it when `lib/coding/vendor`, `lib/coding/quickjs-variant.ts`, `scripts/rebuild-quickjs-sort.mjs`, `package.json`, `package-lock.json` and `client/package-lock.json` match the PR base; the script compares the working tree with `git merge-base HEAD origin/main` the same way. Any `package.json` edit, a new npm script included, triggers it. The rebuild needs Python 3.10+ (`SHARK_PYTHON`) to install the pinned emsdk, or an emsdk in `SHARK_EMSDK_DIR`; without either the step is reported as not run, and CI's result is the evidence. |
-| 3-5 | `typecheck:api`, `typecheck:scripts`, `typecheck:tooling` | `npm run typecheck:api && npm run typecheck:scripts && npm run typecheck:tooling --prefix client` | `typecheck:tooling` lives in `client/package.json`. |
-| 6 | `audit:native-reviews` | `npm run audit:native-reviews` | |
-| 7-8 | `check:unused`, `check:security` | `npm run check:unused && npm run check:security` | |
-| 9 | `check:binary-size` | `npm run check:binary-size` | Compares new and changed binaries with the fetched event base. Unchanged historical files stay grandfathered. |
-| 10-13 | `build`, `check:images`, `check:public`, `check:bundle` | `npm run build && npm run check:images && npm run check:public && npm run check:bundle` | Build env below. The `browser` job builds again with the same env and tests that build. |
-| 14-15 | `audit:prod`, `audit:client` | `npm audit --omit=dev && npm audit --omit=dev --prefix client` | |
-| 16-28 | `test:performance` to `test:coding` | `test:performance`, `test:launch`, `test:coding-auth`, `test:grading-integrity`, `test:path-authority`, `test:react-authority`, `test:paths`, `test:billing`, `test:fallbacks`, `test:garden`, `test:live-grading`, `test:client`, then `test:coding` | The `tests` job chains the first twelve, and the first failure stops the rest; the `coding` job runs `test:coding` alone. `test:coding` runs every task's reference and takes several minutes. |
-| 29 | `chromium` | `npx playwright install --with-deps chromium` | Locally `npx playwright install chromium` (idempotent), unless `CHROME_BIN` or `/opt/pw-browsers/chromium` exists. |
-| 30 | `preview` | `npm run preview --prefix client -- --host 0.0.0.0 --port 4173` | Started in the background and polled like `scripts/wait-for-preview.mjs`. |
-| 31-50 | `browser:<spec>` | `npm run test:browser -- --project=chromium tests/browser/<spec>.spec.ts` | 20 Chromium runs in workflow order, from `public` and `images` to `launch-offer`; `guide-startup`, `profile-leaderboard-preferences` and `profile-path-picker` share one run (`browser:guide-startup+profile-leaderboard-preferences+profile-path-picker`), `coding-workbench`, `mobile-safari` and `consent-reflow` share one Chromium run; and so do `learning-release` and `learn-sections` (`browser:learning-release+learn-sections`), the FDE path specs `fde-hub`, `fde-taster`, `fde-positioning` and `interview-shelf` (`browser:fde-hub+fde-taster+fde-positioning+interview-shelf`), and `path-content-shapes`, `portfolio-export`, `diagnostic-overview` and `dsa-advanced` (`browser:path-content-shapes+portfolio-export+diagnostic-overview+dsa-advanced`). |
-| 51 | `check:responsive` | `npm run check:responsive -- --routes /,/quiz,/topics/javascript-closures,/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 360,390,430,768,820,1024,1280,1366,1440` | `TOPIC` comes from the workflow. |
-| 52 | `check:responsive:dark` | `RESPONSIVE_THEME=dark npm run check:responsive -- --routes /,/quiz,/topics/javascript-closures,/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 390,820,1280` | |
-| 53-54 | `check:responsive:zoom200`, `check:responsive:zoom400` | `RESPONSIVE_ZOOM=200 npm run check:responsive -- --routes / --widths 1280`, then the same command with `RESPONSIVE_ZOOM=400` | Effective CSS viewports are 640 by 400 and 320 by 200; the physical viewport stays 1280 by 800. |
-| 55 | `test:harness` | `npm run test:harness` | Needs the client build and Chromium. |
-| 56-59 | `audit:performance`, `build:storybook`, `storybook`, `browser:storybook` | `npm run audit:performance`, `npm run build:storybook`, `npm run storybook --prefix client -- --ci` on port 6006, then `STORYBOOK_URL=http://localhost:6006 npm run test:browser -- tests/browser/storybook.spec.ts` | CI runs this step whenever the build step passed, even after a browser failure. |
+| 1 | `install` | `npm ci --no-audit && npm ci --no-audit --prefix client` | Runs when dependencies are missing or with `--install`. |
+| 2 | `check:quickjs-build` | `npm run check:quickjs-build` | Changed runtime/package inputs trigger the pinned rebuild. Local Python 3.10+/emsdk is required; an unavailable rebuild is not a pass. |
+| 3-4 | `build`, `check:ci-build-artifact` | `npm run build && npm run check:ci-build-artifact` | The placeholder environment below matches CI. The tar preserves hidden Vite manifests, source maps, sandbox output and generated runner files. |
+| 5-7 | Types | `typecheck:api`, `typecheck:scripts`, client `typecheck:tooling` | |
+| 8-11 | Native and static guards | `audit:native-reviews`, `check:unused`, `check:security`, `check:binary-size` | The binary gate compares against the fetched event base. |
+| 12-16 | Build guards and production audits | `check:images`, `check:public`, `check:bundle`, `npm audit --omit=dev`, client production audit | |
+| 17-29 | Contract, client and coding suites | `test:performance`, `test:launch`, `test:coding-auth`, `test:grading-integrity`, `test:path-authority`, `test:react-authority`, `test:paths`, `test:billing`, `test:fallbacks`, `test:garden`, `test:live-grading`, `test:client`, `test:coding` | Keep the coding timing guard unchanged. |
+| 30-31 | Chromium and preview | `npx playwright install --with-deps chromium`, client preview on 4173 | CI caches browser files by OS, architecture and the installed browser revision file. It still installs system dependencies. Local installed Chrome can replace the download. |
+| 32 | `browser:chromium` | `npm run test:browser -- --project=chromium --workers=2 <explicit specs>` | The 33 previous specs plus `triage-private` share one invocation. Files may run concurrently; tests within each file retain their order. `BROWSER_SPECS` records the exact selection. |
+| 33-36 | Responsive | Light 20 routes by 9 widths, dark 20 by 3, synthetic 200% and 400% Home reflow | Matrices and strict fixture/target contracts remain intact. |
+| 37 | `test:harness` | `npm run test:harness` | |
+| 38-41 | Performance and Storybook | `audit:performance`, `build:storybook`, Storybook server, `browser:storybook` | CI runs these when the shared build restored successfully, including after another browser failure. |
 
 The `sql` job runs separately: `npm run test:sql` on `supabase/postgres:17.6.1.171` (`scripts/test-sql.mjs`).
 
@@ -57,7 +52,7 @@ The `sql` job runs separately: `npm run test:sql` on `supabase/postgres:17.6.1.1
 
 ```sh
 npm run ci:parity -- --list               # the plan, nothing runs
-npm run ci:parity -- --fast               # steps 1-30 and 51-54
+npm run ci:parity -- --fast               # steps 1-31 and 33-36
 npm run ci:parity                         # the whole verify job
 npm run ci:parity -- --only test:launch,build --log-dir artifacts/ci-parity-only
 npm run ci:parity -- --fast --bail        # stop at the first failure, as CI does
@@ -66,7 +61,7 @@ npm run ci:parity -- --sql                # add the sql job (DATABASE_URL set)
 
 **When to run which.** CI is the gate; a local run is how you avoid a wasted CI cycle (owner, 21 October 2026: speed matters, so do not repeat the whole job locally by habit). Before every push, run the steps your diff touches with `--only` (types, the suites for the area, `build` and `check:bundle` when client code changed, the browser spec you added or changed on a spare port). Run `--fast` when the diff crosses areas (shared types, `package.json`, scripts other suites import), and the full job when it reworks client routes or the shell. Other files point here for this rule; do not restate it elsewhere.
 
-`--fast` skips the 20 browser runs, `test:harness` and the Storybook and performance step. It still builds, starts the preview and runs the light/dark `check:responsive` sweeps and both zoom profiles. `--only` runs the named steps and records the run as `partial`; give it its own `--log-dir` so it does not replace the summary of a full or fast run.
+`--fast` skips the combined browser run, `test:harness` and the Storybook and performance step. It still builds, starts the preview and runs the light/dark `check:responsive` sweeps and both zoom profiles. `--only` runs the named steps and records the run as `partial`; give it its own `--log-dir` so it does not replace the summary of a full or fast run.
 
 Without `--bail` the script keeps going after a failure and marks the steps that need a failed step as not run (the browser steps need `build`, `preview` and `chromium`). Each step writes a log, and the run writes `summary.json` in the log directory (`artifacts/ci-parity/` by default, git-ignored). The summary holds `mode` (`fast`, `full` or `partial`), `only`, `complete`, `stopped` (a signal, `bail` or a crash), `head`, `dirty`, `node`, `startedAt`, `minutes`, the counts, and each step with its `result` (`pass`, `fail`, `skipped` or `not-run`), `detail` and `log` path. The script deletes the old summary when it starts and writes the new one even when it stops early. Exit code 0 means a complete run with no failure.
 
