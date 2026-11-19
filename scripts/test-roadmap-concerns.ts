@@ -5,6 +5,8 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { loadFresh } from './cold-start-contracts';
 
 const LESSON_MARKERS = ['lib/learn-lessons/serve.ts', 'lib/learn-lessons/index.ts', 'lib/learn-lessons/dsa/index.ts', 'lib/learn-lessons/dsa-advanced/index.ts'];
+const COMPLETION_MARKERS = ['lib/roadmap/completion.ts', 'lib/concept-review.ts', 'lib/rewards/coins.ts', 'lib/rewards/referral.ts'];
+const ROADMAP_RUNTIME = 'lib/roadmap/runtime.ts';
 const ENV = {
   SUPABASE_URL: 'https://roadmap-concerns-fixture.test',
   SUPABASE_ANON_KEY: 'invented-roadmap-concerns-anon',
@@ -45,6 +47,64 @@ const responseFixture = `
   const evaluated = () => [...new Set(globalThis.__evaluated || [])].sort();
   const graderLoaded = () => Object.keys(require.cache).some(path => /node_modules\\/(?:typescript|quickjs-emscripten|@jitl)\\//.test(path));
 `;
+
+test('roadmap entry defers completion-only modules and evaluates its runtime once', async () => {
+  const fresh = await loadFresh('api/quiz/roadmap.ts', `({
+    evaluated: (globalThis.__evaluated || []).filter(name => name !== '${ROADMAP_RUNTIME}'),
+    runtimeEvaluations: (globalThis.__evaluated || []).filter(name => name === '${ROADMAP_RUNTIME}').length,
+    unexpected, calls,
+  })`, ENV, [...COMPLETION_MARKERS, ROADMAP_RUNTIME], beforeImport);
+  assert.deepEqual(fresh.probe, { evaluated: [], runtimeEvaluations: 1, unexpected: [], calls: [] });
+});
+
+for (const [name, query, signedIn] of [
+  ['public map', {}, false],
+  ['authenticated progress', { resource: 'progress' }, true],
+  ['guest eligibility', { resource: 'eligibility' }, false],
+  ['existing lesson', { resource: 'lesson', id: 'dsa-v1-d01-l1' }, false],
+] as [string, Record<string, string>, boolean][]) {
+  test(`${name} keeps completion-only modules deferred`, async () => {
+    const fresh = await loadFresh('api/quiz/roadmap.ts', `(async () => {
+      ${responseFixture}
+      const before = evaluated().filter(name => name !== '${ROADMAP_RUNTIME}');
+      const res = await read(${JSON.stringify(query)}, ${signedIn ? "{ headers: { authorization: 'Bearer invented-roadmap-token' } }" : '{}'});
+      return { before, after: evaluated().filter(name => name !== '${ROADMAP_RUNTIME}'),
+        runtimeEvaluations: (globalThis.__evaluated || []).filter(name => name === '${ROADMAP_RUNTIME}').length,
+        status: res.statusCode, timing: res.headers['server-timing'], cache: res.headers['cache-control'], unexpected, calls };
+    })()`, ENV, [...COMPLETION_MARKERS, ROADMAP_RUNTIME], beforeImport);
+    const value = fresh.probe as { before: string[]; after: string[]; runtimeEvaluations: number; status: number; timing: string; cache: string; unexpected: string[]; calls: { path: string }[] };
+    assert.equal(value.status, 200);
+    assert.deepEqual(value.unexpected, []);
+    assert.deepEqual(value.before, []);
+    assert.deepEqual(value.after, []);
+    assert.equal(value.runtimeEvaluations, 1, 'Concerns reuse the one roadmap runtime module');
+    assert.equal((value.timing.match(/(?:^|,)\s*app;/g) ?? []).length, 1, 'The same outer request wrapper owns timing');
+    assert.equal(value.calls.filter(call => call.path === '/auth/v1/user').length, signedIn ? 1 : 0);
+    if (signedIn) assert.equal(value.cache, 'private, no-store');
+  });
+}
+
+test('completion retains its invalid-session refusal and existing module dependencies', async () => {
+  const fresh = await loadFresh('api/quiz/roadmap.ts', `(async () => {
+    ${responseFixture}
+    const res = await read({ resource: 'complete' }, { method: 'POST' });
+    return { status: res.statusCode, code: res.body?.error?.code, cache: res.headers['cache-control'],
+      etag: res.headers.etag || null, evaluated: evaluated(),
+      runtimeEvaluations: (globalThis.__evaluated || []).filter(name => name === '${ROADMAP_RUNTIME}').length,
+      unexpected, calls };
+  })()`, ENV, [...COMPLETION_MARKERS, ROADMAP_RUNTIME], beforeImport);
+  const value = fresh.probe as { status: number; code: string; cache: string; etag: string | null; evaluated: string[]; runtimeEvaluations: number; unexpected: string[]; calls: unknown[] };
+  assert.equal(value.status, 400);
+  assert.equal(value.code, 'invalid_session');
+  assert.equal(value.cache, 'private, no-store');
+  assert.equal(value.etag, null);
+  assert.equal(value.runtimeEvaluations, 1);
+  for (const marker of COMPLETION_MARKERS.filter(marker => marker !== 'lib/roadmap/completion.ts')) {
+    assert.ok(value.evaluated.includes(marker), `${marker} remains available to completion`);
+  }
+  assert.deepEqual(value.unexpected, []);
+  assert.deepEqual(value.calls, [], 'A missing session reaches no upstream operation');
+});
 
 test('roadmap entry defers the full lesson reader and catalogue', async () => {
   const fresh = await loadFresh('api/quiz/roadmap.ts', '({ evaluated: globalThis.__evaluated || [], unexpected, calls })', ENV, LESSON_MARKERS, beforeImport);
