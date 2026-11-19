@@ -247,7 +247,7 @@ function holdRejections(starting: boolean) {
 export interface ReactSuiteOutcome extends MiniJestRun {
   /** Set when the component or the suite could not be compiled or loaded. */
   compileError: string | null;
-  /** True when a case ran past the per-case budget. */
+  /** True when the learner interrupt or the authored case clock stopped the run. */
   timedOut: boolean;
 }
 
@@ -260,12 +260,14 @@ export async function runReactSuite(input: { suite: string; appSource: string; c
   let compileError: string | null = null;
   let appModule: unknown = null;
   let learner: ReactLearner | undefined;
+  let learnerInterrupted=false;
   try {
     const { compileReactLearner } = input.compiledApp ? {compileReactLearner:undefined} : await import('./react-transpile');
     learner = await createReactLearner({
       source: input.compiledApp ?? compileReactLearner!(input.appSource), page, modules,
       fixtures: input.compiledFixtures ?? {'./fetchStub':compileReactLearner!(FETCH_STUB_SOURCE,false),'./localFetch':compileReactLearner!(LOCAL_FETCH_SOURCE,false)},
       makeError:runInContext('(message,name)=>{const error=new Error(message);error.name=name;return error;}',page),
+      onInterrupt:()=>{learnerInterrupted=true;},
       report: (type,reason) => {
         if(type==='unhandled') ignoreRejection(reason,undefined);
         else if(type==='callback-error') ignoreRejection(reason,undefined);
@@ -292,7 +294,7 @@ export async function runReactSuite(input: { suite: string; appSource: string; c
   } catch (error) {
     learner?.dispose();
     return {
-      cases: [], passed: 0, failed: 1, total: 1, timedOut: false,
+      cases: [], passed: 0, failed: 1, total: 1, timedOut: learnerInterrupted,
       compileError: cutErrorText(`compiling suite: ${(error as Error).message.split('\n')[0]}`),
     };
   }
@@ -320,7 +322,7 @@ export async function runReactSuite(input: { suite: string; appSource: string; c
     run = { cases, passed, failed: cases.length - passed, total: cases.length };
   }
   run = { ...run, cases: run.cases.map((one) => (one.error === null ? one : { ...one, error: cutErrorText(one.error) })) };
-  const timedOut = /interrupted/i.test(compileError??'') || run.cases.some((one) => one.status === 'fail' && /timed out|interrupted/i.test(one.error ?? ''));
+  const timedOut = learnerInterrupted || run.cases.some((one) => one.status === 'fail' && (one.error ?? '').startsWith('timed out after '));
   if (run.total === 0) {
     return { ...run, failed: 1, total: 1, timedOut, compileError: compileError ?? 'suite registered no test cases' };
   }

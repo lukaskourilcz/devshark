@@ -197,6 +197,7 @@ export async function createReactLearner(input: {
   modules: Record<string, unknown>;
   fixtures: Record<string,string>;
   report(type: string, reason: unknown): void;
+  onInterrupt?(): void;
   makeError(message:string,name:string): Error;
 }): Promise<ReactLearner> {
   const loading = wasm ??= newQuickJSWASMModuleFromVariant(variant);
@@ -204,7 +205,24 @@ export async function createReactLearner(input: {
   const runtime=engine.newRuntime();
   runtime.setMemoryLimit(64*1024*1024); runtime.setMaxStackSize(1024*1024);
   let expires=Date.now()+2500, disposed=false, flushQueued=false, command: QuickJSHandle | undefined;
-  runtime.setInterruptHandler(()=>Date.now()>expires);
+  let entryDepth=0, interrupted=false;
+  let interruption: Error | undefined;
+  runtime.setInterruptHandler(()=>{
+    if(interrupted) return true;
+    if(Date.now()<=expires) return false;
+    interrupted=true;
+    input.onInterrupt?.();
+    return true;
+  });
+  const enter=<T>(run:()=>T): T => {
+    if(interrupted) {
+      interruption??=input.makeError('interrupted','InternalError');
+      throw interruption;
+    }
+    if(entryDepth===0) expires=Date.now()+2500;
+    entryDepth++;
+    try {return run();} finally {entryDepth--;}
+  };
   const vm=runtime.newContext();
   const capabilities=new Map<number,HostCapability>(), hostIds=new WeakMap<object,number>(), guestValues=new Map<number,any>(), guestIds=new WeakMap<object,number>();
   const boundMethods=new WeakMap<object,Map<string,{raw:any;wire:Wire}>>();
@@ -231,11 +249,12 @@ export async function createReactLearner(input: {
   };
   const invoke=(message:Record<string,unknown>): any => {
     if(disposed||!command) throw new Error('Learner engine is closed');
-    expires=Date.now()+2500;
-    const argument=vm.newString(JSON.stringify(message));
-    const result=vm.callFunction(command,vm.undefined,argument); argument.dispose();
-    if(result.error) { const detail=dumpThrown(vm,result.error); const error=input.makeError(thrownText(detail,'Learner engine failed'),thrownField(detail,'name')||'Error'); const stack=thrownField(detail,'stack'); if(stack) error.stack=stack; throw error; }
-    const value=JSON.parse(vm.getString(result.value)); result.value.dispose(); return value;
+    return enter(()=>{
+      const argument=vm.newString(JSON.stringify(message));
+      const result=vm.callFunction(command,vm.undefined,argument); argument.dispose();
+      if(result.error) { const detail=dumpThrown(vm,result.error); const error=input.makeError(thrownText(detail,'Learner engine failed'),thrownField(detail,'name')||'Error'); const stack=thrownField(detail,'stack'); if(stack) error.stack=stack; throw error; }
+      const value=JSON.parse(vm.getString(result.value)); result.value.dispose(); return value;
+    });
   };
   const capability=(value:any,get:string[]=[],set:string[]=[],call?: (...args:any[])=>any,kind?:string,bound=false,record?:string[]): Wire => {
     if((typeof value==='object'&&value!==null)||typeof value==='function') {
@@ -444,7 +463,7 @@ export async function createReactLearner(input: {
   factory.dispose();request.dispose();schedule.dispose();report.dispose();parsed.value.dispose();
   if(initialized.error) {const message=thrownText(dumpThrown(vm,initialized.error),'Learner engine failed'); disposeQuietly(); throw new Error(message);}
   command=initialized.value;
-  const load=(name:string,source:string): any => {
+  const load=(name:string,source:string): any => enter(()=>{
     const loader=evaluate(`(require,module,exports)=>{${source}\n}`);
     // Only the host can pass this loader to the private command. Neither
     // loader, command nor eval/Function is exposed to the learner module.
@@ -452,7 +471,7 @@ export async function createReactLearner(input: {
     const loaded=vm.callFunction(command,vm.undefined,data,loader); data.dispose();loader.dispose();
     if(loaded.error) throw new Error(thrownText(dumpThrown(vm,loaded.error),'threw a value with no message'));
     const wire=JSON.parse(vm.getString(loaded.value)); loaded.value.dispose();return decode(wire);
-  };
+  });
   try {
     // Suites install their own fixture on the trusted page. Learner modules
     // may import the same deterministic helpers; their global fetch continues
