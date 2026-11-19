@@ -1,0 +1,303 @@
+{
+  "date": "2026-11-20 local / 2026-11-19 UTC",
+  "fixCommit": "9d5660a0ec5366ab7eb6f0a453b37e2c4cdb942e",
+  "observedRedCommit": "b1c5d95b87d243f3251d3e327a91dce2e5cb499c",
+  "observedRed": {
+    "head": "23a874f23a61a9f3507ce2c4c3298d06c94f4f81",
+    "fastSummary": {
+      "mode": "fast",
+      "previewPort": 4177,
+      "previewUrl": "http://localhost:4177",
+      "only": null,
+      "complete": false,
+      "stopped": "SIGINT",
+      "head": "23a874f23a61a9f3507ce2c4c3298d06c94f4f81",
+      "dirty": false,
+      "node": "24.22.3",
+      "startedAt": "2026-11-19T22:48:16.551Z",
+      "minutes": 6,
+      "passed": 21,
+      "failed": 1,
+      "skipped": 1,
+      "notRun": 1,
+      "steps": [
+        {
+          "id": "install",
+          "result": "skipped",
+          "detail": "node_modules present (pass --install to run npm ci)",
+          "seconds": 0,
+          "log": ""
+        },
+        {
+          "id": "check:quickjs-build",
+          "result": "not-run",
+          "detail": "the rebuild needs Python 3.10+ (set SHARK_PYTHON) or SHARK_EMSDK_DIR; python3 is older or missing",
+          "seconds": 0,
+          "log": ""
+        },
+        {
+          "id": "build",
+          "result": "pass",
+          "detail": "",
+          "seconds": 36,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/build.log"
+        },
+        {
+          "id": "check:ci-build-artifact",
+          "result": "pass",
+          "detail": "",
+          "seconds": 8,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/check_ci-build-artifact.log"
+        },
+        {
+          "id": "typecheck:api",
+          "result": "pass",
+          "detail": "",
+          "seconds": 8,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/typecheck_api.log"
+        },
+        {
+          "id": "typecheck:scripts",
+          "result": "pass",
+          "detail": "",
+          "seconds": 10,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/typecheck_scripts.log"
+        },
+        {
+          "id": "typecheck:tooling",
+          "result": "pass",
+          "detail": "",
+          "seconds": 14,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/typecheck_tooling.log"
+        },
+        {
+          "id": "audit:native-reviews",
+          "result": "pass",
+          "detail": "",
+          "seconds": 1,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/audit_native-reviews.log"
+        },
+        {
+          "id": "check:unused",
+          "result": "pass",
+          "detail": "",
+          "seconds": 7,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/check_unused.log"
+        },
+        {
+          "id": "check:security",
+          "result": "pass",
+          "detail": "",
+          "seconds": 0,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/check_security.log"
+        },
+        {
+          "id": "check:docs-archive",
+          "result": "pass",
+          "detail": "",
+          "seconds": 3,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/check_docs-archive.log"
+        },
+        {
+          "id": "check:deploy-contexts",
+          "result": "pass",
+          "detail": "",
+          "seconds": 0,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/check_deploy-contexts.log"
+        },
+        {
+          "id": "check:binary-size",
+          "result": "pass",
+          "detail": "",
+          "seconds": 2,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/check_binary-size.log"
+        },
+        {
+          "id": "check:images",
+          "result": "pass",
+          "detail": "",
+          "seconds": 3,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/check_images.log"
+        },
+        {
+          "id": "check:public",
+          "result": "pass",
+          "detail": "",
+          "seconds": 5,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/check_public.log"
+        },
+        {
+          "id": "check:bundle",
+          "result": "pass",
+          "detail": "",
+          "seconds": 23,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/check_bundle.log"
+        },
+        {
+          "id": "audit:prod",
+          "result": "pass",
+          "detail": "",
+          "seconds": 1,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/audit_prod.log"
+        },
+        {
+          "id": "audit:client",
+          "result": "pass",
+          "detail": "",
+          "seconds": 1,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/audit_client.log"
+        },
+        {
+          "id": "test:performance",
+          "result": "pass",
+          "detail": "",
+          "seconds": 78,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/test_performance.log"
+        },
+        {
+          "id": "test:launch",
+          "result": "pass",
+          "detail": "",
+          "seconds": 117,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/test_launch.log"
+        },
+        {
+          "id": "test:coding-auth",
+          "result": "pass",
+          "detail": "",
+          "seconds": 2,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/test_coding-auth.log"
+        },
+        {
+          "id": "test:grading-integrity",
+          "result": "fail",
+          "detail": "exit 1",
+          "seconds": 17,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/test_grading-integrity.log"
+        },
+        {
+          "id": "test:path-authority",
+          "result": "pass",
+          "detail": "",
+          "seconds": 1,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/test_path-authority.log"
+        },
+        {
+          "id": "test:react-authority",
+          "result": "pass",
+          "detail": "",
+          "seconds": 13,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/test_react-authority.log"
+        }
+      ]
+    },
+    "summarySha256": "0523929cbc1e9b0935c6af1e14fc15763273ab30c575ca158adab7e3f20c53b4",
+    "failedLog": "/tmp/devshark-epic-f-handoff/f11-final-fast-23a874f2/test_grading-integrity.log",
+    "failedLogSha256": "e4281271185bf2e12188187bbf929e03ce5ef90e83e8875346a38365c12495ac",
+    "actualFailure": "test:grading-integrity JSON.parse(listing.results[0].actual) parses display text cut after2000units and fails SyntaxError Unterminated string atposition2013",
+    "machineConsumerSearch": {
+      "path": "/tmp/devshark-epic-f-handoff/f11-machine-actual-consumers-23a874f2.txt",
+      "sha256": "10f5df1069f58dd683d148d1a1e1fa3904d27929ac75808010817229f5e9caaa",
+      "rgHits": 37,
+      "fullPayloadParseConsumers": [
+        "scripts/test-grading-integrity.ts:1557"
+      ],
+      "otherKinds": [
+        "UI/serialization formatting assertions and diagnostic display",
+        "jsonKind prefix-only production hints covered by bounded-result tests",
+        "Unrelated Map/mock bindings named actual"
+      ]
+    },
+    "requiredOracle": "Complete globals plus complete own member/prototype keys inclTypedArray remain authoritative. Move complete tuple to actual production expectations and use full-value pass flag before display cut.",
+    "plannedNegatives": [
+      "Actual extra global function",
+      "Actual added late prototype member",
+      "Actual deleted late builtin member; lasttwo keep identical cut display yet full comparison fails"
+    ],
+    "protected": "Productiondisplay2000,encoded900000,v3,allpools/leases/sourcecaps remain unchanged. Entire F11-04 host-binding/module/wasm20imports/75exports block remains exact.",
+    "status": "Observed fullactualred committed before test oracle correction; no new green claimed yet"
+  },
+  "sourceProof": {
+    "baseHead": "b1c5d95b87d243f3251d3e327a91dce2e5cb499c",
+    "testBeforeSha256": "22cc939a18aff498bef9d782f170d0ce23dbcc603b79830dd422ae7822a90856",
+    "testAfterSha256": "04a7653c152a9a51f3a1c6e3c82ca618290c65502783558a43dfd01534b59af0",
+    "inventoryCallBodySha256": "818e221632ee4e10dbca1d6bee1e5250f9728c7759f5a4cb0aac75e53299c6d1",
+    "inventoryCallBodyUnchanged": true,
+    "wholeHostFunctionModuleWasmBlockSha256": "6d63fbff06d69cb797252e2150488dc2b754ace43bdea96f555ca7f84d638130",
+    "wholeHostFunctionModuleWasmBlockUnchanged": true,
+    "focusedEntryWholeRegisteredOracleCopied": true,
+    "oracleBlockSha256": "74e044c497dde3b5cd72ff7544ed4ea37301a52a3fa02e3cf489fbcd23ae33f0",
+    "productionFilesChanged": false,
+    "testAfterTypeImportSha256": "7e0f71d7f173a1127c3494b84b370d2940ccff352265be8d811b65103ebe56ca",
+    "additionalChange": "Explicit type-only EvaluateResult import for the shape guard",
+    "onlyUncommittedPath": [
+      "scripts/test-grading-integrity.ts"
+    ]
+  },
+  "runs": [
+    {
+      "label": "focused-inventory",
+      "command": [
+        "node",
+        "node_modules/.cache/shark/f11-inventory-controls.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "b1c5d95b87d243f3251d3e327a91dce2e5cb499c",
+      "dirty": " M scripts/test-grading-integrity.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:58:28.082859+00:00",
+      "outerWatchdogSeconds": 60,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 0.378,
+      "logSha256": "aaec524ec20196cc291c9d7bd1fe41a1719e45177b1e1cf0fb6cbe8e1e27408a"
+    },
+    {
+      "label": "full-grading-integrity",
+      "command": [
+        "npm",
+        "run",
+        "test:grading-integrity"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "b1c5d95b87d243f3251d3e327a91dce2e5cb499c",
+      "dirty": " M scripts/test-grading-integrity.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:58:57.521705+00:00",
+      "outerWatchdogSeconds": 360,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 163.631,
+      "logSha256": "6baf79b9dd2945810001e4fa3a420137d4ec5640477fb22069a967c008734ba0"
+    },
+    {
+      "label": "types-scripts",
+      "command": [
+        "npm",
+        "run",
+        "typecheck:scripts"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "b1c5d95b87d243f3251d3e327a91dce2e5cb499c",
+      "dirty": " M scripts/test-grading-integrity.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T23:01:42.963400+00:00",
+      "outerWatchdogSeconds": 120,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 9.578,
+      "logSha256": "4145f557fbc398434351bacb2814399d2f9c9daf45ff864ee082a0b228027cd5"
+    }
+  ],
+  "counts": {
+    "focused": "Complete pinned inventory, three genuine drift controls and fresh-run recovery",
+    "umbrellaPrintedPassGroups": 183,
+    "nodeTransformTests": 27,
+    "nodeTransformFailures": 0,
+    "credentialedVm": "Explicit SKIP; no snapshot selected"
+  },
+  "classification": "Only the test oracle changed. Production comparison/display/budgets, pinned globals/members, v3, pools, private disposal transport and module/wasm inventory are unchanged.",
+  "consumerReview": "Static direct plus alias/multiline review found one full-payload display decoder. jsonKind intentionally classifies the preserved prefix; other hits are formatting/UI or unrelated mocks/maps. Search scope is this repository, not arbitrary downstream callers.",
+  "sourceHeads": "Focused/full/type receipts retain b1c5d95b plus the test-only dirty diff, subsequently committed byte-identically at9d5660a0. No clean final-fast result is inferred.",
+  "nextGate": "New clean-head fast at the forthcoming docs freeze, then exactly one additional same-head full Launch, required CI and merge. Prior23a Launch117s is historical and does not substitute."
+}

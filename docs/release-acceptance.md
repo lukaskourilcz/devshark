@@ -8996,3 +8996,26 @@ final fast, two final Launch passes, remote verify/sql, PR merge or production
 acceptance is claimed. The next frozen head must run those composed gates;
 keep this historical failed/incomplete checkpoint rather than rewriting it as
 a later pass. Acceptance after merge belongs in the next issue's record.
+
+
+### Epic F, F11 binding-inventory integration correction (20 November 2026)
+
+The second final-fast attempt at clean 23a874f2 stopped with SIGINT after 6 min:
+complete:false, 21 pass/1 fail/1 skip/1 not-run. Launch 117 s (80 result lines),
+path authority and React authority passed; grading-integrity failed 17 s when
+it JSON.parsed the intentionally 2000-cut displayed inventory. No complete
+fast or new-source two-Launch acceptance follows from that checkpoint.
+
+Observed-red record `b1c5d95b` precedes test fix `9d5660a0`. The unchanged
+complete global/member tuple now uses actual production full-value comparison.
+Three genuine VM drift negatives include two with identical cut display but
+failed full comparison, with setup/error guards and fresh recovery. Pinned
+names, properties, host bindings/module denial and 20 wasm imports/75 exports
+remain exact; production display/budget/session/pool code is unchanged.
+
+Focused 0.378 s, full grading-integrity 163.631 s (183 printed groups+27 transform
+cases, zero failures; credentialed VM explicitly SKIP) and scripts types 9.578 s
+pass. Original stage/head/dirty receipts and both earlier fast failures remain
+in `docs/quality/f11-binding-inventory-2026-11-19.md` and adjacent JSON.
+A new clean-head fast plus exactly one additional same-head Launch, then
+required CI/SQL/merge/deployment acceptance, remain pending.
