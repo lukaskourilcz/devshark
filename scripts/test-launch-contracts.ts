@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { complexityContracts } from './coding-complexity-contract';
 import { codingBoardContracts } from './coding-board-contract';
 import { codingFetchContracts } from './coding-fetch-contract';
-import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { constants as osConstants, tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -4136,6 +4136,16 @@ async function requestIdContracts() {
   console.log(`PASS request ids: ${cases.length} header combinations, x-vercel-id wins and a differing client id is logged beside it`);
 }
 
+async function adminTriagePlacementContracts() {
+  const route = readFileSync(join(process.cwd(), 'api/admin/[op].ts'), 'utf8');
+  const fresh = route.indexOf('requireFreshAuth(req);');
+  const limited = route.indexOf('if (!(await enforceRateLimit(req, res, RATE_LIMITS.admin))) return;');
+  const gated = route.indexOf('if (!(await requireAdmin(req, res))) return;');
+  const branch = route.indexOf("case 'triage':");
+  assert.ok(fresh >= 0 && limited > fresh && gated > limited && branch > gated, 'triage follows the existing fresh-admin and rate-limit boundary');
+  assert.equal(existsSync(join(process.cwd(), 'client/public/triage-verdicts.json')), false, 'the reviewer snapshot is no public asset');
+}
+
 async function main() {
   await adminDirectoryContracts();
   await practiceRunTransitionContracts();
@@ -6987,6 +6997,7 @@ async function main() {
   await quizDifficultyContracts();
   await dailySwitchContracts();
   await webdevBankContracts();
+  await adminTriagePlacementContracts();
   await leaderboardVisibilityContracts();
   await learnLessonContracts();
   await codingBriefContracts();

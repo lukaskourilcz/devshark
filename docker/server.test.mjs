@@ -327,3 +327,14 @@ test('Docker keeps the coding worker policy as vercel.json sets it when CSP_CONN
     assert.equal(response.headers.get('content-security-policy'), expected, `${pathname}: the worker policy`);
   }
 });
+
+// Retiring an asset must also block an old copied file before filesystem/fallback.
+test('the retired public triage URL is never served from a copied asset', async (t) => {
+  const origin = await startAdapter(t, { files: { 'triage-verdicts.json': '{"verdicts":{"private":"reviewer-note-canary"}}' } });
+  for (const method of ['GET', 'HEAD']) {
+    const response = await fetch(`${origin}/triage-verdicts.json?old=1`, { method });
+    assert.equal(response.status, 404);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.equal(await response.text(), '');
+  }
+});

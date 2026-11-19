@@ -220,3 +220,29 @@ describe('/dev → Question bank', () => {
     expect(await screen.findByRole('button', { name: 'Delete selected (1)' })).toBeInTheDocument();
   });
 });
+
+// F14-03: retry must recover either independently failing read.
+it.each(['questions', 'triage', 'both'] as const)('retries both triage reads after %s failed', async (failed) => {
+  let questionsReads = 0;
+  let triageReads = 0;
+  const triage = () => {
+    triageReads++;
+    return triageReads === 1 && failed !== 'questions'
+      ? HttpResponse.json({ error: { code: 'internal_error', message: 'Internal error' } }, { status: 500 })
+      : HttpResponse.json({ meta: { total: 1, keep: 0, cut: 1, generatedFrom: 'test', keepRule: 'test' }, verdicts: { retry: verdict(1) } });
+  };
+  server.use(
+    http.get('*/api/admin/questions', () => {
+      questionsReads++;
+      return questionsReads === 1 && failed !== 'triage'
+        ? HttpResponse.json({ error: { code: 'internal_error', message: 'Internal error' } }, { status: 500 })
+        : HttpResponse.json({ questions: [question('retry')], categories: ['react'], reportCounts: {} });
+    }),
+    http.get('*/api/admin/triage', triage), http.get('*/triage-verdicts.json', triage),
+  );
+  renderTab('triage');
+  fireEvent.click(await screen.findByRole('button', { name: 'Retry' }));
+  expect(await screen.findByText('Question retry?')).toBeInTheDocument();
+  expect(questionsReads).toBeGreaterThanOrEqual(2);
+  expect(triageReads).toBeGreaterThanOrEqual(2);
+});

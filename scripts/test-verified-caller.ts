@@ -38,7 +38,7 @@
  * fetch. Nothing leaves the machine. */
 
 import assert from 'node:assert/strict';
-import { generateKeyPairSync } from 'node:crypto';
+import { createHash, generateKeyPairSync } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
@@ -871,13 +871,47 @@ async function main() {
     // ── the admin console's API ──────────────────────────────────────────
     const admin = (op: string, input: Omit<Parameters<typeof call>[1], 'query'> & { query?: Record<string, string> }) =>
       call(adminOps as Handler, { account: ROLE_ADMIN, ...input, query: { op, ...(input.query ?? {}) } });
-    for (const op of ['users', 'emails', 'vouchers']) {
+    for (const op of ['users', 'emails', 'vouchers', 'triage']) {
       for (const account of [undefined, A]) {
         const denied = await call(adminOps as Handler, { method: 'GET', account, query: { op } });
         assert.equal(denied.statusCode, 403, 'private administration rejects guests and regular accounts for ' + op);
         assert.equal(errorCode(denied), 'forbidden');
       }
     }
+    // F14-03 / F10-41: the preserved reviewer overlay is private administration.
+    const triage = await admin('triage', { method: 'GET' });
+    assert.equal(triage.statusCode, 200, 'a verified admin can read the triage overlay');
+    assert.equal(triage.headers['cache-control'], 'private, no-store');
+    const triageFile = readFileSync(join(process.cwd(), 'lib/data/triage-verdicts.json'));
+    assert.equal(createHash('sha256').update(triageFile).digest('hex'), 'fb894a7939788e3e07fd641a1e1c4836279e7c84fc906364ae9ccba8807b1f17', 'moving the dataset preserves every byte');
+    assert.deepEqual(triage.body, JSON.parse(triageFile.toString('utf8')), 'the admin receives the existing overlay without loss');
+    const triagePost = await admin('triage', { method: 'POST' });
+    assert.equal(triagePost.statusCode, 405);
+    assert.equal(triagePost.headers['allow'], 'GET');
+    assert.equal(triagePost.headers['cache-control'], 'private, no-store');
+
+    // Even an accepted read token must be checked again by the admin router.
+    await user('identity', { account: JWT_ADMIN });
+    revokedTokens.add(JWT_ADMIN.token);
+    try {
+      const revoked = await call(adminOps as Handler, { account: JWT_ADMIN, query: { op: 'triage' } });
+      assert.equal(revoked.statusCode, 403);
+      assert.equal(errorCode(revoked), 'forbidden');
+      assert.ok(!('verdicts' in revoked.body));
+    } finally { revokedTokens.delete(JWT_ADMIN.token); }
+    const triageAddress = nextAddress();
+    for (let n = 0; n < rateLimit.RATE_LIMITS.admin.capacity; n++) {
+      assert.equal((await admin('triage', { from: triageAddress })).statusCode, 200);
+    }
+    assert.equal((await admin('triage', { from: triageAddress })).statusCode, 429, 'triage shares the existing admin bucket');
+    upstashMode('failing');
+    try {
+      const closed = await admin('triage', {});
+      assert.equal(closed.statusCode, 503);
+      assert.equal(errorCode(closed), 'rate_limit_unavailable');
+      assert.ok(!('verdicts' in closed.body));
+    } finally { upstashMode('healthy'); }
+
     const directoryMethod = await admin('users', { method: 'POST' });
     assert.equal(directoryMethod.statusCode, 405, 'a verified admin cannot write through the directory');
     const emails = await admin('emails', { method: 'GET' });
