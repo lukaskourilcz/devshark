@@ -31,6 +31,8 @@ export interface HarnessRun {
 
 export interface HarnessHandle {
   ready: boolean;
+  /** The requested frame did not finish its readiness handshake in time. */
+  loadFailed: boolean;
   run: HarnessRun | null;
   /** Compiles, optionally runs the suite, and renders the preview. */
   start: (files: Record<string, string>, options: { tests: boolean; preview: boolean }) => Promise<HarnessRun>;
@@ -45,12 +47,14 @@ const newToken = () => `${Date.now().toString(36)}-${Math.random().toString(36).
 export function useReactHarness(): HarnessHandle {
   const frame = useRef<HTMLIFrameElement | null>(null);
   const [ready, setReady] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [run, setRun] = useState<HarnessRun | null>(null);
   const pending = useRef<{ token: string; resolve: (run: HarnessRun) => void; timer: number } | null>(null);
   const current = useRef<HarnessRun | null>(null);
   const [frameKey, setFrameKey] = useState(0);
   const readyWaiters = useRef<((ready: boolean) => void)[]>([]);
   const readyRef = useRef(false);
+  const readyTimer = useRef<number | undefined>(undefined);
   const generation = useRef(0);
   const logFlush = useRef<number | undefined>(undefined);
 
@@ -65,6 +69,8 @@ export function useReactHarness(): HarnessHandle {
   // Every caller must settle, including callers waiting for the frame to boot.
   const cancel = useCallback(() => {
     flushLogs();
+    window.clearTimeout(readyTimer.current);
+    readyTimer.current = undefined;
     generation.current++;
     readyRef.current = false;
     readyWaiters.current.splice(0).forEach(resolve => resolve(false));
@@ -94,6 +100,9 @@ export function useReactHarness(): HarnessHandle {
       const data = event.data as { type?: string; token?: string } & Record<string, unknown>;
       if (!data || typeof data.type !== 'string') return;
       if (data.type === 'ready') {
+        window.clearTimeout(readyTimer.current);
+        readyTimer.current = undefined;
+        setLoadFailed(false);
         readyRef.current = true;
         setReady(true);
         readyWaiters.current.splice(0).forEach((resolve) => resolve(true));
@@ -135,11 +144,14 @@ export function useReactHarness(): HarnessHandle {
     return () => { window.removeEventListener('message', onMessage); cancel(); };
   }, [cancel, settle, flushLogs]);
 
-  const reload = useCallback(() => {
+  const restart = useCallback((clearRun: boolean) => {
     cancel();
     setReady(false);
+    setLoadFailed(false);
+    if (clearRun) setRun(null);
     setFrameKey((k) => k + 1);
   }, [cancel]);
+  const reload = useCallback(() => restart(true), [restart]);
 
   const waitReady = useCallback(() => new Promise<boolean>((resolve) => {
     if (readyRef.current && frame.current?.contentWindow) return resolve(true);
@@ -176,17 +188,29 @@ export function useReactHarness(): HarnessHandle {
       const timer = window.setTimeout(() => {
         const timedOut: HarnessRun = { ...(current.current ?? base), status: 'timeout' };
         settle(timedOut);
-        reload();
+        // The new frame is a recovery step; retain the completed result so
+        // the workbench still explains why the code stopped.
+        restart(false);
       }, RUN_TIMEOUT_MS);
       pending.current = { token, resolve, timer };
       target.postMessage({ type: 'run', token, files, preview: options.preview, tests: options.tests }, '*');
     });
-  }, [reload, settle, waitReady]);
+  }, [restart, settle, waitReady]);
 
   const iframeRef = useCallback((node: HTMLIFrameElement | null) => {
+    window.clearTimeout(readyTimer.current);
+    readyTimer.current = undefined;
     frame.current = node;
-    if (!node) setReady(false);
+    readyRef.current = false;
+    setReady(false);
+    setLoadFailed(false);
+    if (node) {
+      readyTimer.current = window.setTimeout(() => {
+        readyTimer.current = undefined;
+        if (frame.current === node && !readyRef.current) setLoadFailed(true);
+      }, READY_TIMEOUT_MS);
+    }
   }, []);
 
-  return useMemo(() => ({ ready, run, start, reload, iframeRef, frameKey }), [ready, run, start, reload, iframeRef, frameKey]);
+  return useMemo(() => ({ ready, loadFailed, run, start, reload, iframeRef, frameKey }), [ready, loadFailed, run, start, reload, iframeRef, frameKey]);
 }
