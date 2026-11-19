@@ -8440,3 +8440,33 @@ A later root read-only process scan at 2026-11-19T19:39:13.467185+00:00
 finds zero processes bearing the three exact owned browser-scratch markers.
 `docs/audit/f1-browser-lifecycle-2026-11.json` retains that narrow observation;
 it does not claim that unrelated browser processes stopped.
+
+
+## Epic F1 baseline: original-source bundle retake (19 November 2026)
+
+Issue #630, F1-22. The original 18 November raw output is missing. A new run
+on 19 November, 20:06:54 to 20:08:05 UTC, measures source
+`a9882348c0d539db6c3a240cabc69474c617820c` with its unchanged collector,
+locks and all six public build placeholders. This is a dated retake, not a
+recovered observation from the original day. The command is the historical
+`ANALYZE=true node scripts/check-bundle.mjs`; an owned exact-argument adapter
+selects its private Vite 6.4.5 installation instead of downloading through npx.
+
+| Check | Actual result |
+| --- | --- |
+| Initial HTML graph | Five files; 235,381 gzip bytes / original 241,651-byte cap. |
+| Monitoring graph | 49,566 / 60,000 gzip bytes. |
+| Current comparison | Current shaped graph is four files / 218,661 bytes, a 16,720-byte difference across source and dependency changes. No individual-fix attribution follows. |
+| Exact inputs | All 2,595 source blobs and 60,131 dependency payload files/links match before and after; 787 packages came from integrity-verified offline cache. Node 24.22.3, darwin arm64. |
+| Isolation and cleanup | Native macOS network denial remains active. The only fetch allowance is the exact pinned embedded Yoga WASM data URI. Supervisor accepted, process group gone, owned scratch and reused archive removed. |
+| Final branch gate | Pending the clean-head fast parity run and required CI. |
+
+The earlier harness failures remain recorded: an unsupported valid package
+archive prefix, one identical duplicate archive member, discarded primary
+build stderr, a fetch guard that rejected embedded data, and archive modes
+that prevented rewriting the copied output manifest. The final run retains
+primary logs before checking artifacts. Restoring normal checkout file modes
+changes no source bytes. No application/provider/production request, dependency
+update, root/F11 install, extra managed worktree or historical-date claim was
+part of this retake. The compact [historical-source artifact](audit/f1-historical-bundle-retake-2026-11-19.json)
+links exact inputs, raw hashes, the original five-file graph and failure chronology.

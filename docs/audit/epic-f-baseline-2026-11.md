@@ -14,7 +14,7 @@ credential or real provider is needed for those local builds.
 
 | Measurement category | Actual evidence | Remaining boundary |
 | --- | --- | --- |
-| Initial graph | [Shaped bundle](f1-bundle-2026-11.json): four initial files, 218,661 gzip bytes / 218,675 cap, no preloaded fonts; matching monitoring 46,800 / 60,000. | New local checkpoint, not a recreated original `a9882348` observation. [Actual production transfer](f1-production-bundle-2026-11-19.json) records five complete bodies, 225,897 encoded bytes including HTML; the earlier partial run remains separate. |
+| Initial graph | [Shaped bundle](f1-bundle-2026-11.json): four initial files, 218,661 gzip bytes / 218,675 cap, no preloaded fonts; matching monitoring 46,800 / 60,000. | [Historical-source retake](f1-historical-bundle-retake-2026-11-19.json): original `a9882348` source/locks measured today at 235,381 gzip bytes in five initial files; this is a new observation, not recovered 18 November data. [Actual production transfer](f1-production-bundle-2026-11-19.json) records five complete bodies, 225,897 encoded bytes including HTML; the earlier partial run remains separate. |
 | Largest chunks and treemap | The same artifact retains all ten largest of 233 chunks and hashes of the matching generated treemap/module report, saved with the external execution logs. | Lazy compiler/editor chunks are separate from initial bytes. Per-module gzip estimates do not add up to whole-file gzip. |
 | Lighthouse and CDP | [Mobile Lighthouse](f1-mobile-lighthouse-2026-11.json), [desktop Lighthouse](f1-desktop-lighthouse-2026-11.json): 48 completed audits. [Mobile CDP](f1-mobile-cdp-2026-11.json) and [desktop CDP](f1-desktop-cdp-2026-11.json) preserve the original 96 rows plus the separate corrected Daily cohort. | The primary CDP tables use 84 original interaction-valid rows plus 12 corrected Daily rows; the original twelve missing inputs remain visible. [Production Home calibration](f1-production-home-calibration-2026-11-19.json) completes two Lighthouse audits and four registered CDP rows under its separate real-origin/proxy scope. Static Lighthouse and populated CDP states differ. |
 | Handler entry and imports | [Complete handler baseline](f1-handler-baseline-2026-11-19.json): actual merged-F7 production 36 read/refusal responses, and two original twelve-handler local import checkpoints with 36 samples each. | Local CJS imports are not deployed Lambda inventory, platform boot, retained memory or authorized learner-operation timing. Slower rows and unknown module markers remain. |
@@ -23,7 +23,7 @@ credential or real provider is needed for those local builds.
 | Database advisors | [Full historical projection](database-advisors-2026-11.json): 90 nested findings in five groups, exact identities/remediation and scoped policy/grant/key crosschecks. | Advisor/catalog/key clocks remain separate. Migration head and function ACLs were not observed. No schema/policy change or planner-performance claim follows. |
 | Repository, container and CI | [Exact-main Git weight](repository-weight-2026-11.json): 41,772 reachable objects, 106,650,880-byte stored representation estimate. [F14 container](f1-container-baseline-2026-11-19.json): actual historical paired images. [CI population](f1-ci-quality-snapshot-2026-11-19.json): original 14:19:58 UTC ten-run/76-job selection. | Shared-store du is not main's size or reclaimable bytes. Historical image checkout and CI ref differ and stay explicit. CI's 599 hypothetical ceiling minutes are not billing or a controlled speedup. |
 
-## Request scope and missing historical baseline
+## Request scope and historical measurement dates
 
 [The partial ledger](f1-production-request-ledger-2026-11-19.json) reconciles
 154 declared request counts and 161 known completed response observations in
@@ -39,8 +39,8 @@ choice inferred an owner gate from contradictory historical under-250 wording;
 review of the original brief corrected that interpretation. Raw production
 transfer is now recorded after its genuine deadline correction; the separately
 recorded Home browser calibration is also complete. Every new attempt must be counted with its own scope and bounds. The missing original pre-fix
-timing cannot be recreated as an observation from its original date or SHA.
-These limits remain visible. A new retake of the historical source is being prepared with its actual date and exact dependency versions; it will not be presented as a recovered original observation. Package closeout still requires the remaining measurements, branch parity and required CI.
+timing cannot be recreated as an observation made on its original date.
+These limits remain visible. The historical-source retake now completes with its actual 19 November date and exact offline dependency versions: 235,381 / 241,651 initial gzip bytes and 49,566 / 60,000 monitoring bytes. The current shaped graph is 16,720 bytes smaller, across source and dependency changes; this comparison does not isolate a causal fix. Package closeout still requires branch parity and required CI.
 
 ## Reproduction and provenance
 

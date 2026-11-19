@@ -1,0 +1,359 @@
+{
+  "schemaVersion": 1,
+  "status": "measured historical-source retake accepted with unchanged source/dependency proofs",
+  "preparedAtUtc": "2026-11-19T20:10:40.394165+00:00",
+  "historicalCommit": "a9882348c0d539db6c3a240cabc69474c617820c",
+  "historicalTreeOid": "0c0534274e83bdc87a27d3b5c26ad6d34d0428ef",
+  "actualObservedAtUtc": "2026-11-19T20:06:54.985079+00:00",
+  "actualCompletedAtUtc": "2026-11-19T20:08:05.436045+00:00",
+  "historical18NovemberObservationRecreated": false,
+  "originalRawHistoryGapRemains": true,
+  "bundle": {
+    "configuration": {
+      "build": "vite build --outDir dist-budget",
+      "product": "VITE_PRODUCT=devshark, VITE_LOCK_SUBJECT=webdev",
+      "placeholders": [
+        "VITE_SUPABASE_URL",
+        "VITE_SUPABASE_ANON_KEY",
+        "VITE_SENTRY_DSN",
+        "VITE_PUBLIC_POSTHOG_KEY"
+      ]
+    },
+    "initialGzipBytes": 235381,
+    "budget": 241651,
+    "monitoringGzipBytes": 49566,
+    "monitoringBudget": 60000,
+    "sizes": [
+      {
+        "file": "assets/main-7qF04fNl.js",
+        "gzipBytes": 121273
+      },
+      {
+        "file": "assets/router-BK8uWTnc.js",
+        "gzipBytes": 18091
+      },
+      {
+        "file": "assets/tanstack-BOkpBNRy.js",
+        "gzipBytes": 13383
+      },
+      {
+        "file": "assets/react-uR7sFE9g.js",
+        "gzipBytes": 56850
+      },
+      {
+        "file": "assets/main-BLNYOMu2.css",
+        "gzipBytes": 25784
+      }
+    ]
+  },
+  "tenLargestEmittedJsCssGzip6": [
+    {
+      "path": "assets/coding-worker/ts-compiler-B7j17HSi.js",
+      "bytes": 4191151,
+      "gzipBytes": 1092837,
+      "initial": false
+    },
+    {
+      "path": "assets/Editor-CNzwt4Q_.js",
+      "bytes": 513253,
+      "gzipBytes": 173102,
+      "initial": false
+    },
+    {
+      "path": "assets/EmailRichTextEditor-Bpm4k6nr.js",
+      "bytes": 410401,
+      "gzipBytes": 130667,
+      "initial": false
+    },
+    {
+      "path": "assets/main-7qF04fNl.js",
+      "bytes": 364017,
+      "gzipBytes": 121273,
+      "initial": true
+    },
+    {
+      "path": "assets/posthogClient-DIJeVhAr.js",
+      "bytes": 280439,
+      "gzipBytes": 93486,
+      "initial": false
+    },
+    {
+      "path": "assets/babel-Ccmw_PC1.js",
+      "bytes": 319252,
+      "gzipBytes": 83128,
+      "initial": false
+    },
+    {
+      "path": "assets/estree-C49uMT3L.js",
+      "bytes": 212221,
+      "gzipBytes": 62211,
+      "initial": false
+    },
+    {
+      "path": "assets/react-uR7sFE9g.js",
+      "bytes": 180951,
+      "gzipBytes": 56850,
+      "initial": true
+    },
+    {
+      "path": "assets/supabase-B5YuwSPF.js",
+      "bytes": 211912,
+      "gzipBytes": 55304,
+      "initial": false
+    },
+    {
+      "path": "assets/sentry-sdk-BV8Dx6e5.js",
+      "bytes": 146214,
+      "gzipBytes": 49566,
+      "initial": false
+    }
+  ],
+  "comparison": {
+    "scope": "Historical source/old lock retake vs separately observed current source/current lock; observational bundle comparison, no source-only or build-time causal claim.",
+    "currentArtifact": "/tmp/devshark-epic-f-handoff/f1-execution-8d1de23d/bundle.json",
+    "currentArtifactSha256": "44b4ba5ec31cdee0a043792483e02a92607fd9815b428ae09047417b81f294cd",
+    "currentInitialGzipBytes": 218661,
+    "retakeInitialGzipBytes": 235381,
+    "observedDifferenceBytes": 16720
+  },
+  "runtime": {
+    "version": "v24.22.3",
+    "platform": "darwin",
+    "arch": "arm64",
+    "binarySha256": "ba7073582822078d8c90bca3facacc46690bc5366fab4b815aeef9148cd6e854"
+  },
+  "sourceProofs": {
+    "before": {
+      "complete": true,
+      "files": 2595,
+      "gitCommit": "a9882348c0d539db6c3a240cabc69474c617820c",
+      "treeOid": "0c0534274e83bdc87a27d3b5c26ad6d34d0428ef",
+      "mismatches": []
+    },
+    "after": {
+      "complete": true,
+      "files": 2595,
+      "gitCommit": "a9882348c0d539db6c3a240cabc69474c617820c",
+      "treeOid": "0c0534274e83bdc87a27d3b5c26ad6d34d0428ef",
+      "mismatches": []
+    }
+  },
+  "dependencyProofs": {
+    "before": {
+      "complete": true,
+      "payloadFilesAndLinks": 60131,
+      "mismatches": []
+    },
+    "after": {
+      "complete": true,
+      "payloadFilesAndLinks": 60131,
+      "mismatches": []
+    },
+    "oldRootPackagesSelected": 254,
+    "oldClientPackagesSelected": 533,
+    "packages": 787,
+    "uniqueCachedPayloads": 697,
+    "packageInputManifestSha256": "96fe8cdb8292e5d267da81e10333f632ad82f66eff28e94d68beedec27fdc722",
+    "historicalLockGraphPlanSha256": "3e9939ca3b671cea3032628de63e5e80d43d4326e5ef1e2b8f995641dbb26c30",
+    "identicalTarDuplicatesReconciled": 1
+  },
+  "sourcePins": {
+    "package.json": {
+      "bytes": 11121,
+      "sha256": "bd26b9067d2c4dd3aafab1cf57ad9b7ae72e3ff0da45ff284c8dd5c259d36089"
+    },
+    "package-lock.json": {
+      "bytes": 149619,
+      "sha256": "0930b1fde200f55dc6f5ad110aa6b634dccf3f96911669ad80f8bd680d49483d"
+    },
+    "client/package.json": {
+      "bytes": 2559,
+      "sha256": "cda939f6ab261dd63f1bf18b1bbb23e450168332a1d37b2fb01fb442c576e2f1"
+    },
+    "client/package-lock.json": {
+      "bytes": 309053,
+      "sha256": "fbb9599a9438cba4f7e7b3a26e7df393b31a292b6eaf306e1bb2891fa7fd0d58"
+    },
+    "docs/quality/bundle-budget.json": {
+      "bytes": 1607,
+      "sha256": "f1c5f3e084f7dafd3e24d56cf1681af24ea0e404ed3a296a857ab8cdd4b378fb"
+    },
+    "scripts/check-bundle.mjs": {
+      "bytes": 4861,
+      "sha256": "9069e36fa93d4762f57b569873bdb75e91db757bf516c06bedc35a63556470f9"
+    },
+    "client/vite.config.ts": {
+      "bytes": 29688,
+      "sha256": "a22b1f6fb45489ffde7d07a809da47f4e8ed32a0cc5f86e9d685422c8ee17b9e"
+    },
+    "client/vite.sandbox.config.ts": {
+      "bytes": 1685,
+      "sha256": "3c19f150a70f5cd83db0539ddd7e039a3175a73ab8a2153d0fb97057d5e394cd"
+    },
+    "client/src/og/ogImages.ts": {
+      "bytes": 6854,
+      "sha256": "39e5c97fa343616e6cb6b40d1842523e602b5a93571f676689249f834ee05a4a"
+    }
+  },
+  "frozenHarness": {
+    "manifestPath": "/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-UNRUN-a9882348/manifest-UNRUN.json",
+    "manifestSha256": "69f422cc7fdbc78d2b795948f4be4af7548e5a4809a42d5cfe14b5b951738895",
+    "controllerSha256": "718f8f3b78120d4ecc1c189bcc8c84ff93b1070783a790b8ad81afb5b51c01e2",
+    "buildOnlyControllerSha256": "c824c0e5a29423a8583456a2287a731f3dfa12e52374a48a257dd78580265711",
+    "allowedInlineDataUriSha256": "2a3af1723c9ab5dd5a0bf6ac4440cee82a86d74bb1de1b5ed95c75ef7ce05f87",
+    "nativeNetworkProfileSha256": "5c358b8d847211333e7ba22df82d84f796b5f30a41a2682209a949d783adbd08"
+  },
+  "supervision": {
+    "status": "retake-supervision-complete",
+    "accepted": true,
+    "historicalCommit": "a9882348c0d539db6c3a240cabc69474c617820c",
+    "actualRetakeCompletedAtUtc": "2026-11-19T20:08:05.496108+00:00",
+    "elapsedMs": 70508.64079199999,
+    "outerTimeoutMs": 600000,
+    "buildPhaseTimeoutMs": 300000,
+    "exitCode": 0,
+    "timedOut": false,
+    "outputLimited": false,
+    "diskReserveTriggered": false,
+    "aborted": null,
+    "groupGone": true,
+    "ownedScratchRemoved": true,
+    "failedOwnedViewRetained": false,
+    "outputByteCounts": {
+      "stdout": 159,
+      "stderr": 0
+    },
+    "outputHashes": {
+      "stdout": "9bad5ef49e2f426712974a57f876162bb184f41dc220b83f55896050e8467cd9",
+      "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "externalManifestSha256": "69f422cc7fdbc78d2b795948f4be4af7548e5a4809a42d5cfe14b5b951738895",
+    "externalArtifactsUnchanged": true,
+    "originalObservationRecreated": false,
+    "limits": [
+      "SIGKILL of the outer supervisor cannot run cleanup; inspect retained owned output before deleting.",
+      "Actual old budget failure can still be a valid measured retake, never a release pass."
+    ]
+  },
+  "reusedViewCleanup": {
+    "complete": true,
+    "ownedRoot": "/private/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-a9882348-20261119-r4",
+    "viewAndControlRemoved": true,
+    "priorPrivateDiagnosticsPreserved": true
+  },
+  "failedAndSuccessfulAttemptChronology": [
+    {
+      "attempt": 1,
+      "reason": "Valid DefinitelyTyped archive prefix rejected before materialization.",
+      "accepted": false,
+      "elapsedMs": 1028.599209,
+      "groupGone": true,
+      "scratchRemoved": true,
+      "receipt": "/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-a9882348-20261119/supervision.json",
+      "receiptSha256": "b1b27af3e673c7dbf4434ac76ee23be12991c40db3a1150e568abca5a634a5d1"
+    },
+    {
+      "attempt": 2,
+      "reason": "One byte/mode-identical duplicate tar member rejected during dependency materialization; no build.",
+      "accepted": false,
+      "elapsedMs": 34103.205542,
+      "groupGone": true,
+      "scratchRemoved": true,
+      "receipt": "/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-a9882348-20261119-r2/supervision.json",
+      "receiptSha256": "15675d3e811fc0e5ba66f8488c5b147a43ef7e7cbdab63ad9a6ec60d482a128a"
+    },
+    {
+      "attempt": 3,
+      "reason": "Vite failed and the harness retained only the primary stderr hash; attempt4 later captured the embedded Satori Yoga data rejection. The missing attempt3 raw stderr remains a diagnostic gap.",
+      "accepted": false,
+      "elapsedMs": 50739.579333,
+      "groupGone": true,
+      "scratchRemoved": true,
+      "receipt": "/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-a9882348-20261119-r3/supervision.json",
+      "receiptSha256": "f52759c4138b7feed8c3dca636fbdc4cc880cd5ca0a6a036774b35fb43852ec2"
+    },
+    {
+      "attempt": 4,
+      "reason": "Same primary failure captured in bounded private0600 logs; view retained.",
+      "accepted": false,
+      "elapsedMs": 45057.74308300001,
+      "groupGone": true,
+      "scratchRemoved": false,
+      "receipt": "/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-a9882348-20261119-r4/supervision.json",
+      "receiptSha256": "655c58d3c17169fc7869804fdae22287db9f74be09893e4714790e44e4d9eb61"
+    },
+    {
+      "attempt": 5,
+      "reason": "Exact embedded data allowance passes Satori import; Vite then hits derived manifest EACCES from private source0444 mode.",
+      "accepted": false,
+      "elapsedMs": 42668.713167,
+      "groupGone": true,
+      "scratchRemoved": false,
+      "receipt": "/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-a9882348-20261119-r5-buildonly/supervision.json",
+      "receiptSha256": "e5ec01f24e3a56f170c38bf07f419c6779051b303a9d654f630f099dbbfc2b24"
+    },
+    {
+      "attempt": 6,
+      "reason": "Normal private Git checkout0644/0755 modes restored; exact old-source/old-lock build and proofs pass.",
+      "accepted": true,
+      "elapsedMs": 70508.64079199999,
+      "groupGone": true,
+      "scratchRemoved": true,
+      "receipt": "/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-a9882348-20261119-r6-buildonly/supervision.json",
+      "receiptSha256": "44feed08541bb82254c79eb007fb3ab8c4d6912a600f5ca262b371d358703f1e"
+    }
+  ],
+  "privateBuildLogs": [
+    {
+      "localPrivatePath": "/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-a9882348-20261119-r6-buildonly/artifacts/historical-collector.stderr.private.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commitRawLog": false
+    },
+    {
+      "localPrivatePath": "/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-a9882348-20261119-r6-buildonly/artifacts/historical-collector.stdout.private.log",
+      "bytes": 574,
+      "sha256": "5f0cd63c080d91003f4158b332ffdb1b3de16edf33f0baa66f113bef839ae1d4",
+      "commitRawLog": false
+    },
+    {
+      "localPrivatePath": "/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-a9882348-20261119-r6-buildonly/artifacts/satori-import.stderr.private.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commitRawLog": false
+    },
+    {
+      "localPrivatePath": "/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-a9882348-20261119-r6-buildonly/artifacts/vite.stderr.private.log",
+      "bytes": 332,
+      "sha256": "ccb6bf354a0674eeb1e49df9a880a000b75240079fdb849282bb899d81eeb58c",
+      "commitRawLog": false
+    },
+    {
+      "localPrivatePath": "/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-a9882348-20261119-r6-buildonly/artifacts/vite.stdout.private.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commitRawLog": false
+    }
+  ],
+  "originalReceipts": {
+    "retakeResultPath": "/tmp/devshark-epic-f-handoff/f1-historical-bundle-retake-a9882348-20261119-r6-buildonly/retake-result.json",
+    "retakeResultSha256": "22599f1e05783dbca41af20b0aad2ddd29e73eb605a430655e68eaaf73cdc084",
+    "adapterInventorySha256": "51d4523802f3f8c630113c6f2d5e6ef419dba09747843f76e4e02ac46e0f91fb",
+    "treemapSha256": "d2948cd839c16853a96889e7759973852b31b7ee1aff181c4acf992ba6607e76",
+    "rawGraphSha256": "aa88dde76fe7c35be50d042ac468dfcff5e1f47b8da8c0a1be463613b6afcd13",
+    "sourceBeforeSha256": "38404de7796300b0bfbc170258e6411fa112ffd123a1b97833872508a332df68",
+    "sourceAfterSha256": "38404de7796300b0bfbc170258e6411fa112ffd123a1b97833872508a332df68",
+    "dependenciesAfterSha256": "76aeefb316df3417142d5f4f26cb24bfb58e9ba1ffdf27d5dc780393292cf5bb"
+  },
+  "limits": [
+    "One valid retake today; failed preparation/build attempts are preserved and are not baseline samples.",
+    "Original historical tool/source/locks/budgets unchanged; owned exact-argv npx adapter launches privateVite6.4.5.",
+    "ANALYZE enabled for original graph plugin; no historical-time, original-date, source-only speedup or billed-spend claim.",
+    "No app/provider/production requests, original worktree/dependency writes, extra managed worktree, dummy HEAD, or policy/settings mutation.",
+    "Raw private build logs and source/dependency view must not be committed. Compact hashes/counts only."
+  ],
+  "projectionAdoption": {
+    "originalProjectionSha256": "5f5a82464202562a3df7509b491586e1336ab245b17dcca226a085fc5590e569",
+    "rootChecks": "Historical Git source pins, successful private log lengths/hashes and six supervision receipt hashes verified; attempt3 diagnosis wording distinguishes retained evidence from later reproduction."
+  }
+}
