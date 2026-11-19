@@ -349,14 +349,14 @@ const PLAN = [
     { ci: ['npm run preview --prefix client -- --host 0.0.0.0 --port 4173'], kind: 'server', url: PREVIEW_URL, needs: ['build'] }),
   ...BROWSER_SPECS.map((specs) => step('browser:chromium',
     npmRun('test:browser', `-- --project=chromium --workers=2 ${specs}`), { tier: 'full', needs: ['preview', 'chromium'] })),
-  step('check:responsive', npmRun('check:responsive', RESPONSIVE_LIGHT), { needs: ['preview', 'chromium'], chrome: true }),
+  step('check:responsive', npmRun('check:responsive', RESPONSIVE_LIGHT), { ci: [`RESPONSIVE_WORKERS=2 ${npmRun('check:responsive', RESPONSIVE_LIGHT)}`], env: { RESPONSIVE_WORKERS: '2' }, needs: ['preview', 'chromium'], chrome: true }),
   step('check:responsive:dark', npmRun('check:responsive', RESPONSIVE_DARK), {
-    ci: [`RESPONSIVE_THEME=dark ${npmRun('check:responsive', RESPONSIVE_DARK)}`],
-    needs: ['preview', 'chromium'], chrome: true, env: { RESPONSIVE_THEME: 'dark' },
+    ci: [`RESPONSIVE_THEME=dark RESPONSIVE_WORKERS=2 ${npmRun('check:responsive', RESPONSIVE_DARK)}`],
+    needs: ['preview', 'chromium'], chrome: true, env: { RESPONSIVE_THEME: 'dark', RESPONSIVE_WORKERS: '2' },
   }),
   ...[200, 400].map((zoom) => step(`check:responsive:zoom${zoom}`, npmRun('check:responsive', '-- --routes / --widths 1280'), {
-    ci: [`RESPONSIVE_ZOOM=${zoom} ${npmRun('check:responsive', '-- --routes / --widths 1280')}`],
-    needs: ['preview', 'chromium'], chrome: true, env: { RESPONSIVE_ZOOM: String(zoom) },
+    ci: [`RESPONSIVE_ZOOM=${zoom} RESPONSIVE_WORKERS=2 ${npmRun('check:responsive', '-- --routes / --widths 1280')}`],
+    needs: ['preview', 'chromium'], chrome: true, env: { RESPONSIVE_ZOOM: String(zoom), RESPONSIVE_WORKERS: '2' },
   })),
   step('test:harness', npmRun('test:harness'), { tier: 'full', needs: ['build', 'chromium'], chrome: true }),
   step('audit:performance', npmRun('audit:performance', PREVIEW_PORT === 4173 ? '' : `-- --url=${PREVIEW_URL}`), {
