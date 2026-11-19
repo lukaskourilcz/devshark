@@ -444,7 +444,16 @@ function App() {
     // The visit's first location (React Router keys it 'default').
     const firstPage = location.key === 'default';
     const previousFocus = document.activeElement;
+    // A learner may leave and return to the same control before this delay
+    // finishes. Focus events alone would also count automatic menu restoration.
+    let interacted = false;
+    const trackIntent = () => { interacted = true; };
+    const intent = (method: 'addEventListener' | 'removeEventListener') => {
+      for (const type of ['pointerdown', 'keydown']) document[method](type, trackIntent, true);
+    };
+    intent('addEventListener');
     const timer = window.setTimeout(() => {
+      intent('removeEventListener');
       // The public guide's native interaction owns focus during cold startup.
       // Once navigation leaves it, ordinary route focus resumes.
       if (preserveStartupFocus) return;
@@ -457,7 +466,7 @@ function App() {
       // A control the learner reached during navigation, or the destination
       // focused as it mounted, owns focus even after the first page.
       if (active && active !== document.body &&
-          (firstPage || active !== previousFocus || main?.contains(active))) return;
+          (firstPage || interacted || active !== previousFocus || main?.contains(active))) return;
       // A page that focused the target its hash names keeps that focus.
       if (location.hash && active?.id === location.hash.slice(1)) return;
       // Silent focus: clear the skip-link flag first so this move never paints
@@ -465,7 +474,10 @@ function App() {
       main?.removeAttribute('data-skip-target');
       main?.focus({ preventScroll: true });
     }, 230);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      intent('removeEventListener');
+    };
   }, [boxKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Manual SPA pageview (capture_pageview is off in the SDK). No-op unless

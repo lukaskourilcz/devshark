@@ -685,3 +685,32 @@ test('ordinary menu navigation still focuses main without a newer interaction', 
     await testInfo.attach('route-focus-timeline', { body: JSON.stringify(await routeFocusLog(page), null, 2), contentType: 'application/json' });
   }
 });
+
+test('a later route cancels the pending focus callback of the previous route', async ({ page }, testInfo) => {
+  await prepare(page, 390);
+  await installRouteFocusControl(page);
+  try {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    await armRouteFocus(page);
+    const opener = page.getByRole('button', { name: 'Open navigation menu', exact: true });
+    const menu = page.getByRole('dialog', { name: 'Navigation' });
+    await opener.click();
+    await menu.getByRole('link', { name: 'Quiz', exact: true }).click();
+    await expect.poll(() => pendingRouteFocus(page)).toBe(1);
+    await opener.click();
+    await menu.getByRole('link', { name: 'Premium', exact: true }).click();
+    await expect(page).toHaveURL(/\/premium$/);
+    await expect.poll(async () => (await routeFocusLog(page)).some(entry => (entry as { kind: string }).kind === 'cancelled')).toBe(true);
+    await expect.poll(() => pendingRouteFocus(page)).toBe(1);
+    await flushRouteFocus(page);
+    await expect(page.locator('#main-content')).toBeFocused();
+    expect((await routeFocusLog(page)).filter(entry => {
+      const item = entry as { kind: string; path: string };
+      return item.kind === 'callback' && item.path === '/quiz';
+    })).toHaveLength(0);
+  } finally {
+    await testInfo.attach('route-focus-timeline', { body: JSON.stringify(await routeFocusLog(page), null, 2), contentType: 'application/json' });
+  }
+});

@@ -22,7 +22,9 @@ export async function installRouteFocusControl(page: Page) {
         record('after-flush');
       },
     } });
-    const set = window.setTimeout, clear = window.clearTimeout;
+    // This callback executes in the browser, despite the harness's Node types.
+    type BrowserTimer = (handler: TimerHandler, delay?: number, ...args: unknown[]) => number;
+    const set = window.setTimeout as BrowserTimer, clear = window.clearTimeout;
     window.setTimeout = ((handler: TimerHandler, delay?: number, ...args: unknown[]) => {
       if (delay !== 230 || typeof handler !== 'function') return set.call(window, handler, delay, ...args);
       record('scheduled');
@@ -32,7 +34,7 @@ export async function installRouteFocusControl(page: Page) {
         else run();
       }, delay);
       return id;
-    }) as typeof window.setTimeout;
+    }) as unknown as typeof window.setTimeout;
     window.clearTimeout = ((id?: number) => {
       if (id !== undefined && pending.delete(id)) record('cancelled');
       return clear.call(window, id);
@@ -41,7 +43,7 @@ export async function installRouteFocusControl(page: Page) {
 }
 
 type ControlledWindow = Window & { __routeFocusControl: { arm(): void; count(): number; flush(): void; log: unknown[] } };
-export const armRouteFocus = (page: Page) => page.evaluate(() => (window as ControlledWindow).__routeFocusControl.arm());
-export const pendingRouteFocus = (page: Page) => page.evaluate(() => (window as ControlledWindow).__routeFocusControl.count());
-export const flushRouteFocus = (page: Page) => page.evaluate(() => (window as ControlledWindow).__routeFocusControl.flush());
-export const routeFocusLog = (page: Page) => page.evaluate(() => (window as ControlledWindow).__routeFocusControl.log);
+export const armRouteFocus = (page: Page) => page.evaluate(() => (window as unknown as ControlledWindow).__routeFocusControl.arm());
+export const pendingRouteFocus = (page: Page) => page.evaluate(() => (window as unknown as ControlledWindow).__routeFocusControl.count());
+export const flushRouteFocus = (page: Page) => page.evaluate(() => (window as unknown as ControlledWindow).__routeFocusControl.flush());
+export const routeFocusLog = (page: Page) => page.evaluate(() => (window as unknown as ControlledWindow).__routeFocusControl.log);
