@@ -79,6 +79,18 @@ async function cli(root, args, preload, timeout = 10000) {
   return new Promise(resolve => execFile(process.execPath, [...(preload ? ['--import', preload] : []), script, ...args], { cwd: root, timeout, maxBuffer: 1 << 20 }, (error, stdout, stderr) => resolve({ code: error ? error.code ?? (error.killed ? 'TIMEOUT' : 'FAILED') : 0, stdout, stderr })));
 }
 
+function transportFixture(root, loopback) {
+  const preload = join(root, 'transport-fixture.mjs');
+  writeFileSync(preload, `import http from 'node:http'; import https from 'node:https';
+    https.request = (url, options, callback) => {
+      if (url.origin !== ${JSON.stringify(ORIGIN)} || options.method !== 'GET') throw new Error('fixture transport refused');
+      return http.request(new URL(url.pathname + url.search, ${JSON.stringify(loopback)}), { ...options, agent: new http.Agent({ keepAlive: false, proxyEnv: {} }) }, callback);
+    };
+    const timeout = globalThis.setTimeout; globalThis.setTimeout = (fn, ms, ...args) => timeout(fn, ms === 1100 ? 0 : ms, ...args);
+  `);
+  return preload;
+}
+
 test('direct protected-preview CLI sends exactly 36 fixed API samples and no exchange/document requests', async t => {
   const root = fixture(t); const file = save(root, state()); const output = join(root, 'report.json');
   const seen = [];
@@ -96,15 +108,7 @@ test('direct protected-preview CLI sends exactly 36 fixed API samples and no exc
   const loopback = `http://127.0.0.1:${server.address().port}`;
   // Test-only adapter: logical HTTPS Preview requests terminate on loopback.
   // The collector gets no generic transport/header flag and cannot use this hook.
-  const preload = join(root, 'transport-fixture.mjs');
-  writeFileSync(preload, `import http from 'node:http'; import https from 'node:https';
-    https.request = (url, options, callback) => {
-      if (url.origin !== ${JSON.stringify(ORIGIN)} || options.method !== 'GET') throw new Error('fixture transport refused');
-      return http.request(new URL(url.pathname + url.search, ${JSON.stringify(loopback)}), { ...options, agent: new http.Agent({ keepAlive: false, proxyEnv: {} }) }, callback);
-    };
-    // Scheduled sleeps are reduced only in this child fixture, not in production.
-    const timeout = globalThis.setTimeout; globalThis.setTimeout = (fn, ms, ...args) => timeout(fn, ms === 1100 ? 0 : ms, ...args);
-  `);
+  const preload = transportFixture(root, loopback);
   const result = await cli(root, [`--url=${ORIGIN}`, '--samples=3', '--interval-ms=1100', `--preview-state=${file}`, `--output=${output}`], preload);
   assert.equal(result.code, 0, result.stderr);
   assert.equal(seen.length, 36); assert(seen.every(row => row.method === 'GET' && row.path.startsWith('/api/')));
@@ -143,4 +147,21 @@ test('a named pipe cannot block the regular-file access-state check', async t =>
   const result = await cli(root, [`--url=${ORIGIN}`, '--samples=1', `--preview-state=${pipe}`, `--output=${join(root, 'report.json')}`], preload, 1000);
   assert.equal(result.code, 2, 'non-regular state must be refused, not time out while opening');
   assert(!result.stderr.includes('TRANSPORT_CALLED')); assert(!result.stderr.includes(pipe));
+});
+
+test('an output alias introduced during sampling cannot overwrite the input state', async t => {
+  for (const kind of ['hardlink', 'symlink']) {
+    const root = fixture(t); const file = save(root, state()); const output = join(root, 'report.json');
+    const server = createServer((_request, response) => {
+      if (kind === 'hardlink') linkSync(file, output); else symlinkSync(file, output);
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ ok: true, status: 'healthy' }));
+    });
+    server.listen(0, '127.0.0.1'); await once(server, 'listening');
+    t.after(() => new Promise(resolve => server.close(resolve)));
+    const preload = transportFixture(root, `http://127.0.0.1:${server.address().port}`);
+    const result = await cli(root, [`--url=${ORIGIN}`, '--handlers=health', '--samples=1', `--preview-state=${file}`, `--output=${output}`], preload);
+    assert.deepEqual({ code: result.code, statePreserved: readFileSync(file, 'utf8') === JSON.stringify(state()) }, { code: 2, statePreserved: true }, `${kind} created after preflight must be refused at the final writer`);
+    assert(!result.stdout.includes(TOKEN)); assert(!result.stderr.includes(TOKEN)); assert(!result.stderr.includes(file));
+  }
 });
