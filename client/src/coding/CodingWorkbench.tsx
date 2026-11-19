@@ -1097,7 +1097,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const renderPreview = (): ReactNode => (
     <>
       {reactRun?.previewError && <p className="cd-note cd-note--error">{t('coding.preview.error', { message: reactRun.previewError })}</p>}
-      {reactRun?.status === 'timeout' && <p className="cd-note cd-note--warn">{t('coding.preview.timeout')} <Button variant="ghost" size="sm" onClick={harness.reload} label={t('coding.preview.reload')} /></p>}
+      {reactRun?.status === 'timeout' && <p className="cd-note cd-note--warn">{t('coding.preview.timeout')} {tab === 'preview' && <Button variant="ghost" size="sm" onClick={harness.reload} label={t('coding.preview.reload')} />}</p>}
       {previewIdle ? <p className="cd-console__empty">{workbenchCopy('coding.preview.idle')}</p>
         : !harness.ready && <p className="cd-console__empty">{t('coding.preview.starting')}</p>}
       {frameOn && <iframe key={harness.frameKey} ref={harness.iframeRef} src={HARNESS_URL} sandbox="allow-scripts allow-forms" title={t('coding.preview.title')} className={previewIdle ? 'cd-frame cd-frame--idle' : 'cd-frame'} aria-hidden={previewIdle || undefined} tabIndex={tab === 'preview' && !previewIdle ? undefined : -1} />}
@@ -1328,8 +1328,10 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
     </div>
   );
   const renderPanels = (available: typeof tabs, selected: Tab) => available.map((one) => {
-    // A suite's focus checks need a laid-out frame even while Results shows.
-    const parked = one.key === 'preview' && selected !== 'preview' && busy;
+    // A loaded frame must already be laid out before keyboard Run. Chromium
+    // cannot activate its input focus when display:none ends in that event.
+    // Keep it out of the pointer, accessibility tree and sequential Tab order.
+    const parked = one.key === 'preview' && selected !== 'preview' && (busy || frameOn);
     return <div key={one.key} role="tabpanel" tabIndex={selected === one.key ? 0 : -1}
       id={`${baseId}-panel-${one.key}`} aria-labelledby={`${baseId}-tab-${one.key}`}
       className={`cd-panel${parked ? ' cd-panel--parked' : ''}`}

@@ -322,7 +322,7 @@ test('React: a focus check passes on every Run, not just the first, and a build 
     // Safari pointer clicks do not promise focus on their button.
     await run.focus();
     await expect(run).not.toHaveAttribute('aria-disabled', 'true');
-    await run.press('Enter');
+    await run.press(attempt === 2 ? 'Space' : 'Enter');
     await expect(announced(page)).toHaveText(`${expectedCases} of ${expectedCases} passing`, { timeout: 30_000 });
     await expect(changed).toHaveCount(0);
     // The first Run that renders opens the preview (coding-04); from the

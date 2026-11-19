@@ -73,11 +73,26 @@ it('preloads React on editor intent without loading other tracks or exposing the
   const frame = view.container.querySelector('iframe')!;
   expect(frame).not.toBeNull();
   expect(frame).toHaveAttribute('tabindex', '-1');
-  expect(frame.closest('[role="tabpanel"]')).toHaveAttribute('hidden');
+  expect(frame.closest('[role="tabpanel"]')).not.toHaveAttribute('hidden');
+  expect(frame.closest('[role="tabpanel"]')).toHaveAttribute('aria-hidden', 'true');
   view.unmount();
   const javascript = mount('javascript');
   fireEvent.focus(screen.getByLabelText('Test editor'));
   expect(javascript.container.querySelector('iframe')).toBeNull();
+});
+
+it('keeps the parked preview outside Tab order after a runtime timeout', () => {
+  harness.run = { token: 'timed-out', status: 'timeout', compileError: null, previewError: null, cases: [], logs: [], passed: 0, failed: 0, total: 0, ran: true };
+  const view = mount('react');
+  fireEvent.pointerEnter(view.container.querySelector('.cd-editor-actions')!);
+  const frame = view.container.querySelector('iframe')!;
+  const panel = frame.closest('[role="tabpanel"]')!;
+  expect(panel).toHaveAttribute('aria-hidden', 'true');
+  expect(panel).toHaveAttribute('tabindex', '-1');
+  expect(frame).toHaveAttribute('tabindex', '-1');
+  expect(panel.querySelector('button')).toBeNull();
+  fireEvent.click(screen.getByRole('tab', { name: 'Preview' }));
+  expect(screen.getByRole('button', { name: 'Restart sandbox' })).toBeInTheDocument();
 });
 
 it('offers a preview retry without running code while the preview has failed to load', () => {
