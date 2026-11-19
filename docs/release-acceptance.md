@@ -8673,3 +8673,59 @@ No full grading umbrella, Coding, launch, application/bundle, browser, parity,
 provider or credentialed VM checks were run in this bounded phase. Exact-head
 CI/Preview/merge and the remaining F11 work are still required; no F11 checkbox
 is earned by this local checkpoint.
+
+## F11 parent-watchdog contract correction — 19 November 2026, local checkpoint
+
+Refs #640 and #646. The surviving audit was posted on #640 before edits
+(comment 7018368268). The old natural-workload test required exclusive parent
+termination even though the unchanged evaluator can validly interrupt or reach
+its post-jobs deadline after 2.5 s. Its earlier 3,261/3,178 ms failures remain retained;
+their exact return path was not causally captured. Six fresh causal samples and
+one exact-prefix sample later took the real parent grace near 4 s. Those samples
+are separate observations, not a repair or a diagnosis of the earlier path.
+The preserved prefix includes 22 prior actual grades/runs before target 23 on
+worker 3/ordinal 3; original recovery 24 passed. Its target was 4,003 ms, followed by
+actual worker exit 15.011 ms after grace. The one idle worker observed afterward
+was that original recovery worker. Process RSS alone establishes neither a VM
+heap-limit breach nor retained memory.
+
+`19ea58eb` separates strict mechanism coverage from natural resource workloads.
+An owned Node protocol spinner posts start and cannot reach QuickJS polling;
+the actual production parent must return the fixed timeout after its unchanged
+2.5 s deadline + 1.5 s grace, at least 3,980 ms and within the original 5,000 ms upper
+bound. The test requires physical exit within 1 s, then copies only an owned real
+worker bundle and checks an actual QuickJS grade. Its negative virtually
+disables the actual parent grace timer and must be killed by the bounded
+fixture guard. `c1cab7bb` strengthens that negative with an exact marker emitted
+after the actual start branch clears boot timing and disables grace, excluding
+a silent startup stall. Normal product code never receives that marker/mutation.
+
+All three natural string/allocation/Promise workloads remain. They require the
+existing engine-deadline lower bound, fixed timeout/result, original upper
+margin, only settled idle/ended threads and the next actual grade. Either an
+engine deadline or parent stop is valid there. No production file, numeric
+cap/timer, pool/queue count, verdict, public result or 44-step parity graph changed.
+F11-36 retirement and F11-16 encoded accounting remain separate work.
+
+| Actual Node 24.22.3 check | Result |
+| --- | --- |
+| Complete `npm run test:sandbox-limits` at clean 68e5fecf | PASS, 32 printed groups, 40.347 s; includes original controls, five F11-17 cases, strict parent positive/negative and unchanged six-run/four-live control; no abort diagnostic |
+| Strict parent positive in that run | PASS, 4,024 ms, actual exit and real QuickJS recovery |
+| Stronger exact-start-marker controls at clean c1cab7bb | PASS, the same two strict groups, 10.413 s; positive 4,024 ms, actual disabled-timer start marker then bounded negative kill |
+| API / script types at clean c1cab7bb | PASS, 7.043 s / 8.918 s |
+
+The original full-run commit 68e5fecf was amended only for the required subject
+`test(f11): Separate parent watchdog from engine deadlines (#640)` and readable
+why text. Its successor 19ea58eb has exactly the same Git tree
+`9bfa34a1d54e27915b91273b656fe4436ddb6775`; metadata-amend.json records both.
+After the real marker-only test improvement, only its focused controls were
+rerun, followed by types. Repeated strict groups are overlapping coverage, not
+additional unique cases. The full 40 s suite was not retried.
+
+Commands, actual logs, source hashes, metadata equivalence and audit receipt
+remain under `/tmp/devshark-epic-f-handoff/f11-watchdog-test-correction-5ae79944/`.
+Earlier failures, six fresh samples and the one prefix sample remain in their
+original separate directories. No further diagnostic repetition occurred.
+This checkpoint does not establish full Coding/umbrella/parity, browser,
+provider/VM, CI, Preview or merge acceptance. F11-16 is not applied, and #640
+stays open until the remaining implementation and checked integration finish.
