@@ -8088,3 +8088,12 @@ was projected offline on 19 November; this paragraph records its original
 observation scope, not new sampling.
 
 The final F7 fast run at fcfb13f5 records exit0 and zero vulnerabilities for both npm audit --omit=dev and npm audit --omit=dev --prefix client. Both lock hashes remain identical at merged cbdf. The saved logs retain their original run window and Node 24.22.3, while host npm version and per-command timestamps remain unknown in this selected evidence. Container npm cannot fill that gap. This is a historical production-only audit, not a development-dependency or timeless vulnerability guarantee. The required branch gates will supply their own current observations.
+
+
+## Epic F1 remaining baseline: F1-34: historical F14 container comparison (19 November 2026)
+
+Issue #630. Saved evidence in `docs/audit/f1-container-baseline-2026-11-19.json`
+was projected offline on 19 November; this paragraph records its original
+observation scope, not new sampling.
+
+The actual same-Linux/amd64 F14 comparison records inspect sizes 184,775,859 to 141,951,324 bytes, a saving of 42,824,535 bytes. The separate image-ls display is 958 to 666 MB. Three selected JavaScript, TypeScript and React reference checks pass per image. Base 0f35d67d and measured checkout 3b503cc4 remain distinct from reviewed CI head 1511; a possible synthetic merge relationship is unproved locally. This is historical F14 evidence, not a current cbdf image size or an 814-reference result. No new container, registry query or VM ran for this projection.

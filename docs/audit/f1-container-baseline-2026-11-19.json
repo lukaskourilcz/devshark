@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "historicalObservedEvidence": true,
+  "packagedAtUtc": "2026-11-19T16:56:23.240708+00:00",
+  "projectionBaselineHead": "cbdfa2aa995e7dd71c7d0197fee7f35df21ca205",
+  "packagingMode": "offline projection of existing saved observations; no new runtime/provider/application query",
+  "findingId": "F1-34",
+  "measurement": {
+    "base": "0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c",
+    "head": "3b503cc4a7b10e6d8e1c0a765791a0b3b6e524bd",
+    "platform": "linux/amd64",
+    "harness": "same current source harness against each image runtime packages and generated workers, not baseline handler-code equivalence",
+    "complete": true,
+    "images": [
+      {
+        "name": "before",
+        "tag": "devshark:f14-before",
+        "id": "sha256:2cc9483565d6df1288b5ee98556769b598be899361d23cc8f158e9ef19894c62",
+        "bytes": 184775859,
+        "architecture": "amd64",
+        "os": "linux"
+      },
+      {
+        "name": "after",
+        "tag": "devshark:f14-after",
+        "id": "sha256:a3fc496dc65629a628dc58eee84940d1eb4940fc6235dd2585e508def062b483",
+        "bytes": 141951324,
+        "architecture": "amd64",
+        "os": "linux"
+      }
+    ],
+    "nodeBase": "sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54",
+    "savedBytes": 42824535
+  },
+  "sameRunDisplayedImages": [
+    {
+      "Containers": "0",
+      "CreatedAt": "2026-11-19 12:31:42 +0000 UTC",
+      "CreatedSince": "9 seconds ago",
+      "Digest": "<none>",
+      "ID": "sha256:a3fc496dc65629a628dc58eee84940d1eb4940fc6235dd2585e508def062b483",
+      "Repository": "devshark",
+      "SharedSize": "N/A",
+      "Size": "666MB",
+      "Tag": "f14-after",
+      "UniqueSize": "N/A"
+    },
+    {
+      "Containers": "0",
+      "CreatedAt": "2026-11-19 12:29:19 +0000 UTC",
+      "CreatedSince": "2 minutes ago",
+      "Digest": "<none>",
+      "ID": "sha256:2cc9483565d6df1288b5ee98556769b598be899361d23cc8f158e9ef19894c62",
+      "Repository": "devshark",
+      "SharedSize": "N/A",
+      "Size": "958MB",
+      "Tag": "f14-before",
+      "UniqueSize": "N/A"
+    }
+  ],
+  "runtimePackages": {
+    "before": {
+      "node": "v24.22.3",
+      "npm": "11.19.1",
+      "typescript": "5.9.3",
+      "knip": true,
+      "playwright": true
+    },
+    "after": {
+      "node": "v24.22.3",
+      "npm": "11.19.1",
+      "typescript": "5.9.3",
+      "knip": false,
+      "playwright": false
+    }
+  },
+  "selectedReferenceChecks": {
+    "before": "PASS container reference: js-digit-sum (javascript), visible and hidden checks\nPASS container reference: ts-typed-slug (typescript), visible and hidden checks\nPASS container reference: react-heading-and-intro (react), visible and hidden checks\n",
+    "after": "PASS container reference: js-digit-sum (javascript), visible and hidden checks\nPASS container reference: ts-typed-slug (typescript), visible and hidden checks\nPASS container reference: react-heading-and-intro (react), visible and hidden checks\n"
+  },
+  "ciRun": {
+    "id": 44523908461,
+    "reviewedPullRequestHead": "1511f1fa2265d58218e2a4ac5ca2549b4c2df649",
+    "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461"
+  },
+  "clockLimit": "Image created times retained. No new build/registry query and no fabricated measurement timestamp.",
+  "checkoutRefLimit": "Declared measured checkout3b503cc4 is retained separately from reviewed CI head1511f1fa. Default PR checkout may explain a synthetic merge ref; that relationship was not independently proved by this offline packaging.",
+  "limits": [
+    "Historical same-Linux/amd64 comparison, not current cbdfa2aa image size.",
+    "Inspect Size bytes and image-ls958MB/666MB displays are distinct representations.",
+    "Three selected JS/TS/React references pass per image; not all814 authored tasks.",
+    "Reference harness is current for the CI run against each image dependencies/generated workers, not baseline handler-code equivalence.",
+    "No image published or new container runtime/build executed by this projection."
+  ],
+  "inputProvenance": {
+    "f14-ci-container-artifact-1511/measurement.json": {
+      "sha256": "d78b2d893257c6cc404735fc76140f3704799c5b4f442e7695b17c8ca95c592e",
+      "bytes": 906
+    },
+    "f14-ci-container-artifact-1511/image-ls.log": {
+      "sha256": "d926619e0eb99c0eea8c40eb3dbe87603fd0e52135c21eddb45571638009308e",
+      "bytes": 2794
+    },
+    "f14-ci-container-artifact-1511/before-runtime-packages.json": {
+      "sha256": "9ca8371221f8627c462b100c718eac3ef3e5fbd1c81cb180549884ab57f36a5b",
+      "bytes": 87
+    },
+    "f14-ci-container-artifact-1511/after-runtime-packages.json": {
+      "sha256": "8c7c179327d8da9b4f59384aff06eaac09710311ff8862dc9fc02ab5abee4111",
+      "bytes": 89
+    },
+    "f14-ci-container-artifact-1511/before-references.log": {
+      "sha256": "7f2450ecc3d4a07a312eaecbc3e2dec690e65f009b2d1731ec7d363b971f75fb",
+      "bytes": 244
+    },
+    "f14-ci-container-artifact-1511/after-references.log": {
+      "sha256": "7f2450ecc3d4a07a312eaecbc3e2dec690e65f009b2d1731ec7d363b971f75fb",
+      "bytes": 244
+    }
+  }
+}
