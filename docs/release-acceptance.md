@@ -7840,3 +7840,29 @@ acceptance. The normalized measured data and input hashes are in
 [the server baseline](quality/f7-server-baseline-2026-11-19.json).
 
 Refs #636, #630, #640, #646 and #629.
+
+### F7 final-parity contract corrections
+
+The first clean fast run at `a36603ba` stopped incomplete in 3.72 minutes:
+17 passes, one launch failure, one reused install skip and one unavailable
+local QuickJS rebuild. Build, all three typechecks, static/unused/context/
+archive/image/public guards, 218,661/218,675 bundle and both zero-vulnerability
+production audits passed. The full performance command also passed in
+73 seconds. No runtime defect or host-load cause was inferred.
+
+The launch guard still allowed tier reads only in the old API file.
+Test-only `bfb2084b` registers exactly the two new owners, session and
+completion, while retaining its matcher and no-tier-in-grading assertions.
+The subsequent whole-launch run reached the unchanged settings-fixture
+key/value comparison and found shop/devTips still in the public browser
+fixture. Test-only `c9d32ef9` removes only those two retired projection
+sections, preserving every active value and checkout override. Stored/admin
+settings and client defaults are unchanged.
+
+The complete Node 24.22.3 `npm run test:launch` then exits zero at c9d32ef9,
+including launch contracts, Play rooms, verified-caller refusal/claim/cache
+checks and Marketing's real handler against its local PostgREST stand-in.
+Its original failures remain saved. The corrected fixtures require a fresh
+complete fast run before push; CI, actual F7 Preview and merge are still
+pending at this documentation checkpoint. No timeout, retry, assertion or
+budget was relaxed.
