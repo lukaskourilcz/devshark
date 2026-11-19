@@ -96,3 +96,14 @@ test('F6-04: an unconnected GitHub fixture selects the visible connect state', (
   assert.equal(result.body.queued, 0);
   assert.equal(Object.hasOwn(result.body, 'connected'), false, 'the handler uses a status discriminant');
 });
+
+test('F6-04: the Shop receives a local read-only referral summary', () => {
+  const result = apiFixture('GET', api('/api/user/referral'));
+  assert.equal(result.status, 200);
+  assert.equal(result.body.enabled, true);
+  assert.match(result.body.code, /^[0-9a-hjkmnp-tv-z]{8}$/);
+  for (const field of ['coins', 'cap', 'credited', 'pending']) assert.ok(Number.isInteger(result.body[field]) && result.body[field] >= 0, field);
+  assert.ok([null, 'pending', 'credited'].includes(result.body.invited));
+  assert.equal(apiFixture('GET', api('/api/user/referral'), 'guest'), null);
+  assert.equal(apiFixture('POST', api('/api/user/referral')), null, 'the layout sweep never claims an invitation');
+});
