@@ -122,7 +122,7 @@ test('later trusted case still reports',()=>{expect(2+2).toBe(4);});`;
       assert.deepEqual(result.cases.map((one) => one.status), ['fail', 'pass'], text);
       assert.match(result.cases[0].error ?? '', /stack overflow/i);
     } else {
-      assert.match(result.compileError ?? '', /stack overflow/i);
+      assert.match(result.compileError ?? '', /stack overflow|maximum call stack size exceeded/i);
     }
     await cleanRun(name);
   }

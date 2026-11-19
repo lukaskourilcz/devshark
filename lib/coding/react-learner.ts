@@ -199,8 +199,8 @@ export async function createReactLearner(input: {
   report(type: string, reason: unknown): void;
   makeError(message:string,name:string): Error;
 }): Promise<ReactLearner> {
-  wasm ??= newQuickJSWASMModuleFromVariant(variant);
-  const engine = await wasm;
+  const loading = wasm ??= newQuickJSWASMModuleFromVariant(variant);
+  const engine = await loading;
   const runtime=engine.newRuntime();
   runtime.setMemoryLimit(64*1024*1024); runtime.setMaxStackSize(1024*1024);
   let expires=Date.now()+2500, disposed=false, flushQueued=false, command: QuickJSHandle | undefined;
@@ -209,6 +209,20 @@ export async function createReactLearner(input: {
   const capabilities=new Map<number,HostCapability>(), hostIds=new WeakMap<object,number>(), guestValues=new Map<number,any>(), guestIds=new WeakMap<object,number>();
   const boundMethods=new WeakMap<object,Map<string,{raw:any;wire:Wire}>>();
   const timers=new Map<any,{clear:(timer:any)=>void}>(), listeners: Array<{target:any;name:string;fn:any;options:any}>=[];
+  // Disposal can abort a wasm module after real stack exhaustion. Preserve
+  // the original run result, attempt every handle and give later learners a
+  // fresh module. An older concurrent learner must not clear a newer cache.
+  const disposeQuietly=()=>{
+    if(disposed) return;
+    disposed=true;
+    let failed=false;
+    for(const [timer,entry] of timers) {try{entry.clear(timer);}catch{failed=true;}}
+    for(const {target,name,fn,options} of listeners) {try{target.removeEventListener(name,fn,options);}catch{failed=true;}}
+    try{command?.dispose();}catch{failed=true;}
+    try{vm.dispose();}catch{failed=true;}
+    try{runtime.dispose();}catch{failed=true;}
+    if(failed&&wasm===loading) wasm=undefined;
+  };
   let next=1;
   const evaluate=(source:string): QuickJSHandle => {
     const result=vm.evalCode(source,'learner.js');
@@ -428,7 +442,7 @@ export async function createReactLearner(input: {
   if(parsed.error) throw new Error('Invalid learner roots');
   const initialized=vm.callFunction(factory,vm.undefined,request,schedule,report,parsed.value);
   factory.dispose();request.dispose();schedule.dispose();report.dispose();parsed.value.dispose();
-  if(initialized.error) {const message=thrownText(dumpThrown(vm,initialized.error),'Learner engine failed'); vm.dispose();runtime.dispose(); throw new Error(message);}
+  if(initialized.error) {const message=thrownText(dumpThrown(vm,initialized.error),'Learner engine failed'); disposeQuietly(); throw new Error(message);}
   command=initialized.value;
   const load=(name:string,source:string): any => {
     const loader=evaluate(`(require,module,exports)=>{${source}\n}`);
@@ -447,6 +461,6 @@ export async function createReactLearner(input: {
     for(const [name,source] of Object.entries(input.fixtures)) load(name,source);
     vm.setProp(vm.global,'fetch',fetchBefore); fetchBefore.dispose();
     const exports=load('./App',input.source) as Record<string,unknown>;
-    return {exports,dispose(){disposed=true; for(const [timer,entry] of timers) entry.clear(timer); for(const {target,name,fn,options} of listeners) target.removeEventListener(name,fn,options); command?.dispose();vm.dispose();runtime.dispose();}};
-  } catch(error) {for(const [timer,entry] of timers) entry.clear(timer);for(const {target,name,fn,options} of listeners) target.removeEventListener(name,fn,options);disposed=true;command?.dispose();vm.dispose();runtime.dispose();throw error;}
+    return {exports,dispose:disposeQuietly};
+  } catch(error) {disposeQuietly();throw error;}
 }
