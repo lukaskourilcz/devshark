@@ -3,8 +3,13 @@
 import './launch-test-env';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { Socket } from 'node:net';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { after, test } from 'node:test';
+import { buildSync } from 'esbuild';
 import type { VercelRequest, VercelResponse } from '../lib/vercel-types';
 
 type Handler = (req: VercelRequest, res: VercelResponse) => unknown;
@@ -18,6 +23,7 @@ let boardRevision = 1;
 let failedRpc: string | null = null;
 const originalFetch = globalThis.fetch;
 const originalConnect = Object.getOwnPropertyDescriptor(Socket.prototype, 'connect')!;
+let helperDirectory: string | undefined;
 
 process.env.SUPABASE_URL = ORIGIN;
 process.env.SUPABASE_ANON_KEY = 'invented-public-json-anon';
@@ -86,6 +92,7 @@ after(() => {
   settingsStore.setGameSettingsForTests(null);
   globalThis.fetch = originalFetch;
   Object.defineProperty(Socket.prototype, 'connect', originalConnect);
+  if (helperDirectory) rmSync(helperDirectory, { recursive: true, force: true });
   assert.deepEqual(unexpected, [], 'No undeclared transport or live socket was attempted');
 });
 
@@ -341,4 +348,118 @@ test('exhausted address and curation limits precede conditional responses and bo
     noValidator(curation, 429);
     assert.equal(curation.headers['cache-control'], 'private, no-store');
   } finally { Date.now = now; }
+});
+
+interface PublicJsonHelper {
+  matchesEntityTag(header: string | string[] | undefined, etag: string): boolean;
+  sendPublicJson(req: VercelRequest, res: VercelResponse, body: unknown): unknown;
+}
+let helper: PublicJsonHelper | undefined;
+function publicJsonHelper(): PublicJsonHelper {
+  if (helper) return helper;
+  const source = join(process.cwd(), 'lib/public-json.ts');
+  assert.ok(existsSync(source), 'The shared content-only public JSON helper must exist');
+  helperDirectory = mkdtempSync(join(tmpdir(), 'devshark-public-json-helper-'));
+  const outfile = join(helperDirectory, 'public-json.cjs');
+  buildSync({ entryPoints: [source], outfile, bundle: true, platform: 'node', format: 'cjs', packages: 'external', logLevel: 'silent' });
+  helper = createRequire(import.meta.url)(outfile) as PublicJsonHelper;
+  assert.equal(typeof helper.matchesEntityTag, 'function');
+  assert.equal(typeof helper.sendPublicJson, 'function');
+  return helper;
+}
+
+test('helper: weak comparison parses quoted commas, header arrays and empty list members', () => {
+  const { matchesEntityTag: matches } = publicJsonHelper();
+  for (const [header, tag] of [
+    ['"version"', 'W/"version"'], ['W/"version"', '"version"'],
+    [' "different", W/"a,b" ', '"a,b"'], [['"different"', '"a,b"'], 'W/"a,b"'],
+    [', , "version",,', '"version"'], ['""', 'W/""'], ['\t * \t', '"version"'],
+  ] as [string | string[], string][]) assert.equal(matches(header, tag), true, JSON.stringify({ header, tag }));
+});
+
+test('helper: malformed tags, mixed wildcard lists and partial matches never revalidate', () => {
+  const { matchesEntityTag: matches } = publicJsonHelper();
+  for (const header of [undefined, '', 'version', 'w/"version"', '"version', '"version"junk', '"version",invalid', '*,"version"', '\n*\n', '"ver"', '"VERSION"']) {
+    assert.equal(matches(header, 'W/"version"'), false, JSON.stringify(header));
+  }
+  assert.equal(matches('*', 'unquoted'), false, 'An invalid current entity tag is not a representation validator');
+});
+
+test('helper: tags cover actual content without changing the JSON adapter or adding request metadata', () => {
+  const { sendPublicJson: send } = publicJsonHelper();
+  const body = { items: [{ label: 'A comma, and Unicode: žralok' }], enabled: true };
+  const first = response();
+  first.setHeader('Cache-Control', 'public, s-maxage=60');
+  send(request({}), first, body);
+  assert.equal(first.headers.etag, contentTag(body));
+  assert.equal(first.body, body, 'The existing JSON writer receives the original projection');
+  assert.equal(first.jsonWrites, 1);
+  const repeat = response();
+  repeat.setHeader('Cache-Control', 'public, s-maxage=60');
+  send(request({}, { headers: { authorization: 'Bearer unrelated', 'x-request-id': 'another-request' } }), repeat, body);
+  assert.equal(repeat.headers.etag, first.headers.etag);
+  const changed = response();
+  changed.setHeader('Cache-Control', 'public, s-maxage=60');
+  send(request({}, { headers: { 'if-none-match': first.headers.etag } }), changed, { ...body, enabled: false });
+  assert.equal(changed.statusCode, 200);
+  assert.notEqual(changed.headers.etag, first.headers.etag);
+});
+
+test('helper: a public array policy keeps Vary and ends a matching response without a body', () => {
+  const { sendPublicJson: send } = publicJsonHelper();
+  const body = { stable: true };
+  const res = response();
+  res.setHeader('Cache-Control', 'public, s-maxage=60');
+  res.setHeader('Vary', 'Authorization');
+  Object.defineProperty(res, 'getHeader', { value: () => ['public', 's-maxage=60'] });
+  send(request({}, { headers: { 'if-none-match': contentTag(body).replace(/^W\//, '') } }), res, body);
+  assert.equal(res.statusCode, 304);
+  assert.equal(res.headers.etag, contentTag(body));
+  assert.equal(res.headers['cache-control'], 'public, s-maxage=60');
+  assert.equal(res.headers.vary, 'Authorization');
+  assert.equal(res.ended, true);
+  assert.equal(res.endBody, undefined);
+  assert.equal(res.jsonWrites, 0);
+});
+
+test('helper: private/no-store policies, non-200 statuses and non-GET methods retain ordinary JSON', () => {
+  const { sendPublicJson: send } = publicJsonHelper();
+  const body = { value: 'the existing representation' };
+  for (const policy of ['private, no-store', 'no-store', 'public, private', 'public, no-store', 'PUBLIC, PrIvAtE="field"', 's-maxage=60']) {
+    const res = response();
+    res.setHeader('Cache-Control', policy);
+    send(request({}, { headers: { 'if-none-match': '*' } }), res, body);
+    noValidator(res, 200);
+    assert.equal(res.body, body);
+    assert.equal(res.headers['cache-control'], policy);
+  }
+  for (const status of [201, 206, 400, 402, 404, 405, 429, 500, 503]) {
+    const res = response();
+    res.status(status).setHeader('Cache-Control', 'public, s-maxage=60');
+    send(request({}, { headers: { 'if-none-match': '*' } }), res, body);
+    noValidator(res, status);
+    assert.equal(res.body, body);
+  }
+  for (const method of ['HEAD', 'POST']) {
+    const res = response();
+    res.setHeader('Cache-Control', 'public, s-maxage=60');
+    send(request({}, { method, headers: { 'if-none-match': '*' } }), res, body);
+    noValidator(res, 200);
+    assert.equal(res.body, body);
+  }
+});
+
+test('helper: unknown or unreadable policies and non-JSON values use the existing writer', () => {
+  const { sendPublicJson: send } = publicJsonHelper();
+  for (const mode of ['missing policy', 'missing getter', 'throwing getter', 'undefined body']) {
+    const res = response();
+    if (mode !== 'missing policy') res.setHeader('Cache-Control', 'public, s-maxage=60');
+    if (mode === 'missing getter') Object.defineProperty(res, 'getHeader', { value: undefined });
+    if (mode === 'throwing getter') Object.defineProperty(res, 'getHeader', { value: () => { throw new Error('Unreadable adapter header'); } });
+    const body = mode === 'undefined body' ? undefined : { existing: true };
+    send(request({}, { headers: { 'if-none-match': '*' } }), res, body);
+    noValidator(res, 200);
+    assert.equal(res.body, body);
+    assert.equal(res.jsonWrites, 1);
+  }
 });
