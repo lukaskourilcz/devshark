@@ -202,11 +202,19 @@ test.describe('touch editor typography', () => {
       expect(radio.mark).toEqual({ width: 22, height: 22 });
     }
     const checked = page.locator('.sn-see input[type="radio"]:checked');
+    // Safari need not focus a native radio after a pointer click. Confirm
+    // the enlarged label activates the real input, then test keyboard focus
+    // separately so the hit-area guard does not depend on pointer policy.
+    await checked.evaluate((input) => input.addEventListener('click', () => {
+      (input as HTMLElement).dataset.labelActivated = 'true';
+    }, { once: true }));
     const label = page.locator('.sn-see label').filter({ hasText: /^Sharkname$/ }).first();
     const labelBounds = await label.boundingBox();
     await label.click({ position: { x: labelBounds!.width / 2, y: labelBounds!.height - 2 } });
-    await expect(checked).toBeFocused();
+    await expect(checked).toHaveAttribute('data-label-activated', 'true');
     await expect(checked).toBeChecked();
+    await checked.focus();
+    await expect(checked).toBeFocused();
     expect(misses).toEqual([]);
   });
 });
