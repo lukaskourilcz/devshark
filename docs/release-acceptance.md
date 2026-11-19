@@ -8620,3 +8620,56 @@ Coding, launch, application/bundle, browser, broad parity and exact-head CI/
 Preview/merge gates were not run in this bounded phase. Remaining F11 findings
 and the real-VM owner task stay open; no completion checkbox is earned by this
 local checkpoint.
+
+## F11-17 displayed outcome boundary — 19 November 2026, local checkpoint
+
+Refs #640 and #646. After rebasing the retained F11 work onto F7 merge
+`cbdfa2aa995e7dd71c7d0197fee7f35df21ca205`, the clean starting head was
+`24f34959f31ebb81462e618555ce3464f886caba`. The surviving audit was posted on
+#640 before source edits. Test-only commit `ed5b2063` records the regressions;
+`7714a131` applies the reviewed presentation fix and its NEEDED decision.
+
+Submit still compares complete decoded values before cutting the displayed
+serialization with the shared 2,000-code-unit line/error cut and existing marker.
+Run bounds outgoing actual/error/codeError fields. Pass/null, string/array/object
+hint prefixes, logs, compiler verdicts and compile-only JavaScript remain intact.
+Already-cut compiler text retains its surrogate-safe prefix byte-for-byte. The
+shared evaluator/error helper, compiler and original coding-runner test file
+remain byte-identical to the starting head. No encoded budget, deadline,
+concurrency, grading/reward, snapshot or VM policy changes are included.
+
+| Actual Node 24.22.3 check | Result |
+| --- | --- |
+| Client display test-only reproduction | RED, eight failures / one compile-only preservation pass, 1.358s |
+| Complete server test-only reproduction | FAIL before the new cases, 22.065s: eight prior PASS groups, then unchanged promise-allocation host-grace lower-bound assertion (3,261ms versus at least 3,980ms) |
+| Exact new server block, test-only | RED, 0.189s: full pass/fail comparison succeeds, then the displayed-actual length assertion fails |
+| New plus original coding-runner tests after fix | PASS, 28 tests in two files, 1.509s |
+| Exact new server block after fix | PASS, five actual QuickJS-worker cases plus the existing constants control, 0.228s |
+| Complete server suite after fix | FAIL at the same prior assertion, 21.795s: 3,178ms versus at least 3,980ms; no further full retry |
+| API / script types | PASS, 4.970s / 6.383s |
+| Client build-mode / client tooling types | PASS, 9.376s / 9.915s |
+
+The focused server runner is an external exact slice of the suite's unchanged
+imports/constants/limitCase helper and the five new cases. It rebuilds and runs
+the actual deployed-style QuickJS worker under VERCEL=1. No assertion or time
+limit was relaxed. Client tests invoke the real worker message handler and
+shared evaluator, with realm hardening and compiler loading stood in; they prove
+the display boundary, not realm security or compiler correctness. The new cases
+cover a mismatch after the display cut, ungraded null, a surrogate at the cut,
+call/top-level errors and the existing error-cut controls.
+
+Both complete-suite failures emitted the existing upstream disposal assertion
+and passed the timeout/result checks before failing only the host-grace lower
+bound. Their exact cause is not established by the focused display pass. The
+server can poll its own interrupt before the host timer; the old fixture's
+assumption that this allocation pattern always needs host termination remains
+an unresolved integration failure. It is not claimed fixed or green here.
+
+Raw commands, source pins, the focused-slice derivation, failures and passing
+receipts are retained in
+`/tmp/devshark-epic-f-handoff/f11-17-execution-24f34959/` on the audit machine.
+Repeated focused/full executions overlap and are not added as distinct coverage.
+No full grading umbrella, Coding, launch, application/bundle, browser, parity,
+provider or credentialed VM checks were run in this bounded phase. Exact-head
+CI/Preview/merge and the remaining F11 work are still required; no F11 checkbox
+is earned by this local checkpoint.
