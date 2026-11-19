@@ -70,3 +70,17 @@ test('F6-05: an outer clipped aperture limits a control inside a scrollport', as
   const result = await measure('<div style="height:20px;overflow:hidden"><main style="height:100px;overflow:auto"><div style="height:200px"></div><button id="aperture">Go</button></main></div>');
   assert.ok(result.violations.some((row) => row.selector === '#aperture' && row.height === 20));
 });
+test('F6-05: an unrelated list-card heading does not exempt its standalone action', async () => {
+  const result = await measure('<ul><li><h2>Lesson</h2><div><a id="start" style="display:inline" href="#next">Start</a></div></li></ul>');
+  assert.ok(result.violations.some((row) => row.selector === '#start'));
+  assert.equal(result.exceptions.some((row) => row.selector === '#start'), false);
+});
+test('F6-05: a block heading beside a direct list action does not count as sentence text', async () => {
+  const result = await measure('<ul><li><h2>Lesson</h2><a id="start" style="display:inline" href="#next">Start</a></li></ul>');
+  assert.ok(result.violations.some((row) => row.selector === '#start'));
+});
+test('F6-05: a genuine list sentence keeps its inline-link exception through a span', async () => {
+  const result = await measure('<ul><li>Read the <span><a id="inline" style="display:inline" href="#privacy">privacy policy</a></span> before continuing.</li></ul>');
+  assert.deepEqual(result.violations, []);
+  assert.ok(result.exceptions.some((row) => row.selector === '#inline'));
+});
