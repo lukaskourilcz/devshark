@@ -7972,3 +7972,40 @@ sizes are neither reclaimable bytes nor the size of a standalone pack; shared
 delta bases prevent those claims. No repack, garbage collection, history edit
 or new deployment-duration query ran. This is current main evidence, not a
 recreated `a9882348` observation or a comparison with the brief's old 81 MB.
+
+
+## Epic F1 remaining baseline: shaped bundle and treemap (19 November 2026)
+
+Issue #630, F1-22/24. At F1 tool head `d09ec769`,
+`ANALYZE=true npm run check:bundle` passes with Node 24.22.3 and the complete
+public measuredBuild environment. Client/API/lib/shared trees equal merged
+main `cbdfa2aa`; this is a new local checkpoint, not the missing original
+18 November `a9882348` run. The old five-file/two-font expectation is stale.
+`docs/audit/f1-bundle-2026-11.json` retains the actual report and hashes of the
+matching generated treemap/module report saved with the external run logs.
+
+| Check | Actual result |
+| --- | --- |
+| Initial graph | 4 files, 218,661 gzip bytes / 218,675 budget: PASS |
+| Preloaded fonts | 0 files, 0 bytes |
+| Monitoring SDK | 46,800 gzip bytes / 60,000 budget: PASS |
+| Largest-list population | 10 largest of 233 JavaScript/CSS chunks |
+
+| Chunk | Gzip bytes | Initial |
+| --- | ---: | --- |
+| `assets/coding-worker/ts-compiler-B7j17HSi.js` | 1092837 | no |
+| `assets/Editor-D7fXSy7w.js` | 173083 | no |
+| `assets/EmailRichTextEditor-gOa8HMJP.js` | 130655 | no |
+| `assets/main-DIuo4WQp.js` | 106232 | yes |
+| `assets/posthogClient-CzjsjP4-.js` | 93472 | no |
+| `assets/babel-Ccmw_PC1.js` | 83128 | no |
+| `assets/react-Cvu_Vp9I.js` | 74807 | yes |
+| `assets/estree-DhIcBJQl.js` | 62245 | no |
+| `assets/supabase-B5YuwSPF.js` | 55304 | no |
+| `assets/sentry-sdk-CstZweeQ.js` | 46800 | no |
+
+The exact main script/react/CSS/TanStack initial rows are in the JSON. Lazy
+compiler/editor chunks do not count as initial requests. Treemap module sizes
+do not sum to whole-file gzip. This run measures no production HTTP transfer;
+F1-23 and production browser calibration F1-45 remain unmeasured. The original
+pre-fix timing and 4,314-byte historical growth are not reconstructed here.
