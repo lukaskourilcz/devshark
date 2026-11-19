@@ -291,6 +291,10 @@ test('React: a failed preview can retry without running code or delaying server 
   await expect(run).toBeFocused();
   await expect(readiness).toHaveText('Preview ready. Run your code.');
   await expect(announced(page)).not.toHaveText(/Running your code/);
+  // The server verdict remains authoritative for unchanged code. Make it
+  // stale before checking a new local result from the recovered frame.
+  await fillEditor(page, `${solutionFor('react-easy2-focus-the-search')!.solution}\n// retried preview\n`);
+  await run.focus();
   await run.press('Enter');
   await expect(announced(page)).toHaveText('4 of 4 passing', { timeout: 30_000 });
 });
