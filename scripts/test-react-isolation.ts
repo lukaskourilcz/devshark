@@ -68,8 +68,90 @@ async function runGuest(appSource: string, suite: string): Promise<ReactSuiteOut
   }
 }
 
+// These probes run in the existing bounded guest child. A broken re-entry
+// deadline can hang or exhaust that child, so it must not run in this process.
+async function learnerDeadlineContracts() {
+  const failures: Error[] = [];
+  const probe = async (name: string, check: () => Promise<void>) => {
+    try { await check(); console.log(`PASS local guest ${name}`); }
+    catch (error) { console.error(`FAIL local guest ${name}`, error); failures.push(error instanceof Error ? error : new Error(String(error))); }
+  };
+  const renders = `import React from 'react';import {render} from '@testing-library/react';import App from './App';test('render completes or reports its learner interrupt',()=>{const {container}=render(<App/>);expect(container.textContent).toBe('Done');});`;
+  const loops = [
+    ['React.Children callback', `for(;;) React.Children.forEach([1],()=>{});`],
+    ['click listener', `const button=document.createElement('button');button.addEventListener('click',()=>{});for(;;) button.click();`],
+  ] as const;
+
+  await probe('F11-11 finite module and render callbacks remain usable', async () => {
+    const result = await runGuest(
+      `import React from 'react';let count=0;const button=document.createElement('button');button.addEventListener('click',()=>{count++;});button.click();React.Children.forEach([1,2],()=>{count++;});export const read=()=>count;export default function App(){React.Children.forEach([1],()=>{});return <p>Done</p>;}`,
+      `import React from 'react';import {render} from '@testing-library/react';import App,{read} from './App';test('finite nested callbacks',()=>{const {container}=render(<App/>);expect(container.textContent).toBe('Done');expect(read()).toBe(3);});test('a later ordinary entry still works',()=>{expect(read()).toBe(3);});`,
+    );
+    assert.equal(result.compileError, null, JSON.stringify(result));
+    assert.equal(result.timedOut, false, JSON.stringify(result));
+    assert.deepEqual(result.cases.map((one) => one.status), ['pass', 'pass'], JSON.stringify(result));
+  });
+
+  for (const [name, loop] of loops) {
+    await probe(`F11-11 render re-entry: ${name}`, async () => {
+      const result = await runGuest(`import React from 'react';export default function App(){${loop}return null;}`, renders);
+      console.log(`OBS F11-11 render re-entry ${name}`, JSON.stringify(result));
+      assert.equal(result.compileError, null, JSON.stringify(result));
+      assert.equal(result.timedOut, true, JSON.stringify(result));
+      assert.equal(result.total, 1, JSON.stringify(result));
+      assert.equal(result.cases[0]?.status, 'fail', JSON.stringify(result));
+      assert.match(result.cases[0]?.error ?? '', /interrupted/, JSON.stringify(result));
+      assert.ok(result.cases[0].durationMs < 4000, `${name}: ${JSON.stringify(result)}`);
+    });
+    await probe(`F11-11 module re-entry: ${name}`, async () => {
+      const started = Date.now();
+      const result = await runGuest(
+        `import React from 'react';${loop}\nexport default function App(){return null;}`,
+        `test('the authored suite still reports after the module fails',()=>{expect(1).toBe(1);});`,
+      );
+      const elapsed = Date.now() - started;
+      console.log(`OBS F11-11 module re-entry ${name}`, JSON.stringify({elapsedMs: elapsed, result}));
+      assert.equal(result.timedOut, true, JSON.stringify(result));
+      assert.match(result.compileError ?? '', /interrupted/, JSON.stringify(result));
+      assert.deepEqual(result.cases.map((one) => one.status), ['pass'], JSON.stringify(result));
+      // Module loading has no case duration; this includes guest startup and
+      // compilation, in addition to the unchanged 2.5 s learner budget.
+      assert.ok(elapsed < 5000, `${name}: ${elapsed} ms including guest startup: ${JSON.stringify(result)}`);
+    });
+  }
+
+  await probe('F11-14 module interrupt survives an authored suite setup error', async () => {
+    const result = await runGuest(
+      `while(true){};export default function App(){return null;}`,
+      `throw new Error('authored suite setup failed');`,
+    );
+    console.log('OBS F11-14 module interrupt and suite setup error', JSON.stringify(result));
+    assert.match(result.compileError ?? '', /compiling suite: authored suite setup failed/, JSON.stringify(result));
+    assert.equal(result.timedOut, true, JSON.stringify(result));
+    assert.deepEqual(result.cases, [], JSON.stringify(result));
+    assert.equal(result.failed, 1, JSON.stringify(result));
+  });
+
+  await probe('F11-12/F11-14 one real interrupt stops retries and later entries', async () => {
+    const result = await runGuest(
+      `import React from 'react';export function spin(){while(true){}}export default function App(){spin();return null;}`,
+      `import React from 'react';import {render} from '@testing-library/react';import App,{spin} from './App';test('busy render',()=>{render(<App/>);});test('later learner call',()=>{spin();});test('later authored case',()=>{expect(2+2).toBe(4);});`,
+    );
+    console.log('OBS F11-12/F11-14 busy render and later entries', JSON.stringify(result));
+    assert.equal(result.compileError, null, JSON.stringify(result));
+    assert.equal(result.timedOut, true, JSON.stringify(result));
+    assert.deepEqual(result.cases.map((one) => one.name), ['busy render', 'later learner call', 'later authored case'], JSON.stringify(result));
+    assert.deepEqual(result.cases.map((one) => one.status), ['fail', 'fail', 'pass'], JSON.stringify(result));
+    for (const one of result.cases.slice(0, 2)) assert.match(one.error ?? '', /interrupted/, JSON.stringify(result));
+    assert.ok(result.cases[0].durationMs < 4000, JSON.stringify(result));
+    assert.ok(result.cases[1].durationMs < 500, JSON.stringify(result));
+  });
+  if (failures.length) throw new AggregateError(failures, 'F11-11/12/14 learner deadline controls failed');
+}
+
 async function localGuest() {
   execFileSync(process.execPath, ['scripts/build-react-runner.mjs'], { stdio: ['ignore', 'ignore', 'inherit'] });
+  await learnerDeadlineContracts();
   const hits: string[] = [];
   const server = createServer((request, response) => {
     hits.push(request.url ?? '');

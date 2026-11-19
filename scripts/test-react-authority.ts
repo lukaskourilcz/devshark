@@ -10,6 +10,56 @@ import { reactRecordContracts } from './react-record-contract';
 await reactSpreadContracts();
 await reactRecordContracts();
 
+// F11-14: ordinary component/assertion/Testing Library errors may contain
+// timeout words. Only a learner interrupt or mini-jest's case clock marks it.
+{
+  const failures: Error[] = [];
+  const check = async (name: string, run: () => Promise<void>) => {
+    try { await run(); console.log(`PASS React timeout classification: ${name}`); }
+    catch (error) { console.error(`FAIL React timeout classification: ${name}`, error); failures.push(error instanceof Error ? error : new Error(String(error))); }
+  };
+  const wrongText = `import React from 'react';import {render} from '@testing-library/react';import App from './App';test('shows Done',()=>{const {container}=render(<App/>);expect(container.textContent).toBe('Done');});`;
+  for (const text of ['Upload interrupted', 'Request timed out']) {
+    await check(`F11-14 rendered ${text}`, async () => {
+      const result = await runReactSuite({suite: wrongText, appSource: `export default function App(){return <p>${text}</p>;}`});
+      assert.equal(result.compileError, null, JSON.stringify(result));
+      assert.equal(result.failed, 1, JSON.stringify(result));
+      assert.equal(result.timedOut, false, JSON.stringify(result));
+      assert.match(result.cases[0]?.error ?? '', new RegExp(text), JSON.stringify(result));
+    });
+  }
+  await check('F11-14 ordinary module error says interrupted', async () => {
+    const result = await runReactSuite({
+      appSource: `throw new Error('Upload interrupted');export default function App(){return null;}`,
+      suite: `test('the authored case still reports',()=>{expect(1).toBe(1);});`,
+    });
+    assert.match(result.compileError ?? '', /Upload interrupted/, JSON.stringify(result));
+    assert.equal(result.timedOut, false, JSON.stringify(result));
+    assert.deepEqual(result.cases.map((one) => one.status), ['pass'], JSON.stringify(result));
+  });
+  await check('F11-14 Testing Library waitFor is an ordinary failure', async () => {
+    const result = await runReactSuite({
+      appSource: `export default function App(){return null;}`,
+      suite: `import {waitFor} from '@testing-library/react';test('waitFor has no matching state',async()=>{await waitFor(()=>{throw new Error('Timed out in waitFor: not ready');},{timeout:30,interval:5});});`,
+    });
+    assert.equal(result.compileError, null, JSON.stringify(result));
+    assert.equal(result.failed, 1, JSON.stringify(result));
+    assert.match(result.cases[0]?.error ?? '', /Timed out in waitFor/, JSON.stringify(result));
+    assert.equal(result.timedOut, false, JSON.stringify(result));
+  });
+  await check('F11-14 the real mini-jest case clock still marks a timeout', async () => {
+    const result = await runReactSuite({
+      appSource: `export default function App(){return null;}`,
+      suite: `test('never settles',()=>new Promise(()=>{}));test('later authored case',()=>{expect(1).toBe(1);});`,
+    });
+    assert.equal(result.compileError, null, JSON.stringify(result));
+    assert.equal(result.timedOut, true, JSON.stringify(result));
+    assert.deepEqual(result.cases.map((one) => one.status), ['fail', 'pass'], JSON.stringify(result));
+    assert.ok(result.cases[0].error?.startsWith('timed out after '), JSON.stringify(result));
+  });
+  if (failures.length) throw new AggregateError(failures, 'F11-14 timeout classification controls failed');
+}
+
 const suite=`import React from 'react';
 import {render} from '@testing-library/react';
 import App from './App';
