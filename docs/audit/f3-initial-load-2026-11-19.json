@@ -122,5 +122,33 @@
     "Fresh final-vendor parity and client/browser checks",
     "Same-profile three-sample lab comparison",
     "Required verify/sql CI and checked production merge"
-  ]
+  ],
+  "finalCodeCheckpoint": {
+    "head": "5fb7f372",
+    "initialGzipBytes": 218615,
+    "sizes": [
+      {
+        "file": "assets/main-6FIt0cxc.js",
+        "gzipBytes": 106099
+      },
+      {
+        "file": "assets/react-Cvu_Vp9I.js",
+        "gzipBytes": 74807
+      },
+      {
+        "file": "assets/tanstack-BZh9zEA-.js",
+        "gzipBytes": 12989
+      },
+      {
+        "file": "assets/main-BK6JspHA.css",
+        "gzipBytes": 24720
+      }
+    ],
+    "deltaFromCurrentMainGzipBytes": -16801,
+    "notes": [
+      "F12-20 actual App/store regression:1red,2controls green;26focusedApp/route tests pass after scalar synchronization.",
+      "F3-08 loaded/held/failed menu breakpoint cases each failed against prior drawer; fresh-buildbrowser acceptance pending at this record.",
+      "The earlier vendor/byte checkpoint and lab reports remain historical snapshots, not silently replaced by this later correctness fix."
+    ]
+  }
 }
