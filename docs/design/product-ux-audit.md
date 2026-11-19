@@ -6,13 +6,13 @@ Every route follows the Epic U system (`DESIGN_RULES.md` §10–11, `docs/design
 
 ## Full-platform proposal review — 5 November 2026
 
-The owner requested a new density, hierarchy and focus review after the Coding/Quiz redesign #599. The [interactive before/after HTML](../ux-review-platform-2026-11-05/index.html) contains 27 stable decisions, per-change comments and accept/revise/reject choices. [Research and scope](../ux-review-platform-2026-11-05/REVIEW.md) records native Uizze evidence, measured guest routes and labelled local fixtures; [QA](../ux-review-platform-2026-11-05/QA.md) distinguishes document validation from product acceptance.
+The owner requested a new density, hierarchy and focus review after the Coding/Quiz redesign #599. The [interactive before/after HTML](https://github.com/lukaskourilcz/devshark/blob/0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c/docs/ux-review-platform-2026-11-05/index.html) contains 27 stable decisions, per-change comments and accept/revise/reject choices. [Research and scope](../ux-review-platform-2026-11-05/REVIEW.md) records native Uizze evidence, measured guest routes and labelled local fixtures; [QA](../ux-review-platform-2026-11-05/QA.md) distinguishes document validation from product acceptance.
 
 These are proposals, not changes to the width/control contract above. The owner-approved Coding first fold is the calibration; original logo, Quiz topic pills/logos and the ocean/sharks stay. Review decisions must precede implementation. Detailed findings live in the linked review, not a second backlog here.
 
 ## Owner-comment revision — 5 November 2026
 
-[Round-two HTML](../ux-review-platform-comments-2026-11-05/index.html) replaces the review queue with 11 consolidated topics covering all 16 commented IDs. Accepted items without comments and the rejected proposal are omitted. Before is the first proposal, After is its revision; unchanged accepted work remains the visual baseline. Shared comments apply across related screens without duplicate finding cards. [Scope](../ux-review-platform-comments-2026-11-05/REVIEW.md) and [document QA](../ux-review-platform-comments-2026-11-05/QA.md) record the comparison and separate feedback format. This round changes review documents only.
+[Round-two HTML](https://github.com/lukaskourilcz/devshark/blob/0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c/docs/ux-review-platform-comments-2026-11-05/index.html) replaces the review queue with 11 consolidated topics covering all 16 commented IDs. Accepted items without comments and the rejected proposal are omitted. Before is the first proposal, After is its revision; unchanged accepted work remains the visual baseline. Shared comments apply across related screens without duplicate finding cards. [Scope](../ux-review-platform-comments-2026-11-05/REVIEW.md) and [document QA](../ux-review-platform-comments-2026-11-05/QA.md) record the comparison and separate feedback format. This round changes review documents only.
 
 ## Route and state inventory
 

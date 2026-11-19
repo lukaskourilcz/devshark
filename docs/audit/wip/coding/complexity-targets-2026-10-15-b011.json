@@ -1,7 +1,0 @@
-{
-  "js-easy3-hide-banned": "O(n²)",
-  "js-easy4-any-overdue": "O(n)",
-  "js-easy3-first-over-limit": "O(n)",
-  "js-easy4-first-free-slot": "O(n)",
-  "js-easy3-form-complete": "O(n)"
-}

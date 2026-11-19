@@ -1,7 +1,0 @@
-{
-  "js-easy4-grid-differences": "O(n²)",
-  "js-easy3-pick-list": "O(n)",
-  "js-easy4-letters-in-order": "O(n)",
-  "js-easy4-mirror-lists": "O(n)",
-  "js-easy3-newest-first": "O(n log n)"
-}

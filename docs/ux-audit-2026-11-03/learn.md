@@ -1,6 +1,6 @@
 # Learn — seniorní UX audit
 
-Datum: 3. 11. 2026. Stav: audit a návrhy, nikoli implementované změny aplikace. [Vizuální report](learn.html).
+Datum: 3. 11. 2026. Stav: audit a návrhy, nikoli implementované změny aplikace. [Vizuální report](https://github.com/lukaskourilcz/devshark/blob/0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c/docs/ux-audit-2026-11-03/learn.html).
 
 ## Rozsah a cíl uživatele
 
