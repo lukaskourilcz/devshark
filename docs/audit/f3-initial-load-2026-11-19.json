@@ -1,0 +1,126 @@
+{
+  "recorded": "2026-11-19",
+  "node": "v24.22.3",
+  "scope": "Production-shaped local builds with the public placeholder build environment from docs/quality/bundle-budget.json. Initial entry/preload/CSS bytes use Node gzip; font bytes are reported separately. No LCP attribution is inferred from byte changes.",
+  "before": {
+    "phase": "before",
+    "head": "6c85886c03c22227fb4690ffaa298efe15d2dad0",
+    "sizes": [
+      {
+        "file": "assets/main-IkEs3e1t.js",
+        "gzipBytes": 121313
+      },
+      {
+        "file": "assets/router-CWOMc5in.js",
+        "gzipBytes": 18091
+      },
+      {
+        "file": "assets/tanstack-B-NlDO1V.js",
+        "gzipBytes": 13380
+      },
+      {
+        "file": "assets/react-DNiXoLEt.js",
+        "gzipBytes": 56848
+      },
+      {
+        "file": "assets/main-BLNYOMu2.css",
+        "gzipBytes": 25784
+      }
+    ],
+    "initialGzipBytes": 235416,
+    "fonts": [
+      "assets/manrope-latin-wght-normal-DHIcAJRg.woff2",
+      "assets/inter-latin-wght-normal-Dx4kXJAl.woff2"
+    ]
+  },
+  "after": {
+    "phase": "after",
+    "head": "0243286d9bc6dba5b4028d33484f88c13fb77149",
+    "sizes": [
+      {
+        "file": "assets/main-Jf6etiTa.js",
+        "gzipBytes": 105902
+      },
+      {
+        "file": "assets/react-Cvu_Vp9I.js",
+        "gzipBytes": 74807
+      },
+      {
+        "file": "assets/tanstack-BZh9zEA-.js",
+        "gzipBytes": 12989
+      },
+      {
+        "file": "assets/main-BK6JspHA.css",
+        "gzipBytes": 24720
+      }
+    ],
+    "initialGzipBytes": 218418,
+    "fonts": []
+  },
+  "deltaInitialGzipBytes": -16998,
+  "cssGzipBytes": {
+    "before": 25784,
+    "after": 24720
+  },
+  "preloadedFontBytes": {
+    "before": 73092,
+    "after": 0
+  },
+  "monitoringGzipBytes": {
+    "before": 49565,
+    "after": 46800
+  },
+  "modulepreloadCount": {
+    "before": 3,
+    "after": 2
+  },
+  "vendorComparison": {
+    "splitInitialGzipBytes": 218962,
+    "combinedInitialGzipBytes": 218418,
+    "deltaGzipBytes": -544,
+    "reactFamilyModulesInCombinedGroup": 11,
+    "reactFamilySources": [
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react/cjs/react-jsx-runtime.production.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react/jsx-runtime.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react/cjs/react.production.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react/index.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/scheduler/cjs/scheduler.production.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/scheduler/index.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react-dom/cjs/react-dom.production.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react-dom/index.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react-dom/cjs/react-dom-client.production.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react-dom/client.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react-router/dist/development/chunk-6KYCQHYJ.mjs"
+    ]
+  },
+  "scopeDecisions": [
+    "No font-face rule or font URL existed in the active initial CSS; remove unused font preloads instead of retaining two unused requests. OG drawing keeps its build-time fonts.",
+    "Keep the useful React/Router and TanStack preloads. Initial files total four; the largest-ten report includes lazy chunks.",
+    "Keep public guide CSS for no-JavaScript pages, runtime Astryx classes, wave variants and coding selectors.",
+    "Disable production Sentry debug branches while retaining tracing at its existing 0.1 sample rate."
+  ],
+  "browserCheckpoint": {
+    "head": "49668a9f",
+    "configuration": "split vendor groups, otherwise the same implemented runtime slices",
+    "specs": [
+      "first-load",
+      "lazy-auth",
+      "navigation",
+      "route-errors"
+    ],
+    "passed": 45,
+    "failed": 0,
+    "includes": [
+      "fresh Home package provenance and unused-font guard",
+      "lazy scoped CSS guard",
+      "held menu and held animation-feature chunks",
+      "modal focus and late dismissal",
+      "route navigation and failed feature recovery"
+    ]
+  },
+  "acceptanceRemainingAtRecord": [
+    "Fresh final-vendor parity and client/browser checks",
+    "Same-profile three-sample lab comparison",
+    "Required verify/sql CI and checked production merge"
+  ]
+}
