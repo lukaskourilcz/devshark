@@ -3,10 +3,12 @@ import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { buildSandboxWorker } from './build-sandbox-worker.mjs';
+import { buildReactCompileWorker } from './build-react-compile-worker.mjs';
 import { pinnedQuickJSBundle } from './quickjs-bundle.mjs';
 
 // The QuickJS grader's worker thread (lib/coding/sandbox.ts).
 export const sandboxBundle = await buildSandboxWorker();
+await buildReactCompileWorker();
 
 // The grader's own code runs in strict mode, as its ES module sources were
 // written: a stack trace the component reads then hands out no grader

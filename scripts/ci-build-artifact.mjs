@@ -29,6 +29,9 @@ function verifyReactArtifact(root) {
     const expected = JSON.parse(readFileSync(path.join(root, 'lib/coding/generated/react-sandbox.sha256.cjs'), 'utf8'));
     if (typeof expected !== 'string' || !/^[a-f0-9]{64}$/.test(expected) || createHash('sha256').update(runner).digest('hex') !== expected) throw new Error();
   } catch { throw new Error('React guest artifact/digest pair is missing or invalid.'); }
+  try {
+    if (readFileSync(path.join(root, 'lib/coding/generated/react-compile-worker.cjs')).length === 0) throw new Error();
+  } catch { throw new Error('React compiler worker artifact is missing or empty.'); }
 }
 function head() {
   const value = process.env.GITHUB_SHA || execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();

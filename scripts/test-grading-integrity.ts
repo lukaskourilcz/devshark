@@ -36,12 +36,16 @@ import { evaluateInRunRealm } from './run-realm-node';
 import { checkStructuredCloneOwnKeys } from './structured-clone-contracts';
 import { UTC_REACT_APP, UTC_REACT_SUITE } from './fixtures/utc-react';
 import { buildSandboxWorker } from './build-sandbox-worker.mjs';
+import { buildReactCompileWorker } from './build-react-compile-worker.mjs';
 import { checkReactBusyContracts } from './react-busy-contracts';
+import { checkReactCompilePoolContracts } from './react-compile-pool-contracts';
 
 // Every run below goes through the grader's worker thread, built fresh from
 // the sources under test, exactly as the deployment runs it.
 checkQuickjsProvenance();
 await buildSandboxWorker();
+await buildReactCompileWorker();
+await checkReactCompilePoolContracts();
 await checkReactBusyContracts();
 
 // ── a task page loads a grader thread ahead of its first Submit (#587) ───

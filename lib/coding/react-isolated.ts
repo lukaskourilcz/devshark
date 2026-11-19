@@ -10,6 +10,7 @@ const { Sandbox } = createRequire(join(process.cwd(), 'package.json'))(
 import type { ReactSuiteOutcome } from './react-runner';
 import { GUEST_ENV, GUEST_NODE_FLAGS, readGuestRun, type GuestInput } from './react-guest';
 import { compileReactLearner } from './react-transpile';
+import { compileReactOnWorker } from './react-compile-pool';
 import { FETCH_STUB_SOURCE } from '../../shared/coding-react-support';
 import { LOCAL_FETCH_SOURCE } from '../../shared/coding-fullstack-support';
 import { afterResponse } from './after-response';
@@ -86,16 +87,11 @@ export async function runIsolatedReactSuite(input: {
   suite: string;
   appSource: string;
 }): Promise<ReactSuiteOutcome> {
-  // The learner's code is converted here, before any VM is asked for. Code
-  // nested past what the compiler's recursion can follow is the learner's
-  // error, as in the TypeScript grader, not an outage to retry.
-  let compiledApp: string;
-  try {
-    compiledApp = compileReactLearner(input.appSource);
-  } catch (error) {
-    if (error instanceof RangeError) return { cases: [], passed: 0, failed: 1, total: 1, compileError: NESTED_TOO_DEEPLY, timedOut: false };
-    throw runnerFailure('Compile', error);
-  }
+  // Learner syntax conversion has a worker deadline before any VM starts.
+  // Constant fixtures below retain their once-per-instance conversion.
+  const compiled = await compileReactOnWorker(input.appSource);
+  if ('nested' in compiled) return { cases: [], passed: 0, failed: 1, total: 1, compileError: NESTED_TOO_DEEPLY, timedOut: false };
+  const compiledApp = compiled.js;
   const snapshotId = process.env.REACT_RUNNER_SNAPSHOT_ID;
   if (!snapshotId) throw runnerFailure('Configuration');
   const runner = await runnerArtifact();
