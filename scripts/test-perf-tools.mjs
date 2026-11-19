@@ -6,7 +6,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import http from 'node:http';
 import https from 'node:https';
 import { createHash } from 'node:crypto';
-import { brotliCompressSync, gzipSync } from 'node:zlib';
+import { brotliCompressSync, gunzipSync, gzipSync } from 'node:zlib';
 import { existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -729,4 +729,89 @@ test('check:bundle keeps its default shaped-build options and refuses mixed/repe
   assert.deepEqual(bundle.bundleOptions(['--url=https://example.test']), { origin: 'https://example.test', largestCount: 10 });
   for (const args of [['--url=https://example.test', '--largest=20'], ['--url=https://example.test', '--url=https://other.test'], ['--url'], ['--largest=2', '--largest=3']]) assert.throws(() => bundle.bundleOptions(args));
   assert.equal(JSON.parse(readFileSync(join(root, 'docs/quality/bundle-budget.json'), 'utf8')).initialGzipBytes, 218675);
+});
+
+// F1-38: exercise the existing CLI server, with no HTTP readiness polling.
+async function fixtureLab(t, { rootIndex = true } = {}) {
+  const directory = perfScratch(t, 'devshark-navigation-fixture-');
+  if (rootIndex) writeFileSync(join(directory, 'index.html'), '<!doctype html><title>invented root shell</title>');
+  for (const name of ['learn/nested', 'real', 'assets/coding-worker', 'sandbox']) mkdirSync(join(directory, name), { recursive: true });
+  writeFileSync(join(directory, 'real/index.html'), '<!doctype html><title>real route index</title>');
+  writeFileSync(join(directory, 'assets/main.js'), 'export const fixture = true;');
+  writeFileSync(join(directory, 'assets/coding-worker/worker.js'), 'export const worker = true;');
+  writeFileSync(join(directory, 'sandbox/index.html'), '<title>sandbox fixture</title>');
+  const outside = perfScratch(t, 'devshark-outside-fixture-'); writeFileSync(join(outside, 'secret.js'), 'outside must never be served');
+  symlinkSync(join(outside, 'secret.js'), join(directory, 'assets/escape.js'));
+  const slot = await ownPerfServer(t, (_req, res) => res.end());
+  const port = slot.server.address().port; await new Promise(resolve => slot.server.close(resolve));
+  const child = spawn(process.execPath, [join(root, 'scripts/performance-fixture-server.mjs'), directory, String(port)], { cwd: root, env: { PATH: process.env.PATH }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const stopped = new Promise(resolve => child.once('close', resolve));
+  t.after(async () => { if (child.exitCode === null) child.kill('SIGKILL'); await stopped; });
+  await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('fixture startup deadline')), 5000);
+    const fail = () => { clearTimeout(timer); reject(new Error('fixture exited before ready')); };
+    child.once('error', fail); child.once('close', fail);
+    let output = '';
+    child.stdout.on('data', chunk => { output += chunk; if (output.includes('Read-only fixture on http://127.0.0.1:' + port)) { clearTimeout(timer); child.removeListener('error', fail); child.removeListener('close', fail); resolve(); } });
+  });
+  return { origin: 'http://127.0.0.1:' + port, directory };
+}
+function fixtureRead(origin, target, { method = 'GET', headers = {} } = {}) {
+  const url = new URL(origin);
+  return new Promise((resolve, reject) => {
+    const request = http.request({ hostname: url.hostname, port: url.port, path: target, method, headers: { Accept: 'text/html', ...headers }, agent: false }, response => {
+      const chunks = []; response.on('data', chunk => chunks.push(chunk)); response.once('error', reject);
+      response.once('end', () => resolve({ status: response.statusCode, headers: response.headers, body: Buffer.concat(chunks) }));
+    });
+    request.setTimeout(3000, () => request.destroy(new Error('fixture read deadline'))); request.once('error', reject); request.end();
+  });
+}
+
+test('perf:fixture serves indexless navigation directories while keeping a real index', async (t) => {
+  const server = await fixtureLab(t);
+  for (const path of ['/learn', '/learn/', '/learn?fixture=1', '/quiz']) {
+    const response = await fixtureRead(server.origin, path);
+    assert.equal(response.status, 200, path); assert.match(response.body.toString(), /invented root shell/); assert.match(response.headers['content-type'], /text\/html/);
+    assert.equal(response.headers['cache-control'], 'no-cache');
+  }
+  const real = await fixtureRead(server.origin, '/real'); assert.equal(real.status, 200); assert.match(real.body.toString(), /real route index/); assert.doesNotMatch(real.body.toString(), /root shell/);
+  const head = await fixtureRead(server.origin, '/learn', { method: 'HEAD', headers: { 'Accept-Encoding': 'gzip' } });
+  assert.equal(head.status, 200); assert.equal(head.body.length, 0); assert.equal(head.headers['content-encoding'], 'gzip'); assert.equal(head.headers.vary, 'Accept-Encoding');
+  const gzip = await fixtureRead(server.origin, '/learn', { headers: { 'Accept-Encoding': 'gzip' } }); assert.match(gunzipSync(gzip.body).toString(), /invented root shell/);
+});
+
+test('perf:fixture never replaces missing assets, reserved paths or non-HTML requests with root HTML', async (t) => {
+  const server = await fixtureLab(t);
+  for (const path of ['/assets/missing.js', '/assets/missing', '/assets', '/sandbox/missing.js', '/sandbox/missing', '/missing.css', '/favicon.ico', '/.env', '/.well-known/missing', '/api']) {
+    const response = await fixtureRead(server.origin, path); assert.equal(response.status, 404, path); assert.equal(response.body.length, 0, path);
+  }
+  const json = await fixtureRead(server.origin, '/learn', { headers: { Accept: 'application/json' } }); assert.equal(json.status, 404);
+  const excluded = await fixtureRead(server.origin, '/learn', { headers: { Accept: 'text/html;q=0' } }); assert.equal(excluded.status, 404);
+  const curl = await fixtureRead(server.origin, '/learn', { headers: { Accept: '*/*' } }); assert.equal(curl.status, 200, 'bare curl page navigation remains usable');
+  const missingRoot = await fixtureLab(t, { rootIndex: false });
+  assert.equal((await fixtureRead(missingRoot.origin, '/learn')).status, 404);
+  assert.match((await fixtureRead(missingRoot.origin, '/real')).body.toString(), /real route index/);
+});
+
+test('perf:fixture keeps method/traversal/containment refusals and the narrow asset CORS policy', async (t) => {
+  const server = await fixtureLab(t);
+  assert.equal((await fixtureRead(server.origin, '/learn', { method: 'POST' })).status, 405);
+  assert.equal((await fixtureRead(server.origin, '/bad%ZZ')).status, 400);
+  for (const path of ['/%2e%2e/outside-secret', '/..%2f..%2foutside-secret', '/assets/escape.js']) {
+    const response = await fixtureRead(server.origin, path); assert.equal(response.status, 403, path); assert.doesNotMatch(response.body.toString(), /outside must never/);
+  }
+  const worker = await fixtureRead(server.origin, '/assets/coding-worker/worker.js'); assert.equal(worker.status, 200); assert.equal(worker.headers['access-control-allow-origin'], '*');
+  const sandbox = await fixtureRead(server.origin, '/sandbox/'); assert.equal(sandbox.status, 200); assert.equal(sandbox.headers['access-control-allow-origin'], '*');
+  const ordinary = await fixtureRead(server.origin, '/assets/main.js'); assert.equal(ordinary.status, 200); assert.equal(ordinary.headers['access-control-allow-origin'], undefined); assert.match(ordinary.headers['cache-control'], /immutable/);
+});
+
+test('perf:fixture retains synthetic 400ms API-only settings and provider refusal responses', async (t) => {
+  const server = await fixtureLab(t), started = performance.now();
+  const settings = await fixtureRead(server.origin, '/api/settings', { headers: { Accept: 'application/json', Origin: 'null' } });
+  assert.ok(performance.now() - started >= 350, 'the deliberately synthetic delay remains; this is not backend latency evidence');
+  assert.equal(settings.status, 200); assert.equal(settings.headers['cache-control'], 'no-store'); assert.equal(settings.headers['access-control-allow-origin'], undefined);
+  const body = JSON.parse(settings.body.toString()); assert.equal(body.billing.enabled, false); assert.equal(body.billing.launchOffer, false);
+  const refused = await fixtureRead(server.origin, '/api/user/stats', { headers: { Accept: 'application/json', Origin: 'null' } });
+  assert.equal(refused.status, 503); assert.equal(JSON.parse(refused.body.toString()).error.code, 'fixture_only'); assert.equal(refused.headers['access-control-allow-origin'], undefined);
+  assert.equal((await fixtureRead(server.origin, '/api/settings', { method: 'POST' })).status, 405);
 });
