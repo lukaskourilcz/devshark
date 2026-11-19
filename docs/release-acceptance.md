@@ -7204,3 +7204,83 @@ Branch `claude/f15b-seo-observability`, stacked on `claude/f15-seo-observability
 - The curl of `/privacy` on a Vercel preview: the branch is not pushed yet. Until F15-55 adds the rewrites, Vercel answers both pages through its directory index. A read-only GET of `https://devshark.app/sandbox` confirms that behaviour.
 
 Every other F15 finding, F15-09 and F15-12 through F15-57 included, stays in #646 for the next agent.
+
+## Epic F4 images: public assets and invitation codes (19 November 2026)
+
+Issue #633, with cross-package F15-59 from #646. I archived 80 build-only brand
+source files under `docs/brand/source`, preserving their original bytes and
+provenance. The OG build and regeneration script read that archive. Future
+Vercel or Docker ignore rules must retain the two SVG build inputs.
+
+| Measurement | Before | After |
+|---|---:|---:|
+| Source public files | 94 | 11 |
+| Source public bytes | 3,069,641 | 892,912 |
+| Brand sources served from public | 1,943,862 bytes | 0 bytes |
+| Brand share PNG, 1200 by 630 | 407,658 bytes | 243,605 bytes |
+| Four referenced PNG icons | 38,126 bytes | 5,669 bytes |
+| Three root SVG icons | 24,223 bytes | 880 bytes |
+
+SVGO retained the SVG geometry, view boxes and external wordmark fragment IDs.
+Resvg rendered the original and optimized source SVGs to identical pixels.
+The four PNG icons retain identical decoded RGBA pixels; both maskable icons
+keep their foreground inside the central safe circle. The brand share image
+uses a 256-colour PNG palette: its RGB mean absolute difference is 0.131 of 255,
+with a maximum channel difference of 13. Visual review retained its layout,
+lettering and outlines. The build generated 895 share cards on 19 November;
+the largest is 21,305 bytes, below the enforced 300,000-byte cap.
+
+Play invitations now use SVG instead of a 220px PNG at a 164px display size.
+Category images decode asynchronously. The home glyphs already used inline
+SVG URLs, so I retained that delivery. No merchandise raster renders while
+merchandise is disabled. Native install icons and crawler share cards retain
+PNG; the rendered invitation uses vector output. The preview videos stay
+outside the Vite output and Docker context. The generated development/build
+manifest now has one source, completing F15-59 without changing orientation.
+
+| Check | Actual result |
+|---|---|
+| Refreshed local parity, Node 24.22.3, `caec3ff4` on main `d0e96b88` | 12 selected steps passed, 0 failed; complete partial run |
+| API, script and tooling type checks | pass |
+| `check:unused`, `check:security` | pass; no ignore or baseline changes |
+| `build`, `check:images`, `check:public` | pass; 37 image contracts and 917 source/built images pass |
+| `check:bundle` | 235,416 initial gzip bytes against 241,651; monitoring 49,565 against 60,000 |
+| Root/client production audits | 0 vulnerabilities each |
+| Full client suite after refresh | 1,938 tests across 193 files pass |
+| Image and public browser specs | 17 pass, including 390px at 3x, 768px at 2x and 1440px at 1x |
+| Development manifest and three referenced icons | HTTP 200 with the expected content types |
+| Earlier fast-run responsive sweeps | 35 light and 9 dark probes pass, 0 issues and 0 unprobed |
+| Targeted coding rerun | both `react-fullstack-workshops-6` and `react-easy3-dispatch-through-context` pass with unchanged limits |
+| Local Lighthouse home image audits | responsive sizing, dimensions, aspect ratio and image delivery score 1 on mobile and desktop |
+| `git diff --check` | clean |
+
+The first fast attempt stopped after TS6307 exposed a missing tooling project
+input and the new root `node --test` flag broadened Knip discovery into nested
+package tests. I added the encoder to the tooling project and invoked the
+same Node test module directly. All 37 contracts still run and propagate
+failure; the unused-code check passes without exclusions.
+
+The corrected fast run completed in 51.64 minutes with 26 passed, 2 failed,
+27 skipped and 1 not run. One client assertion still expected the old share
+image revision; I kept its cached-shell fixture and updated the navigation
+expectation. The refreshed full client run passes. The coding suite hit one
+5,000ms hidden-case timeout in `react-fullstack-workshops-6`; the focused rerun
+passes without a limit change. These failures remain part of the record.
+Required PR CI must validate the integrated branch before merge.
+
+The local QuickJS source rebuild did not run because this host has Python
+3.9.6 and no pinned emsdk. Local SQL did not run; this package changes no SQL,
+and the required CI SQL job uses the Supabase image. The fast run omits the
+full browser, harness and Storybook sequence; focused browser checks ran
+separately. No authenticated production or physical-device check ran here.
+
+Local Lighthouse measured mobile LCP at 3,754ms, CLS 0 and TBT 18ms, with the
+consent paragraph as the LCP element. Desktop measured LCP 789ms, CLS 0 and
+TBT 0, with the hero heading as its LCP element. These are different elements
+in a localhost fixture lab, not field measurements or proof of a font/Motion
+cause. F3 and F5 retain the initial-load and Core Web Vitals work.
+
+The per-file archive inventory and pixel/byte evidence live in
+`docs/audit/f4-archived-public-assets-2026-11-18.json` and
+`docs/audit/f4-image-delivery-2026-11-18.json`. This entry records local evidence;
+the package awaits its checked PR merge and read-only deployment smoke.

@@ -190,5 +190,36 @@
     "Mobile lab LCP is 3754.2114ms; initial-load and Core Web Vitals work remains in F3/F5/F16.",
     "No physical-device or authenticated production verification.",
     "Local QuickJS source rebuild needs Python 3.10 or a pinned emsdk; this host has Python 3.9.6. Required CI provides that rebuild."
-  ]
+  ],
+  "lcpElements": {
+    "mobile": {
+      "selector": "section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_",
+      "snippet": "<p id=\"_r_4_\" class=\"ss-consent__body\">",
+      "nodeLabel": "devShark keeps what sign-in, settings and progress need in this browser. With y\u2026"
+    },
+    "desktop": {
+      "selector": "div.ss-pop > section.ss-hero-grid > div.ss-hero-copy > h1",
+      "snippet": "<h1 style=\"margin: 0px; font-family: var(--font-family-heading); font-weight: 800;\">",
+      "nodeLabel": "Lessons, quizzes and coding tasks for web developers."
+    }
+  },
+  "revalidation": {
+    "date": "2026-11-19",
+    "head": "caec3ff4",
+    "mainBase": "d0e96b88",
+    "selectedParityStepsPassed": 12,
+    "clientTestsPassed": 1938,
+    "clientTestFiles": 193,
+    "browserTestsPassed": 17,
+    "imageContractsPassed": 37,
+    "sourceAndBuiltImagesChecked": 917,
+    "generatedCards": 895,
+    "largestGeneratedCardBytes": 21305,
+    "initialGzipBytes": 235416,
+    "initialGzipBudget": 241651,
+    "monitoringGzipBytes": 49565,
+    "monitoringGzipBudget": 60000,
+    "codingRerunFilter": "^(react-fullstack-workshops-6|react-easy3-dispatch-through-context)$",
+    "codingRerunExitCode": 0
+  }
 }
