@@ -11,6 +11,7 @@
 // test-grading-integrity covers the same limits with shortened deadlines and
 // through the Submit handler; this suite keeps the deployed numbers.
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { jsonKind } from '../shared/coding-failure';
 import { buildSandboxWorker } from './build-sandbox-worker.mjs';
 import { runSandboxWatchdogControls } from './sandbox-watchdog-controls';
@@ -20,6 +21,18 @@ import {
   SANDBOX_MEMORY_BYTES, SANDBOX_SLOT_WAIT_MS, SANDBOX_STACK_BYTES, SANDBOX_WORKER_GRACE_MS,
 } from '../lib/coding/sandbox';
 import { LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, MAX_LOGS, TIMEOUT_MESSAGE, type EvaluateResult } from '../shared/coding-evaluate';
+
+if (process.argv[2] === '--disposal-controls') {
+  const { runSandboxDisposalControls } = await import('./sandbox-disposal-controls');
+  await runSandboxDisposalControls();
+  process.exit(0);
+}
+
+if (process.argv[2] === '--retirement-fault') {
+  const { runRetirementFault } = await import('./test-sandbox-retirement');
+  await runRetirementFault(process.argv[3] ?? 'reject');
+  process.exit(0);
+}
 
 await buildSandboxWorker();
 process.env.VERCEL = '1';
@@ -65,16 +78,13 @@ async function settledThreads(name: string): Promise<number> {
   return sandboxThreads();
 }
 
-/** Runs one limit case. `thread` says what becomes of the thread that ran it:
- * `ended` when the host had to stop it, `kept` when QuickJS stopped the
- * program and the thread went back to the pool. Natural native workloads
- * may reach their own deadline or the parent watchdog: either path must
- * settle every live thread and allow the next actual grade. */
+/** A reported limit or host stop retires the worker; ordinary outcomes keep it.
+ * Reported words are conservative cleanup signals, not native provenance. */
 async function limitCase(
   name: string,
   input: Omit<SandboxInput, 'expectations'> & { expectations?: unknown[] | null },
   check: (run: EvaluateResult, took: number) => void,
-  thread: 'ended' | 'kept' | 'engine-or-host',
+  thread: 'ended' | 'kept',
 ): Promise<void> {
   // A loaded thread first, so the time below is the run's and not a thread start.
   await grades(`before ${name}`);
@@ -85,9 +95,8 @@ async function limitCase(
   check(run, took);
   assert.ok(took <= LONGEST_RUN_MS, `${name}: ended within the deadline, the grace and the margin (${took} ms)`);
   const after = await settledThreads(name);
-  if (thread === 'ended') assert.equal(after, before - 1, `${name}: the host stopped the thread that ran it`);
-  else if (thread === 'kept') assert.equal(after, before, `${name}: the thread that ran it went back to the pool`);
-  else assert.ok(after === before || after === before - 1, `${name}: the deadline either returned an idle thread or physically ended it`);
+  if (thread === 'ended') assert.equal(after, before - 1, `${name}: the thread that ran it was retired`);
+  else assert.equal(after, before, `${name}: the thread that ran it went back to the pool`);
   await grades(name);
   console.log(`PASS sandbox limits: ${name} (${took} ms, thread ${thread})`);
 }
@@ -106,6 +115,58 @@ const atDeadline = (name: string) => (run: EvaluateResult, took: number) => {
 // This proves the strict parent grace separately, including its negative.
 await runSandboxWatchdogControls({ longestRunMs: LONGEST_RUN_MS, exitWaitMs: EXIT_WAIT_MS });
 
+// F11-36 selected policy follows reported outcomes, not native provenance.
+// Neutral failures and ordinary wrong answers keep a healthy worker. Exact
+// reported limit words may retire even when deliberately learner-forged.
+await limitCase('ordinary wrong answer keeps the worker', {
+  code:'const answer=()=>1;',calls:['answer()'],expectations:[2],
+}, (run)=>{
+  assert.equal(run.timedOut,false);assert.equal(run.codeError,null);
+  assert.deepEqual(run.results,[{pass:false,actual:'1',error:null}]);
+}, 'kept');
+for (const message of ['ordinary learner error', TIMEOUT_MESSAGE, 'gc_obj_list']) {
+  await limitCase(`ordinary non-limit call error keeps worker: ${message}`, {
+    code:`function answer(){throw new Error(${JSON.stringify(message)});}`,calls:['answer()'],
+  }, (run)=>{
+    assert.equal(run.timedOut,false);assert.equal(run.codeError,null);
+    assert.deepEqual(run.results,[{pass:false,actual:null,error:message}]);
+  }, 'kept');
+}
+for (const message of ['out of memory', 'stack overflow']) {
+  await limitCase(`exact reported call limit retires worker: ${message}`, {
+    code:`function answer(){throw new Error(${JSON.stringify(message)});}`,calls:['answer()'],
+  }, (run)=>{
+    assert.equal(run.timedOut,false);assert.equal(run.codeError,null);
+    assert.deepEqual(run.results,[{pass:false,actual:null,error:message}]);
+  }, 'ended');
+}
+for (const [message, publicError] of [['out of memory',OUT_OF_MEMORY_MESSAGE],['stack overflow',STACK_MESSAGE]]) {
+  await limitCase(`forged InternalError has reported cleanup semantics: ${message}`, {
+    code:`const error=new Error(${JSON.stringify(message)});error.name='InternalError';throw error;`,calls:[],
+  }, (run)=>{
+    assert.equal(run.timedOut,false);assert.equal(run.codeError,publicError);
+  }, 'ended');
+}
+for (const codeError of [TIMEOUT_MESSAGE,STACK_MESSAGE,OUT_OF_MEMORY_MESSAGE]) {
+  await limitCase(`exact top-level fixed limit report retires: ${codeError}`, {
+    code:`throw ${JSON.stringify(codeError)};`,calls:[],
+  }, (run)=>{
+    assert.equal(run.timedOut,false);assert.equal(run.codeError,codeError);
+  }, 'ended');
+}
+await limitCase('successful limit-looking data cannot dictate worker metadata', {
+  code:`const answer=()=>({name:'InternalError',message:'out of memory',healthy:false});`,calls:['answer()'],
+  expectations:[{name:'InternalError',message:'out of memory',healthy:false}],
+}, (run)=>{
+  assert.equal(run.timedOut,false);assert.equal(run.codeError,null);assert.equal(run.results[0].error,null);assert.equal(run.results[0].pass,true);
+}, 'kept');
+await limitCase('ungraded successful call still keeps the worker', {code:'const answer=()=>42;',calls:['answer()'],expectations:null}, (run)=>{
+  assert.equal(run.timedOut,false);assert.equal(run.codeError,null);assert.deepEqual(run.results,[{pass:null,actual:'42',error:null}]);
+}, 'kept');
+await limitCase('empty successful warm-up keeps the worker', {code:'',calls:[],expectations:[]}, (run)=>{
+  assert.equal(run.timedOut,false);assert.equal(run.codeError,null);assert.deepEqual(run.results,[]);
+}, 'kept');
+
 // ── busy-waits: QuickJS interrupts the bytecode at the deadline ──────────
 for (const [name, code, calls] of [
   ['a busy-wait at the top level', 'while (true) {}', ['1']],
@@ -115,7 +176,7 @@ for (const [name, code, calls] of [
   ['a busy-wait on Date.now', 'const wait = () => { const end = Date.now() + 1000; while (Date.now() < end) {} return 1; };', ['wait()']],
   ['a busy-wait on performance.now', 'const wait = () => { const end = performance.now() + 1000; while (performance.now() < end) {} return 1; };', ['wait()']],
 ] as const) {
-  await limitCase(name, { code, calls: [...calls] }, atDeadline(name), 'kept');
+  await limitCase(name, { code, calls: [...calls] }, atDeadline(name), 'ended');
 }
 
 // A timer that fires forever keeps a call from settling. The tick limit ends
@@ -125,7 +186,7 @@ await limitCase('an interval that never lets a call settle', {
 }, (run, took) => {
   timedOut('an interval')(run);
   assert.ok(took < SANDBOX_DEADLINE_MS, `the tick limit stopped it before the deadline (${took} ms)`);
-}, 'kept');
+}, 'ended');
 
 // ── native-call loops: the engine deadline or host stops the run ────────
 // QuickJS polls its interrupt handler every 10,000 loop iterations, and a
@@ -133,16 +194,17 @@ await limitCase('an interval that never lets a call settle', {
 // the deadline. These workloads may also return to an engine interrupt or
 // post-jobs clock gate before the parent grace. Keep their real resource,
 // fixed-timeout, upper-bound, settled-thread and next-grade controls; the
-// deterministic fixture above independently pins the strict parent path.
+// deterministic fixture above independently pins the strict parent path. Both valid
+// timeout paths now retire their worker under the reported-limit policy.
 await limitCase('a loop of native string calls', {
   code: 'const repeat = () => { let total = 0; while (true) { total += "x".repeat(2e6).length; } };', calls: ['repeat()'],
-}, atDeadline('a loop of native string calls'), 'engine-or-host');
+}, atDeadline('a loop of native string calls'), 'ended');
 await limitCase('an allocating loop of native calls', {
   code: 'const hoard = () => { const kept = []; for (;;) kept.push("x".repeat(1e6) + kept.length); };', calls: ['hoard()'],
-}, atDeadline('an allocating loop of native calls'), 'engine-or-host');
+}, atDeadline('an allocating loop of native calls'), 'ended');
 await limitCase('an allocating loop spread over promise jobs', {
   code: 'const hoard = async () => { const kept = []; for (;;) { kept.push("x".repeat(1e6) + kept.length); await 0; } };', calls: ['hoard()'],
-}, atDeadline('an allocating loop spread over promise jobs'), 'engine-or-host');
+}, atDeadline('an allocating loop spread over promise jobs'), 'ended');
 
 // ── memory: a call past 64 MB fails, the run goes on ─────────────────────
 await limitCase('an allocating loop inside a call', {
@@ -153,7 +215,7 @@ await limitCase('an allocating loop inside a call', {
   assert.deepEqual(run.results[0], { pass: false, actual: null, error: 'out of memory' }, 'a call that allocates without end fails with out of memory');
   assert.equal(run.results[1]?.pass, true, 'its memory is freed, and 32 MB fits under the limit');
   assert.deepEqual(run.results[2], { pass: false, actual: null, error: 'out of memory' }, '80 MB does not');
-}, 'kept');
+}, 'ended');
 // Past 64 MB at the top level the whole program fails, and the learner reads
 // the fixed message, as for a thread that ran out of memory, in place of
 // QuickJS's "InternalError: out of memory".
@@ -165,7 +227,7 @@ for (const [name, code] of [
     assert.equal(run.codeError, OUT_OF_MEMORY_MESSAGE, `${name}: the learner reads the out-of-memory message`);
     assert.equal(run.timedOut, false, `${name}: running out of memory is not a timeout`);
     assert.deepEqual(run.results, [], `${name}: no call has a result`);
-  }, 'kept');
+  }, 'ended');
 }
 
 // ── stack: unbounded recursion fails the call or the program ─────────────
@@ -176,13 +238,13 @@ await limitCase('unbounded recursion inside a call', {
   assert.equal(run.codeError, null, 'the run itself loads and finishes');
   assert.deepEqual(run.results[0], { pass: false, actual: null, error: 'stack overflow' }, 'the recursing call fails');
   assert.equal(run.results[1]?.pass, true, 'recursion 2,000 calls deep fits in the stack');
-}, 'kept');
+}, 'ended');
 await limitCase('unbounded recursion at the top level', {
   code: 'const down = (n) => down(n + 1) + 1;\ndown(0);', calls: ['1'],
 }, (run) => {
   assert.equal(run.codeError, STACK_MESSAGE, 'the learner reads the stack message');
   assert.equal(run.timedOut, false, 'a stack overflow is not a timeout');
-}, 'kept');
+}, 'ended');
 
 // ── a learner's own error is not a limit, whatever its words ────────────
 // The grader used to read a timeout or a stack overflow off the error text,
@@ -408,6 +470,21 @@ console.log('PASS sandbox output budget: cumulative hidden order restores author
   assert.ok(await settledThreads('six runs at once') <= SANDBOX_IDLE_THREADS, 'threads past the idle ones were stopped');
   await grades('six runs at once');
   console.log(`PASS sandbox limits: six runaway runs at once share four threads and end in ${took} ms`);
+}
+
+// Real owned workers prove disposal health reaches the actual done producer.
+await (await import('./sandbox-disposal-controls')).runSandboxDisposalControls();
+
+// Fresh processes prevent the controlled Worker prototype faults from
+// touching this suite's normal pool or any other engine invocation.
+for (const mode of ['reject', 'throw']) {
+  const child = spawnSync(process.execPath, [process.argv[1], '--retirement-fault', mode], {
+    cwd: process.cwd(), env: { NODE_ENV: 'development', TZ: 'UTC', VERCEL: '1' },
+    encoding: 'utf8', timeout: 30_000, maxBuffer: 1024 * 1024,
+  });
+  assert.equal(child.status, 0, child.error?.message ?? child.stderr);
+  assert.match(child.stdout, /PASS retirement lease:/);
+  console.log(child.stdout.trim());
 }
 
 console.log('Sandbox limits passed: busy-waits, native-call loops, memory, stack, console floods, deep and wide values and the thread cap end within deadline plus grace.');
