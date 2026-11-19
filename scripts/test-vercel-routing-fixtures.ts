@@ -38,7 +38,7 @@ export function vercelRoutingFixtureContracts(): void {
   for (const [name, mutate] of rejected) {
     const config = fresh();
     mutate(config);
-    assert.throws(() => check(config), undefined, name);
+    assert.throws(() => check(config), assert.AssertionError, name);
   }
   console.log(`PASS routing fixtures: valid configuration and ${rejected.length} rejected privacy/policy mutations`);
 }
