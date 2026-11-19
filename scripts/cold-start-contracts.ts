@@ -262,7 +262,7 @@ export async function coldStartContracts(): Promise<void> {
     console.log('PASS cold start: api/quiz/roadmap.ts loads no grader or TypeScript before its first answer');
   }
 
-  // ── server item 24: only the roadmap function ships grading files ────────
+  // ── server item 24: only roadmap explicitly includes grading files ──────
   {
     const { readFileSync, readdirSync } = await import('node:fs');
     const functions = (JSON.parse(readFileSync(join(root, 'vercel.json'), 'utf8')) as { functions: Record<string, { includeFiles?: string; maxDuration?: number }> }).functions;
@@ -272,10 +272,10 @@ export async function coldStartContracts(): Promise<void> {
     const { assertTypeScriptLibPackaging } = await import('./typescript-lib-packaging-contract.mjs');
     const { isCheckerLibFile, LIB_FILE } = await import('../shared/coding-ts-check');
     assertTypeScriptLibPackaging({ root, isCheckerLibFile, rootLib: LIB_FILE });
-    assert.equal(functions['api/**/*.ts']?.includeFiles, undefined, 'the other functions ship neither the compiler\'s lib files nor React\'s development builds');
-    // Why nothing else needs them. The lib files are read by the in-thread
-    // type checker, which never runs on a deployment (the checker's worker,
-    // in the roadmap function, reads them there) ...
+    assert.equal(functions['api/**/*.ts']?.includeFiles, undefined, 'the generic rule adds no compiler declarations or React development builds');
+    // Explicit grading files are needed by roadmap's worker. Other handler
+    // dependency traces can still retain compiler files; that is separate
+    // from running the in-thread checker on a deployment ...
     const { inThreadGradingAllowed } = await import('../lib/coding/grader-capacity');
     const env = { NODE_ENV: process.env.NODE_ENV, VERCEL: process.env.VERCEL };
     try {
@@ -296,7 +296,7 @@ export async function coldStartContracts(): Promise<void> {
         assert.ok(match[1], `${file} loads lib/coding/react-runner at run time; ship React's development builds with that function`);
       }
     }
-    console.log('PASS cold start: only the roadmap function ships the grader bundles and the compiler\'s lib files');
+    console.log('PASS cold start: only the roadmap rule explicitly includes grader bundles and compiler declarations');
   }
 }
 

@@ -1602,5 +1602,175 @@
     "Returned provisioned/peak maxima do not establish all-invocation allocation, p99 or concurrent requirements",
     "HTTP first-byte offsets include client/network/edge; first/repeat markers do not measure boot",
     "No platform setting or production data changed for these measurements"
-  ]
+  ],
+  "declarationTraceCorrection": {
+    "beforeSource": "0e8de25fbe840c685e691de3d3b4f35a22fca3b8",
+    "redContract": "539db4fb",
+    "fixedConfiguration": "5e52f302",
+    "node": "v24.22.3",
+    "nftVersion": "1.11.7",
+    "typescriptVersion": "5.9.3",
+    "compilerOptions": {
+      "module": 1,
+      "target": 9,
+      "esModuleInterop": true,
+      "jsx": 4,
+      "sourceMap": false,
+      "inlineSourceMap": false
+    },
+    "beforeConfigSha256": "42b51460aecc437d5e898f79e325cc746366f26fef62fd9dc22e024ff4b54991",
+    "afterConfigSha256": "33696eb265a5b6f3c126bef95152753fb48fd0afd95e02ea77305d39a9221462",
+    "handlerSourcesUnchanged": true,
+    "handlerSourceSha256": {
+      "api/health.ts": "4fee2431e14e8b2688d7994aec1a8938ac8d6dac57afb385759fc3f88044445b",
+      "api/settings.ts": "1491b208a4ecd0a07410229f568305998ff6a5717923a8393fd7bf8115a7f7ff",
+      "api/leaderboard.ts": "09955f4f7fe1eed80ee423e2c4518c480dd3c16387ff05f443a492d93b095575",
+      "api/quiz/questions.ts": "e208749392ed5137b2bb35bb3de7d1470c07bcd4eedb469c2107244a9e08c60b",
+      "api/quiz/roadmap.ts": "baa1e629c853860cb96051c6eee3f372e5f35ef2969be9969c4b55da88cb0d58",
+      "api/quiz/challenge.ts": "2925c6a281aa2ef11d95d088e9698db36747ce908ba10628819d839a9282dd6d",
+      "api/quiz/daily.ts": "5df831a1a150312ff18698442aa4b63fcdbbfed86fa1fa4837eff8d5c50115cf",
+      "api/quiz/submit.ts": "6961168f9bb1c749c4f3f3168d496ce9e037b5099b6283d637f2bfc8b770dea1",
+      "api/flashcards.ts": "86788f49d19826c4980c01bbdad7944d05201a56b58393c0dda987c363e77caa",
+      "api/user/[op].ts": "1bfc3de83739e3fdbbc890038575e56d435621da1a6ab59938d929735c5a0a34",
+      "api/play/[action].ts": "6a8dc8062e0d9848eb9b096cb3a7971dd750f460cb3b08ba1ec02acf60234604",
+      "api/admin/[op].ts": "8e34eed4e6f514edd1573c644eef00cb482778dadb97d278793c8b99563af7e1"
+    },
+    "rows": [
+      {
+        "handler": "api/health.ts",
+        "beforeFiles": 72,
+        "afterFiles": 72,
+        "beforeDeclarations": 0,
+        "afterDeclarations": 0,
+        "afterNonreaderDeclarations": 0,
+        "upstreamWarnings": []
+      },
+      {
+        "handler": "api/settings.ts",
+        "beforeFiles": 110,
+        "afterFiles": 110,
+        "beforeDeclarations": 0,
+        "afterDeclarations": 0,
+        "afterNonreaderDeclarations": 0,
+        "upstreamWarnings": []
+      },
+      {
+        "handler": "api/leaderboard.ts",
+        "beforeFiles": 74,
+        "afterFiles": 74,
+        "beforeDeclarations": 0,
+        "afterDeclarations": 0,
+        "afterNonreaderDeclarations": 0,
+        "upstreamWarnings": []
+      },
+      {
+        "handler": "api/quiz/questions.ts",
+        "beforeFiles": 213,
+        "afterFiles": 213,
+        "beforeDeclarations": 0,
+        "afterDeclarations": 0,
+        "afterNonreaderDeclarations": 0,
+        "upstreamWarnings": []
+      },
+      {
+        "handler": "api/quiz/roadmap.ts",
+        "beforeFiles": 1989,
+        "afterFiles": 1978,
+        "beforeDeclarations": 102,
+        "afterDeclarations": 91,
+        "afterNonreaderDeclarations": 0,
+        "upstreamWarnings": [
+          "Failed to resolve dependency \"source-map-support\":\nCannot find module 'source-map-support' loaded from /Users/lukas/.t3/projects/devshark/react-express-app/node_modules/typescript/lib/_tsc.js",
+          "Failed to resolve dependency \"source-map-support\":\nCannot find module 'source-map-support' loaded from /Users/lukas/.t3/projects/devshark/react-express-app/node_modules/typescript/lib/typescript.js",
+          "Failed to resolve dependency \"canvas\":\nCannot find module 'canvas' loaded from /Users/lukas/.t3/projects/devshark/react-express-app/node_modules/jsdom/lib/jsdom/utils.js",
+          "Failed to parse /Users/lukas/.t3/projects/devshark/react-express-app/node_modules/@jitl/quickjs-wasmfile-debug-asyncify/dist/emscripten-module.mjs as script:\nCannot use 'import.meta' outside a module (1:2197)",
+          "Failed to parse /Users/lukas/.t3/projects/devshark/react-express-app/node_modules/@jitl/quickjs-wasmfile-release-asyncify/dist/emscripten-module.mjs as script:\nCannot use 'import.meta' outside a module (1:273)",
+          "Failed to parse /Users/lukas/.t3/projects/devshark/react-express-app/node_modules/@jitl/quickjs-wasmfile-debug-sync/dist/emscripten-module.mjs as script:\nCannot use 'import.meta' outside a module (85:30)",
+          "Failed to parse /Users/lukas/.t3/projects/devshark/react-express-app/node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.mjs as script:\nCannot use 'import.meta' outside a module (1:273)"
+        ]
+      },
+      {
+        "handler": "api/quiz/challenge.ts",
+        "beforeFiles": 127,
+        "afterFiles": 127,
+        "beforeDeclarations": 0,
+        "afterDeclarations": 0,
+        "afterNonreaderDeclarations": 0,
+        "upstreamWarnings": []
+      },
+      {
+        "handler": "api/quiz/daily.ts",
+        "beforeFiles": 120,
+        "afterFiles": 120,
+        "beforeDeclarations": 0,
+        "afterDeclarations": 0,
+        "afterNonreaderDeclarations": 0,
+        "upstreamWarnings": []
+      },
+      {
+        "handler": "api/quiz/submit.ts",
+        "beforeFiles": 118,
+        "afterFiles": 118,
+        "beforeDeclarations": 0,
+        "afterDeclarations": 0,
+        "afterNonreaderDeclarations": 0,
+        "upstreamWarnings": []
+      },
+      {
+        "handler": "api/flashcards.ts",
+        "beforeFiles": 115,
+        "afterFiles": 115,
+        "beforeDeclarations": 0,
+        "afterDeclarations": 0,
+        "afterNonreaderDeclarations": 0,
+        "upstreamWarnings": []
+      },
+      {
+        "handler": "api/user/[op].ts",
+        "beforeFiles": 2184,
+        "afterFiles": 2173,
+        "beforeDeclarations": 102,
+        "afterDeclarations": 91,
+        "afterNonreaderDeclarations": 0,
+        "upstreamWarnings": [
+          "Failed to resolve dependency \"source-map-support\":\nCannot find module 'source-map-support' loaded from /Users/lukas/.t3/projects/devshark/react-express-app/node_modules/typescript/lib/typescript.js",
+          "Failed to resolve dependency \"source-map-support\":\nCannot find module 'source-map-support' loaded from /Users/lukas/.t3/projects/devshark/react-express-app/node_modules/typescript/lib/_tsc.js",
+          "Failed to resolve dependency \"canvas\":\nCannot find module 'canvas' loaded from /Users/lukas/.t3/projects/devshark/react-express-app/node_modules/jsdom/lib/jsdom/utils.js"
+        ]
+      },
+      {
+        "handler": "api/play/[action].ts",
+        "beforeFiles": 120,
+        "afterFiles": 120,
+        "beforeDeclarations": 0,
+        "afterDeclarations": 0,
+        "afterNonreaderDeclarations": 0,
+        "upstreamWarnings": []
+      },
+      {
+        "handler": "api/admin/[op].ts",
+        "beforeFiles": 168,
+        "afterFiles": 168,
+        "beforeDeclarations": 0,
+        "afterDeclarations": 0,
+        "afterNonreaderDeclarations": 0,
+        "upstreamWarnings": []
+      }
+    ],
+    "inputArtifactSha256": {
+      "f7-nft-registry-pin-2026-11-19.json": "4db587e7a5e16761453ce35ad566b2f0571d20b5c063a903f59e2c993b4f51a8",
+      "f7-nft-all-handlers.cjs": "66f0e94972fc0400f2e139209ed91b78c13c800358ea6b456d6e8567aaf31e7e",
+      "f7-nft-all-handlers-after.cjs": "008ce70a2847dcc0d8c660ac89e3ae6b31c65237bf28b0ccfe6974c155a314ad",
+      "f7-nft-all-handlers-0e8de25f.json": "d4eac676050661d80f294f1a9942f1e4cb9696f21a02bc75ad8e47e664e055f9",
+      "f7-nft-all-handlers-fixed.json": "81a8f998be352b1e1932cfd231d68ceebc2f4df7648344cade63e2b3c9807c26"
+    },
+    "limits": [
+      "Local static virtual-CJS traces, not provider version or complete deployed Lambda inventory",
+      "No handler, worker or learner code executed",
+      "Optional upstream missing-dependency/parser warnings are preserved",
+      "Prepared explicit includes are additive; the committed contract separately checks their union with traced declarations.",
+      "All 91 reader declarations, compiler runtime/package metadata and generated CJS remain available; no provider inventory or deployed byte savings claim.",
+      "Two after-trace invocations from the wrong working directory failed before tracing; the third completed from the real repository."
+    ]
+  }
 }

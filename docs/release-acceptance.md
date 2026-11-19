@@ -7866,3 +7866,40 @@ Its original failures remain saved. The corrected fixtures require a fresh
 complete fast run before push; CI, actual F7 Preview and merge are still
 pending at this documentation checkpoint. No timeout, retry, assertion or
 budget was relaxed.
+
+### F7 traced declaration correction
+
+The clean fast run at `0e8de25f` completed in 34.25 minutes: 34 passes,
+zero failures, nine skips and one unavailable local QuickJS rebuild.
+It includes all 814 authored coding references, 1,979 client cases in
+201 files, performance, launch, grading/authority suites, both responsive
+matrices and both zoom profiles. The bundle measures 218,661/218,675 gzip
+bytes and both production audits report zero vulnerabilities. Skips cover
+reused dependencies/Chrome and the full-only browser, harness, Lighthouse,
+Storybook and container steps; Python 3.9 and no emsdk prevent the rebuild.
+This evidence belongs to that head, before the following correction.
+
+A pinned local `@vercel/nft` 1.11.7 API trace then found 102 TypeScript
+declarations in both roadmap and user, including eleven nonreader files.
+The narrowed explicit include is additive and cannot remove traced files.
+The checker worker alone traces three runtime/metadata files and no
+declarations, so a worker-only trace misses this defect. Regression
+`539db4fb` fails on absent exclusions; `5e52f302` adds the same 164-character
+exact-file brace exclusion to both function rules. The config contract
+protects all 91 reader declarations, the 61-file root closure, runtime
+JS/metadata and generated CJS, with missing/overbroad exclusions and
+additive-include bypass controls. An initial native TypeScript invocation
+failed before this contract; the bundled invocation supplies the actual
+red evidence.
+
+The repeat all-handler trace removes exactly eleven files from roadmap
+(1,989 to 1,978) and user (2,184 to 2,173), retaining all 91 declarations
+in each. The other ten file counts and all twelve handler source hashes
+stay unchanged. The trace uses Node 24.22.3 and TypeScript 5.9.3 virtual
+CJS reads without executing handlers, workers or learner code. Seven
+roadmap and three user upstream optional-dependency/parser warnings remain.
+Two external trace invocations used the wrong working directory and
+failed before tracing; the repeat from the repository completes. These
+positive local results do not attest the provider builder version or
+complete deployed Lambda inventory. A fresh final fast run, actual F7
+Preview checks and required CI remain pending; F11-31 remains open.
