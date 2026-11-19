@@ -12,10 +12,10 @@
 // needs REACT_RUNNER_SNAPSHOT_ID and Sandbox credentials; without the
 // snapshot id it prints SKIP and the reason.
 import assert from 'node:assert/strict';
-import { execFileSync, spawn } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { createHash, randomBytes } from 'node:crypto';
 import { once } from 'node:events';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { globSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { constants as osConstants, tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -197,8 +197,111 @@ async function sandboxVM() {
   );
 }
 
+
+// F11-19: fresh processes keep these controls independent of the instance's
+// verified-artifact cache. Each cwd contains its own fake Sandbox SDK; none
+// of these cases can call the real SDK or start a VM.
+const ARTIFACT_FIXTURE = Buffer.from('local runner copy-integrity fixture\n');
+const artifactDigest = (bytes: Buffer) => JSON.stringify(createHash('sha256').update(bytes).digest('hex')) + '\n';
+const artifactPath = () => join(process.cwd(), 'lib/coding/generated/react-sandbox.cjs');
+const sidecarPath = () => join(process.cwd(), 'lib/coding/generated/react-sandbox.sha256.cjs');
+
+type ArtifactFixtureState = { creates: number; uploads: Buffer[] };
+async function artifactProbe(name: string) {
+  const { runIsolatedReactSuite } = await import('../lib/coding/react-isolated');
+  const state = (globalThis as unknown as { __reactArtifactFixture: ArtifactFixtureState }).__reactArtifactFixture;
+  assert.ok(state, 'the fresh process loaded only the fabricated local SDK');
+  const input = { appSource: 'export default function App(){ return null; }', suite: "test('fixture',()=>{});" };
+  if (name !== 'verified-cache') {
+    await assert.rejects(runIsolatedReactSuite(input), (error: unknown) => {
+      assert.ok(error instanceof Error);
+      assert.equal(error.message, 'React grading infrastructure is unavailable');
+      if (name === 'missing-runner' || name === 'missing-sidecar') assert.match(error.name, /^ReactRunnerArtifact/);
+      else assert.equal(error.name, 'ReactRunnerArtifactIntegrity');
+      return true;
+    });
+    assert.equal(state.creates, 0, 'invalid bytes never reach Sandbox.create');
+    assert.deepEqual(state.uploads, [], 'invalid bytes are never uploaded');
+    // The repaired files must be read by the same module after its failure.
+    writeFileSync(artifactPath(), ARTIFACT_FIXTURE);
+    writeFileSync(sidecarPath(), artifactDigest(ARTIFACT_FIXTURE));
+  }
+  assert.equal((await runIsolatedReactSuite(input)).timedOut, true, 'the local SDK fixture returned its fixed exit code');
+  assert.equal(state.creates, 1);
+  assert.equal(state.uploads.length, 1);
+  assert.deepEqual(state.uploads[0], ARTIFACT_FIXTURE);
+  // A successfully checked deployment artifact is cached per instance. This
+  // preserves the existing contract instead of adding a per-Submit disk read.
+  writeFileSync(artifactPath(), 'changed only after the verified read');
+  writeFileSync(sidecarPath(), 'changed only after the verified read');
+  await runIsolatedReactSuite(input);
+  assert.equal(state.creates, 2);
+  assert.equal(state.uploads.length, 2);
+  assert.equal(state.uploads[0], state.uploads[1], 'the same verified Buffer is reused');
+}
+
+async function artifactIntegrity() {
+  const failures: Error[] = [];
+  try {
+    const runner = readFileSync(GUEST_BUNDLE);
+    const sidecar = 'lib/coding/generated/react-sandbox.sha256.cjs';
+    const digest: unknown = JSON.parse(readFileSync(sidecar, 'utf8'));
+    assert.equal(typeof digest, 'string', 'the sidecar is passive JSON string data, never evaluated');
+    assert.match(digest as string, /^[a-f0-9]{64}$/);
+    assert.equal(digest, createHash('sha256').update(runner).digest('hex'), 'the real builder writes a digest of the exact emitted guest');
+    const config = JSON.parse(readFileSync('vercel.json', 'utf8')) as { functions: Record<string, { includeFiles: string }> };
+    const included = globSync(config.functions['api/quiz/roadmap.ts'].includeFiles);
+    assert.ok(included.includes(sidecar), 'the actual Vercel include pattern selects the produced sidecar');
+    assert.ok(included.includes('lib/coding/generated/react-sandbox.cjs'), 'the actual Vercel include pattern selects its runner');
+    console.log('PASS artifact integrity: the real emitted guest and passive sidecar agree and both match Vercel inclusion');
+  } catch (error) { failures.push(error as Error); }
+  for (const name of ['tampered-runner', 'missing-sidecar', 'malformed-sidecar', 'wrong-digest-type', 'missing-runner', 'verified-cache']) {
+    const dir = mkdtempSync(join(tmpdir(), 'react-artifact-'));
+    try {
+      const generated = join(dir, 'lib/coding/generated');
+      mkdirSync(generated, { recursive: true });
+      writeFileSync(join(dir, 'package.json'), '{"type":"commonjs"}\n');
+      writeFileSync(join(generated, 'react-sandbox.cjs'), ARTIFACT_FIXTURE);
+      writeFileSync(join(generated, 'react-sandbox.sha256.cjs'), artifactDigest(ARTIFACT_FIXTURE));
+      // The SDK is intentionally fabricated here, rather than patching a real
+      // provider module and accidentally falling through to its create method.
+      writeFileSync(join(generated, 'vercel-sandbox.cjs'), `
+const state = globalThis.__reactArtifactFixture = { creates: 0, uploads: [] };
+exports.Sandbox = { create: async () => {
+  state.creates++;
+  return {
+    writeFiles: async files => state.uploads.push(files.find(file => file.path.endsWith('/runner.cjs')).content),
+    runCommand: async () => ({exitCode:124,stdout:async()=>''}),
+    stop: async () => undefined,
+  };
+}};
+`);
+      if (name === 'tampered-runner') writeFileSync(join(generated, 'react-sandbox.cjs'), 'tampered fixture');
+      if (name === 'missing-sidecar') rmSync(join(generated, 'react-sandbox.sha256.cjs'));
+      if (name === 'malformed-sidecar') writeFileSync(join(generated, 'react-sandbox.sha256.cjs'), 'not JSON digest data');
+      if (name === 'wrong-digest-type') writeFileSync(join(generated, 'react-sandbox.sha256.cjs'), '{}\n');
+      if (name === 'missing-runner') rmSync(join(generated, 'react-sandbox.cjs'));
+      const child = spawnSync(process.execPath, [process.argv[1], '--artifact-probe', name], {
+        cwd: dir, env: { ...GUEST_ENV, REACT_RUNNER_SNAPSHOT_ID: 'local-artifact-fixture' },
+        encoding: 'utf8', timeout: 30_000,
+      });
+      assert.equal(child.status, 0, `${name}: ${child.error?.message ?? child.stderr}`);
+      console.log(`PASS artifact integrity: ${name}; verified-byte reuse and failed-cache repair`);
+    } catch (error) { failures.push(error as Error); }
+    finally { rmSync(dir, { recursive: true, force: true }); }
+  }
+  if (failures.length) throw new AggregateError(failures, 'React artifact copy-integrity controls failed');
+}
+
 async function main() {
+  if (process.argv[2] === '--artifact-probe') { await artifactProbe(process.argv[3]); return; }
+  if (process.argv[2] === '--artifact-integrity') {
+    execFileSync(process.execPath, ['scripts/build-react-runner.mjs'], { stdio: ['ignore', 'ignore', 'inherit'] });
+    await artifactIntegrity();
+    return;
+  }
   await localGuest();
+  await artifactIntegrity();
   await sandboxVM();
 }
 main().catch((error) => {
