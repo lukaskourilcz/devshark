@@ -13,8 +13,16 @@ The API converts learner TypeScript/JSX to ES2015 CommonJS without evaluating it
 API instance and reused by every Submit. Downlevelled async functions use the private learner
 Promise kernel. The API uploads the guest bundle and an input containing compiled
 learner/fixture modules, trusted visible/hidden suite and random run nonce.
-It reads the guest bundle from the deployment once per instance and uploads
-it unchanged on every run. The VM's stop call is sent the moment the verdict
+Before starting a VM, it reads the guest bundle and the passive
+`react-sandbox.sha256.cjs` record from the deployment and checks SHA-256 against
+the exact guest bytes. The build writes the record as JSON string data; neither
+the API nor the archive verifier evaluates it. A missing, malformed or mismatched
+pair is an unrecorded infrastructure failure. Failed reads/checks are not cached,
+so a repaired copy can retry. Successful runs reuse the same verified Buffer and
+upload it unchanged; the sidecar stays in the API deployment. This is copy
+integrity, not proof of build freshness or authentication against replacement of
+both files. Shared-build pack/restore also require a valid pair before writing
+the archive or replacing destination files. The VM's stop call is sent when the verdict
 is read and runs after the answer (`waitUntil`, `lib/coding/after-response.ts`).
 
 1. The guest reads and deletes its input before learner execution. It prepares
@@ -191,6 +199,19 @@ checks through `test:grading-integrity`. That umbrella clears
 `REACT_RUNNER_SNAPSHOT_ID` only for the isolation child. The standalone
 `test:react-isolation` command keeps its optional VM probes when a snapshot
 and Sandbox credentials are configured.
+
+The isolation suite also runs fresh-process artifact controls with a fabricated
+local Sandbox SDK: invalid copies must fail before create/upload, a repaired
+pair must retry in the same process, and verified bytes must remain cached. The
+real builder's record and actual Vercel include glob are checked separately.
+These controls do not start a VM or establish deployed tracing/container
+acceptance. The container comparison checks the actual candidate image's pair
+with networking disabled; its historical baseline predates the sidecar.
+
+The browser bridge cuts compile, preview and non-null case errors on receipt
+with the same shared text cut as the grader. Structured values become strings;
+unconvertible values use a safe fallback. Null case errors remain null. The
+frame/source, run token and restart-generation controls remain in force.
 
 `.github/workflows/grading-monitor.yml` checks signed-out production reference and
 wrong submissions for `react-counter` and `js-double-numbers` every six hours and

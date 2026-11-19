@@ -8521,3 +8521,53 @@ their actual completion. No application build, Coding, browser, fast/full parity
 or new CI ran in this slot. Required exact-head CI and checked merge remain
 pending, so F11-30 and #640 stay open. The real-VM owner task and F7 declaration
 packaging acceptance remain separate.
+
+## Epic F11 local follow-up: guest copy integrity and frame errors — 19 November 2026
+
+F11-19 and F11-23 are implemented on `codex/640-grader-limits` after the
+F11-30 local checkpoint above. Test-only commits reproduce the real failures
+before their separate fixes: `4d5719a1` → `e61e055c` for guest copy integrity,
+and `22859eb7` → `4e4a8da6` for frame error receipt. This records local evidence;
+no CI, Preview, merge or completed issue checkbox is claimed.
+
+The build writes `react-sandbox.sha256.cjs` as passive JSON string data. The API
+checks the exact guest copy before VM creation, retries after a failed
+read/check, and caches verified bytes. Shared-build pack/restore require the
+pair before writing an archive or replacing destination trees. The existing
+generated `*.cjs` inclusion covers the sidecar; actual native-glob selection is
+checked. Docker still copies the generated tree, with a new candidate-only
+integrity check that leaves the historical baseline/reference harness intact.
+The record detects a copy mismatch, not stale-but-consistent builds or an
+adversarial replacement of both files.
+
+The frame bridge coerces and cuts compile, preview and case error strings at
+receipt using the existing shared cut, including safe fallback for structured
+data that cannot become a string. Null case errors, source/token/generation
+controls, case status and numeric limits stay unchanged.
+
+| Actual check on Node 24.22.3 | Result |
+| --- | --- |
+| F11-19 test-only artifact reproduction | RED: five failed groups, two passing controls; emitted sidecar absent and invalid copies accepted |
+| F11-19 test-only shared archive reproduction | RED: four passed, four failed; missing/stale pairs accepted even with recomputed generic inventory |
+| Focused artifact checks after fix | PASS: seven groups, including pre-create rejection, repaired cache retries, verified Buffer reuse, actual emitted record and inclusion |
+| `node scripts/test-ci-build-artifact.mjs` after fix | PASS: eight tests, including intact byte round-trip and refusal before destination replacement |
+| `REACT_RUNNER_SNAPSHOT_ID= npm run test:react-isolation` | PASS: five original real local-guest groups plus the seven artifact groups; one explicit real-VM SKIP |
+| `npm run typecheck:api`, `npm run typecheck:scripts` | PASS |
+| F11-23 test-only hook reproduction | RED: nine failed, four passed; whole messages, object case errors and unsafe coercion reproduced |
+| Focused new/existing hook suites after fix | PASS: 21 tests in two files (13 new, eight existing), including null/fallback/surrogate and stale frame/token/readiness controls |
+| Client `tsc -b` | PASS |
+| Client `typecheck:tooling` | Initially failed TS2550 for `Array.at` in the new test helper; length-index lookup fixed that test-only ES compatibility issue; tooling and the 21 hook tests then passed |
+
+Focused artifact checks overlap the standalone isolation run, and the hook
+recheck repeats the same 21 cases; these repeats are not additional coverage.
+The raw failed and successful runs are preserved in
+`/tmp/devshark-epic-f-handoff/f11-19-23-execution-7495d9a8/` on the audit machine.
+Dependency directories reuse the previously recorded matching installed trees;
+this is not a fresh installation or independent package-byte attestation.
+
+The real Sandbox VM, actual deployed tracing/readback, Docker execution,
+application build/bundle gates, browser checks and broader parity were not run
+in this bounded slot. Required exact-head integration/CI and merge remain
+pending. The real-VM owner task, F11-28/29 decisions and remaining F11 findings
+stay open. F7 owns declaration-packaging changes; this follow-up does not
+replace them. F11-10/22/36 remain separate external drafts at this checkpoint.
