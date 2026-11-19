@@ -15,12 +15,20 @@ import { spawnSync } from 'node:child_process';
 import { jsonKind } from '../shared/coding-failure';
 import { buildSandboxWorker } from './build-sandbox-worker.mjs';
 import { runSandboxWatchdogControls } from './sandbox-watchdog-controls';
+import { runSandboxOutputPolicyControls } from './sandbox-output-policy-controls';
 import {
   runInSandbox, runChecks, sandboxPool, sandboxThreads, type SandboxInput,
   SANDBOX_DEADLINE_MS, SANDBOX_IDLE_THREADS, SANDBOX_MAX_THREADS, SANDBOX_MAX_TICKS, SANDBOX_MAX_WAITING,
   SANDBOX_MEMORY_BYTES, SANDBOX_SLOT_WAIT_MS, SANDBOX_STACK_BYTES, SANDBOX_WORKER_GRACE_MS,
 } from '../lib/coding/sandbox';
 import { LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, MAX_LOGS, TIMEOUT_MESSAGE, type EvaluateResult } from '../shared/coding-evaluate';
+
+if (process.argv[2] === '--output-budget-policy') {
+  await buildSandboxWorker();
+  process.env.VERCEL = '1';
+  await runSandboxOutputPolicyControls();
+  process.exit(0);
+}
 
 if (process.argv[2] === '--disposal-controls') {
   const { runSandboxDisposalControls } = await import('./sandbox-disposal-controls');
@@ -359,6 +367,8 @@ await limitCase('a return value wider than 10,000 entries', {
   assert.deepEqual(run.results[1], { pass: false, actual: null, error: 'Result size limit exceeded' }, 'an array of 10,001 fails that call');
   assert.deepEqual(run.results[2], { pass: false, actual: null, error: 'Result size limit exceeded' }, 'so does an object with 10,001 keys');
 }, 'kept');
+
+await runSandboxOutputPolicyControls();
 
 // F11-16: an output budget fails the individual call, including the JSON
 // packet/escaping overhead. Other calls and their full-value grades survive.
