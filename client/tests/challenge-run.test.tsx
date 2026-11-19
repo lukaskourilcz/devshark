@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
@@ -211,7 +211,13 @@ beforeEach(() => {
   api.cards.length = 0;
   api.reports.length = 0;
 });
-afterEach(() => vi.useRealTimers());
+afterEach(async () => {
+  cleanup();
+  // Motion captures jsdom's real RAF driver. Drain its pending frame before
+  // discarding the fake interval, or later RAF callbacks never get a tick.
+  if (vi.isFakeTimers()) await act(async () => { await vi.runOnlyPendingTimersAsync(); });
+  vi.useRealTimers();
+});
 
 // Each test plays several questions through the real page.
 vi.setConfig({ testTimeout: 20_000 });

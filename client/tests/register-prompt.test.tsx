@@ -12,7 +12,14 @@ vi.mock('../src/lib/gameConfig', () => ({ useGameConfig: () => ({ coins: { welco
 // draws once the act that opens it has let the lazy import settle.
 beforeAll(async () => { await import('../src/components/RegisterPromptCard'); });
 const showAfter = async (ms: number) => { await act(async () => { vi.advanceTimersByTime(ms); }); };
-afterEach(() => { cleanup(); vi.useRealTimers(); sessionStorage.clear(); openSignIn.mockClear(); });
+afterEach(async () => {
+  cleanup();
+  // Finish the captured jsdom RAF tick before its fake interval is removed.
+  if (vi.isFakeTimers()) await act(async () => { await vi.runOnlyPendingTimersAsync(); });
+  vi.useRealTimers();
+  sessionStorage.clear();
+  openSignIn.mockClear();
+});
 
 it('lets a guest read without a timed overlay, then offers registration after interaction', async () => {
   vi.useFakeTimers();
@@ -54,7 +61,7 @@ it('opens the sign-in dialog and steps aside', async () => {
   const prompt = screen.getByRole('region', { name: 'Save your progress from now on' });
   fireEvent.click(within(prompt).getByRole('button', { name: 'Sign in' }));
   expect(openSignIn).toHaveBeenCalledTimes(1);
-  act(() => { vi.advanceTimersByTime(1000); });
+  await showAfter(1000);
   expect(screen.queryByRole('region')).toBeNull();
   expect(sessionStorage.getItem('devquiz:register-prompt:dismissed:v1')).toBe('1');
 });
