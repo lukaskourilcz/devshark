@@ -39,7 +39,7 @@ async function start(h: ReturnType<typeof mountHarness>, frame = h.frame) {
 const fields = ['compile-error', 'preview-error', 'test'] as const;
 function receivedError(h: ReturnType<typeof mountHarness>, field: typeof fields[number]) {
   const run = h.result.current.run!;
-  return field === 'compile-error' ? run.compileError : field === 'preview-error' ? run.previewError : run.cases.at(-1)?.error;
+  return field === 'compile-error' ? run.compileError : field === 'preview-error' ? run.previewError : run.cases[run.cases.length - 1]?.error;
 }
 function errorMessage(field: typeof fields[number], token: string, value: unknown) {
   return field === 'test'
