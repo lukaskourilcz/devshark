@@ -46,7 +46,7 @@ const PAGE_GLOBALS = [
   ...DOM_GLOBALS, 'navigator',
   'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'queueMicrotask', 'structuredClone',
   'URL', 'URLSearchParams', 'TextEncoder', 'TextDecoder', 'AbortSignal', 'atob', 'btoa', 'crypto', 'performance',
-  'fetch', 'Headers', 'Request', 'Response', 'FormData', 'Blob',
+  'Headers', 'Request', 'Response', 'FormData', 'Blob',
 ];
 
 /** A console that goes nowhere: the result travels on stdout, and nothing a
