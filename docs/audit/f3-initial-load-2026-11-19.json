@@ -150,5 +150,15 @@
       "F3-08 loaded/held/failed menu breakpoint cases each failed against prior drawer; fresh-buildbrowser acceptance pending at this record.",
       "The earlier vendor/byte checkpoint and lab reports remain historical snapshots, not silently replaced by this later correctness fix."
     ]
+  },
+  "f6IntegrationCheckpoint": {
+    "head": "b896771acc83262ee42da8ca9e4e4eeca44b974b",
+    "base": "0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c",
+    "initialGzipBytes": 218675,
+    "baselineCurrentMainGzipBytes": 235485,
+    "deltaFromCurrentMainGzipBytes": -16810,
+    "initialCSSGzipBytes": 24779,
+    "monitoringGzipBytes": 46800,
+    "note": "Fresh measured build after rebase onto F6. Its CSS/focus/readiness corrections remain in place. Previous code, bundle and lab checkpoints remain historical. This refresh follows the expected 60-byte over-budget measurement against the earlier pre-F6 218615 budget."
   }
 }
