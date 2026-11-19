@@ -180,12 +180,13 @@ it.each([
 it('stops an already hovered topic card when reduced motion changes', () => {
   server.use(settingsHandler, freeEntitlementHandler);
   const template = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const media = Object.assign(new EventTarget(), {
+  const changes = new EventTarget();
+  const media = Object.assign(changes, {
     matches: false,
     media: '(prefers-reduced-motion: reduce)',
     onchange: null,
-    addListener(listener: EventListener) { this.addEventListener('change', listener); },
-    removeListener(listener: EventListener) { this.removeEventListener('change', listener); },
+    addListener(listener: EventListener) { changes.addEventListener('change', listener); },
+    removeListener(listener: EventListener) { changes.removeEventListener('change', listener); },
   });
   const preference = vi.spyOn(window, 'matchMedia').mockImplementation((query) => query === media.media ? media as unknown as MediaQueryList : { ...template, media: query });
   try {
