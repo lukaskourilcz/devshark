@@ -8,6 +8,7 @@ import {
 } from '../../lib/quiz-runtime';
 import { encodeSession, createChallengeRun, decodeChallengeRun, decodeScoreProof } from '../../lib/quiz-tokens';
 import { jsonError, createLogger, createServiceClient, withTimeout, isRpcMissing, withRequestContext, tryAuthOnce } from '../../lib/http';
+import { sendPublicJson } from '../../lib/public-json';
 import { AuthError, tryAuth } from '../../lib/auth';
 import { getEffectiveQuestions, getEffectiveQuestionsById } from '../../lib/questions-store';
 import { ChallengeScoreConflictError, getChallengeLeaderboard, recordChallengeScore } from '../../lib/challenge-store';
@@ -63,7 +64,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     try {
       const board = await getChallengeLeaderboard(scope.subject, 10);
       res.setHeader('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=60');
-      return res.json(board);
+      return sendPublicJson(req, res, board);
     } catch {
       return jsonError(res, 503, 'leaderboard_unavailable', 'Challenge leaderboard is temporarily unavailable');
     }
