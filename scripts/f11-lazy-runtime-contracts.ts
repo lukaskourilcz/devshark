@@ -62,7 +62,9 @@ function quickjsPrelude(fault: 'none' | 'boot' | 'dispose' = 'none', esmFactoryS
       const delegatedExport = '\\nimport { newQuickJSWASMModuleFromVariant as __f11OriginalFactory } from "quickjs-emscripten-core";\\nconst __f11ObservedFactory = globalThis[Symbol.for("devshark.f11.quickjs-factory-seam")](__f11OriginalFactory, "esm");\\nexport { __f11ObservedFactory as newQuickJSWASMModuleFromVariant };\\n';
       return { ...loaded, source: source + delegatedExport };
     }});
-    const engineLoaded = () => esmLoads > 0 || Object.keys(require.cache).some(path => path.includes('/node_modules/quickjs-emscripten/'));
+    // SDK package metadata above is not an evaluated engine entry.
+    const cjsEntry = realpathSync(join(sdkRoot, 'dist/index.js'));
+    const engineLoaded = () => esmLoads > 0 || Object.hasOwn(require.cache, cjsEntry);
   `;
 }
 const simpleRun = `{ code: 'const answer = n => n + 1;', calls: ['answer(2)'], expectations: [3] }`;
