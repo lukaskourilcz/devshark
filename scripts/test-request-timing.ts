@@ -42,6 +42,8 @@ await (await import('./cold-start-contracts')).coldStartContracts();
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-f7-import-operations.ts');
 // The public JSON runner includes every route case and all six helper contracts.
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-public-json.ts');
+// Public field trimming preserves private editing and active configuration.
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-public-settings-projection.ts');
 // Roadmap concern cuts preserve live operations and the existing request boundary.
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-roadmap-concerns.ts');
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-roadmap-placement.ts');

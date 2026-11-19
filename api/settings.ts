@@ -9,7 +9,8 @@ import { sendPublicJson } from '../lib/public-json';
 
 // Public, read-only subset of the game settings, so the client can render the
 // configured count/time options and hide disabled features. Deliberately omits
-// server-only fields (e.g. ownerEmail). Falls back to defaults if the DB is down.
+// server-only fields (e.g. ownerEmail), unused tips and retired cosmetic prices.
+// The authenticated editor keeps the complete stored settings. DB failures use defaults.
 async function routeHandler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
@@ -35,14 +36,12 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     },
     features: s.features,
     leveling: s.leveling,
-    shop: s.shop,
     // What earns coins (#227): the welcome grant for the sign-in prompt and
     // the social grant for "Find devShark elsewhere". Rates only, no balances.
     coins: s.coins,
     // Whether coins can be redeemed for merchandise yet. The landing table
     // and the Premium list mention redemption only while this is true.
     merch: { redemptionOpen: merchRedemptionOpen(s.merch) },
-    devTips: s.devTips,
     // Per path, so DSA Foundations can open while FDE content is still being
     // authored. The client reads this to decide what to show; every write is
     // authorized on the server regardless of what the client believes.
