@@ -71,7 +71,12 @@ async function runGuest(appSource: string, suite: string): Promise<ReactSuiteOut
 async function localGuest() {
   execFileSync(process.execPath, ['scripts/build-react-runner.mjs'], { stdio: ['ignore', 'ignore', 'inherit'] });
   const hits: string[] = [];
-  const server = createServer((request, response) => { hits.push(request.url ?? ''); response.end('loaded'); });
+  const server = createServer((request, response) => {
+    hits.push(request.url ?? '');
+    if (request.url === '/trusted-xhr-negative') { request.socket.destroy(); return; }
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.end('loaded');
+  });
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
   const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
@@ -83,6 +88,15 @@ async function localGuest() {
       assert.equal(result.passed, 1, `${name}: ${JSON.stringify(result)}`);
       console.log(`PASS local guest ${name}`);
     }
+
+    const trustedPage = await runGuest(
+      'export default function App(){return null;}',
+      `test('trusted page has no native fetch',()=>{expect(typeof globalThis.fetch).toBe('undefined');expect(typeof window.fetch).toBe('undefined');});
+test('web data APIs remain available',()=>{for(const name of ['Headers','Request','Response','FormData','Blob'])expect(typeof globalThis[name]).toBe('function');});`,
+    );
+    assert.equal(trustedPage.compileError, null);
+    assert.deepEqual(trustedPage.cases.map((one) => one.status), ['pass', 'pass'], JSON.stringify(trustedPage));
+    console.log('PASS local guest: no trusted Node fetch; web data APIs remain');
 
     // Neither the network nor Node, bare or on the window capability. jsdom's
     // window has XMLHttpRequest and WebSocket; the capability shows neither.
@@ -136,6 +150,61 @@ test('nothing loads and nothing runs', async () => { render(<App />); await new 
     assert.equal(resources.passed, 1, JSON.stringify(resources));
     assert.deepEqual(hits, [], 'no resource the markup named was requested');
     console.log('PASS local guest: jsdom loads no resource the markup names and runs no inline script or handler');
+
+    const fixture = await runGuest(
+      `export const load = url => fetch(url).then(response=>response.json());export default function App(){return null;}`,
+      `import {load} from './App';
+test('the authored fetch fixture and suite overrides still delegate',async()=>{
+  const before=globalThis.fetch;expect(typeof before).toBe('undefined');
+  require('./fetchStub');const fixture=globalThis.fetch;expect(typeof fixture).toBe('function');
+  try{
+    expect((await load('/api/users/1')).name).toBe('Leanne Graham');
+    globalThis.fetch=()=>Promise.resolve({json:()=>Promise.resolve({name:'suite override'})});
+    expect((await load('/api/users/1')).name).toBe('suite override');
+    globalThis.fetch=fixture;expect((await load('/api/users/1')).name).toBe('Leanne Graham');
+  }finally{globalThis.fetch=before;}
+  expect(typeof globalThis.fetch).toBe('undefined');
+});`,
+    );
+    assert.equal(fixture.compileError, null);
+    assert.equal(fixture.failed, 0, JSON.stringify(fixture));
+    assert.equal(fixture.passed, 1);
+    assert.deepEqual(hits, [], 'trusted deterministic fixtures made no network request');
+    console.log('PASS local guest: authored fixture delegation, override and restoration remain');
+
+    // A real local success and socket refusal prove this probe uses jsdom's
+    // actual XHR transport rather than passing because fetch disappeared.
+    const xhr = await runGuest(
+      'export default function App(){return null;}',
+      `const request=url=>new Promise((resolve,reject)=>{
+  const xhr=new window.XMLHttpRequest();xhr.open('GET',url);xhr.timeout=700;
+  xhr.onload=()=>resolve({event:'load',status:xhr.status,text:xhr.responseText});
+  xhr.onerror=()=>resolve({event:'error',status:xhr.status});
+  xhr.ontimeout=()=>reject(new Error('local XHR control timed out'));xhr.send();
+});
+test('actual XHR reaches a CORS-enabled local server',async()=>{expect(typeof fetch).toBe('undefined');const result=await request('${base}/trusted-xhr-positive');expect(result.event).toBe('load');expect(result.status).toBe(200);expect(result.text).toBe('loaded');});
+test('actual XHR reports a server socket refusal',async()=>{const result=await request('${base}/trusted-xhr-negative');expect(result.event).toBe('error');expect(result.status).toBe(0);});`,
+    );
+    assert.equal(xhr.compileError, null);
+    assert.deepEqual(xhr.cases.map((one) => one.status), ['pass', 'pass'], JSON.stringify(xhr));
+    await settle();
+    assert.deepEqual(hits, ['/trusted-xhr-positive', '/trusted-xhr-negative'], 'both real XHR controls reached the local transport');
+    console.log('PASS local guest: jsdom XHR positive and transport-refusal controls exercise actual requests');
+
+    // This authored suite saves/calls/restores its current withFetch fixture.
+    // Keep its real reference and incomplete starter as opposite controls.
+    const task = CODING_TASKS.find((one) => one.id === 'react-mh-wait-for-export');
+    const reference = task && solutionFor(task.id)?.solution;
+    assert.ok(task?.suite && reference, 'the authored fetch control exists');
+    const authored = await runGuest(reference, task.suite);
+    assert.equal(authored.compileError, null);
+    assert.equal(authored.failed, 0, JSON.stringify(authored));
+    assert.ok(authored.passed > 0);
+    const incomplete = await runGuest(task.starter, task.suite);
+    assert.equal(incomplete.compileError, null);
+    assert.ok(incomplete.failed > 0, 'removing native fetch does not make the authored suite pass an incomplete starter');
+    console.log('PASS local guest: authored withFetch reference passes and incomplete starter fails');
+
   } finally {
     server.close();
   }
@@ -151,10 +220,20 @@ async function sandboxVM() {
   const probes: [name: string, appSource: string, suite: string][] = [
     ...SHARED_PROBES,
     [
-      // The suite's own fetch: only the VM's deny-all policy stops it.
+      // Credentialed VM-only acceptance: make a real jsdom XHR send with
+      // deny-all unchanged. A cross-origin failure alone can also be CORS;
+      // record this as a bounded refusal probe, not a complete policy proof.
+      // The local positive/negative transport controls above are separate.
       'network',
       'function App(){ return null; }',
-      `test('network denied',async()=>{let connected=false;try{await fetch('https://example.com',{signal:AbortSignal.timeout(700)});connected=true;}catch{}expect(connected).toBe(false);});`,
+      `test('network denied',async()=>{
+expect(typeof fetch).toBe('undefined');expect(typeof window.XMLHttpRequest).toBe('function');
+let sent=false;const result=await new Promise(resolve=>{
+ const xhr=new window.XMLHttpRequest();xhr.open('GET','https://example.com/');xhr.timeout=700;
+ xhr.onload=()=>resolve({event:'load',status:xhr.status});xhr.onerror=()=>resolve({event:'error',status:xhr.status});xhr.ontimeout=()=>resolve({event:'timeout',status:xhr.status});
+ xhr.send();sent=true;
+});expect(sent).toBe(true);expect(['error','timeout']).toContain(result.event);expect(result.status).toBe(0);
+});`,
     ],
   ];
   for (const [name, appSource, suite] of probes) {
