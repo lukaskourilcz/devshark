@@ -15,6 +15,10 @@ export async function runSandboxWatchdogControls(options: { longestRunMs: number
   const timer = '        timer = setTimeout(() => finish(stopped(TIMEOUT_MESSAGE, true)), (input.deadlineMs ?? SANDBOX_DEADLINE_MS) + SANDBOX_WORKER_GRACE_MS);';
   const source = readFileSync(sandboxPath, 'utf8');
   assert.equal(source.split(timer).length, 2, 'the negative must disable the actual parent grace timer');
+  const disabledTimer = [
+    '        timer = undefined; // test-only negative: no parent grace timer',
+    '        process.stdout.write("watchdog-disabled-started\\n");',
+  ].join('\n');
   const spinner = `const { parentPort } = require('node:worker_threads');
 parentPort.on('message', message => {
   if (message?.type !== 'run') return;
@@ -76,14 +80,14 @@ try {
       await build({ stdin: { contents: child, resolveDir: root, loader: 'js', sourcefile: 'sandbox-watchdog-control.mjs' },
         outfile, bundle: true, platform: 'node', format: 'esm', packages: 'external', target: 'node22', logLevel: 'warning',
         plugins: disableWatchdog ? [{ name: 'disable-the-actual-parent-watchdog', setup(context) {
-          context.onLoad({ filter: /sandbox\.ts$/ }, (args) => args.path === sandboxPath ? { contents: source.replace(timer, '        timer = undefined; // test-only negative: no parent grace timer'), loader: 'ts' } : undefined);
+          context.onLoad({ filter: /sandbox\.ts$/ }, (args) => args.path === sandboxPath ? { contents: source.replace(timer, disabledTimer), loader: 'ts' } : undefined);
         } }] : [],
       });
       const observed = await run(outfile, cwd);
       if (disableWatchdog) {
         assert.equal(observed.guarded, true, 'disabling the actual parent watchdog must hit the bounded fixture guard');
         assert.equal(observed.signal, 'SIGKILL');
-        assert.equal(observed.stdout, '', 'the disabled watchdog cannot report a successful timeout/recovery');
+        assert.equal(observed.stdout, 'watchdog-disabled-started\n', 'the actual start/timer branch was reached, without a successful timeout/recovery');
         assert.equal(observed.stderr, '', 'a startup/SDK error is not the intended negative');
         console.log('PASS sandbox watchdog: disabling the actual parent timer is caught by the bounded fixture');
       } else {
