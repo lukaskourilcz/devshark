@@ -7488,3 +7488,102 @@ A separate CSP run against the local header-serving adapter then passed its publ
 The exact selected-source copy contains 949 files and 21,118,508 bytes, including only the two required SVGs under docs. Its build passed with the same locked installed dependencies and isolated local build caches. All copied source hashes match the immutable stage after the build. This proves that those selected sources build with the existing dependencies; it is neither a clean dependency installation nor remote source/container proof. Initial Vercel file-upload receipts remain separate from creation or acceptance of a deployment. The excluded test correction requires a new frozen-head stage pin before deployment.
 
 Required intended-head CI, actual Preview/source/security evidence, Linux/amd64 image bytes/reference checks, and checked merge/production acceptance remain pending. No completion checkbox follows from the local runs alone.
+
+## Epic F11 production acceptance: approved console limit (19 November 2026)
+
+The owner approved the protected F11-15 decision in #660 on 19 November. The
+existing output limit now also bounds QuickJS console argument serialization.
+A correct program that floods the console can pass instead of timing out;
+the visible lines and cut marker stay the same. This approval does not cover
+new VM snapshots, concurrency budgets or other grading behavior.
+
+PR #660 merged at `bce4b9c48514a054cc4154095e01b567720ea8af` after exact head
+`2435e566eab9221293940ecbb5ace849b889a6db` passed explicit `verify` and `sql`
+in run 44408883217. QuickJS, static, tests, Coding and browser jobs also passed.
+F11-08, F11-13, F11-18 and F11-15 are merged; #640 remains open for its other
+implementation and owner/cross-package items.
+
+Production `dpl_3fXw2e66te3SkpeKzZGTPJWQrZK9` is READY at that merge SHA
+and its aliases include devshark.app. The guest HTTP smoke passes 18 GETs,
+zero issues, covering four documents, entry assets, manifest and icons;
+response bodies total 795,794 bytes. It executes no app JavaScript and calls
+no API. It does not prove production grading, authenticated behavior, field
+performance or physical-device acceptance. No production SQL, settings,
+accounts, scores, orders or messages changed.
+
+## Epic F14 browser recovery and deployment evidence (19 November 2026)
+
+PR #667's first run 44489104765 at `d2bf519e` failed browser and aggregate
+verify. SQL, QuickJS, client-build, static, tests, Coding and container passed.
+The browser result was 297 passed, one route-focus failure and 19 intentional
+hidden-FDE skips; later responsive/harness steps did not run after that
+failure. A failing run is not accepted as a CI speed measurement.
+
+Two actual defects were reproduced before their fixes. A Node-only two-run
+Playwright regression shows that the later Storybook command erased earlier
+browser reports and failure attachments. Chromium and Storybook now write to
+separate result/report directories in CI and local parity. The 44-step plan
+and workflow drift check remain aligned; the new fixture passes, as do all
+14 parity CLI cases. No assertion, retry, timeout or coverage was relaxed.
+
+The route callback compared the active element with the element captured
+230ms earlier. A learner could reopen and close navigation during that delay,
+return focus to the same opener, then lose focus to the callback. Committed
+controlled regressions reproduced four real failures in both themes while
+ordinary navigation passed. The fix tracks pointer/keyboard intent during
+the existing delay and removes both capture listeners on callback and route
+cleanup. Automatic menu-close restoration still allows destination focus.
+An added cancellation control checks that a later route cancels the prior
+pending callback. Browser-only timer types now match the helper's execution
+context without changing its timing behavior.
+
+| Additional local check | Actual result |
+|---|---|
+| Quiet sequential Chromium navigation | 24/24 passed, 51.725 seconds |
+| Quiet sequential five-spec WebKit acceptance | 103/103 passed, 153.512 seconds |
+| Both complete engine invocations | Zero skips, retries, flakes or global errors |
+| Matching normal placeholder build | 218,661/218,675 initial gzip bytes; unchanged cap |
+| Final focus-source review | Listener cleanup and ordinary route behavior reviewed |
+| Rebase on approved #660 | Conflict-free; tree delta is exactly its three reviewed files |
+
+Earlier broader local runs were interrupted at 21/24 Chromium and 22/103
+WebKit, without complete result JSON. Their traces contain the correct
+Premium/task headings and Reset control, with multi-second browser setup and
+actions. The same cases and full suites pass unchanged when run sequentially
+on a quiet host. This supports load/orchestration delay; the exact historical
+interfering process is unproved. No additional Premium, Reset or Big O defect
+was reproduced. The interrupted runs remain diagnostic evidence.
+
+The actual API-files Preview `dpl_5iYmZmrhGQCrKjppXWTKtLMNHzEo` reached READY
+from 949 unique uploaded source files totaling 21,118,508 bytes. The source
+listing exposes only 546 of 949 files, so absence is not inferred from that
+partial listing. Returned content UIDs match the submitted raw SHA-1s. Both
+required SVGs appear in source; capped content readback matches their first
+1,500 bytes and reported lengths, rather than independently proving whole
+file hashes. The actual Git PR Preview `dpl_ATFitbZN18u4SgsUZ3df6FGdHWMQ`
+also reached READY at `d2bf519e`. Each passed nine security HTTP probes and
+24 canonical/encoded retired-asset GET/HEAD checks. Temporary share access
+used no new secret or project setting. The separate local header-adapter CSP
+suite passed all three cases at that head. These older previews do not prove
+the later focus fix or its final CI head.
+
+CI compared both Docker images on one Linux/amd64 runner. `docker image ls`
+reports 958 MB before and 666 MB after. The separate `image inspect .Size`
+field reports 184,771,060 and 141,950,444 bytes, a 42,820,616-byte reduction.
+These accounting views differ; the inspect field is not labeled unpacked
+disk usage. Baseline source is published `0f35d67d`; the candidate is the
+CI merge-test tree for `d2bf519e`, so intervening changes are included.
+Authored JavaScript, TypeScript and React reference tasks pass in both images
+with network disabled. The candidate keeps locked TypeScript 5.9.3 and omits
+Knip/Playwright runtime packages. Host and adapter checks remain separate.
+
+The final focus fix was committed, then the owned F14 branch was rebased on
+#660. Final clean parity, new exact-head verify/sql, merge and production
+acceptance remain pending at this documentation checkpoint. Earlier local
+QuickJS and Docker limitations remain; successful CI supplies those external
+checks only for its stated head. #657 remains held: the read-only production
+catalog on 19 November at 10:29 UTC still shows the pre-077–079 objects. The
+owner confirmation needs clarification against that observed state; no
+production migration was applied by this agent.
+
+Refs #643, #640, #646 and #629.
