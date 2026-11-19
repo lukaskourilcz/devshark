@@ -7903,3 +7903,48 @@ failed before tracing; the repeat from the repository completes. These
 positive local results do not attest the provider builder version or
 complete deployed Lambda inventory. A fresh final fast run, actual F7
 Preview checks and required CI remain pending; F11-31 remains open.
+
+## Epic F7 server work: CI, Preview and production acceptance (19 November 2026)
+
+PR #668 merged at `cbdfa2aa995e7dd71c7d0197fee7f35df21ca205`.
+Its tree equals reviewed `fcfb13f5`. The earlier local checkpoints above
+remain historical; the final clean fast run at fcfb13f5 completes in
+33.45 minutes with 34 passes, zero failures, nine skips and one unavailable
+local QuickJS rebuild. All 814 Coding tasks, 1,979 client tests, performance,
+launch, grading/authority suites, 180 light and 60 dark responsive probes and
+both zoom profiles pass. The bundle remains 218,661/218,675 gzip bytes and
+both production dependency audits report zero vulnerabilities.
+
+| Gate | Actual result |
+| --- | --- |
+| Exact-head PR CI | Run 44559170378: all nine jobs SUCCESS at fcfb13f5; verify 3 s, SQL 41 s, browser 804 s and Coding 1,179 s. |
+| Post-merge main CI | Run 44563518673: all nine jobs SUCCESS at cbdfa2aa; verify 3 s, SQL 40 s, browser 1,013 s and Coding 1,526 s. These separate durations are observations, not a causal comparison. |
+| Actual Git Preview | dpl_8vcbg8VbFJD4SDHX7X1qaS43DjZB READY at fcfb13f5 in arn1. All 63 controlled responses pass: two access/document, 36 safe API reads/refusals, twelve public-validator, four guest TypeScript and nine deployed-security probes. |
+| Public validators | Six initial MISS/200 responses followed by six empty CDN HIT/304 responses with content-matching tags. This verifies client/CDN validation, not an origin conditional request or fewer upstream reads. |
+| Guest TypeScript | ts-typed-slug reference passes five type tests, five visible runtime tests and eight hidden cases; wrong return type fails. All four responses are private/no-store, with zero XP, null progress and applied:false. No independent database-write audit was performed. |
+| Instance markers | Preview's eight nonshared handler probes expose one first and two repeat module invocations; twelve shared public responses remain unknown. The marker never measures platform boot. |
+| Production | dpl_Efb7TFTrUEyYUqSebQWv3ccv6zve READY at exact cbdfa2aa in arn1 and serves devshark.app. All 48 anonymous responses pass: 36 safe API reads/refusals, six initial public projections and six empty conditional 304s. No production grading or account/reward/order operation was selected. |
+| Access cleanup | Both owned local Preview share/state files were removed after acceptance; credential values were excluded from reports and cleared from the working tool store. Provider-managed share expiration is separate. |
+
+The local skipped steps reuse installed dependencies/Chrome or belong to
+full-only Chromium, harness, Lighthouse, Storybook and container checks.
+Python 3.9/no emsdk prevents the local QuickJS rebuild; local SQL did not run.
+The required CI provides the actual browser, container, SQL and QuickJS results.
+
+F1-18/19/20/37/40 are complete in #646 for the shipped contracts and tooling.
+F11-31 stays open: the scoped source-file API returns 404 for this Git
+deployment. Dashboard Resources reports twelve functions and 2,259 static
+assets; selecting roadmap in Source/Output exposes invocation, logs and
+monitoring, without a complete packaged-file inventory. The 91-declaration
+local NFT result and deployed TypeScript acceptance do not prove that missing
+inventory or deployed byte savings.
+
+#636 remains open for its literal universal-latency/top-ten-call criteria and
+the recorded privacy/platform exceptions. Keep the mixed measurements, private
+Daily sessions, one-minute public-board privacy bound, Standard allocation and
+physical handler durations. No authenticated rewards, physical device, platform
+boot, retained-memory or population-call-reduction acceptance is claimed.
+
+Separately, two anonymous static HTML GETs at 14:07 UTC confirm production
+Privacy and Terms titles and self canonicals, completing that existing F15
+owner:ai task. They execute no JavaScript or API and change no legal text.
