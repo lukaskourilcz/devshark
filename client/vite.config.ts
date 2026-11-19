@@ -471,6 +471,9 @@ export default defineConfig(({ mode }) => {
   return {
   define: {
     __MERCH_IMAGES__: JSON.stringify(merchImages(path.resolve(__dirname, 'public/merch'))),
+    // Remove SDK diagnostic branches from the lazy production chunk. Tracing
+    // stays enabled and keeps sentry-sdk.ts's existing 0.1 sampling policy.
+    __SENTRY_DEBUG__: mode !== 'production',
   },
   plugins: [
     productMetadata(env),
