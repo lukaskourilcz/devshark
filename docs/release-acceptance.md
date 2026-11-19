@@ -8497,3 +8497,27 @@ and retains its own acceptance requirements. This change does not repeat that
 work or mark it complete. No grading outcome, resource bound or handler changed.
 
 Refs #640, #646 and #629.
+
+### F11-30 focused local execution
+
+At clean `23a2ae3c80b603ff7172567b1a36bdffc3d9226a`, Node 24.22.3, the
+coordinated sequential slot completed all three authorized commands:
+
+| Command | Actual result | Seconds |
+| --- | --- | ---: |
+| `npm run test:sandbox-limits` | 25 sandbox PASS groups, exit 0 | 29.898 |
+| `REACT_RUNNER_SNAPSHOT_ID= npm run test:react-isolation` | 5 local guest PASS groups and explicit VM SKIP, exit 0 | 5.801 |
+| `npm run test:grading-integrity` | Both child npm headings, 25 sandbox and 5 local guest PASS groups, explicit VM SKIP, exit 0 | 94.167 |
+
+The umbrella repeats the same two standalone suites. Its log shows the actual
+child executions and their successful output. The snapshot was blank for these
+checks; no credential value was inspected or remote VM provisioned. Source
+hashes match before and after, and Git remains clean. The worktree uses matching
+locked installed packages with separate writable caches and generated outputs;
+this is dependency reuse, not a fresh installation.
+
+F7 held runtime while these short-deadline checks ran and resumed only after
+their actual completion. No application build, Coding, browser, fast/full parity
+or new CI ran in this slot. Required exact-head CI and checked merge remain
+pending, so F11-30 and #640 stay open. The real-VM owner task and F7 declaration
+packaging acceptance remain separate.
