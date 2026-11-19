@@ -8887,3 +8887,22 @@ this record makes no clean-stderr or native-cause claim.
 Exact red/green provenance, log hashes and scope limits are retained in
 `docs/quality/f11-react-deadlines-2026-11-19.md` and its adjacent JSON. Final
 composed types, Coding/reference, launch/parity and merge acceptance remain.
+
+
+### Epic F, F11-09/35 isolated React compilation (19 November 2026)
+
+Real test `ad5603ea`, fix `847cd14c`. Actual handler heartbeat lag changed
+from 1,872 to 53 ms with the existing nesting verdict. Coding/path capacity
+regressions and two required-compiler artifact omissions failed before fix.
+Focused greens pass 18 lifecycle controls, 684 actual normal-worker output
+comparisons/non-evaluation, handler/path positive plus two swallowed-catch
+negatives, and 10 shared artifact controls. Original guest digest checks and
+trimmed builders remain. API 7.224 s/scripts 9.870 s pass after separate 11
+guarded-handle typing correction `af002b2a`; the original failure is preserved.
+
+Three fresh-process pairs record compiler startup/messaging cost: inline vs
+worker first-conversion medians 37.702/223.822 ms, warm 3.033/4.890 ms; all 18
+outputs agree. No provider/VM or distribution claim follows. Source states,
+raw samples, commands and packaging limits are in
+`docs/quality/f11-react-compiler-pool-2026-11-19.md` and its adjacent JSON.
+Full composed build/grading/Coding/launch/parity and merge remain pending.

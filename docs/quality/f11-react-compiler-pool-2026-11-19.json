@@ -1,0 +1,527 @@
+{
+  "date": "2026-11-19",
+  "scope": [
+    "F11-09",
+    "F11-35"
+  ],
+  "testCommit": "ad5603ead2c34a2fcfb007733f89faf695dc74fd",
+  "fixCommit": "847cd14cb1ca90615dc409aff51ef6e097b54705",
+  "auditComment": "https://github.com/lukaskourilcz/devshark/issues/640#issuecomment-7023417942",
+  "runs": [
+    {
+      "label": "red-heartbeat",
+      "command": [
+        "env",
+        "REACT_RUNNER_SNAPSHOT_ID=",
+        "SESSION_SECRET=f11-09-local-test-secret-000000000000000",
+        "node",
+        "node_modules/.cache/shark/f11-react-compile/heartbeat-entry.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "eca81090e1e548657780b3f45200b6e88b176e7f",
+      "dirty": " M scripts/test-grading-integrity.ts\n M scripts/test-path-authority.ts\n?? scripts/fixtures/react-busy-control.ts\n?? scripts/react-busy-contracts.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:03:03.507514+00:00",
+      "outerWatchdogSeconds": 45,
+      "exitCode": 1,
+      "watchdogFired": false,
+      "wallSeconds": 2.621,
+      "logSha256": "692d44e6543458d0cf2dfcb51f2050a7ff8e18a3188e958523658ac8779fb2c7"
+    },
+    {
+      "label": "red-busy",
+      "command": [
+        "node",
+        "node_modules/.cache/shark/f11-react-compile/busy-entry.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "eca81090e1e548657780b3f45200b6e88b176e7f",
+      "dirty": " M scripts/test-ci-build-artifact.mjs\n M scripts/test-grading-integrity.ts\n M scripts/test-path-authority.ts\n?? scripts/fixtures/react-busy-control.ts\n?? scripts/react-busy-contracts.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:03:32.141899+00:00",
+      "outerWatchdogSeconds": 60,
+      "exitCode": 1,
+      "watchdogFired": false,
+      "wallSeconds": 0.735,
+      "logSha256": "5c2cc910599d611e7213f1b77cfd98d7a1ab2d6f90ac2440b7810bc36d4518d3"
+    },
+    {
+      "label": "red-busy-report",
+      "command": [
+        "node",
+        "node_modules/.cache/shark/f11-react-compile/busy-entry.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "eca81090e1e548657780b3f45200b6e88b176e7f",
+      "dirty": " M scripts/test-ci-build-artifact.mjs\n M scripts/test-grading-integrity.ts\n M scripts/test-path-authority.ts\n?? scripts/fixtures/react-busy-control.ts\n?? scripts/react-busy-contracts.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:04:09.018993+00:00",
+      "outerWatchdogSeconds": 60,
+      "exitCode": 1,
+      "watchdogFired": false,
+      "wallSeconds": 0.678,
+      "logSha256": "0c1bb7a863bf8e75734f7318d303115f04d8a52bf51936d7eb57d5d06647967b"
+    },
+    {
+      "label": "red-path",
+      "command": [
+        "node",
+        "node_modules/.cache/shark/f11-react-compile/path-entry.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "eca81090e1e548657780b3f45200b6e88b176e7f",
+      "dirty": " M scripts/test-ci-build-artifact.mjs\n M scripts/test-grading-integrity.ts\n M scripts/test-path-authority.ts\n?? scripts/fixtures/react-busy-control.ts\n?? scripts/react-busy-contracts.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:03:37.519628+00:00",
+      "outerWatchdogSeconds": 60,
+      "exitCode": 1,
+      "watchdogFired": false,
+      "wallSeconds": 0.342,
+      "logSha256": "739a2abe6001288f5d722ab5f30c283584b902d433f289eec938202f39e431ef"
+    },
+    {
+      "label": "red-shared-artifacts",
+      "command": [
+        "node",
+        "scripts/test-ci-build-artifact.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "eca81090e1e548657780b3f45200b6e88b176e7f",
+      "dirty": " M scripts/test-ci-build-artifact.mjs\n M scripts/test-grading-integrity.ts\n M scripts/test-path-authority.ts\n?? scripts/fixtures/react-busy-control.ts\n?? scripts/react-busy-contracts.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:03:43.478124+00:00",
+      "outerWatchdogSeconds": 60,
+      "exitCode": 1,
+      "watchdogFired": false,
+      "wallSeconds": 1.289,
+      "logSha256": "85d4410376346095f971e4c12d29af3c381cd0c8e808dcc79411fa10fdc277a6"
+    },
+    {
+      "label": "green-pool",
+      "command": [
+        "env",
+        "VERCEL=1",
+        "node",
+        "node_modules/.cache/shark/f11-react-compile/pool-entry.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "ad5603ead2c34a2fcfb007733f89faf695dc74fd",
+      "dirty": " M NEEDED.md\n M lib/coding/handlers.ts\n M lib/coding/react-isolated.ts\n M lib/learning-paths/grade.ts\n M scripts/build-react-runner.mjs\n M scripts/ci-build-artifact.mjs\n M scripts/test-grading-integrity.ts\n?? lib/coding/react-compile-pool.ts\n?? scripts/build-react-compile-worker.d.mts\n?? scripts/build-react-compile-worker.mjs\n?? scripts/fixtures/react-compile-pool-control.cjs\n?? scripts/react-compile-pool-contracts.ts\n?? scripts/react-compile-worker-entry.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:06:49.262713+00:00",
+      "outerWatchdogSeconds": 90,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 7.829,
+      "logSha256": "3a9a7d996e302f3d72acca878a94fbad3517876a3df6d902173c294b79305112"
+    },
+    {
+      "label": "green-heartbeat",
+      "command": [
+        "env",
+        "VERCEL=1",
+        "REACT_RUNNER_SNAPSHOT_ID=",
+        "SESSION_SECRET=f11-09-local-test-secret-000000000000000",
+        "node",
+        "node_modules/.cache/shark/f11-react-compile/heartbeat-entry.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "ad5603ead2c34a2fcfb007733f89faf695dc74fd",
+      "dirty": " M NEEDED.md\n M lib/coding/handlers.ts\n M lib/coding/react-isolated.ts\n M lib/learning-paths/grade.ts\n M scripts/build-react-runner.mjs\n M scripts/ci-build-artifact.mjs\n M scripts/test-grading-integrity.ts\n?? lib/coding/react-compile-pool.ts\n?? scripts/build-react-compile-worker.d.mts\n?? scripts/build-react-compile-worker.mjs\n?? scripts/fixtures/react-compile-pool-control.cjs\n?? scripts/react-compile-pool-contracts.ts\n?? scripts/react-compile-worker-entry.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:07:04.749483+00:00",
+      "outerWatchdogSeconds": 45,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 2.6,
+      "logSha256": "8b12e0c90c81bcf37ac90b8123d90146b86480d020e1fcd8ff18faa9780ab3fb"
+    },
+    {
+      "label": "green-busy",
+      "command": [
+        "node",
+        "node_modules/.cache/shark/f11-react-compile/busy-entry.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "ad5603ead2c34a2fcfb007733f89faf695dc74fd",
+      "dirty": " M NEEDED.md\n M lib/coding/handlers.ts\n M lib/coding/react-isolated.ts\n M lib/learning-paths/grade.ts\n M scripts/build-react-runner.mjs\n M scripts/ci-build-artifact.mjs\n M scripts/test-grading-integrity.ts\n?? lib/coding/react-compile-pool.ts\n?? scripts/build-react-compile-worker.d.mts\n?? scripts/build-react-compile-worker.mjs\n?? scripts/fixtures/react-compile-pool-control.cjs\n?? scripts/react-compile-pool-contracts.ts\n?? scripts/react-compile-worker-entry.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:07:19.927105+00:00",
+      "outerWatchdogSeconds": 60,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 1.771,
+      "logSha256": "0652518abed7a3155a7ba7e985ac9a119e35c2de649ffc0bb1ce966c32c7bdc8"
+    },
+    {
+      "label": "green-path",
+      "command": [
+        "node",
+        "node_modules/.cache/shark/f11-react-compile/path-entry.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "ad5603ead2c34a2fcfb007733f89faf695dc74fd",
+      "dirty": " M NEEDED.md\n M lib/coding/handlers.ts\n M lib/coding/react-isolated.ts\n M lib/learning-paths/grade.ts\n M scripts/build-react-runner.mjs\n M scripts/ci-build-artifact.mjs\n M scripts/test-grading-integrity.ts\n?? lib/coding/react-compile-pool.ts\n?? scripts/build-react-compile-worker.d.mts\n?? scripts/build-react-compile-worker.mjs\n?? scripts/fixtures/react-compile-pool-control.cjs\n?? scripts/react-compile-pool-contracts.ts\n?? scripts/react-compile-worker-entry.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:07:21.784884+00:00",
+      "outerWatchdogSeconds": 60,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 0.332,
+      "logSha256": "c4762cd70750bff7120c18275d290c34b9d45f43f7a706cc91d2dde2d9115f90"
+    },
+    {
+      "label": "green-shared-artifacts",
+      "command": [
+        "node",
+        "scripts/test-ci-build-artifact.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "ad5603ead2c34a2fcfb007733f89faf695dc74fd",
+      "dirty": " M NEEDED.md\n M lib/coding/handlers.ts\n M lib/coding/react-isolated.ts\n M lib/learning-paths/grade.ts\n M scripts/build-react-runner.mjs\n M scripts/ci-build-artifact.mjs\n M scripts/test-grading-integrity.ts\n?? lib/coding/react-compile-pool.ts\n?? scripts/build-react-compile-worker.d.mts\n?? scripts/build-react-compile-worker.mjs\n?? scripts/fixtures/react-compile-pool-control.cjs\n?? scripts/react-compile-pool-contracts.ts\n?? scripts/react-compile-worker-entry.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:07:22.198212+00:00",
+      "outerWatchdogSeconds": 60,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 1.239,
+      "logSha256": "e22bc05f5b32410ab62098c38f2496b631a46d410c7808cf6537db6d32d6d274"
+    },
+    {
+      "label": "types-api",
+      "command": [
+        "npm",
+        "run",
+        "typecheck:api"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "ad5603ead2c34a2fcfb007733f89faf695dc74fd",
+      "dirty": " M NEEDED.md\n M lib/coding/handlers.ts\n M lib/coding/react-isolated.ts\n M lib/learning-paths/grade.ts\n M scripts/build-react-runner.mjs\n M scripts/ci-build-artifact.mjs\n M scripts/test-grading-integrity.ts\n?? lib/coding/react-compile-pool.ts\n?? scripts/build-react-compile-worker.d.mts\n?? scripts/build-react-compile-worker.mjs\n?? scripts/fixtures/react-compile-pool-control.cjs\n?? scripts/react-compile-pool-contracts.ts\n?? scripts/react-compile-worker-entry.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:07:28.122326+00:00",
+      "outerWatchdogSeconds": 120,
+      "exitCode": 2,
+      "watchdogFired": false,
+      "wallSeconds": 7.13,
+      "logSha256": "6b7528dbbc0d58db1783d1b3bcaf6eb161899e1fd8d14f01545b86aa2ceac3c4"
+    },
+    {
+      "label": "types-api-guarded-handle",
+      "command": [
+        "npm",
+        "run",
+        "typecheck:api"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "af002b2a17f4868a4331162f0a916ca724522942",
+      "dirty": " M NEEDED.md\n M lib/coding/handlers.ts\n M lib/coding/react-isolated.ts\n M lib/learning-paths/grade.ts\n M scripts/build-react-runner.mjs\n M scripts/ci-build-artifact.mjs\n M scripts/test-grading-integrity.ts\n?? lib/coding/react-compile-pool.ts\n?? scripts/build-react-compile-worker.d.mts\n?? scripts/build-react-compile-worker.mjs\n?? scripts/fixtures/react-compile-pool-control.cjs\n?? scripts/react-compile-pool-contracts.ts\n?? scripts/react-compile-worker-entry.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:08:13.715288+00:00",
+      "outerWatchdogSeconds": 120,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 7.224,
+      "logSha256": "b2f2bb20a49983e78ddf144f0bbe98be9ec32e434aa99fc8a362f9f23a270d62"
+    },
+    {
+      "label": "types-scripts",
+      "command": [
+        "npm",
+        "run",
+        "typecheck:scripts"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "af002b2a17f4868a4331162f0a916ca724522942",
+      "dirty": " M NEEDED.md\n M lib/coding/handlers.ts\n M lib/coding/react-isolated.ts\n M lib/learning-paths/grade.ts\n M scripts/build-react-runner.mjs\n M scripts/ci-build-artifact.mjs\n M scripts/test-grading-integrity.ts\n?? lib/coding/react-compile-pool.ts\n?? scripts/build-react-compile-worker.d.mts\n?? scripts/build-react-compile-worker.mjs\n?? scripts/fixtures/react-compile-pool-control.cjs\n?? scripts/react-compile-pool-contracts.ts\n?? scripts/react-compile-worker-entry.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:08:26.701389+00:00",
+      "outerWatchdogSeconds": 120,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 9.87,
+      "logSha256": "4145f557fbc398434351bacb2814399d2f9c9daf45ff864ee082a0b228027cd5"
+    },
+    {
+      "label": "measure-compile-cost",
+      "command": [
+        "node",
+        "/tmp/devshark-epic-f-handoff/f11-remaining-execution-3fa8f8ed/09-35/measure-compile.mjs",
+        "/tmp/devshark-epic-f-handoff/f11-09-35-compile-cost-847cd14c.json",
+        "847cd14cb1ca90615dc409aff51ef6e097b54705"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "847cd14cb1ca90615dc409aff51ef6e097b54705",
+      "dirty": "",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:09:37.733579+00:00",
+      "outerWatchdogSeconds": 45,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 3.796,
+      "logSha256": "a5ea2c8f0c349b429bab8fca80a46119c3da8d8dfca84d364ab8c3b1496c8558"
+    }
+  ],
+  "actualResults": {
+    "heartbeatWorstLagMs": {
+      "before": 1872,
+      "after": 53
+    },
+    "nestingShape": "Existing error verdict with status200 and no graderUnavailable unchanged",
+    "busyRed": "Parsed actual trusted Coding child control=coding_status,writes=0; earlier generic child-status failure retained separately",
+    "pathRed": "Actual body did not reject the same injected capacity object",
+    "artifactRed": {
+      "passed": 8,
+      "failed": 2,
+      "cause": "Missing compiler accepted at pack and restore even with a recomputed generic inventory"
+    },
+    "poolControls": 18,
+    "normalCompilerOutputsIdentical": 684,
+    "actualCompilerDoesNotEvaluateSource": true,
+    "busyGreen": "One real handler/path positive and two exact catch-removal negatives; writes=0",
+    "pathGreen": "Same capacity object propagates",
+    "artifactGreen": {
+      "passed": 10,
+      "failed": 0
+    }
+  },
+  "typeFollowup": {
+    "originalFailure": "TS2769 in prior11/12/14 invoke closure: optional mutable command handle loses narrowing",
+    "commit": "af002b2a17f4868a4331162f0a916ca724522942",
+    "change": "Capture the current handle, guard that const and use it inside the synchronous closure; no non-null assertion or deadline change",
+    "apiGreenSeconds": 7.224,
+    "scriptsGreenSeconds": 9.87
+  },
+  "compileCost": {
+    "path": "/tmp/devshark-epic-f-handoff/f11-09-35-compile-cost-847cd14c.json",
+    "sha256": "ec8f0af7c61bb596cf7573ad65ddb327d19f2298797df3893203f82985f877ee",
+    "capture": {
+      "head": "847cd14cb1ca90615dc409aff51ef6e097b54705",
+      "node": "v24.22.3",
+      "toolSha256": "2d28ff4e9ce5da1beed926ed8fded5e807bacbc219978e1bb46ce783753fb864",
+      "pins": {
+        "lib/coding/react-compile-pool.ts": "836af85396f80e673f12d7adaf8548c3ede6b97adeb5e6502f9f961ff3885287",
+        "lib/coding/react-transpile.ts": "00bf6f0f0628656ff3c846dce241eb309fb363d771afd7ed2d4d18d775221ed6",
+        "scripts/react-compile-worker-entry.ts": "f45d84cafa9962d9b064e4ab1b5895b94557c00a225445f4aaccd46e49a66138",
+        "lib/coding/generated/react-compile-worker.cjs": "696c91750494b94a2d692040a01bb869d59b0aa0f7645c342058777185d4f801",
+        "package-lock.json": "98d0093a62b8d2ae7dda5f4f4e4a2f3594f08075a70d13219ddb1216200176b4"
+      },
+      "reports": [
+        {
+          "sample": 0,
+          "mode": "inline",
+          "taskId": "react-heading-and-intro",
+          "sourceSha256": "ab51272c2aeb56b808075fd5596bcf68293b2dee13adbd2abb3da4f1e297ca7b",
+          "rows": [
+            {
+              "call": 0,
+              "elapsedMs": 36.89433399999996,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            },
+            {
+              "call": 1,
+              "elapsedMs": 3.1660420000000045,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            },
+            {
+              "call": 2,
+              "elapsedMs": 2.7156249999999886,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            }
+          ],
+          "pool": {
+            "idle": 0,
+            "live": 0,
+            "retiring": 0
+          }
+        },
+        {
+          "sample": 0,
+          "mode": "worker",
+          "taskId": "react-heading-and-intro",
+          "sourceSha256": "ab51272c2aeb56b808075fd5596bcf68293b2dee13adbd2abb3da4f1e297ca7b",
+          "rows": [
+            {
+              "call": 0,
+              "elapsedMs": 223.82187500000003,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            },
+            {
+              "call": 1,
+              "elapsedMs": 4.970082999999931,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            },
+            {
+              "call": 2,
+              "elapsedMs": 4.916999999999916,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            }
+          ],
+          "pool": {
+            "idle": 1,
+            "live": 1,
+            "retiring": 0
+          }
+        },
+        {
+          "sample": 1,
+          "mode": "worker",
+          "taskId": "react-heading-and-intro",
+          "sourceSha256": "ab51272c2aeb56b808075fd5596bcf68293b2dee13adbd2abb3da4f1e297ca7b",
+          "rows": [
+            {
+              "call": 0,
+              "elapsedMs": 225.809709,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            },
+            {
+              "call": 1,
+              "elapsedMs": 4.863499999999931,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            },
+            {
+              "call": 2,
+              "elapsedMs": 5.151040999999964,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            }
+          ],
+          "pool": {
+            "idle": 1,
+            "live": 1,
+            "retiring": 0
+          }
+        },
+        {
+          "sample": 1,
+          "mode": "inline",
+          "taskId": "react-heading-and-intro",
+          "sourceSha256": "ab51272c2aeb56b808075fd5596bcf68293b2dee13adbd2abb3da4f1e297ca7b",
+          "rows": [
+            {
+              "call": 0,
+              "elapsedMs": 38.94179099999997,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            },
+            {
+              "call": 1,
+              "elapsedMs": 3.5516250000000014,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            },
+            {
+              "call": 2,
+              "elapsedMs": 2.928666000000021,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            }
+          ],
+          "pool": {
+            "idle": 0,
+            "live": 0,
+            "retiring": 0
+          }
+        },
+        {
+          "sample": 2,
+          "mode": "inline",
+          "taskId": "react-heading-and-intro",
+          "sourceSha256": "ab51272c2aeb56b808075fd5596bcf68293b2dee13adbd2abb3da4f1e297ca7b",
+          "rows": [
+            {
+              "call": 0,
+              "elapsedMs": 37.70241600000003,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            },
+            {
+              "call": 1,
+              "elapsedMs": 3.1366669999999885,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            },
+            {
+              "call": 2,
+              "elapsedMs": 2.522625000000005,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            }
+          ],
+          "pool": {
+            "idle": 0,
+            "live": 0,
+            "retiring": 0
+          }
+        },
+        {
+          "sample": 2,
+          "mode": "worker",
+          "taskId": "react-heading-and-intro",
+          "sourceSha256": "ab51272c2aeb56b808075fd5596bcf68293b2dee13adbd2abb3da4f1e297ca7b",
+          "rows": [
+            {
+              "call": 0,
+              "elapsedMs": 196.37862499999994,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            },
+            {
+              "call": 1,
+              "elapsedMs": 4.112792000000013,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            },
+            {
+              "call": 2,
+              "elapsedMs": 3.9101670000000013,
+              "outputSha256": "04d2a28edd29de1ad345eb32a0a9f89f29d077ed5713d894b91ad2437ee04300"
+            }
+          ],
+          "pool": {
+            "idle": 1,
+            "live": 1,
+            "retiring": 0
+          }
+        }
+      ],
+      "limits": "Three fresh-process pairs, fixed order with middle pair reversed; timers cover conversion only after controller imports. Worker cold includes actual thread boot and its TypeScript acquisition; inline cold is first conversion in the host. Warm calls reuse actual worker. No p95, platform, VM, full request or retained-memory claim."
+    },
+    "medians": {
+      "inline": {
+        "coldMs": 37.70241600000003,
+        "warmMs": 3.032666500000005
+      },
+      "worker": {
+        "coldMs": 223.82187500000003,
+        "warmMs": 4.890249999999924
+      }
+    }
+  },
+  "packaging": {
+    "generatedWorker": {
+      "bytes": 10395,
+      "sha256": "696c91750494b94a2d692040a01bb869d59b0aa0f7645c342058777185d4f801"
+    },
+    "normalBuilder": "Existing buildReactRunner awaits exported compiler builder while preserving sandboxBundle/guestBundle and trim helper. Focused actual worker built through that same exported function. Full combined build still pending.",
+    "vercel": "Existing generated/*.cjs include selects the new artifact; no settings changed. Local execution resolves external TypeScript for684sources. This is not a provider Lambda file inventory.",
+    "docker": "Existing normal npm build and entire generated-directory COPY carry the new worker; runtime TypeScript install unchanged. Docker execution pending/unavailable until final gate.",
+    "sharedArtifact": "Exact positive bytes survive pack+restore. Missing worker is independently rejected before manifest write/tree replacement, even with recomputed inventory. Guest passive pair checks remain."
+  },
+  "sourceHashes": {
+    "lib/coding/react-compile-pool.ts": "836af85396f80e673f12d7adaf8548c3ede6b97adeb5e6502f9f961ff3885287",
+    "lib/coding/react-isolated.ts": "95ec1f5f05110dfce075d5124a875534e795bb50efa5946f1c4f3bc95094ab3d",
+    "lib/coding/react-transpile.ts": "00bf6f0f0628656ff3c846dce241eb309fb363d771afd7ed2d4d18d775221ed6",
+    "lib/coding/react-learner.ts": "5cefa37d885a7058cba297a89d4374d19079dd597c86019eb6748845190a810c",
+    "lib/coding/react-runner.ts": "897f0f5edc8d03657b7c77b2ec403a3cc615e2d9192ace59d44a938263118245",
+    "lib/coding/handlers.ts": "dc2d1587cb973cdcf3139465a9ad8857eca51e6c9c013092e248a3b65a32da26",
+    "lib/learning-paths/grade.ts": "34345532ec92de4d5230e5dca024d80636d4ec569b04088ea8a414e7c04d0ba6",
+    "lib/coding/sandbox.ts": "8acf1ac06e376188ed08cdb4932921648f42a2f989b682d80936009233c32f67",
+    "scripts/quickjs-bundle.mjs": "b243a3350ffc5899100ee33304a6b574e99900ef2b47033d763c7c048fff65c0",
+    "scripts/build-react-runner.mjs": "bad6e8f71aa285171beafcb8b016ab05be293f41bdfeeccb636724232f4742f0",
+    "scripts/build-react-compile-worker.mjs": "5e1cdf8bbec5f42e5d0eb61050138d625d23838654a7a61d194429da89e98eb1",
+    "scripts/react-compile-worker-entry.ts": "f45d84cafa9962d9b064e4ab1b5895b94557c00a225445f4aaccd46e49a66138",
+    "scripts/ci-build-artifact.mjs": "e73fb9b01ad7ce5c910fa0459ac5137c9c558607a78988acbfdca41550c0e894",
+    "scripts/test-ci-build-artifact.mjs": "d673e43b3ba82c1a59dee7c0c21d4c0ddba1724baae09c7a0e1eb4212a4b75ea",
+    "scripts/react-compile-pool-contracts.ts": "78e641a572d90e5e3575f0e1deb73651060d77bf6307b74b4bd9c2884c9f4535",
+    "scripts/sandbox-watchdog-controls.ts": "0adc85410849470f7ec1a3b5e27165fbc2226a09bce011f7d7342b3a3094ca20",
+    "vercel.json": "33696eb265a5b6f3c126bef95152753fb48fd0afd95e02ea77305d39a9221462",
+    "Dockerfile": "c22e77cc148ab3ffc2689abb9be20945fd44a41c0a0221c929c390d7d1d0738e"
+  },
+  "remaining": [
+    "Full composed grading/actual reference/Coding, launch and parity gates",
+    "No credentialed VM or remote provider check",
+    "Three sample timing pairs give no latency distribution, p95 or service promise",
+    "Existing trusted fixture and local fallback conversion still retain host TypeScript imports"
+  ]
+}
