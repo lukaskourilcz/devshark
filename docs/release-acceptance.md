@@ -7618,3 +7618,73 @@ checkpoint. The remaining full-only browser, harness, performance and
 Storybook gates then run on the same frozen source, alongside the earlier
 complete full evidence. Required CI must still supply QuickJS, Docker and
 SQL on the actual new head. No merge or production acceptance is implied.
+
+## Epic F14 production acceptance: docs, triage and CI (19 November 2026)
+
+[PR #667](https://github.com/lukaskourilcz/devshark/pull/667) merged at
+`15f350a8fbdecec8b412472953fec551ec7a0c94` on 19 November at 13:19:03 UTC.
+Reviewed head `1511f1fa` passed all nine jobs in required
+[run 44523908461](https://github.com/lukaskourilcz/devshark/actions/runs/44523908461),
+including explicit verify and SQL SUCCESS. This record completes the pending
+F14 checks above and F3's documentation follow-up. Issues #643 and #632 are
+closed with their actual results and deviations. The failed runs above remain
+part of the record.
+
+| Check | Actual result |
+| --- | --- |
+| Final clean fast parity at 1511f1fa | 34 passes, zero failures, nine skips and one unavailable local QuickJS rebuild; 33.71 minutes. All 1,977 client tests in 200 files and 814 Coding references pass. Light 180/dark 60 probes and both zoom profiles pass. |
+| Supplemental component invocation at the same clean head | Eight passes, zero failures, 35 unselected/reuse skips and one unavailable Docker check; 5.73 minutes. Chromium 302 passes/19 intentional hidden-FDE skips, harness, performance and six Storybook cases pass. |
+| Combined local coverage | The two summaries cover all 44 planned steps with 40 unique passes, two installed-tool/dependency reuse skips and two unavailable checks: QuickJS rebuild and Docker. This is a union, not a standalone full invocation. SQL ran separately in CI. |
+| Required CI | All seven components, SQL and verify succeed. Browser takes 797 seconds, Coding 1,517 seconds and SQL 49 seconds. No assertion, retry, timeout or budget was relaxed. |
+| Additional browser checks | Quiet sequential Chromium navigation 24/24 and five-spec WebKit 103/103 pass. The current local CSP/header-adapter spec passes 3/3; its API fixtures do not establish deployed backend behavior. |
+| Source and Preview checks | Final source selection is 949 files/21,120,882 bytes, with 943 reused content receipts and six accepted fresh uploads. Both actual final Previews pass nine HTTP policy probes, 24 retired-path GET/HEAD variants and anonymous admin denial 403/private-no-store. Git Preview metadata names 1511f1fa in arn1; the API-files Preview builds in iad1. |
+| Production | `dpl_Aoj3B8JjwtQqyWxo7QZbHsHQUa6F` is READY at exact merge 15f350a8 in arn1 and serves devshark.app. All 43 guest HTTP checks pass: 18 static document/asset/manifest GETs plus 24 retired-path variants and one anonymous admin denial. Static response bodies total 794,976 bytes with zero issues. |
+| Bundle and docs | The placeholder build remains 218,661/218,675 initial gzip bytes. Served production variables yield 218,360 bytes, zero font preloads and two modulepreloads. The final docs tree occupies 20,084 KiB; all 757 archived paths/90,894,546 bytes restore with matching hashes. Published history remains available. |
+| Final container evidence | On one Linux/amd64 CI runner, image-ls reports 958 MB to 666 MB. Separate inspect Size values are 184,775,859 to 141,951,324 bytes, saving 42,824,535. Both images pass the same current authored JavaScript/TypeScript/React references against their dependencies and generated workers. |
+
+The container baseline is published `0f35d67d`; candidate `3b503cc4` is the
+merge-test tree for 1511f1fa and includes intervening changes. The two size
+fields use different accounting. Current harness source against both stacks
+does not establish baseline handler-code equivalence or multiple architectures.
+
+The API-files Preview downloaded all 949 selected files. Its partial source
+listing returns 546 matching content UIDs, including all six changed files;
+403 files are unlisted. Provider metadata normalizes to an empty object, so
+the saved exact creation request and returned UIDs provide the stated binding.
+The two required F4 SVG exceptions have matching capped readback prefixes and
+encoded lengths; this is not independent complete-file hashing. No runtime
+bank filter shipped: five individual handler prototypes exceeded ten percent,
+but the twelve-output aggregate saved 7.466 percent.
+
+The final browser reference uses the latest ten successful browser jobs from
+quality.yml main-push runs before F14 merged. The inclusive cutoff is
+19 November at 10:31:37 UTC, main bce4b9c4; the new F14 main run is excluded.
+
+| Main-push run | Browser seconds |
+| --- | ---: |
+| 44506480155 | 1295 |
+| 44469626993 | 1474 |
+| 44452144016 | 1452 |
+| 44438847769 | 826 |
+| 44416209968 | 840 |
+| 44411900966 | 911 |
+| 44402131562 | 839 |
+| 43261918893 | 912 |
+| 43243003745 | 728 |
+| 43019987774 | 772 |
+
+Mean is 1,004.9 seconds and median 875.5, with range 728 to 1,474. The final
+PR job's 797 seconds are 207.9/20.7 percent below the mean and 78.5/9.0 percent
+below the median; two historical jobs are shorter. Run 44411900966's browser
+job succeeded despite overall cancellation. This observational comparison
+does not isolate F14 effects or measure billed minutes.
+
+The production smoke used guest HTTP only. It ran no app JavaScript, positive
+admin read, grading, SQL, setting change or business write. Physical-phone,
+screen-reader and authenticated production acceptance remain in NEEDED.md.
+F2-40 and F10-41 are checked after the merge. F2-41 retains its 81 type-only
+exports in 27 files, and F11-30 still needs both standalone suites wired into
+CI. Passing F14 CI completes neither finding. PR #657 remains held by the
+production migration gate recorded above.
+
+Refs #632, #643, #640, #646 and #629.
