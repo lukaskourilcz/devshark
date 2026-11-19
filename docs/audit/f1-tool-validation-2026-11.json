@@ -1,0 +1,356 @@
+{
+  "schema": "devshark-f1-tool-validation-v1",
+  "recordedAt": "2026-11-19T17:00:31.413041+00:00",
+  "node": "v24.22.3",
+  "auditIssueComment": 7015791665,
+  "redFixCommits": {
+    "F1-17": [
+      "6181f0e4",
+      "e73e504e"
+    ],
+    "F1-38": [
+      "2a0e5ade",
+      "1b137bec"
+    ],
+    "F1-21": [
+      "3e415cab",
+      "17abcf9d"
+    ]
+  },
+  "logsDirectory": "/tmp/devshark-epic-f-handoff/f1-execution-8d1de23d",
+  "logs": [
+    {
+      "log": "f1-17-red.log",
+      "bytes": 20668,
+      "sha256": "fdad23cb3ea5886988a78203920067e446784e9e34a94ffeb4ee24191b39ba18",
+      "nodeTestReporterGroups": {
+        "tests": [
+          24
+        ],
+        "pass": [
+          5
+        ],
+        "fail": [
+          19
+        ]
+      }
+    },
+    {
+      "log": "f1-17-fixed.log",
+      "bytes": 2348,
+      "sha256": "90a213e8e2f14e47514580575913a47e99c88cf9ea965e6eb5e986282fc4cc20",
+      "nodeTestReporterGroups": {
+        "tests": [
+          24
+        ],
+        "pass": [
+          24
+        ],
+        "fail": [
+          0
+        ]
+      }
+    },
+    {
+      "log": "f1-38-red.log",
+      "bytes": 2740,
+      "sha256": "e9d79cd14fe6cafa626e7e5f3eae18b8c8f447bcc9689378ce9042135de80429",
+      "nodeTestReporterGroups": {
+        "tests": [
+          4
+        ],
+        "pass": [
+          1
+        ],
+        "fail": [
+          3
+        ]
+      }
+    },
+    {
+      "log": "f1-38-fixed.log",
+      "bytes": 538,
+      "sha256": "11692645030ceced9bbd13012c8d1f7ab72341a17ab4ab0e15b21780126867dc",
+      "nodeTestReporterGroups": {
+        "tests": [
+          4
+        ],
+        "pass": [
+          4
+        ],
+        "fail": [
+          0
+        ]
+      }
+    },
+    {
+      "log": "perf-tools-complete.log",
+      "bytes": 6168,
+      "sha256": "adcc10d640991e3185de4c38ae0cf19bfa845a029e3efaa46b5784ff2c2e452f",
+      "nodeTestReporterGroups": {
+        "tests": [
+          64
+        ],
+        "pass": [
+          64
+        ],
+        "fail": [
+          0
+        ]
+      }
+    },
+    {
+      "log": "f1-21-red.log",
+      "bytes": 11980,
+      "sha256": "28ca89197ccb9667a49399fbfb3e096162657ebcb0c9666188ce80f01bf40c98",
+      "nodeTestReporterGroups": {
+        "tests": [
+          8
+        ],
+        "pass": [
+          0
+        ],
+        "fail": [
+          8
+        ]
+      }
+    },
+    {
+      "log": "f1-21-fixed-f4.log",
+      "bytes": 3732,
+      "sha256": "9efe5156597bb971017472504a7bb04cfaff9e9ac385fac45e506957fb29cc06",
+      "nodeTestReporterGroups": {
+        "tests": [
+          45
+        ],
+        "pass": [
+          45
+        ],
+        "fail": [
+          0
+        ]
+      }
+    },
+    {
+      "log": "typecheck-scripts.log",
+      "bytes": 82,
+      "sha256": "4145f557fbc398434351bacb2814399d2f9c9daf45ff864ee082a0b228027cd5",
+      "nodeTestReporterGroups": {
+        "tests": [],
+        "pass": [],
+        "fail": []
+      }
+    },
+    {
+      "log": "performance.log",
+      "bytes": 137742,
+      "sha256": "51188ad92f10533cde337673fa78cd39bce92cb11ebf677731e92c4f72658158",
+      "nodeTestReporterGroups": {
+        "tests": [
+          28,
+          8,
+          42,
+          5,
+          15,
+          4,
+          37,
+          64,
+          8
+        ],
+        "pass": [
+          28,
+          8,
+          42,
+          5,
+          15,
+          4,
+          37,
+          64,
+          8
+        ],
+        "fail": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "log": "unused.log",
+      "bytes": 1627,
+      "sha256": "a7fa11dc497bcfa92d9dd8aa7ea01d31e0d4937f29a265a2df8ecb12cfc44c33",
+      "nodeTestReporterGroups": {
+        "tests": [
+          8
+        ],
+        "pass": [
+          8
+        ],
+        "fail": [
+          0
+        ]
+      }
+    }
+  ],
+  "decoderAstPreservation": {
+    "before": "3e415cab:scripts/check-images.mjs",
+    "initialHarnessDiagnostic": "First proof used the wrong expected wrapper name inspect; it stopped before writing evidence. Reviewed actual image wrapper diff, then corrected expected name.",
+    "functions": [
+      {
+        "name": "fail",
+        "destination": "checker",
+        "bodyIdentical": true
+      },
+      {
+        "name": "requireBytes",
+        "destination": "helper",
+        "bodyIdentical": true
+      },
+      {
+        "name": "dimensions",
+        "destination": "helper",
+        "bodyIdentical": true
+      },
+      {
+        "name": "png",
+        "destination": "helper",
+        "bodyIdentical": true
+      },
+      {
+        "name": "jpeg",
+        "destination": "helper",
+        "bodyIdentical": true
+      },
+      {
+        "name": "webp",
+        "destination": "helper",
+        "bodyIdentical": true
+      },
+      {
+        "name": "boxes",
+        "destination": "helper",
+        "bodyIdentical": true
+      },
+      {
+        "name": "avif",
+        "destination": "helper",
+        "bodyIdentical": true
+      },
+      {
+        "name": "ico",
+        "destination": "helper",
+        "bodyIdentical": true
+      },
+      {
+        "name": "svg",
+        "destination": "helper",
+        "bodyIdentical": true
+      },
+      {
+        "name": "image",
+        "destination": "checker",
+        "bodyIdentical": false
+      },
+      {
+        "name": "walk",
+        "destination": "checker",
+        "bodyIdentical": true
+      },
+      {
+        "name": "checkDirectory",
+        "destination": "checker",
+        "bodyIdentical": true
+      },
+      {
+        "name": "decode",
+        "destination": "helper",
+        "bodyIdentical": true
+      },
+      {
+        "name": "attributes",
+        "destination": "helper",
+        "bodyIdentical": true
+      },
+      {
+        "name": "localFile",
+        "destination": "checker",
+        "bodyIdentical": true
+      },
+      {
+        "name": "icon",
+        "destination": "checker",
+        "bodyIdentical": true
+      },
+      {
+        "name": "manifest",
+        "destination": "checker",
+        "bodyIdentical": true
+      },
+      {
+        "name": "html",
+        "destination": "checker",
+        "bodyIdentical": true
+      },
+      {
+        "name": "main",
+        "destination": "checker",
+        "bodyIdentical": true
+      }
+    ],
+    "unchanged": 19,
+    "moved": 11,
+    "changed": [
+      {
+        "name": "image",
+        "destination": "checker",
+        "bodyIdentical": false
+      }
+    ],
+    "checkerSha256": "88a3a97287fa18ff8e1fc367bd6af6bcb6a6cc11f38e88a0cda9d0ee2e1fe654",
+    "helperSha256": "b1ae21e5aaa17ee7a7e03ee43328d1bef21f4870e1d36be9ae0c58509165b564"
+  },
+  "defaultBundleFunctions": {
+    "initialRequests": "AST body byte-identical before/after e73e504e",
+    "measureBuild": "AST body byte-identical before/after e73e504e"
+  },
+  "outcomes": {
+    "bundleFocusedAfterFix": {
+      "tests": 24,
+      "pass": 24,
+      "fail": 0
+    },
+    "fixtureFocusedAfterFix": {
+      "tests": 4,
+      "pass": 4,
+      "fail": 0
+    },
+    "completePerfTools": {
+      "tests": 64,
+      "pass": 64,
+      "fail": 0
+    },
+    "inventoryAndUnchangedF4": {
+      "tests": 45,
+      "pass": 45,
+      "fail": 0
+    },
+    "typecheckScripts": "pass",
+    "performanceIntegration": "pass",
+    "unusedAndDependencyPlacement": "pass"
+  },
+  "notYetRun": [
+    "complete branch ci:parity --fast",
+    "required exact-head CI"
+  ],
+  "limits": [
+    "External raw logs are retained with this session; hashes identify exact files.",
+    "Static preservation checks do not establish runtime behavior alone; the existing F4 regression suite independently passed.",
+    "No live application was contacted by the new tool tests."
+  ]
+}
