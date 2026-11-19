@@ -42,7 +42,7 @@ export default defineConfig({
     },
     {
       name: 'webkit',
-      testMatch: /(?:first-load|navigation|coding-workbench|mobile-safari)\.spec\.ts$/,
+      testMatch: /(?:first-load|navigation|coding-workbench|mobile-safari|consent-reflow)\.spec\.ts$/,
       use: { ...devices['iPhone 13'], browserName: 'webkit' },
     },
   ],
