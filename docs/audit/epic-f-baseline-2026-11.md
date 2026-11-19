@@ -33,9 +33,12 @@ reports about 290 requests without a raw exact ledger. It is not valid to add
 that approximation to exact rows, reset the counter or infer remaining
 headroom. Preview63, local loopback and metadata-service queries are separate.
 
-NEEDED.md records the reversible local-lab choice for F1-44. This batch sends
-no further production application probes. Raw production transfer and browser
-calibration stay unmeasured; they are not zero. The missing original pre-fix
+NEEDED.md records the reversible local eight-route choice and the explicitly
+authorized small production Home calibration. The earlier no-more-probes
+choice inferred an owner gate from contradictory historical under-250 wording;
+review of the original brief corrected that interpretation. Raw production
+transfer and browser calibration are still pending collection; they are not
+zero. Every new attempt must be counted with its own scope and bounds. The missing original pre-fix
 timing cannot be recreated as an observation from its original date or SHA.
 These gaps keep #630 open even after eligible tool and evidence work lands.
 

@@ -8106,3 +8106,23 @@ was projected offline on 19 November; this paragraph records its original
 observation scope, not new sampling.
 
 Selected 19 November evidence has 146 declared request counts and 154 known completed response observations, including eight F4 checks and the 48 F7 production responses. Only F7 provides explicit attempt counters in this selected set. Earlier canonical evidence separately reports about 290 requests, without an exact raw ledger; it cannot be added to the exact rows or used to infer remaining headroom. Preview63, local loopback and metadata-service queries are separate scopes. NEEDED.md records the actual reversible choice: remaining route labs are local and this batch sends no further production application probes. Raw-transfer23 and production-browser45 remain unmeasured; neither missing value is zero.
+
+
+## Epic F1 production measurement scope correction (19 November 2026)
+
+The original #629/#630 brief explicitly requests the minimal raw production
+bundle observation and Home-only Lighthouse/CDP calibration (F1-23/45). The
+earlier no-more-probes choice inferred a hard 250-request/owner-approval gate
+from an inconsistent proposed F1-44 sentence, although that same finding
+already reports about 290 earlier requests. This internal interpretation was
+corrected after an independent full-instruction review; no new owner approval
+is needed for those explicitly authorized guest read-only measurements.
+
+The eight-route matrix stays local. Production collection remains pending
+concrete transport/count review: one raw graph observation, one Lighthouse
+run per profile and one CDP Home sample per profile with cold/repeat rows.
+Retain the older partial ledger and all exact new attempts, stop on unexpected
+business/write branches, and claim neither restored under-250 compliance nor
+known remaining historical headroom. Earlier dated no-probe records remain
+historical; this paragraph records the later deliberate scope correction.
+No new production measurement has run at this checkpoint.
