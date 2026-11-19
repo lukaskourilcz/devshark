@@ -20,7 +20,6 @@ import { queryClient } from './lib/queryClient';
 import { initSentry } from './lib/sentry';
 import { initAnalytics } from './lib/analytics';
 import { MARKETING_LOADERS } from './lib/marketingTags';
-import { MotionProvider } from './lib/motion';
 import { captureReferralFromUrl } from './lib/referral';
 import { installChunkErrorTracking } from './lib/routeRecovery';
 import { capturePublicGuide } from './lib/publicGuideHandoff';
@@ -79,9 +78,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <BrowserRouter>
             <LanguageProvider>
               <ColorModeProvider>
-                <MotionProvider>
-                  <App />
-                </MotionProvider>
+                <App />
               </ColorModeProvider>
             </LanguageProvider>
           </BrowserRouter>

@@ -13,7 +13,7 @@
 // motion loads no animation features at all, and its elements simply appear.
 
 import { LazyMotion, m as motionM, AnimatePresence, useReducedMotion } from 'motion/react';
-import { createElement, type ComponentType, type CSSProperties, type ReactNode } from 'react';
+import { createElement, useCallback, type ComponentType, type CSSProperties, type ReactNode } from 'react';
 import { reportError } from './sentry';
 
 // Fetch only the DOM animation features, and only when needed. The `m`
@@ -62,10 +62,15 @@ export function motionFeaturesFor(
   return new Promise<Features>(() => undefined);
 }
 
-const loadFeatures = () => motionFeaturesFor(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-
-/** Wrap the app once so every `m.*` element below has its features. */
-export function MotionProvider({ children }: { children: ReactNode }) {
+/** Lazy consumers own their features. A cold modal can stay static and usable
+ * until the loader signals readiness instead of waiting in an initial pose. */
+export function MotionProvider({ children, onReady }: { children: ReactNode; onReady?: () => void }) {
+  const loadFeatures = useCallback(() => motionFeaturesFor(
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  ).then((features) => {
+    onReady?.();
+    return features;
+  }), [onReady]);
   return (
     <LazyMotion features={loadFeatures} strict>
       {children}

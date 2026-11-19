@@ -51,7 +51,7 @@ import { useGameConfig } from '../lib/gameConfig';
 import { ReportDialog } from './ReportDialog';
 import { capture } from '../lib/analytics';
 import { reportError } from '../lib/sentry';
-import { MotionPop, MotionItem } from '../lib/motion';
+import { MotionPop, MotionItem, MotionProvider } from '../lib/motion';
 import { RadioCardGroup, RadioCard } from './ui/RadioCards';
 import {
   AnswerOptionList,
@@ -1532,4 +1532,6 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   );
 }
 
-export default Quiz;
+export default function QuizPage(props: Parameters<typeof Quiz>[0]) {
+  return <MotionProvider><Quiz {...props} /></MotionProvider>;
+}

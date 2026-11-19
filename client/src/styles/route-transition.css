@@ -1,0 +1,6 @@
+/* Enter only: keep the revealed Suspense content until its successor draws. */
+.ss-route { animation: ss-route-enter 140ms ease-out both; }
+@keyframes ss-route-enter { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .ss-route { animation: none; }
+}

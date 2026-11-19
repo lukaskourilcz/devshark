@@ -25,6 +25,7 @@ import { useEquippedRingColor } from '../lib/shop';
 import { useWallet } from '../lib/rewards';
 import { CrownBadge } from './ui/Crown';
 import { useActiveSubject, topicSetForSubject } from '../lib/subjects';
+import './AuthButton.css';
 
 // A single row in the account dropdown — a full-width, left-aligned button that
 // mimics a menu item without pulling in MUI's MenuItem.

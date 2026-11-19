@@ -1,8 +1,8 @@
 import { createPortal } from 'react-dom';
 import { useEffect } from 'react';
-import { m, AnimatePresence, useReducedMotion, stillIfReduced } from '../../lib/motion';
 import { useT } from '../../i18n/LanguageContext';
 import { CloseIcon } from './icons';
+import { ToastMotion } from './ToastMotion';
 
 /**
  * Lightweight toast — a MUI-free replacement for the app's `<Snackbar><Alert>`
@@ -32,7 +32,6 @@ export function AppToast({
   autoHideDuration?: number | null;
 }) {
   const t = useT();
-  const reduce = useReducedMotion();
   useEffect(() => {
     if (!open || autoHideDuration == null) return;
     const id = window.setTimeout(onClose, autoHideDuration);
@@ -67,57 +66,51 @@ export function AppToast({
         aria-live={severity === 'error' ? 'assertive' : 'polite'}
         style={{ display: 'flex', justifyContent: 'center', minWidth: 0 }}
       >
-      <AnimatePresence>
-        {open && (
-          <m.div
-            initial={stillIfReduced(reduce, { opacity: 0, y: 16, scale: 0.96 })}
-            animate={stillIfReduced(reduce, { opacity: 1, y: 0, scale: 1 })}
-            exit={stillIfReduced(reduce, { opacity: 0, y: 12, scale: 0.98 })}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+        <ToastMotion
+          open={open}
+          kind="app"
+          style={{
+            pointerEvents: 'auto',
+            maxWidth: 'min(92vw, 460px)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '12px 16px',
+            borderRadius: 'var(--radius-element, 0.9rem)',
+            background: 'var(--color-background-surface)',
+            color: 'var(--color-text-primary)',
+            fontFamily: 'var(--font-family-body)',
+            fontWeight: 700,
+            fontSize: '0.9rem',
+            boxShadow: '0 14px 44px rgba(var(--ss-ink-rgb), .2)',
+            border: '1px solid var(--color-border)',
+            borderLeft: `4px solid ${s.accent}`,
+            borderBottom: `2px solid ${s.accent}`,
+          }}
+        >
+          <span style={{ flex: 1 }}>{message}</span>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('common.dismiss')}
             style={{
-              pointerEvents: 'auto',
-              maxWidth: 'min(92vw, 460px)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: '12px 16px',
-              borderRadius: 'var(--radius-element, 0.9rem)',
-              background: 'var(--color-background-surface)',
-              color: 'var(--color-text-primary)',
-              fontFamily: 'var(--font-family-body)',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              boxShadow: '0 14px 44px rgba(var(--ss-ink-rgb), .2)',
-              border: '1px solid var(--color-border)',
-              borderLeft: `4px solid ${s.accent}`,
-              borderBottom: `2px solid ${s.accent}`,
+              appearance: 'none',
+              border: 'none',
+              background: 'transparent',
+              color: 'inherit',
+              cursor: 'pointer',
+              opacity: 0.75,
+              width: 44,
+              height: 44,
+              display: 'grid',
+              placeItems: 'center',
+              padding: 0,
+              borderRadius: 8,
             }}
           >
-            <span style={{ flex: 1 }}>{message}</span>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label={t('common.dismiss')}
-              style={{
-                appearance: 'none',
-                border: 'none',
-                background: 'transparent',
-                color: 'inherit',
-                cursor: 'pointer',
-                opacity: 0.75,
-                width: 44,
-                height: 44,
-                display: 'grid',
-                placeItems: 'center',
-                padding: 0,
-                borderRadius: 8,
-              }}
-            >
-              <CloseIcon size={17} />
-            </button>
-          </m.div>
-        )}
-      </AnimatePresence>
+            <CloseIcon size={17} />
+          </button>
+        </ToastMotion>
       </div>
     </div>,
     document.body,

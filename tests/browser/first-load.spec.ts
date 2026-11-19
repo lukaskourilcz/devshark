@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { test, expect, type Page, type Route } from './console-clean';
 import { localAuth, storeFakeSession } from './fake-session';
 
@@ -38,6 +40,60 @@ const PROFILES = [
 
 type Api = (route: Route, url: URL) => Promise<void> | void;
 const unavailable: Api = (route) => route.fulfill({ status: 503, json: { error: { code: 'offline', message: 'offline' } } });
+
+test('the system-font first visit downloads no unused font resources', async ({ page }) => {
+  const fonts: string[] = [];
+  const googleFonts: string[] = [];
+  page.on('request', request => {
+    const url = new URL(request.url());
+    if (request.resourceType() === 'font') fonts.push(url.pathname);
+    if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') googleFonts.push(url.href);
+  });
+  await page.route('**/api/**', route => unavailable(route, new URL(route.request().url())));
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.waitForLoadState('networkidle');
+  expect.soft(await page.locator('link[rel="preload"][as="font"]').count(), 'unused font preload links').toBe(0);
+  expect.soft(fonts, 'font requests on the system-font design').toEqual([]);
+  expect(googleFonts, 'external Google Fonts requests').toEqual([]);
+});
+
+test('an untouched Home visit leaves heavy optional packages outside requested chunks', async ({ page }) => {
+  const scripts = new Set<string>();
+  page.on('request', request => {
+    const url = new URL(request.url());
+    if (request.resourceType() === 'script' && url.pathname.startsWith('/assets/') && url.pathname.endsWith('.js')) scripts.add(url.pathname);
+  });
+  await page.route('**/api/**', route => unavailable(route, new URL(route.request().url())));
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.waitForLoadState('networkidle');
+  expect(scripts.size, 'observed entry and route script requests').toBeGreaterThan(0);
+  const forbidden = /(?:^|\/)node_modules\/(?:motion(?:-dom|-utils)?\/|framer-motion\/|@codemirror\/|@tiptap\/|react-syntax-highlighter\/|qrcode\/|posthog-js\/|@supabase\/supabase-js\/)/;
+  const findings: { file: string; packages: string[] }[] = [];
+  for (const file of scripts) {
+    // Read build maps on the test runner. Production may refuse map URLs;
+    // the guard must not depend on making client sources public.
+    const map = JSON.parse(readFileSync(resolve('client/dist', `${file.slice(1)}.map`), 'utf8')) as { sources: string[] };
+    const packages = [...new Set(map.sources.filter(source => forbidden.test(source)).map(source => source.match(/node_modules\/((?:@[^/]+\/)?[^/]+)/)![1]))].sort();
+    if (packages.length) findings.push({ file, packages });
+  }
+  expect(findings, 'optional packages reached by a first visit without interaction or consent').toEqual([]);
+});
+
+test('initial styles leave account, shop and lesson rules in their lazy chunks', async ({ request }) => {
+  const html = await (await request.get('/')).text();
+  const styles = [...html.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*>/g)]
+    .map(([link]) => link.match(/href="([^"]+)"/)?.[1])
+    .filter((href): href is string => Boolean(href));
+  expect(styles.length, 'initial stylesheets named in index.html').toBeGreaterThan(0);
+  const css = (await Promise.all(styles.map(async (href) => (await request.get(href)).text()))).join('\n');
+  for (const selector of ['.ss-account-menu', '.ss-ledger', '.ss-orders', '.ss-term', '.ss-figure']) {
+    expect.soft(css.includes(selector), `${selector} does not style the untouched shell or Home`).toBe(false);
+  }
+  // Public guides must remain styled in the static HTML when JavaScript is off.
+  expect(css).toContain('.ss-topic-article');
+});
 
 async function coldLoad(page: Page, path = '/', api: Api = unavailable) {
   // The entry script and its preloads load at once; everything imported later

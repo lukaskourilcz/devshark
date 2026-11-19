@@ -1,0 +1,194 @@
+{
+  "recorded": "2026-11-19",
+  "node": "v24.22.3",
+  "scope": "Production-shaped local builds with the public placeholder build environment from docs/quality/bundle-budget.json. Initial entry/preload/CSS bytes use Node gzip; font bytes are reported separately. No LCP attribution is inferred from byte changes.",
+  "before": {
+    "phase": "before",
+    "head": "6c85886c03c22227fb4690ffaa298efe15d2dad0",
+    "sizes": [
+      {
+        "file": "assets/main-IkEs3e1t.js",
+        "gzipBytes": 121313
+      },
+      {
+        "file": "assets/router-CWOMc5in.js",
+        "gzipBytes": 18091
+      },
+      {
+        "file": "assets/tanstack-B-NlDO1V.js",
+        "gzipBytes": 13380
+      },
+      {
+        "file": "assets/react-DNiXoLEt.js",
+        "gzipBytes": 56848
+      },
+      {
+        "file": "assets/main-BLNYOMu2.css",
+        "gzipBytes": 25784
+      }
+    ],
+    "initialGzipBytes": 235416,
+    "fonts": [
+      "assets/manrope-latin-wght-normal-DHIcAJRg.woff2",
+      "assets/inter-latin-wght-normal-Dx4kXJAl.woff2"
+    ]
+  },
+  "after": {
+    "phase": "after",
+    "head": "0243286d9bc6dba5b4028d33484f88c13fb77149",
+    "sizes": [
+      {
+        "file": "assets/main-Jf6etiTa.js",
+        "gzipBytes": 105902
+      },
+      {
+        "file": "assets/react-Cvu_Vp9I.js",
+        "gzipBytes": 74807
+      },
+      {
+        "file": "assets/tanstack-BZh9zEA-.js",
+        "gzipBytes": 12989
+      },
+      {
+        "file": "assets/main-BK6JspHA.css",
+        "gzipBytes": 24720
+      }
+    ],
+    "initialGzipBytes": 218418,
+    "fonts": []
+  },
+  "deltaInitialGzipBytes": -16998,
+  "cssGzipBytes": {
+    "before": 25784,
+    "after": 24720
+  },
+  "preloadedFontBytes": {
+    "before": 73092,
+    "after": 0
+  },
+  "monitoringGzipBytes": {
+    "before": 49565,
+    "after": 46800
+  },
+  "modulepreloadCount": {
+    "before": 3,
+    "after": 2
+  },
+  "vendorComparison": {
+    "splitInitialGzipBytes": 218962,
+    "combinedInitialGzipBytes": 218418,
+    "deltaGzipBytes": -544,
+    "reactFamilyModulesInCombinedGroup": 11,
+    "reactFamilySources": [
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react/cjs/react-jsx-runtime.production.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react/jsx-runtime.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react/cjs/react.production.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react/index.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/scheduler/cjs/scheduler.production.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/scheduler/index.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react-dom/cjs/react-dom.production.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react-dom/index.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react-dom/cjs/react-dom-client.production.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react-dom/client.js",
+      "../../../../Users/lukas/.t3/projects/devshark/react-express-app/client/node_modules/react-router/dist/development/chunk-6KYCQHYJ.mjs"
+    ]
+  },
+  "scopeDecisions": [
+    "No font-face rule or font URL existed in the active initial CSS; remove unused font preloads instead of retaining two unused requests. OG drawing keeps its build-time fonts.",
+    "Keep the useful React/Router and TanStack preloads. Initial files total four; the largest-ten report includes lazy chunks.",
+    "Keep public guide CSS for no-JavaScript pages, runtime Astryx classes, wave variants and coding selectors.",
+    "Disable production Sentry debug branches while retaining tracing at its existing 0.1 sample rate."
+  ],
+  "browserCheckpoint": {
+    "head": "49668a9f",
+    "configuration": "split vendor groups, otherwise the same implemented runtime slices",
+    "specs": [
+      "first-load",
+      "lazy-auth",
+      "navigation",
+      "route-errors"
+    ],
+    "passed": 45,
+    "failed": 0,
+    "includes": [
+      "fresh Home package provenance and unused-font guard",
+      "lazy scoped CSS guard",
+      "held menu and held animation-feature chunks",
+      "modal focus and late dismissal",
+      "route navigation and failed feature recovery"
+    ]
+  },
+  "acceptanceRemainingAtRecord": [
+    "Fresh final-vendor parity and client/browser checks",
+    "Same-profile three-sample lab comparison",
+    "Required verify/sql CI and checked production merge"
+  ],
+  "finalCodeCheckpoint": {
+    "head": "5fb7f372",
+    "initialGzipBytes": 218615,
+    "sizes": [
+      {
+        "file": "assets/main-6FIt0cxc.js",
+        "gzipBytes": 106099
+      },
+      {
+        "file": "assets/react-Cvu_Vp9I.js",
+        "gzipBytes": 74807
+      },
+      {
+        "file": "assets/tanstack-BZh9zEA-.js",
+        "gzipBytes": 12989
+      },
+      {
+        "file": "assets/main-BK6JspHA.css",
+        "gzipBytes": 24720
+      }
+    ],
+    "deltaFromCurrentMainGzipBytes": -16801,
+    "notes": [
+      "F12-20 actual App/store regression:1red,2controls green;26focusedApp/route tests pass after scalar synchronization.",
+      "F3-08 loaded/held/failed menu breakpoint cases each failed against prior drawer; fresh-buildbrowser acceptance pending at this record.",
+      "The earlier vendor/byte checkpoint and lab reports remain historical snapshots, not silently replaced by this later correctness fix."
+    ]
+  },
+  "f6IntegrationCheckpoint": {
+    "head": "b896771acc83262ee42da8ca9e4e4eeca44b974b",
+    "base": "0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c",
+    "initialGzipBytes": 218675,
+    "baselineCurrentMainGzipBytes": 235485,
+    "deltaFromCurrentMainGzipBytes": -16810,
+    "initialCSSGzipBytes": 24779,
+    "monitoringGzipBytes": 46800,
+    "note": "Fresh measured build after rebase onto F6. Its CSS/focus/readiness corrections remain in place. Previous code, bundle and lab checkpoints remain historical. This refresh follows the expected 60-byte over-budget measurement against the earlier pre-F6 218615 budget."
+  },
+  "checkedFastCheckpoint": {
+    "measuredHead": "cab4f4f05195207fdd4c6df2d21c9851e2b31800",
+    "sourceEquivalentHead": "052046bbc7b68c48376044405e375f82e9a26ddd",
+    "sourceTree": "5adf9c2b40f54eb4549b9ac9080aafd92c330374",
+    "complete": true,
+    "dirty": false,
+    "node": "24.22.3",
+    "minutes": 31.35,
+    "passed": 30,
+    "failed": 0,
+    "skipped": 27,
+    "notRun": 1,
+    "notRunReason": "QuickJS rebuild requires Python 3.10+/emsdk; required CI must rebuild.",
+    "client": {
+      "files": 199,
+      "tests": 1967
+    },
+    "codingTasks": 814,
+    "issuedCodingTasks": 769,
+    "responsive": {
+      "light": 180,
+      "dark": 60,
+      "zoom200": 1,
+      "zoom400": 1,
+      "issues": 0,
+      "unprobed": 0
+    },
+    "note": "Message-only normalization followed this run. Full parity on the documentation head is the next gate."
+  },
+  "finalHomeLab": "docs/audit/f3-home-lab-2026-11-19.json"
+}

@@ -23,6 +23,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useT } from '../../i18n/LanguageContext';
 import { termsInAll, type GlossaryDomain, type GlossaryEntry } from '../../../../shared/glossary';
+import './Terms.css';
 
 /**
  * The abbreviations in one block of content, with an info button each.

@@ -143,6 +143,35 @@ test('the Coding workbench that fails to load comes back through the task screen
   test.info().annotations.push({ type: 'recovery', description: documents.length > 2 ? 'reloaded the address' : 'drew the workbench in place' });
 });
 
+test('a failed mobile menu stays dismissible and its retry restores navigation', async ({ page }) => {
+  const menuChunk = await dropChunk(page, /\/assets\/MobileNavigation-[\w-]+\.js$/);
+  allowConsoleErrors(page, importFailed('MobileNavigation'));
+  const { documents } = await prepare(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const opener = page.getByRole('button', { name: 'Open navigation menu', exact: true });
+  await opener.click();
+  const dialog = page.getByRole('dialog', { name: 'Navigation', exact: true });
+  await expect(dialog.getByRole('alert')).toHaveText('Navigation did not load.');
+  await expect(dialog.getByRole('button', { name: 'Dismiss', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
+  expect(documents).toHaveLength(1);
+  expect(menuChunk.dropped).toBeGreaterThan(0);
+  menuChunk.failing = false;
+  await opener.click();
+  await dialog.getByRole('button', { name: 'Try again', exact: true }).click();
+  await expect.poll(() => documents.length > 1 || menuChunk.served > 0).toBe(true);
+  if (documents.length > 1) {
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await opener.click();
+  }
+  await expect(dialog.getByRole('link', { name: 'Quiz', exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
+});
+
 test('the account widgetâ€™s code fails to load: the header keeps a retry in its place and its height, and the press brings it back', async ({ page }) => {
   // The header asks for the widget as the first page loads, for a session
   // only: a signed-out visitor gets SignInButton, which ships with the shell.
@@ -265,17 +294,18 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) test(`Motionâ€
   const routeBox = page.locator('.ss-route');
   const opacity = () => routeBox.evaluate((node) => getComputedStyle(node).opacity);
 
-  // With reduced motion the page never asks for the chunk (perf baseline #587
-  // C18, lib/motion.tsx motionFeaturesFor) and draws as a failed load does.
-  if (reducedMotion === 'reduce') expect(motion.dropped).toBe(0);
-  else expect(motion.dropped).toBeGreaterThan(0);
+  // Untouched Home has no Motion consumer. The Quiz route below owns its
+  // provider and still has to recover when its animation features fail.
+  expect(motion.dropped + motion.served).toBe(0);
   await expect.poll(opacity).toBe('1');
-  await expect(page.locator('html')).toHaveAttribute('data-motion', 'off');
   await expectShell(page);
 
   await page.locator('nav.ss-nav-center a[href="/quiz"]').click();
   await expect(page).toHaveURL(/\/quiz$/);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  if (reducedMotion === 'reduce') expect(motion.dropped).toBe(0);
+  else await expect.poll(() => motion.dropped).toBeGreaterThan(0);
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'off');
   await expect.poll(opacity).toBe('1');
   // Poll like the opacity: right after the navigation the keyed route box is
   // being replaced, and a read in that tick found the outgoing node.

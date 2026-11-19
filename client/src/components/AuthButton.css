@@ -1,0 +1,40 @@
+/* ── Account menu (the Profile / Log out popover) ───────────────────────────
+ *
+ * The rows fill the popover's content box rather than declaring a width of
+ * their own. They used to ask for 168px inside a 168px surface that carries
+ * 12px of padding on every side — 24px wider than the 144px available — so the
+ * hover fill painted outside the popover's rounded edge.
+ *
+ * The fill responds to focus as well as hover, because a keyboard user moving
+ * between Profile and Log out needs the same "you are here" the mouse gets.
+ */
+.ss-account-menu {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+.ss-account-menu__item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  margin: 0;
+  border: none;
+  border-radius: var(--radius-inner);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--ss-type-compact);
+  text-align: left;
+  cursor: pointer;
+}
+.ss-account-menu__item:hover,
+.ss-account-menu__item:focus-visible {
+  background: var(--color-background-muted);
+}
+.ss-account-menu__item:focus-visible {
+  outline: 2px solid var(--ss-focus);
+  outline-offset: -2px;
+}

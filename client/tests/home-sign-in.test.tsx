@@ -30,8 +30,6 @@ vi.mock('../src/lib/auth', () => ({ useAuth: () => auth.value }));
 const openSignIn = vi.hoisted(() => vi.fn());
 vi.mock('../src/lib/signInDialog', async (importOriginal) => ({ ...(await importOriginal<object>()), openSignIn }));
 vi.mock('../src/lib/billing', () => ({ useBilling: () => ({ known: true, enabled: false, launchOffer: false }) }));
-const motion = vi.hoisted(() => ({ reduce: false }));
-vi.mock('../src/lib/motion', async (importOriginal) => ({ ...(await importOriginal<object>()), useReducedMotion: () => motion.reduce }));
 
 // The hero's sign-in link opens the sign-in dialog, where Google comes first
 // and an email and password follow. The dialog's Google button keeps the
@@ -160,7 +158,8 @@ it.each([
   [true, false],
 ])('keeps the topic card fins still under reduced motion (%s)', (reduce, swims) => {
   server.use(settingsHandler, freeEntitlementHandler);
-  motion.reduce = reduce;
+  const template = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const preference = vi.spyOn(window, 'matchMedia').mockImplementation((query) => ({ ...template, media: query, matches: query === '(prefers-reduced-motion: reduce)' && reduce }));
   try {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
     render(<QueryClientProvider client={client}><MemoryRouter><LanguageProvider><Home /></LanguageProvider></MemoryRouter></QueryClientProvider>);
@@ -174,7 +173,40 @@ it.each([
       expect(fin.style.transform.includes('rotate')).toBe(swims);
     }
   } finally {
-    motion.reduce = false;
+    preference.mockRestore();
+  }
+});
+
+it('stops an already hovered topic card when reduced motion changes', () => {
+  server.use(settingsHandler, freeEntitlementHandler);
+  const template = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const changes = new EventTarget();
+  const media = Object.assign(changes, {
+    matches: false,
+    media: '(prefers-reduced-motion: reduce)',
+    onchange: null,
+    addListener(listener: EventListener) { changes.addEventListener('change', listener); },
+    removeListener(listener: EventListener) { changes.removeEventListener('change', listener); },
+  });
+  const preference = vi.spyOn(window, 'matchMedia').mockImplementation((query) => query === media.media ? media as unknown as MediaQueryList : { ...template, media: query });
+  try {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+    render(<QueryClientProvider client={client}><MemoryRouter><LanguageProvider><Home /></LanguageProvider></MemoryRouter></QueryClientProvider>);
+    const card = screen.getByRole('button', { name: 'Learn Next.js' });
+    fireEvent.mouseEnter(card);
+    const fins = [...card.querySelectorAll<HTMLElement>(':scope > span[aria-hidden]')].filter((span) => span.style.transform);
+    expect(fins.some((fin) => /translateX\((?!0px)/.test(fin.style.transform))).toBe(true);
+    act(() => {
+      media.matches = true;
+      media.dispatchEvent(new Event('change'));
+    });
+    for (const fin of fins) {
+      expect(fin.style.opacity).toBe('1');
+      expect(fin.style.transform).toMatch(/^translateX\(0px\)/);
+      expect(fin.style.transition).toBe('opacity 0.3s ease');
+    }
+  } finally {
+    preference.mockRestore();
   }
 });
 

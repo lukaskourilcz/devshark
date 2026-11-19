@@ -21,7 +21,7 @@ import type { TranslationKey } from '../i18n/translations';
 import { useAuth } from '../lib/auth';
 import { openSignIn } from '../lib/signInDialog';
 import { useActiveSubject } from '../lib/subjects';
-import { useReducedMotion } from '../lib/motion';
+import { useMediaQuery } from '../lib/useMediaQuery';
 import { LANDING_TOPICS, type LandingTopic, type FinSpec } from '../lib/landingTopics';
 import { Kicker, StatItem, FadeFinCta, SwimCta, SampleCard, PathStrip, CheckpointNode, pathWave, type StatSpec } from './landing/LandingKit';
 import { CURRENT_PRODUCT } from '../lib/products';
@@ -51,7 +51,7 @@ function TopicCard({
   const t = useT();
   // Under reduced motion the school fades in where it rests instead of
   // swimming 140px across the card (the CTAs in LandingKit do the same).
-  const reduce = useReducedMotion();
+  const reduce = useMediaQuery('(prefers-reduced-motion: reduce)');
   const swim = hover && !reduce;
   return (
     <button

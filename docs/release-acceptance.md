@@ -7357,3 +7357,58 @@ not prove those behaviors. Full screen-reader QA, authenticated production
 behavior and deployment acceptance remain unverified here. No production
 SQL, settings, accounts, scores, orders or messages were changed. The PR must
 pass required verify/sql and merge before production acceptance is recorded.
+## Epic F4 production acceptance: image delivery (19 November 2026)
+
+PR #664 merged at `6c85886c03c22227fb4690ffaa298efe15d2dad0`. Frozen head
+`757352785b9bd5c8c62185b23c67d6032e2d7bdb` passed required run 44435812072:
+quickjs, static, tests, coding, browser, `verify` and `sql` all succeeded.
+READY production `dpl_AUnAVHHiLMoKkBciUcuR846me7gD` matches that merge SHA
+and serves devshark.app. Guest GET smoke passed for Home, the 243,605-byte
+1200 by 630 OG PNG, manifest and linked SVG/192px/512px icons. The archived
+`/brand/v9/recommended/devshark-fin-wave-green.svg` returns 404.
+No accounts, scores, orders or production data were changed. The preceding
+F4 section retains local failures, corrected reruns, image measurements and
+unrun checks. Issue #633 is closed; #646 now checks F15-59. Physical-device,
+field-performance and the other packages' acceptance remain separate work.
+
+## Epic F6 production acceptance: responsive and device matrix (19 November 2026)
+
+PR #665 merged at `0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c` after required Product quality run 44449005865 explicitly passed `verify` and `sql` at frozen head `e861d856842bdc9be26b7f48e7b62c5645831fdb`. CI completed in 25m40s overall: quickjs 53s, static 3m13s, tests 7m49s, coding 25m14s, browser 25m31s, sql 40s and the aggregate verify 5s. Both named gates were checked independently before merge. Live main/base still matched `6c85886c`; the F6 worktree was clean and the PR contained no migration or Vercel header diff.
+
+Matching production deployment `dpl_HLwbhPzXrGT93w3hCZEMqwKsdYj1` is READY for that exact merge SHA and serves `devshark.app`. The guest HTTP-only smoke passed 19 GET requests for Home, a free Coding task, Profile and Privacy HTML plus entry/Coding CSS, entry/vendor JavaScript, the web manifest and declared icons. Every response was 200 with the expected document/asset MIME category and no asset HTML fallback. Downloaded response bodies total 848,530 bytes; this is a smoke byte count, not a new compressed initial-load measurement. Evidence: `f6-pr665-gate.json`, `f6-pr665-ci.json`, `f6-pr665-merge.json`, `f6-pr665-production.json` and `f6-pr665-http-smoke.json` in the session handoff.
+
+The explicit final `npm run check:design` also passed at `e861d856`, with 13 fixtures and 24 allowlisted selectors, in addition to its passing execution inside `check:public`. Local fast counts and the separately recorded 85-case Chromium/WebKit runs remain unchanged. SQL is required CI/Supabase-image evidence, not a production advisor or SQL check. The smoke did not execute the app in a browser or call any production API, settings, Auth or business-write endpoint. Physical-phone and full screen-reader checks remain open owner work; F12-20 stays unchecked pending F3 merge. PRs #657 and #660 remain held and untouched.
+
+## Epic F3 initial load: optional renderers and scoped styles (19 November 2026)
+
+Issue #632, F3-01 through F3-08 and cross-package F12-20. The production-shaped initial JavaScript/CSS graph falls from **235,485 to 218,675 gzip bytes**, a reduction of **16,810 bytes** against main `0f35d67d`. Initial CSS falls from **25,843 to 24,779 gzip bytes**. Two unused font preload requests account for a separate **73,092 resource bytes** and are removed. The budget equals 218,675.
+
+The active Apple/system UI has no corresponding font-face rule or font URL in its initial CSS. Removing the unused requests is the justified deviation from the brief's literal two-preload criterion. Storybook keeps the same variable-font packages as development dependencies; OG drawing keeps its separate static fonts. Useful React/Router and TanStack preloads remain. The measured graph has four initial files, rather than five. The largest-ten report also contains lazy chunks.
+
+Hook-only consumers use the existing media-query hook and the route fade uses native CSS. Drawer and toast animation code loads on intent while persistent live-region hosts and the early XP subscription/queue remain mounted. Loading, error/retry, reduced-motion and focus behavior remain usable. The untouched-Home guard checks source-map provenance of every requested chunk, including dynamic requests, and rejects Motion, CodeMirror, Tiptap, syntax highlighting, QR, PostHog and Supabase SDK packages. Scoped component styles load with their components. The lazy monitoring SDK falls from 49,565 to 46,800 gzip bytes; tracing stays at 0.1.
+
+F3-08 closes and unmounts loaded, held and failed mobile drawers when they cross the desktop breakpoint, restores visible focus and clears the open request. F12-20 preserves a newly selected local track across replacement of an otherwise identical auth user object; real account or remote-preference changes still synchronize. Both fixes have committed failing regressions before implementation. F12-20 remains unchecked until a checked merge.
+
+| Check at measured runtime `cab4f4f0` | Actual result |
+|---|---|
+| Clean fast parity, Node 24.22.3 | Complete, 30 passed, 0 failed, 27 skipped, 1 not run; 31.35 minutes |
+| API/scripts/client-tooling types, native reviews, unused/security | Pass |
+| Build, image/public/design and bundle gates | Pass; initial 218,675/218,675 gzip bytes; monitoring 46,800/60,000 |
+| Both production dependency audits | 0 vulnerabilities |
+| Client suite | 1,967 tests in 199 files passed |
+| Coding reference contracts | 814 tasks checked, 769 issued; solutions proven and payloads answer-free |
+| Light/dark responsive sweeps | 180/60 probes, no issues or unprobed routes |
+| Synthetic 200%/400% reflow | One clear probe each |
+| Final paired Home lab | 12 rows before and 12 after, three samples per profile/cache state, 0 measurement errors |
+| Full parity and fresh complete browser acceptance | Pending at this documentation checkpoint |
+| Required verify/sql, PR merge and production smoke | Pending |
+
+Five unpublished commit subjects were normalized to the requested scope/issue format after the fast run and lab. Every per-commit Git tree stayed identical. Runtime `052046bb` is the source-equivalent prepared checkpoint; the following full parity run will test this documentation head. The committed audit JSON retains the original measured identities and the equivalent source-tree hash.
+
+The first fast attempt stopped on variable-font dependency placement; moving the same versions to development repaired it. The second exposed 20 client failures in two files. Both primary tests passed alone; queued Motion frames crossed fake-clock restoration and poisoned later cases. Cleanup and pending-frame draining before timer restoration, plus awaiting the existing register-exit interval, repaired the suites without changing Challenge grading or weakening assertions. The post-F6 bundle first exceeded the older ceiling by 60 bytes; the exact combined ceiling above preserves F6 fixes. All failed and incomplete attempts remain recorded.
+
+The final sequential Home lab compares frozen main `0f35d67d` and F3 `cab4f4f0`, built with identical full public placeholder environments and isolated generated caches. Chrome 157.0.8103.80 on macOS arm64 used mobile 150 ms/1.6 Mbps/4x CPU and desktop 20 ms/10 Mbps/1x CPU, with no motion preference. Cold consent stayed undecided; repeat consent was rejected. Mobile cold median LCP was **2,076 to 1,600 ms**, mobile repeat **244 to 236 ms**, desktop cold **388 to 308 ms**, and desktop repeat **76 to 80 ms**. All CLS/TBT medians were zero. Both cold medians select the consent paragraph, but baseline mobile sample zero selects the hero heading. Raw candidates remain in `docs/audit/f3-home-lab-2026-11-19.json`; this does not establish a stable hero-paint gain or isolate a font/Motion cause.
+
+The lab made 273 to 280 total requests, including scripted interactions; it does not establish fewer requests over that full session. Origin network responses were 240 to 249, with 12 fixture API reads per phase and no API requests forwarded. All mutation attempts were blocked. INP is one scripted local press, not field INP. Earlier 45/49-case browser and older Home-lab records keep their own frozen builds; they are not final-head browser acceptance. The full F1 inventory baseline remains separate.
+
+QuickJS rebuild was not run locally because Python 3.9 has no configured emsdk; required CI must rebuild it. Installed dependencies/Chrome and full-only browser, harness, performance and Storybook work account for fast skips. SQL is separate required Supabase-image CI evidence, not production SQL. Physical-device behavior, full screen-reader QA, authenticated production behavior and field performance remain outside these checks. No owner configuration or grading decision is needed for this implementation.
