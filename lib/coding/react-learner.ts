@@ -248,10 +248,11 @@ export async function createReactLearner(input: {
     return result.value;
   };
   const invoke=(message:Record<string,unknown>): any => {
-    if(disposed||!command) throw new Error('Learner engine is closed');
+    const entry=command;
+    if(disposed||!entry) throw new Error('Learner engine is closed');
     return enter(()=>{
       const argument=vm.newString(JSON.stringify(message));
-      const result=vm.callFunction(command,vm.undefined,argument); argument.dispose();
+      const result=vm.callFunction(entry,vm.undefined,argument); argument.dispose();
       if(result.error) { const detail=dumpThrown(vm,result.error); const error=input.makeError(thrownText(detail,'Learner engine failed'),thrownField(detail,'name')||'Error'); const stack=thrownField(detail,'stack'); if(stack) error.stack=stack; throw error; }
       const value=JSON.parse(vm.getString(result.value)); result.value.dispose(); return value;
     });
