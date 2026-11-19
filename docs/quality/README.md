@@ -63,6 +63,8 @@ Responsive sweeps use two isolated Chrome sessions over disjoint viewport groups
 
 ## Bundle, route and asset measurements
 
+The [Epic F baseline index](../audit/epic-f-baseline-2026-11.md) links the actual dated artifacts and their source, build and request scopes. Missing original or production measurements remain explicit.
+
 `npm run check:bundle` builds with the public placeholders in `bundle-budget.json`, applies the 218,675-byte initial gzip budget and lists the ten largest chunks separately. `--largest=20` expands that list. `ANALYZE=true npm run check:bundle` also writes the matching treemap and module report under `client/dist/`; an arbitrary `npm run build` can have a different environment and graph. Lazy chunks are not initial bytes, and module gzip estimates do not add up to whole-file gzip.
 
 `npm run check:bundle -- --url="$MEASUREMENT_ORIGIN"` explicitly selects a separate anonymous HTTP observation and skips the build/budget gate. Supply one bare HTTPS origin or an HTTP loopback origin. It follows only the document's same-origin `/assets/` entry, modulepreload, stylesheet and font links, with at most 33 GETs, no redirects, retries, cookies or authorization. `artifacts/bundle-live.json` separates encoded response-body bytes from decoded bytes and reconstructed gzip6. These counts exclude headers and transport overhead; they are not a browser waterfall or recursive CSS/dynamic-import graph. Failures retain a partial report with unknown values. Use owned loopback fixtures unless a counted external measurement is authorized.
