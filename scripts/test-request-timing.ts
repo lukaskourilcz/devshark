@@ -47,6 +47,8 @@ await (await import('./cold-start-contracts')).runIsolated('scripts/test-roadmap
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-roadmap-placement.ts');
 // Native local HTTP sockets prove reuse and cancellation through the SDK wrappers.
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-upstream-connections.ts');
+// Representative provider-call counts retain cache/refusal states and safe artifacts.
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-f7-operation-counts.ts');
 // The rate-limit prelude's round trips (#587), in a process of its own.
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-prelude.ts');
 // The Learn branches' round trips (#587), in a process of their own.
