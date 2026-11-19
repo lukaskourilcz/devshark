@@ -7587,3 +7587,34 @@ owner confirmation needs clarification against that observed state; no
 production migration was applied by this agent.
 
 Refs #643, #640, #646 and #629.
+
+### F14 combined gate timeout investigation
+
+The clean combined fast run at `f12b396a` completed in 35.62 minutes with
+32 passing steps, two failures, nine skips and one unavailable local QuickJS
+rebuild. Coding passed all 814 reference tasks in 1,227 seconds. The complete
+client suite, unchanged 218,675-byte bundle ceiling, 180 light/60 dark probes
+and both zoom profiles passed. This is a failed run, not final acceptance.
+
+The performance failure was a Docker fixture's five-second child-readiness
+abort before its encoded-path HTTP assertion. The launch failure was the
+active Daily fixture mapping a marker-operation timeout to 503. Its 42.276s
+whole-call duration does not identify which marker phase stalled; the Docker
+test's 17.607s also includes setup before readiness. No DNS, socket leak,
+security-response defect or exact host-load cause was established. The
+investigated production and fixture sources are unchanged from `d2bf519e`.
+
+An isolated sequential rerun at the same clean `f12b396a` passes all 37 Docker
+adapter cases in 1.443 seconds, including both encoded traversal paths. The
+package-equivalent verified-caller compile passes in 0.145 seconds and its
+whole process passes in 62.748 seconds. Active, revoked, guest, stored-marker
+and unavailable-marker controls all complete, including intended 503 cases.
+Source hashes remain unchanged, with no retry, timeout, assertion or source
+change. Both former failures were not reproduced. Their original logs and
+failed summary remain separate from these successful focused reruns.
+
+A new complete fast run with `--bail` is required before pushing this
+checkpoint. The remaining full-only browser, harness, performance and
+Storybook gates then run on the same frozen source, alongside the earlier
+complete full evidence. Required CI must still supply QuickJS, Docker and
+SQL on the actual new head. No merge or production acceptance is implied.
