@@ -1,0 +1,118 @@
+{
+  "status": "HISTORICAL_PARTIAL_LEDGER_NOT_A_COMPLETE_BUDGET",
+  "head": "cbdfa2aa995e7dd71c7d0197fee7f35df21ca205",
+  "entries": [
+    {
+      "source": "f6-pr665-http-smoke.json",
+      "sha256": "c35283a42e0cd0d7a97fac30dc653392a560866d6122f5ed4b29e131d73ccd9f",
+      "recordedAt": "2026-11-19T03:36:13.178695+00:00",
+      "origin": "https://devshark.app",
+      "scope": "F6 static guest GET smoke",
+      "completedResponseRows": 19,
+      "countEvidence": "declared count equals saved response-row length; original smoke retry/redirect behavior is a separate limit",
+      "declaredRequestCount": 19,
+      "instrumentedAttempts": null
+    },
+    {
+      "source": "f3-pr666-http-smoke.json",
+      "sha256": "245cfe27b1dfbb788e75aac3c923287fbc49f46d40c342f9c89fbd867cfff43c",
+      "recordedAt": "2026-11-19T06:11:16.284620+00:00",
+      "origin": "https://devshark.app",
+      "scope": "F3 static guest GET smoke",
+      "completedResponseRows": 18,
+      "countEvidence": "declared count equals saved response-row length; original smoke retry/redirect behavior is a separate limit",
+      "declaredRequestCount": 18,
+      "instrumentedAttempts": null
+    },
+    {
+      "source": "f11-pr660-production-http-smoke.json",
+      "sha256": "b308f8209d9f7eb77b1b1cd505b9491e84a585d57a8ace1b8ffe7e3d8c3715e6",
+      "recordedAt": "2026-11-19T10:46:23.199412+00:00",
+      "origin": "https://devshark.app",
+      "scope": "F11 static guest GET smoke",
+      "completedResponseRows": 18,
+      "countEvidence": "declared count equals saved response-row length; original smoke retry/redirect behavior is a separate limit",
+      "declaredRequestCount": 18,
+      "instrumentedAttempts": null
+    },
+    {
+      "source": "f14-production-http-smoke-1511.json",
+      "sha256": "5f00e0f2f873606ccc50eb82d9ffa8eae8f6df447c697731e908afd2aed3e555",
+      "recordedAt": "2026-11-19T13:26:18.266527+00:00",
+      "origin": "https://devshark.app",
+      "scope": "F14 static guest GET smoke",
+      "completedResponseRows": 18,
+      "countEvidence": "declared count equals saved response-row length; original smoke retry/redirect behavior is a separate limit",
+      "declaredRequestCount": 18,
+      "instrumentedAttempts": null
+    },
+    {
+      "source": "f14-production-privacy-smoke-1511.json",
+      "sha256": "b4c34e6c38d5e39707e56a22b67bdda724ac49e9ad322d96fa94cba7cab52940",
+      "recordedAt": "2026-11-19T13:26:16.550158+00:00",
+      "origin": "https://devshark.app",
+      "scope": "F14 retired-path GET/HEAD plus anonymous admin refusal",
+      "completedResponseRows": 25,
+      "countEvidence": "declared count equals saved response-row length; original smoke retry/redirect behavior is a separate limit",
+      "declaredRequestCount": 25,
+      "instrumentedAttempts": null
+    },
+    {
+      "source": "f7-production-http-cbdfa2aa.json",
+      "sha256": "f6811462f85a616be8f473067f5d29f57e256ffcd6b00591970c5e86b7c7fe7a",
+      "recordedAt": "2026-11-19T16:17:24.297Z",
+      "origin": "https://devshark.app",
+      "scope": "F7 bounded anonymous read/refusal collector",
+      "completedResponseRows": 36,
+      "countEvidence": "explicit attempted/sent/completed totals; no retries or followed redirects",
+      "declaredRequestCount": 36,
+      "instrumentedAttempts": 36
+    },
+    {
+      "source": "f7-production-public-validators-cbdfa2aa.json",
+      "sha256": "524a6414a33bbeac33d56c6aa256135ce51ff7b4e9d1164d9b7fd90a1858bf1c",
+      "recordedAt": "2026-11-19T16:27:30.436Z",
+      "origin": "https://devshark.app",
+      "scope": "F7 public-validator initial/conditional GETs",
+      "completedResponseRows": 12,
+      "countEvidence": "explicit attempted/sent/completed totals; no retries or followed redirects",
+      "declaredRequestCount": 12,
+      "instrumentedAttempts": 12
+    },
+    {
+      "source": "f4-production-smoke.json",
+      "sha256": "f297a04b23ca8874f43493b1666a92af437b910452fb1a8b3f651578ae5cb6ce",
+      "recordedAt": null,
+      "origin": "production inferred from artifact purpose; no origin field retained",
+      "scope": "F4 static guest response checks",
+      "completedResponseRows": 8,
+      "countEvidence": "eight saved status/body observations; no explicit attempt/retry/redirect ledger",
+      "declaredRequestCount": null,
+      "instrumentedAttempts": null
+    }
+  ],
+  "explicitDeclaredRequestCounts": 146,
+  "knownCompletedResponseObservations": 154,
+  "priorAuditNarrativeApproximateRequests": 290,
+  "priorNarrativeSource": "F1-44 canonical issue646 comment;18November audit; no raw exact ledger supplied",
+  "priorApproximateIsAddedToExactTotal": false,
+  "budgetRemaining": null,
+  "headroomClaim": false,
+  "limits": [
+    "This is a selected dated evidence lower bound, not exhaustive all-Epic or all-F1 traffic.",
+    "The canonical prior-stage approximate290 already cannot support an under250 cumulative assertion.",
+    "Preview63, GitHub metadata, provider metadata and local loopback requests are separate targets/scopes, not production-origin rows here.",
+    "No raw URLs/query strings/request identifiers or response bodies are copied into this ledger."
+  ],
+  "explicitInstrumentedAttempts": 48,
+  "notes": [
+    "declaredRequestCount in historical smoke files is the tool-call count, not a separately instrumented count of lower-level redirects.",
+    "Only the48 F7 attempts are explicitly instrumented as attempts in these selected artifacts; all146 declared counts are retained separately."
+  ],
+  "inputProvenance": {
+    "f1-refresh-cbdfa2aa/request-ledger-reconciliation.json": {
+      "sha256": "b7e6b89c47e2848922d60fea3f2fa823d59fe5c7f37870a96fc194e74e1a1f2c",
+      "bytes": 5485
+    }
+  }
+}

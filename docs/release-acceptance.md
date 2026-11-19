@@ -8097,3 +8097,12 @@ was projected offline on 19 November; this paragraph records its original
 observation scope, not new sampling.
 
 The actual same-Linux/amd64 F14 comparison records inspect sizes 184,775,859 to 141,951,324 bytes, a saving of 42,824,535 bytes. The separate image-ls display is 958 to 666 MB. Three selected JavaScript, TypeScript and React reference checks pass per image. Base 0f35d67d and measured checkout 3b503cc4 remain distinct from reviewed CI head 1511; a possible synthetic merge relationship is unproved locally. This is historical F14 evidence, not a current cbdf image size or an 814-reference result. No new container, registry query or VM ran for this projection.
+
+
+## Epic F1 remaining baseline: F1-44: partial production request reconciliation (19 November 2026)
+
+Issue #630. Saved evidence in `docs/audit/f1-production-request-ledger-2026-11-19.json`
+was projected offline on 19 November; this paragraph records its original
+observation scope, not new sampling.
+
+Selected 19 November evidence has 146 declared request counts and 154 known completed response observations, including eight F4 checks and the 48 F7 production responses. Only F7 provides explicit attempt counters in this selected set. Earlier canonical evidence separately reports about 290 requests, without an exact raw ledger; it cannot be added to the exact rows or used to infer remaining headroom. Preview63, local loopback and metadata-service queries are separate scopes. NEEDED.md records the actual reversible choice: remaining route labs are local and this batch sends no further production application probes. Raw-transfer23 and production-browser45 remain unmeasured; neither missing value is zero.
