@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
@@ -184,4 +184,42 @@ test('refuses to overwrite a nonempty destination', (t) => {
   assert.match(result.stderr, /Destination must be empty/);
   assert.deepEqual(readdirSync(f.output), ['keep.txt']);
   assert.equal(readFileSync(join(f.output, 'keep.txt'), 'utf8'), 'existing work');
+});
+
+test('the repository archive index links the immutable published source', () => {
+  const root = dirname(dirname(command));
+  const manifest = JSON.parse(readFileSync(join(root, 'docs/archive/manifest.json'), 'utf8'));
+  const index = readFileSync(join(root, 'docs/archive/README.md'), 'utf8');
+  assert.ok(index.includes(manifest.sourceUrl), 'the index must expose the pinned source tree');
+  assert.ok(index.includes('manifest.json'), 'the index must expose the complete path/hash inventory');
+});
+
+test('surviving documentation never links removed archive paths through the current tree', () => {
+  const root = dirname(dirname(command));
+  const manifest = JSON.parse(readFileSync(join(root, 'docs/archive/manifest.json'), 'utf8'));
+  const archivedPaths = new Set(manifest.archivedFiles.map((row) => row.path));
+  const problems = [];
+  const visit = (directory) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const file = join(directory, entry.name);
+      if (entry.isDirectory()) { visit(file); continue; }
+      if (!entry.name.endsWith('.md') && entry.name !== 'review-template.html') continue;
+      const path = relative(root, file).split(sep).join('/');
+      const body = readFileSync(file, 'utf8');
+      const targets = [...body.matchAll(/!?\[[^\]\n]*\]\(([^)\n]+)\)|(?:href|src)=["']([^"']+)["']/g)];
+      for (const target of targets) {
+        const value = (target[1] ?? target[2]).replace(/^<|>$/g, '');
+        const url = new URL(value, `https://archive-local.test/${path}`);
+        if (url.origin === 'https://archive-local.test') {
+          if (archivedPaths.has(decodeURIComponent(url.pathname.slice(1)))) problems.push(`${path}: ${value}`);
+        } else if (url.hostname === 'github.com' && url.pathname.startsWith('/lukaskourilcz/devshark/')) {
+          const parts = url.pathname.split('/');
+          const sourcePath = decodeURIComponent(parts.slice(5).join('/'));
+          if (archivedPaths.has(sourcePath) && parts[4] !== manifest.sourceCommit) problems.push(`${path}: unpinned ${value}`);
+        }
+      }
+    }
+  };
+  visit(join(root, 'docs'));
+  assert.deepEqual(problems, [], 'historical links must use the pinned archive instead of removed local files');
 });
