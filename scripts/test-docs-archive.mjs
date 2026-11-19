@@ -46,6 +46,7 @@ function fixture(t) {
     preservedInputs: [record(ledger, original.get(ledger)), record(native, original.get(native))],
     requiredPaths: [required],
   };
+  manifest.sourceUrl = `${manifest.repository}/tree/${manifest.sourceCommit}`;
   const manifestPath = join(root, 'archive-manifest.json');
   const output = join(root, 'restored');
   const save = () => writeFileSync(manifestPath, JSON.stringify(manifest));
@@ -144,6 +145,15 @@ test('rejects a moving archive ref', (t) => {
   const result = f.run('--verify');
   assert.equal(result.status, 1);
   assert.match(result.stderr, /full 40-character commit/);
+});
+
+test('rejects an archive navigation URL that points at moving main', (t) => {
+  const f = fixture(t);
+  f.manifest.sourceUrl = `${f.manifest.repository}/tree/main`;
+  f.save();
+  const result = f.run('--verify');
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Source URL must point to the pinned commit/);
 });
 
 test('refuses to archive the ledger or any native history file', (t) => {
