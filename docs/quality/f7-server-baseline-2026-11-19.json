@@ -1,0 +1,1606 @@
+{
+  "recordedDate": "2026-11-19",
+  "localImportScope": "36 samples per checkpoint,12handlers x3 fresh CJS requires; zero handler invocations or requests",
+  "baselineSource": "f12b396aff6e4bff3d7cfa5a98c7bf92347b7c4a",
+  "baselineRuntimeMatchesMain": "15f350a8fbdecec8b412472953fec551ec7a0c94",
+  "preCompletionSource": "1342e9f9abf59cc3bd49e25546c41e711069a3bb",
+  "finalRuntimeSource": "3fb1a0d1a4522881a28bbd1e2d6d42f42903e195",
+  "environment": {
+    "node": "v24.22.3",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M3",
+    "rootLockSha256": "98d0093a62b8d2ae7dda5f4f4e4a2f3594f08075a70d13219ddb1216200176b4",
+    "clientLockSha256": "29777af01ecd7d182c1b0e002bd64b473ab2ddf78af3d3807b2cf2fe8aab9d44",
+    "childEnvironmentKeys": [
+      "PATH",
+      "NODE_ENV",
+      "NODE_PATH",
+      "TZ"
+    ]
+  },
+  "compilation": {
+    "esbuildVersion": "0.25.12",
+    "target": "shared helper default; no override",
+    "bundle": true,
+    "platform": "node",
+    "format": "cjs",
+    "packages": "external",
+    "markers": [
+      "lib/rewards/handlers.ts",
+      "lib/learning-paths/catalog.ts",
+      "lib/learning-paths/content/fde.ts",
+      "lib/learning-paths/validate.ts",
+      "lib/coding/active.ts",
+      "lib/coding/ts-check-pool.ts",
+      "lib/coding/solutions/index.ts",
+      "lib/learning-paths/handlers.ts",
+      "lib/learn-lessons/serve.ts",
+      "lib/learn-lessons/index.ts"
+    ]
+  },
+  "identicalToolSha256": {
+    "scripts/perf-cold-start.mjs": "2d02822f9376a5647f4aae849994d50c46fcd109bf23ad992e80d5c4260663e5",
+    "scripts/perf-cold-import.mjs": "121b442487f6d5e59f90ce44b97f7817c44a2323427206f96215b1d4df9db861",
+    "scripts/perf-cold-import-worker.cjs": "74a5801dda8019cd9ff6c3eac57f6547517ce3a6d38793503685d2e57a7d3ea0",
+    "scripts/cold-start-bundle.mjs": "d2cab38ccdd91eea2471d3fafc83b4f99b5e366e8c484abf8fdf1c9661857671",
+    "scripts/cold-start-preview-access.mjs": "1aca66a9941c515f5f0beb70ceff66c241420e927e3773d5dedf5b6cb2d3a965"
+  },
+  "localImportRows": [
+    {
+      "handler": "health",
+      "baselineImportWallMs": {
+        "samples": 3,
+        "median": 18.993333000000003,
+        "min": 18.554083000000002,
+        "max": 19.820375
+      },
+      "preCompletionImportWallMs": {
+        "samples": 3,
+        "median": 20.282625000000003,
+        "min": 19.766000000000005,
+        "max": 23.903041
+      },
+      "finalImportWallMs": {
+        "samples": 3,
+        "median": 19.805917,
+        "min": 19.486041,
+        "max": 20.419208
+      },
+      "baselineToFinalMedianDeltaMs": 0.8125839999999975,
+      "completionMedianDeltaMs": -0.47670800000000213,
+      "artifactBytes": {
+        "baseline": 38343,
+        "preCompletion": 39336,
+        "final": 39336
+      },
+      "completionControlArtifactUnchanged": true,
+      "cpuUserMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 19739,
+          "min": 19417,
+          "max": 19833
+        },
+        "final": {
+          "samples": 3,
+          "median": 21266,
+          "min": 20609,
+          "max": 21384
+        }
+      },
+      "cpuSystemMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 2698,
+          "min": 2685,
+          "max": 3294
+        },
+        "final": {
+          "samples": 3,
+          "median": 2891,
+          "min": 2741,
+          "max": 3494
+        }
+      },
+      "heapDeltaBytes": {
+        "baseline": {
+          "samples": 3,
+          "median": 3061360,
+          "min": 2974048,
+          "max": 3107288
+        },
+        "final": {
+          "samples": 3,
+          "median": 2331432,
+          "min": 2300872,
+          "max": 3672496
+        }
+      },
+      "markers": {
+        "baseline": [],
+        "final": []
+      }
+    },
+    {
+      "handler": "settings",
+      "baselineImportWallMs": {
+        "samples": 3,
+        "median": 34.325708000000006,
+        "min": 33.172084,
+        "max": 34.818416000000006
+      },
+      "preCompletionImportWallMs": {
+        "samples": 3,
+        "median": 39.054333,
+        "min": 35.328541,
+        "max": 40.06287499999999
+      },
+      "finalImportWallMs": {
+        "samples": 3,
+        "median": 34.8575,
+        "min": 34.708124999999995,
+        "max": 35.543542
+      },
+      "baselineToFinalMedianDeltaMs": 0.5317919999999958,
+      "completionMedianDeltaMs": -4.196832999999998,
+      "artifactBytes": {
+        "baseline": 1362687,
+        "preCompletion": 1365753,
+        "final": 1365753
+      },
+      "completionControlArtifactUnchanged": true,
+      "cpuUserMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 34397,
+          "min": 33483,
+          "max": 34841
+        },
+        "final": {
+          "samples": 3,
+          "median": 35531,
+          "min": 35477,
+          "max": 36485
+        }
+      },
+      "cpuSystemMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 3905,
+          "min": 3785,
+          "max": 3910
+        },
+        "final": {
+          "samples": 3,
+          "median": 3856,
+          "min": 3754,
+          "max": 3905
+        }
+      },
+      "heapDeltaBytes": {
+        "baseline": {
+          "samples": 3,
+          "median": 8167216,
+          "min": 8072080,
+          "max": 8187592
+        },
+        "final": {
+          "samples": 3,
+          "median": 8192168,
+          "min": 7747344,
+          "max": 8202352
+        }
+      },
+      "markers": {
+        "baseline": [
+          "lib/learning-paths/catalog.ts",
+          "lib/learning-paths/content/fde.ts",
+          "lib/learning-paths/validate.ts"
+        ],
+        "final": [
+          "lib/learning-paths/catalog.ts",
+          "lib/learning-paths/content/fde.ts",
+          "lib/learning-paths/validate.ts"
+        ]
+      }
+    },
+    {
+      "handler": "leaderboard",
+      "baselineImportWallMs": {
+        "samples": 3,
+        "median": 19.369417,
+        "min": 18.992625000000004,
+        "max": 19.518583000000003
+      },
+      "preCompletionImportWallMs": {
+        "samples": 3,
+        "median": 20.540334,
+        "min": 20.329375,
+        "max": 24.734249999999996
+      },
+      "finalImportWallMs": {
+        "samples": 3,
+        "median": 19.945165999999997,
+        "min": 19.925875,
+        "max": 20.446084
+      },
+      "baselineToFinalMedianDeltaMs": 0.5757489999999983,
+      "completionMedianDeltaMs": -0.5951680000000046,
+      "artifactBytes": {
+        "baseline": 59807,
+        "preCompletion": 63010,
+        "final": 63010
+      },
+      "completionControlArtifactUnchanged": true,
+      "cpuUserMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 20057,
+          "min": 19811,
+          "max": 20087
+        },
+        "final": {
+          "samples": 3,
+          "median": 21617,
+          "min": 21477,
+          "max": 21676
+        }
+      },
+      "cpuSystemMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 2732,
+          "min": 2704,
+          "max": 2828
+        },
+        "final": {
+          "samples": 3,
+          "median": 2911,
+          "min": 2876,
+          "max": 2912
+        }
+      },
+      "heapDeltaBytes": {
+        "baseline": {
+          "samples": 3,
+          "median": 3114680,
+          "min": 3104816,
+          "max": 3139640
+        },
+        "final": {
+          "samples": 3,
+          "median": 2458392,
+          "min": 2340808,
+          "max": 2461208
+        }
+      },
+      "markers": {
+        "baseline": [],
+        "final": []
+      }
+    },
+    {
+      "handler": "questions",
+      "baselineImportWallMs": {
+        "samples": 3,
+        "median": 105.002625,
+        "min": 104.91925,
+        "max": 106.89274999999999
+      },
+      "preCompletionImportWallMs": {
+        "samples": 3,
+        "median": 104.529875,
+        "min": 103.397417,
+        "max": 105.459833
+      },
+      "finalImportWallMs": {
+        "samples": 3,
+        "median": 104.07974999999999,
+        "min": 98.66891599999998,
+        "max": 105.966833
+      },
+      "baselineToFinalMedianDeltaMs": -0.9228750000000048,
+      "completionMedianDeltaMs": -0.4501250000000141,
+      "artifactBytes": {
+        "baseline": 10165783,
+        "preCompletion": 10168885,
+        "final": 10168885
+      },
+      "completionControlArtifactUnchanged": true,
+      "cpuUserMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 101587,
+          "min": 101458,
+          "max": 103267
+        },
+        "final": {
+          "samples": 3,
+          "median": 101041,
+          "min": 95785,
+          "max": 102373
+        }
+      },
+      "cpuSystemMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 7578,
+          "min": 7514,
+          "max": 7763
+        },
+        "final": {
+          "samples": 3,
+          "median": 7510,
+          "min": 7392,
+          "max": 8100
+        }
+      },
+      "heapDeltaBytes": {
+        "baseline": {
+          "samples": 3,
+          "median": 26601640,
+          "min": 26177936,
+          "max": 26752320
+        },
+        "final": {
+          "samples": 3,
+          "median": 26820640,
+          "min": 26760872,
+          "max": 26823176
+        }
+      },
+      "markers": {
+        "baseline": [],
+        "final": []
+      }
+    },
+    {
+      "handler": "roadmap",
+      "baselineImportWallMs": {
+        "samples": 3,
+        "median": 131.07725,
+        "min": 127.504792,
+        "max": 131.93012499999998
+      },
+      "preCompletionImportWallMs": {
+        "samples": 3,
+        "median": 127.31095900000001,
+        "min": 124.13616700000001,
+        "max": 129.73375000000001
+      },
+      "finalImportWallMs": {
+        "samples": 3,
+        "median": 124.393792,
+        "min": 122.330958,
+        "max": 126.29037500000001
+      },
+      "baselineToFinalMedianDeltaMs": -6.6834579999999875,
+      "completionMedianDeltaMs": -2.9171670000000063,
+      "artifactBytes": {
+        "baseline": 13178589,
+        "preCompletion": 13206050,
+        "final": 13208863
+      },
+      "completionControlArtifactUnchanged": false,
+      "cpuUserMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 126664,
+          "min": 123206,
+          "max": 126987
+        },
+        "final": {
+          "samples": 3,
+          "median": 120999,
+          "min": 118779,
+          "max": 122498
+        }
+      },
+      "cpuSystemMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 8645,
+          "min": 8571,
+          "max": 9381
+        },
+        "final": {
+          "samples": 3,
+          "median": 8565,
+          "min": 8301,
+          "max": 9020
+        }
+      },
+      "heapDeltaBytes": {
+        "baseline": {
+          "samples": 3,
+          "median": 33666104,
+          "min": 33471168,
+          "max": 33771344
+        },
+        "final": {
+          "samples": 3,
+          "median": 33304440,
+          "min": 32813296,
+          "max": 33322712
+        }
+      },
+      "markers": {
+        "baseline": [
+          "lib/learn-lessons/index.ts",
+          "lib/learn-lessons/serve.ts"
+        ],
+        "final": []
+      }
+    },
+    {
+      "handler": "challenge",
+      "baselineImportWallMs": {
+        "samples": 3,
+        "median": 83.43812500000001,
+        "min": 83.33779100000001,
+        "max": 87.064334
+      },
+      "preCompletionImportWallMs": {
+        "samples": 3,
+        "median": 58.830875000000006,
+        "min": 57.82845799999999,
+        "max": 59.76675000000001
+      },
+      "finalImportWallMs": {
+        "samples": 3,
+        "median": 64.557334,
+        "min": 60.077125,
+        "max": 65.53975
+      },
+      "baselineToFinalMedianDeltaMs": -18.880791000000016,
+      "completionMedianDeltaMs": 5.726458999999991,
+      "artifactBytes": {
+        "baseline": 5422470,
+        "preCompletion": 4131715,
+        "final": 4131715
+      },
+      "completionControlArtifactUnchanged": true,
+      "cpuUserMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 81491,
+          "min": 81475,
+          "max": 83312
+        },
+        "final": {
+          "samples": 3,
+          "median": 63180,
+          "min": 59083,
+          "max": 64772
+        }
+      },
+      "cpuSystemMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 6488,
+          "min": 6331,
+          "max": 7109
+        },
+        "final": {
+          "samples": 3,
+          "median": 6262,
+          "min": 5779,
+          "max": 6919
+        }
+      },
+      "heapDeltaBytes": {
+        "baseline": {
+          "samples": 3,
+          "median": 19687848,
+          "min": 19652376,
+          "max": 19853592
+        },
+        "final": {
+          "samples": 3,
+          "median": 14264640,
+          "min": 14248624,
+          "max": 14989464
+        }
+      },
+      "markers": {
+        "baseline": [
+          "lib/learning-paths/catalog.ts",
+          "lib/learning-paths/content/fde.ts",
+          "lib/learning-paths/validate.ts",
+          "lib/rewards/handlers.ts"
+        ],
+        "final": []
+      }
+    },
+    {
+      "handler": "daily",
+      "baselineImportWallMs": {
+        "samples": 3,
+        "median": 65.47687499999999,
+        "min": 64.586334,
+        "max": 67.005708
+      },
+      "preCompletionImportWallMs": {
+        "samples": 3,
+        "median": 58.26887500000001,
+        "min": 56.340582999999995,
+        "max": 59.980875
+      },
+      "finalImportWallMs": {
+        "samples": 3,
+        "median": 58.118916999999996,
+        "min": 55.90325,
+        "max": 59.269957999999995
+      },
+      "baselineToFinalMedianDeltaMs": -7.3579579999999964,
+      "completionMedianDeltaMs": -0.14995800000001225,
+      "artifactBytes": {
+        "baseline": 4096158,
+        "preCompletion": 4097151,
+        "final": 4097151
+      },
+      "completionControlArtifactUnchanged": true,
+      "cpuUserMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 63374,
+          "min": 62541,
+          "max": 65197
+        },
+        "final": {
+          "samples": 3,
+          "median": 56919,
+          "min": 54776,
+          "max": 57964
+        }
+      },
+      "cpuSystemMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 6703,
+          "min": 6604,
+          "max": 6837
+        },
+        "final": {
+          "samples": 3,
+          "median": 5601,
+          "min": 5576,
+          "max": 5836
+        }
+      },
+      "heapDeltaBytes": {
+        "baseline": {
+          "samples": 3,
+          "median": 14426912,
+          "min": 14272488,
+          "max": 14880984
+        },
+        "final": {
+          "samples": 3,
+          "median": 14431672,
+          "min": 14354896,
+          "max": 14475128
+        }
+      },
+      "markers": {
+        "baseline": [],
+        "final": []
+      }
+    },
+    {
+      "handler": "submit",
+      "baselineImportWallMs": {
+        "samples": 3,
+        "median": 59.962125,
+        "min": 57.288083,
+        "max": 61.222750000000005
+      },
+      "preCompletionImportWallMs": {
+        "samples": 3,
+        "median": 58.3945,
+        "min": 56.99920900000001,
+        "max": 58.631375000000006
+      },
+      "finalImportWallMs": {
+        "samples": 3,
+        "median": 65.15174999999999,
+        "min": 64.788375,
+        "max": 73.04775
+      },
+      "baselineToFinalMedianDeltaMs": 5.189624999999992,
+      "completionMedianDeltaMs": 6.757249999999992,
+      "artifactBytes": {
+        "baseline": 4103560,
+        "preCompletion": 4104553,
+        "final": 4104553
+      },
+      "completionControlArtifactUnchanged": true,
+      "cpuUserMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 58162,
+          "min": 55513,
+          "max": 59395
+        },
+        "final": {
+          "samples": 3,
+          "median": 64127,
+          "min": 63707,
+          "max": 68535
+        }
+      },
+      "cpuSystemMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 5758,
+          "min": 5669,
+          "max": 6032
+        },
+        "final": {
+          "samples": 3,
+          "median": 6626,
+          "min": 6541,
+          "max": 7600
+        }
+      },
+      "heapDeltaBytes": {
+        "baseline": {
+          "samples": 3,
+          "median": 14321888,
+          "min": 14258424,
+          "max": 14878792
+        },
+        "final": {
+          "samples": 3,
+          "median": 14406752,
+          "min": 13950776,
+          "max": 14429424
+        }
+      },
+      "markers": {
+        "baseline": [],
+        "final": []
+      }
+    },
+    {
+      "handler": "flashcards",
+      "baselineImportWallMs": {
+        "samples": 3,
+        "median": 57.367166999999995,
+        "min": 55.755333,
+        "max": 57.920083
+      },
+      "preCompletionImportWallMs": {
+        "samples": 3,
+        "median": 57.504125,
+        "min": 57.361541,
+        "max": 57.806791
+      },
+      "finalImportWallMs": {
+        "samples": 3,
+        "median": 57.937,
+        "min": 56.071792,
+        "max": 79.535416
+      },
+      "baselineToFinalMedianDeltaMs": 0.5698330000000027,
+      "completionMedianDeltaMs": 0.4328749999999957,
+      "artifactBytes": {
+        "baseline": 4072002,
+        "preCompletion": 4072995,
+        "final": 4072995
+      },
+      "completionControlArtifactUnchanged": true,
+      "cpuUserMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 55645,
+          "min": 54188,
+          "max": 56190
+        },
+        "final": {
+          "samples": 3,
+          "median": 56902,
+          "min": 54925,
+          "max": 70271
+        }
+      },
+      "cpuSystemMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 5592,
+          "min": 5494,
+          "max": 5749
+        },
+        "final": {
+          "samples": 3,
+          "median": 5626,
+          "min": 5492,
+          "max": 9788
+        }
+      },
+      "heapDeltaBytes": {
+        "baseline": {
+          "samples": 3,
+          "median": 14198192,
+          "min": 13688952,
+          "max": 14286568
+        },
+        "final": {
+          "samples": 3,
+          "median": 14464856,
+          "min": 14413824,
+          "max": 14516664
+        }
+      },
+      "markers": {
+        "baseline": [],
+        "final": []
+      }
+    },
+    {
+      "handler": "user",
+      "baselineImportWallMs": {
+        "samples": 3,
+        "median": 90.453333,
+        "min": 87.454875,
+        "max": 99.48625
+      },
+      "preCompletionImportWallMs": {
+        "samples": 3,
+        "median": 90.47975000000001,
+        "min": 90.242667,
+        "max": 94.07
+      },
+      "finalImportWallMs": {
+        "samples": 3,
+        "median": 89.559583,
+        "min": 89.15249999999999,
+        "max": 91.104625
+      },
+      "baselineToFinalMedianDeltaMs": -0.8937499999999972,
+      "completionMedianDeltaMs": -0.9201670000000064,
+      "artifactBytes": {
+        "baseline": 10445977,
+        "preCompletion": 10449240,
+        "final": 10449240
+      },
+      "completionControlArtifactUnchanged": true,
+      "cpuUserMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 87974,
+          "min": 84641,
+          "max": 96012
+        },
+        "final": {
+          "samples": 3,
+          "median": 87727,
+          "min": 87226,
+          "max": 88079
+        }
+      },
+      "cpuSystemMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 6794,
+          "min": 6772,
+          "max": 7462
+        },
+        "final": {
+          "samples": 3,
+          "median": 6383,
+          "min": 6360,
+          "max": 6735
+        }
+      },
+      "heapDeltaBytes": {
+        "baseline": {
+          "samples": 3,
+          "median": 24644144,
+          "min": 24325008,
+          "max": 24833536
+        },
+        "final": {
+          "samples": 3,
+          "median": 25017896,
+          "min": 25017848,
+          "max": 25202312
+        }
+      },
+      "markers": {
+        "baseline": [],
+        "final": []
+      }
+    },
+    {
+      "handler": "play",
+      "baselineImportWallMs": {
+        "samples": 3,
+        "median": 58.58241699999999,
+        "min": 58.153292,
+        "max": 59.442249999999994
+      },
+      "preCompletionImportWallMs": {
+        "samples": 3,
+        "median": 57.38016699999999,
+        "min": 56.05512499999999,
+        "max": 58.405041
+      },
+      "finalImportWallMs": {
+        "samples": 3,
+        "median": 57.811042,
+        "min": 56.050959000000006,
+        "max": 58.079792000000005
+      },
+      "baselineToFinalMedianDeltaMs": -0.7713749999999919,
+      "completionMedianDeltaMs": 0.43087500000000745,
+      "artifactBytes": {
+        "baseline": 4115775,
+        "preCompletion": 4116768,
+        "final": 4116768
+      },
+      "completionControlArtifactUnchanged": true,
+      "cpuUserMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 56937,
+          "min": 56496,
+          "max": 57787
+        },
+        "final": {
+          "samples": 3,
+          "median": 56859,
+          "min": 55263,
+          "max": 57411
+        }
+      },
+      "cpuSystemMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 5525,
+          "min": 5402,
+          "max": 5770
+        },
+        "final": {
+          "samples": 3,
+          "median": 5221,
+          "min": 5187,
+          "max": 5275
+        }
+      },
+      "heapDeltaBytes": {
+        "baseline": {
+          "samples": 3,
+          "median": 14302880,
+          "min": 14270944,
+          "max": 14393768
+        },
+        "final": {
+          "samples": 3,
+          "median": 14406120,
+          "min": 14389136,
+          "max": 14661600
+        }
+      },
+      "markers": {
+        "baseline": [],
+        "final": []
+      }
+    },
+    {
+      "handler": "admin",
+      "baselineImportWallMs": {
+        "samples": 3,
+        "median": 78.786708,
+        "min": 78.38054199999999,
+        "max": 79.217792
+      },
+      "preCompletionImportWallMs": {
+        "samples": 3,
+        "median": 70.630458,
+        "min": 66.67666700000001,
+        "max": 71.781833
+      },
+      "finalImportWallMs": {
+        "samples": 3,
+        "median": 71.522333,
+        "min": 70.126166,
+        "max": 72.29249999999999
+      },
+      "baselineToFinalMedianDeltaMs": -7.264375000000001,
+      "completionMedianDeltaMs": 0.8918749999999989,
+      "artifactBytes": {
+        "baseline": 6097184,
+        "preCompletion": 6164536,
+        "final": 6164536
+      },
+      "completionControlArtifactUnchanged": true,
+      "cpuUserMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 76382,
+          "min": 75882,
+          "max": 76737
+        },
+        "final": {
+          "samples": 3,
+          "median": 69990,
+          "min": 68664,
+          "max": 70837
+        }
+      },
+      "cpuSystemMicros": {
+        "baseline": {
+          "samples": 3,
+          "median": 6653,
+          "min": 6613,
+          "max": 6675
+        },
+        "final": {
+          "samples": 3,
+          "median": 5903,
+          "min": 5834,
+          "max": 5951
+        }
+      },
+      "heapDeltaBytes": {
+        "baseline": {
+          "samples": 3,
+          "median": 20778736,
+          "min": 20732616,
+          "max": 21368160
+        },
+        "final": {
+          "samples": 3,
+          "median": 18801920,
+          "min": 18688568,
+          "max": 18820640
+        }
+      },
+      "markers": {
+        "baseline": [
+          "lib/learning-paths/catalog.ts",
+          "lib/learning-paths/content/fde.ts",
+          "lib/learning-paths/validate.ts"
+        ],
+        "final": []
+      }
+    }
+  ],
+  "productionPlatformBaseline": {
+    "windowUtc": {
+      "start": "2026-11-12T00:00:00Z",
+      "end": "2026-11-19T00:00:00Z"
+    },
+    "routeMemoryAndInvocations": [
+      {
+        "route": "/api/quiz/roadmap",
+        "invocations": 152,
+        "peakMemoryMbMax": 473,
+        "provisionedMemoryMbMax": 2048
+      },
+      {
+        "route": "/api/settings",
+        "invocations": 130,
+        "peakMemoryMbMax": 244,
+        "provisionedMemoryMbMax": 2048
+      },
+      {
+        "route": "/api/user/[op]",
+        "invocations": 71,
+        "peakMemoryMbMax": 343,
+        "provisionedMemoryMbMax": 2048
+      },
+      {
+        "route": "/api/admin/[op]",
+        "invocations": 58,
+        "peakMemoryMbMax": 276,
+        "provisionedMemoryMbMax": 2048
+      },
+      {
+        "route": "/api/health",
+        "invocations": 46,
+        "peakMemoryMbMax": 223,
+        "provisionedMemoryMbMax": 2048
+      },
+      {
+        "route": "/api/quiz/challenge",
+        "invocations": 11,
+        "peakMemoryMbMax": 273,
+        "provisionedMemoryMbMax": 2048
+      },
+      {
+        "route": "/api/quiz/submit",
+        "invocations": 6,
+        "peakMemoryMbMax": 311,
+        "provisionedMemoryMbMax": 2048
+      },
+      {
+        "route": "/api/leaderboard",
+        "invocations": 2,
+        "peakMemoryMbMax": 225,
+        "provisionedMemoryMbMax": 2048
+      },
+      {
+        "route": "/api/quiz/daily",
+        "invocations": 2,
+        "peakMemoryMbMax": 309,
+        "provisionedMemoryMbMax": 2048
+      },
+      {
+        "route": "/api/flashcards",
+        "invocations": 1,
+        "peakMemoryMbMax": 225,
+        "provisionedMemoryMbMax": 2048
+      },
+      {
+        "route": "/api/play/[action]",
+        "invocations": 1,
+        "peakMemoryMbMax": 252,
+        "provisionedMemoryMbMax": 2048
+      },
+      {
+        "route": "/api/quiz/questions",
+        "invocations": 1,
+        "peakMemoryMbMax": 322,
+        "provisionedMemoryMbMax": 2048
+      }
+    ],
+    "startTypeCounts": {
+      "cold": 24,
+      "hot": 341,
+      "prewarmed": 116
+    },
+    "routeStartTypeCounts": [
+      {
+        "route": "/api/quiz/roadmap",
+        "cold": 2,
+        "hot": 126,
+        "prewarmed": 24,
+        "total": 152
+      },
+      {
+        "route": "/api/settings",
+        "cold": 8,
+        "hot": 96,
+        "prewarmed": 26,
+        "total": 130
+      },
+      {
+        "route": "/api/user/[op]",
+        "cold": 12,
+        "hot": 50,
+        "prewarmed": 9,
+        "total": 71
+      },
+      {
+        "route": "/api/admin/[op]",
+        "cold": 0,
+        "hot": 49,
+        "prewarmed": 9,
+        "total": 58
+      },
+      {
+        "route": "/api/health",
+        "cold": 1,
+        "hot": 13,
+        "prewarmed": 32,
+        "total": 46
+      },
+      {
+        "route": "/api/quiz/challenge",
+        "cold": 0,
+        "hot": 5,
+        "prewarmed": 6,
+        "total": 11
+      },
+      {
+        "route": "/api/quiz/submit",
+        "cold": 1,
+        "hot": 2,
+        "prewarmed": 3,
+        "total": 6
+      },
+      {
+        "route": "/api/leaderboard",
+        "cold": 0,
+        "hot": 0,
+        "prewarmed": 2,
+        "total": 2
+      },
+      {
+        "route": "/api/quiz/daily",
+        "cold": 0,
+        "hot": 0,
+        "prewarmed": 2,
+        "total": 2
+      },
+      {
+        "route": "/api/flashcards",
+        "cold": 0,
+        "hot": 0,
+        "prewarmed": 1,
+        "total": 1
+      },
+      {
+        "route": "/api/play/[action]",
+        "cold": 0,
+        "hot": 0,
+        "prewarmed": 1,
+        "total": 1
+      },
+      {
+        "route": "/api/quiz/questions",
+        "cold": 0,
+        "hot": 0,
+        "prewarmed": 1,
+        "total": 1
+      }
+    ],
+    "totalReturnedInvocations": 481,
+    "coldShareOfReturnedInvocationsPct": 4.98960498960499,
+    "fluidComputeEnabledObserved": true,
+    "cpuSettingObserved": "Standard",
+    "settingChanges": false
+  },
+  "gitPreviewHttpBaseline": {
+    "deployment": "dpl_7PdxsXybGEugWyTJpVJtz49SmJmk",
+    "sourceHead": "1511f1fa2265d58218e2a4ac5ca2549b4c2df649",
+    "region": "arn1",
+    "recorded": "2026-11-19T13:36:58.892Z",
+    "totals": {
+      "planned": 36,
+      "attempted": 36,
+      "sent": 36,
+      "responses": 36,
+      "skipped": 0
+    },
+    "summary": [
+      {
+        "handler": "health",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 240.66162500000019,
+          "min": 176.48316699999987,
+          "max": 1261.074
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 200,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 240.66162500000019,
+              "min": 176.48316699999987,
+              "max": 1261.074
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 75,
+              "min": 43,
+              "max": 507.6
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "settings",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 157.0891249999995,
+          "min": 134.44074999999975,
+          "max": 818.9294579999996
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 200,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 157.0891249999995,
+              "min": 134.44074999999975,
+              "max": 818.9294579999996
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 0.2,
+              "min": 0.1,
+              "max": 117.1
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "leaderboard",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 232.8300419999996,
+          "min": 226.6725409999999,
+          "max": 1087.0040829999998
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 200,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 232.8300419999996,
+              "min": 226.6725409999999,
+              "max": 1087.0040829999998
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 82.4,
+              "min": 76,
+              "max": 304.4
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "questions",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 308.5447090000016,
+          "min": 298.3701660000006,
+          "max": 1533.6689160000005
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 200,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 308.5447090000016,
+              "min": 298.3701660000006,
+              "max": 1533.6689160000005
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 163.6,
+              "min": 159.5,
+              "max": 681.1
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "roadmap",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 209.06245800000033,
+          "min": 207.71404099999927,
+          "max": 2422.522791000003
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 200,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 209.06245800000033,
+              "min": 207.71404099999927,
+              "max": 2422.522791000003
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 49.6,
+              "min": 47.9,
+              "max": 1142.3
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "challenge",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 137.46691699999792,
+          "min": 124.89862499999799,
+          "max": 1019.8024589999986
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 404,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 137.46691699999792,
+              "min": 124.89862499999799,
+              "max": 1019.8024589999986
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 0.1,
+              "min": 0.1,
+              "max": 0.7
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "daily",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 231.1369999999988,
+          "min": 227.05849999999919,
+          "max": 923.077792
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 400,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 231.1369999999988,
+              "min": 227.05849999999919,
+              "max": 923.077792
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 96,
+              "min": 94.2,
+              "max": 241.4
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "submit",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 129.33054199999606,
+          "min": 128.0868749999936,
+          "max": 756.5407919999998
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 405,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 129.33054199999606,
+              "min": 128.0868749999936,
+              "max": 756.5407919999998
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 0,
+              "min": 0,
+              "max": 1
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "flashcards",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 179.2880409999998,
+          "min": 132.03941599999962,
+          "max": 1068.333875000004
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 401,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 179.2880409999998,
+              "min": 132.03941599999962,
+              "max": 1068.333875000004
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 0.1,
+              "min": 0.1,
+              "max": 1.3
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "user",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 151.15316699999676,
+          "min": 123.622666999996,
+          "max": 838.8028750000012
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 404,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 151.15316699999676,
+              "min": 123.622666999996,
+              "max": 838.8028750000012
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 0.1,
+              "min": 0.1,
+              "max": 0.9
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "play",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 179.3777920000066,
+          "min": 172.846292000002,
+          "max": 879.0945829999982
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 404,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 179.3777920000066,
+              "min": 172.846292000002,
+              "max": 879.0945829999982
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 0.1,
+              "min": 0.1,
+              "max": 121.8
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "admin",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 196.99208299999736,
+          "min": 177.83862500000396,
+          "max": 1228.4621669999979
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 403,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 196.99208299999736,
+              "min": 177.83862500000396,
+              "max": 1228.4621669999979
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 47.1,
+              "min": 46.7,
+              "max": 155
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      }
+    ],
+    "allExpectedStatuses": true,
+    "allCacheMiss": true,
+    "instanceClassification": "unknown; deployed baseline predates F7 marker"
+  },
+  "inputArtifactSha256": {
+    "f7-final-main-baseline-f12b396a.json": "51fe9ba5e695bea1523c37aa81cfd97ccffe1d32d7b9daf8ed876fc3abdf890a",
+    "f7-final-main-baseline-f12b396a.metadata.json": "f3a0a2069a5f36af9c925dd016843f2b696fa9601c1584d6136ef4d925357cbf",
+    "f7-post-f14-integrated-1342e9f9.json": "02a1447ef3a392f606caab894c5225067cc0bd723a8a16fa20743e62af2dea8c",
+    "f7-post-f14-integrated-1342e9f9.metadata.json": "17b8d39bf768fefd56ca7f16eb8cee578d2b8714d8f1f45a2679621f6f95a95f",
+    "f7-final-r3-3fb1a0d1.json": "366e4cb68e373c5feca78610c4e03fe2d848d9bcf17fd5e692e51454daed6ca4",
+    "f7-final-r3-3fb1a0d1.metadata.json": "69fbf052a2c5512ca837cb50ade22935ef4640689812b464c913b56c1a262fff",
+    "f7-platform-route-acceptance-addendum-2026-11-19.json": "425796543baf54a69a56d5db4bbf5988e5c517b661457195081cd5c935aa4c50",
+    "f7-platform-start-type-acceptance-addendum-2026-11-19.json": "4c959a096e8ba29d9e4c904b51b452c70130af780fad3f3df1a896b5d9dc8246",
+    "f7-final-git-preview-baseline-1511-1342.json": "62f210a0b5a9bc44dfdfaac36efad5368e3c22c26cf29bf9b2250de00788040c",
+    "f7-r3-ast-body-preservation-3fb1a0d1.json": "a744178d5ccd8f02a046257a06de38652794ba5af4bca0a19ee73260a691f7cb"
+  },
+  "limits": [
+    "Local require proxies are not Vercel artifacts, platform boot or first-operation latency",
+    "Unforced-GC heap deltas are not retained memory or leak evidence",
+    "Three samples and mixed control results do not establish universal or causal speedups",
+    "Historical route aggregates do not rank query-resource operations or prove new F7 gains",
+    "Returned provisioned/peak maxima do not establish all-invocation allocation, p99 or concurrent requirements",
+    "HTTP first-byte offsets include client/network/edge; first/repeat markers do not measure boot",
+    "No platform setting or production data changed for these measurements"
+  ]
+}

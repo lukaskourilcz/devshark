@@ -1950,6 +1950,17 @@ opening the email on a different device.
   `public, s-maxage=60, stale-while-revalidate=300`; settings and the
   Challenge board `public, s-maxage=15, stale-while-revalidate=60`. Health
   answers `no-store`.
+  The public JSON reads above use content-only validators after their existing
+  method, access and rate checks. The sender hashes the resolved JSON into a
+  weak SHA-256 `ETag` and returns an empty 304 for a matching `If-None-Match`.
+  Request IDs, authentication and timing do not enter the tag. The lesson
+  retains its existing strong source tag. A revalidation still performs the
+  normal reads. Private/personal boards and successful Daily/QOTD sessions
+  remain private/no-store; public boards keep their existing one-minute bound
+  without adding stale-while-revalidate. The public settings projection omits
+  retired cosmetic shop prices and unused `devTips`; stored settings, the admin
+  editor and client compatibility defaults retain both sections.
+
 - **Grants by address.** The admin allow-list, the owner's granted Learn paths
   and the owner's private categories count an email only once Supabase has
   confirmed it (`confirmedEmail` in `lib/auth.ts`), as billing does. The admin
@@ -2367,6 +2378,41 @@ every Learn section makes load none of them (about 240 ms of a fresh
 instance's first such read, measured offline). The first request of an op
 still pays for its own family. `npm run test:performance` (`scripts/cold-start-contracts.ts`) pins
 what each function loads.
+
+F7 moves the full lesson reader, placement and completion concerns behind
+resource-specific imports in `lib/roadmap/`. Shared runtime, sealed-session
+and progress helpers retain one roadmap client/logger and the original
+compatibility exports. The public map and progress reads load no completion
+reward/review family. Catalogue and free coding-brief operations still load
+their own required coins dependency. Challenge imports XP credit from coins
+directly; the admin learning-path catalogue loads only inside its authorized
+operation. These boundaries move initialization to the first relevant call;
+the local require measurements in
+[the F7 baseline](quality/f7-server-baseline-2026-11-19.json) do not establish
+a universal latency reduction or platform boot time.
+
+The roadmap `includeFiles` selects the ES and decorator declaration families
+that the unchanged TypeScript reader accepts. Locked TypeScript 5.9.3 selects
+91 files/589,549 bytes instead of 99/3,140,843, while the actual `lib.es2023.d.ts`
+root has a closed 61-file graph including both decorators. These configured
+input bytes do not establish final deployed artifact savings. The checker,
+grader and compiler options retain their existing behavior.
+
+The physical roadmap function keeps its configured 45-second maximum; the
+other eleven functions keep 10 seconds. Query resources inside one function
+cannot receive separate platform `maxDuration` values while retaining the
+twelve handlers. The existing app/grader deadlines remain authoritative.
+The read-only dashboard on 19 November reports Fluid compute enabled and
+Standard CPU. Vercel's memory configuration belongs in the dashboard with
+Fluid, rather than `vercel.json`. Retain the observed Standard allocation for
+all twelve functions. The seven-day production baseline has 481 returned
+invocations and per-route peak maxima of 223-473 MB against provisioned
+maxima of 2,048 MB; these low-volume extrema do not establish concurrency or
+p99 requirements and do not justify a provider-setting change.
+
+Sources: [Vercel memory](https://vercel.com/docs/functions/configuring-functions/memory)
+and [duration](https://vercel.com/docs/functions/configuring-functions/duration),
+checked 19 November 2026. No platform setting changed for this package.
 
 The footer carries the legal links, devShark's own social profiles, and the
 appearance and sound controls, and promotes no other product.
