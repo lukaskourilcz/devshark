@@ -3,6 +3,7 @@ import { m, AnimatePresence, MotionProvider, useReducedMotion } from '../lib/mot
 import { useT } from '../i18n/LanguageContext';
 import { useDrawerFocus } from './MobileNavigationStatus';
 import { CloseIcon } from './ui/icons';
+import './MobileNavigation.css';
 
 /** Loaded on the first menu press, after the ordinary shell is interactive. */
 export default function MobileNavigation({ open, opener, onClose, children }: {
