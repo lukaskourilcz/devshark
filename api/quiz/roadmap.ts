@@ -92,7 +92,6 @@ import { creditLearnPass, settleMilestonesAfterPass } from '../../lib/rewards/co
 import { creditReferral } from '../../lib/rewards/referral';
 import { isBigOIntroduction, type GatedContent } from '../../shared/tiers';
 import { learnRepeatXpOf, type LearnRepeatXp } from '../../shared/repeat-xp';
-import { handleLessonRead } from '../../lib/learn-lessons/serve';
 
 // Modules only some resources need load on their first use, not with this
 // function (#587, server item 4). Statically imported, every new instance
@@ -100,6 +99,8 @@ import { handleLessonRead } from '../../lib/learn-lessons/serve';
 // learning-path handlers (with TypeScript) before it answered a progress read
 // or a Learn answer: about 350 ms of import. The names and the dispatch lines
 // are the same as with static imports.
+// The map needs lesson IDs, but only a lesson read needs the full text.
+const handleLessonRead = lazyExport(() => import('../../lib/learn-lessons/serve'), 'handleLessonRead');
 const codingHandlers = () => import('../../lib/coding/handlers');
 const handleCodingApproaches = lazyExport(codingHandlers, 'handleCodingApproaches');
 const handleCodingReset = lazyExport(codingHandlers, 'handleCodingReset');
