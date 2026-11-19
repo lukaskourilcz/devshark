@@ -13,6 +13,9 @@
 /bruno
 /design
 /triage
+/docker
+/Dockerfile
+/packages
 /tests
 /client/tests
 /client/stories

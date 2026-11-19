@@ -18,6 +18,8 @@ media
 /bruno
 /design
 /triage
+/packages
+/docker/runtime-reference.ts
 /tests
 /client/tests
 /client/stories
