@@ -238,7 +238,7 @@ const step = (id, command, more = {}) => ({ id, command, ci: [command], tier: 'f
 const RESPONSIVE_LIGHT = `-- --routes /,/quiz,/topics/${TOPIC},/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 360,390,430,768,820,1024,1280,1366,1440`;
 const RESPONSIVE_DARK = `-- --routes /,/quiz,/topics/${TOPIC},/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 390,820,1280`;
 const BROWSER_SPECS = [
-  'public images', 'guide-startup profile-leaderboard-preferences profile-path-picker admin', 'evolving', 'coding-pages', 'coding-workbench mobile-safari',
+  'public images', 'guide-startup profile-leaderboard-preferences profile-path-picker admin', 'evolving', 'coding-pages', 'coding-workbench mobile-safari consent-reflow',
   'coding-drafts', 'learning-release learn-sections',
   'fde-hub fde-taster fde-positioning interview-shelf', 'path-content-shapes portfolio-export diagnostic-overview dsa-advanced', 'segmented', 'on-accent', 'navigation', 'lazy-auth', 'sign-in',
   'route-errors', 'first-load', 'home-sample', 'routes-axe', 'daily', 'launch-offer',
