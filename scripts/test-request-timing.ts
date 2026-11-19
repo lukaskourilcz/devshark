@@ -38,6 +38,8 @@ execFileSync(process.execPath, ['--test', 'scripts/test-perf-cold-start.mjs', 's
 // What a fresh instance evaluates before it answers (#587): heavy modules
 // load behind dynamic import() in the ops that need them.
 await (await import('./cold-start-contracts')).coldStartContracts();
+// Real Challenge/admin operations preserve authority while deferring imports (#636).
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-f7-import-operations.ts');
 // The rate-limit prelude's round trips (#587), in a process of its own.
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-prelude.ts');
 // The Learn branches' round trips (#587), in a process of their own.
