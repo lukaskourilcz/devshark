@@ -10,10 +10,6 @@
   "play": { "defaultDurationS": 60, "durationOptionsS": [30, 60, 120, 300, 0], "countOptions": [5, 10, 15, 20] },
   "features": { "dailyChallenge": true, "multiplayer": true, "leaderboard": true, "flashcards": true },
   "leveling": { "rankThresholds": [0, 2000, 6000, 14000, 26000, 44000, 68000, 100000, 144000, 200000] },
-  "shop": {
-    "prices": { "double-xp": 75, "ring-emerald": 200, "ring-gold": 250, "ring-violet": 375, "flair-rocket": 150, "flair-flame": 300, "flair-crown": 500 },
-    "pathUnlockPrice": 200
-  },
   "coins": {
     "xpRate": 0.1,
     "premiumMultiplier": 2,
@@ -29,18 +25,6 @@
     "referralCap": 20
   },
   "merch": { "redemptionOpen": false },
-  "devTips": [
-    "Remember to code.",
-    "Building projects beats talent.",
-    "Read the error message — then read it again.",
-    "Ship small, ship often.",
-    "Name things like the next dev is you.",
-    "Done is better than perfect.",
-    "Commit early, commit often.",
-    "The best debugger is a good night of sleep.",
-    "Write the test you wish you had.",
-    "Consistency compounds."
-  ],
   "learningPaths": {
     "paths": {
       "fde": { "enabled": false, "version": 1, "availability": "disabled" }

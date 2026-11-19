@@ -747,6 +747,8 @@ async function tierContracts() {
   const tierReaders = new Set([
     'lib/access.ts', 'lib/http.ts', 'lib/entitlements.ts', 'lib/coding/catalog.ts', 'lib/coding/handlers.ts',
     'lib/learning-paths/handlers.ts', 'api/quiz/roadmap.ts',
+    // F7 moves the router's existing Learn gates and completion settlement.
+    'lib/roadmap/session.ts', 'lib/roadmap/completion.ts',
     // Redeeming coins for shipped merchandise is Premium only (#227).
     'lib/rewards/handlers.ts',
     // A challenge run and a skip's next suggestion offer only what the plan
@@ -1593,7 +1595,7 @@ async function referralContracts() {
   // comes from the verified token.
   assert.match(read('api/user/[op].ts'), /if \(op === 'referral'\) return handleReferral\(req, res, supabase\);/);
   assert.match(read('supabase/supabase-schema-044.sql'), /DELETE FROM public\.referral_codes WHERE user_id = p_user_id;/, 'account deletion removes the referral data');
-  assert.match(read('api/quiz/roadmap.ts'), /await creditReferral\(supabase, userId, session\.subject!\);/, 'a first Learn pass settles an invitation');
+  assert.match(read('lib/roadmap/completion.ts'), /await creditReferral\(supabase, userId, session\.subject!\);/, 'a first Learn pass settles an invitation');
   assert.match(read('lib/rewards/handlers.ts'), /creditReferral\(supabase, userId, subject\)/, 'the wallet read settles an invitation');
   assert.equal(accountCreatedAt({ created_at: '2026-09-25T10:00:00Z' }), '2026-09-25T10:00:00.000Z');
   assert.equal(accountCreatedAt({}), null);
@@ -3470,7 +3472,7 @@ function monthlyXpContracts() {
   assert.equal(hearts.file, 'supabase-schema-076.sql');
   assert.match(hearts.body, /UPDATE public\.roadmap_attempts[\s\S]+PERFORM public\.advance_verified_streak\(p_user_id\)/,
     'losing the last heart closes the level and records the streak together');
-  const roadmapHandler = read('api/quiz/roadmap.ts');
+  const roadmapHandler = read('lib/roadmap/completion.ts');
   assert.match(roadmapHandler, /let completed = await withTimeout\(supabase\.rpc\('complete_verified_roadmap_attempt_v3',/);
   assert.match(roadmapHandler, /const legacyCompletion = completed\.error\?\.code === 'PGRST202';[\s\S]+if \(legacyCompletion\) \{\s+completed = await withTimeout\(supabase\.rpc\('complete_verified_roadmap_attempt_v2', completion\)\);/,
     'only a missing atomic entrypoint permits 060');

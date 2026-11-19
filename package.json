@@ -60,6 +60,7 @@
     "test:performance": "esbuild scripts/test-settings-cache.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/settings-cache.mjs --log-level=warning && node node_modules/.cache/shark/settings-cache.mjs && esbuild scripts/test-request-timing.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/request-timing.mjs --log-level=warning && node node_modules/.cache/shark/request-timing.mjs",
     "perf:measure": "node scripts/measure-web-performance.mjs",
     "perf:fixture": "node scripts/performance-fixture-server.mjs",
+    "perf:cold-start": "node scripts/perf-cold-start.mjs",
     "test:marketing": "esbuild scripts/test-marketing-source.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/marketing-source.mjs --log-level=warning && node node_modules/.cache/shark/marketing-source.mjs && esbuild scripts/test-marketing-export.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/marketing-export.mjs --log-level=warning && node node_modules/.cache/shark/marketing-export.mjs",
     "check:binary-size": "node scripts/test-binary-size.mjs && node scripts/check-binary-size.mjs",
     "check:ci-build-artifact": "node scripts/test-ci-browser-artifacts.mjs && node scripts/test-ci-parity-cli.mjs && node scripts/test-ci-build-artifact.mjs && node scripts/ci-build-artifact.mjs pack artifacts/client-build.tar",

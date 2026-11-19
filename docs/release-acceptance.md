@@ -7618,3 +7618,288 @@ checkpoint. The remaining full-only browser, harness, performance and
 Storybook gates then run on the same frozen source, alongside the earlier
 complete full evidence. Required CI must still supply QuickJS, Docker and
 SQL on the actual new head. No merge or production acceptance is implied.
+
+## Epic F14 production acceptance: docs, triage and CI (19 November 2026)
+
+[PR #667](https://github.com/lukaskourilcz/devshark/pull/667) merged at
+`15f350a8fbdecec8b412472953fec551ec7a0c94` on 19 November at 13:19:03 UTC.
+Reviewed head `1511f1fa` passed all nine jobs in required
+[run 44523908461](https://github.com/lukaskourilcz/devshark/actions/runs/44523908461),
+including explicit verify and SQL SUCCESS. This record completes the pending
+F14 checks above and F3's documentation follow-up. Issues #643 and #632 are
+closed with their actual results and deviations. The failed runs above remain
+part of the record.
+
+| Check | Actual result |
+| --- | --- |
+| Final clean fast parity at 1511f1fa | 34 passes, zero failures, nine skips and one unavailable local QuickJS rebuild; 33.71 minutes. All 1,977 client tests in 200 files and 814 Coding references pass. Light 180/dark 60 probes and both zoom profiles pass. |
+| Supplemental component invocation at the same clean head | Eight passes, zero failures, 35 unselected/reuse skips and one unavailable Docker check; 5.73 minutes. Chromium 302 passes/19 intentional hidden-FDE skips, harness, performance and six Storybook cases pass. |
+| Combined local coverage | The two summaries cover all 44 planned steps with 40 unique passes, two installed-tool/dependency reuse skips and two unavailable checks: QuickJS rebuild and Docker. This is a union, not a standalone full invocation. SQL ran separately in CI. |
+| Required CI | All seven components, SQL and verify succeed. Browser takes 797 seconds, Coding 1,517 seconds and SQL 49 seconds. No assertion, retry, timeout or budget was relaxed. |
+| Additional browser checks | Quiet sequential Chromium navigation 24/24 and five-spec WebKit 103/103 pass. The current local CSP/header-adapter spec passes 3/3; its API fixtures do not establish deployed backend behavior. |
+| Source and Preview checks | Final source selection is 949 files/21,120,882 bytes, with 943 reused content receipts and six accepted fresh uploads. Both actual final Previews pass nine HTTP policy probes, 24 retired-path GET/HEAD variants and anonymous admin denial 403/private-no-store. Git Preview metadata names 1511f1fa in arn1; the API-files Preview builds in iad1. |
+| Production | `dpl_Aoj3B8JjwtQqyWxo7QZbHsHQUa6F` is READY at exact merge 15f350a8 in arn1 and serves devshark.app. All 43 guest HTTP checks pass: 18 static document/asset/manifest GETs plus 24 retired-path variants and one anonymous admin denial. Static response bodies total 794,976 bytes with zero issues. |
+| Bundle and docs | The placeholder build remains 218,661/218,675 initial gzip bytes. Served production variables yield 218,360 bytes, zero font preloads and two modulepreloads. The final docs tree occupies 20,084 KiB; all 757 archived paths/90,894,546 bytes restore with matching hashes. Published history remains available. |
+| Final container evidence | On one Linux/amd64 CI runner, image-ls reports 958 MB to 666 MB. Separate inspect Size values are 184,775,859 to 141,951,324 bytes, saving 42,824,535. Both images pass the same current authored JavaScript/TypeScript/React references against their dependencies and generated workers. |
+
+The container baseline is published `0f35d67d`; candidate `3b503cc4` is the
+merge-test tree for 1511f1fa and includes intervening changes. The two size
+fields use different accounting. Current harness source against both stacks
+does not establish baseline handler-code equivalence or multiple architectures.
+
+The API-files Preview downloaded all 949 selected files. Its partial source
+listing returns 546 matching content UIDs, including all six changed files;
+403 files are unlisted. Provider metadata normalizes to an empty object, so
+the saved exact creation request and returned UIDs provide the stated binding.
+The two required F4 SVG exceptions have matching capped readback prefixes and
+encoded lengths; this is not independent complete-file hashing. No runtime
+bank filter shipped: five individual handler prototypes exceeded ten percent,
+but the twelve-output aggregate saved 7.466 percent.
+
+The final browser reference uses the latest ten successful browser jobs from
+quality.yml main-push runs before F14 merged. The inclusive cutoff is
+19 November at 10:31:37 UTC, main bce4b9c4; the new F14 main run is excluded.
+
+| Main-push run | Browser seconds |
+| --- | ---: |
+| 44506480155 | 1295 |
+| 44469626993 | 1474 |
+| 44452144016 | 1452 |
+| 44438847769 | 826 |
+| 44416209968 | 840 |
+| 44411900966 | 911 |
+| 44402131562 | 839 |
+| 43261918893 | 912 |
+| 43243003745 | 728 |
+| 43019987774 | 772 |
+
+Mean is 1,004.9 seconds and median 875.5, with range 728 to 1,474. The final
+PR job's 797 seconds are 207.9/20.7 percent below the mean and 78.5/9.0 percent
+below the median; two historical jobs are shorter. Run 44411900966's browser
+job succeeded despite overall cancellation. This observational comparison
+does not isolate F14 effects or measure billed minutes.
+
+The production smoke used guest HTTP only. It ran no app JavaScript, positive
+admin read, grading, SQL, setting change or business write. Physical-phone,
+screen-reader and authenticated production acceptance remain in NEEDED.md.
+F2-40 and F10-41 are checked after the merge. F2-41 retains its 81 type-only
+exports in 27 files, and F11-30 still needs both standalone suites wired into
+CI. Passing F14 CI completes neither finding. PR #657 remains held by the
+production migration gate recorded above.
+
+Refs #632, #643, #640, #646 and #629.
+
+## Epic F7 server work: local implementation and measured limits (19 November 2026)
+
+F7 #636 implements the shared F1 measurement/marker tooling, public content
+validators, two narrow import corrections and the roadmap lesson, placement
+and completion boundaries. Runtime checkpoint `3fb1a0d1` is local and
+unmerged above main `15f350a8`. This entry records actual focused checks and
+measurements before final parity, Preview and required CI. It completes no
+GitHub acceptance checkbox by itself.
+
+The shared collector supplies F1-18/19/20/37/40 in this batch. It selects
+bounded anonymous reads/refusals rather than learner sessions or grading,
+stops globally on 429 and neither follows redirects nor retries. Protected
+Preview state stays owner-only and scoped to one exact host. A first/repeat
+marker identifies a timing module's first invocation, with no identifier or
+platform boot claim, and is omitted from public/cache-unknown responses.
+Public calls still consume it. Isolated CJS import children invoke no handler
+and report compilation, require wall/CPU/heap and module markers separately.
+
+The public sender covers thirteen logical branches, including the lesson's
+existing strong tag. New weak tags hash resolved JSON only after the existing
+gates and reads; matching requests get an empty 304. The existing lifetimes,
+Vary, private responses, quota failures and Premium checks stay intact.
+Daily/QOTD successful session bodies remain private/no-store. Public boards
+keep their existing one-minute privacy bound without new stale serving.
+A post-computation validator saves response bytes, not an upstream read.
+
+Public settings omit unused devTips and retired cosmetic shop prices. Stored
+settings, admin GET/save, reward prices and client defaults retain their
+existing contracts. The actual invented default handler response changes
+from 1,621 to 1,108 JSON bytes, 897 to 603 default gzip bytes and 712 to 486
+default Brotli bytes: savings 513/294/226. These local representation sizes do
+not measure deployed transfer or latency.
+
+Challenge now imports the same XP-credit function directly from coins, and
+the admin catalogue loads inside its authorized operation. Roadmap shares
+one runtime/client/logger, sealed-session helpers and progress sanitizer;
+lesson, placement and completion load on their respective paths. The public
+catalogue and coding brief legitimately load their own coins dependency.
+R3's boundary regression first records five failures and one passing refusal
+control at `202fdd66`; the fix at `3fb1a0d1` passes fifteen concern cases.
+An independent review finds no actionable defect. A TypeScript AST comparison
+verifies all 39 top-level named function/arrow bodies, including 14 moved
+bodies, byte-for-byte against the pre-R3 source; import/state review and
+runtime checks provide separate evidence. The initial regex proof overcounted
+comments and truncated a parameter type, so its 37/12 counts are superseded.
+The outer dispatch/default-export tail remains byte-identical.
+
+The TypeScript packaging regression/fix are `fa760ade` and `1ac8b7b8`.
+The reader's 91 ES/decorator files total 589,549 bytes, compared with 99 broad
+matches/3,140,843 bytes. The selected input saves 2,551,294 bytes; the actual
+ES2023 root has a closed 61-file graph. The isolated functional checker passes
+with only the 93-file runtime/metadata/declaration copy. This does not establish
+Vercel's final traced inventory or a deployed TypeScript Submit. Integration
+`1ac8b7b8` initially failed scripts typing because F14 had localized LIB_FILE;
+`1342e9f9` restores that export for its new real packaging consumer without
+changing the checker options or other localized constants.
+
+### Local import comparison
+
+Both sides use Node 24.22.3, Apple M3/darwin-arm64, esbuild 0.25.12, identical
+locks, compiler/marker configuration and tool hashes. The nineteen recorded
+baseline source hashes match merged main 15f350a8. Each checkpoint has 36/36
+successful samples, zero denied attempts, handler invocations or sent
+requests, and clean unchanged source before/after. Each range below has only
+three fresh-process observations. The final source is 3fb1a0d1.
+
+| Handler | F14 require median/range ms | Final F7 median/range ms | Delta median ms | Proxy bytes before/after |
+| --- | ---: | ---: | ---: | ---: |
+| health | 18.993 (18.554-19.820) | 19.806 (19.486-20.419) | +0.813 | 38,343/39,336 |
+| settings | 34.326 (33.172-34.818) | 34.858 (34.708-35.544) | +0.532 | 1,362,687/1,365,753 |
+| leaderboard | 19.369 (18.993-19.519) | 19.945 (19.926-20.446) | +0.576 | 59,807/63,010 |
+| questions | 105.003 (104.919-106.893) | 104.080 (98.669-105.967) | -0.923 | 10,165,783/10,168,885 |
+| roadmap | 131.077 (127.505-131.930) | 124.394 (122.331-126.290) | -6.683 | 13,178,589/13,208,863 |
+| challenge | 83.438 (83.338-87.064) | 64.557 (60.077-65.540) | -18.881 | 5,422,470/4,131,715 |
+| daily | 65.477 (64.586-67.006) | 58.119 (55.903-59.270) | -7.358 | 4,096,158/4,097,151 |
+| submit | 59.962 (57.288-61.223) | 65.152 (64.788-73.048) | +5.190 | 4,103,560/4,104,553 |
+| flashcards | 57.367 (55.755-57.920) | 57.937 (56.072-79.535) | +0.570 | 4,072,002/4,072,995 |
+| user | 90.453 (87.455-99.486) | 89.560 (89.152-91.105) | -0.894 | 10,445,977/10,449,240 |
+| play | 58.582 (58.153-59.442) | 57.811 (56.051-58.080) | -0.771 | 4,115,775/4,116,768 |
+| admin | 78.787 (78.381-79.218) | 71.522 (70.126-72.292) | -7.264 | 6,097,184/6,164,536 |
+
+The pre-R3 roadmap median was 127.311 ms, with range 124.136-129.734;
+final 124.394 has range 122.331-126.290. Those ranges overlap. All eleven
+control artifact hashes are identical across that R3-only comparison, while
+roadmap grows from 13,206,050 to 13,208,863 proxy bytes. Dynamic-import code
+generation also grows the admin proxy. Retain those costs and the slower
+rows above: no universal or causal latency reduction, isolated module cost
+over 50 ms, platform boot improvement or retained-memory claim follows.
+
+### Platform and HTTP baseline
+
+A read-only production aggregate covers 12-18 November UTC and reconciles
+all twelve route patterns and all seven daily buckets to 481 invocations.
+Roadmap has 152, settings 130, user 71, admin 58, health 46, Challenge 11,
+Submit six, leaderboard/Daily two each and the other three one each.
+Cold/hot/prewarmed classifications reconcile to 24/341/116, or 4.99 percent
+cold-classified invocations in the returned dataset. These are invocation
+classes, not initializer durations, unique instances or query-operation
+frequency. The report retains the source and sampling limits.
+
+The dashboard reports Fluid compute enabled/Standard. Per-route provisioned
+maxima are 2,048 MB and peak maxima 223-473 MB. Retain current allocation:
+these low-volume maxima do not establish concurrent/p99 needs. Fluid memory
+belongs in dashboard settings, so this package adds no ineffective JSON
+memory keys or provider setting change. Roadmap keeps its configured
+45-second maximum and the other eleven handlers keep 10 seconds; query
+resources cannot receive separate platform maxima inside one physical
+handler. App/grader deadlines remain unchanged.
+
+Actual F14 Git Preview `dpl_7PdxsXybGEugWyTJpVJtz49SmJmk`, source 1511f1fa
+in arn1, supplies a 36/36 safe GET baseline, all expected JSON statuses,
+cache MISS and parsed app/db/auth spans, zero errors or retries. Its old
+source has no instance marker, so every instance remains unknown. The
+baseline does not establish cold boots. It selects no stored learner attempt,
+score or reward. Temporary local frontdoor state was removed after use;
+F7's future Preview requires its own exact-origin access state.
+
+### Focused checks and acceptance limits
+
+| Check | Actual result |
+| --- | --- |
+| R3 concern suite | 15/15 pass after the real five-failure red; no skips/retries |
+| Existing Learn round trips | Seven groups pass before and after R3, including completion concurrency, atomic coins/referral order and Premium refusal |
+| API/scripts typing | Pass on Node 24.22.3 at 3fb1a0d1 |
+| Relocated completion source contracts | Four unchanged expressions pass against the new implementation owner |
+| Public settings backend/client | Integrated 1342e9f9: five backend and two client cases pass; private admin round trip and compatibility remain |
+| Declaration set and isolated checker | 91 selected/61 root-closure declarations; broad/es-only/missing-decorator mutation controls pass. The real isolated checker at 1342e9f9 passes all named type/host/permission/transpile controls; relevant source hashes remain unchanged by R3. |
+| Earlier public JSON suite | 42 cases pass before final R3; the sender/integrations are unchanged by R3, with the final aggregate rerun pending |
+| Existing transport reuse | Sixteen local scenarios/90 responses pass; healthy REST/Auth/Upstash each reuse two sockets for twelve responses, and abort/recovery/close controls pass. No transport implementation or deployed TLS improvement is claimed. |
+| Representative operation collector | Ten scenarios/54 handler observations/69 SDK transports pass with corrected global-board schema fixtures. These are named scenarios, not proven population top-ten operations or a new reduction. |
+| Final local import profile | 36/36 successful samples; no handler invocation, live transport, denied attempt or source drift |
+| `git diff --check` | Clean in the focused runtime checkpoint; documentation diff checked before commit |
+
+Final whole-package performance/launch/coding-auth/integrity/Coding and fast
+parity, actual F7 Preview validator/guest TypeScript checks, required CI,
+merge and production acceptance remain pending at this checkpoint. Local
+QuickJS rebuild requires unavailable Python 3.10+/emsdk; Docker is unavailable
+and SQL remains separate pinned-image CI evidence. The credentialed Sandbox
+VM and physical-device checks retain their existing owner tasks.
+
+The literal all-handler-faster, population-top-ten-fewer and per-operation
+platform-budget criteria are not established. Some upstream counts cannot
+fall below zero; existing parallelism/caches and protected enrollment order
+are preserved rather than changed to force a lower table. Three samples do
+not justify tighter arbitrary latency budgets. Shared-cache changes that
+would replay Daily one-use claims or extend hidden-name retention are
+refuted. F11-31 remains unchecked until actual deployed packaging/TypeScript
+acceptance. The normalized measured data and input hashes are in
+[the server baseline](quality/f7-server-baseline-2026-11-19.json).
+
+Refs #636, #630, #640, #646 and #629.
+
+### F7 final-parity contract corrections
+
+The first clean fast run at `a36603ba` stopped incomplete in 3.72 minutes:
+17 passes, one launch failure, one reused install skip and one unavailable
+local QuickJS rebuild. Build, all three typechecks, static/unused/context/
+archive/image/public guards, 218,661/218,675 bundle and both zero-vulnerability
+production audits passed. The full performance command also passed in
+73 seconds. No runtime defect or host-load cause was inferred.
+
+The launch guard still allowed tier reads only in the old API file.
+Test-only `bfb2084b` registers exactly the two new owners, session and
+completion, while retaining its matcher and no-tier-in-grading assertions.
+The subsequent whole-launch run reached the unchanged settings-fixture
+key/value comparison and found shop/devTips still in the public browser
+fixture. Test-only `c9d32ef9` removes only those two retired projection
+sections, preserving every active value and checkout override. Stored/admin
+settings and client defaults are unchanged.
+
+The complete Node 24.22.3 `npm run test:launch` then exits zero at c9d32ef9,
+including launch contracts, Play rooms, verified-caller refusal/claim/cache
+checks and Marketing's real handler against its local PostgREST stand-in.
+Its original failures remain saved. The corrected fixtures require a fresh
+complete fast run before push; CI, actual F7 Preview and merge are still
+pending at this documentation checkpoint. No timeout, retry, assertion or
+budget was relaxed.
+
+### F7 traced declaration correction
+
+The clean fast run at `0e8de25f` completed in 34.25 minutes: 34 passes,
+zero failures, nine skips and one unavailable local QuickJS rebuild.
+It includes all 814 authored coding references, 1,979 client cases in
+201 files, performance, launch, grading/authority suites, both responsive
+matrices and both zoom profiles. The bundle measures 218,661/218,675 gzip
+bytes and both production audits report zero vulnerabilities. Skips cover
+reused dependencies/Chrome and the full-only browser, harness, Lighthouse,
+Storybook and container steps; Python 3.9 and no emsdk prevent the rebuild.
+This evidence belongs to that head, before the following correction.
+
+A pinned local `@vercel/nft` 1.11.7 API trace then found 102 TypeScript
+declarations in both roadmap and user, including eleven nonreader files.
+The narrowed explicit include is additive and cannot remove traced files.
+The checker worker alone traces three runtime/metadata files and no
+declarations, so a worker-only trace misses this defect. Regression
+`539db4fb` fails on absent exclusions; `5e52f302` adds the same 164-character
+exact-file brace exclusion to both function rules. The config contract
+protects all 91 reader declarations, the 61-file root closure, runtime
+JS/metadata and generated CJS, with missing/overbroad exclusions and
+additive-include bypass controls. An initial native TypeScript invocation
+failed before this contract; the bundled invocation supplies the actual
+red evidence.
+
+The repeat all-handler trace removes exactly eleven files from roadmap
+(1,989 to 1,978) and user (2,184 to 2,173), retaining all 91 declarations
+in each. The other ten file counts and all twelve handler source hashes
+stay unchanged. The trace uses Node 24.22.3 and TypeScript 5.9.3 virtual
+CJS reads without executing handlers, workers or learner code. Seven
+roadmap and three user upstream optional-dependency/parser warnings remain.
+Two external trace invocations used the wrong working directory and
+failed before tracing; the repeat from the repository completes. These
+positive local results do not attest the provider builder version or
+complete deployed Lambda inventory. A fresh final fast run, actual F7
+Preview checks and required CI remain pending; F11-31 remains open.

@@ -97,7 +97,7 @@ declare function btoa(data: string): string;
 `;
 
 /** The newest lib the checker offers, so a modern method is never a false error. */
-const LIB_FILE = 'lib.es2023.d.ts';
+export const LIB_FILE = 'lib.es2023.d.ts';
 /** Errors past this many are noise. */
 const MAX_REPORTED_ERRORS = 8;
 

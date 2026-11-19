@@ -23,9 +23,9 @@ export interface GameConfig {
   play: { defaultDurationS: number; durationOptionsS: number[]; countOptions: number[] };
   features: { dailyChallenge: boolean; multiplayer: boolean; leaderboard: boolean; flashcards: boolean };
   leveling: { rankThresholds: number[] };
-  /** Token prices for the shop — per-product overrides + the path-unlock price. */
+  /** Compatibility defaults for retired cosmetic prices; current prices come from rewards. */
   shop: { prices: Record<string, number>; pathUnlockPrice: number };
-  /** One-liner dev tips shown on the full-page loading screen; empty = none. */
+  /** Retired public tips. The authenticated settings editor reads its own private list. */
   devTips: string[];
   /** Billing (#221): whether checkout sells Premium, and whether the
    * cancellation page can reach Stripe. Both false until the server says so.

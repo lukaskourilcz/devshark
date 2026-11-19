@@ -18,14 +18,39 @@ try {
  assert.match(first.headers['Server-Timing'],/db_http;dur=[\d.]+;desc="1 calls"/);assert.match(first.headers['Server-Timing'],/auth_http;dur=[\d.]+;desc="1 calls"/);
  assert.match(second.headers['Server-Timing'],/db_http;dur=[\d.]+;desc="2 calls"/);assert.match(second.headers['Server-Timing'],/auth_http;dur=0.0;desc="0 calls"/);assert.equal(first.res.json,original);
  assert.ok(!JSON.stringify(first.headers).includes('secret'));assert.ok(!JSON.stringify(first.headers).includes('private_table'));
+ const aggregate = (value: string) => {
+  const spans = new Map(value.split(',').map(one => { const text = one.trim(); return [text.split(';')[0], text] as const; }));
+  assert.match(spans.get('app') ?? '', /^app;dur=\d+\.\d$/);
+  for (const name of ['db_http', 'auth_http']) assert.match(spans.get(name) ?? '', new RegExp(`^${name};dur=\\d+\\.\\d;desc="\\d+ calls"$`));
+ };
+ aggregate(first.headers['Server-Timing']); aggregate(second.headers['Server-Timing']);
+ aggregate(first.headers['Server-Timing'].split(',').reverse().join(','));
+ assert.throws(() => aggregate(first.headers['Server-Timing'].replace('app;dur=', 'renamed;dur=')));
+ assert.throws(() => aggregate(first.headers['Server-Timing'].replace(/app;dur=[0-9.]+/, 'app;dur=NaN')));
  const failed=mock();await assert.rejects(withServerTiming(failed.res,async()=>{throw new Error('fixture');}));assert.equal(failed.headers['Server-Timing'],undefined);
  const nested=mock();await withServerTiming(nested.res,()=>withServerTiming(nested.res,async()=>{await timedSupabaseFetch('https://timing-fixture.test/rest/v1/nested');nested.res.json({ok:true});}));
  assert.match(nested.headers['Server-Timing'],/db_http;dur=[\d.]+;desc="1 calls"/);
  console.log('PASS timing: overlapping request isolation, concurrent spans, response-before-send, no query/payload identifiers, method restoration');
 }finally{globalThis.fetch=fetch;}
+await (await import('./test-request-timing-instance')).timingInstanceContracts();
+await (await import('./test-cold-start-probes')).coldProbeSafetyContracts();
+execFileSync(process.execPath, ['--test', 'scripts/test-perf-cold-start.mjs', 'scripts/test-perf-cold-import.mjs', 'scripts/test-cold-start-preview-access.mjs'], { stdio: 'inherit' });
 // What a fresh instance evaluates before it answers (#587): heavy modules
 // load behind dynamic import() in the ops that need them.
 await (await import('./cold-start-contracts')).coldStartContracts();
+// Real Challenge/admin operations preserve authority while deferring imports (#636).
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-f7-import-operations.ts');
+// The public JSON runner includes every route case and all six helper contracts.
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-public-json.ts');
+// Public field trimming preserves private editing and active configuration.
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-public-settings-projection.ts');
+// Roadmap concern cuts preserve live operations and the existing request boundary.
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-roadmap-concerns.ts');
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-roadmap-placement.ts');
+// Native local HTTP sockets prove reuse and cancellation through the SDK wrappers.
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-upstream-connections.ts');
+// Representative provider-call counts retain cache/refusal states and safe artifacts.
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-f7-operation-counts.ts');
 // The rate-limit prelude's round trips (#587), in a process of its own.
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-prelude.ts');
 // The Learn branches' round trips (#587), in a process of their own.

@@ -6,6 +6,7 @@
  * React submissions run authoritative suites in isolated server-side VMs. */
 
 import type { VercelRequest, VercelResponse } from '../vercel-types.js';
+import { sendPublicJson } from '../public-json';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
 import { AuthError } from '../auth';
@@ -310,7 +311,7 @@ export async function handleCodingBrief(req: VercelRequest, res: VercelResponse)
   if (!task) return;
   if (await refuseLocked(res, null, codingContent(task.id))) return;
   res.setHeader('Cache-Control', CODING_BRIEF_CACHE);
-  return res.json(codingBrief(task));
+  return sendPublicJson(req, res, codingBrief(task));
 }
 
 /* ── GET ?resource=coding-task&id=… and ?resource=coding-state&id=… ──── */

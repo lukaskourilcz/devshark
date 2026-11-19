@@ -19,7 +19,6 @@ import { listReports, dismissReport, reportCounts } from '../../lib/reports-stor
 import { listAuthEvents } from '../../lib/auth-events-store';
 import { getGameSettings, saveGameSettings } from '../../lib/settings-store';
 import { inspectQuestionQuality } from '../../lib/question-quality';
-import { allReadiness, pathEnabledInEnv } from '../../lib/learning-paths/catalog';
 import { handleAdminEntitlements } from '../../lib/entitlements';
 import { handleAdminVouchers } from '../../lib/vouchers';
 import { handleAdminUsers, handleAdminEmails } from '../../lib/admin-directory';
@@ -146,6 +145,7 @@ async function learningPathsOp(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Allow', 'GET');
     return jsonError(res, 405, 'method_not_allowed', 'Method not allowed');
   }
+  const { allReadiness, pathEnabledInEnv } = await import('../../lib/learning-paths/catalog');
   const paths = allReadiness().map((readiness) => ({
     pathId: readiness.pathId,
     version: readiness.version,

@@ -35,6 +35,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { build } from 'esbuild';
+import { bundleColdEntry } from './cold-start-bundle.mjs';
 
 const root = process.cwd();
 const out = join(root, 'node_modules/.cache/shark/cold-start');
@@ -52,32 +53,12 @@ interface Loaded {
  * file named in `markers` records itself in `globalThis.__evaluated` when it
  * evaluates, so a probe can tell whether a module of our own (which has no
  * package to look for) ran. */
-export async function loadFresh(entry: string, probe = 'null', extraEnv: Record<string, string> = {}, markers: string[] = []): Promise<Loaded> {
+export async function loadFresh(entry: string, probe = 'null', extraEnv: Record<string, string> = {}, markers: string[] = [], beforeImport = ''): Promise<Loaded> {
   mkdirSync(out, { recursive: true });
   const outfile = join(out, `${entry.replace(/[/[\]]/g, '_').replace(/\.ts$/, '')}${markers.length ? '-marked' : ''}.cjs`);
-  const { readFile } = await import('node:fs/promises');
-  await build({
-    entryPoints: [join(root, entry)],
-    bundle: true,
-    platform: 'node',
-    format: 'cjs',
-    packages: 'external',
-    outfile,
-    logLevel: 'warning',
-    absWorkingDir: root,
-    plugins: markers.length ? [{
-      name: 'evaluation-markers',
-      setup(plugin) {
-        const wanted = new Set(markers.map((file) => join(root, file)));
-        plugin.onLoad({ filter: /\.ts$/ }, async (args) => {
-          if (!wanted.has(args.path)) return undefined;
-          const marker = `(globalThis.__evaluated ??= []).push(${JSON.stringify(args.path.slice(root.length + 1))});\n`;
-          return { contents: marker + await readFile(args.path, 'utf8'), loader: 'ts' };
-        });
-      },
-    }] : [],
-  });
+  await bundleColdEntry(entry, outfile, markers, root);
   const code = [
+    beforeImport,
     `const mod = require(${JSON.stringify(outfile)});`,
     'const packages = [...new Set(Object.keys(require.cache)',
     '  .map((path) => (path.match(/node_modules\\/((?:@[^/]+\\/)?[^/]+)/) || [])[1])',
@@ -281,17 +262,20 @@ export async function coldStartContracts(): Promise<void> {
     console.log('PASS cold start: api/quiz/roadmap.ts loads no grader or TypeScript before its first answer');
   }
 
-  // ── server item 24: only the roadmap function ships grading files ────────
+  // ── server item 24: only roadmap explicitly includes grading files ──────
   {
     const { readFileSync, readdirSync } = await import('node:fs');
     const functions = (JSON.parse(readFileSync(join(root, 'vercel.json'), 'utf8')) as { functions: Record<string, { includeFiles?: string; maxDuration?: number }> }).functions;
     const roadmap = functions['api/quiz/roadmap.ts'];
-    assert.ok(roadmap?.includeFiles?.includes('lib/coding/generated/*.cjs') && roadmap.includeFiles.includes('node_modules/typescript/lib/lib.*.d.ts'),
-      'the roadmap function ships the grader bundles and the compiler\'s lib files');
-    assert.equal(functions['api/**/*.ts']?.includeFiles, undefined, 'the other functions ship neither the compiler\'s lib files nor React\'s development builds');
-    // Why nothing else needs them. The lib files are read by the in-thread
-    // type checker, which never runs on a deployment (the checker's worker,
-    // in the roadmap function, reads them there) ...
+    assert.ok(roadmap?.includeFiles?.includes('lib/coding/generated/*.cjs'),
+      'the roadmap function ships the grader bundles');
+    const { assertTypeScriptLibPackaging } = await import('./typescript-lib-packaging-contract.mjs');
+    const { isCheckerLibFile, LIB_FILE } = await import('../shared/coding-ts-check');
+    assertTypeScriptLibPackaging({ root, isCheckerLibFile, rootLib: LIB_FILE });
+    assert.equal(functions['api/**/*.ts']?.includeFiles, undefined, 'the generic rule adds no compiler declarations or React development builds');
+    // Explicit grading files are needed by roadmap's worker. Other handler
+    // dependency traces can still retain compiler files; that is separate
+    // from running the in-thread checker on a deployment ...
     const { inThreadGradingAllowed } = await import('../lib/coding/grader-capacity');
     const env = { NODE_ENV: process.env.NODE_ENV, VERCEL: process.env.VERCEL };
     try {
@@ -312,7 +296,7 @@ export async function coldStartContracts(): Promise<void> {
         assert.ok(match[1], `${file} loads lib/coding/react-runner at run time; ship React's development builds with that function`);
       }
     }
-    console.log('PASS cold start: only the roadmap function ships the grader bundles and the compiler\'s lib files');
+    console.log('PASS cold start: only the roadmap rule explicitly includes grader bundles and compiler declarations');
   }
 }
 
