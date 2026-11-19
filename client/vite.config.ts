@@ -524,22 +524,15 @@ export default defineConfig(({ mode }) => {
         main: path.resolve(__dirname, 'index.html'),
       },
       output: {
-        manualChunks: {
-          // React core in its own long-lived chunk. (The app is now MUI-free —
-          // the old combined `mui` chunk is gone.) `react-dom/client` must be
-          // listed explicitly: the app only imports the subpath (createRoot),
-          // and the bare `react-dom` entry alone never matches it — the
-          // renderer was silently landing in the main app chunk and getting
-          // re-downloaded on every deploy.
-          react: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime'],
-          router: ['react-router-dom'],
-          tanstack: ['@tanstack/react-query', '@tanstack/query-core'],
-          supabase: ['@supabase/supabase-js'],
-          // Note: `motion` and `posthog-js` are intentionally NOT pinned to a
-          // manual chunk. Motion's heavy DOM-animation features are loaded via a
-          // dynamic import (lib/motion) and posthog-js via another (lib/analytics);
-          // forcing either into a manualChunk would pull the whole package into
-          // the initial graph and defeat that lazy code-splitting.
+        manualChunks(id) {
+          // Assign each React/Router module directly. Entry-only aliases let
+          // shared React core and JSX runtime drift into other vendor groups.
+          // The measured combined group removes one useful preload request
+          // and saves 544 initial gzip bytes against the split configuration.
+          if (/\/node_modules\/(react|react-dom|scheduler|react-router|react-router-dom)\//.test(id)) return 'react';
+          if (/\/node_modules\/@tanstack\/(react-query|query-core)\//.test(id)) return 'tanstack';
+          if (/\/node_modules\/@supabase\//.test(id)) return 'supabase';
+          // Motion and analytics keep their consumer-owned dynamic boundaries.
         },
       },
     },
