@@ -1,0 +1,271 @@
+{
+  "findings": [
+    "F11-20",
+    "F11-32"
+  ],
+  "status": "local committed focused validation; unmerged; final composed gates pending",
+  "baseHead": "49df1b78efafa63739ddc689d9fd07a66cfffccd",
+  "testCommit": "b95ef7f8da0d2e8655a32cc2705ddf5d7d3fc48c",
+  "fixCommit": "c55ba3c4017160646157a497273074fcb14f9838",
+  "audit": "https://github.com/lukaskourilcz/devshark/issues/640#issuecomment-7021994496",
+  "red": {
+    "initialOutput": {
+      "failed": 1,
+      "passed": 3,
+      "seconds": 0.474
+    },
+    "expandedFallbackOutput": {
+      "failed": 3,
+      "passed": 3,
+      "seconds": 0.49
+    },
+    "reasonForExpandedTest": "The current worker already tree-shakes the default registry. Added an exact independent whole-source/literal-hash-pinned output check for its surviving singlefile fallback before the test commit; no transform existed."
+  },
+  "green": {
+    "outputChecks": 6,
+    "outputSeconds": 0.423,
+    "transformMetadataBypassHookChecks": 27,
+    "transformSeconds": 0.647,
+    "realWorkerSortCases": 37,
+    "workerCompatibilitySeconds": 0.322,
+    "localGuestGroups": 9,
+    "artifactGroups": 7,
+    "localGuestAndArtifactSeconds": 12.912,
+    "remoteVm": "SKIP; snapshot explicitly blank",
+    "sharedArtifactPackRestoreChecks": 8,
+    "sharedArtifactSeconds": 1.008
+  },
+  "footprint": {
+    "measurement": "gzip level9, mtime0, Python gzip.compress",
+    "baseline": {
+      "react-sandbox.cjs": {
+        "rawBytes": 2057914,
+        "sha256": "ac4ae8df53719d238e2db93600a9d831b2c51ee15681f74b145d8af0f7e09eb3",
+        "gzipBytes": 674932,
+        "gzipSha256": "d5b3ca30518085e0ba00c419c216706ce3a50c47c9abf0fdbf8377bac4ec1722"
+      },
+      "quickjs-sandbox.cjs": {
+        "rawBytes": 1680590,
+        "sha256": "363973691791a47e3822bf2e9e125a1d46a0461a0e96687d7079efca24a86d74",
+        "gzipBytes": 603988,
+        "gzipSha256": "7296036dc25b851b5f20af1e4fcbed0c40b1b0798f4ec2b2680a21213a553b0e"
+      },
+      "react-sandbox.sha256.cjs": {
+        "rawBytes": 67,
+        "sha256": "c1951244cd0f5f4de18ec3e2780c321014149bffe8e1b4cb828f681d7de96a6c"
+      }
+    },
+    "candidate": {
+      "react-sandbox.cjs": {
+        "rawBytes": 887329,
+        "sha256": "adeeab2f293cf197e3345dc7b5a79274a3c8b892e7fb913f90c4bb23a74c8396",
+        "gzipBytes": 346595,
+        "gzipSha256": "40488d38b75685a4eecadeb17481dc1386d4ca93d01a0b6836768b3762b115e0",
+        "rawDelta": -1170585,
+        "gzipDelta": -328337
+      },
+      "quickjs-sandbox.cjs": {
+        "rawBytes": 876631,
+        "sha256": "9e0c0717e6582a2d94fb04ac0c8d4d559efe4ada155084cf55f080d333a0b5b9",
+        "gzipBytes": 344641,
+        "gzipSha256": "fcd4a13a3c161c4bd540996263bc83e9dbe745972397e9172a48d0cb3a5d0d6b",
+        "rawDelta": -803959,
+        "gzipDelta": -259347
+      },
+      "react-sandbox.sha256.cjs": {
+        "rawBytes": 67,
+        "sha256": "1f17f19161a53aa0158ae05f2ed2bce68e95e8bb988901c754693f7b884660a3"
+      }
+    }
+  },
+  "workerCost": {
+    "node": "v24.22.3",
+    "esbuild": "0.25.12",
+    "toolSha256": "ebd0c7cf17ff04dd5666d90696cc10c4749ebd3e4e47f7d291e3b371f5f4d92c",
+    "baseline": [
+      {
+        "sample": 1,
+        "coldMs": 70.8354580104351,
+        "warmMs": 7.582332998514175,
+        "coldStartEventMs": 36.46987500786781,
+        "warmStartEventMs": 0.14045801758766174,
+        "workersSeen": 1,
+        "posts": 2,
+        "liveThreads": 1,
+        "idle": 1,
+        "rssBefore": 60178432,
+        "rssAfterCold": 98353152,
+        "rssAfterWarm": 109854720,
+        "gradePassed": true
+      },
+      {
+        "sample": 2,
+        "coldMs": 71.05766698718071,
+        "warmMs": 7.328000009059906,
+        "coldStartEventMs": 36.56429198384285,
+        "warmStartEventMs": 0.13433301448822021,
+        "workersSeen": 1,
+        "posts": 2,
+        "liveThreads": 1,
+        "idle": 1,
+        "rssBefore": 60243968,
+        "rssAfterCold": 98713600,
+        "rssAfterWarm": 107872256,
+        "gradePassed": true
+      },
+      {
+        "sample": 3,
+        "coldMs": 72.88666701316833,
+        "warmMs": 9.131415992975235,
+        "coldStartEventMs": 36.65587502717972,
+        "warmStartEventMs": 0.15995800495147705,
+        "workersSeen": 1,
+        "posts": 2,
+        "liveThreads": 1,
+        "idle": 1,
+        "rssBefore": 60178432,
+        "rssAfterCold": 98271232,
+        "rssAfterWarm": 109035520,
+        "gradePassed": true
+      },
+      {
+        "sample": 4,
+        "coldMs": 77.11970898509026,
+        "warmMs": 8.499375015497208,
+        "coldStartEventMs": 37.94949999451637,
+        "warmStartEventMs": 0.15425002574920654,
+        "workersSeen": 1,
+        "posts": 2,
+        "liveThreads": 1,
+        "idle": 1,
+        "rssBefore": 60227584,
+        "rssAfterCold": 99729408,
+        "rssAfterWarm": 110133248,
+        "gradePassed": true
+      },
+      {
+        "sample": 5,
+        "coldMs": 71.16999998688698,
+        "warmMs": 8.304791986942291,
+        "coldStartEventMs": 34.73070800304413,
+        "warmStartEventMs": 0.10958299040794373,
+        "workersSeen": 1,
+        "posts": 2,
+        "liveThreads": 1,
+        "idle": 1,
+        "rssBefore": 60162048,
+        "rssAfterCold": 98254848,
+        "rssAfterWarm": 108478464,
+        "gradePassed": true
+      }
+    ],
+    "candidate": [
+      {
+        "sample": 1,
+        "coldMs": 61.033666014671326,
+        "warmMs": 8.253749996423721,
+        "coldStartEventMs": 30.991457998752594,
+        "warmStartEventMs": 0.13795900344848633,
+        "workersSeen": 1,
+        "posts": 2,
+        "liveThreads": 1,
+        "idle": 1,
+        "rssBefore": 60178432,
+        "rssAfterCold": 97402880,
+        "rssAfterWarm": 108363776,
+        "gradePassed": true
+      },
+      {
+        "sample": 2,
+        "coldMs": 57.77337500452995,
+        "warmMs": 8.800666004419327,
+        "coldStartEventMs": 30.964582979679108,
+        "warmStartEventMs": 0.17091602087020874,
+        "workersSeen": 1,
+        "posts": 2,
+        "liveThreads": 1,
+        "idle": 1,
+        "rssBefore": 60162048,
+        "rssAfterCold": 97091584,
+        "rssAfterWarm": 108740608,
+        "gradePassed": true
+      },
+      {
+        "sample": 3,
+        "coldMs": 58.67699998617172,
+        "warmMs": 9.174208998680115,
+        "coldStartEventMs": 31.022042006254196,
+        "warmStartEventMs": 0.13712498545646667,
+        "workersSeen": 1,
+        "posts": 2,
+        "liveThreads": 1,
+        "idle": 1,
+        "rssBefore": 60129280,
+        "rssAfterCold": 102760448,
+        "rssAfterWarm": 108969984,
+        "gradePassed": true
+      },
+      {
+        "sample": 4,
+        "coldMs": 58.00133401155472,
+        "warmMs": 9.292250007390976,
+        "coldStartEventMs": 29.764209002256393,
+        "warmStartEventMs": 0.10887500643730164,
+        "workersSeen": 1,
+        "posts": 2,
+        "liveThreads": 1,
+        "idle": 1,
+        "rssBefore": 60178432,
+        "rssAfterCold": 97107968,
+        "rssAfterWarm": 109314048,
+        "gradePassed": true
+      },
+      {
+        "sample": 5,
+        "coldMs": 58.77208399772644,
+        "warmMs": 8.648541003465652,
+        "coldStartEventMs": 30.902916997671127,
+        "warmStartEventMs": 0.14408299326896667,
+        "workersSeen": 1,
+        "posts": 2,
+        "liveThreads": 1,
+        "idle": 1,
+        "rssBefore": 60211200,
+        "rssAfterCold": 95682560,
+        "rssAfterWarm": 108085248,
+        "gradePassed": true
+      }
+    ],
+    "baselineColdMedianMs": 71.16999998688698,
+    "candidateColdMedianMs": 58.67699998617172,
+    "baselineWarmMedianMs": 8.304791986942291,
+    "candidateWarmMedianMs": 8.800666004419327,
+    "limits": "Five serial fresh Node processes. Each uses actual runInSandbox twice, one real worker and the existing limits; fixed authored next(n) input only. RSS is whole-process, not VM heap. Baseline precedes candidate, so OS-cache/order effects are not eliminated."
+  },
+  "actualNormalMetafileInputCounts": {
+    "guest": 21,
+    "worker": 16
+  },
+  "preservedRuntimeSourceSha256": {
+    "lib/coding/quickjs-variant.ts": "9e93c73c884cc4ab800296e755b63b845f8184a68797eee10c2dba4a7a95c707",
+    "lib/coding/sandbox.ts": "a787c8aa6d0c96caf69297148a6ebe0222a05fa8c075df5551e654e1ade730c0",
+    "lib/coding/react-learner.ts": "ded69c15b5503ff990f12784805c879ba52c60906b2e24f04c46c676e36b5d32",
+    "lib/coding/vendor/provenance.json": "71d162b8a3eb4494a01f2158e799601230b113a390db7fa79801ecfa8d82a168",
+    "lib/coding/vendor/quickjs-node24.cjs": "e3772a79c640b51a33a7d5530795bded483af997d2e5ce38b46a659cdc2d890e",
+    "package-lock.json": "98d0093a62b8d2ae7dda5f4f4e4a2f3594f08075a70d13219ddb1216200176b4"
+  },
+  "artifacts": {
+    "/tmp/devshark-epic-f-handoff/f11-20-32-baseline-b95ef7f8/summary.json": "bd9c992b45ec067c9c529175c59a1b5c3a9712ead0551296549da1fefa854671",
+    "/tmp/devshark-epic-f-handoff/f11-20-32-candidate-c55ba3c4/summary.json": "d610decc18ab477628b9b15e534a7bdd4f85f45e09d99fa759150c3bd5482173",
+    "/tmp/devshark-epic-f-handoff/f11-20-32-coldwarm-baseline-b95ef7f8.json": "2f1e31679c0a71d284912bcfe7d8b870d40bf830e491e03e72c1fbb73653d9a0",
+    "/tmp/devshark-epic-f-handoff/f11-20-32-coldwarm-candidate-c55ba3c4.json": "9eed2a4fb5bb0e7087bfd8552048da4bfddf5f568842f0b14bd8cd4d65b9ca74",
+    "/tmp/devshark-epic-f-handoff/f11-remaining-execution-3fa8f8ed/20-32/candidate-metafiles.json": "1b299124ca67fb843b19871c7677879bb1823881666bea0cccc3f29d9bf8f9a8",
+    "/tmp/devshark-epic-f-handoff/f11-remaining-execution-3fa8f8ed/20-32/measure-worker.mjs": "ebd0c7cf17ff04dd5666d90696cc10c4749ebd3e4e47f7d291e3b371f5f4d92c"
+  },
+  "limits": [
+    "Five ordered local worker samples per stage, not universal latency/p95/VM/provider memory evidence. Host imports precede measured worker startup.",
+    "Current worker default-registry removal is a positive control; the actual surviving fallback was red in both artifacts.",
+    "No vendor/ABI/lock/runtime cap or function/snapshot setting changed.",
+    "Old16 virtual untrimmed reference tool is not acceptance for this normal trimmed builder; final actual normal-builder Coding/reference and integration remain pending."
+  ]
+}

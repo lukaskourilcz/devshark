@@ -8809,3 +8809,32 @@ Commands, hashes, source derivation and real outcomes are retained under
 Full umbrella, types, Coding/reference, launch/parity and remote integration
 remain for the final composed/rebased F11 source. This local result does not
 mark the package merged or complete.
+
+
+### Epic F, F11-20/32 normal bundle trim (19 November 2026)
+
+Local red commit `b95ef7f8`, fix `c55ba3c4`. The first actual output probe
+refuted a worker-registry assumption: that worker already removed the default
+registry. A separate full hash-pinned fallback check then produced three real
+failures and three positive controls. The correction removes the inactive
+upstream payload through one shared normal-builder helper, preserving the
+custom runtime/ABI, strict guest mode, TS worker and final passive digest.
+
+Actual raw/gzip guest bytes: 2,057,914/674,932 before, 887,329/346,595 after.
+Worker: 1,680,590/603,988 before, 876,631/344,641 after. Five fresh-process
+correct worker samples per stage have cold medians 71.170→58.677 ms and warm
+medians 8.305→8.801 ms. Fixed order/OS caches and host-import exclusions limit
+that local timing comparison; it is not VM/provider latency or memory proof.
+
+Focused checks pass: six output cases, 27 graph/source/bypass/real-hook cases,
+37 real normal-worker sort cases/provenance, nine local guest groups with
+seven artifact/cache/inclusion groups, and eight shared artifact pack/restore
+controls. The local guest run explicitly cleared the snapshot and printed VM
+SKIP. No existing cap, vendor/lock/runtime source or service setting changed.
+Full composed gates and remote integration remain pending.
+
+The durable measurement and all raw sample values are in
+`docs/quality/f11-quickjs-bundles-2026-11-19.md` and its adjacent JSON. They
+record current generated files, rather than historical prototype sizes, and
+keep the earlier untrimmed16 virtual-reference receipt distinct from pending
+normal trimmed-builder integration.
