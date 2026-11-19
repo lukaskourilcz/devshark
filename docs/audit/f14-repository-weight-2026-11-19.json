@@ -1,0 +1,174 @@
+{
+  "recordedAt": "2026-11-19T05:48:14.117317+00:00",
+  "head": "80b259cad07f201569bb241c5b8e4c697adf1da8",
+  "scope": "All local refs including preserved backups and unpublished branches; one maximum-size blob per representative historical path. Uncompressed Git object bytes, not packed storage or deploy/image size. No history/refs modified.",
+  "allRefBlobCount": 17306,
+  "allRefDistinctRepresentativePaths": 3365,
+  "largestDistinctHistoricalPaths": [
+    {
+      "bytes": 11730065,
+      "sha": "b553c7accb29c96205f3381e18d005071d16f22c",
+      "path": "docs/audit/devshark-content-ledger.json"
+    },
+    {
+      "bytes": 10882507,
+      "sha": "093289e65c779201c10fde2e2f0b746570965e06",
+      "path": "docs/ux-review-round3-2026-11-05/index.html"
+    },
+    {
+      "bytes": 10068297,
+      "sha": "18ac7baaba13ef44fbaf78d7db104074302a92d4",
+      "path": "docs/ux-audit-2026-11-03/index.html"
+    },
+    {
+      "bytes": 8471359,
+      "sha": "e066090b60e2be271980da8598fe327cfdb9ce44",
+      "path": "docs/ux-review-platform-comments-2026-11-05/index.html"
+    },
+    {
+      "bytes": 8207181,
+      "sha": "5a174e4623c699994cecd32a891f8bf2b0eb3fd8",
+      "path": "docs/ux-review-platform-2026-11-05/index.html"
+    },
+    {
+      "bytes": 3400729,
+      "sha": "e4816f01a2aa17705ea1814c0766f9d8cb4e588f",
+      "path": "docs/ux-review-uizze-2026-11-05/index.html"
+    },
+    {
+      "bytes": 2003185,
+      "sha": "e752d3c6bc6ec4a6fb1b93ba19079dd998f3fc94",
+      "path": "docs/ux-audit-2026-11-03/quiz.html"
+    },
+    {
+      "bytes": 1976863,
+      "sha": "bea35a2a8dd322fd7d3b838b84460cc6ab034809",
+      "path": "docs/ux-audit-2026-11-03/learn.html"
+    },
+    {
+      "bytes": 1753318,
+      "sha": "0053a55fc28ae1398d21c6ebe9d8f7bbfc6166bf",
+      "path": "mobile/src/data/offline-data.ts"
+    },
+    {
+      "bytes": 1587665,
+      "sha": "0812eb60c7a6a7294db681ff60a23251ab8c5c8b",
+      "path": "lib/roadmap-questions-extra.cs.ts"
+    },
+    {
+      "bytes": 1400284,
+      "sha": "60cc9c6d63c26bd01ca45b0d546933026c71bf79",
+      "path": "triage/scored.json"
+    },
+    {
+      "bytes": 1313743,
+      "sha": "c5ce5caeab694d020cbe7719d42554d0fcbfa60f",
+      "path": "docs/audit/wip/inventory/inventory.json"
+    },
+    {
+      "bytes": 1206110,
+      "sha": "8221c044da511c25072fe7fb67a793e18a2b2f51",
+      "path": "lib/curation-registry.ts"
+    },
+    {
+      "bytes": 1146832,
+      "sha": "f973e6cb5135c17a8058f1a7315313918a327748",
+      "path": "triage/keep_list.json"
+    },
+    {
+      "bytes": 1130639,
+      "sha": "6958cc8bc737034a3036e53a1b4724da756415bb",
+      "path": "docs/release-acceptance.md"
+    }
+  ],
+  "currentTracked": {
+    "files": 1896,
+    "bytes": 52186981,
+    "largest": [
+      {
+        "bytes": 11730061,
+        "sha": "4c1c2c234637138d77cc0eff781d87c0406f6b72",
+        "path": "docs/audit/devshark-content-ledger.json"
+      },
+      {
+        "bytes": 1400284,
+        "sha": "60cc9c6d63c26bd01ca45b0d546933026c71bf79",
+        "path": "triage/scored.json"
+      },
+      {
+        "bytes": 1206110,
+        "sha": "ea8065119531fd990fa957b8179edf53c79a87b1",
+        "path": "lib/curation-registry.ts"
+      },
+      {
+        "bytes": 1146832,
+        "sha": "f973e6cb5135c17a8058f1a7315313918a327748",
+        "path": "triage/keep_list.json"
+      },
+      {
+        "bytes": 1121922,
+        "sha": "93986fced38f66a1e155e2f802cbe634b552f8c7",
+        "path": "docs/release-acceptance.md"
+      },
+      {
+        "bytes": 743272,
+        "sha": "73fd6c507d5b5078a6dbe8f8085ec2feb1837a33",
+        "path": ".claude/skills/ui-ux-pro-max/data/google-fonts.csv"
+      },
+      {
+        "bytes": 699986,
+        "sha": "94f9e9efe0291a199994ea8bd1d0ab1dc7a3919a",
+        "path": "media/preview.mp4"
+      },
+      {
+        "bytes": 670921,
+        "sha": "abf7155a5513db7fc87f5dd6e530e802bffca599",
+        "path": "lib/coding/vendor/quickjs-node24.cjs"
+      },
+      {
+        "bytes": 632561,
+        "sha": "8fc8d5ee80c73a9061a5171464fbafcaa6ed605f",
+        "path": "lib/data/triage-verdicts.json"
+      },
+      {
+        "bytes": 598458,
+        "sha": "34e3484efdf30de228d4c0705f07ecb182337238",
+        "path": "docs/audit/devshark-content-audit.md"
+      },
+      {
+        "bytes": 596407,
+        "sha": "b517e4aeafc81c85470224232051cd8f6cceb00d",
+        "path": "lib/quiz-data.ts"
+      },
+      {
+        "bytes": 525693,
+        "sha": "174240ddd72da6e3daaa5a3c7fe9cd580dd35d38",
+        "path": "media/preview.webm"
+      },
+      {
+        "bytes": 495276,
+        "sha": "678db68e7e5379d31fbe3bfd2c4c30fb77579ba0",
+        "path": "scripts/test-launch-contracts.ts"
+      },
+      {
+        "bytes": 384562,
+        "sha": "5ec963316d86d68e9a7f3aae6d7218e453481e0f",
+        "path": "lib/coding/solutions/react.ts"
+      },
+      {
+        "bytes": 354930,
+        "sha": "58ae6dc818022cb0872d532c0d6d9be4344277b5",
+        "path": "lib/coding/solutions/evolving.ts"
+      }
+    ]
+  },
+  "inputPreviousAllRefEvidence": {
+    "file": "f14-largest-git-blobs.json",
+    "sha256": "68ebfcd264d988f6fcdf48bafb4f5361e038ab3e6265c58b76e56517449b4098"
+  },
+  "currentTrackedDocs": {
+    "files": 358,
+    "bytes": 19752348
+  },
+  "checkpointLimit": "Snapshot before F3 rebase and final F14 checks; not final batch weight. Published history and preserved checkpoint refs remain intact."
+}

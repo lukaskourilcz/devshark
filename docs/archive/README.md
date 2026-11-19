@@ -8,7 +8,7 @@ docs tree. Their original bytes remain in published main commit
 The [manifest](manifest.json) records all 757 archived paths, their byte counts
 and SHA-256 hashes. It also records the unchanged ledger and all 84 native files,
 including history and revisions, plus the required surviving tools, Markdown,
-templates and brand sources. No Git history was rewritten and no archive binary
+templates and brand sources. Published Git history remains intact, and no archive binary
 was added to the repository. This reduces the working docs tree, not existing
 Git history or the size of an already-published Docker image.
 
