@@ -30,6 +30,7 @@
     "src/components/DailyStaticArticle.tsx",
     "src/lib/changelog.ts",
     "src/og/ogImages.ts",
+    "src/og/png.ts",
     "src/i18n/translations.ts",
     "../shared/**/*.ts",
     "src/components/learn/SectionPreviewStatic.tsx",

@@ -238,7 +238,7 @@ const step = (id, command, more = {}) => ({ id, command, ci: [command], tier: 'f
 const RESPONSIVE_LIGHT = `-- --routes /,/quiz,/topics/${TOPIC},/daily,/not-found-responsive-check --widths 360,390,430,768,1024,1280,1440`;
 const RESPONSIVE_DARK = `-- --routes /,/topics/${TOPIC},/daily --widths 390,768,1280`;
 const BROWSER_SPECS = [
-  'public', 'guide-startup profile-leaderboard-preferences profile-path-picker admin', 'evolving', 'coding-pages', 'coding-workbench',
+  'public images', 'guide-startup profile-leaderboard-preferences profile-path-picker admin', 'evolving', 'coding-pages', 'coding-workbench',
   'coding-drafts', 'learning-release learn-sections',
   'fde-hub fde-taster fde-positioning interview-shelf', 'path-content-shapes portfolio-export diagnostic-overview dsa-advanced', 'segmented', 'on-accent', 'navigation', 'lazy-auth', 'sign-in',
   'route-errors', 'first-load', 'home-sample', 'routes-axe', 'daily', 'launch-offer',
@@ -254,6 +254,7 @@ const PLAN = [
   step('check:unused', npmRun('check:unused')),
   step('check:security', npmRun('check:security')),
   step('build', npmRun('build'), { env: BUILD_ENV }),
+  step('check:images', npmRun('check:images'), { needs: ['build'] }),
   step('check:public', npmRun('check:public'), { env: BUILD_ENV, needs: ['build'] }),
   step('check:bundle', npmRun('check:bundle'), { env: BUILD_ENV, needs: ['build'] }),
   step('audit:prod', 'npm audit --omit=dev'),

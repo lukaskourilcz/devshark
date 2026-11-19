@@ -5,13 +5,13 @@ description: Reproduce the `verify` CI job locally with `npm run ci:parity`, the
 
 # CI parity and pull requests
 
-`main` is protected: GitHub merges a pull request only when the `verify` and `sql` jobs of `.github/workflows/quality.yml` pass, for admins too, and refuses force-pushes (CLAUDE.md, "Git workflow"). The `verify` gates run 55 steps as five parallel jobs of at most 30 minutes each, and the job named `verify` passes only when all five passed. A step you skip locally can cost a whole CI cycle: PR #401 passed a short local check list and then failed `check:bundle` by 182 gzip bytes ("15 October — PR #401 initial-load correction" in `docs/release-acceptance.md`).
+`main` is protected: GitHub merges a pull request only when the `verify` and `sql` jobs of `.github/workflows/quality.yml` pass, for admins too, and refuses force-pushes (CLAUDE.md, "Git workflow"). The `verify` gates run 56 steps as five parallel jobs of at most 30 minutes each, and the job named `verify` passes only when all five passed. A step you skip locally can cost a whole CI cycle: PR #401 passed a short local check list and then failed `check:bundle` by 182 gzip bytes ("15 October — PR #401 initial-load correction" in `docs/release-acceptance.md`).
 
 `scripts/ci-parity.mjs` runs the same steps in the same order with the same environment and prints each step's real result. Before it runs anything it reads `quality.yml` and checks two things: the job's `npm` and `npx playwright` commands, in order and with their env prefixes, must equal the plan's, and every other line of the job (setup, `env:`, `if:`, shell glue) must equal `KNOWN_GLUE` in the script. On any difference it exits 2 and prints the first one. Change `PLAN` or `KNOWN_GLUE` and the table below in the same commit as the workflow.
 
 ## The `verify` sequence
 
-The commands come from `.github/workflows/quality.yml`, where the gates run as five parallel jobs: `quickjs` (steps 1-2), `static` (3-13), `tests` and `coding` (14-26), and `browser` (27-55). The job named `verify` needs all five and fails when any of them failed, was cancelled or was skipped; it is the required check. `ci:parity` runs the jobs one after another in this order, and counts a command an earlier job already ran (`npm ci`, the browser job's build) once. Step ids are in the second column.
+The commands come from `.github/workflows/quality.yml`, where the gates run as five parallel jobs: `quickjs` (steps 1-2), `static` (3-14), `tests` and `coding` (15-27), and `browser` (28-56). The job named `verify` needs all five and fails when any of them failed, was cancelled or was skipped; it is the required check. `ci:parity` runs the jobs one after another in this order, and counts a command an earlier job already ran (`npm ci`, the browser job's build) once. Step ids are in the second column.
 
 | # | Step id | Command | Notes |
 |---|---|---|---|
@@ -20,16 +20,16 @@ The commands come from `.github/workflows/quality.yml`, where the gates run as f
 | 3-5 | `typecheck:api`, `typecheck:scripts`, `typecheck:tooling` | `npm run typecheck:api && npm run typecheck:scripts && npm run typecheck:tooling --prefix client` | `typecheck:tooling` lives in `client/package.json`. |
 | 6 | `audit:native-reviews` | `npm run audit:native-reviews` | |
 | 7-8 | `check:unused`, `check:security` | `npm run check:unused && npm run check:security` | |
-| 9-11 | `build`, `check:public`, `check:bundle` | `npm run build && npm run check:public && npm run check:bundle` | Build env below. The `browser` job builds again with the same env and tests that build. |
-| 12-13 | `audit:prod`, `audit:client` | `npm audit --omit=dev && npm audit --omit=dev --prefix client` | |
-| 14-26 | `test:performance` to `test:coding` | `test:performance`, `test:launch`, `test:coding-auth`, `test:grading-integrity`, `test:path-authority`, `test:react-authority`, `test:paths`, `test:billing`, `test:fallbacks`, `test:garden`, `test:live-grading`, `test:client`, then `test:coding` | The `tests` job chains the first twelve, and the first failure stops the rest; the `coding` job runs `test:coding` alone. `test:coding` runs every task's reference and takes several minutes. |
-| 27 | `chromium` | `npx playwright install --with-deps chromium` | Locally `npx playwright install chromium` (idempotent), unless `CHROME_BIN` or `/opt/pw-browsers/chromium` exists. |
-| 28 | `preview` | `npm run preview --prefix client -- --host 0.0.0.0 --port 4173` | Started in the background and polled like `scripts/wait-for-preview.mjs`. |
-| 29-48 | `browser:<spec>` | `npm run test:browser -- tests/browser/<spec>.spec.ts` | 20 runs in workflow order, from `public` to `launch-offer`; `guide-startup`, `profile-leaderboard-preferences` and `profile-path-picker` share one run (`browser:guide-startup+profile-leaderboard-preferences+profile-path-picker`), and so do `learning-release` and `learn-sections` (`browser:learning-release+learn-sections`), the FDE path specs `fde-hub`, `fde-taster`, `fde-positioning` and `interview-shelf` (`browser:fde-hub+fde-taster+fde-positioning+interview-shelf`), and `path-content-shapes`, `portfolio-export`, `diagnostic-overview` and `dsa-advanced` (`browser:path-content-shapes+portfolio-export+diagnostic-overview+dsa-advanced`). |
-| 49 | `check:responsive` | `npm run check:responsive -- --routes /,/quiz,/topics/javascript-closures,/daily,/not-found-responsive-check --widths 360,390,430,768,1024,1280,1440` | `TOPIC` comes from the workflow. |
-| 50 | `check:responsive:dark` | `RESPONSIVE_THEME=dark npm run check:responsive -- --routes /,/topics/javascript-closures,/daily --widths 390,768,1280` | |
-| 51 | `test:harness` | `npm run test:harness` | Needs the client build and Chromium. |
-| 52-55 | `audit:performance`, `build:storybook`, `storybook`, `browser:storybook` | `npm run audit:performance`, `npm run build:storybook`, `npm run storybook --prefix client -- --ci` on port 6006, then `STORYBOOK_URL=http://localhost:6006 npm run test:browser -- tests/browser/storybook.spec.ts` | CI runs this step whenever the build step passed, even after a browser failure. |
+| 9-12 | `build`, `check:images`, `check:public`, `check:bundle` | `npm run build && npm run check:images && npm run check:public && npm run check:bundle` | Build env below. The `browser` job builds again with the same env and tests that build. |
+| 13-14 | `audit:prod`, `audit:client` | `npm audit --omit=dev && npm audit --omit=dev --prefix client` | |
+| 15-27 | `test:performance` to `test:coding` | `test:performance`, `test:launch`, `test:coding-auth`, `test:grading-integrity`, `test:path-authority`, `test:react-authority`, `test:paths`, `test:billing`, `test:fallbacks`, `test:garden`, `test:live-grading`, `test:client`, then `test:coding` | The `tests` job chains the first twelve, and the first failure stops the rest; the `coding` job runs `test:coding` alone. `test:coding` runs every task's reference and takes several minutes. |
+| 28 | `chromium` | `npx playwright install --with-deps chromium` | Locally `npx playwright install chromium` (idempotent), unless `CHROME_BIN` or `/opt/pw-browsers/chromium` exists. |
+| 29 | `preview` | `npm run preview --prefix client -- --host 0.0.0.0 --port 4173` | Started in the background and polled like `scripts/wait-for-preview.mjs`. |
+| 30-49 | `browser:<spec>` | `npm run test:browser -- tests/browser/<spec>.spec.ts` | 20 runs in workflow order, from `public` and `images` to `launch-offer`; `guide-startup`, `profile-leaderboard-preferences` and `profile-path-picker` share one run (`browser:guide-startup+profile-leaderboard-preferences+profile-path-picker`), and so do `learning-release` and `learn-sections` (`browser:learning-release+learn-sections`), the FDE path specs `fde-hub`, `fde-taster`, `fde-positioning` and `interview-shelf` (`browser:fde-hub+fde-taster+fde-positioning+interview-shelf`), and `path-content-shapes`, `portfolio-export`, `diagnostic-overview` and `dsa-advanced` (`browser:path-content-shapes+portfolio-export+diagnostic-overview+dsa-advanced`). |
+| 50 | `check:responsive` | `npm run check:responsive -- --routes /,/quiz,/topics/javascript-closures,/daily,/not-found-responsive-check --widths 360,390,430,768,1024,1280,1440` | `TOPIC` comes from the workflow. |
+| 51 | `check:responsive:dark` | `RESPONSIVE_THEME=dark npm run check:responsive -- --routes /,/topics/javascript-closures,/daily --widths 390,768,1280` | |
+| 52 | `test:harness` | `npm run test:harness` | Needs the client build and Chromium. |
+| 53-56 | `audit:performance`, `build:storybook`, `storybook`, `browser:storybook` | `npm run audit:performance`, `npm run build:storybook`, `npm run storybook --prefix client -- --ci` on port 6006, then `STORYBOOK_URL=http://localhost:6006 npm run test:browser -- tests/browser/storybook.spec.ts` | CI runs this step whenever the build step passed, even after a browser failure. |
 
 The `sql` job runs separately: `npm run test:sql` on `supabase/postgres:17.6.1.171` (`scripts/test-sql.mjs`).
 
@@ -55,7 +55,7 @@ The `sql` job runs separately: `npm run test:sql` on `supabase/postgres:17.6.1.1
 
 ```sh
 npm run ci:parity -- --list               # the plan, nothing runs
-npm run ci:parity -- --fast               # steps 1-28 and 49-50
+npm run ci:parity -- --fast               # steps 1-29 and 50-51
 npm run ci:parity                         # the whole verify job
 npm run ci:parity -- --only test:launch,build --log-dir artifacts/ci-parity-only
 npm run ci:parity -- --fast --bail        # stop at the first failure, as CI does

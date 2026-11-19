@@ -141,7 +141,7 @@ vi.mock('../src/lib/realtime', async (importOriginal) => ({
 
 // Thirty-one lobbies drawing their invitation QR code cost seconds and read
 // nothing.
-vi.mock('qrcode', () => ({ toDataURL: async () => 'data:image/png;base64,' }));
+vi.mock('qrcode', () => ({ toString: async () => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>' }));
 
 const { PlayMatch } = await import('../src/components/Play');
 

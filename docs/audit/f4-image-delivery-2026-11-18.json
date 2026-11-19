@@ -1,0 +1,225 @@
+{
+  "date": "2026-11-18",
+  "baselineSourceCommit": "8979bc43",
+  "measuredBuildCommit": "d17a8b15",
+  "scope": "Source public assets and the built share cards. Lighthouse uses an invented localhost settings fixture; these are lab results, not field Core Web Vitals.",
+  "publicAssets": {
+    "beforeBytes": 3069641,
+    "afterBytes": 892912,
+    "removedBytes": 2176729,
+    "beforeFiles": 94,
+    "afterFiles": 11,
+    "archiveInventory": "f4-archived-public-assets-2026-11-18.json"
+  },
+  "brandShareImage": {
+    "beforeBytes": 407658,
+    "afterBytes": 243605,
+    "width": 1200,
+    "height": 630,
+    "encoding": "256-colour PNG, no dithering",
+    "pixelIdentical": false,
+    "rgbMeanAbsoluteDifference": 0.13107142857142856,
+    "maximumChannelDifference": 13,
+    "visualReview": "Layout, outlines and legibility retained."
+  },
+  "generatedShareCards": {
+    "count": 894,
+    "maximumBytes": 21305,
+    "byteCap": 300000,
+    "maximumDimensions": [
+      1200,
+      630
+    ]
+  },
+  "svgOptimization": [
+    {
+      "file": "client/public/favicon-white.svg",
+      "before": 8055,
+      "after": 276,
+      "renderIdentical": true
+    },
+    {
+      "file": "client/public/favicon.svg",
+      "before": 8055,
+      "after": 276,
+      "renderIdentical": true
+    },
+    {
+      "file": "client/public/icon.svg",
+      "before": 8113,
+      "after": 328,
+      "renderIdentical": true
+    },
+    {
+      "file": "client/src/assets/brand/devshark-wordmark.svg",
+      "before": 9226,
+      "after": 9226,
+      "renderIdentical": true
+    }
+  ],
+  "pngIconOptimization": [
+    {
+      "file": "client/public/favicon-32.png",
+      "before": 6163,
+      "after": 348,
+      "pixelsIdentical": true
+    },
+    {
+      "file": "client/public/apple-touch-icon.png",
+      "before": 7936,
+      "after": 1041,
+      "pixelsIdentical": true
+    },
+    {
+      "file": "client/public/icon-192.png",
+      "before": 8173,
+      "after": 1113,
+      "pixelsIdentical": true,
+      "foregroundPixelsOutsideSafeCircle": 0
+    },
+    {
+      "file": "client/public/icon-512.png",
+      "before": 15854,
+      "after": 3167,
+      "pixelsIdentical": true,
+      "foregroundPixelsOutsideSafeCircle": 0
+    }
+  ],
+  "browserEvidence": {
+    "passed": 16,
+    "profiles": [
+      {
+        "width": 390,
+        "dpr": 3
+      },
+      {
+        "width": 768,
+        "dpr": 2
+      },
+      {
+        "width": 1440,
+        "dpr": 1
+      }
+    ],
+    "imageGuardNegativeCases": 2,
+    "publicCases": 8
+  },
+  "manifestEvidence": {
+    "developmentStatus": 200,
+    "developmentContentType": "application/manifest+json; charset=utf-8",
+    "developmentIconStatuses": [
+      200,
+      200,
+      200
+    ],
+    "builtName": "devShark",
+    "builtIcons": [
+      {
+        "src": "/icon.svg",
+        "type": "image/svg+xml",
+        "sizes": "any",
+        "purpose": "any"
+      },
+      {
+        "src": "/icon-192.png",
+        "type": "image/png",
+        "sizes": "192x192",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "/icon-512.png",
+        "type": "image/png",
+        "sizes": "512x512",
+        "purpose": "any maskable"
+      }
+    ]
+  },
+  "lighthouse": [
+    {
+      "profile": "mobile",
+      "requestedUrl": "http://127.0.0.1:4186",
+      "finalUrl": "http://127.0.0.1:4186/",
+      "fetchTime": "2026-11-18T22:12:18.611Z",
+      "lighthouseVersion": "13.4.1",
+      "scores": {
+        "performance": 0.85,
+        "accessibility": 1,
+        "best-practices": 1,
+        "seo": 1
+      },
+      "lcpMs": 3754.2114,
+      "cls": 0,
+      "tbtMs": 18,
+      "transferredBytes": 383357,
+      "warnings": []
+    },
+    {
+      "profile": "desktop",
+      "requestedUrl": "http://127.0.0.1:4186",
+      "finalUrl": "http://127.0.0.1:4186/",
+      "fetchTime": "2026-11-18T22:12:36.759Z",
+      "lighthouseVersion": "13.4.1",
+      "scores": {
+        "performance": 0.99,
+        "accessibility": 1,
+        "best-practices": 1,
+        "seo": 1
+      },
+      "lcpMs": 789.4232499999998,
+      "cls": 0,
+      "tbtMs": 0,
+      "transferredBytes": 383357,
+      "warnings": []
+    }
+  ],
+  "lighthouseImageAuditScores": {
+    "mobile": {
+      "image-aspect-ratio": 1,
+      "image-size-responsive": 1,
+      "unsized-images": 1,
+      "image-delivery-insight": 1
+    },
+    "desktop": {
+      "image-aspect-ratio": 1,
+      "image-size-responsive": 1,
+      "unsized-images": 1,
+      "image-delivery-insight": 1
+    }
+  },
+  "verificationLimits": [
+    "Mobile lab LCP is 3754.2114ms; initial-load and Core Web Vitals work remains in F3/F5/F16.",
+    "No physical-device or authenticated production verification.",
+    "Local QuickJS source rebuild needs Python 3.10 or a pinned emsdk; this host has Python 3.9.6. Required CI provides that rebuild."
+  ],
+  "lcpElements": {
+    "mobile": {
+      "selector": "section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_",
+      "snippet": "<p id=\"_r_4_\" class=\"ss-consent__body\">",
+      "nodeLabel": "devShark keeps what sign-in, settings and progress need in this browser. With y\u2026"
+    },
+    "desktop": {
+      "selector": "div.ss-pop > section.ss-hero-grid > div.ss-hero-copy > h1",
+      "snippet": "<h1 style=\"margin: 0px; font-family: var(--font-family-heading); font-weight: 800;\">",
+      "nodeLabel": "Lessons, quizzes and coding tasks for web developers."
+    }
+  },
+  "revalidation": {
+    "date": "2026-11-19",
+    "head": "caec3ff4",
+    "mainBase": "d0e96b88",
+    "selectedParityStepsPassed": 12,
+    "clientTestsPassed": 1938,
+    "clientTestFiles": 193,
+    "browserTestsPassed": 17,
+    "imageContractsPassed": 37,
+    "sourceAndBuiltImagesChecked": 917,
+    "generatedCards": 895,
+    "largestGeneratedCardBytes": 21305,
+    "initialGzipBytes": 235416,
+    "initialGzipBudget": 241651,
+    "monitoringGzipBytes": 49565,
+    "monitoringGzipBudget": 60000,
+    "codingRerunFilter": "^(react-fullstack-workshops-6|react-easy3-dispatch-through-context)$",
+    "codingRerunExitCode": 0
+  }
+}

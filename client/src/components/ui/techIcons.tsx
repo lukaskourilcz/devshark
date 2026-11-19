@@ -62,6 +62,7 @@ export function CategoryGlyph({ category, color, size = 20 }: { category: string
         aria-hidden
         width={size}
         height={size}
+        decoding="async"
         className={tech.mono ? 'ss-tech-mono' : undefined}
         style={{ display: 'block', flexShrink: 0 }}
       />

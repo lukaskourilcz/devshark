@@ -158,7 +158,9 @@ describe('a share page opened directly', () => {
     const head = readShareHead();
 
     visit('/quiz', head);
-    expect(meta('meta[property="og:image"]')).toBe('https://devshark.app/og-image.png?v=20261012');
+    // A cached shell can name the previous image; navigation uses this deploy's
+    // optimized brand card before restoring a task's original card.
+    expect(meta('meta[property="og:image"]')).toBe('https://devshark.app/og-image.png?v=20261118');
     expect(meta('meta[property="og:image:alt"]')).toBe('devShark — Lessons, quizzes and coding challenges');
     visit('/daily', head);
     expect(meta('meta[property="og:image"]')).toBe('https://devshark.app/og/daily.png');

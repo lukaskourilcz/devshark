@@ -3,7 +3,7 @@ import { TOPIC_LANDINGS, type TopicLandingDefinition } from './topicCatalog';
 import { PREMIUM_PRICE } from '../../../shared/tiers';
 import type { TranslationKey } from '../i18n/translations';
 export const PUBLIC_ORIGIN = 'https://devshark.app';
-export const BRAND_SHARE_IMAGE = PUBLIC_ORIGIN + '/og-image.png?v=20261012';
+export const BRAND_SHARE_IMAGE = PUBLIC_ORIGIN + '/og-image.png?v=20261118';
 export const BRAND_SHARE_IMAGE_ALT = 'devShark — Lessons, quizzes and coding challenges';
 export const DAILY_SHARE_IMAGE_PATH = '/og/daily.png';
 /** Resolve only the published English guide addresses. */

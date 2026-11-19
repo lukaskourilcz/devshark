@@ -993,13 +993,13 @@ function Lobby({
   useEffect(() => {
     let active = true;
     void import('qrcode')
-      .then(({ toDataURL }) => toDataURL(shareUrl, {
-        width: 220,
+      .then(({ toString }) => toString(shareUrl, {
+        type: 'svg',
         margin: 1,
         color: { dark: '#132019ff', light: '#ffffffff' },
         errorCorrectionLevel: 'M',
       }))
-      .then((url) => { if (active) setQrUrl(url); })
+      .then((svg) => { if (active) setQrUrl(`data:image/svg+xml,${encodeURIComponent(svg)}`); })
       .catch(() => { if (active) setQrUrl(null); });
     return () => { active = false; };
   }, [shareUrl]);
@@ -1021,7 +1021,7 @@ function Lobby({
       <div className="play-lobby__share">
         {qrUrl !== null && (
           <div className="play-lobby__qr">
-            {qrUrl && <img src={qrUrl} alt={t('play.qrAlt', { code: match.code })} width={164} height={164} />}
+            {qrUrl && <img src={qrUrl} alt={t('play.qrAlt', { code: match.code })} width={164} height={164} decoding="async" />}
           </div>
         )}
         <div className="play-lobby__share-text">

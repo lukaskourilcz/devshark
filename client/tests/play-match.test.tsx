@@ -54,6 +54,14 @@ vi.mock('../src/lib/realtime', async (importOriginal) => ({
   }),
 }));
 
+// Keep the legacy PNG path usable so the vector regression fails on its
+// format, rather than on jsdom's missing canvas. SVG generation uses qrcode's
+// actual encoder and the browser spec checks its decoded image.
+vi.mock('qrcode', async (importOriginal) => ({
+  ...await importOriginal<typeof import('qrcode')>(),
+  toDataURL: async () => 'data:image/png;base64,iVBORw0KGgo=',
+}));
+
 const { PlayMatch, PlayLanding } = await import('../src/components/Play');
 
 const QUESTIONS = [
@@ -122,6 +130,28 @@ beforeEach(() => {
   live.sent.length = 0;
 });
 afterEach(() => vi.useRealTimers());
+
+describe('the Play invitation image (F4-06)', () => {
+  it('keeps the invitation sharp at any screen density with a dimensioned, named SVG', async () => {
+    const lobby = running({ status: 'lobby', questions: [], started_at: null });
+    api.joinMatch.mockResolvedValue(lobby);
+    api.fetchMatchState.mockResolvedValue(stateOf(lobby));
+    await mount();
+    const image = await screen.findByRole('img', { name: 'QR code to join match ABC123' });
+    expect(image).toHaveAttribute('src', expect.stringMatching(/^data:image\/svg\+xml[;,]/));
+    expect(image).toHaveAttribute('width', '164');
+    expect(image).toHaveAttribute('height', '164');
+    expect(image).toHaveAttribute('decoding', 'async');
+    const source = image.getAttribute('src')!;
+    const svg = source.includes(';base64,')
+      ? Buffer.from(source.split(',')[1], 'base64').toString('utf8')
+      : decodeURIComponent(source.slice(source.indexOf(',') + 1));
+    expect(svg).toContain('<svg');
+    expect(svg).toContain('viewBox=');
+    expect(svg).toContain('<path');
+    expect(screen.getByText(/\/play\/ABC123$/)).toBeInTheDocument();
+  });
+});
 
 describe('the Play page (social-account-12)', () => {
   it('has one filled primary, Create, and Join turns primary only once the field holds a whole code', async () => {

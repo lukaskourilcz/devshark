@@ -1,0 +1,486 @@
+{
+  "baseline": "8979bc43",
+  "removedPublicBytes": 1943862,
+  "files": [
+    {
+      "path": "client/public/brand/approved/navbar-logo-ink.svg",
+      "bytes": 9902,
+      "sha256": "5433ddfc77dfb9fb1fc1889e23c99971fcea48b7ac39d02274032eea725a30ac",
+      "archive": "docs/brand/source/approved/navbar-logo-ink.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/README.md",
+      "bytes": 1161,
+      "sha256": "59d07aa2596e4c0fa7b0a6c51d5d90ce58f4a7096dab7077fe471498b24f56ee",
+      "archive": "docs/brand/source/devshark-approved/README.md"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/favicon-16.png",
+      "bytes": 250,
+      "sha256": "51467be35afa54ea5248759e45da32bc916421734ae28a55e3619cb76bde163f",
+      "archive": "docs/brand/source/devshark-approved/favicon-16.png"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/favicon-180.png",
+      "bytes": 2024,
+      "sha256": "3957ec33570bc3af945a1730d188b4157fe58bd31b43dce018e1a4c76fbe444a",
+      "archive": "docs/brand/source/devshark-approved/favicon-180.png"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/favicon-192.png",
+      "bytes": 2117,
+      "sha256": "bb33218aba8b150a92ed8d2adea148f8550e96a0ed8e67a03402ada848796f51",
+      "archive": "docs/brand/source/devshark-approved/favicon-192.png"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/favicon-32.png",
+      "bytes": 418,
+      "sha256": "227918dc5d0ec796d0d2292cf4c80a02bd2f628c7b5b06e0554a7dba50aa8a32",
+      "archive": "docs/brand/source/devshark-approved/favicon-32.png"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/favicon-48.png",
+      "bytes": 558,
+      "sha256": "b4ba38a2a613fa4242f5ff89ee74c1f53ec99e0b4283c9793b63702f18cf9cbf",
+      "archive": "docs/brand/source/devshark-approved/favicon-48.png"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/favicon-512.png",
+      "bytes": 7001,
+      "sha256": "a84f1f0e77716f8410f5fd9fdd6b5e9514f5033932258bd910cac809ad3382a2",
+      "archive": "docs/brand/source/devshark-approved/favicon-512.png"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/favicon.ico",
+      "bytes": 1280,
+      "sha256": "c08d8ac4e15e36e7525ebaa4db2448b3b5b7405933b8f170236f19c40f12861d",
+      "archive": "docs/brand/source/devshark-approved/favicon.ico"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/favicon.svg",
+      "bytes": 281,
+      "sha256": "e39176b61eb2b9632a24d71c0d07942ff8d42319ef71cf58d8d0218b63d93eeb",
+      "archive": "docs/brand/source/devshark-approved/favicon.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/fin-clean-green.svg",
+      "bytes": 277,
+      "sha256": "15d59fa7e9f50b4a340d5ed94552acc91b3b69c019a625fe8753e38b4674882a",
+      "archive": "docs/brand/source/devshark-approved/fin-clean-green.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/fin-clean-ink.svg",
+      "bytes": 277,
+      "sha256": "35c6428f629502f3d9e695d837a0a1242dc998dba8ce587cd71cd33b9705e88c",
+      "archive": "docs/brand/source/devshark-approved/fin-clean-ink.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/fin-clean-white.svg",
+      "bytes": 277,
+      "sha256": "a589c3489e132da43d3f173e414f456ebdf442c135b63efebed731b8d99164c9",
+      "archive": "docs/brand/source/devshark-approved/fin-clean-white.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/fin-waves-green.svg",
+      "bytes": 583,
+      "sha256": "764e29282c11274e32a176a9702f896f91a370beaab73c6a87ea7a5a883266ce",
+      "archive": "docs/brand/source/devshark-approved/fin-waves-green.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/fin-waves-ink.svg",
+      "bytes": 583,
+      "sha256": "11f334c1eebaec60999db51ff5cb97ffb89afc561ffbc146efaec3af2b07b7ee",
+      "archive": "docs/brand/source/devshark-approved/fin-waves-ink.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/fin-waves-white.svg",
+      "bytes": 583,
+      "sha256": "643752eb149a94178b72391b7232dbde38e24b0f7ac7ad47ef170dc3f6ab3463",
+      "archive": "docs/brand/source/devshark-approved/fin-waves-white.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/logo-clean-green.png",
+      "bytes": 49454,
+      "sha256": "23bb1f3fd4788f0b4f87ec6f219a8f9b36aa20c426b005acfbf5f2efe9fa26f5",
+      "archive": "docs/brand/source/devshark-approved/logo-clean-green.png"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/logo-clean-green.svg",
+      "bytes": 10959,
+      "sha256": "c4a6401af5ac4966fc708a1692378ad6463b602ef5a9957685cce1a1489ff20f",
+      "archive": "docs/brand/source/devshark-approved/logo-clean-green.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/logo-clean-ink.png",
+      "bytes": 49898,
+      "sha256": "73446b78aebf1871defe87f74c9a16ee4f3355e7325d471df82e69c64ce0a9b8",
+      "archive": "docs/brand/source/devshark-approved/logo-clean-ink.png"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/logo-clean-ink.svg",
+      "bytes": 10959,
+      "sha256": "db3e9b0bea42af2a0cc347deb8409c5429f43f720a61cf4644ba5f78e5f39b2e",
+      "archive": "docs/brand/source/devshark-approved/logo-clean-ink.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/logo-clean-white.png",
+      "bytes": 37951,
+      "sha256": "6dc0e0c6e7f2b4267ae379b599ea9467ce685911cb36a883ca8ba1344d16d1a8",
+      "archive": "docs/brand/source/devshark-approved/logo-clean-white.png"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/logo-clean-white.svg",
+      "bytes": 10959,
+      "sha256": "763240867d400c3ff1cd652314fb0fdb8c01a799379e08a90c057c283b66401e",
+      "archive": "docs/brand/source/devshark-approved/logo-clean-white.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/logo-waves-green.png",
+      "bytes": 55104,
+      "sha256": "36fec3e173f2bbcf75f1f01e9a8376990912b58e98f5bce8d33b00ef931a08bd",
+      "archive": "docs/brand/source/devshark-approved/logo-waves-green.png"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/logo-waves-green.svg",
+      "bytes": 11265,
+      "sha256": "2c6e7f235d7060b83f6a9bf9f2fb217118877d60b10af55e8ba909ac36608580",
+      "archive": "docs/brand/source/devshark-approved/logo-waves-green.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/logo-waves-ink.png",
+      "bytes": 55630,
+      "sha256": "8c890a4415a23398786310663820dd81f55943475f1cad2d1fee82354d0cf1dc",
+      "archive": "docs/brand/source/devshark-approved/logo-waves-ink.png"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/logo-waves-ink.svg",
+      "bytes": 11265,
+      "sha256": "88029a2c6f16c85b9c76f2a0b5fc855b733cdc658819a2e9105955b6cf547fe0",
+      "archive": "docs/brand/source/devshark-approved/logo-waves-ink.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/logo-waves-white.png",
+      "bytes": 42490,
+      "sha256": "1b8d791789739313e8932caaf034ca6f45fb4ed90be44ea0493508afbff5e723",
+      "archive": "docs/brand/source/devshark-approved/logo-waves-white.png"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/logo-waves-white.svg",
+      "bytes": 11265,
+      "sha256": "3841b178862f044a17845fd86aec319fdbc99e88505e457f19309cb38800082d",
+      "archive": "docs/brand/source/devshark-approved/logo-waves-white.svg"
+    },
+    {
+      "path": "client/public/brand/devshark-approved/manifest.json",
+      "bytes": 4214,
+      "sha256": "12129d002ea10054c79d1ffb690884e7ee06c1eea7b751af3f29b56fd7067982",
+      "archive": "docs/brand/source/devshark-approved/manifest.json"
+    },
+    {
+      "path": "client/public/brand/og/architecture-current.webp",
+      "bytes": 91310,
+      "sha256": "f32b402f13e6e852295c6dbe9583bef4c76670451dd4789582ce2450c9946109",
+      "archive": "docs/brand/source/og/architecture-current.webp"
+    },
+    {
+      "path": "client/public/brand/v9/README.md",
+      "bytes": 3325,
+      "sha256": "a16c53a5b8eaa3f275b41c5688678ac334209279668c2daae2c11984a60d7401",
+      "archive": "docs/brand/source/v9/README.md"
+    },
+    {
+      "path": "client/public/brand/v9/favicon/app-icon-180.png",
+      "bytes": 7936,
+      "sha256": "ca4bef1cb988d28272383f3e0fadb421341be5800663d48a3a2e3c66d6c3e168",
+      "archive": "docs/brand/source/v9/favicon/app-icon-180.png"
+    },
+    {
+      "path": "client/public/brand/v9/favicon/app-icon-192.png",
+      "bytes": 8173,
+      "sha256": "4646372e35734ae86aa0527694f38fe515ddeb53763ddabd81f92efa981f3a88",
+      "archive": "docs/brand/source/v9/favicon/app-icon-192.png"
+    },
+    {
+      "path": "client/public/brand/v9/favicon/app-icon-512.png",
+      "bytes": 15854,
+      "sha256": "b29133a2098e746db0f02db12d26e7a99a5236aeac44f44a4e88bab5885e8f5c",
+      "archive": "docs/brand/source/v9/favicon/app-icon-512.png"
+    },
+    {
+      "path": "client/public/brand/v9/favicon/app-icon.svg",
+      "bytes": 8113,
+      "sha256": "9b2d3dc51da6745c53625b9a94b32237a24ce62d97f4523ba2bf1e7cc5822700",
+      "archive": "docs/brand/source/v9/favicon/app-icon.svg"
+    },
+    {
+      "path": "client/public/brand/v9/favicon/favicon-16.png",
+      "bytes": 6023,
+      "sha256": "5ab21cbe40acdd43be2da1487bdb63f15973f9b8cfc3a35742cb66b67ae0d404",
+      "archive": "docs/brand/source/v9/favicon/favicon-16.png"
+    },
+    {
+      "path": "client/public/brand/v9/favicon/favicon-180.png",
+      "bytes": 8160,
+      "sha256": "5afce4a31cf56ffe497fe9534fac510ce526337ed2b391fd4c4e5ab35c9e9348",
+      "archive": "docs/brand/source/v9/favicon/favicon-180.png"
+    },
+    {
+      "path": "client/public/brand/v9/favicon/favicon-192.png",
+      "bytes": 8405,
+      "sha256": "cfc6ae557af51716d59d1fcba46e89a3274f8e4f6959244c925abd2e5b1559b8",
+      "archive": "docs/brand/source/v9/favicon/favicon-192.png"
+    },
+    {
+      "path": "client/public/brand/v9/favicon/favicon-32.png",
+      "bytes": 6163,
+      "sha256": "b93aeb07f3f5eb11598b8b64fa3e33f4cb5a81cec9e8de2aef589072f022352f",
+      "archive": "docs/brand/source/v9/favicon/favicon-32.png"
+    },
+    {
+      "path": "client/public/brand/v9/favicon/favicon-48.png",
+      "bytes": 6341,
+      "sha256": "0df913a09c466f52aefb948f8fc79cb747455ff768e1fed40efa9ebe8ea51d57",
+      "archive": "docs/brand/source/v9/favicon/favicon-48.png"
+    },
+    {
+      "path": "client/public/brand/v9/favicon/favicon-512.png",
+      "bytes": 16676,
+      "sha256": "55f553ddd3cdfd6567ae7d67056dc718bc5b45dcb90c98860f5d63b029b70bef",
+      "archive": "docs/brand/source/v9/favicon/favicon-512.png"
+    },
+    {
+      "path": "client/public/brand/v9/favicon/favicon-white.svg",
+      "bytes": 8055,
+      "sha256": "352df56b63674b93fc00aaa8e65721bf1c9f2e551e7eec54e6c3e267a78c4768",
+      "archive": "docs/brand/source/v9/favicon/favicon-white.svg"
+    },
+    {
+      "path": "client/public/brand/v9/favicon/favicon.ico",
+      "bytes": 1271,
+      "sha256": "c871d6cbd04d2701c87541b7409efce179cfbd6ed6be8de902e246f171a34a4f",
+      "archive": "docs/brand/source/v9/favicon/favicon.ico"
+    },
+    {
+      "path": "client/public/brand/v9/favicon/favicon.svg",
+      "bytes": 8055,
+      "sha256": "0b4c12c4e0c2870053004a4b3afa8bcff0ca6a4d2c88a0a3b01f5a11ddaf3b39",
+      "archive": "docs/brand/source/v9/favicon/favicon.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-fin-clean-green.png",
+      "bytes": 35621,
+      "sha256": "b93b3fac33551bf468be6611135374db77a76dbc044c9b0c74e852e41131ff8d",
+      "archive": "docs/brand/source/v9/recommended/devshark-fin-clean-green.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-fin-clean-green.svg",
+      "bytes": 8024,
+      "sha256": "348d145b20eb26c3f091d2b406794d35c90136aa0930693d93bd930f3497666c",
+      "archive": "docs/brand/source/v9/recommended/devshark-fin-clean-green.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-fin-clean-ink.png",
+      "bytes": 35611,
+      "sha256": "41d5dbc5732854bbebee44fecabd68cea3cf4408112b3d6338c566b1251bd92d",
+      "archive": "docs/brand/source/v9/recommended/devshark-fin-clean-ink.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-fin-clean-ink.svg",
+      "bytes": 8024,
+      "sha256": "aedebdf0bc8dae4e4ac339341917b4ec55c978d1d7bb834bd48faadfcf416e1e",
+      "archive": "docs/brand/source/v9/recommended/devshark-fin-clean-ink.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-fin-clean-white.png",
+      "bytes": 35301,
+      "sha256": "ca20bf016db23adeae57e386f63d960f5647768dc17d94e088a630cc9915b43e",
+      "archive": "docs/brand/source/v9/recommended/devshark-fin-clean-white.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-fin-clean-white.svg",
+      "bytes": 8024,
+      "sha256": "442cdccec1ff353dcb6aac6852f129c0d41948199a7199b6b2c4759b8fdd498f",
+      "archive": "docs/brand/source/v9/recommended/devshark-fin-clean-white.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-fin-wave-green.png",
+      "bytes": 45296,
+      "sha256": "6ed45f6ad8e73d039bed7beaf19408400303bc5de4106cd964a2582f8e98e971",
+      "archive": "docs/brand/source/v9/recommended/devshark-fin-wave-green.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-fin-wave-green.svg",
+      "bytes": 8357,
+      "sha256": "0b0f92cab380e302ed8cb6fdd844436d856a76e8a79eaff06ba8ee4c55fadc31",
+      "archive": "docs/brand/source/v9/recommended/devshark-fin-wave-green.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-fin-wave-ink.png",
+      "bytes": 45187,
+      "sha256": "75564edae436d2aab6ab76f2657cb43801cec5eea5683fec6abe863ae4ad74a3",
+      "archive": "docs/brand/source/v9/recommended/devshark-fin-wave-ink.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-fin-wave-ink.svg",
+      "bytes": 8357,
+      "sha256": "d0e0871acb3849cdf34f5ad771e9c66f9462fb0346f3162f4b3a8d304b0c85fa",
+      "archive": "docs/brand/source/v9/recommended/devshark-fin-wave-ink.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-fin-wave-white.png",
+      "bytes": 45134,
+      "sha256": "68737cc33762272dad767c4af068ff412e1e87d8e8335c27283799483853278d",
+      "archive": "docs/brand/source/v9/recommended/devshark-fin-wave-white.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-fin-wave-white.svg",
+      "bytes": 8357,
+      "sha256": "b90146c2d553e3d100f180f9b056827b72d4554fa66478670058c7c58fe8a236",
+      "archive": "docs/brand/source/v9/recommended/devshark-fin-wave-white.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-compact-green.png",
+      "bytes": 60111,
+      "sha256": "36b356e28540adaf8d5ad4c943856322519320793e02f1e6b4cb67c91274c1f9",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-compact-green.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-compact-green.svg",
+      "bytes": 14752,
+      "sha256": "79597bea25b00106d55da7b2d9583c2ffe29658b4b328d2958970b67faa0f40c",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-compact-green.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-compact-ink.png",
+      "bytes": 60443,
+      "sha256": "43c3b2c4a23b7c24188310d754338a4ef8e993c769607d732006eae56fe48ac2",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-compact-ink.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-compact-ink.svg",
+      "bytes": 14752,
+      "sha256": "80a7e80de917ba9597bc6d5d9fe4d9bfab69126265e4a6c28167565874664857",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-compact-ink.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-compact-white.png",
+      "bytes": 60300,
+      "sha256": "5fbc855323ad2a9ea1a417a2d9cb8281c87ecbe0428d5e191e9144f8ab632109",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-compact-white.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-compact-white.svg",
+      "bytes": 14752,
+      "sha256": "af9873e4462072f19dd74dab9e119514a6119e308d1066672e0d1d6b92cb75c8",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-compact-white.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-horizontal-green.png",
+      "bytes": 59842,
+      "sha256": "7a7114b88c785b31aa7ab88438790b444cb31412e46ac6cb3dca8dc85ca2bde0",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-horizontal-green.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-horizontal-green.svg",
+      "bytes": 14755,
+      "sha256": "d959eac1963f94f1bb18bdc6cd96e69fe7c384d1ab11e0596441be0c68b149fe",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-horizontal-green.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-horizontal-ink.png",
+      "bytes": 60016,
+      "sha256": "431d123af64ffe3c81288465cb81286cf45637af7250c0215f1fdbda132e5fca",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-horizontal-ink.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-horizontal-ink.svg",
+      "bytes": 14755,
+      "sha256": "0900e34f9bb71c7db229d02aad3171f74a30cfdcd5f9612d1bc8a1caf69a6b7f",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-horizontal-ink.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-horizontal-small-green.png",
+      "bytes": 60242,
+      "sha256": "dceaffdf09fbe6d4aa0c0fdf37151d91e5375c9c2d06a1436f3ba6280b50f3f6",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-horizontal-small-green.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-horizontal-small-green.svg",
+      "bytes": 14753,
+      "sha256": "d7b45897fea2624e02da0ccaf88e4695954cf8d5e5d260ac02ebf02a20515ce3",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-horizontal-small-green.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-horizontal-small-ink.png",
+      "bytes": 60647,
+      "sha256": "51537a31711aafeb89c08a60859b5148bac673afe7c2908d5be9a91e5d6ed16d",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-horizontal-small-ink.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-horizontal-small-ink.svg",
+      "bytes": 14753,
+      "sha256": "b68ef4b9f0d620643584b9be5a756ed274475103597800174197120f6bc3b09d",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-horizontal-small-ink.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-horizontal-small-white.png",
+      "bytes": 60243,
+      "sha256": "7f4ef1f4a5c993bfcd8f735a79877ffe15eead801318774ea0f1d918f1c3ae03",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-horizontal-small-white.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-horizontal-small-white.svg",
+      "bytes": 14753,
+      "sha256": "fc1de9998f7c27507f560bdce47e7151fd693d42deb1a3550e4c01cf9a2b45b1",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-horizontal-small-white.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-horizontal-white.png",
+      "bytes": 59647,
+      "sha256": "c7306ff38e701a4eb9d348f1b5541b7155d667eca21f62f0285e3eed7ca3cc41",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-horizontal-white.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-horizontal-white.svg",
+      "bytes": 14755,
+      "sha256": "ba705d15f8c6e391a5c515accc3d1faf45f6488bfb762945c2fd5e5f8247114f",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-horizontal-white.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-stacked-green.png",
+      "bytes": 114045,
+      "sha256": "2576e77f2686fc5d8fa0c4a92650d93c2e5393d7a1a6371af39565f071b78003",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-stacked-green.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-stacked-green.svg",
+      "bytes": 14718,
+      "sha256": "eec8e700c8cd6f43a6af5ec345d434eee9fe826b85b70a36ffd7d4525f16a240",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-stacked-green.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-stacked-ink.png",
+      "bytes": 113726,
+      "sha256": "a36d4720828e83c2abe41dc35bfd2536dee232e0d7864b5d0b670e87c4d32392",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-stacked-ink.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-stacked-ink.svg",
+      "bytes": 14718,
+      "sha256": "ac6726558ceed5f7f15de5b73497e838fcfbb22e8464788548f1427c36274623",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-stacked-ink.svg"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-stacked-white.png",
+      "bytes": 113528,
+      "sha256": "72a15abb7780a621d9a58cfcde3bc31f3b918101d0863213a47d88647184ba5d",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-stacked-white.png"
+    },
+    {
+      "path": "client/public/brand/v9/recommended/devshark-logo-stacked-white.svg",
+      "bytes": 14718,
+      "sha256": "d01de40142c4e0a9514b6528d1495b913f3d5227e162f54bea0c2ae1cbedd27b",
+      "archive": "docs/brand/source/v9/recommended/devshark-logo-stacked-white.svg"
+    }
+  ]
+}
