@@ -123,10 +123,12 @@ async function fixture(t, { transitive = false, corruptIntegrity = false } = {})
 test('runtime installs the locked compiler and its libraries without unrelated devDependencies', async (t) => {
   const { app, temporary, before, result, output } = await fixture(t);
   assert.equal(result.status, 0, output);
-  const require = createRequire(join(app, 'package.json'));
-  assert.equal(require('fixture-prod'), 'production');
-  assert.equal(require('typescript').version, compilerVersion);
-  assert.match(require('typescript').readDefaultLib(), /preservedCompilerLibrary/);
+  const fixtureRequire = createRequire(join(app, 'package.json'));
+  const productionPackages = Object.keys(JSON.parse(readFileSync(join(app, 'package.json'), 'utf8')).dependencies);
+  assert.deepEqual(productionPackages, ['fixture-prod']);
+  assert.equal(fixtureRequire(productionPackages[0]), 'production');
+  assert.equal(fixtureRequire('typescript').version, compilerVersion);
+  assert.match(fixtureRequire('typescript').readDefaultLib(), /preservedCompilerLibrary/);
   assert.equal(readFileSync(join(app, 'node_modules/typescript/LICENSE.txt'), 'utf8'), 'fixture license\n');
   assert.deepEqual(readdirSync(join(app, 'node_modules')).filter(name => !name.startsWith('.')).sort(), ['fixture-prod', 'typescript']);
   assert.equal(digest(readFileSync(join(app, 'package-lock.json'))), before);
