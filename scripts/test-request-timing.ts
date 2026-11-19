@@ -42,6 +42,11 @@ await (await import('./cold-start-contracts')).coldStartContracts();
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-f7-import-operations.ts');
 // The public JSON runner includes every route case and all six helper contracts.
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-public-json.ts');
+// Roadmap concern cuts preserve live operations and the existing request boundary.
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-roadmap-concerns.ts');
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-roadmap-placement.ts');
+// Native local HTTP sockets prove reuse and cancellation through the SDK wrappers.
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-upstream-connections.ts');
 // The rate-limit prelude's round trips (#587), in a process of its own.
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-prelude.ts');
 // The Learn branches' round trips (#587), in a process of their own.
