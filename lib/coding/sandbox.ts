@@ -53,6 +53,8 @@ export const SANDBOX_MEMORY_BYTES = 64 * 1024 * 1024;
 export const SANDBOX_STACK_BYTES = 1024 * 1024;
 /** Rounds of jobs and timers a run may take before it counts as a timeout. */
 export const SANDBOX_MAX_TICKS = 10_000;
+/** Whole-run encoded outcome packets, in JSON UTF16 code units. */
+export const SANDBOX_ENCODED_OUTPUT_CHARS = 900_000;
 /** What a learner sees when their call chain ran out of stack. Named rather
  * than inlined so the message reads the same wherever the overflow surfaces. */
 const STACK_MESSAGE = 'The call stack ran out of room: the recursion went too deep, or a base case is never reached.';
@@ -99,12 +101,44 @@ const makeArray = () => setPrototype([], null);
 const packet = (...values) => setPrototype(values, null);
 let now = 0, nextId = 1, timers = makeArray(), logs = makeArray();
 let done = false, output = null, shownLogs = -1;
-const encode = (value, depth = 0, seen = makeArray()) => {
+// Each pending call owns a fixed error slot. A rejected partial value
+// cannot spend another call's reserved size-error space.
+const ResultError = Error, charCodeText = String.prototype.charCodeAt;
+const sizeError = packet('error', 'Result size limit exceeded');
+const sizeErrorChars = stringify(sizeError).length;
+const valueFrameChars = stringify(packet('value', null)).length - 4;
+const stringFrameChars = stringify(packet('string', '')).length - 2;
+let encodedChars = 2 + ${calls.length > 0 ? calls.length - 1 : 0} + ${calls.length} * sizeErrorChars;
+const storeOutcome = outcome => {
+  const next = encodedChars - sizeErrorChars + stringify(outcome).length;
+  if (next > ${SANDBOX_ENCODED_OUTPUT_CHARS}) return sizeError;
+  encodedChars = next;
+  return outcome;
+};
+// JSON length, including escapes and well-formed lone-surrogate quoting.
+// Count before building the full packet; these methods were captured before
+// learner code could replace String.prototype or JSON.stringify.
+const quoteChars = (text, charge) => {
+  charge(2);
+  for (let i = 0; i < text.length; i++) {
+    const one = apply(charCodeText, text, [i]);
+    if (one === 34 || one === 92 || one === 8 || one === 9 || one === 10 || one === 12 || one === 13) charge(2);
+    else if (one < 32) charge(6);
+    else if (one >= 0xd800 && one <= 0xdbff) {
+      const next = i + 1 < text.length ? apply(charCodeText, text, [i + 1]) : 0;
+      if (next >= 0xdc00 && next <= 0xdfff) { charge(2); i++; }
+      else charge(6);
+    } else charge(one >= 0xdc00 && one <= 0xdfff ? 6 : 1);
+  }
+};
+const smallPacket = (value, charge) => { charge(stringify(value).length); return value; };
+const encode = (value, charge, depth = 0, seen = makeArray()) => {
   if (depth > 40) throw new Error('Result nesting limit exceeded');
-  if (value === undefined) return packet('undefined');
-  if (value === null) return packet('null');
-  if (typeof value === 'number') return packet('number', is(value, -0) ? '-0' : string(value));
-  if (typeof value === 'string' || typeof value === 'boolean') return packet(typeof value, value);
+  if (value === undefined) return smallPacket(packet('undefined'), charge);
+  if (value === null) return smallPacket(packet('null'), charge);
+  if (typeof value === 'number') return smallPacket(packet('number', is(value, -0) ? '-0' : string(value)), charge);
+  if (typeof value === 'boolean') return smallPacket(packet('boolean', value), charge);
+  if (typeof value === 'string') { charge(stringFrameChars); quoteChars(value, charge); return packet('string', value); }
   if (typeof value !== 'object') throw new Error('Result is not cloneable');
   for (let i = 0; i < seen.length; i++) if (seen[i] === value) throw new Error('Circular result');
   seen[seen.length] = value;
@@ -112,13 +146,21 @@ const encode = (value, depth = 0, seen = makeArray()) => {
   const names = isArray(value) ? null : keys(value);
   const length = names ? names.length : value.length;
   if (length > 10000) throw new Error('Result size limit exceeded');
+  charge(stringify(packet(names ? 'object' : 'array', makeArray())).length);
   for (let i = 0; i < length; i++) {
-    entries[entries.length] = names ? packet(names[i], encode(value[names[i]], depth + 1, seen)) : encode(value[i], depth + 1, seen);
+    if (i) charge(1);
+    if (names) { charge(3); quoteChars(names[i], charge); }
+    entries[entries.length] = names ? packet(names[i], encode(value[names[i]], charge, depth + 1, seen)) : encode(value[i], charge, depth + 1, seen);
   }
   seen.length--;
   return packet(names ? 'object' : 'array', entries);
 };
-const message = error => { try { return string(error && error.message || error); } catch { return 'Evaluation failed'; } };
+const message = error => {
+  try {
+    const text = string(error && error.message || error);
+    return text.length > ${MAX_LOG_LINE_CHARS + 1} ? apply(sliceText, text, [0, ${MAX_LOG_LINE_CHARS + 1}]) : text;
+  } catch { return 'Evaluation failed'; }
+};
 const sliceText = String.prototype.slice;
 let logChars = 0, logsCut = false;
 const emit = line => {
@@ -258,8 +300,16 @@ const launch = (from, to, next) => {
   const settled = () => { remaining--; if (!remaining) next(); };
   for (let i = from; i < to; i++) {
     const invoke = async () => {
-      try { outcomes[i] = packet('value', encode(await evaluate[i]())); }
-      catch (error) { outcomes[i] = packet('error', message(error)); }
+      try {
+        const actual = await evaluate[i]();
+        // Encoding is synchronous after the await. A rejected partial value
+        // spends only this local counter; it never consumes another slot.
+        const remaining = ${SANDBOX_ENCODED_OUTPUT_CHARS} - encodedChars + sizeErrorChars;
+        let spent = 0;
+        const charge = chars => { spent += chars; if (spent > remaining) throw new ResultError('Result size limit exceeded'); };
+        charge(valueFrameChars);
+        outcomes[i] = storeOutcome(packet('value', encode(actual, charge)));
+      } catch (error) { outcomes[i] = storeOutcome(packet('error', message(error))); }
       settled();
     };
     invoke();
@@ -269,11 +319,15 @@ const launch = (from, to, next) => {
 // every line printed before that point belongs to learner-visible work.
 launch(0, ${shownCalls}, () => {
   shownLogs = logs.length;
-  launch(${shownCalls}, ${calls.length}, () => { output = stringify(outcomes); done = true; });
+  launch(${shownCalls}, ${calls.length}, () => {
+    const raw = stringify(outcomes);
+    output = raw.length <= ${SANDBOX_ENCODED_OUTPUT_CHARS} ? raw : null;
+    done = true;
+  });
 });
 return {
   done: () => done,
-  output: () => output,
+  output: () => typeof output === 'string' && output.length <= 1000000 ? output : null,
   logs: () => {
     if (shownLogs < 0) return stringify(logs);
     const shown = makeArray();
