@@ -25,7 +25,7 @@ async function firstVisit(page: Page, theme: 'light' | 'dark') {
 
 for (const profile of profiles) test.describe(profile.name, () => {
   test.use({
-    viewport: profile.viewport, screen: { width: 1280, height: 800 },
+    viewport: profile.viewport, contextOptions: { screen: { width: 1280, height: 800 } },
     deviceScaleFactor: profile.deviceScaleFactor, isMobile: false, hasTouch: false,
   });
 
@@ -37,12 +37,14 @@ for (const profile of profiles) test.describe(profile.name, () => {
         return {
           top: box.top, bottom: box.bottom, height: box.height,
           viewport: { width: innerWidth, height: innerHeight }, density: devicePixelRatio,
+          screen: { width: screen.width, height: screen.height },
           shellHeight: document.querySelector('.ss-app-root')!.getBoundingClientRect().height,
         };
       });
       await info.attach('consent-reflow-geometry', { body: JSON.stringify(geometry), contentType: 'application/json' });
       expect(geometry.viewport).toEqual(profile.viewport);
       expect(geometry.density).toBe(profile.deviceScaleFactor);
+      expect(geometry.screen).toEqual({ width: 1280, height: 800 });
       expect(geometry.shellHeight).toBe(profile.viewport.height);
       expect(geometry.top).toBeGreaterThanOrEqual(0);
       // The existing shell reserves the final 30 CSS pixels for its ocean.
