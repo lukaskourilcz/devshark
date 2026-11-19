@@ -1,0 +1,124 @@
+{
+  "schema": "devshark-shaped-bundle-measurement-v1",
+  "recordedAt": "2026-11-19T16:56:15.034970+00:00",
+  "checkoutHead": "d09ec769fe9d48c9ffe8fdec983e1463a0cb3ecc",
+  "runtimeBase": "cbdfa2aa995e7dd71c7d0197fee7f35df21ca205",
+  "runtimeTreesUnchanged": true,
+  "command": "PATH=<owned Node24.22.3>/bin:$PATH ANALYZE=true npm run check:bundle",
+  "exitCode": 0,
+  "node": "v24.22.3",
+  "files": [
+    {
+      "path": "artifacts/bundle.json",
+      "saved": "/tmp/devshark-epic-f-handoff/f1-execution-8d1de23d/bundle.json",
+      "bytes": 1923,
+      "sha256": "44b4ba5ec31cdee0a043792483e02a92607fd9815b428ae09047417b81f294cd"
+    },
+    {
+      "path": "client/dist/bundle-stats.json",
+      "saved": "/tmp/devshark-epic-f-handoff/f1-execution-8d1de23d/bundle-stats.json",
+      "bytes": 1481289,
+      "sha256": "926898185343e8097ba6809e224edb80a8731094bfa87090cfcce48068adfe9f"
+    },
+    {
+      "path": "client/dist/bundle-stats.html",
+      "saved": "/tmp/devshark-epic-f-handoff/f1-execution-8d1de23d/bundle-stats.html",
+      "bytes": 949862,
+      "sha256": "642c5d1ed500eada9fad1934f30f8b05bbd353e820f1d3ed14fa89e0187348fc"
+    }
+  ],
+  "measurement": {
+    "configuration": {
+      "build": "vite build --outDir dist-budget",
+      "product": "VITE_PRODUCT=devshark, VITE_LOCK_SUBJECT=webdev",
+      "placeholders": [
+        "VITE_SUPABASE_URL",
+        "VITE_SUPABASE_ANON_KEY",
+        "VITE_SENTRY_DSN",
+        "VITE_PUBLIC_POSTHOG_KEY"
+      ]
+    },
+    "initialGzipBytes": 218661,
+    "budget": 218675,
+    "monitoringGzipBytes": 46800,
+    "monitoringBudget": 60000,
+    "sizes": [
+      {
+        "file": "assets/main-DIuo4WQp.js",
+        "gzipBytes": 106232
+      },
+      {
+        "file": "assets/react-Cvu_Vp9I.js",
+        "gzipBytes": 74807
+      },
+      {
+        "file": "assets/tanstack-BZh9zEA-.js",
+        "gzipBytes": 12989
+      },
+      {
+        "file": "assets/main-CZGD7IdB.css",
+        "gzipBytes": 24633
+      }
+    ],
+    "preloadedFontBytes": 0,
+    "preloadedFonts": [],
+    "chunkCount": 233,
+    "largest": [
+      {
+        "file": "assets/coding-worker/ts-compiler-B7j17HSi.js",
+        "gzipBytes": 1092837,
+        "initial": false
+      },
+      {
+        "file": "assets/Editor-D7fXSy7w.js",
+        "gzipBytes": 173083,
+        "initial": false
+      },
+      {
+        "file": "assets/EmailRichTextEditor-gOa8HMJP.js",
+        "gzipBytes": 130655,
+        "initial": false
+      },
+      {
+        "file": "assets/main-DIuo4WQp.js",
+        "gzipBytes": 106232,
+        "initial": true
+      },
+      {
+        "file": "assets/posthogClient-CzjsjP4-.js",
+        "gzipBytes": 93472,
+        "initial": false
+      },
+      {
+        "file": "assets/babel-Ccmw_PC1.js",
+        "gzipBytes": 83128,
+        "initial": false
+      },
+      {
+        "file": "assets/react-Cvu_Vp9I.js",
+        "gzipBytes": 74807,
+        "initial": true
+      },
+      {
+        "file": "assets/estree-DhIcBJQl.js",
+        "gzipBytes": 62245,
+        "initial": false
+      },
+      {
+        "file": "assets/supabase-B5YuwSPF.js",
+        "gzipBytes": 55304,
+        "initial": false
+      },
+      {
+        "file": "assets/sentry-sdk-CstZweeQ.js",
+        "gzipBytes": 46800,
+        "initial": false
+      }
+    ]
+  },
+  "limits": [
+    "Production-shaped local build, not raw production transfer.",
+    "Same-build treemap/module sizes are separate from whole-chunk gzip.",
+    "Existing unrelated untracked repository-weight report was not a runtime input."
+  ]
+}

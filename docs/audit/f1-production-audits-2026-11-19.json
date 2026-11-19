@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "historicalObservedEvidence": true,
+  "packagedAtUtc": "2026-11-19T16:56:23.240708+00:00",
+  "projectionBaselineHead": "cbdfa2aa995e7dd71c7d0197fee7f35df21ca205",
+  "packagingMode": "offline projection of existing saved observations; no new runtime/provider/application query",
+  "sourceHead": "fcfb13f5be7041882ae0ac954de912f78358f6c5",
+  "nodeVersion": "24.22.3",
+  "npmVersion": null,
+  "npmVersionState": "not recorded in these selected host logs; container npm is a different environment",
+  "observedDate": "2026-11-19",
+  "perAuditObservedAtUtc": null,
+  "runStartedAtUtc": "2026-11-19T15:15:07.475Z",
+  "runMinutesRecorded": 33.45,
+  "clockLimit": "Per-command timestamps and exact run end are not supplied; do not fabricate them from rounded duration.",
+  "lockPins": {
+    "package-lock.json": {
+      "sha256": "98d0093a62b8d2ae7dda5f4f4e4a2f3594f08075a70d13219ddb1216200176b4",
+      "bytes": 150051
+    },
+    "client/package-lock.json": {
+      "sha256": "29777af01ecd7d182c1b0e002bd64b473ab2ddf78af3d3807b2cf2fe8aab9d44",
+      "bytes": 347778
+    }
+  },
+  "lockBoundary": "The F7 committed tool/lock comparison confirms exact hashes at both observed and merged checkpoints.",
+  "audits": [
+    {
+      "command": [
+        "npm",
+        "audit",
+        "--omit=dev"
+      ],
+      "exactSavedLog": "$ npm audit --omit=dev\nfound 0 vulnerabilities\n\nexit 0\n",
+      "vulnerabilitiesReported": 0,
+      "exitCode": 0,
+      "parityStep": {
+        "id": "audit:prod",
+        "result": "pass",
+        "detail": "",
+        "seconds": 1,
+        "log": "audit_prod.log"
+      }
+    },
+    {
+      "command": [
+        "npm",
+        "audit",
+        "--omit=dev",
+        "--prefix",
+        "client"
+      ],
+      "exactSavedLog": "$ npm audit --omit=dev --prefix client\nfound 0 vulnerabilities\n\nexit 0\n",
+      "vulnerabilitiesReported": 0,
+      "exitCode": 0,
+      "parityStep": {
+        "id": "audit:client",
+        "result": "pass",
+        "detail": "",
+        "seconds": 1,
+        "log": "audit_client.log"
+      }
+    }
+  ],
+  "limits": [
+    "Production dependencies only, historical observed advisory state.",
+    "No development-dependency conclusion or current-time universal vulnerability claim.",
+    "Required future broad gates may append a separately dated observation; no repeat audit was run for this projection."
+  ],
+  "inputProvenance": {
+    "f7-final-fast-fcfb13f5/summary.json": {
+      "sha256": "4b4c864b4dcb6e24a49e4303d337afb829f0d08e0e90c3cb267154f07ba1817d",
+      "bytes": 9238
+    },
+    "f1-refresh-cbdfa2aa/source-pins-cbdfa2aa.json": {
+      "sha256": "e54017bd7d85e5e87803d23abc7bd999a3cd7ff12fd272f0896591ee99a27091",
+      "bytes": 8840
+    },
+    "f7-final-fast-fcfb13f5/audit_prod.log": {
+      "sha256": "a8b592f4ae28d1a1a486cd7faaf9672018d5cd268ec296f03cadc1a452076ee9",
+      "bytes": 55
+    },
+    "f7-final-fast-fcfb13f5/audit_client.log": {
+      "sha256": "12c64f5ae1a29a6deeab8c45b8d0dbeaf64c62b885de6b1491cfd9b38e2c2a9c",
+      "bytes": 71
+    }
+  }
+}

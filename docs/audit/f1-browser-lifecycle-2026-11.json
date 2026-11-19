@@ -1,0 +1,11 @@
+{
+  "observedAt": "2026-11-19T19:39:13.467185+00:00",
+  "method": "Read-only ps inventory, exact owned scratch-path markers only; unrelated arguments not retained",
+  "markers": [
+    "f1-eight-route-local-lab-d09ec769-20261119/scratch",
+    "f1-daily-followup-f5df3b6f-20261119/scratch",
+    "f1-production-home-fixed-scope-20261119/scratch"
+  ],
+  "matchedProcesses": [],
+  "scope": "Absence of these owned path markers is not proof that every browser process on the machine stopped. No unrelated process was inspected or killed."
+}

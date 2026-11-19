@@ -7903,3 +7903,570 @@ failed before tracing; the repeat from the repository completes. These
 positive local results do not attest the provider builder version or
 complete deployed Lambda inventory. A fresh final fast run, actual F7
 Preview checks and required CI remain pending; F11-31 remains open.
+
+## Epic F7 server work: CI, Preview and production acceptance (19 November 2026)
+
+PR #668 merged at `cbdfa2aa995e7dd71c7d0197fee7f35df21ca205`.
+Its tree equals reviewed `fcfb13f5`. The earlier local checkpoints above
+remain historical; the final clean fast run at fcfb13f5 completes in
+33.45 minutes with 34 passes, zero failures, nine skips and one unavailable
+local QuickJS rebuild. All 814 Coding tasks, 1,979 client tests, performance,
+launch, grading/authority suites, 180 light and 60 dark responsive probes and
+both zoom profiles pass. The bundle remains 218,661/218,675 gzip bytes and
+both production dependency audits report zero vulnerabilities.
+
+| Gate | Actual result |
+| --- | --- |
+| Exact-head PR CI | Run 44559170378: all nine jobs SUCCESS at fcfb13f5; verify 3 s, SQL 41 s, browser 804 s and Coding 1,179 s. |
+| Post-merge main CI | Run 44563518673: all nine jobs SUCCESS at cbdfa2aa; verify 3 s, SQL 40 s, browser 1,013 s and Coding 1,526 s. These separate durations are observations, not a causal comparison. |
+| Actual Git Preview | dpl_8vcbg8VbFJD4SDHX7X1qaS43DjZB READY at fcfb13f5 in arn1. All 63 controlled responses pass: two access/document, 36 safe API reads/refusals, twelve public-validator, four guest TypeScript and nine deployed-security probes. |
+| Public validators | Six initial MISS/200 responses followed by six empty CDN HIT/304 responses with content-matching tags. This verifies client/CDN validation, not an origin conditional request or fewer upstream reads. |
+| Guest TypeScript | ts-typed-slug reference passes five type tests, five visible runtime tests and eight hidden cases; wrong return type fails. All four responses are private/no-store, with zero XP, null progress and applied:false. No independent database-write audit was performed. |
+| Instance markers | Preview's eight nonshared handler probes expose one first and two repeat module invocations; twelve shared public responses remain unknown. The marker never measures platform boot. |
+| Production | dpl_Efb7TFTrUEyYUqSebQWv3ccv6zve READY at exact cbdfa2aa in arn1 and serves devshark.app. All 48 anonymous responses pass: 36 safe API reads/refusals, six initial public projections and six empty conditional 304s. No production grading or account/reward/order operation was selected. |
+| Access cleanup | Both owned local Preview share/state files were removed after acceptance; credential values were excluded from reports and cleared from the working tool store. Provider-managed share expiration is separate. |
+
+The local skipped steps reuse installed dependencies/Chrome or belong to
+full-only Chromium, harness, Lighthouse, Storybook and container checks.
+Python 3.9/no emsdk prevents the local QuickJS rebuild; local SQL did not run.
+The required CI provides the actual browser, container, SQL and QuickJS results.
+
+F1-18/19/20/37/40 are complete in #646 for the shipped contracts and tooling.
+F11-31 stays open: the scoped source-file API returns 404 for this Git
+deployment. Dashboard Resources reports twelve functions and 2,259 static
+assets; selecting roadmap in Source/Output exposes invocation, logs and
+monitoring, without a complete packaged-file inventory. The 91-declaration
+local NFT result and deployed TypeScript acceptance do not prove that missing
+inventory or deployed byte savings.
+
+#636 remains open for its literal universal-latency/top-ten-call criteria and
+the recorded privacy/platform exceptions. Keep the mixed measurements, private
+Daily sessions, one-minute public-board privacy bound, Standard allocation and
+physical handler durations. No authenticated rewards, physical device, platform
+boot, retained-memory or population-call-reduction acceptance is claimed.
+
+Separately, two anonymous static HTML GETs at 14:07 UTC confirm production
+Privacy and Terms titles and self canonicals, completing that existing F15
+owner:ai task. They execute no JavaScript or API and change no legal text.
+
+
+## Epic F1 remaining baseline: repository object store (19 November 2026)
+
+Issue #630, F1-33. The read-only snapshot in
+`docs/audit/repository-weight-2026-11.json` measures objects reachable from
+merged main `cbdfa2aa995e7dd71c7d0197fee7f35df21ca205`, separately from the
+shared store and the clean F1 checkout `d09ec769`. It ran at 16:55 UTC.
+
+| Scope | Actual result |
+| --- | --- |
+| Exact-main reachable objects | 41,772 objects; 2,893,272,699 logical bytes |
+| Sum of reachable objectsize:disk | 106,650,880 bytes, a representation estimate |
+| Shared common Git directory | 132,988 KiB from du; packs 99.97 MiB and loose 29.01 MiB from count-objects |
+| Checkout directories from du | docs 20,172 KiB; media 1,512 KiB; client/public 284 KiB |
+
+The artifact retains the exact commands, object-ID digest, per-type totals and
+raw count-objects output. The original checkout has a real `.git` directory; a
+linked worktree has a pointer file and must resolve `--git-common-dir`. The
+shared store includes other refs and worktree metadata. Summed stored object
+sizes are neither reclaimable bytes nor the size of a standalone pack; shared
+delta bases prevent those claims. No repack, garbage collection, history edit
+or new deployment-duration query ran. This is current main evidence, not a
+recreated `a9882348` observation or a comparison with the brief's old 81 MB.
+
+
+## Epic F1 remaining baseline: shaped bundle and treemap (19 November 2026)
+
+Issue #630, F1-22/24. At F1 tool head `d09ec769`,
+`ANALYZE=true npm run check:bundle` passes with Node 24.22.3 and the complete
+public measuredBuild environment. Client/API/lib/shared trees equal merged
+main `cbdfa2aa`; this is a new local checkpoint, not the missing original
+18 November `a9882348` run. The old five-file/two-font expectation is stale.
+`docs/audit/f1-bundle-2026-11.json` retains the actual report and hashes of the
+matching generated treemap/module report saved with the external run logs.
+
+| Check | Actual result |
+| --- | --- |
+| Initial graph | 4 files, 218,661 gzip bytes / 218,675 budget: PASS |
+| Preloaded fonts | 0 files, 0 bytes |
+| Monitoring SDK | 46,800 gzip bytes / 60,000 budget: PASS |
+| Largest-list population | 10 largest of 233 JavaScript/CSS chunks |
+
+| Chunk | Gzip bytes | Initial |
+| --- | ---: | --- |
+| `assets/coding-worker/ts-compiler-B7j17HSi.js` | 1092837 | no |
+| `assets/Editor-D7fXSy7w.js` | 173083 | no |
+| `assets/EmailRichTextEditor-gOa8HMJP.js` | 130655 | no |
+| `assets/main-DIuo4WQp.js` | 106232 | yes |
+| `assets/posthogClient-CzjsjP4-.js` | 93472 | no |
+| `assets/babel-Ccmw_PC1.js` | 83128 | no |
+| `assets/react-Cvu_Vp9I.js` | 74807 | yes |
+| `assets/estree-DhIcBJQl.js` | 62245 | no |
+| `assets/supabase-B5YuwSPF.js` | 55304 | no |
+| `assets/sentry-sdk-CstZweeQ.js` | 46800 | no |
+
+The exact main script/react/CSS/TanStack initial rows are in the JSON. Lazy
+compiler/editor chunks do not count as initial requests. Treemap module sizes
+do not sum to whole-file gzip. This run measures no production HTTP transfer;
+F1-23 and production browser calibration F1-45 remain unmeasured. The original
+pre-fix timing and 4,314-byte historical growth are not reconstructed here.
+
+
+## Epic F1 remaining baseline: deterministic asset inventory (19 November 2026)
+
+Issue #630, F1-21/30. Two actual inventory executions at settled tool head
+`d09ec769` produce byte-identical JSON (SHA256
+`8cfd19ee2d099182f103791e1b50fc62a3a17d8cdae1c18e01f7eaa3318165bc`).
+The dated inventory and provenance are in `docs/audit/image-inventory-2026-11.json`
+and `docs/audit/image-inventory-provenance-2026-11.json`. An independent
+non-symlink regular-file walk matches all eleven source paths exactly.
+
+| Scope | Actual result |
+| --- | --- |
+| All source files | 11 files, 269,577 bytes |
+| Source PNG | 5 files, 249,274 bytes |
+| Source SVG | 4 files, 10,106 bytes |
+| Source ICO / text | 1 / 1 files, 1,271 / 8,926 bytes |
+| No code-literal-reference candidates | 1 file, 8,926 bytes; not an unused-file finding |
+| Source og-image.png | 243605 bytes; intrinsic metadata retained in JSON |
+| Built images, separate scope | 907 files, 14,602,295 bytes |
+| Generated built og/** | 895 PNG files, 14,328,014 bytes |
+| Invalid strict metadata | 0 source, 0 built |
+
+A fresh `CI=true npm run build` at the same head passed from 16:56:42 to
+16:57:11 UTC with every measuredBuild public placeholder, including telemetry
+keys. Explicit `--dist-dir=client/dist` supplies the separate built scope;
+provenance records the complete 2,259-file build-inventory digest. No package
+attribution is inferred from emitted filenames.
+
+The eight new feature tests first failed because the helper/generator were
+absent. After extraction, all 45 new inventory plus unchanged F4 cases pass.
+AST comparison finds 19 unchanged original function bodies, including all
+eleven moved helpers; the image wrapper alone delegates the same dispatch.
+The first proof attempt used the wrong expected wrapper name and stopped
+before writing evidence; inspection and corrected comparison are recorded.
+Scripts typing, the full 64-case performance-tool suite, existing performance
+integration and Knip pass. `check:bundle` independently preserves its original
+graph/build function bodies. Full branch parity and required CI remain pending.
+
+The old 95-file / 407,658-byte premise predates F4 and is not a current
+expectation. Source-line widths, basenames and dynamic-prefix matches remain
+lexical hints; rendered size and served reachability are not established.
+The release image checker and its caps remain independent and unchanged.
+
+
+## Epic F1 remaining baseline: F1-32: historical database advisors (19 November 2026)
+
+Issue #630. Saved evidence in `docs/audit/database-advisors-2026-11.json`
+was projected offline on 19 November; this paragraph records its original
+observation scope, not new sampling.
+
+The full byte-preserved projection contains 90 nested findings in five groups: 33 security INFO, 39 performance WARN and 18 performance INFO. The supporting snapshot has 76 RLS tables, 43 SELECT-only policies and no public views. All 33 no-policy identities lack effective browser table CRUD in that snapshot. Advisor, catalog and key observations retain their separate 07:40, 07:43 and 07:57 UTC clocks. Migration head and function ACLs remain unobserved. The text-linter mismatch is not planner evidence; intentional friendships uniqueness is retained. No database query, DDL, DML, policy or index change was made by this projection.
+
+
+## Epic F1 remaining baseline: F1-35: frozen CI population (19 November 2026)
+
+Issue #630. Saved evidence in `docs/audit/f1-ci-quality-snapshot-2026-11-19.json`
+was projected offline on 19 November; this paragraph records its original
+observation scope, not new sampling.
+
+At the original 14:19:58 UTC cutoff, the all-event/all-conclusion latest-ten selection has ten runs and 76 jobs: five pushes, five PRs, nine successes and one failure. Complete CLI/REST metadata reconciles 33,831 job seconds and 599 hypothetical per-job ceiling minutes. The sum of metadata wall-time proxies is 14,200 seconds, with mean 1,420 and median 1,464.5 seconds. Coding is longest in seven runs and browser in three. Different job layouts, overlapping work and failed runs preclude a controlled speedup or billing claim. Later F7 runs are outside this historical population.
+
+
+## Epic F1 remaining baseline: F1-29/46: existing handler entry and import evidence (19 November 2026)
+
+Issue #630. Saved evidence in `docs/audit/f1-handler-baseline-2026-11-19.json`
+was projected offline on 19 November; this paragraph records its original
+observation scope, not new sampling.
+
+Actual merged-F7 production collection records 36 attempted, sent and completed expected read/refusal responses with zero errors: eight first, sixteen repeat and twelve unknown module markers. Separate READY/alias metadata corroborates cbdfa2aa in arn1; the collector deploymentRevision:null remains intact. Existing before/final import checkpoints each contain 36 successful fresh-process samples across all twelve handlers, using Node 24.22.3, Apple M3 and locked esbuild 0.25.12. Original f12b396a/3fb1a0d1 measurement sources and full mixed/slower rows remain. The final 3fb1a0d1 runtime trees, locks and import tools match merged cbdf; the before checkpoint retains its own source. A local CJS proxy is not a provider Lambda, retained-memory result, business operation or platform-boot measurement. No duplicate probe/import run was made.
+
+
+## Epic F1 remaining baseline: F1-31: exact-lock production dependency audits (19 November 2026)
+
+Issue #630. Saved evidence in `docs/audit/f1-production-audits-2026-11-19.json`
+was projected offline on 19 November; this paragraph records its original
+observation scope, not new sampling.
+
+The final F7 fast run at fcfb13f5 records exit0 and zero vulnerabilities for both npm audit --omit=dev and npm audit --omit=dev --prefix client. Both lock hashes remain identical at merged cbdf. The saved logs retain their original run window and Node 24.22.3, while host npm version and per-command timestamps remain unknown in this selected evidence. Container npm cannot fill that gap. This is a historical production-only audit, not a development-dependency or timeless vulnerability guarantee. The required branch gates will supply their own current observations.
+
+
+## Epic F1 remaining baseline: F1-34: historical F14 container comparison (19 November 2026)
+
+Issue #630. Saved evidence in `docs/audit/f1-container-baseline-2026-11-19.json`
+was projected offline on 19 November; this paragraph records its original
+observation scope, not new sampling.
+
+The actual same-Linux/amd64 F14 comparison records inspect sizes 184,775,859 to 141,951,324 bytes, a saving of 42,824,535 bytes. The separate image-ls display is 958 to 666 MB. Three selected JavaScript, TypeScript and React reference checks pass per image. Base 0f35d67d and measured checkout 3b503cc4 remain distinct from reviewed CI head 1511; a possible synthetic merge relationship is unproved locally. This is historical F14 evidence, not a current cbdf image size or an 814-reference result. No new container, registry query or VM ran for this projection.
+
+
+## Epic F1 remaining baseline: F1-44: partial production request reconciliation (19 November 2026)
+
+Issue #630. Saved evidence in `docs/audit/f1-production-request-ledger-2026-11-19.json`
+was projected offline on 19 November; this paragraph records its original
+observation scope, not new sampling.
+
+Selected 19 November evidence has 146 declared request counts and 154 known completed response observations, including eight F4 checks and the 48 F7 production responses. Only F7 provides explicit attempt counters in this selected set. Earlier canonical evidence separately reports about 290 requests, without an exact raw ledger; it cannot be added to the exact rows or used to infer remaining headroom. Preview63, local loopback and metadata-service queries are separate scopes. NEEDED.md records the actual reversible choice: remaining route labs are local and this batch sends no further production application probes. Raw-transfer23 and production-browser45 remain unmeasured; neither missing value is zero.
+
+
+## Epic F1 production measurement scope correction (19 November 2026)
+
+The original #629/#630 brief explicitly requests the minimal raw production
+bundle observation and Home-only Lighthouse/CDP calibration (F1-23/45). The
+earlier no-more-probes choice inferred a hard 250-request/owner-approval gate
+from an inconsistent proposed F1-44 sentence, although that same finding
+already reports about 290 earlier requests. This internal interpretation was
+corrected after an independent full-instruction review; no new owner approval
+is needed for those explicitly authorized guest read-only measurements.
+
+The eight-route matrix stays local. Production collection remains pending
+concrete transport/count review: one raw graph observation, one Lighthouse
+run per profile and one CDP Home sample per profile with cold/repeat rows.
+Retain the older partial ledger and all exact new attempts, stop on unexpected
+business/write branches, and claim neither restored under-250 compliance nor
+known remaining historical headroom. Earlier dated no-probe records remain
+historical; this paragraph records the later deliberate scope correction.
+No new production measurement has run at this checkpoint.
+
+
+## Epic F1 raw production observation: incomplete deadline result (19 November 2026)
+
+The actual `npm run check:bundle -- --url=https://devshark.app` observation
+from 17:18:38 to 17:19:08 UTC exits1 at its 30-second total bound. It attempts
+and locally finishes three of five planned GETs. Document and main-script
+HTTP200 bodies complete; the React asset response and remaining graph are
+unknown/unattempted. Partial initial bytes are not a complete bundle total.
+`docs/audit/f1-production-bundle-partial-2026-11-19.json` preserves every
+actual row, source/hash, failure and separately corroborated READY cbdf alias.
+
+The first document takes29,443.5ms despite a15,000ms per-request claim. The
+source arms that timer after synchronous request construction and accepts a
+late successful finish without checking elapsed time. The exact synchronous
+cost is not observed; no TLS/DNS/origin cause is asserted. A real owned-local
+regression and minimal monotonic-deadline fix are required before another
+observation. No retry or cap relaxation occurred. The partial ledger now has
+149 declared request counts and156 known completed response observations;
+older incomplete/approximate history stays separate. F1-23 remains incomplete.
+
+
+## Epic F1 raw production baseline and deadline correction (19 November 2026)
+
+F1-23 now has a complete actual observation at tool head `6d46789a`,
+18:35:08–18:35:10 UTC: five planned/attempted/locally-finished GETs, five
+complete HTTP200 bodies, elapsed1,184.6ms. No retry, redirect, API, auth or
+cookie was selected. A separately queried READY production alias still maps
+to merged main cbdfa2aa. `docs/audit/f1-production-bundle-2026-11-19.json`
+retains exact body/cache/header/hash rows and that separate corroboration.
+
+| Scope | Actual bytes |
+| --- | ---: |
+| Initial JavaScript/CSS, raw Brotli bodies | 224,086 |
+| Document, raw Brotli body | 1,811 |
+| Total five observed encoded bodies | 225,897 |
+| Initial assets decoded then gzip6 | 218,697 |
+| Preloaded fonts | 0 |
+
+The decoded/recompressed production graph is36bytes above the shaped local
+218,661 checkpoint, all in the differently hashed main script. It is22bytes
+above the local218,675 reference; the live tool applies no budget gate.
+Different real/public-placeholder build values plausibly explain this small
+difference, but that cause is not independently established. Preserve these
+actual values without raising the local cap or relabelling wire bytes as gzip.
+
+The genuine timer regression is fixed separately: `503bc0fc` records three
+late-success failures and one healthy control; `6d46789a` passes all four,
+the complete68-case tool suite and scripts typing. The existing15s/30s and
+byte/header caps remain. Timing begins before synchronous client setup and
+monotonic gates reject expired setup/callbacks even when a timer cannot
+preempt blocked native work. Original graph/build function bodies remain
+byte-identical. The offline fresh-child TLS probe makes no HTTP/DNS request
+and does not reproduce or attribute the earlier delay (firstcontext1.545ms).
+`docs/audit/f1-request-deadline-validation-2026-11.json` preserves actual checks.
+
+The earlier failed3-attempt run is retained independently. The two raw runs
+make8 attempts/7 completed responses, including one unknown response. The
+selected later ledger now contains154 declared counts,161 known completed
+response observations and56 explicitly instrumented attempts; the older
+approximate/incomplete history remains separate. Production browser
+calibration and complete branch parity/required CI remain pending.
+
+
+## Epic F1 baseline: mobile Lighthouse (19 November 2026)
+
+Issue #630, F1-25. Three audits per route produced 24 mobile results;
+all 48 mobile/desktop audits completed without collector errors. The actual
+stage ran from 18:44:53 to 18:54:17 UTC on Chrome 157.0.8103.80. The dated
+artifact is `docs/audit/f1-mobile-lighthouse-2026-11.json`.
+
+The owned copy contains all 2,259 build files (62,308,312 bytes) from tool
+head `d09ec769`, with every measuredBuild public placeholder retained.
+The exact-loopback proxy blocks external transport. Public settings return
+200 and other APIs return synthetic 503 responses after 400 ms. Each
+Lighthouse audit uses fresh storage. These are current static local states;
+they do not recreate an original pre-fix or populated production baseline.
+
+The actual external orchestrator calls the pinned existing
+`scripts/audit-performance.mjs` main/resolveOptions through
+`collect.UNRUN.mjs`. Its equivalent public CLI is:
+
+```sh
+npm run audit:performance -- --url=http://127.0.0.1:60938 --routes=/,/learn,/coding,/quiz,/daily,/premium,/topics/javascript-closures,/leaderboard --runs=3 --output=artifacts/performance/eight-route-lighthouse
+```
+
+| Route | Perf/A11y/BP/SEO median | LCP ms median [min,max] | FCP ms median [min,max] | CLS median [min,max] | TBT ms median [min,max] | Benchmark median [min,max] | Errors |
+|---|---|---:|---:|---:|---:|---:|---:|
+| / | 92/100/100/100 | 2941.6 [2860.2,2947.2] | 2353.5 [2350.1,2361.3] | 0.000000 [0.000000,0.000000] | 13.6 [1.5,21.5] | 2165.5 [2156.5,2199.5] | 0/3 |
+| /learn | 80/100/96/100 | 4215.5 [4213.3,4227.5] | 3011.7 [3009.9,3020.6] | 0.000000 [0.000000,0.000000] | 4.0 [3.5,5.5] | 2111.0 [2093.0,2142.0] | 0/3 |
+| /coding | 88/100/100/100 | 3347.2 [3345.9,3349.7] | 2575.1 [2574.4,2577.0] | 0.000000 [0.000000,0.000000] | 3.5 [2.5,3.5] | 2126.0 [2100.5,2127.5] | 0/3 |
+| /quiz | 82/100/100/100 | 4070.9 [3993.2,4074.0] | 2937.2 [2935.6,2939.0] | 0.000000 [0.000000,0.000000] | 7.5 [6.5,9.0] | 2109.0 [1969.5,2149.0] | 0/3 |
+| /daily | 90/100/96/100 | 3315.8 [3313.4,3755.0] | 2103.4 [2103.3,2104.0] | 0.011563 [0.011563,0.011563] | 1.0 [0.0,18.0] | 2124.0 [2102.0,2159.0] | 0/3 |
+| /premium | 91/100/100/100 | 3160.8 [3160.2,3164.0] | 2103.1 [2102.9,2104.0] | 0.000000 [0.000000,0.031721] | 0.0 [0.0,20.0] | 2117.0 [2014.5,2129.5] | 0/3 |
+| /topics/javascript-closures | 93/100/100/100 | 3007.5 [3006.8,3009.2] | 2105.0 [2104.6,2106.1] | 0.000000 [0.000000,0.000000] | 0.0 [0.0,0.0] | 2093.0 [2074.0,2102.0] | 0/3 |
+| /leaderboard | 86/100/96/100 | 3605.8 [3605.5,3606.3] | 2704.9 [2704.6,2705.3] | 0.000000 [0.000000,0.000000] | 4.5 [2.0,24.5] | 2083.0 [2044.0,2125.5] | 0/3 |
+
+| Route | Actual measured page state | Median-LCP element | Sample |
+|---|---|---|---:|
+| / | Anonymous landing; consent banner visible | Consent paragraph | 3 |
+| /learn | Learn tabs/map shell visible; roadmap503; error text outside captured viewport unverified | Consent paragraph | 2 |
+| /coding | Signed-out challenge catalog; no recorded pass | Consent paragraph | 2 |
+| /quiz | Signed-out quiz setup; no start | Consent paragraph | 1 |
+| /daily | Question failed to load/Retry visibly captured; qotd503 | Consent paragraph | 1 |
+| /premium | Premium not on sale yet; sign-in-to-redeem voucher; billing disabled | Consent paragraph | 3 |
+| /topics/javascript-closures | Static closures article visible | Consent paragraph | 1 |
+| /leaderboard | Server error/Retry visibly captured; board503 | Consent paragraph | 1 |
+
+The artifact preserves full-precision samples/ranges, scores, LCP selectors
+and subparts, raw report hashes and representative image hashes. Images stay
+outside the repository; all sixteen median-LCP screenshots were reviewed.
+Fifteen show the consent paragraph as LCP; desktop Premium instead uses the
+voucher paragraph. Simulated LCP and observed breakdown durations need not
+sum. Learn navigates to `/learn/web-developer`.
+
+Completed audits include intentional error states. The actual transport
+receipt counts settings 48 × 200, roadmap 18 × 503, Daily 12 × 503 and board
+6 × 503 across both profiles. API errors and blocked monitoring can affect
+category scores. This is not evidence of a production regression. The
+separate CDP corpus and its 120 ms replay delay cannot relabel these pages
+as populated. Its missing Daily interactions are recorded separately before
+any corrected follow-up. No field INP or universal speedup is claimed.
+
+The complete local orchestrator later exited 0 in 932.333 seconds, removed
+owned scratch and reported zero remaining children. That lifecycle result
+does not turn the twelve missing Daily interactions into valid INP samples.
+
+
+## Epic F1 baseline: desktop Lighthouse (19 November 2026)
+
+Issue #630, F1-26. Three audits per route produced 24 desktop results;
+all 48 mobile/desktop audits completed without collector errors. The actual
+stage ran from 18:44:53 to 18:54:17 UTC on Chrome 157.0.8103.80. The dated
+artifact is `docs/audit/f1-desktop-lighthouse-2026-11.json`.
+
+The owned copy contains all 2,259 build files (62,308,312 bytes) from tool
+head `d09ec769`, with every measuredBuild public placeholder retained.
+The exact-loopback proxy blocks external transport. Public settings return
+200 and other APIs return synthetic 503 responses after 400 ms. Each
+Lighthouse audit uses fresh storage. These are current static local states;
+they do not recreate an original pre-fix or populated production baseline.
+
+The actual external orchestrator calls the pinned existing
+`scripts/audit-performance.mjs` main/resolveOptions through
+`collect.UNRUN.mjs`. Its equivalent public CLI is:
+
+```sh
+npm run audit:performance -- --url=http://127.0.0.1:60938 --routes=/,/learn,/coding,/quiz,/daily,/premium,/topics/javascript-closures,/leaderboard --runs=3 --output=artifacts/performance/eight-route-lighthouse
+```
+
+| Route | Perf/A11y/BP/SEO median | LCP ms median [min,max] | FCP ms median [min,max] | CLS median [min,max] | TBT ms median [min,max] | Benchmark median [min,max] | Errors |
+|---|---|---:|---:|---:|---:|---:|---:|
+| / | 100/100/100/100 | 580.4 [578.4,583.9] | 509.9 [508.2,513.0] | 0.000000 [0.000000,0.000000] | 0.0 [0.0,0.0] | 2126.0 [2005.5,2151.0] | 0/3 |
+| /learn | 99/96/96/100 | 942.1 [938.7,943.5] | 672.1 [670.3,672.9] | 0.000889 [0.000889,0.000889] | 0.0 [0.0,0.0] | 2106.5 [2001.0,2121.0] | 0/3 |
+| /coding | 100/100/100/100 | 699.0 [697.5,764.6] | 551.9 [551.0,583.9] | 0.000000 [0.000000,0.000000] | 0.0 [0.0,0.0] | 2139.0 [2037.0,2178.5] | 0/3 |
+| /quiz | 99/100/100/100 | 901.4 [900.4,915.2] | 670.1 [668.2,670.6] | 0.000245 [0.000245,0.000245] | 0.0 [0.0,0.0] | 2111.5 [2052.0,2142.5] | 0/3 |
+| /daily | 100/100/96/100 | 733.1 [730.9,733.7] | 443.4 [442.7,490.4] | 0.019182 [0.019182,0.019182] | 0.0 [0.0,0.0] | 2115.0 [2095.0,2122.0] | 0/3 |
+| /premium | 100/100/100/100 | 764.6 [764.3,766.1] | 443.1 [442.9,491.6] | 0.000000 [0.000000,0.014092] | 0.0 [0.0,0.0] | 2116.0 [2093.0,2148.0] | 0/3 |
+| /topics/javascript-closures | 100/100/100/100 | 609.0 [608.6,611.5] | 446.0 [445.8,447.7] | 0.000000 [0.000000,0.000000] | 0.0 [0.0,0.0] | 2113.0 [2108.5,2120.0] | 0/3 |
+| /leaderboard | 100/100/96/100 | 725.6 [723.8,726.2] | 584.7 [583.2,585.1] | 0.000000 [0.000000,0.000000] | 0.0 [0.0,0.0] | 2097.5 [2058.0,2125.0] | 0/3 |
+
+| Route | Actual measured page state | Median-LCP element | Sample |
+|---|---|---|---:|
+| / | Anonymous landing; consent banner visible | Consent paragraph | 1 |
+| /learn | Learn server error/Try again visibly captured; roadmap503 | Consent paragraph | 1 |
+| /coding | Signed-out challenge catalog; no recorded pass | Consent paragraph | 1 |
+| /quiz | Signed-out quiz setup; no start | Consent paragraph | 1 |
+| /daily | Question failed to load/Retry visibly captured; qotd503 | Consent paragraph | 1 |
+| /premium | Premium not on sale yet/voucher; price cards visible; billing disabled | Voucher paragraph: Premium not on sale yet | 2 |
+| /topics/javascript-closures | Static closures article/code sample visible | Consent paragraph | 3 |
+| /leaderboard | Server error/Retry visibly captured; board503 | Consent paragraph | 2 |
+
+The artifact preserves full-precision samples/ranges, scores, LCP selectors
+and subparts, raw report hashes and representative image hashes. Images stay
+outside the repository; all sixteen median-LCP screenshots were reviewed.
+Fifteen show the consent paragraph as LCP; desktop Premium instead uses the
+voucher paragraph. Simulated LCP and observed breakdown durations need not
+sum. Learn navigates to `/learn/web-developer`.
+
+Completed audits include intentional error states. The actual transport
+receipt counts settings 48 × 200, roadmap 18 × 503, Daily 12 × 503 and board
+6 × 503 across both profiles. API errors and blocked monitoring can affect
+category scores. This is not evidence of a production regression. The
+separate CDP corpus and its 120 ms replay delay cannot relabel these pages
+as populated. Its missing Daily interactions are recorded separately before
+any corrected follow-up. No field INP or universal speedup is claimed.
+
+The complete local orchestrator later exited 0 in 932.333 seconds, removed
+owned scratch and reported zero remaining children. That lifecycle result
+does not turn the twelve missing Daily interactions into valid INP samples.
+
+
+## Epic F1 baseline: mobile CDP (19 November 2026)
+
+Issue #630, F1-27. The table uses three samples per cache state. Seven routes use the original d09 cohort; Daily uses the separate corrected f5df cohort. Keep the original Daily six paint rows per profile with missing input in the JSON. These are two named cohorts, not one 108-row baseline or a full-matrix rerun.
+
+Actual date: 19 November 2026 UTC. Original CDP 2026-11-19T18:54:17.733Z to 2026-11-19T19:00:19.124Z; corrected Daily 2026-11-19T19:15:49.674Z to 2026-11-19T19:16:35.748Z. Actual external supervisor command arrays and raw hashes are in the JSON. Equivalent collector parameters, with the owned proxy/wrapper still required:
+
+    npm run perf:measure -- --url=http://127.0.0.1:60938 --routes=/,/learn,/coding,/quiz,/daily,/premium,/topics/javascript-closures,/leaderboard --samples=3 --profiles=mobile,desktop --api-origin=http://127.0.0.1:60939 --api-delay-ms=120 --consent=rejected --output=artifacts/performance/eight-route-cdp.json
+
+    npm run perf:measure -- --url=http://127.0.0.1:64221 --routes=/daily --samples=3 --profiles=mobile,desktop --api-origin=http://127.0.0.1:64222 --api-delay-ms=120 --consent=rejected --output=artifacts/performance/daily-cdp.json
+
+These are historical owned local origins, not instructions to request production or reuse closed ports.
+
+The build stays d09 with all six public build keys and 2,259 files; Chrome 157.0.8103.80, default motion, existing mobile 150 ms/1.6 Mbps/CPU4 and desktop 20 ms/10 Mbps/CPU1. The owned proxy adds local overhead. Public fixture reads replay after 120 ms. No production application request, real session issuance, grading or learner write occurred.
+
+| Route | State | Cohort | LCP ms median [min,max] | CLS median | TBT ms median | INP ms median [min,max] | Matched/registered | LCP element |
+|---|---|---|---:|---:|---:|---|---|---|
+| / | cold-browser | initial | 1688.0 [1676.0,1700.0] | 0.000000 | 0.0 | 104.0 [88.0,112.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| / | repeat-browser | initial | 284.0 [268.0,284.0] | 0.000000 | 0.0 | 48.0 [48.0,48.0] | 3/3 and 3/3 | span.xb3r6kr.xlyipyv |
+| /learn | cold-browser | initial | 1696.0 [1688.0,1724.0] | 0.000000 | 25.0 | 120.0 [120.0,120.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /learn | repeat-browser | initial | 896.0 [872.0,904.0] | 0.000000 | 0.0 | 80.0 [72.0,80.0] | 3/3 and 3/3 | main p.rm-section-line |
+| /coding | cold-browser | initial | 1696.0 [1692.0,1696.0] | 0.000000 | 0.0 | 104.0 [104.0,104.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /coding | repeat-browser | initial | 292.0 [288.0,292.0] | 0.000000 | 0.0 | 48.0 [48.0,48.0] | 3/3 and 3/3 | span.xb3r6kr.xlyipyv |
+| /quiz | cold-browser | initial | 1704.0 [1704.0,1704.0] | 0.000000 | 0.0 | 88.0 [88.0,88.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /quiz | repeat-browser | initial | 308.0 [292.0,316.0] | 0.000000 | 0.0 | 32.0 [32.0,48.0] | 3/3 and 3/3 | span.xb3r6kr.xlyipyv |
+| /daily | cold-browser | dailyFollowup | 1676.0 [1668.0,1688.0] | 0.070981 | 64.0 | 64.0 [64.0,64.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /daily | repeat-browser | dailyFollowup | 456.0 [444.0,476.0] | 0.000000 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | main p |
+| /premium | cold-browser | initial | 872.0 [852.0,876.0] | 0.000000 | 60.0 | 104.0 [96.0,104.0] | 3/3 and 3/3 | section.ss-premium-plans li |
+| /premium | repeat-browser | initial | 456.0 [452.0,464.0] | 0.000000 | 0.0 | 48.0 [48.0,48.0] | 3/3 and 3/3 | section.ss-info-card p |
+| /topics/javascript-closures | cold-browser | initial | 892.0 [888.0,904.0] | 0.000000 | 56.0 | 88.0 [88.0,88.0] | 3/3 and 3/3 | section p |
+| /topics/javascript-closures | repeat-browser | initial | 292.0 [284.0,296.0] | 0.000000 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | span.xb3r6kr.xlyipyv |
+| /leaderboard | cold-browser | initial | 1688.0 [1684.0,1692.0] | 0.000000 | 0.0 | 88.0 [88.0,88.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /leaderboard | repeat-browser | initial | 472.0 [448.0,480.0] | 0.000000 | 0.0 | 48.0 [48.0,48.0] | 3/3 and 3/3 | main span |
+
+Original 96-row cohort: 2,990 page request attempts,132 API copies, 2,728 origin network responses,0 sentApi and 4 fresh Node GETs to the local corpus. Exactly 96 settings + 12 map + 12 daily + 12 board copies; all 200, unlisted 0. Daily follow-up 12 rows: 348 attempts, 24 API copies, 318 origin network responses, 0 sentApi and 2 fresh local corpus GETs. Those forwarded counts belong to each entire invocation, not each profile. Counts include different cache/block/fulfilled definitions and should not be substituted for one another.
+
+Original 84 non-Daily rows and all 12 follow-up Daily rows have matched/registered input. The original 12 Daily rows lacked INP and remain preserved. The f5df collector now makes missing, failed or unregistered interaction return nonzero while keeping paint metrics; registered 0 ms and <16 remain valid. Daily selects only its radio option; source/actual diagnosis proves local setSelected and no Check answer/submit. Other route candidates stay menu/mobile and theme/desktop.
+
+Both rows reset the app color-mode key before navigation. Every matched original desktop control says Dark mode, inferring pre-press light; do not call repeat dark. This comes from the source/control-label contract, not a saved DOM theme attribute. Cold/repeat also differs in consent, so these are not pure-cache causal differences. Legacy consentBanner means DOM presence; ready Daily focus mode hides it despite true, and its cold LCP can retain earlier banner paint.
+
+The report records Learn invented level-button text, Daily option labels/Check answer, and Leaderboard heading/tabs. Corpus 200/valid-shape is transport evidence, not a screenshot proving all board-row text. Resource paths omit origin: a blocked Sentry /api/... path is not a same-origin API. Original origin-qualified sentApi remains 0 because local copies fulfilled the reads.
+
+Raw original/follow-up JSON hashes, exact unrounded summaries/ranges, all source sample references, UI headings/buttons, request ledgers, source/dist rechecks and supervisor/cleanup receipts remain in the profile JSON. Both supervisors exited 0, owned children 0 and scratch removed. No field INP, live API/db latency, historical pre-fix baseline or universal gain follows. Full branch parity and required CI remain separate.
+
+The committed profile artifact is `docs/audit/f1-mobile-cdp-2026-11.json`.
+
+
+## Epic F1 baseline: desktop CDP (19 November 2026)
+
+Issue #630, F1-28. The table uses three samples per cache state. Seven routes use the original d09 cohort; Daily uses the separate corrected f5df cohort. Keep the original Daily six paint rows per profile with missing input in the JSON. These are two named cohorts, not one 108-row baseline or a full-matrix rerun.
+
+Actual date: 19 November 2026 UTC. Original CDP 2026-11-19T18:54:17.733Z to 2026-11-19T19:00:19.124Z; corrected Daily 2026-11-19T19:15:49.674Z to 2026-11-19T19:16:35.748Z. Actual external supervisor command arrays and raw hashes are in the JSON. Equivalent collector parameters, with the owned proxy/wrapper still required:
+
+    npm run perf:measure -- --url=http://127.0.0.1:60938 --routes=/,/learn,/coding,/quiz,/daily,/premium,/topics/javascript-closures,/leaderboard --samples=3 --profiles=mobile,desktop --api-origin=http://127.0.0.1:60939 --api-delay-ms=120 --consent=rejected --output=artifacts/performance/eight-route-cdp.json
+
+    npm run perf:measure -- --url=http://127.0.0.1:64221 --routes=/daily --samples=3 --profiles=mobile,desktop --api-origin=http://127.0.0.1:64222 --api-delay-ms=120 --consent=rejected --output=artifacts/performance/daily-cdp.json
+
+These are historical owned local origins, not instructions to request production or reuse closed ports.
+
+The build stays d09 with all six public build keys and 2,259 files; Chrome 157.0.8103.80, default motion, existing mobile 150 ms/1.6 Mbps/CPU4 and desktop 20 ms/10 Mbps/CPU1. The owned proxy adds local overhead. Public fixture reads replay after 120 ms. No production application request, real session issuance, grading or learner write occurred.
+
+| Route | State | Cohort | LCP ms median [min,max] | CLS median | TBT ms median | INP ms median [min,max] | Matched/registered | LCP element |
+|---|---|---|---:|---:|---:|---|---|---|
+| / | cold-browser | initial | 344.0 [340.0,348.0] | 0.000000 | 0.0 | 80.0 [80.0,80.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| / | repeat-browser | initial | 76.0 [76.0,76.0] | 0.000000 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | a.ss-navlink |
+| /learn | cold-browser | initial | 356.0 [348.0,372.0] | 0.000000 | 0.0 | 112.0 [112.0,120.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /learn | repeat-browser | initial | 556.0 [556.0,560.0] | 0.000000 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | main p.rm-section-line |
+| /coding | cold-browser | initial | 356.0 [352.0,364.0] | 0.000000 | 0.0 | 80.0 [80.0,80.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /coding | repeat-browser | initial | 224.0 [204.0,228.0] | 0.000000 | 0.0 | 48.0 [32.0,48.0] | 3/3 and 3/3 | section.cd-track-directory p.cd-track__blurb |
+| /quiz | cold-browser | initial | 356.0 [352.0,360.0] | 0.000000 | 0.0 | 80.0 [80.0,80.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /quiz | repeat-browser | initial | 108.0 [92.0,124.0] | 0.000202 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | main span |
+| /daily | cold-browser | dailyFollowup | 340.0 [336.0,340.0] | 0.052845 | 0.0 | 64.0 [64.0,64.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /daily | repeat-browser | dailyFollowup | 212.0 [212.0,228.0] | 0.052845 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | main p |
+| /premium | cold-browser | initial | 180.0 [176.0,180.0] | 0.000000 | 0.0 | 88.0 [80.0,88.0] | 3/3 and 3/3 | main.ss-public-fallback h1 |
+| /premium | repeat-browser | initial | 204.0 [204.0,208.0] | 0.000000 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | section.ss-info-card p |
+| /topics/javascript-closures | cold-browser | initial | 188.0 [180.0,192.0] | 0.000000 | 0.0 | 72.0 [72.0,72.0] | 3/3 and 3/3 | main.ss-public-fallback h1 |
+| /topics/javascript-closures | repeat-browser | initial | 72.0 [72.0,72.0] | 0.000000 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | a.ss-navlink |
+| /leaderboard | cold-browser | initial | 344.0 [340.0,356.0] | 0.000000 | 0.0 | 72.0 [72.0,80.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /leaderboard | repeat-browser | initial | 208.0 [204.0,220.0] | 0.000000 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | main span |
+
+Original 96-row cohort: 2,990 page request attempts,132 API copies, 2,728 origin network responses,0 sentApi and 4 fresh Node GETs to the local corpus. Exactly 96 settings + 12 map + 12 daily + 12 board copies; all 200, unlisted 0. Daily follow-up 12 rows: 348 attempts, 24 API copies, 318 origin network responses, 0 sentApi and 2 fresh local corpus GETs. Those forwarded counts belong to each entire invocation, not each profile. Counts include different cache/block/fulfilled definitions and should not be substituted for one another.
+
+Original 84 non-Daily rows and all 12 follow-up Daily rows have matched/registered input. The original 12 Daily rows lacked INP and remain preserved. The f5df collector now makes missing, failed or unregistered interaction return nonzero while keeping paint metrics; registered 0 ms and <16 remain valid. Daily selects only its radio option; source/actual diagnosis proves local setSelected and no Check answer/submit. Other route candidates stay menu/mobile and theme/desktop.
+
+Both rows reset the app color-mode key before navigation. Every matched original desktop control says Dark mode, inferring pre-press light; do not call repeat dark. This comes from the source/control-label contract, not a saved DOM theme attribute. Cold/repeat also differs in consent, so these are not pure-cache causal differences. Legacy consentBanner means DOM presence; ready Daily focus mode hides it despite true, and its cold LCP can retain earlier banner paint.
+
+The report records Learn invented level-button text, Daily option labels/Check answer, and Leaderboard heading/tabs. Corpus 200/valid-shape is transport evidence, not a screenshot proving all board-row text. Resource paths omit origin: a blocked Sentry /api/... path is not a same-origin API. Original origin-qualified sentApi remains 0 because local copies fulfilled the reads.
+
+Raw original/follow-up JSON hashes, exact unrounded summaries/ranges, all source sample references, UI headings/buttons, request ledgers, source/dist rechecks and supervisor/cleanup receipts remain in the profile JSON. Both supervisors exited 0, owned children 0 and scratch removed. No field INP, live API/db latency, historical pre-fix baseline or universal gain follows. Full branch parity and required CI remain separate.
+
+The committed profile artifact is `docs/audit/f1-desktop-cdp-2026-11.json`.
+
+
+## Epic F1 baseline: production Home calibration (19 November 2026)
+
+The fixed Home-only calibration completed at 19:30:24–19:31:05 UTC: one Lighthouse audit per profile and one CDP sample per profile/cache condition, without retries. Fresh READY production metadata at 19:30:23 UTC associated `devshark.app` with `dpl_Efb7TFTrUEyYUqSebQWv3ccv6zve`, source `cbdfa2aa995e7dd71c7d0197fee7f35df21ca205`. The collectors were pinned to `f5df3b6fdb01d4e1f4d187ee75cc9f1cc90fcb8e`, using Chrome 157.0.8103.80 and Lighthouse 13.4.1. No fixture/replay or authenticated session was used.
+
+| Lighthouse profile (one sample) | Performance / accessibility / best practices / SEO | FCP ms | LCP ms | CLS | TBT ms | Speed index ms | Benchmark |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Mobile | 97 / 100 / 100 / 100 | 2097.628 | 2123.128 | 0 | 0.5 | 2097.628 | 2112 |
+| Desktop | 100 / 100 / 100 / 100 | 479.633 | 486.133 | 0 | 0 | 566.164 | 2054 |
+
+Both Lighthouse LCP nodes were the consent paragraph. Saved final screenshots show anonymous Home and the consent banner; no runtime/audit errors or warnings were reported. These are single observations under Lighthouse simulated throttling, not variance estimates or a controlled before/after comparison.
+
+| CDP profile / browser state (one sample) | Consent | TTFB ms | FCP / LCP ms | CLS / TBT ms | Scripted INP ms | Input |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| Mobile cold | undecided | 221.9 | 1800 / 1800 | 0 / 0 | 104 | navigation menu, registered |
+| Mobile repeat | rejected | 152.6 | 276 / 276 | 0 / 0 | 48 | navigation menu, registered |
+| Desktop cold | undecided | 99.2 | 428 / 428 | 0 / 0 | 80 | Dark mode, registered |
+| Desktop repeat | rejected | 21.9 | 64 / 64 | 0 / 0 | 32 | Dark mode, registered |
+
+The CDP cold LCP nodes were also the consent paragraph; repeat nodes were a styled span on mobile and a navigation link on desktop. All four inputs matched and registered, with no interaction failures. CDP writes the light-theme preference on every navigation, and both desktop controls were `Dark mode`; pre-press light appearance is inferred from source/control evidence. Repeat navigation also changes consent and LCP content, so this is not a pure cache comparison. `consentBanner` records DOM presence. Scripted INP is not field INP, and cold browser is not cold server.
+
+The independently reconstructed Lighthouse method ledgers contain 35 public-origin GET/200 events per audit, no redirects/session headers/loading failures, and no foreign HTTP attempt events. Lighthouse's broader request counts of 44/45 also include 9/10 local/data events. Separately, CDP records 94 interception events and 88 same-origin network responses, including four same-origin API responses; ResourceTiming contains `/api/settings` but does not retain status/origin itself. Two mutating-method attempts were refused by the existing CDP guard before forwarding. Their identities/origins were not retained, so no Sentry/application attribution is made.
+
+The CONNECT proxy allowed only `devshark.app:443`, kept TLS end-to-end, and denied foreign transport. Its tunnels/TLS bytes are separate counters; it cannot inspect HTTPS methods or enforce a global GET cap. Normal DNS selected IPv4 for the eight established origin tunnels. Public monitoring configuration was not removed, and proxy overhead remains part of the measurement. This observation does not repair the older incomplete request ledger: the preceding raw-transfer phase remains eight attempts/seven complete responses/one unknown, and no exact combined cumulative count or under 250/headroom assertion is made.
+
+Both collectors and the supervisor exited zero; all 33 pinned source files still match, owned scratch is absent, and the receipt has no cleanup error. No separate process-liveness scan was performed by this projection review. Private raw DevTools/trace assets remain outside the repository under a 0700 directory with 0600 files; only safe metrics and hash pins belong in [the production calibration artifact](audit/f1-production-home-calibration-2026-11-19.json). Keep this Home-only production calibration separate from the eight-route local synthetic cohorts and historical initial-baseline gaps.
+
+A later root read-only process scan at 2026-11-19T19:39:13.467185+00:00
+finds zero processes bearing the three exact owned browser-scratch markers.
+`docs/audit/f1-browser-lifecycle-2026-11.json` retains that narrow observation;
+it does not claim that unrelated browser processes stopped.
+
+
+## Epic F1 baseline: original-source bundle retake (19 November 2026)
+
+Issue #630, F1-22. The original 18 November raw output is missing. A new run
+on 19 November, 20:06:54 to 20:08:05 UTC, measures source
+`a9882348c0d539db6c3a240cabc69474c617820c` with its unchanged collector,
+locks and all six public build placeholders. This is a dated retake, not a
+recovered observation from the original day. The command is the historical
+`ANALYZE=true node scripts/check-bundle.mjs`; an owned exact-argument adapter
+selects its private Vite 6.4.5 installation instead of downloading through npx.
+
+| Check | Actual result |
+| --- | --- |
+| Initial HTML graph | Five files; 235,381 gzip bytes / original 241,651-byte cap. |
+| Monitoring graph | 49,566 / 60,000 gzip bytes. |
+| Current comparison | Current shaped graph is four files / 218,661 bytes, a 16,720-byte difference across source and dependency changes. No individual-fix attribution follows. |
+| Exact inputs | All 2,595 source blobs and 60,131 dependency payload files/links match before and after; 787 packages came from integrity-verified offline cache. Node 24.22.3, darwin arm64. |
+| Isolation and cleanup | Native macOS network denial remains active. The only fetch allowance is the exact pinned embedded Yoga WASM data URI. Supervisor accepted, process group gone, owned scratch and reused archive removed. |
+| Final branch gate | Pending the clean-head fast parity run and required CI. |
+
+The earlier harness failures remain recorded: an unsupported valid package
+archive prefix, one identical duplicate archive member, discarded primary
+build stderr, a fetch guard that rejected embedded data, and archive modes
+that prevented rewriting the copied output manifest. The final run retains
+primary logs before checking artifacts. Restoring normal checkout file modes
+changes no source bytes. No application/provider/production request, dependency
+update, root/F11 install, extra managed worktree or historical-date claim was
+part of this retake. The compact [historical-source artifact](audit/f1-historical-bundle-retake-2026-11-19.json)
+links exact inputs, raw hashes, the original five-file graph and failure chronology.

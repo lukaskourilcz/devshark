@@ -1,0 +1,1181 @@
+{
+  "findingId": "F1-26",
+  "profile": "desktop",
+  "kind": "actual Lighthouse baseline projection",
+  "status": "complete independent Lighthouse measurement; no whole-matrix claim",
+  "provenance": {
+    "sourceRevision": "d09ec769fe9d48c9ffe8fdec983e1463a0cb3ecc",
+    "actualChromeVersion": "157.0.8103.80",
+    "lhFinishedAtUtc": "2026-11-19T18:54:17.732Z",
+    "buildReceipt": {
+      "command": "npm run build",
+      "startedAt": "2026-11-19T16:56:42.422137+00:00",
+      "finishedAt": "2026-11-19T16:57:11.571820+00:00",
+      "exitCode": 0,
+      "head": "d09ec769fe9d48c9ffe8fdec983e1463a0cb3ecc",
+      "buildEnvironmentSource": "docs/quality/bundle-budget.json measuredBuild.env",
+      "ci": true,
+      "node": "v24.22.3",
+      "untrackedDocsNotRuntimeInputs": [
+        "docs/audit/repository-weight-2026-11.json",
+        "docs/audit/f1-bundle-2026-11.json"
+      ]
+    },
+    "buildReceiptSha256": "b9d557aed6b9ad02c617bf0a9f9c6b4e14cc8f603427119acdba6b36a90fb421",
+    "distFileCount": 2259,
+    "distReceiptSha256": "2698d01897808237d6ac7ce5303d680d25c603430aa040623d48981b8bbbf7e9",
+    "summarySha256": "8fa2e2cdc84331a28f362199d89f6b3d64f3a0e73466e993946a628870162cdf",
+    "sourcePins": [
+      {
+        "path": "scripts/audit-performance.mjs",
+        "sha256": "8c15861fb013f72c69482c06f5846ed6c5996e17e9d021124e8c60adae571bd4"
+      },
+      {
+        "path": "scripts/measure-web-performance.mjs",
+        "sha256": "07e4076a9c48893b5c19702a7d57ec9647bd1fc356ebf23f3458c6cfdc0f233e"
+      },
+      {
+        "path": "scripts/performance-fixture-server.mjs",
+        "sha256": "e7745243b4f2da9e336319cf0e38b3d82884dfdba27d3f69e74f902656859988"
+      },
+      {
+        "path": "docs/quality/bundle-budget.json",
+        "sha256": "7b781a2bbd34f58b99649790da1117199ad40513782db1b92dd97243832015ca"
+      }
+    ],
+    "measuredBuildPublicEnv": {
+      "VITE_PRODUCT": "devshark",
+      "VITE_LOCK_SUBJECT": "webdev",
+      "VITE_SUPABASE_URL": "https://exampleprojectref123.supabase.co",
+      "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YW1wbGVwcm9qZWN0cmVmMTIzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.u4DHjqduHWQem12_AzJsMK_2_dK8eDTYOa8tmp8_DU0",
+      "VITE_SENTRY_DSN": "https://87a18de67be56414c8cd9a7c6594a215@o1283380.ingest.de.sentry.io/7446582",
+      "VITE_PUBLIC_POSTHOG_KEY": "phc_RTyhiAvO3XNWYzxvUxpP1ge7QVmibEFHmSarqOBcFbw"
+    },
+    "conditions": {
+      "network": "owned loopback fixture+proxy; proxy overhead included; no production requests",
+      "api": "synthetic400ms:settings200,other API503",
+      "consent": "new undecided visitor banner",
+      "motion": "default no-preference",
+      "sourceState": "post-change local baseline, original before-any-fix evidence unavailable"
+    },
+    "lcpInterpretation": "15/16 median-LCP samples are consent paragraph; desktopPremium is voucher paragraph, not hero",
+    "independentAcceptance": "all48 Lighthouse audits complete with0collectorErrors; whole96CDP/source-final-recheck/cleanup still pending",
+    "command": "external collect.UNRUN.mjs mode lh invokes existing audit-performance.main/resolveOptions with8routes,runs3,defaultmobile/desktop profiles; equivalent CLI in append file"
+  },
+  "rows": [
+    {
+      "findingId": "F1-26",
+      "profile": "desktop",
+      "route": "/",
+      "runs": 3,
+      "failed": 0,
+      "statsFromExistingCollector": {
+        "median": {
+          "performance": 1,
+          "fcpMs": 509.93807499999997,
+          "lcpMs": 580.3578,
+          "speedIndexMs": 509.93807499999997,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2126
+        },
+        "min": {
+          "performance": 1,
+          "fcpMs": 508.18195000000003,
+          "lcpMs": 578.3508,
+          "speedIndexMs": 508.18195000000003,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2005.5
+        },
+        "max": {
+          "performance": 1,
+          "fcpMs": 513.028225,
+          "lcpMs": 583.8894,
+          "speedIndexMs": 513.028225,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2151
+        }
+      },
+      "scoreStats": {
+        "performance": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accessibility": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "best-practices": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "seo": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        }
+      },
+      "medianLcpRun": 1,
+      "medianLcpElement": {
+        "selector": "section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_",
+        "nodeLabel": "devShark keeps what sign-in, settings and progress need in this browser. With y\u2026",
+        "subparts": {
+          "timeToFirstByte": 3.056,
+          "elementRenderDelay": 120.895
+        }
+      },
+      "finalUrl": "http://127.0.0.1:60938/",
+      "representativeApiRequests": [
+        {
+          "path": "settings",
+          "status": 200
+        }
+      ],
+      "runtimeError": null,
+      "warnings": [],
+      "uiStateReview": "Anonymous landing; consent banner visible",
+      "uiEvidenceKind": "visually reviewed saved median-LCP final screenshot; no new browser",
+      "externalImageEvidence": {
+        "file": "desktop-home-run1-median-lcp.jpg",
+        "sha256": "bc53813c935f6369797b01e223e6920f670fe2063355e7c5c7efb777674d0cdc",
+        "binaryCommitted": false,
+        "storage": "/tmp/devshark-epic-f-handoff/f1-local-lab-projection-review-d09ec769/final-lighthouse"
+      },
+      "externalReportEvidence": {
+        "file": "desktop-home-run1.report.json",
+        "sha256": "e62b59e5a1ec511e1d5be96b6115b7ceddd80c3214fe182885e777338b00e580",
+        "storage": "/tmp/devshark-epic-f-handoff/f1-eight-route-local-lab-d09ec769-20261119/lighthouse"
+      }
+    },
+    {
+      "findingId": "F1-26",
+      "profile": "desktop",
+      "route": "/learn",
+      "runs": 3,
+      "failed": 0,
+      "statsFromExistingCollector": {
+        "median": {
+          "performance": 0.99,
+          "fcpMs": 672.1321750000002,
+          "lcpMs": 942.0585000000003,
+          "speedIndexMs": 693.5384529891955,
+          "cls": 0.0008891223769080348,
+          "tbtMs": 0,
+          "benchmarkIndex": 2106.5
+        },
+        "min": {
+          "performance": 0.99,
+          "fcpMs": 670.2943500000001,
+          "lcpMs": 938.7170000000008,
+          "speedIndexMs": 685.6119841365171,
+          "cls": 0.0008891223769080348,
+          "tbtMs": 0,
+          "benchmarkIndex": 2001
+        },
+        "max": {
+          "performance": 0.99,
+          "fcpMs": 672.9491999999998,
+          "lcpMs": 943.5439999999996,
+          "speedIndexMs": 706.0485007282539,
+          "cls": 0.0008891223769080348,
+          "tbtMs": 0,
+          "benchmarkIndex": 2121
+        }
+      },
+      "scoreStats": {
+        "performance": {
+          "samples": [
+            0.99,
+            0.99,
+            0.99
+          ],
+          "median": 0.99,
+          "min": 0.99,
+          "max": 0.99
+        },
+        "accessibility": {
+          "samples": [
+            0.96,
+            0.96,
+            0.96
+          ],
+          "median": 0.96,
+          "min": 0.96,
+          "max": 0.96
+        },
+        "best-practices": {
+          "samples": [
+            0.96,
+            0.96,
+            0.96
+          ],
+          "median": 0.96,
+          "min": 0.96,
+          "max": 0.96
+        },
+        "seo": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        }
+      },
+      "medianLcpRun": 1,
+      "medianLcpElement": {
+        "selector": "section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_",
+        "nodeLabel": "devShark keeps what sign-in, settings and progress need in this browser. With y\u2026",
+        "subparts": {
+          "timeToFirstByte": 2.717,
+          "elementRenderDelay": 141.434
+        }
+      },
+      "finalUrl": "http://127.0.0.1:60938/learn/web-developer",
+      "representativeApiRequests": [
+        {
+          "path": "settings",
+          "status": 200
+        },
+        {
+          "path": "quiz/roadmap",
+          "status": 503
+        },
+        {
+          "path": "quiz/roadmap",
+          "status": 503
+        },
+        {
+          "path": "quiz/roadmap",
+          "status": 503
+        }
+      ],
+      "runtimeError": null,
+      "warnings": [],
+      "uiStateReview": "Learn server error/Try again visibly captured; roadmap503",
+      "uiEvidenceKind": "visually reviewed saved median-LCP final screenshot; no new browser",
+      "externalImageEvidence": {
+        "file": "desktop-learn-run1-median-lcp.jpg",
+        "sha256": "619c748125d380e6a01b86198481a3dd5c5b072d2c559ea72b0d4f31118645d5",
+        "binaryCommitted": false,
+        "storage": "/tmp/devshark-epic-f-handoff/f1-local-lab-projection-review-d09ec769/final-lighthouse"
+      },
+      "externalReportEvidence": {
+        "file": "desktop-learn-run1.report.json",
+        "sha256": "f5b25f95c838e2048b9aa715cdc5a3a916957f304533922721e030a18c9e8e33",
+        "storage": "/tmp/devshark-epic-f-handoff/f1-eight-route-local-lab-d09ec769-20261119/lighthouse"
+      }
+    },
+    {
+      "findingId": "F1-26",
+      "profile": "desktop",
+      "route": "/coding",
+      "runs": 3,
+      "failed": 0,
+      "statsFromExistingCollector": {
+        "median": {
+          "performance": 1,
+          "fcpMs": 551.8624,
+          "lcpMs": 698.953,
+          "speedIndexMs": 551.8624,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2139
+        },
+        "min": {
+          "performance": 0.99,
+          "fcpMs": 550.9688000000001,
+          "lcpMs": 697.4610000000002,
+          "speedIndexMs": 550.9688000000001,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2037
+        },
+        "max": {
+          "performance": 1,
+          "fcpMs": 583.8507500000001,
+          "lcpMs": 764.6209,
+          "speedIndexMs": 583.8507500000001,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2178.5
+        }
+      },
+      "scoreStats": {
+        "performance": {
+          "samples": [
+            1,
+            0.99,
+            1
+          ],
+          "median": 1,
+          "min": 0.99,
+          "max": 1
+        },
+        "accessibility": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "best-practices": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "seo": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        }
+      },
+      "medianLcpRun": 1,
+      "medianLcpElement": {
+        "selector": "section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_",
+        "nodeLabel": "devShark keeps what sign-in, settings and progress need in this browser. With y\u2026",
+        "subparts": {
+          "timeToFirstByte": 2.814999984741211,
+          "elementRenderDelay": 136.5950000152588
+        }
+      },
+      "finalUrl": "http://127.0.0.1:60938/coding",
+      "representativeApiRequests": [
+        {
+          "path": "settings",
+          "status": 200
+        }
+      ],
+      "runtimeError": null,
+      "warnings": [],
+      "uiStateReview": "Signed-out challenge catalog; no recorded pass",
+      "uiEvidenceKind": "visually reviewed saved median-LCP final screenshot; no new browser",
+      "externalImageEvidence": {
+        "file": "desktop-coding-run1-median-lcp.jpg",
+        "sha256": "628caa37863c6ab00ca95dd9bbbda30be572fde73632ff70d66d3f8c586affdf",
+        "binaryCommitted": false,
+        "storage": "/tmp/devshark-epic-f-handoff/f1-local-lab-projection-review-d09ec769/final-lighthouse"
+      },
+      "externalReportEvidence": {
+        "file": "desktop-coding-run1.report.json",
+        "sha256": "e9936db3bff9960f36629fca6926fb0fedb282bfb323c84392f3765addea0d21",
+        "storage": "/tmp/devshark-epic-f-handoff/f1-eight-route-local-lab-d09ec769-20261119/lighthouse"
+      }
+    },
+    {
+      "findingId": "F1-26",
+      "profile": "desktop",
+      "route": "/quiz",
+      "runs": 3,
+      "failed": 0,
+      "statsFromExistingCollector": {
+        "median": {
+          "performance": 0.99,
+          "fcpMs": 670.0925499999998,
+          "lcpMs": 901.4266444015507,
+          "speedIndexMs": 670.0925499999998,
+          "cls": 0.0002448121880745994,
+          "tbtMs": 0,
+          "benchmarkIndex": 2111.5
+        },
+        "min": {
+          "performance": 0.99,
+          "fcpMs": 668.2458999999999,
+          "lcpMs": 900.4116444015499,
+          "speedIndexMs": 668.2458999999999,
+          "cls": 0.0002448121880745994,
+          "tbtMs": 0,
+          "benchmarkIndex": 2052
+        },
+        "max": {
+          "performance": 0.99,
+          "fcpMs": 670.6203500000001,
+          "lcpMs": 915.2231999999999,
+          "speedIndexMs": 670.6203500000001,
+          "cls": 0.0002448121880745994,
+          "tbtMs": 0,
+          "benchmarkIndex": 2142.5
+        }
+      },
+      "scoreStats": {
+        "performance": {
+          "samples": [
+            0.99,
+            0.99,
+            0.99
+          ],
+          "median": 0.99,
+          "min": 0.99,
+          "max": 0.99
+        },
+        "accessibility": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "best-practices": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "seo": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        }
+      },
+      "medianLcpRun": 1,
+      "medianLcpElement": {
+        "selector": "section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_",
+        "nodeLabel": "devShark keeps what sign-in, settings and progress need in this browser. With y\u2026",
+        "subparts": {
+          "timeToFirstByte": 2.747,
+          "elementRenderDelay": 146.502
+        }
+      },
+      "finalUrl": "http://127.0.0.1:60938/quiz",
+      "representativeApiRequests": [
+        {
+          "path": "settings",
+          "status": 200
+        }
+      ],
+      "runtimeError": null,
+      "warnings": [],
+      "uiStateReview": "Signed-out quiz setup; no start",
+      "uiEvidenceKind": "visually reviewed saved median-LCP final screenshot; no new browser",
+      "externalImageEvidence": {
+        "file": "desktop-quiz-run1-median-lcp.jpg",
+        "sha256": "0a2fe8d427a8ba97d16a96221fa6b2ce211d14c23645a01b845422c7ad8a2b36",
+        "binaryCommitted": false,
+        "storage": "/tmp/devshark-epic-f-handoff/f1-local-lab-projection-review-d09ec769/final-lighthouse"
+      },
+      "externalReportEvidence": {
+        "file": "desktop-quiz-run1.report.json",
+        "sha256": "9ef8bea7813aa8d6c2df1b4c6fdb845da447ac448471dc4079a300946edc43ba",
+        "storage": "/tmp/devshark-epic-f-handoff/f1-eight-route-local-lab-d09ec769-20261119/lighthouse"
+      }
+    },
+    {
+      "findingId": "F1-26",
+      "profile": "desktop",
+      "route": "/daily",
+      "runs": 3,
+      "failed": 0,
+      "statsFromExistingCollector": {
+        "median": {
+          "performance": 1,
+          "fcpMs": 443.4326,
+          "lcpMs": 733.0652,
+          "speedIndexMs": 482.7353619560569,
+          "cls": 0.01918185097627178,
+          "tbtMs": 0,
+          "benchmarkIndex": 2115
+        },
+        "min": {
+          "performance": 1,
+          "fcpMs": 442.7154,
+          "lcpMs": 730.8616000000002,
+          "speedIndexMs": 475.7966282245137,
+          "cls": 0.01918185097627178,
+          "tbtMs": 0,
+          "benchmarkIndex": 2095
+        },
+        "max": {
+          "performance": 1,
+          "fcpMs": 490.39945,
+          "lcpMs": 733.7304000000003,
+          "speedIndexMs": 516.2724754233122,
+          "cls": 0.01918185097627178,
+          "tbtMs": 0,
+          "benchmarkIndex": 2122
+        }
+      },
+      "scoreStats": {
+        "performance": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accessibility": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "best-practices": {
+          "samples": [
+            0.96,
+            0.96,
+            0.96
+          ],
+          "median": 0.96,
+          "min": 0.96,
+          "max": 0.96
+        },
+        "seo": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        }
+      },
+      "medianLcpRun": 1,
+      "medianLcpElement": {
+        "selector": "section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_",
+        "nodeLabel": "devShark keeps what sign-in, settings and progress need in this browser. With y\u2026",
+        "subparts": {
+          "timeToFirstByte": 2.587,
+          "elementRenderDelay": 129.909
+        }
+      },
+      "finalUrl": "http://127.0.0.1:60938/daily",
+      "representativeApiRequests": [
+        {
+          "path": "settings",
+          "status": 200
+        },
+        {
+          "path": "quiz/daily?qotd=2026-11-19",
+          "status": 503
+        },
+        {
+          "path": "quiz/daily?qotd=2026-11-19",
+          "status": 503
+        }
+      ],
+      "runtimeError": null,
+      "warnings": [],
+      "uiStateReview": "Question failed to load/Retry visibly captured; qotd503",
+      "uiEvidenceKind": "visually reviewed saved median-LCP final screenshot; no new browser",
+      "externalImageEvidence": {
+        "file": "desktop-daily-run1-median-lcp.jpg",
+        "sha256": "96a3ebbf0b5b4793ee0ce647fe4667d38f461f10578adf400a56883dc4b9f754",
+        "binaryCommitted": false,
+        "storage": "/tmp/devshark-epic-f-handoff/f1-local-lab-projection-review-d09ec769/final-lighthouse"
+      },
+      "externalReportEvidence": {
+        "file": "desktop-daily-run1.report.json",
+        "sha256": "0f175ad2d7c4bfa46aa8a9f3cff18bf2de393a7ba5b85c84271c3f7b7376dc69",
+        "storage": "/tmp/devshark-epic-f-handoff/f1-eight-route-local-lab-d09ec769-20261119/lighthouse"
+      }
+    },
+    {
+      "findingId": "F1-26",
+      "profile": "desktop",
+      "route": "/premium",
+      "runs": 3,
+      "failed": 0,
+      "statsFromExistingCollector": {
+        "median": {
+          "performance": 1,
+          "fcpMs": 443.0561,
+          "lcpMs": 764.58415,
+          "speedIndexMs": 443.0561,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2116
+        },
+        "min": {
+          "performance": 1,
+          "fcpMs": 442.8673,
+          "lcpMs": 764.3009499999998,
+          "speedIndexMs": 442.8673,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2093
+        },
+        "max": {
+          "performance": 1,
+          "fcpMs": 491.55535,
+          "lcpMs": 766.0553500000001,
+          "speedIndexMs": 491.55535,
+          "cls": 0.01409194050433412,
+          "tbtMs": 0,
+          "benchmarkIndex": 2148
+        }
+      },
+      "scoreStats": {
+        "performance": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accessibility": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "best-practices": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "seo": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        }
+      },
+      "medianLcpRun": 2,
+      "medianLcpElement": {
+        "selector": "article.ss-info-page > div.ss-premium-page > section#voucher > p",
+        "nodeLabel": "Premium is not on sale yet. If someone gave you a voucher, enter it here and Pr\u2026",
+        "subparts": {
+          "timeToFirstByte": 2.571,
+          "elementRenderDelay": 521.32
+        }
+      },
+      "finalUrl": "http://127.0.0.1:60938/premium",
+      "representativeApiRequests": [
+        {
+          "path": "settings",
+          "status": 200
+        }
+      ],
+      "runtimeError": null,
+      "warnings": [],
+      "uiStateReview": "Premium not on sale yet/voucher; price cards visible; billing disabled",
+      "uiEvidenceKind": "visually reviewed saved median-LCP final screenshot; no new browser",
+      "externalImageEvidence": {
+        "file": "desktop-premium-run2-median-lcp.jpg",
+        "sha256": "4f924a355276588cec4f7ad87d1fb3b8f93c3a9be0af95abbc56e93ed31c119f",
+        "binaryCommitted": false,
+        "storage": "/tmp/devshark-epic-f-handoff/f1-local-lab-projection-review-d09ec769/final-lighthouse"
+      },
+      "externalReportEvidence": {
+        "file": "desktop-premium-run2.report.json",
+        "sha256": "a34efc625696fd592ae4a42f774d933e6f330e722d4a3f2e3ec4d75339b154db",
+        "storage": "/tmp/devshark-epic-f-handoff/f1-eight-route-local-lab-d09ec769-20261119/lighthouse"
+      }
+    },
+    {
+      "findingId": "F1-26",
+      "profile": "desktop",
+      "route": "/topics/javascript-closures",
+      "runs": 3,
+      "failed": 0,
+      "statsFromExistingCollector": {
+        "median": {
+          "performance": 1,
+          "fcpMs": 445.994,
+          "lcpMs": 608.991,
+          "speedIndexMs": 445.994,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2113
+        },
+        "min": {
+          "performance": 1,
+          "fcpMs": 445.7637,
+          "lcpMs": 608.64555,
+          "speedIndexMs": 445.7637,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2108.5
+        },
+        "max": {
+          "performance": 1,
+          "fcpMs": 447.656,
+          "lcpMs": 611.484,
+          "speedIndexMs": 447.656,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2120
+        }
+      },
+      "scoreStats": {
+        "performance": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accessibility": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "best-practices": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "seo": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        }
+      },
+      "medianLcpRun": 3,
+      "medianLcpElement": {
+        "selector": "section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_",
+        "nodeLabel": "devShark keeps what sign-in, settings and progress need in this browser. With y\u2026",
+        "subparts": {
+          "timeToFirstByte": 2.997,
+          "elementRenderDelay": 128.819
+        }
+      },
+      "finalUrl": "http://127.0.0.1:60938/topics/javascript-closures",
+      "representativeApiRequests": [
+        {
+          "path": "settings",
+          "status": 200
+        }
+      ],
+      "runtimeError": null,
+      "warnings": [],
+      "uiStateReview": "Static closures article/code sample visible",
+      "uiEvidenceKind": "visually reviewed saved median-LCP final screenshot; no new browser",
+      "externalImageEvidence": {
+        "file": "desktop-topics-javascript-closures-run3-median-lcp.jpg",
+        "sha256": "14ecfb76e80fc911295224632d82bfe53c5982a1e1a2ec9ed207faba8d190700",
+        "binaryCommitted": false,
+        "storage": "/tmp/devshark-epic-f-handoff/f1-local-lab-projection-review-d09ec769/final-lighthouse"
+      },
+      "externalReportEvidence": {
+        "file": "desktop-topics-javascript-closures-run3.report.json",
+        "sha256": "7ceb389e54adb4e17cee40d140fc8c7c0c430a771a895cbda9a39437760ff229",
+        "storage": "/tmp/devshark-epic-f-handoff/f1-eight-route-local-lab-d09ec769-20261119/lighthouse"
+      }
+    },
+    {
+      "findingId": "F1-26",
+      "profile": "desktop",
+      "route": "/leaderboard",
+      "runs": 3,
+      "failed": 0,
+      "statsFromExistingCollector": {
+        "median": {
+          "performance": 1,
+          "fcpMs": 584.676,
+          "lcpMs": 725.6112,
+          "speedIndexMs": 584.676,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2097.5
+        },
+        "min": {
+          "performance": 1,
+          "fcpMs": 583.199375,
+          "lcpMs": 723.8392500000001,
+          "speedIndexMs": 583.199375,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2058
+        },
+        "max": {
+          "performance": 1,
+          "fcpMs": 585.1498749999998,
+          "lcpMs": 726.1798499999998,
+          "speedIndexMs": 585.1498749999998,
+          "cls": 0,
+          "tbtMs": 0,
+          "benchmarkIndex": 2125
+        }
+      },
+      "scoreStats": {
+        "performance": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accessibility": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "best-practices": {
+          "samples": [
+            0.96,
+            0.96,
+            0.96
+          ],
+          "median": 0.96,
+          "min": 0.96,
+          "max": 0.96
+        },
+        "seo": {
+          "samples": [
+            1,
+            1,
+            1
+          ],
+          "median": 1,
+          "min": 1,
+          "max": 1
+        }
+      },
+      "medianLcpRun": 2,
+      "medianLcpElement": {
+        "selector": "section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_",
+        "nodeLabel": "devShark keeps what sign-in, settings and progress need in this browser. With y\u2026",
+        "subparts": {
+          "timeToFirstByte": 2.469,
+          "elementRenderDelay": 124.851
+        }
+      },
+      "finalUrl": "http://127.0.0.1:60938/leaderboard",
+      "representativeApiRequests": [
+        {
+          "path": "settings",
+          "status": 200
+        },
+        {
+          "path": "leaderboard?period=30d",
+          "status": 503
+        }
+      ],
+      "runtimeError": null,
+      "warnings": [],
+      "uiStateReview": "Server error/Retry visibly captured; board503",
+      "uiEvidenceKind": "visually reviewed saved median-LCP final screenshot; no new browser",
+      "externalImageEvidence": {
+        "file": "desktop-leaderboard-run2-median-lcp.jpg",
+        "sha256": "f3a09cf55d6514faaf3dd20ebfc6071a112903415677181a4a75b598c0b42f82",
+        "binaryCommitted": false,
+        "storage": "/tmp/devshark-epic-f-handoff/f1-local-lab-projection-review-d09ec769/final-lighthouse"
+      },
+      "externalReportEvidence": {
+        "file": "desktop-leaderboard-run2.report.json",
+        "sha256": "edb1ecf71c9c3ac2d1c9ff8eacd5eefff9159f03ca30e0f67df24c0e11710c98",
+        "storage": "/tmp/devshark-epic-f-handoff/f1-eight-route-local-lab-d09ec769-20261119/lighthouse"
+      }
+    }
+  ],
+  "rawReportPins": [
+    {
+      "file": "desktop-home-run1.report.json",
+      "bytes": 622191,
+      "sha256": "e62b59e5a1ec511e1d5be96b6115b7ceddd80c3214fe182885e777338b00e580",
+      "profile": "desktop",
+      "route": "/",
+      "run": 1,
+      "error": null
+    },
+    {
+      "file": "desktop-home-run2.report.json",
+      "bytes": 620150,
+      "sha256": "929126e11345a6855b3e56c18a0c73edf03e9f5bfaf5c96dad624aa736e0104c",
+      "profile": "desktop",
+      "route": "/",
+      "run": 2,
+      "error": null
+    },
+    {
+      "file": "desktop-home-run3.report.json",
+      "bytes": 621040,
+      "sha256": "70464c8083565cd8547f72238e454c9d2453ef7b0a30fbb94288c09d4974c7ef",
+      "profile": "desktop",
+      "route": "/",
+      "run": 3,
+      "error": null
+    },
+    {
+      "file": "desktop-learn-run1.report.json",
+      "bytes": 588231,
+      "sha256": "f5b25f95c838e2048b9aa715cdc5a3a916957f304533922721e030a18c9e8e33",
+      "profile": "desktop",
+      "route": "/learn",
+      "run": 1,
+      "error": null
+    },
+    {
+      "file": "desktop-learn-run2.report.json",
+      "bytes": 588484,
+      "sha256": "d59418b40e112afd74c794f5bde5fe1369ef9d786b5b940b2a22770944e05b83",
+      "profile": "desktop",
+      "route": "/learn",
+      "run": 2,
+      "error": null
+    },
+    {
+      "file": "desktop-learn-run3.report.json",
+      "bytes": 591882,
+      "sha256": "5c102e854a855536586b5ee73a27c3d54f71a3d9ac1d933492c5cc016103b9d6",
+      "profile": "desktop",
+      "route": "/learn",
+      "run": 3,
+      "error": null
+    },
+    {
+      "file": "desktop-coding-run1.report.json",
+      "bytes": 671513,
+      "sha256": "e9936db3bff9960f36629fca6926fb0fedb282bfb323c84392f3765addea0d21",
+      "profile": "desktop",
+      "route": "/coding",
+      "run": 1,
+      "error": null
+    },
+    {
+      "file": "desktop-coding-run2.report.json",
+      "bytes": 671116,
+      "sha256": "866b486a915dec10cbfb8fcf6c00f237a46e40c1b662a0c2a69211d3b9559d44",
+      "profile": "desktop",
+      "route": "/coding",
+      "run": 2,
+      "error": null
+    },
+    {
+      "file": "desktop-coding-run3.report.json",
+      "bytes": 670418,
+      "sha256": "9e6d00b68ace2f1fbe3707ec79028b05a4fe40957c82cfccf47d0dd757d90f89",
+      "profile": "desktop",
+      "route": "/coding",
+      "run": 3,
+      "error": null
+    },
+    {
+      "file": "desktop-quiz-run1.report.json",
+      "bytes": 676549,
+      "sha256": "9ef8bea7813aa8d6c2df1b4c6fdb845da447ac448471dc4079a300946edc43ba",
+      "profile": "desktop",
+      "route": "/quiz",
+      "run": 1,
+      "error": null
+    },
+    {
+      "file": "desktop-quiz-run2.report.json",
+      "bytes": 674814,
+      "sha256": "5910b5ca9b958b7ec1785f189fc97653ad5ba61b6d0d4dbce50369749fe6f4e2",
+      "profile": "desktop",
+      "route": "/quiz",
+      "run": 2,
+      "error": null
+    },
+    {
+      "file": "desktop-quiz-run3.report.json",
+      "bytes": 678153,
+      "sha256": "9885d1919fde02e2592a3826d58dbdae5dcd564c14b2e69f031e4dba9452a2fe",
+      "profile": "desktop",
+      "route": "/quiz",
+      "run": 3,
+      "error": null
+    },
+    {
+      "file": "desktop-daily-run1.report.json",
+      "bytes": 564161,
+      "sha256": "0f175ad2d7c4bfa46aa8a9f3cff18bf2de393a7ba5b85c84271c3f7b7376dc69",
+      "profile": "desktop",
+      "route": "/daily",
+      "run": 1,
+      "error": null
+    },
+    {
+      "file": "desktop-daily-run2.report.json",
+      "bytes": 564116,
+      "sha256": "8300994d296f57517adc82cdd7a21ae0a0a674bd4f213878a76ebd2c0fdf7e2d",
+      "profile": "desktop",
+      "route": "/daily",
+      "run": 2,
+      "error": null
+    },
+    {
+      "file": "desktop-daily-run3.report.json",
+      "bytes": 565891,
+      "sha256": "672a10e705daa8b7059733a8460a0d53280afeabe59a30e68419da6fb98bcda6",
+      "profile": "desktop",
+      "route": "/daily",
+      "run": 3,
+      "error": null
+    },
+    {
+      "file": "desktop-premium-run1.report.json",
+      "bytes": 620759,
+      "sha256": "bb73b31f074b615a7f19cd4c3994d1f3b617afc33ad331210faa99dab81116a4",
+      "profile": "desktop",
+      "route": "/premium",
+      "run": 1,
+      "error": null
+    },
+    {
+      "file": "desktop-premium-run2.report.json",
+      "bytes": 618729,
+      "sha256": "a34efc625696fd592ae4a42f774d933e6f330e722d4a3f2e3ec4d75339b154db",
+      "profile": "desktop",
+      "route": "/premium",
+      "run": 2,
+      "error": null
+    },
+    {
+      "file": "desktop-premium-run3.report.json",
+      "bytes": 622259,
+      "sha256": "182800946e05f78100cf5f5969303b570905daea414697b3094e0020cb653c0a",
+      "profile": "desktop",
+      "route": "/premium",
+      "run": 3,
+      "error": null
+    },
+    {
+      "file": "desktop-topics-javascript-closures-run1.report.json",
+      "bytes": 586783,
+      "sha256": "fb893272507a688d4ae55a015cca27795102e620359910a70652c17133aa8dd5",
+      "profile": "desktop",
+      "route": "/topics/javascript-closures",
+      "run": 1,
+      "error": null
+    },
+    {
+      "file": "desktop-topics-javascript-closures-run2.report.json",
+      "bytes": 585767,
+      "sha256": "a2a801c587ab26623aab6f579ba40d8d94fa335f8cecfc3c4458aa67d1d21464",
+      "profile": "desktop",
+      "route": "/topics/javascript-closures",
+      "run": 2,
+      "error": null
+    },
+    {
+      "file": "desktop-topics-javascript-closures-run3.report.json",
+      "bytes": 585591,
+      "sha256": "7ceb389e54adb4e17cee40d140fc8c7c0c430a771a895cbda9a39437760ff229",
+      "profile": "desktop",
+      "route": "/topics/javascript-closures",
+      "run": 3,
+      "error": null
+    },
+    {
+      "file": "desktop-leaderboard-run1.report.json",
+      "bytes": 540470,
+      "sha256": "f6b6328528b183aab760588d22fdc6f1fde17100864b38a6c30fe39821532897",
+      "profile": "desktop",
+      "route": "/leaderboard",
+      "run": 1,
+      "error": null
+    },
+    {
+      "file": "desktop-leaderboard-run2.report.json",
+      "bytes": 542958,
+      "sha256": "edb1ecf71c9c3ac2d1c9ff8eacd5eefff9159f03ca30e0f67df24c0e11710c98",
+      "profile": "desktop",
+      "route": "/leaderboard",
+      "run": 2,
+      "error": null
+    },
+    {
+      "file": "desktop-leaderboard-run3.report.json",
+      "bytes": 545714,
+      "sha256": "79676439c7153155d82893f5220b13b10a7fbe454ad633537f88e11ab227d8af",
+      "profile": "desktop",
+      "route": "/leaderboard",
+      "run": 3,
+      "error": null
+    }
+  ]
+}

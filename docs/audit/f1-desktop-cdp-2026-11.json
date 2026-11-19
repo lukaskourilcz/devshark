@@ -1,0 +1,6689 @@
+{
+  "findingId": "F1-28",
+  "profile": "desktop",
+  "status": "actual local route table with explicit separate cohorts; branch validation/CI not claimed",
+  "provenance": {
+    "unchangedBuildHead": "d09ec769fe9d48c9ffe8fdec983e1463a0cb3ecc",
+    "build": "same successful build with all six public keys and 2,259 files d09 build; no rebuild for follow-up",
+    "chrome": "157.0.8103.80",
+    "network": "mobile 150 ms/1.6 Mbps/CPU4;desktop 20 ms/10 Mbps/CPU1; simulated via CDP",
+    "proxy": "owned exact-loopback only; overhead included; no production application call",
+    "api": "local invented corpus with 120 ms replay; no --fixture override",
+    "consent": {
+      "cold-browser": "undecided",
+      "repeat-browser": "rejected"
+    },
+    "motion": "no-preference",
+    "semantics": {
+      "inp": "one local scripted press, not field INP",
+      "cache": "cold/repeat differs in cache and consent; not a pure cache-effect experiment",
+      "theme": "all matched original desktop controls were Dark mode, inferring light before both navigations; per-navigation init resets same app key. No dark-repeat evidence. Daily uses local radio, not theme. This is not a DOM-attribute proof.",
+      "consentBanner": "legacy boolean is DOM presence, not visible shown state. Actual Daily diagnosis found display:none while DOM flag true; cold LCP may name earlier banner paint.",
+      "resourcePaths": "ResourceTiming paths omit origin; blocked Sentry /api/... is not app API ownership proof. Original origin-qualified sentApi counters remain authoritative.",
+      "uiEvidence": "recorded heading/buttons/LCP metadata, not a new screenshot of the full page or complete board-row text"
+    },
+    "originalCorpus": {
+      "origin": "http://127.0.0.1:60939",
+      "delayMs": 120,
+      "forwarded": 4,
+      "reads": [
+        {
+          "path": "/api/settings",
+          "status": 200,
+          "bytes": 1108,
+          "fetchMs": 20,
+          "served": 96
+        },
+        {
+          "path": "/api/quiz/roadmap",
+          "status": 200,
+          "bytes": 4439,
+          "fetchMs": 2,
+          "served": 12
+        },
+        {
+          "path": "/api/quiz/daily?qotd=2026-11-19",
+          "status": 200,
+          "bytes": 291,
+          "fetchMs": 2,
+          "served": 12
+        },
+        {
+          "path": "/api/leaderboard?period=30d",
+          "status": 200,
+          "bytes": 319,
+          "fetchMs": 2,
+          "served": 12
+        }
+      ],
+      "unlisted": []
+    },
+    "followupCorpus": {
+      "origin": "http://127.0.0.1:64222",
+      "delayMs": 120,
+      "forwarded": 2,
+      "reads": [
+        {
+          "path": "/api/settings",
+          "status": 200,
+          "bytes": 1108,
+          "fetchMs": 20,
+          "served": 12
+        },
+        {
+          "path": "/api/quiz/daily?qotd=2026-11-19",
+          "status": 200,
+          "bytes": 291,
+          "fetchMs": 1,
+          "served": 12
+        }
+      ],
+      "unlisted": []
+    },
+    "originalGlobalRequests": {
+      "requests": 2990,
+      "api": 132,
+      "sent": 2728,
+      "sentApi": 0,
+      "forwarded": 4
+    },
+    "followupGlobalRequests": {
+      "requests": 348,
+      "api": 24,
+      "sent": 318,
+      "sentApi": 0,
+      "forwarded": 2
+    }
+  },
+  "cohorts": {
+    "initial": {
+      "sourceHead": "d09ec769fe9d48c9ffe8fdec983e1463a0cb3ecc",
+      "rawFile": "/tmp/devshark-epic-f-handoff/f1-eight-route-local-lab-d09ec769-20261119/cdp.json",
+      "rawSha256": "81ab7e0831efa8f1c4018e9918649170d0543fceefc8362c0c927058ec7c9846",
+      "controllerReceiptSha256": "dc19b19beda71092c9fa68b521c9cf2587acd74b2437b5e1770ff316f7c3c785",
+      "supervisorSha256": "9ac2af5fca5a8816b397734c556697f774e70c2f6a051b738c875be0f5d29e02",
+      "exitCode": 0,
+      "rows": 96,
+      "paintErrors": 0,
+      "registeredInteractions": 84,
+      "missingInteractions": 12,
+      "toolExitBeforeCorrection": 0,
+      "scope": "original artifact unchanged; its zero exit did not attest complete interaction evidence",
+      "startedAtUtc": "2026-11-19T18:54:17.733Z",
+      "finishedAtUtc": "2026-11-19T19:00:19.124Z",
+      "supervisorCommand": [
+        "/private/tmp/devshark-epic-f-handoff/node24/node_modules/node/bin/node",
+        "/private/tmp/devshark-epic-f-handoff/f1-eight-route-local-lab-d09ec769-UNRUN/run-lab.UNRUN.mjs",
+        "/Users/lukas/.t3/projects/devshark/react-express-app",
+        "/private/tmp/devshark-epic-f-handoff/f1-eight-route-local-lab-d09ec769-20261119",
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      ],
+      "supervisorElapsedSeconds": 932.333,
+      "supervisorScope": "whole initial LH+CDP matrix",
+      "sourcePinsRechecked": true,
+      "ownedChildrenAfterCleanup": 0,
+      "scratchRemoved": true,
+      "environment": {
+        "origin": "http://127.0.0.1:60938",
+        "apiOrigin": "http://127.0.0.1:60939",
+        "apiDelayMs": 120,
+        "time": "2026-11-19T19:00:18.899Z",
+        "platform": "darwin",
+        "arch": "arm64",
+        "chrome": "157.0.8103.80",
+        "network": "mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP",
+        "samples": 3,
+        "reducedMotion": "no-preference",
+        "consent": {
+          "cold-browser": "undecided",
+          "repeat-browser": "rejected"
+        },
+        "ttfbDefinition": "responseStart (web-vitals)",
+        "clsDefinition": "largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press",
+        "tbtDefinition": "long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)",
+        "summaryDefinition": "one row per profile, path and cache state: the median of each metric over the measured samples (the lower middle one for an even count, so each value is one a sample measured), the LCP element of the median-LCP sample, errors = samples a failure left without a measurement",
+        "requestsDefinition": "requests the page made per kind at the lab interception; sent = responses the origin returned over the network, without cache hits or answers the lab fulfilled",
+        "serverWaitDefinition": "responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)",
+        "scope": "anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP"
+      }
+    },
+    "dailyFollowup": {
+      "sourceHead": "f5df3b6fdb01d4e1f4d187ee75cc9f1cc90fcb8e",
+      "rawFile": "/tmp/devshark-epic-f-handoff/f1-daily-followup-f5df3b6f-20261119/cdp.json",
+      "rawSha256": "6a48ba322b4e793f287b50565abe92c3aa2e162a44e0aa586a01d86444a4c031",
+      "controllerReceiptSha256": "eb0b5a3cd738df425f0bb02399925f8c5ad269f9f0cb2fe58d3070e1d37d85bd",
+      "supervisorSha256": "d4d6a210c78b16c44dd8bb3c6442a8aec15b7c5a374d010a1159e70d2fc2f15e",
+      "exitCode": 0,
+      "rows": 12,
+      "paintErrors": 0,
+      "registeredInteractions": 12,
+      "interactionFailures": 0,
+      "scope": "separate Daily-only cohort; no full96rerun; original Daily12paint rows retained",
+      "startedAtUtc": "2026-11-19T19:15:49.674Z",
+      "finishedAtUtc": "2026-11-19T19:16:35.748Z",
+      "supervisorCommand": [
+        "/private/tmp/devshark-epic-f-handoff/node24/node_modules/node/bin/node",
+        "/private/tmp/devshark-epic-f-handoff/f1-daily-followup-draft-f5df3b6f/run-daily.UNRUN.mjs",
+        "/Users/lukas/.t3/projects/devshark/react-express-app",
+        "/private/tmp/devshark-epic-f-handoff/f1-daily-followup-f5df3b6f-20261119",
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      ],
+      "supervisorElapsedSeconds": 51.659,
+      "supervisorScope": "Daily-only follow-up",
+      "sourcePinsRechecked": true,
+      "ownedChildrenAfterCleanup": 0,
+      "scratchRemoved": true,
+      "environment": {
+        "origin": "http://127.0.0.1:64221",
+        "apiOrigin": "http://127.0.0.1:64222",
+        "apiDelayMs": 120,
+        "time": "2026-11-19T19:16:35.550Z",
+        "platform": "darwin",
+        "arch": "arm64",
+        "chrome": "157.0.8103.80",
+        "network": "mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP",
+        "samples": 3,
+        "reducedMotion": "no-preference",
+        "consent": {
+          "cold-browser": "undecided",
+          "repeat-browser": "rejected"
+        },
+        "consentBannerDefinition": "DOM presence only; question focus mode can hide the existing banner. This is not a visibility measurement.",
+        "ttfbDefinition": "responseStart (web-vitals)",
+        "clsDefinition": "largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press",
+        "tbtDefinition": "long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)",
+        "summaryDefinition": "one row per profile, path and cache state: the median of each metric over the measured samples (the lower middle one for an even count, so each value is one a sample measured), the LCP element of the median-LCP sample, errors = samples a failure left without a measurement",
+        "requestsDefinition": "requests the page made per kind at the lab interception; sent = responses the origin returned over the network, without cache hits or answers the lab fulfilled",
+        "serverWaitDefinition": "responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)",
+        "scope": "anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP"
+      }
+    },
+    "domDiagnosis": {
+      "rawFile": "/tmp/devshark-epic-f-handoff/f1-daily-dom-diagnosis-482ed559-20261119/run-provenance.json",
+      "rawSha256": "973a6022b44f8eed02a2bea710b602e4c3ac28cc5c03e3fd2c947a1c6d439e27",
+      "observation": "both profiles header/footer/consent display:none; 4 radio choices; local pick changes selection/enables Check answer; 0 app writes; no Check answer click"
+    },
+    "checks": {
+      "redCommit": "e3a54317",
+      "fixCommit": "f5df3b6fdb01d4e1f4d187ee75cc9f1cc90fcb8e",
+      "focusedBefore": "3fail1pass",
+      "focusedAfter": "4pass",
+      "fullTools": "72pass",
+      "scriptsTyping": "pass",
+      "checksScope": "working bytes identical to fix commit; full branch parity/CI remain parent work"
+    }
+  },
+  "routeTable": [
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/",
+        "cache": "cold-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 23.200000002980232,
+        "fcpMs": 344,
+        "lcpMs": 344,
+        "lcpElement": "section.ss-consent p#_r_4_.ss-consent__body",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 80,
+        "requests": 39
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 340,
+          "max": 348
+        },
+        "lcp": {
+          "min": 340,
+          "max": 348
+        },
+        "cls": {
+          "min": 0,
+          "max": 0
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 80,
+          "max": 80
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Lessons, quizzes and coding tasks for web developers.",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Choose a topic",
+            "Sign in",
+            "A6",
+            "B8",
+            "C9",
+            "D5",
+            "Learn JavaScript",
+            "Learn TypeScript",
+            "Learn React",
+            "Learn Next.js",
+            "Learn Node.js",
+            "Learn HTML",
+            "Learn CSS",
+            "See every topic in Learn",
+            "Start learning JavaScript"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Lessons, quizzes and coding tasks for web developers.",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Choose a topic",
+            "Sign in",
+            "A6",
+            "B8",
+            "C9",
+            "D5",
+            "Learn JavaScript",
+            "Learn TypeScript",
+            "Learn React",
+            "Learn Next.js",
+            "Learn Node.js",
+            "Learn HTML",
+            "Learn CSS",
+            "See every topic in Learn",
+            "Start learning JavaScript"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Lessons, quizzes and coding tasks for web developers.",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Choose a topic",
+            "Sign in",
+            "A6",
+            "B8",
+            "C9",
+            "D5",
+            "Learn JavaScript",
+            "Learn TypeScript",
+            "Learn React",
+            "Learn Next.js",
+            "Learn Node.js",
+            "Learn HTML",
+            "Learn CSS",
+            "See every topic in Learn",
+            "Start learning JavaScript"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/",
+        "cache": "repeat-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 22,
+        "fcpMs": 76,
+        "lcpMs": 76,
+        "lcpElement": "a.ss-navlink",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 32,
+        "requests": 5
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 76,
+          "max": 76
+        },
+        "lcp": {
+          "min": 76,
+          "max": 76
+        },
+        "cls": {
+          "min": 0,
+          "max": 0
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 32,
+          "max": 32
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Lessons, quizzes and coding tasks for web developers.",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Choose a topic",
+            "Sign in",
+            "A6",
+            "B8",
+            "C9",
+            "D5",
+            "Learn JavaScript",
+            "Learn TypeScript",
+            "Learn React",
+            "Learn Next.js",
+            "Learn Node.js",
+            "Learn HTML",
+            "Learn CSS",
+            "See every topic in Learn",
+            "Start learning JavaScript",
+            "TodayYour plan for today: a little unfinished work, a little review, a little new.",
+            "Career roadmapThe skills each level expects, and where you stand.",
+            "Coding challengesLoops, array methods, types and components with real tests."
+          ],
+          "lcpElement": {
+            "tag": "a",
+            "id": null,
+            "classes": [
+              "ss-navlink"
+            ],
+            "container": null,
+            "size": 1173,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Lessons, quizzes and coding tasks for web developers.",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Choose a topic",
+            "Sign in",
+            "A6",
+            "B8",
+            "C9",
+            "D5",
+            "Learn JavaScript",
+            "Learn TypeScript",
+            "Learn React",
+            "Learn Next.js",
+            "Learn Node.js",
+            "Learn HTML",
+            "Learn CSS",
+            "See every topic in Learn",
+            "Start learning JavaScript",
+            "TodayYour plan for today: a little unfinished work, a little review, a little new.",
+            "Career roadmapThe skills each level expects, and where you stand.",
+            "Coding challengesLoops, array methods, types and components with real tests."
+          ],
+          "lcpElement": {
+            "tag": "a",
+            "id": null,
+            "classes": [
+              "ss-navlink"
+            ],
+            "container": null,
+            "size": 1173,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Lessons, quizzes and coding tasks for web developers.",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Choose a topic",
+            "Sign in",
+            "A6",
+            "B8",
+            "C9",
+            "D5",
+            "Learn JavaScript",
+            "Learn TypeScript",
+            "Learn React",
+            "Learn Next.js",
+            "Learn Node.js",
+            "Learn HTML",
+            "Learn CSS",
+            "See every topic in Learn",
+            "Start learning JavaScript",
+            "TodayYour plan for today: a little unfinished work, a little review, a little new.",
+            "Career roadmapThe skills each level expects, and where you stand.",
+            "Coding challengesLoops, array methods, types and components with real tests."
+          ],
+          "lcpElement": {
+            "tag": "a",
+            "id": null,
+            "classes": [
+              "ss-navlink"
+            ],
+            "container": null,
+            "size": 1173,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/learn",
+        "cache": "cold-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 22.600000008940697,
+        "fcpMs": 356,
+        "lcpMs": 356,
+        "lcpElement": "section.ss-consent p#_r_4_.ss-consent__body",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 112,
+        "requests": 67
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 348,
+          "max": 372
+        },
+        "lcp": {
+          "min": 348,
+          "max": 372
+        },
+        "cls": {
+          "min": 0,
+          "max": 0
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 112,
+          "max": 120
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Learn",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Web Developer \u00b7 0%",
+            "Software Engineer \u00b7 0%",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "TypeScript \u2014 Locked, Premium",
+            "React \u2014 Locked",
+            "Next.js \u2014 Locked, Premium",
+            "Node.js \u2014 Locked, Premium",
+            "Databases \u2014 Locked, Premium",
+            "Git \u2014 Locked, Premium",
+            "General \u2014 Locked, Premium",
+            "Continue",
+            "Level 1: Local lab javascript level 1",
+            "Level 2: Local lab javascript level 2, Locked"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Learn",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Web Developer \u00b7 0%",
+            "Software Engineer \u00b7 0%",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "TypeScript \u2014 Locked, Premium",
+            "React \u2014 Locked",
+            "Next.js \u2014 Locked, Premium",
+            "Node.js \u2014 Locked, Premium",
+            "Databases \u2014 Locked, Premium",
+            "Git \u2014 Locked, Premium",
+            "General \u2014 Locked, Premium",
+            "Continue",
+            "Level 1: Local lab javascript level 1",
+            "Level 2: Local lab javascript level 2, Locked"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Learn",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Web Developer \u00b7 0%",
+            "Software Engineer \u00b7 0%",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "TypeScript \u2014 Locked, Premium",
+            "React \u2014 Locked",
+            "Next.js \u2014 Locked, Premium",
+            "Node.js \u2014 Locked, Premium",
+            "Databases \u2014 Locked, Premium",
+            "Git \u2014 Locked, Premium",
+            "General \u2014 Locked, Premium",
+            "Continue",
+            "Level 1: Local lab javascript level 1",
+            "Level 2: Local lab javascript level 2, Locked"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/learn",
+        "cache": "repeat-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 21.799999997019768,
+        "fcpMs": 72,
+        "lcpMs": 556,
+        "lcpElement": "main p.rm-section-line",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 32,
+        "requests": 8
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 72,
+          "max": 76
+        },
+        "lcp": {
+          "min": 556,
+          "max": 560
+        },
+        "cls": {
+          "min": 0,
+          "max": 0
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 32,
+          "max": 32
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Learn",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Web Developer \u00b7 0%",
+            "Software Engineer \u00b7 0%",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "TypeScript \u2014 Locked, Premium",
+            "React \u2014 Locked",
+            "Next.js \u2014 Locked, Premium",
+            "Node.js \u2014 Locked, Premium",
+            "Databases \u2014 Locked, Premium",
+            "Git \u2014 Locked, Premium",
+            "General \u2014 Locked, Premium",
+            "Continue",
+            "Level 1: Local lab javascript level 1",
+            "Level 2: Local lab javascript level 2, Locked",
+            "Level 3: Local lab javascript level 3, Locked",
+            "Level 4: Local lab javascript level 4, Locked",
+            "Level 5: Local lab javascript level 5, Locked"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": null,
+            "classes": [
+              "rm-section-line"
+            ],
+            "container": "main",
+            "size": 20631,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Learn",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Web Developer \u00b7 0%",
+            "Software Engineer \u00b7 0%",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "TypeScript \u2014 Locked, Premium",
+            "React \u2014 Locked",
+            "Next.js \u2014 Locked, Premium",
+            "Node.js \u2014 Locked, Premium",
+            "Databases \u2014 Locked, Premium",
+            "Git \u2014 Locked, Premium",
+            "General \u2014 Locked, Premium",
+            "Continue",
+            "Level 1: Local lab javascript level 1",
+            "Level 2: Local lab javascript level 2, Locked",
+            "Level 3: Local lab javascript level 3, Locked",
+            "Level 4: Local lab javascript level 4, Locked",
+            "Level 5: Local lab javascript level 5, Locked"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": null,
+            "classes": [
+              "rm-section-line"
+            ],
+            "container": "main",
+            "size": 20631,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Learn",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Web Developer \u00b7 0%",
+            "Software Engineer \u00b7 0%",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "TypeScript \u2014 Locked, Premium",
+            "React \u2014 Locked",
+            "Next.js \u2014 Locked, Premium",
+            "Node.js \u2014 Locked, Premium",
+            "Databases \u2014 Locked, Premium",
+            "Git \u2014 Locked, Premium",
+            "General \u2014 Locked, Premium",
+            "Continue",
+            "Level 1: Local lab javascript level 1",
+            "Level 2: Local lab javascript level 2, Locked",
+            "Level 3: Local lab javascript level 3, Locked",
+            "Level 4: Local lab javascript level 4, Locked",
+            "Level 5: Local lab javascript level 5, Locked"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": null,
+            "classes": [
+              "rm-section-line"
+            ],
+            "container": "main",
+            "size": 20631,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/coding",
+        "cache": "cold-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 28.099999994039536,
+        "fcpMs": 356,
+        "lcpMs": 356,
+        "lcpElement": "section.ss-consent p#_r_4_.ss-consent__body",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 80,
+        "requests": 70
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 352,
+          "max": 364
+        },
+        "lcp": {
+          "min": 352,
+          "max": 364
+        },
+        "cls": {
+          "min": 0,
+          "max": 0
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 80,
+          "max": 80
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Coding challenges",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Continue",
+            "Plan a run",
+            "Start Expression engine",
+            "Start Query pipeline",
+            "Start Event bus",
+            "Start Dependency planner",
+            "Start Result pipeline",
+            "Show all 10 challenges",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Coding challenges",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Continue",
+            "Plan a run",
+            "Start Expression engine",
+            "Start Query pipeline",
+            "Start Event bus",
+            "Start Dependency planner",
+            "Start Result pipeline",
+            "Show all 10 challenges",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Coding challenges",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Continue",
+            "Plan a run",
+            "Start Expression engine",
+            "Start Query pipeline",
+            "Start Event bus",
+            "Start Dependency planner",
+            "Start Result pipeline",
+            "Show all 10 challenges",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/coding",
+        "cache": "repeat-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 21.799999997019768,
+        "fcpMs": 76,
+        "lcpMs": 224,
+        "lcpElement": "section.cd-track-directory p.cd-track__blurb",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 48,
+        "requests": 5
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 72,
+          "max": 76
+        },
+        "lcp": {
+          "min": 204,
+          "max": 228
+        },
+        "cls": {
+          "min": 0,
+          "max": 0
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 32,
+          "max": 48
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Coding challenges",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Continue",
+            "Plan a run",
+            "Start Expression engine",
+            "Start Query pipeline",
+            "Start Event bus",
+            "Start Dependency planner",
+            "Start Result pipeline",
+            "Show all 10 challenges",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": null,
+            "classes": [
+              "cd-track__blurb"
+            ],
+            "container": "section.cd-track-directory",
+            "size": 11773,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Coding challenges",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Continue",
+            "Plan a run",
+            "Start Expression engine",
+            "Start Query pipeline",
+            "Start Event bus",
+            "Start Dependency planner",
+            "Start Result pipeline",
+            "Show all 10 challenges",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": null,
+            "classes": [
+              "cd-track__blurb"
+            ],
+            "container": "section.cd-track-directory",
+            "size": 11773,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Coding challenges",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Continue",
+            "Plan a run",
+            "Start Expression engine",
+            "Start Query pipeline",
+            "Start Event bus",
+            "Start Dependency planner",
+            "Start Result pipeline",
+            "Show all 10 challenges",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": null,
+            "classes": [
+              "cd-track__blurb"
+            ],
+            "container": "section.cd-track-directory",
+            "size": 11773,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/quiz",
+        "cache": "cold-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 22.5,
+        "fcpMs": 356,
+        "lcpMs": 356,
+        "lcpElement": "section.ss-consent p#_r_4_.ss-consent__body",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 80,
+        "requests": 76
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 352,
+          "max": 360
+        },
+        "lcp": {
+          "min": 352,
+          "max": 360
+        },
+        "cls": {
+          "min": 0,
+          "max": 0
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 80,
+          "max": 80
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Build your quiz.",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "TypeScript",
+            "React",
+            "Next.js",
+            "Node.js",
+            "Git",
+            "DSA Foundations",
+            "DSA Advanced",
+            "Algorithms",
+            "General",
+            "AI & LLMs",
+            "Databases",
+            "System Design"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Build your quiz.",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "TypeScript",
+            "React",
+            "Next.js",
+            "Node.js",
+            "Git",
+            "DSA Foundations",
+            "DSA Advanced",
+            "Algorithms",
+            "General",
+            "AI & LLMs",
+            "Databases",
+            "System Design"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Build your quiz.",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "TypeScript",
+            "React",
+            "Next.js",
+            "Node.js",
+            "Git",
+            "DSA Foundations",
+            "DSA Advanced",
+            "Algorithms",
+            "General",
+            "AI & LLMs",
+            "Databases",
+            "System Design"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/quiz",
+        "cache": "repeat-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 22,
+        "fcpMs": 72,
+        "lcpMs": 108,
+        "lcpElement": "main span",
+        "cls": 0.00020225694444444444,
+        "tbtMs": 0,
+        "inpMs": 32,
+        "requests": 5
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 72,
+          "max": 88
+        },
+        "lcp": {
+          "min": 92,
+          "max": 124
+        },
+        "cls": {
+          "min": 0.00020225694444444444,
+          "max": 0.00020225694444444444
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 32,
+          "max": 32
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Build your quiz.",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "TypeScript",
+            "React",
+            "Next.js",
+            "Node.js",
+            "Git",
+            "DSA Foundations",
+            "DSA Advanced",
+            "Algorithms",
+            "General",
+            "AI & LLMs",
+            "Databases",
+            "System Design",
+            "DevOps & Cloud",
+            "Security",
+            "Select all"
+          ],
+          "lcpElement": {
+            "tag": "span",
+            "id": null,
+            "classes": [],
+            "container": "main",
+            "size": 2130,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Build your quiz.",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "TypeScript",
+            "React",
+            "Next.js",
+            "Node.js",
+            "Git",
+            "DSA Foundations",
+            "DSA Advanced",
+            "Algorithms",
+            "General",
+            "AI & LLMs",
+            "Databases",
+            "System Design",
+            "DevOps & Cloud",
+            "Security",
+            "Select all"
+          ],
+          "lcpElement": {
+            "tag": "span",
+            "id": null,
+            "classes": [],
+            "container": "main",
+            "size": 2130,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Build your quiz.",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "TypeScript",
+            "React",
+            "Next.js",
+            "Node.js",
+            "Git",
+            "DSA Foundations",
+            "DSA Advanced",
+            "Algorithms",
+            "General",
+            "AI & LLMs",
+            "Databases",
+            "System Design",
+            "DevOps & Cloud",
+            "Security",
+            "Select all"
+          ],
+          "lcpElement": {
+            "tag": "span",
+            "id": null,
+            "classes": [],
+            "container": "main",
+            "size": 2130,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "dailyFollowup",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/daily",
+        "cache": "cold-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 29.100000008940697,
+        "fcpMs": 180,
+        "lcpMs": 340,
+        "lcpElement": "section.ss-consent p#_r_4_.ss-consent__body",
+        "cls": 0.05284481481481482,
+        "tbtMs": 0,
+        "inpMs": 64,
+        "requests": 52
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 172,
+          "max": 180
+        },
+        "lcp": {
+          "min": 336,
+          "max": 340
+        },
+        "cls": {
+          "min": 0.05284481481481482,
+          "max": 0.05284481481481482
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 64,
+          "max": 64
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "saved pre-press button text Dark mode; may be hidden",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "saved pre-press button text Dark mode; may be hidden",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "saved pre-press button text Dark mode; may be hidden",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Node.js question of the day",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "\"null\"",
+            "\"object\"",
+            "\"undefined\"",
+            "\"number\"",
+            "Check answer",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Node.js question of the day",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "\"null\"",
+            "\"object\"",
+            "\"undefined\"",
+            "\"number\"",
+            "Check answer",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Node.js question of the day",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "\"null\"",
+            "\"object\"",
+            "\"undefined\"",
+            "\"number\"",
+            "Check answer",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "dailyFollowup",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/daily",
+        "cache": "repeat-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 22.299999997019768,
+        "fcpMs": 60,
+        "lcpMs": 212,
+        "lcpElement": "main p",
+        "cls": 0.05284481481481482,
+        "tbtMs": 0,
+        "inpMs": 32,
+        "requests": 6
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 60,
+          "max": 64
+        },
+        "lcp": {
+          "min": 212,
+          "max": 228
+        },
+        "cls": {
+          "min": 0.05284481481481482,
+          "max": 0.05304707175925926
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 32,
+          "max": 32
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "saved pre-press button text Dark mode; may be hidden",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "saved pre-press button text Dark mode; may be hidden",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "saved pre-press button text Dark mode; may be hidden",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Node.js question of the day",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "\"null\"",
+            "\"object\"",
+            "\"undefined\"",
+            "\"number\"",
+            "Check answer",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": null,
+            "classes": [],
+            "container": "main",
+            "size": 23283,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Node.js question of the day",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "\"null\"",
+            "\"object\"",
+            "\"undefined\"",
+            "\"number\"",
+            "Check answer",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": null,
+            "classes": [],
+            "container": "main",
+            "size": 23283,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Node.js question of the day",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "\"null\"",
+            "\"object\"",
+            "\"undefined\"",
+            "\"number\"",
+            "Check answer",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": null,
+            "classes": [],
+            "container": "main",
+            "size": 23283,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/premium",
+        "cache": "cold-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 28.5,
+        "fcpMs": 180,
+        "lcpMs": 180,
+        "lcpElement": "main.ss-public-fallback h1",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 88,
+        "requests": 45
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 176,
+          "max": 180
+        },
+        "lcp": {
+          "min": 176,
+          "max": 180
+        },
+        "cls": {
+          "min": 0,
+          "max": 0
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 80,
+          "max": 88
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Everything in devShark for \u20ac4.99 a month",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Sign in to redeem",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "h1",
+            "id": null,
+            "classes": [],
+            "container": "main.ss-public-fallback",
+            "size": 57401,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Everything in devShark for \u20ac4.99 a month",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Sign in to redeem",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "h1",
+            "id": null,
+            "classes": [],
+            "container": "main.ss-public-fallback",
+            "size": 57401,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Everything in devShark for \u20ac4.99 a month",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Sign in to redeem",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "h1",
+            "id": null,
+            "classes": [],
+            "container": "main.ss-public-fallback",
+            "size": 57401,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/premium",
+        "cache": "repeat-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 22.19999998807907,
+        "fcpMs": 56,
+        "lcpMs": 204,
+        "lcpElement": "section.ss-info-card p",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 32,
+        "requests": 5
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 56,
+          "max": 56
+        },
+        "lcp": {
+          "min": 204,
+          "max": 208
+        },
+        "cls": {
+          "min": 0,
+          "max": 0
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 32,
+          "max": 32
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Everything in devShark for \u20ac4.99 a month",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Sign in to redeem",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": null,
+            "classes": [],
+            "container": "section.ss-info-card",
+            "size": 30060,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Everything in devShark for \u20ac4.99 a month",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Sign in to redeem",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": null,
+            "classes": [],
+            "container": "section.ss-info-card",
+            "size": 30060,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Everything in devShark for \u20ac4.99 a month",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Sign in to redeem",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": null,
+            "classes": [],
+            "container": "section.ss-info-card",
+            "size": 30060,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/topics/javascript-closures",
+        "cache": "cold-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 23.399999991059303,
+        "fcpMs": 188,
+        "lcpMs": 188,
+        "lcpElement": "main.ss-public-fallback h1",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 72,
+        "requests": 26
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 180,
+          "max": 192
+        },
+        "lcp": {
+          "min": 180,
+          "max": 192
+        },
+        "cls": {
+          "min": 0,
+          "max": 0
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 72,
+          "max": 72
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "JavaScript closures, clearly explained",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "h1",
+            "id": null,
+            "classes": [],
+            "container": "main.ss-public-fallback",
+            "size": 51911,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "JavaScript closures, clearly explained",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "h1",
+            "id": null,
+            "classes": [],
+            "container": "main.ss-public-fallback",
+            "size": 51911,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "JavaScript closures, clearly explained",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "h1",
+            "id": null,
+            "classes": [],
+            "container": "main.ss-public-fallback",
+            "size": 51911,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/topics/javascript-closures",
+        "cache": "repeat-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 22.099999994039536,
+        "fcpMs": 56,
+        "lcpMs": 72,
+        "lcpElement": "a.ss-navlink",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 32,
+        "requests": 5
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 56,
+          "max": 56
+        },
+        "lcp": {
+          "min": 72,
+          "max": 72
+        },
+        "cls": {
+          "min": 0,
+          "max": 0
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 32,
+          "max": 32
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "JavaScript closures, clearly explained",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "a",
+            "id": null,
+            "classes": [
+              "ss-navlink"
+            ],
+            "container": null,
+            "size": 1173,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "JavaScript closures, clearly explained",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "a",
+            "id": null,
+            "classes": [
+              "ss-navlink"
+            ],
+            "container": null,
+            "size": 1173,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "JavaScript closures, clearly explained",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "a",
+            "id": null,
+            "classes": [
+              "ss-navlink"
+            ],
+            "container": null,
+            "size": 1173,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/leaderboard",
+        "cache": "cold-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 22.400000005960464,
+        "fcpMs": 344,
+        "lcpMs": 344,
+        "lcpElement": "section.ss-consent p#_r_4_.ss-consent__body",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 72,
+        "requests": 44
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 340,
+          "max": 356
+        },
+        "lcp": {
+          "min": 340,
+          "max": 356
+        },
+        "cls": {
+          "min": 0,
+          "max": 0
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 72,
+          "max": 80
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Leaderboard",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Last 30 days",
+            "This month",
+            "All time",
+            "Today",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Leaderboard",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Last 30 days",
+            "This month",
+            "All time",
+            "Today",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Leaderboard",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Reject all",
+            "Accept all",
+            "Choose",
+            "Last 30 days",
+            "This month",
+            "All time",
+            "Today",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          }
+        }
+      ]
+    },
+    {
+      "sourceCohort": "initial",
+      "summaryFromExistingCollector": {
+        "profile": "desktop",
+        "path": "/leaderboard",
+        "cache": "repeat-browser",
+        "samples": 3,
+        "errors": 0,
+        "ttfbMs": 21.80000001192093,
+        "fcpMs": 72,
+        "lcpMs": 208,
+        "lcpElement": "main span",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 32,
+        "requests": 6
+      },
+      "rangesFromActualSamples": {
+        "fcp": {
+          "min": 72,
+          "max": 72
+        },
+        "lcp": {
+          "min": 204,
+          "max": 220
+        },
+        "cls": {
+          "min": 0,
+          "max": 0
+        },
+        "tbtMs": {
+          "min": 0,
+          "max": 0
+        },
+        "inpMs": {
+          "min": 32,
+          "max": 32
+        }
+      },
+      "interactionMatched": 3,
+      "interactionRegistered": 3,
+      "prePressAppearance": [
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        },
+        {
+          "mode": "light",
+          "basis": "selected Dark mode control names its destination",
+          "certainty": "source-contract inference, not DOM theme attribute proof"
+        }
+      ],
+      "uiEvidence": [
+        {
+          "sample": 0,
+          "heading": "Leaderboard",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Last 30 days",
+            "This month",
+            "All time",
+            "Today",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "span",
+            "id": null,
+            "classes": [],
+            "container": "main",
+            "size": 2130,
+            "url": null
+          }
+        },
+        {
+          "sample": 1,
+          "heading": "Leaderboard",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Last 30 days",
+            "This month",
+            "All time",
+            "Today",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "span",
+            "id": null,
+            "classes": [],
+            "container": "main",
+            "size": 2130,
+            "url": null
+          }
+        },
+        {
+          "sample": 2,
+          "heading": "Leaderboard",
+          "buttons": [
+            "Open navigation menu",
+            "Sign in",
+            "Last 30 days",
+            "This month",
+            "All time",
+            "Today",
+            "Cookie settings",
+            "Dark mode",
+            "Turn sound on"
+          ],
+          "lcpElement": {
+            "tag": "span",
+            "id": null,
+            "classes": [],
+            "container": "main",
+            "size": 2130,
+            "url": null
+          }
+        }
+      ]
+    }
+  ],
+  "initialProfileSamples": [
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/",
+      "sample": 0,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 23.700000002980232,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 10.5,
+        "domContentLoaded": 274.90000000596046,
+        "load": 360.09999999403954
+      },
+      "fcp": 348,
+      "lcp": 348,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 80,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.9000000059604645,
+        "processing": 2.5999999940395355,
+        "presentation": 75.5
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 80
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 31,
+        "stylesheet": 3,
+        "font": 0,
+        "image": 1,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 38,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/",
+      "sample": 0,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 4.700000002980232,
+        "domContentLoaded": 39.8999999910593,
+        "load": 41.20000000298023
+      },
+      "fcp": 76,
+      "lcp": 76,
+      "lcpElement": {
+        "tag": "a",
+        "id": null,
+        "classes": [
+          "ss-navlink"
+        ],
+        "container": null,
+        "size": 1173,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.8999999910593033,
+        "processing": 1.6000000089406967,
+        "presentation": 29.5
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/",
+      "sample": 1,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 23.200000002980232,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 10.200000002980232,
+        "domContentLoaded": 270.59999999403954,
+        "load": 354
+      },
+      "fcp": 340,
+      "lcp": 340,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 80,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.1000000089406967,
+        "processing": 2.3999999910593033,
+        "presentation": 76.5
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 80
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 31,
+        "stylesheet": 3,
+        "font": 0,
+        "image": 1,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 38,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/",
+      "sample": 1,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 21.599999994039536,
+        "serverWait": 19.899999991059303,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 5.700000002980232,
+        "domContentLoaded": 38.5,
+        "load": 39.70000000298023
+      },
+      "fcp": 76,
+      "lcp": 76,
+      "lcpElement": {
+        "tag": "a",
+        "id": null,
+        "classes": [
+          "ss-navlink"
+        ],
+        "container": null,
+        "size": 1173,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.7999999970197678,
+        "processing": 1.7999999970197678,
+        "presentation": 29.400000005960464
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/",
+      "sample": 2,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 22.30000001192093,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 6.899999991059303,
+        "domContentLoaded": 274.1000000089407,
+        "load": 362.70000000298023
+      },
+      "fcp": 344,
+      "lcp": 344,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 80,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.4000000059604645,
+        "processing": 2.7999999970197678,
+        "presentation": 75.79999999701977
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 80
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 31,
+        "stylesheet": 3,
+        "font": 0,
+        "image": 1,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 38,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/",
+      "sample": 2,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 10.899999991059303,
+        "domContentLoaded": 43.70000000298023,
+        "load": 44.8999999910593
+      },
+      "fcp": 76,
+      "lcp": 76,
+      "lcpElement": {
+        "tag": "a",
+        "id": null,
+        "classes": [
+          "ss-navlink"
+        ],
+        "container": null,
+        "size": 1173,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.0999999940395355,
+        "processing": 2.1000000089406967,
+        "presentation": 28.799999997019768
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/learn",
+      "sample": 0,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 22.600000008940697,
+        "serverWait": 20.200000002980232,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 10.699999988079071,
+        "domContentLoaded": 266.90000000596046,
+        "load": 482.29999999701977
+      },
+      "fcp": 348,
+      "lcp": 348,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 120,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.300000011920929,
+        "processing": 4.699999988079071,
+        "presentation": 114
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 120
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 49,
+        "stylesheet": 9,
+        "font": 0,
+        "image": 2,
+        "api": 2,
+        "other": 4,
+        "blocked": 0,
+        "sent": 65,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/learn",
+      "sample": 0,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 21.799999997019768,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 3.9000000059604645,
+        "domContentLoaded": 40.6000000089407,
+        "load": 42.6000000089407
+      },
+      "fcp": 72,
+      "lcp": 560,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [
+          "rm-section-line"
+        ],
+        "container": "main",
+        "size": 20631,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1,
+        "processing": 4.699999988079071,
+        "presentation": 26.30000001192093
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 2,
+        "other": 4,
+        "blocked": 2,
+        "sent": 5,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 2,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/learn",
+      "sample": 1,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 24.700000002980232,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 11.899999991059303,
+        "domContentLoaded": 280.79999999701977,
+        "load": 490.09999999403954
+      },
+      "fcp": 372,
+      "lcp": 372,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 112,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.2999999970197678,
+        "processing": 4.700000002980232,
+        "presentation": 106
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 112
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 49,
+        "stylesheet": 9,
+        "font": 0,
+        "image": 2,
+        "api": 2,
+        "other": 4,
+        "blocked": 0,
+        "sent": 65,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/learn",
+      "sample": 1,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 21.599999994039536,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 3.4000000059604645,
+        "domContentLoaded": 38.29999999701977,
+        "load": 40.400000005960464
+      },
+      "fcp": 76,
+      "lcp": 556,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [
+          "rm-section-line"
+        ],
+        "container": "main",
+        "size": 20631,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.7000000029802322,
+        "processing": 3.7999999970197678,
+        "presentation": 27.5
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 2,
+        "other": 4,
+        "blocked": 1,
+        "sent": 5,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/learn",
+      "sample": 2,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 22.19999998807907,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 9.400000005960464,
+        "domContentLoaded": 275.29999999701977,
+        "load": 490.59999999403954
+      },
+      "fcp": 356,
+      "lcp": 356,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 112,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.2999999970197678,
+        "processing": 4.800000011920929,
+        "presentation": 105.8999999910593
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 112
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 49,
+        "stylesheet": 9,
+        "font": 0,
+        "image": 2,
+        "api": 2,
+        "other": 4,
+        "blocked": 0,
+        "sent": 65,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/learn",
+      "sample": 2,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 21.899999991059303,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 4.300000011920929,
+        "domContentLoaded": 41.70000000298023,
+        "load": 43.70000000298023
+      },
+      "fcp": 72,
+      "lcp": 556,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [
+          "rm-section-line"
+        ],
+        "container": "main",
+        "size": 20631,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.8999999910593033,
+        "processing": 4.4000000059604645,
+        "presentation": 26.700000002980232
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 2,
+        "other": 4,
+        "blocked": 1,
+        "sent": 5,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/coding",
+      "sample": 0,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 28.400000005960464,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 5.799999997019768,
+        "domContentLoaded": 274,
+        "load": 436.20000000298023
+      },
+      "fcp": 356,
+      "lcp": 356,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 80,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.2000000029802322,
+        "processing": 2,
+        "presentation": 76.79999999701977
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 80
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 58,
+        "stylesheet": 7,
+        "font": 0,
+        "image": 1,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 69,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/coding",
+      "sample": 0,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 21.799999997019768,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 4.299999997019768,
+        "domContentLoaded": 39.20000000298023,
+        "load": 40.79999999701977
+      },
+      "fcp": 76,
+      "lcp": 224,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [
+          "cd-track__blurb"
+        ],
+        "container": "section.cd-track-directory",
+        "size": 11773,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 48,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.9000000059604645,
+        "processing": 1.2999999970197678,
+        "presentation": 45.79999999701977
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 48
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/coding",
+      "sample": 1,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 28.099999994039536,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 6.600000008940697,
+        "domContentLoaded": 275.20000000298023,
+        "load": 443.79999999701977
+      },
+      "fcp": 364,
+      "lcp": 364,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 80,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.3999999910593033,
+        "processing": 2.2000000029802322,
+        "presentation": 76.40000000596046
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 80
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 58,
+        "stylesheet": 7,
+        "font": 0,
+        "image": 1,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 69,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/coding",
+      "sample": 1,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22.400000005960464,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 4.5999999940395355,
+        "domContentLoaded": 39.5,
+        "load": 41.30000001192093
+      },
+      "fcp": 72,
+      "lcp": 204,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [
+          "cd-track__blurb"
+        ],
+        "container": "section.cd-track-directory",
+        "size": 11773,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.7999999970197678,
+        "processing": 1.2999999970197678,
+        "presentation": 29.900000005960464
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/coding",
+      "sample": 2,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 22,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 7.799999997019768,
+        "domContentLoaded": 274.5,
+        "load": 444.19999998807907
+      },
+      "fcp": 352,
+      "lcp": 352,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 80,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.2000000029802322,
+        "processing": 2.0999999940395355,
+        "presentation": 76.70000000298023
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 80
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 58,
+        "stylesheet": 7,
+        "font": 0,
+        "image": 1,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 69,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/coding",
+      "sample": 2,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 21.799999997019768,
+        "serverWait": 20.200000002980232,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 4.5999999940395355,
+        "domContentLoaded": 39.29999999701977,
+        "load": 41
+      },
+      "fcp": 76,
+      "lcp": 228,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [
+          "cd-track__blurb"
+        ],
+        "container": "section.cd-track-directory",
+        "size": 11773,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 48,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1,
+        "processing": 1.300000011920929,
+        "presentation": 45.69999998807907
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 48
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/quiz",
+      "sample": 0,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 22.400000005960464,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 3.5999999940395355,
+        "domContentLoaded": 273.40000000596046,
+        "load": 584.2000000029802
+      },
+      "fcp": 360,
+      "lcp": 360,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 80,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.3999999910593033,
+        "processing": 2,
+        "presentation": 76.6000000089407
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 80
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 61,
+        "stylesheet": 8,
+        "font": 0,
+        "image": 3,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 75,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/quiz",
+      "sample": 0,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 21.700000002980232,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 12.099999994039536,
+        "domContentLoaded": 48.099999994039536,
+        "load": 50.20000000298023
+      },
+      "fcp": 72,
+      "lcp": 92,
+      "lcpElement": {
+        "tag": "span",
+        "id": null,
+        "classes": [],
+        "container": "main",
+        "size": 2130,
+        "url": null
+      },
+      "cls": 0.00020225694444444444,
+      "clsSum": 0.00020225694444444444,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.7000000029802322,
+        "processing": 1,
+        "presentation": 30.299999997019768
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/quiz",
+      "sample": 1,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 22.5,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 4.5999999940395355,
+        "domContentLoaded": 275.59999999403954,
+        "load": 589.8999999910593
+      },
+      "fcp": 356,
+      "lcp": 356,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 80,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.5,
+        "processing": 2.2000000029802322,
+        "presentation": 76.29999999701977
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 80
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 61,
+        "stylesheet": 8,
+        "font": 0,
+        "image": 3,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 75,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/quiz",
+      "sample": 1,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 4.9000000059604645,
+        "domContentLoaded": 41.6000000089407,
+        "load": 43.79999999701977
+      },
+      "fcp": 72,
+      "lcp": 108,
+      "lcpElement": {
+        "tag": "span",
+        "id": null,
+        "classes": [],
+        "container": "main",
+        "size": 2130,
+        "url": null
+      },
+      "cls": 0.00020225694444444444,
+      "clsSum": 0.00020225694444444444,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.7999999970197678,
+        "processing": 0.9000000059604645,
+        "presentation": 30.299999997019768
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/quiz",
+      "sample": 2,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 22.600000008940697,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 2.3999999910593033,
+        "domContentLoaded": 272.30000001192093,
+        "load": 569.4000000059605
+      },
+      "fcp": 352,
+      "lcp": 352,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 80,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.5,
+        "processing": 2.0999999940395355,
+        "presentation": 76.40000000596046
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 80
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 61,
+        "stylesheet": 8,
+        "font": 0,
+        "image": 3,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 75,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/quiz",
+      "sample": 2,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22.400000005960464,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 11.699999988079071,
+        "domContentLoaded": 50.099999994039536,
+        "load": 52.29999999701977
+      },
+      "fcp": 88,
+      "lcp": 124,
+      "lcpElement": {
+        "tag": "span",
+        "id": null,
+        "classes": [],
+        "container": "main",
+        "size": 2130,
+        "url": null
+      },
+      "cls": 0.00020225694444444444,
+      "clsSum": 0.00020225694444444444,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.5999999940395355,
+        "processing": 1.0999999940395355,
+        "presentation": 30.30000001192093
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/daily",
+      "sample": 0,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 23.700000002980232,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 4.700000002980232,
+        "domContentLoaded": 273.40000000596046,
+        "load": 458
+      },
+      "fcp": 172,
+      "lcp": 336,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0.05284481481481482,
+      "clsSum": 0.05284481481481482,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": null,
+      "inpParts": null,
+      "interactionCount": 0,
+      "interaction": {
+        "control": "Dark mode or Light mode",
+        "matched": false
+      },
+      "requests": {
+        "document": 1,
+        "script": 40,
+        "stylesheet": 6,
+        "font": 0,
+        "image": 1,
+        "api": 2,
+        "other": 2,
+        "blocked": 0,
+        "sent": 50,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "saved pre-press button text Dark mode; may be hidden",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/daily",
+      "sample": 0,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 23,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 2.5,
+        "domContentLoaded": 38.099999994039536,
+        "load": 40.099999994039536
+      },
+      "fcp": 52,
+      "lcp": 204,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [],
+        "container": "main",
+        "size": 23283,
+        "url": null
+      },
+      "cls": 0.05284481481481482,
+      "clsSum": 0.05284481481481482,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": null,
+      "inpParts": null,
+      "interactionCount": 0,
+      "interaction": {
+        "control": "Dark mode or Light mode",
+        "matched": false
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 2,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "saved pre-press button text Dark mode; may be hidden",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/daily",
+      "sample": 1,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 31.200000002980232,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 3.2000000029802322,
+        "domContentLoaded": 273,
+        "load": 474.1000000089407
+      },
+      "fcp": 168,
+      "lcp": 336,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0.05284481481481482,
+      "clsSum": 0.05284481481481482,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": null,
+      "inpParts": null,
+      "interactionCount": 0,
+      "interaction": {
+        "control": "Dark mode or Light mode",
+        "matched": false
+      },
+      "requests": {
+        "document": 1,
+        "script": 40,
+        "stylesheet": 6,
+        "font": 0,
+        "image": 1,
+        "api": 2,
+        "other": 2,
+        "blocked": 0,
+        "sent": 50,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "saved pre-press button text Dark mode; may be hidden",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/daily",
+      "sample": 1,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 6.5,
+        "domContentLoaded": 40.80000001192093,
+        "load": 42.900000005960464
+      },
+      "fcp": 56,
+      "lcp": 208,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [],
+        "container": "main",
+        "size": 23283,
+        "url": null
+      },
+      "cls": 0.05284481481481482,
+      "clsSum": 0.05284481481481482,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": null,
+      "inpParts": null,
+      "interactionCount": 0,
+      "interaction": {
+        "control": "Dark mode or Light mode",
+        "matched": false
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 2,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "saved pre-press button text Dark mode; may be hidden",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/daily",
+      "sample": 2,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 26.599999994039536,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 6.299999997019768,
+        "domContentLoaded": 273.29999999701977,
+        "load": 466.5
+      },
+      "fcp": 164,
+      "lcp": 340,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0.05284481481481482,
+      "clsSum": 0.05284481481481482,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": null,
+      "inpParts": null,
+      "interactionCount": 0,
+      "interaction": {
+        "control": "Dark mode or Light mode",
+        "matched": false
+      },
+      "requests": {
+        "document": 1,
+        "script": 40,
+        "stylesheet": 6,
+        "font": 0,
+        "image": 1,
+        "api": 2,
+        "other": 2,
+        "blocked": 0,
+        "sent": 50,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "saved pre-press button text Dark mode; may be hidden",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/daily",
+      "sample": 2,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 21.80000001192093,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 3.5,
+        "domContentLoaded": 36.400000005960464,
+        "load": 38.30000001192093
+      },
+      "fcp": 60,
+      "lcp": 208,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [],
+        "container": "main",
+        "size": 23283,
+        "url": null
+      },
+      "cls": 0.05284481481481482,
+      "clsSum": 0.05284481481481482,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": null,
+      "inpParts": null,
+      "interactionCount": 0,
+      "interaction": {
+        "control": "Dark mode or Light mode",
+        "matched": false
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 2,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "saved pre-press button text Dark mode; may be hidden",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/premium",
+      "sample": 0,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 22.200000002980232,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 6.200000002980232,
+        "domContentLoaded": 266.79999999701977,
+        "load": 432
+      },
+      "fcp": 176,
+      "lcp": 176,
+      "lcpElement": {
+        "tag": "h1",
+        "id": null,
+        "classes": [],
+        "container": "main.ss-public-fallback",
+        "size": 57401,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 80,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.5,
+        "processing": 1.7999999970197678,
+        "presentation": 76.70000000298023
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 80
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 35,
+        "stylesheet": 5,
+        "font": 0,
+        "image": 1,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 44,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/premium",
+      "sample": 0,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 3.5999999940395355,
+        "domContentLoaded": 38.29999999701977,
+        "load": 41.29999999701977
+      },
+      "fcp": 56,
+      "lcp": 208,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [],
+        "container": "section.ss-info-card",
+        "size": 30060,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.0999999940395355,
+        "processing": 1.7000000029802322,
+        "presentation": 29.200000002980232
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 2,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 2,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/premium",
+      "sample": 1,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 28.5,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 4.800000011920929,
+        "domContentLoaded": 279.40000000596046,
+        "load": 437
+      },
+      "fcp": 180,
+      "lcp": 180,
+      "lcpElement": {
+        "tag": "h1",
+        "id": null,
+        "classes": [],
+        "container": "main.ss-public-fallback",
+        "size": 57401,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 88,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.5,
+        "processing": 2.0999999940395355,
+        "presentation": 84.40000000596046
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 88
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 35,
+        "stylesheet": 5,
+        "font": 0,
+        "image": 1,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 44,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/premium",
+      "sample": 1,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22.19999998807907,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 2.2000000029802322,
+        "domContentLoaded": 35.79999999701977,
+        "load": 38.5
+      },
+      "fcp": 56,
+      "lcp": 204,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [],
+        "container": "section.ss-info-card",
+        "size": 30060,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.800000011920929,
+        "processing": 1.199999988079071,
+        "presentation": 30
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/premium",
+      "sample": 2,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 28.5,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 4.300000011920929,
+        "domContentLoaded": 277.5,
+        "load": 436
+      },
+      "fcp": 180,
+      "lcp": 180,
+      "lcpElement": {
+        "tag": "h1",
+        "id": null,
+        "classes": [],
+        "container": "main.ss-public-fallback",
+        "size": 57401,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 88,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.5,
+        "processing": 2.1000000089406967,
+        "presentation": 84.3999999910593
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 88
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 35,
+        "stylesheet": 5,
+        "font": 0,
+        "image": 1,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 44,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/premium",
+      "sample": 2,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22.299999997019768,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 3.2000000029802322,
+        "domContentLoaded": 38.400000005960464,
+        "load": 41.20000000298023
+      },
+      "fcp": 56,
+      "lcp": 204,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [],
+        "container": "section.ss-info-card",
+        "size": 30060,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.9000000059604645,
+        "processing": 1.2000000029802322,
+        "presentation": 29.899999991059303
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/topics/javascript-closures",
+      "sample": 0,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 23.399999991059303,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 3,
+        "domContentLoaded": 269.19999998807907,
+        "load": 270.09999999403954
+      },
+      "fcp": 188,
+      "lcp": 188,
+      "lcpElement": {
+        "tag": "h1",
+        "id": null,
+        "classes": [],
+        "container": "main.ss-public-fallback",
+        "size": 51911,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 72,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.5,
+        "processing": 1.7999999970197678,
+        "presentation": 68.70000000298023
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 72
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 19,
+        "stylesheet": 2,
+        "font": 0,
+        "image": 1,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 25,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/topics/javascript-closures",
+      "sample": 0,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22.100000008940697,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 2.3999999910593033,
+        "domContentLoaded": 34,
+        "load": 34.79999999701977
+      },
+      "fcp": 56,
+      "lcp": 72,
+      "lcpElement": {
+        "tag": "a",
+        "id": null,
+        "classes": [
+          "ss-navlink"
+        ],
+        "container": null,
+        "size": 1173,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1,
+        "processing": 1.2999999970197678,
+        "presentation": 29.700000002980232
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/topics/javascript-closures",
+      "sample": 1,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 22,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 3.9000000059604645,
+        "domContentLoaded": 268.09999999403954,
+        "load": 269
+      },
+      "fcp": 180,
+      "lcp": 180,
+      "lcpElement": {
+        "tag": "h1",
+        "id": null,
+        "classes": [],
+        "container": "main.ss-public-fallback",
+        "size": 51911,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 72,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.2999999970197678,
+        "processing": 1.7999999970197678,
+        "presentation": 68.90000000596046
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 72
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 19,
+        "stylesheet": 2,
+        "font": 0,
+        "image": 1,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 25,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/topics/javascript-closures",
+      "sample": 1,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 21.900000005960464,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 5.200000002980232,
+        "domContentLoaded": 37.20000000298023,
+        "load": 38
+      },
+      "fcp": 56,
+      "lcp": 72,
+      "lcpElement": {
+        "tag": "a",
+        "id": null,
+        "classes": [
+          "ss-navlink"
+        ],
+        "container": null,
+        "size": 1173,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.0999999940395355,
+        "processing": 1,
+        "presentation": 29.900000005960464
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/topics/javascript-closures",
+      "sample": 2,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 26.799999997019768,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 9.900000005960464,
+        "domContentLoaded": 278.70000000298023,
+        "load": 279.70000000298023
+      },
+      "fcp": 192,
+      "lcp": 192,
+      "lcpElement": {
+        "tag": "h1",
+        "id": null,
+        "classes": [],
+        "container": "main.ss-public-fallback",
+        "size": 51911,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 72,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.4000000059604645,
+        "processing": 2.0999999940395355,
+        "presentation": 68.5
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 72
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 19,
+        "stylesheet": 2,
+        "font": 0,
+        "image": 1,
+        "api": 1,
+        "other": 2,
+        "blocked": 0,
+        "sent": 25,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/topics/javascript-closures",
+      "sample": 2,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22.099999994039536,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 12.200000002980232,
+        "domContentLoaded": 45.29999999701977,
+        "load": 46.19999998807907
+      },
+      "fcp": 56,
+      "lcp": 72,
+      "lcpElement": {
+        "tag": "a",
+        "id": null,
+        "classes": [
+          "ss-navlink"
+        ],
+        "container": null,
+        "size": 1173,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.1000000089406967,
+        "processing": 1.3999999910593033,
+        "presentation": 29.5
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 1,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/leaderboard",
+      "sample": 0,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 23.400000005960464,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 10.799999997019768,
+        "domContentLoaded": 282.29999999701977,
+        "load": 412.70000000298023
+      },
+      "fcp": 356,
+      "lcp": 356,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 72,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.2000000029802322,
+        "processing": 1.8999999910593033,
+        "presentation": 68.90000000596046
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 72
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 34,
+        "stylesheet": 4,
+        "font": 0,
+        "image": 1,
+        "api": 2,
+        "other": 2,
+        "blocked": 0,
+        "sent": 42,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/leaderboard",
+      "sample": 0,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22.400000005960464,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 9.599999994039536,
+        "domContentLoaded": 45.70000000298023,
+        "load": 47.20000000298023
+      },
+      "fcp": 72,
+      "lcp": 220,
+      "lcpElement": {
+        "tag": "span",
+        "id": null,
+        "classes": [],
+        "container": "main",
+        "size": 2130,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.7000000029802322,
+        "processing": 1,
+        "presentation": 30.299999997019768
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 2,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/leaderboard",
+      "sample": 1,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 22.400000005960464,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 2.7000000029802322,
+        "domContentLoaded": 268.40000000596046,
+        "load": 391
+      },
+      "fcp": 340,
+      "lcp": 340,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 72,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.2000000029802322,
+        "processing": 1.7999999970197678,
+        "presentation": 69
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 72
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 34,
+        "stylesheet": 4,
+        "font": 0,
+        "image": 1,
+        "api": 2,
+        "other": 2,
+        "blocked": 0,
+        "sent": 42,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/leaderboard",
+      "sample": 1,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 21.700000002980232,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 2.7999999970197678,
+        "domContentLoaded": 35.70000000298023,
+        "load": 37.099999994039536
+      },
+      "fcp": 72,
+      "lcp": 208,
+      "lcpElement": {
+        "tag": "span",
+        "id": null,
+        "classes": [],
+        "container": "main",
+        "size": 2130,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.7000000029802322,
+        "processing": 1,
+        "presentation": 30.299999997019768
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 2,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/leaderboard",
+      "sample": 2,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 22.299999997019768,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 11.200000002980232,
+        "domContentLoaded": 271.79999999701977,
+        "load": 406.79999999701977
+      },
+      "fcp": 344,
+      "lcp": 344,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 80,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.2999999970197678,
+        "processing": 2.1000000089406967,
+        "presentation": 76.59999999403954
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 80
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 34,
+        "stylesheet": 4,
+        "font": 0,
+        "image": 1,
+        "api": 2,
+        "other": 2,
+        "blocked": 0,
+        "sent": 42,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "initial",
+      "profile": "desktop",
+      "path": "/leaderboard",
+      "sample": 2,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 21.80000001192093,
+        "serverWait": 20.200000002980232,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 3.5,
+        "domContentLoaded": 36.30000001192093,
+        "load": 37.70000000298023
+      },
+      "fcp": 72,
+      "lcp": 204,
+      "lcpElement": {
+        "tag": "span",
+        "id": null,
+        "classes": [],
+        "container": "main",
+        "size": 2130,
+        "url": null
+      },
+      "cls": 0,
+      "clsSum": 0,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.7999999970197678,
+        "processing": 1,
+        "presentation": 30.200000002980232
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Dark mode",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 2,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "selected Dark mode control names its destination",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    }
+  ],
+  "dailyFollowupProfileSamples": [
+    {
+      "sourceCohort": "dailyFollowup",
+      "profile": "desktop",
+      "path": "/daily",
+      "sample": 0,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 22.5,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 4.700000002980232,
+        "domContentLoaded": 274.5,
+        "load": 462.79999999701977
+      },
+      "fcp": 172,
+      "lcp": 336,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0.05284481481481482,
+      "clsSum": 0.05284481481481482,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 64,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.6000000089406967,
+        "processing": 3,
+        "presentation": 59.3999999910593
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Select first Daily option",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 64
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 40,
+        "stylesheet": 6,
+        "font": 0,
+        "image": 1,
+        "api": 2,
+        "other": 2,
+        "blocked": 0,
+        "sent": 50,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "saved pre-press button text Dark mode; may be hidden",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "dailyFollowup",
+      "profile": "desktop",
+      "path": "/daily",
+      "sample": 0,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22.299999997019768,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 6.899999991059303,
+        "domContentLoaded": 45.69999998807907,
+        "load": 48.099999994039536
+      },
+      "fcp": 64,
+      "lcp": 212,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [],
+        "container": "main",
+        "size": 23283,
+        "url": null
+      },
+      "cls": 0.05284481481481482,
+      "clsSum": 0.05284481481481482,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.7999999970197678,
+        "processing": 1.2999999970197678,
+        "presentation": 29.900000005960464
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Select first Daily option",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 2,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "saved pre-press button text Dark mode; may be hidden",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "dailyFollowup",
+      "profile": "desktop",
+      "path": "/daily",
+      "sample": 1,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 34.1000000089407,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 3.0999999940395355,
+        "domContentLoaded": 277.20000000298023,
+        "load": 466.1000000089407
+      },
+      "fcp": 180,
+      "lcp": 340,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0.05284481481481482,
+      "clsSum": 0.05284481481481482,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 64,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.5,
+        "processing": 2.4000000059604645,
+        "presentation": 60.099999994039536
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Select first Daily option",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 64
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 40,
+        "stylesheet": 6,
+        "font": 0,
+        "image": 1,
+        "api": 2,
+        "other": 2,
+        "blocked": 0,
+        "sent": 50,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "saved pre-press button text Dark mode; may be hidden",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "dailyFollowup",
+      "profile": "desktop",
+      "path": "/daily",
+      "sample": 1,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 22.299999997019768,
+        "serverWait": 20.099999994039536,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 11.300000011920929,
+        "domContentLoaded": 50.79999999701977,
+        "load": 52.79999999701977
+      },
+      "fcp": 60,
+      "lcp": 228,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [],
+        "container": "main",
+        "size": 23283,
+        "url": null
+      },
+      "cls": 0.05304707175925926,
+      "clsSum": 0.05304707175925926,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.7000000029802322,
+        "processing": 1.5,
+        "presentation": 29.799999997019768
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Select first Daily option",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 2,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "saved pre-press button text Dark mode; may be hidden",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "dailyFollowup",
+      "profile": "desktop",
+      "path": "/daily",
+      "sample": 2,
+      "cache": "cold-browser",
+      "navigation": {
+        "ttfb": 29.100000008940697,
+        "serverWait": 20.100000008940697,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 10.700000002980232,
+        "domContentLoaded": 278.6000000089407,
+        "load": 466.70000000298023
+      },
+      "fcp": 180,
+      "lcp": 340,
+      "lcpElement": {
+        "tag": "p",
+        "id": "_r_4_",
+        "classes": [
+          "ss-consent__body"
+        ],
+        "container": "section.ss-consent",
+        "size": 28670,
+        "url": null
+      },
+      "cls": 0.05284481481481482,
+      "clsSum": 0.05284481481481482,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 64,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 1.2999999970197678,
+        "processing": 2.2999999970197678,
+        "presentation": 60.400000005960464
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Select first Daily option",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 64
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 40,
+        "stylesheet": 6,
+        "font": 0,
+        "image": 1,
+        "api": 2,
+        "other": 2,
+        "blocked": 0,
+        "sent": 50,
+        "sentApi": 0
+      },
+      "consent": "undecided",
+      "consentBanner": true,
+      "diskHits": 0,
+      "blockedWrites": 0,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "saved pre-press button text Dark mode; may be hidden",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    },
+    {
+      "sourceCohort": "dailyFollowup",
+      "profile": "desktop",
+      "path": "/daily",
+      "sample": 2,
+      "cache": "repeat-browser",
+      "navigation": {
+        "ttfb": 21.80000001192093,
+        "serverWait": 20,
+        "redirect": 0,
+        "dns": 0,
+        "connect": 0,
+        "tls": 0,
+        "download": 8,
+        "domContentLoaded": 41.900000005960464,
+        "load": 43.900000005960464
+      },
+      "fcp": 60,
+      "lcp": 212,
+      "lcpElement": {
+        "tag": "p",
+        "id": null,
+        "classes": [],
+        "container": "main",
+        "size": 23283,
+        "url": null
+      },
+      "cls": 0.05284481481481482,
+      "clsSum": 0.05284481481481482,
+      "clsInputFlagged": 0,
+      "tbtMs": 0,
+      "longTasks": {
+        "count": 0,
+        "longest": 0
+      },
+      "inpMs": 32,
+      "inpParts": {
+        "event": "pointerdown,pointerup,click",
+        "inputDelay": 0.7999999970197678,
+        "processing": 1.3999999910593033,
+        "presentation": 29.80000001192093
+      },
+      "interactionCount": 1,
+      "interaction": {
+        "control": "Select first Daily option",
+        "matched": true,
+        "registered": true,
+        "firstInput": {
+          "event": "pointerdown",
+          "ms": 32
+        }
+      },
+      "requests": {
+        "document": 1,
+        "script": 0,
+        "stylesheet": 0,
+        "font": 0,
+        "image": 0,
+        "api": 2,
+        "other": 2,
+        "blocked": 1,
+        "sent": 3,
+        "sentApi": 0
+      },
+      "consent": "rejected",
+      "consentBanner": false,
+      "diskHits": 0,
+      "blockedWrites": 1,
+      "consentBannerMeaning": "DOM presence only; focus mode may hide it",
+      "appearanceBeforePressInference": {
+        "mode": "light",
+        "basis": "saved pre-press button text Dark mode; may be hidden",
+        "certainty": "source-contract inference, not DOM theme attribute proof"
+      }
+    }
+  ],
+  "originalDailyPaintRowsRetained": 6,
+  "tableProfileRequestTotalsAcrossNamedCohorts": {
+    "requests": 1395,
+    "api": 66,
+    "sent": 1302,
+    "sentApi": 0,
+    "freshForwards": "global cohort invocation only; not allocated to profile"
+  },
+  "countsAreSeparateCohortsNotOne108RowBaseline": true,
+  "collectorParameterEquivalentCommands": {
+    "initial": [
+      "npm",
+      "run",
+      "perf:measure",
+      "--",
+      "--url=http://127.0.0.1:60938",
+      "--routes=/,/learn,/coding,/quiz,/daily,/premium,/topics/javascript-closures,/leaderboard",
+      "--samples=3",
+      "--profiles=mobile,desktop",
+      "--api-origin=http://127.0.0.1:60939",
+      "--api-delay-ms=120",
+      "--consent=rejected",
+      "--output=<owned>/cdp.json"
+    ],
+    "dailyFollowup": [
+      "npm",
+      "run",
+      "perf:measure",
+      "--",
+      "--url=http://127.0.0.1:64221",
+      "--routes=/daily",
+      "--samples=3",
+      "--profiles=mobile,desktop",
+      "--api-origin=http://127.0.0.1:64222",
+      "--api-delay-ms=120",
+      "--consent=rejected",
+      "--output=<owned>/cdp.json"
+    ]
+  },
+  "commandCaveat": "historical local origins; actual supervisor commands+owned proxy/wrapper receipts define transport; do not rerun against closed ports or production"
+}

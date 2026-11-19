@@ -6,10 +6,11 @@ import { dirname } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const PROFILES = ['mobile', 'desktop'];
-// The local-only button each profile presses, by its accessible name in
+// The local-only shell button each profile presses, by its accessible name in
 // client/src/i18n/translations.ts. app-shell.css hides the menu button from
 // 1024px, so the 1440px desktop profile presses the footer theme toggle,
-// which names the mode it switches to.
+// which names the mode it switches to. Ready Daily uses its local radio
+// selection instead: question focus mode hides both shell controls.
 export const INTERACTION_CONTROLS = { mobile: ['Open navigation menu'], desktop: ['Dark mode', 'Light mode'] };
 const FLAGS = { url: 'value', routes: 'value', samples: 'value', profiles: 'value', output: 'value', access: 'value', consent: 'value', 'api-origin': 'value', 'api-delay-ms': 'value', fixture: 'switch', 'reduced-motion': 'switch' };
 // The cookie choice of the repeat-browser row. No mode accepts: a yes would
@@ -319,6 +320,19 @@ export function requestTotals(results, { forwarded = 0 } = {}) {
  return totals;
 }
 
+// An incomplete interaction does not discard the row's valid paint metrics.
+export function interactionFailures(results) {
+ return results.flatMap(row => {
+  if (row.error) return [];
+  const interaction = row.interaction;
+  const reason = !interaction?.matched ? 'control_missing'
+   : interaction.error ? 'control_failed'
+   : interaction.registered !== true ? 'input_unregistered'
+   : !(row.inpMs === '<16' || (typeof row.inpMs === 'number' && Number.isFinite(row.inpMs) && row.inpMs >= 0)) ? 'input_missing' : null;
+  return reason ? [{ profile: row.profile, path: row.path, sample: row.sample, cache: row.cache, reason }] : [];
+ });
+}
+
 const formatInp = inpMs => typeof inpMs === 'number' ? Math.round(inpMs) : inpMs ?? 'none';
 
 // A failure every later load would repeat; it ends the run instead of one row.
@@ -360,7 +374,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
  const replaySummary = () => replay && { origin: apiOrigin, delayMs: apiDelayMs, forwarded: replay.reads.size, reads: [...replay.reads.values()].map(read => read.record), unlisted: [...replay.unlisted].map(([path, count]) => ({ path, count })) };
  let browser, chrome;
  const results = [];
- const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, apiOrigin, apiDelayMs: apiOrigin ? apiDelayMs : null, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', consent: consentByCache(consent), ttfbDefinition: 'responseStart (web-vitals)', clsDefinition: 'largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press', tbtDefinition: 'long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)', summaryDefinition: 'one row per profile, path and cache state: the median of each metric over the measured samples (the lower middle one for an even count, so each value is one a sample measured), the LCP element of the median-LCP sample, errors = samples a failure left without a measurement', requestsDefinition: 'requests the page made per kind at the lab interception; sent = responses the origin returned over the network, without cache hits or answers the lab fulfilled', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, apiReplay: replaySummary(), requestTotals: requestTotals(results, { forwarded: replay?.reads.size ?? 0 }), summary: summarizeRows(results), results }, null, 2) + '\n');
+ const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, apiOrigin, apiDelayMs: apiOrigin ? apiDelayMs : null, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', consent: consentByCache(consent), consentBannerDefinition: 'DOM presence only; question focus mode can hide the existing banner. This is not a visibility measurement.', ttfbDefinition: 'responseStart (web-vitals)', clsDefinition: 'largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press', tbtDefinition: 'long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)', summaryDefinition: 'one row per profile, path and cache state: the median of each metric over the measured samples (the lower middle one for an even count, so each value is one a sample measured), the LCP element of the median-LCP sample, errors = samples a failure left without a measurement', requestsDefinition: 'requests the page made per kind at the lab interception; sent = responses the origin returned over the network, without cache hits or answers the lab fulfilled', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, apiReplay: replaySummary(), requestTotals: requestTotals(results, { forwarded: replay?.reads.size ?? 0 }), summary: summarizeRows(results), interactionFailures: interactionFailures(results), results }, null, 2) + '\n');
  try {
   for (const profile of profiles) for (const path of routes) for (let sample = 0; sample < samples; sample++) {
    // A browser that cannot start fails every sample the same way: let it end the run.
@@ -476,18 +490,24 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      });
      measurement.navigation = navigationTimings(measurement.navigation);
      Object.assign(measurement, summarizeLayoutShifts(shifts), summarizeLongTasks(longTasks, { fcp: measurement.fcp, end: measurement.measuredAt }));
-     // Local-only appearance/menu changes; no quiz/start/submit or sign-in action.
+     // Local-only menu/theme or Daily selection; never Check answer/start/submit.
+     // Daily's onChange only sets its selected index, with no onActivate.
+     const daily = /^\/daily(?:\/\d{4}-\d{2}-\d{2})?\/?$/.test(new URL(path, origin).pathname);
+     const control = daily ? 'Select first Daily option' : INTERACTION_CONTROLS[profile].join(' or ');
      let pressed = null;
-     for (const name of INTERACTION_CONTROLS[profile]) {
+     if (daily) {
+      const button = page.locator('.ss-daily .ss-answer-list').getByRole('radio').first();
+      if (await button.count()) pressed = { name: control, button };
+     } else for (const name of INTERACTION_CONTROLS[profile]) {
       const button = page.getByRole('button', { name, exact: true }).first();
       if (await button.count()) { pressed = { name, button }; break; }
      }
-     measurement.interaction = { control: pressed?.name ?? INTERACTION_CONTROLS[profile].join(' or '), matched: Boolean(pressed) };
+     measurement.interaction = { control: pressed?.name ?? control, matched: Boolean(pressed) };
      let clicked = false;
      if (pressed) {
       try { await pressed.button.click({ timeout: 10000 }); clicked = true; } catch (error) { measurement.interaction.error = firstLine(error); }
       await page.waitForTimeout(250);
-     } else console.warn(`perf:measure: no "${measurement.interaction.control}" button on ${profile} ${path}; this row measures no interaction`);
+     } else console.warn(`perf:measure: no "${measurement.interaction.control}" control on ${profile} ${path}; this row measures no interaction`);
      const { events, firstInput } = await page.evaluate(() => window.__lab.flushEvents());
      if (clicked) {
       measurement.interaction.registered = Boolean(firstInput);
@@ -500,7 +520,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      const row = { profile, path, sample, cache, consent: consentByCache(consent)[cache], elapsed: Date.now() - started, diskHits, blockedWrites, requests: { ...requests }, ...measurement };
      results.push(row);
      write();
-     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'FCP', row.fcp === null ? 'none' : Math.round(row.fcp), 'LCP', Math.round(row.lcp), 'lcpElement', formatLcpElement(row.lcpElement), 'CLS', row.cls.toFixed(3), 'TBT', row.tbtMs === null ? 'none' : Math.round(row.tbtMs), 'longTasks', row.longTasks.count, 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'requests', requestCount(requests), 'sent', requests.sent, 'consent', row.consent, 'banner', row.consentBanner ? 'shown' : 'none', 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
+     console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'FCP', row.fcp === null ? 'none' : Math.round(row.fcp), 'LCP', Math.round(row.lcp), 'lcpElement', formatLcpElement(row.lcpElement), 'CLS', row.cls.toFixed(3), 'TBT', row.tbtMs === null ? 'none' : Math.round(row.tbtMs), 'longTasks', row.longTasks.count, 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'requests', requestCount(requests), 'sent', requests.sent, 'consent', row.consent, 'bannerDOM', row.consentBanner ? 'present' : 'absent', 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
     }
    } catch (error) {
     if (error instanceof FatalLabError) throw error;
@@ -528,8 +548,12 @@ export async function main({ origin, routes, samples, profiles, output, access: 
  console.table(summarizeRows(results).map(row => ({ profile: row.profile, path: row.path, cache: row.cache, samples: row.samples, errors: row.errors, ttfb: round(row.ttfbMs), fcp: round(row.fcpMs), lcp: round(row.lcpMs), cls: row.cls === null ? '-' : row.cls.toFixed(3), tbt: round(row.tbtMs), inp: round(row.inpMs), requests: round(row.requests), lcpElement: row.lcpElement ?? '-' })));
  const totals = requestTotals(results, { forwarded: replay?.reads.size ?? 0 });
  console.log(`perf:measure: the pages made ${totals.requests} requests, ${totals.api} of them to /api/; ${origin} answered ${totals.sent} over the network, ${totals.sentApi} of them API calls${replay ? `, and Node forwarded ${totals.forwarded} API reads to ${apiOrigin}` : ''}.`);
- const unpressed = results.filter(row => !row.error && !row.interaction.matched);
- if (unpressed.length) console.warn(`perf:measure: ${unpressed.length} of ${results.length} rows found no button to press and measure no interaction`);
+ const incomplete = interactionFailures(results);
+ if (incomplete.length) {
+  console.error(`perf:measure: ${incomplete.length} of ${results.length} rows have incomplete interaction evidence; valid paint metrics remain stored:`);
+  for (const row of incomplete) console.error(`  ${row.profile} ${row.path} sample ${row.sample} ${row.cache}: ${row.reason}`);
+  process.exitCode = 1;
+ }
  const failed = results.filter(row => row.error);
  if (failed.length) {
   console.error(`perf:measure: ${failed.length} of ${results.length} rows failed and carry an error instead of a measurement:`);

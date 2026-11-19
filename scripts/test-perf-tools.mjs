@@ -1,13 +1,17 @@
-// Contracts of the read-only performance tools (#630). No case launches a
-// browser or sends a request: the CI tests job installs no Playwright browser,
-// so every run points CHROME_BIN at a file that does not exist and --url at a
-// port nothing listens on.
+// Contracts of the read-only performance tools (#630). No browser launches.
+// Argument checks use a closed port; HTTP cases use only owned loopback
+// servers with invented public bodies, never a live application or provider.
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { spawn, spawnSync } from 'node:child_process';
+import http from 'node:http';
+import https from 'node:https';
+import { createHash } from 'node:crypto';
+import { brotliCompressSync, gunzipSync, gzipSync } from 'node:zlib';
+import { existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
+import { chromium } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
 import * as lighthouse from './audit-performance.mjs';
 import * as bundle from './check-bundle.mjs';
@@ -97,6 +101,79 @@ test('perf:measure presses a button the app renders at each profile width', () =
   assert.deepEqual(lab.INTERACTION_CONTROLS.mobile, [label('nav.menu')]);
   assert.deepEqual(lab.INTERACTION_CONTROLS.desktop, [label('footer.darkMode'), label('footer.lightMode')]);
   assert.deepEqual(Object.keys(lab.INTERACTION_CONTROLS), lab.PROFILES);
+});
+
+// Exercise the real collector orchestration with a closed fake browser. The
+// existing owned-local Daily DOM diagnosis checks actual role/visibility.
+async function interactionLab(t, { path = '/daily', option = true, registered = true, zero = false } = {}) {
+  const scratch = mkdtempSync(join(tmpdir(), 'devshark-interaction-contract-'));
+  t.after(() => rmSync(scratch, { recursive: true, force: true }));
+  const clicks = [], roleQueries = [], messages = [];
+  const target = (kind, present) => ({ first() { return this; }, async count() { return present ? 1 : 0; }, async click() { clicks.push(kind); } });
+  const radio = target('daily-radio', option);
+  const button = (name) => target(name, path === '/' && name === label('footer.darkMode'));
+  const page = {
+    async addInitScript() {}, async goto() {}, async waitForTimeout() {}, keyboard: { async press() {} },
+    locator(scope) {
+      assert.equal(scope, '.ss-daily .ss-answer-list', 'only Daily answer options are eligible');
+      return { getByRole(role) { roleQueries.push(role); assert.equal(role, 'radio'); return radio; } };
+    },
+    getByRole(role, { name }) { roleQueries.push(role); assert.equal(role, 'button'); return button(name); },
+    async evaluate(_fn, arg) {
+      if (arg !== undefined) return;
+      if (this.flush) {
+        this.flush = false;
+        return { events: zero ? [{ name: 'click', interactionId: 1, startTime: 0, processingStart: 0, processingEnd: 0, duration: 0 }] : [], firstInput: registered ? { name: 'pointerdown', duration: 0 } : null };
+      }
+      this.flush = true;
+      return { navigation: { responseStart: 1, requestStart: 0, redirectStart: 0, redirectEnd: 0, domainLookupStart: 0, domainLookupEnd: 0, connectStart: 0, connectEnd: 0, secureConnectionStart: 0, responseEnd: 2, domContentLoadedEventEnd: 3, loadEventEnd: 4 }, fcp: 10, lcp: 20, lcpElement: { tag: 'h1', classes: [], size: 1 }, shifts: [], longTasks: [], measuredAt: 30, consentBanner: true, resources: [], heading: 'Invented local page', buttons: [] };
+    },
+  };
+  const cdp = { async send() {}, on() {}, off() {} };
+  const context = { async newPage() { return page; }, async newCDPSession() { return cdp; }, async close() {} };
+  const browser = { version() { return 'closed-fixture'; }, async newContext() { return context; }, async close() {} };
+  t.mock.method(chromium, 'launch', async () => browser);
+  for (const method of ['log', 'warn', 'error', 'table']) t.mock.method(console, method, (...args) => messages.push(args));
+  const previous = process.exitCode;
+  process.exitCode = undefined;
+  try {
+    const output = join(scratch, 'lab.json');
+    const rows = await lab.main({ origin: closedOrigin, routes: [path], samples: 1, profiles: ['desktop'], output });
+    return { rows, report: JSON.parse(readFileSync(output, 'utf8')), exitCode: process.exitCode ?? 0, clicks, roleQueries, messages };
+  } finally { process.exitCode = previous; }
+}
+
+test('perf:measure selects a Daily radio without checking or submitting the answer', async (t) => {
+  const run = await interactionLab(t);
+  assert.deepEqual(run.clicks, ['daily-radio', 'daily-radio'], 'one local selection per cold/repeat row');
+  assert.deepEqual(run.roleQueries, ['radio', 'radio'], 'Daily never searches for Check answer or hidden shell buttons');
+  assert.ok(run.rows.every(row => row.interaction.matched && row.interaction.registered && row.inpMs === '<16'));
+  assert.equal(run.exitCode, 0);
+});
+
+test('perf:measure fails a missing interaction while retaining valid paint rows', async (t) => {
+  const run = await interactionLab(t, { option: false });
+  assert.equal(run.exitCode, 1, 'missing controls make the final run incomplete');
+  assert.equal(run.report.results.length, 2);
+  assert.ok(run.report.results.every(row => !row.error && row.lcp === 20 && row.fcp === 10 && row.inpMs === null));
+  assert.equal(run.report.interactionFailures.length, 2);
+  assert.ok(run.report.interactionFailures.every(row => row.reason === 'control_missing'));
+});
+
+test('perf:measure fails an unregistered press while retaining its paint metrics', async (t) => {
+  const run = await interactionLab(t, { registered: false });
+  assert.equal(run.exitCode, 1, 'a click without FirstInput is not a measured fast interaction');
+  assert.deepEqual(run.clicks, ['daily-radio', 'daily-radio']);
+  assert.ok(run.rows.every(row => !row.error && row.lcp === 20 && row.inpMs === null));
+  assert.ok(run.report.interactionFailures.every(row => row.reason === 'input_unregistered'));
+});
+
+test('perf:measure accepts a registered zero-duration input on its unchanged desktop control', async (t) => {
+  const run = await interactionLab(t, { path: '/', zero: true });
+  assert.deepEqual(run.clicks, [label('footer.darkMode'), label('footer.darkMode')]);
+  assert.ok(run.rows.every(row => row.interaction.registered && row.inpMs === 0));
+  assert.equal(run.exitCode, 0, 'zero is a measured value, not missing input');
+  assert.deepEqual(run.report.interactionFailures ?? [], []);
 });
 
 test('perf:measure loads pages without reduced motion unless --reduced-motion asks for it', () => {
@@ -554,5 +631,355 @@ for (const [name, flag, mention] of [
     assert.match(run.stderr, mention);
     assert.match(run.stderr, /Usage: /);
     assert.equal(run.stdout, '', 'nothing built, nothing measured');
+  });
+}
+
+// F1-17: all HTTP is owned loopback fixture traffic; no browser/live service.
+async function ownPerfServer(t, respond) {
+  const calls = [];
+  const server = http.createServer((req, res) => { calls.push({ method: req.method, path: req.url, headers: req.headers }); respond(req, res); });
+  await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
+  t.after(async () => { server.closeAllConnections(); if (server.listening) await new Promise(resolve => server.close(resolve)); });
+  return { origin: 'http://127.0.0.1:' + server.address().port, server, calls };
+}
+function perfScratch(t, name) {
+  const scratch = mkdtempSync(join(tmpdir(), name));
+  t.after(() => rmSync(scratch, { recursive: true, force: true }));
+  return scratch;
+}
+async function runPerfChild(t, script, args, cwd) {
+  const child = spawn(process.execPath, [script, ...args], { cwd, env: { PATH: process.env.PATH }, stdio: ['ignore', 'pipe', 'pipe'] });
+  t.after(() => { if (child.exitCode === null) child.kill('SIGKILL'); });
+  let stdout = '', stderr = '';
+  child.stdout.on('data', data => { stdout += data; }); child.stderr.on('data', data => { stderr += data; });
+  const timer = setTimeout(() => child.kill('SIGKILL'), 15_000);
+  try { const status = await new Promise((resolve, reject) => { child.once('error', reject); child.once('close', resolve); }); return { status, stdout, stderr }; }
+  finally { clearTimeout(timer); }
+}
+
+for (const value of ['https://user:password@example.test', 'https://@example.test', 'https://example.test/path', 'https://example.test/..', 'https://example.test?', 'https://example.test#', 'https://example.test/?q=1', 'https://example.test/#x', 'http://example.test', 'ftp://example.test', 'https:\\example.test', 'https://example.test\\path']) {
+  test('check:bundle refuses unsafe live origin ' + JSON.stringify(value), () => {
+    assert.equal(typeof bundle.bundleOptions, 'function', 'the existing bundle tool parses the explicit mode');
+    assert.throws(() => bundle.bundleOptions(['--url=' + value]), /bare|origin/);
+  });
+}
+
+test('check:bundle live graph ignores inert strings/external origins and deduplicates actual references', () => {
+  assert.equal(typeof bundle.liveBundleRequests, 'function');
+  const origin = 'https://example.test';
+  const html = `<!-- <base href="https://ignored.invalid/"> -->
+    <div data-example='<link rel="modulepreload" href="/assets/also-not-requested.js">'></div>
+    <script>const example = '<script type="module" src="/assets/not-requested.js">';</script>
+    <style>.example { content: '<link rel="stylesheet" href="/assets/no.css">'; }</style>
+    <script type="module" src="/assets/main.js"></script>
+    <link rel='modulepreload' href='assets/main.js'>
+    <link rel="modulepreload" href="https://example.test/assets/shared.js">
+    <link rel="stylesheet" href="/assets/main.css">
+    <link as="font" rel="preload" href="/assets/one.woff2">
+    <link rel="stylesheet" href="https://external.invalid/not-requested.css">`;
+  assert.deepEqual(bundle.liveBundleRequests(html, origin), { files: [{ path: '/assets/main.js', kind: 'script' }, { path: '/assets/shared.js', kind: 'script' }, { path: '/assets/main.css', kind: 'style' }], fonts: [{ path: '/assets/one.woff2', kind: 'font' }], excluded: { externalOrigin: 1 } });
+  assert.deepEqual(bundle.liveBundleRequests('<link rel=modulepreload href=/assets/entry.js/>', origin).files, [{ path: '/assets/entry.js/', kind: 'script' }], 'an adjacent unquoted slash belongs to the HTML attribute value');
+  for (const bad of ['<base href="/">', '<template><script type="module" src="/assets/no.js"></script></template>', '<script>unterminated', '<script type="module" src="/api/settings"></script>', '<script type="module" src="/assets/entry.js?x=1"></script>', '<script type="module" src="/assets/entry.js#x"></script>', '<script type="module" src="https://u:p@example.test/assets/entry.js"></script>', '<script type="module" src="/assets/%2e%2e/private.js"></script>', '<script type="module" src="/assets/x.js"></script><link rel="preload" as="font" href="/assets/x.js">']) assert.throws(() => bundle.liveBundleRequests(bad, origin));
+  const tooMany = Array.from({ length: 33 }, (_, i) => `<link rel="modulepreload" href="/assets/${i}.js">`).join('');
+  assert.throws(() => bundle.liveBundleRequests(tooMany, origin), /too_many_initial_assets/);
+});
+
+test('check:bundle --url measures raw Brotli/gzip/identity bodies with exact anonymous request counts', async (t) => {
+  assert.equal(typeof bundle.measureLiveBundle, 'function');
+  const main = Buffer.from('export const text = "' + 'raw compressed bytes differ from gzip six;'.repeat(4000) + '";');
+  const shared = Buffer.from('export const shared = 1;'), style = Buffer.from('body{color:navy}'), font = Buffer.from('wOF2-invented-fixture-font');
+  const encodedMain = gzipSync(main, { level: 1 }), encodedShared = brotliCompressSync(shared);
+  let html;
+  const server = await ownPerfServer(t, (req, res) => {
+    const rows = { '/': ['text/html; charset=utf-8', 'br', brotliCompressSync(Buffer.from(html))], '/assets/main.js': ['text/javascript', 'gzip', encodedMain], '/assets/shared.js': ['application/javascript', 'br', encodedShared], '/assets/main.css': ['text/css', null, style], '/assets/one.woff2': ['font/woff2', null, font] };
+    const [type, encoding, body] = rows[req.url] ?? ['text/plain', null, Buffer.from('unexpected')];
+    res.setHeader('Content-Type', type); if (encoding) res.setHeader('Content-Encoding', encoding);
+    res.setHeader('X-Vercel-Cache', 'HIT'); res.setHeader('X-Vercel-Id', 'invented-request-id'); res.setHeader('Set-Cookie', 'ignored=invented; HttpOnly'); res.end(body);
+  });
+  html = `<script type="module" src="/assets/main.js"></script><link rel="modulepreload" href="${server.origin}/assets/shared.js"><link rel="modulepreload" href="/assets/main.js"><link rel="stylesheet" href="assets/main.css"><link rel="preload" as="font" href="/assets/one.woff2"><link rel="stylesheet" href="https://external.invalid/never.css">`;
+  t.mock.method(https, 'request', () => { throw new Error('External fixture transport forbidden'); });
+  const outputDirectory = perfScratch(t, 'devshark-bundle-live-');
+  const report = await bundle.measureLiveBundle({ origin: server.origin, outputDirectory });
+  assert.equal(report.complete, true, JSON.stringify(report.error));
+  assert.deepEqual(server.calls.map(call => call.path), ['/', '/assets/main.js', '/assets/shared.js', '/assets/main.css', '/assets/one.woff2']);
+  assert.equal(report.requestsPlanned, 5); assert.equal(report.requestsAttempted, 5); assert.equal(report.requestsSent, 5);
+  for (const call of server.calls) { assert.equal(call.method, 'GET'); assert.equal(call.headers['accept-encoding'], 'br, gzip'); assert.equal(call.headers.cookie, undefined); assert.equal(call.headers.authorization, undefined); }
+  const row = report.rows.find(item => item.path === '/assets/main.js');
+  assert.equal(row.transferredBytes, encodedMain.length); assert.equal(row.decodedBytes, main.length); assert.equal(row.decodedGzip6Bytes, gzipSync(main, { level: 6 }).length);
+  assert.notEqual(row.transferredBytes, row.decodedGzip6Bytes, 'wire compression is not reconstructed gzip6');
+  assert.equal(row.encodedSha256, createHash('sha256').update(encodedMain).digest('hex')); assert.equal(row.headers['x-vercel-cache'], 'HIT'); assert.equal(row.headers['set-cookie'], undefined);
+  assert.equal(report.totals.initialTransferredBytes, encodedMain.length + encodedShared.length + style.length); assert.equal(report.totals.preloadedFontTransferredBytes, font.length);
+  assert.equal(report.budgetApplied, false); assert.equal(report.localGzipBudgetReference, 218675); assert.match(report.scope, /exclude headers/);
+  assert.deepEqual(JSON.parse(readFileSync(join(outputDirectory, 'bundle-live.json'), 'utf8')), report);
+});
+
+test('check:bundle live failures preserve a fresh partial report without redirects or retries', async (t) => {
+  assert.equal(typeof bundle.measureLiveBundle, 'function');
+  let mode = 'redirect';
+  const server = await ownPerfServer(t, (req, res) => {
+    if (req.url === '/') { res.setHeader('Content-Type', 'text/html'); return res.end('<script type="module" src="/assets/a.js"></script>'); }
+    if (mode === 'redirect') { res.writeHead(302, { Location: '/must-not-be-followed' }); return res.end(); }
+    if (mode === 'missing') { res.writeHead(404); return res.end(); }
+    if (mode === 'wrong-type') { res.setHeader('Content-Type', 'text/html'); return res.end('<!doctype html>'); }
+    res.setHeader('Content-Type', 'text/javascript');
+    if (mode === 'stacked') { res.setHeader('Content-Encoding', 'br, gzip'); return res.end('x'); }
+    if (mode === 'corrupt') { res.setHeader('Content-Encoding', 'gzip'); return res.end('not gzip'); }
+    if (mode === 'oversize-header') { res.setHeader('Content-Length', 8 * 1024 * 1024 + 1); return res.end('x'); }
+    if (mode === 'decoded-bomb') { res.setHeader('Content-Encoding', 'gzip'); return res.end(gzipSync(Buffer.alloc(8 * 1024 * 1024 + 1, 97))); }
+    if (mode === 'truncated') { res.setHeader('Content-Length', 100); return res.end('short'); }
+    if (mode === 'timeout') return;
+  });
+  const outputDirectory = perfScratch(t, 'devshark-bundle-failures-');
+  for (const [next, error] of [['redirect', 'redirect_refused'], ['missing', 'unexpected_status'], ['wrong-type', 'unexpected_content_type'], ['stacked', 'unsupported_content_encoding'], ['corrupt', 'invalid_or_oversize_compressed_body'], ['oversize-header', 'encoded_body_too_large'], ['decoded-bomb', 'invalid_or_oversize_compressed_body'], ['truncated', 'truncated_body'], ['timeout', 'request_timeout']]) {
+    mode = next; server.calls.length = 0;
+    const report = await bundle.measureLiveBundle({ origin: server.origin, outputDirectory, timeoutMs: next === 'timeout' ? 100 : 1000, totalTimeoutMs: next === 'timeout' ? 1000 : 5000 });
+    assert.equal(report.complete, false, next); assert.equal(report.error.code, error, next);
+    assert.deepEqual(server.calls.map(call => call.path), ['/', '/assets/a.js'], next + ': exactly one attempt each');
+    assert.equal(report.requestsAttempted, 2); assert.equal(report.rows[1].error, error);
+    assert.equal(JSON.parse(readFileSync(join(outputDirectory, 'bundle-live.json'), 'utf8')).error.code, error, 'failure replaces only the tool’s own prior report');
+  }
+});
+
+test('check:bundle output aliases are refused before any request and late aliases are never followed', async (t) => {
+  assert.equal(typeof bundle.measureLiveBundle, 'function');
+  const scratch = perfScratch(t, 'devshark-bundle-alias-'), target = join(scratch, 'unrelated.txt'); writeFileSync(target, 'unchanged');
+  const directory = join(scratch, 'reports'); mkdirSync(directory);
+  let late = false;
+  const server = await ownPerfServer(t, (req, res) => {
+    if (late && req.url === '/assets/a.js') symlinkSync(target, join(directory, 'bundle-live.json'));
+    res.setHeader('Content-Type', req.url === '/' ? 'text/html' : 'text/javascript');
+    res.end(req.url === '/' ? '<script type="module" src="/assets/a.js"></script>' : 'export {};');
+  });
+  const aliasDirectory = join(scratch, 'directory-alias'); symlinkSync(directory, aliasDirectory);
+  await assert.rejects(bundle.measureLiveBundle({ origin: server.origin, outputDirectory: aliasDirectory }), /directory must not be a symlink/); assert.equal(server.calls.length, 0);
+  symlinkSync(target, join(directory, 'bundle-live.json'));
+  await assert.rejects(bundle.measureLiveBundle({ origin: server.origin, outputDirectory: directory }), /regular report/); assert.equal(server.calls.length, 0); assert.equal(readFileSync(target, 'utf8'), 'unchanged');
+  rmSync(join(directory, 'bundle-live.json')); linkSync(target, join(directory, 'bundle-live.json'));
+  await assert.rejects(bundle.measureLiveBundle({ origin: server.origin, outputDirectory: directory }), /regular report/); assert.equal(server.calls.length, 0);
+  rmSync(join(directory, 'bundle-live.json'));
+  writeFileSync(join(directory, 'bundle-live.json'), '{"unrelated":true}');
+  await assert.rejects(bundle.measureLiveBundle({ origin: server.origin, outputDirectory: directory }), /unrelated/); assert.equal(server.calls.length, 0);
+  rmSync(join(directory, 'bundle-live.json')); late = true;
+  await assert.rejects(bundle.measureLiveBundle({ origin: server.origin, outputDirectory: directory }), /regular report/);
+  assert.deepEqual(server.calls.map(call => call.path), ['/', '/assets/a.js']); assert.equal(readFileSync(target, 'utf8'), 'unchanged');
+});
+
+test('check:bundle --url CLI skips the build and writes only its explicit live artifact', async (t) => {
+  const server = await ownPerfServer(t, (req, res) => { res.setHeader('Content-Type', req.url === '/' ? 'text/html' : 'text/javascript'); res.end(req.url === '/' ? '<script type="module" src="/assets/entry.js"></script>' : 'export {};'); });
+  const scratch = perfScratch(t, 'devshark-bundle-cli-');
+  const run = await runPerfChild(t, join(root, 'scripts/check-bundle.mjs'), ['--url=' + server.origin], scratch);
+  assert.equal(run.status, 0, run.stderr); assert.match(run.stdout, /No local budget gate/);
+  assert.equal(existsSync(join(scratch, 'artifacts/bundle.json')), false); assert.equal(existsSync(join(scratch, 'client')), false);
+  assert.equal(JSON.parse(readFileSync(join(scratch, 'artifacts/bundle-live.json'), 'utf8')).requestsAttempted, 2);
+  assert.deepEqual(server.calls.map(call => call.path), ['/', '/assets/entry.js']);
+});
+
+
+test('check:bundle caps the actual HTML graph before asset requests and measures at most 33 GETs', async (t) => {
+  assert.equal(typeof bundle.measureLiveBundle, 'function');
+  let html;
+  const server = await ownPerfServer(t, (req, res) => { res.setHeader('Content-Type', req.url === '/' ? 'text/html' : 'text/javascript'); res.end(req.url === '/' ? html : 'export {};'); });
+  const outputDirectory = perfScratch(t, 'devshark-bundle-graph-');
+  html = Array.from({ length: 32 }, (_, i) => `<link rel="modulepreload" href="/assets/${i}.js">`).join('') + '<link rel="modulepreload" href="/assets/0.js">';
+  const full = await bundle.measureLiveBundle({ origin: server.origin, outputDirectory });
+  assert.equal(full.complete, true); assert.equal(full.requestsPlanned, 33); assert.equal(full.requestsAttempted, 33); assert.equal(server.calls.length, 33);
+  for (const [bad, code] of [
+    [html + '<link rel="modulepreload" href="/assets/over-limit.js">', 'too_many_initial_assets'],
+    ['<script type="module" src="/api/settings"></script>', 'asset_outside_public_graph'],
+    ['<script type="module" src="/assets/a.js?secret=never-sent"></script>', 'asset_query_or_fragment'],
+    ['<script type="module" src="https://u:p@' + new URL(server.origin).host + '/assets/a.js"></script>', 'credentialed_asset_reference'],
+  ]) {
+    html = bad; server.calls.length = 0;
+    const refused = await bundle.measureLiveBundle({ origin: server.origin, outputDirectory });
+    assert.equal(refused.complete, false); assert.equal(refused.error.code, code); assert.equal(refused.requestsAttempted, 1); assert.deepEqual(server.calls.map(call => call.path), ['/']);
+  }
+});
+
+
+test('check:bundle keeps its default shaped-build options and refuses mixed/repeated live flags', () => {
+  assert.equal(typeof bundle.bundleOptions, 'function');
+  assert.deepEqual(bundle.bundleOptions([]), { origin: null, largestCount: 10 });
+  assert.deepEqual(bundle.bundleOptions(['--largest=20']), { origin: null, largestCount: 20 });
+  assert.deepEqual(bundle.bundleOptions(['--url=https://example.test']), { origin: 'https://example.test', largestCount: 10 });
+  for (const args of [['--url=https://example.test', '--largest=20'], ['--url=https://example.test', '--url=https://other.test'], ['--url'], ['--largest=2', '--largest=3']]) assert.throws(() => bundle.bundleOptions(args));
+  assert.equal(JSON.parse(readFileSync(join(root, 'docs/quality/bundle-budget.json'), 'utf8')).initialGzipBytes, 218675);
+});
+
+// F1-38: exercise the existing CLI server, with no HTTP readiness polling.
+async function fixtureLab(t, { rootIndex = true } = {}) {
+  const directory = perfScratch(t, 'devshark-navigation-fixture-');
+  if (rootIndex) writeFileSync(join(directory, 'index.html'), '<!doctype html><title>invented root shell</title>');
+  for (const name of ['learn/nested', 'real', 'assets/coding-worker', 'sandbox']) mkdirSync(join(directory, name), { recursive: true });
+  writeFileSync(join(directory, 'real/index.html'), '<!doctype html><title>real route index</title>');
+  writeFileSync(join(directory, 'assets/main.js'), 'export const fixture = true;');
+  writeFileSync(join(directory, 'assets/coding-worker/worker.js'), 'export const worker = true;');
+  writeFileSync(join(directory, 'sandbox/index.html'), '<title>sandbox fixture</title>');
+  const outside = perfScratch(t, 'devshark-outside-fixture-'); writeFileSync(join(outside, 'secret.js'), 'outside must never be served');
+  symlinkSync(join(outside, 'secret.js'), join(directory, 'assets/escape.js'));
+  const slot = await ownPerfServer(t, (_req, res) => res.end());
+  const port = slot.server.address().port; await new Promise(resolve => slot.server.close(resolve));
+  const child = spawn(process.execPath, [join(root, 'scripts/performance-fixture-server.mjs'), directory, String(port)], { cwd: root, env: { PATH: process.env.PATH }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const stopped = new Promise(resolve => child.once('close', resolve));
+  t.after(async () => { if (child.exitCode === null) child.kill('SIGKILL'); await stopped; });
+  await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('fixture startup deadline')), 5000);
+    const fail = () => { clearTimeout(timer); reject(new Error('fixture exited before ready')); };
+    child.once('error', fail); child.once('close', fail);
+    let output = '';
+    child.stdout.on('data', chunk => { output += chunk; if (output.includes('Read-only fixture on http://127.0.0.1:' + port)) { clearTimeout(timer); child.removeListener('error', fail); child.removeListener('close', fail); resolve(); } });
+  });
+  return { origin: 'http://127.0.0.1:' + port, directory };
+}
+function fixtureRead(origin, target, { method = 'GET', headers = {} } = {}) {
+  const url = new URL(origin);
+  return new Promise((resolve, reject) => {
+    const request = http.request({ hostname: url.hostname, port: url.port, path: target, method, headers: { Accept: 'text/html', ...headers }, agent: false }, response => {
+      const chunks = []; response.on('data', chunk => chunks.push(chunk)); response.once('error', reject);
+      response.once('end', () => resolve({ status: response.statusCode, headers: response.headers, body: Buffer.concat(chunks) }));
+    });
+    request.setTimeout(3000, () => request.destroy(new Error('fixture read deadline'))); request.once('error', reject); request.end();
+  });
+}
+
+test('perf:fixture serves indexless navigation directories while keeping a real index', async (t) => {
+  const server = await fixtureLab(t);
+  for (const path of ['/learn', '/learn/', '/learn?fixture=1', '/quiz']) {
+    const response = await fixtureRead(server.origin, path);
+    assert.equal(response.status, 200, path); assert.match(response.body.toString(), /invented root shell/); assert.match(response.headers['content-type'], /text\/html/);
+    assert.equal(response.headers['cache-control'], 'no-cache');
+  }
+  const real = await fixtureRead(server.origin, '/real'); assert.equal(real.status, 200); assert.match(real.body.toString(), /real route index/); assert.doesNotMatch(real.body.toString(), /root shell/);
+  const head = await fixtureRead(server.origin, '/learn', { method: 'HEAD', headers: { 'Accept-Encoding': 'gzip' } });
+  assert.equal(head.status, 200); assert.equal(head.body.length, 0); assert.equal(head.headers['content-encoding'], 'gzip'); assert.equal(head.headers.vary, 'Accept-Encoding');
+  const gzip = await fixtureRead(server.origin, '/learn', { headers: { 'Accept-Encoding': 'gzip' } }); assert.match(gunzipSync(gzip.body).toString(), /invented root shell/);
+});
+
+test('perf:fixture never replaces missing assets, reserved paths or non-HTML requests with root HTML', async (t) => {
+  const server = await fixtureLab(t);
+  for (const path of ['/assets/missing.js', '/assets/missing', '/assets', '/sandbox/missing.js', '/sandbox/missing', '/missing.css', '/favicon.ico', '/.env', '/.well-known/missing', '/api']) {
+    const response = await fixtureRead(server.origin, path); assert.equal(response.status, 404, path); assert.equal(response.body.length, 0, path);
+  }
+  const json = await fixtureRead(server.origin, '/learn', { headers: { Accept: 'application/json' } }); assert.equal(json.status, 404);
+  const excluded = await fixtureRead(server.origin, '/learn', { headers: { Accept: 'text/html;q=0' } }); assert.equal(excluded.status, 404);
+  const curl = await fixtureRead(server.origin, '/learn', { headers: { Accept: '*/*' } }); assert.equal(curl.status, 200, 'bare curl page navigation remains usable');
+  const missingRoot = await fixtureLab(t, { rootIndex: false });
+  assert.equal((await fixtureRead(missingRoot.origin, '/learn')).status, 404);
+  assert.match((await fixtureRead(missingRoot.origin, '/real')).body.toString(), /real route index/);
+});
+
+test('perf:fixture keeps method/traversal/containment refusals and the narrow asset CORS policy', async (t) => {
+  const server = await fixtureLab(t);
+  assert.equal((await fixtureRead(server.origin, '/learn', { method: 'POST' })).status, 405);
+  assert.equal((await fixtureRead(server.origin, '/bad%ZZ')).status, 400);
+  for (const path of ['/%2e%2e/outside-secret', '/..%2f..%2foutside-secret', '/assets/escape.js']) {
+    const response = await fixtureRead(server.origin, path); assert.equal(response.status, 403, path); assert.doesNotMatch(response.body.toString(), /outside must never/);
+  }
+  const worker = await fixtureRead(server.origin, '/assets/coding-worker/worker.js'); assert.equal(worker.status, 200); assert.equal(worker.headers['access-control-allow-origin'], '*');
+  const sandbox = await fixtureRead(server.origin, '/sandbox/'); assert.equal(sandbox.status, 200); assert.equal(sandbox.headers['access-control-allow-origin'], '*');
+  const ordinary = await fixtureRead(server.origin, '/assets/main.js'); assert.equal(ordinary.status, 200); assert.equal(ordinary.headers['access-control-allow-origin'], undefined); assert.match(ordinary.headers['cache-control'], /immutable/);
+});
+
+test('perf:fixture retains synthetic 400ms API-only settings and provider refusal responses', async (t) => {
+  const server = await fixtureLab(t), started = performance.now();
+  const settings = await fixtureRead(server.origin, '/api/settings', { headers: { Accept: 'application/json', Origin: 'null' } });
+  assert.ok(performance.now() - started >= 350, 'the deliberately synthetic delay remains; this is not backend latency evidence');
+  assert.equal(settings.status, 200); assert.equal(settings.headers['cache-control'], 'no-store'); assert.equal(settings.headers['access-control-allow-origin'], undefined);
+  const body = JSON.parse(settings.body.toString()); assert.equal(body.billing.enabled, false); assert.equal(body.billing.launchOffer, false);
+  const refused = await fixtureRead(server.origin, '/api/user/stats', { headers: { Accept: 'application/json', Origin: 'null' } });
+  assert.equal(refused.status, 503); assert.equal(JSON.parse(refused.body.toString()).error.code, 'fixture_only'); assert.equal(refused.headers['access-control-allow-origin'], undefined);
+  assert.equal((await fixtureRead(server.origin, '/api/settings', { method: 'POST' })).status, 405);
+});
+
+// The child alone overrides its monotonic clock and the native HTTP constructor.
+// Real requests reach only the parent's owned loopback fixture. No delay/sleep,
+// browser, application, DNS lookup or external network is involved.
+const liveDeadlineChild = String.raw`
+  import http from 'node:http';
+  import { performance } from 'node:perf_hooks';
+  const [moduleUrl, mode, origin, outputDirectory] = process.argv.slice(1);
+  const { measureLiveBundle } = await import(moduleUrl);
+  const nativeNow = performance.now.bind(performance), nativeRequest = http.request;
+  const clockDescriptor = Object.getOwnPropertyDescriptor(performance, 'now');
+  let offset = 0, triggered = false, endCalls = 0, requestCalls = 0;
+  const jump = () => { if (!triggered) { triggered = true; offset += 2000; } };
+  Object.defineProperty(performance, 'now', { configurable: true, value: () => nativeNow() + offset });
+  http.request = function (url, options, onResponse) {
+    if (url.origin !== origin) throw new Error('Only the owned origin is allowed');
+    requestCalls += 1;
+    const first = requestCalls === 1;
+    const request = nativeRequest.call(this, url, options, incoming => {
+      if (first && mode === 'headers') jump();
+      if (first && mode === 'body-end') {
+        const nativeOnce = incoming.once;
+        incoming.once = function (event, listener) {
+          return nativeOnce.call(this, event, event === 'end' ? function (...args) {
+            jump(); return listener.apply(this, args);
+          } : listener);
+        };
+      }
+      onResponse(incoming);
+    });
+    const nativeEnd = request.end;
+    request.end = function (...args) { endCalls += 1; return nativeEnd.apply(this, args); };
+    if (first && mode === 'setup') jump();
+    return request;
+  };
+  try {
+    const report = await measureLiveBundle({ origin, outputDirectory, timeoutMs: 1000, totalTimeoutMs: 5000 });
+    console.log(JSON.stringify({ marker: 'live-deadline-control-complete', mode, triggered, endCalls, requestCalls,
+      complete: report.complete, error: report.error?.code ?? null, requestsAttempted: report.requestsAttempted,
+      requestsSent: report.requestsSent, rows: report.rows.map(row => ({ error: row.error,
+        elapsedMs: row.elapsedMs, transferredBytes: row.transferredBytes, decodedBytes: row.decodedBytes })) }));
+  } finally {
+    http.request = nativeRequest;
+    if (clockDescriptor) Object.defineProperty(performance, 'now', clockDescriptor);
+    else delete performance.now;
+  }
+`;
+
+for (const mode of ['healthy', 'setup', 'headers', 'body-end']) {
+  test('check:bundle live monotonic request deadline survives ' + mode, async (t) => {
+    const server = await ownPerfServer(t, (req, res) => {
+      res.setHeader('Content-Type', req.url === '/' ? 'text/html' : 'text/javascript');
+      res.end(req.url === '/' ? '<script type="module" src="/assets/a.js"></script>' : 'export {};');
+    });
+    const outputDirectory = perfScratch(t, 'devshark-bundle-deadline-');
+    const run = await runPerfChild(t, '--input-type=module', ['-e', liveDeadlineChild,
+      new URL('./check-bundle.mjs', import.meta.url).href, mode, server.origin, outputDirectory], root);
+    assert.equal(run.status, 0, 'the control child completed, not a crash/watchdog: ' + run.stderr);
+    assert.equal(run.stderr, '');
+    const control = JSON.parse(run.stdout);
+    assert.equal(control.marker, 'live-deadline-control-complete');
+    assert.equal(control.mode, mode);
+    const saved = JSON.parse(readFileSync(join(outputDirectory, 'bundle-live.json'), 'utf8'));
+    assert.equal(saved.complete, control.complete, 'the actual persisted partial report agrees');
+    if (mode === 'healthy') {
+      assert.equal(control.triggered, false);
+      assert.equal(control.complete, true);
+      assert.equal(control.error, null);
+      assert.equal(control.requestCalls, 2); assert.equal(control.endCalls, 2);
+      assert.equal(control.requestsAttempted, 2); assert.equal(control.requestsSent, 2);
+      assert.deepEqual(server.calls.map(call => call.path), ['/', '/assets/a.js']);
+    } else {
+      assert.equal(control.triggered, true, 'the intended monotonic clock fault actually ran');
+      assert.equal(control.complete, false, 'an elapsed per-request deadline cannot be accepted as success');
+      assert.equal(control.error, 'request_timeout');
+      assert.equal(saved.error.code, 'request_timeout');
+      assert.equal(control.requestsAttempted, 1, 'stop before any asset request');
+      assert.equal(control.requestCalls, 1);
+      assert.equal(control.rows[0].error, 'request_timeout');
+      assert.ok(control.rows[0].elapsedMs >= 2000);
+      assert.equal(control.rows[0].transferredBytes, null, 'a late body is not a completed transfer');
+      assert.equal(control.rows[0].decodedBytes, null);
+      if (mode === 'setup') {
+        assert.equal(control.endCalls, 0, 'expired synchronous setup must not call request.end');
+        assert.equal(control.requestsSent, 0, 'no Node finish event was observed');
+        assert.equal(server.calls.length, 0, 'no HTTP request reached the owned server');
+      } else {
+        assert.equal(control.endCalls, 1);
+        assert.equal(control.requestsSent, 1, 'the sent request remains counted after a late callback');
+        assert.deepEqual(server.calls.map(call => call.path), ['/']);
+      }
+    }
   });
 }

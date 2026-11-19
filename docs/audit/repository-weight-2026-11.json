@@ -1,0 +1,69 @@
+{
+  "schema": "devshark-repository-weight-v1",
+  "startedAt": "2026-11-19T16:55:20.225159+00:00",
+  "finishedAt": "2026-11-19T16:55:20.912060+00:00",
+  "measuredRevision": "cbdfa2aa995e7dd71c7d0197fee7f35df21ca205",
+  "checkoutHead": "d09ec769fe9d48c9ffe8fdec983e1463a0cb3ecc",
+  "dirty": false,
+  "commands": [
+    "git rev-parse --git-common-dir",
+    "git count-objects -vH",
+    "git rev-list --objects cbdfa2aa995e7dd71c7d0197fee7f35df21ca205",
+    "git cat-file --batch-check='%(objecttype) %(objectsize) %(objectsize:disk)'",
+    "du -sk <common-git-dir> docs media client/public"
+  ],
+  "gitEntry": {
+    "kind": "directory",
+    "fileBytes": null
+  },
+  "sharedStore": {
+    "commonDirectory": "/Users/lukas/.t3/projects/devshark/react-express-app/.git",
+    "countObjectsHuman": "count: 2843\nsize: 29.01 MiB\nin-pack: 41695\npacks: 5\nsize-pack: 99.97 MiB\nprune-packable: 188\ngarbage: 0\nsize-garbage: 0 bytes",
+    "countObjectsRaw": "count: 2843\nsize: 29708\nin-pack: 41695\npacks: 5\nsize-pack: 102370\nprune-packable: 188\ngarbage: 0\nsize-garbage: 0",
+    "duKiB": 132988
+  },
+  "reachableFromMeasuredRevision": {
+    "objects": 41772,
+    "logicalBytes": 2893272699,
+    "objectDiskEstimateBytes": 106650880,
+    "byType": {
+      "commit": {
+        "objects": 4361,
+        "logicalBytes": 3559557,
+        "objectDiskEstimateBytes": 2216612
+      },
+      "tree": {
+        "objects": 20484,
+        "logicalBytes": 33760072,
+        "objectDiskEstimateBytes": 2841577
+      },
+      "blob": {
+        "objects": 16927,
+        "logicalBytes": 2855953070,
+        "objectDiskEstimateBytes": 101592691
+      }
+    },
+    "objectIdsSha256": "1812bac869e128bef7919f2ee5787e80ed16ba321eb288892353b7b387e211ca"
+  },
+  "checkoutDirectoryWeights": {
+    "docs": {
+      "exists": true,
+      "duKiB": 20172
+    },
+    "media": {
+      "exists": true,
+      "duKiB": 1512
+    },
+    "client/public": {
+      "exists": true,
+      "duKiB": 284
+    }
+  },
+  "limitations": [
+    "Shared store includes all branches, refs, worktree metadata and unreachable objects; its du is not the weight of main.",
+    "The summed objectsize:disk is an estimate for exact-SHA reachable object representations, not reclaimable bytes or a standalone pack size; delta bases and shared storage prevent those inferences.",
+    "Directory du describes this clean checkout at checkoutHead, separately from measuredRevision; docs include the committed F7 acceptance and F1 tool documentation.",
+    "No history rewrite, repack or garbage collection was run.",
+    "No current deployment build duration was queried; historical production durations remain separately attributed."
+  ]
+}

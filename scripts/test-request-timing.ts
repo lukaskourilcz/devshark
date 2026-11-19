@@ -66,6 +66,9 @@ execFileSync(process.execPath, ['--test', 'docker/server.test.mjs'], { stdio: 'i
 // kinds and the median summary), and audit:performance's flag and route
 // checks, failed runs, --runs statistics and report fields, through a
 // stand-in for Lighthouse, and check:bundle's index.html reader and
-// --largest checks (#630); no case sends a request, builds the client or
-// opens Chrome, which this CI job does not install.
+// --largest/live-transfer checks (#630); no case uses a live origin, builds
+// the client or opens Chrome. Transport fixtures use owned loopback servers.
 execFileSync(process.execPath, ['--test', 'scripts/test-perf-tools.mjs'], { stdio: 'inherit' });
+
+// Pure image metadata/reference inventory, with owned filesystem fixtures only.
+execFileSync(process.execPath, ['--test', 'scripts/test-image-inventory.mjs'], { stdio: 'inherit' });

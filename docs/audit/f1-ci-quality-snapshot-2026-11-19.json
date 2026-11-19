@@ -1,0 +1,3987 @@
+{
+  "schemaVersion": 1,
+  "historicalObservedEvidence": true,
+  "packagedAtUtc": "2026-11-19T16:56:23.240708+00:00",
+  "projectionBaselineHead": "cbdfa2aa995e7dd71c7d0197fee7f35df21ca205",
+  "packagingMode": "offline projection of existing saved observations; no new runtime/provider/application query",
+  "scope": "quality.yml latest ten at the recorded selection cutoff, all events/all conclusions",
+  "selection": {
+    "command": [
+      "gh",
+      "run",
+      "list",
+      "--workflow",
+      "quality.yml",
+      "--limit",
+      "10",
+      "--repo",
+      "lukaskourilcz/devshark",
+      "--json",
+      "attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,number,startedAt,status,updatedAt,url,workflowName"
+    ],
+    "collectionStartedAtUtc": "2026-11-19T14:19:58.597867+00:00",
+    "collectionFinishedAtUtc": "2026-11-19T14:19:59.660691+00:00",
+    "exitCode": 0,
+    "population": "latest ten quality.yml runs across all events and all conclusions, no branch/status/event filter",
+    "selectionFrozen": true,
+    "runs": [
+      {
+        "attempt": 1,
+        "conclusion": "success",
+        "createdAt": "2026-11-19T13:19:06Z",
+        "databaseId": 44532254699,
+        "event": "push",
+        "headBranch": "main",
+        "headSha": "15f350a8fbdecec8b412472953fec551ec7a0c94",
+        "number": 676,
+        "startedAt": "2026-11-19T13:19:06Z",
+        "status": "completed",
+        "updatedAt": "2026-11-19T13:41:56Z",
+        "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699",
+        "workflowName": "Product quality"
+      },
+      {
+        "attempt": 1,
+        "conclusion": "success",
+        "createdAt": "2026-11-19T12:26:32Z",
+        "databaseId": 44523908461,
+        "event": "pull_request",
+        "headBranch": "codex/643-docs-ci",
+        "headSha": "1511f1fa2265d58218e2a4ac5ca2549b4c2df649",
+        "number": 675,
+        "startedAt": "2026-11-19T12:26:32Z",
+        "status": "completed",
+        "updatedAt": "2026-11-19T12:51:56Z",
+        "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461",
+        "workflowName": "Product quality"
+      },
+      {
+        "attempt": 1,
+        "conclusion": "success",
+        "createdAt": "2026-11-19T10:31:37Z",
+        "databaseId": 44506480155,
+        "event": "push",
+        "headBranch": "main",
+        "headSha": "bce4b9c48514a054cc4154095e01b567720ea8af",
+        "number": 674,
+        "startedAt": "2026-11-19T10:31:37Z",
+        "status": "completed",
+        "updatedAt": "2026-11-19T10:53:20Z",
+        "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155",
+        "workflowName": "Product quality"
+      },
+      {
+        "attempt": 1,
+        "conclusion": "failure",
+        "createdAt": "2026-11-19T08:36:57Z",
+        "databaseId": 44489104765,
+        "event": "pull_request",
+        "headBranch": "codex/643-docs-ci",
+        "headSha": "d2bf519e44989da3efef41aa2284696e995b6684",
+        "number": 673,
+        "startedAt": "2026-11-19T08:36:57Z",
+        "status": "completed",
+        "updatedAt": "2026-11-19T09:01:25Z",
+        "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765",
+        "workflowName": "Product quality"
+      },
+      {
+        "attempt": 1,
+        "conclusion": "success",
+        "createdAt": "2026-11-19T06:05:24Z",
+        "databaseId": 44469626993,
+        "event": "push",
+        "headBranch": "main",
+        "headSha": "7c008c9f1d2d9c050ee97e395869184098e6a95d",
+        "number": 672,
+        "startedAt": "2026-11-19T06:05:24Z",
+        "status": "completed",
+        "updatedAt": "2026-11-19T06:30:31Z",
+        "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993",
+        "workflowName": "Product quality"
+      },
+      {
+        "attempt": 1,
+        "conclusion": "success",
+        "createdAt": "2026-11-19T05:38:28Z",
+        "databaseId": 44466553771,
+        "event": "pull_request",
+        "headBranch": "codex/632-initial-load",
+        "headSha": "7637971800c260d574b64bbf34a3770c7d3d5bfa",
+        "number": 671,
+        "startedAt": "2026-11-19T05:38:28Z",
+        "status": "completed",
+        "updatedAt": "2026-11-19T06:03:43Z",
+        "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771",
+        "workflowName": "Product quality"
+      },
+      {
+        "attempt": 1,
+        "conclusion": "success",
+        "createdAt": "2026-11-19T03:32:26Z",
+        "databaseId": 44452144016,
+        "event": "push",
+        "headBranch": "main",
+        "headSha": "0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c",
+        "number": 670,
+        "startedAt": "2026-11-19T03:32:26Z",
+        "status": "completed",
+        "updatedAt": "2026-11-19T03:56:47Z",
+        "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016",
+        "workflowName": "Product quality"
+      },
+      {
+        "attempt": 1,
+        "conclusion": "success",
+        "createdAt": "2026-11-19T03:05:54Z",
+        "databaseId": 44449005865,
+        "event": "pull_request",
+        "headBranch": "codex/635-responsive-device-matrix",
+        "headSha": "e861d856842bdc9be26b7f48e7b62c5645831fdb",
+        "number": 669,
+        "startedAt": "2026-11-19T03:05:54Z",
+        "status": "completed",
+        "updatedAt": "2026-11-19T03:31:36Z",
+        "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865",
+        "workflowName": "Product quality"
+      },
+      {
+        "attempt": 1,
+        "conclusion": "success",
+        "createdAt": "2026-11-19T01:41:54Z",
+        "databaseId": 44438847769,
+        "event": "push",
+        "headBranch": "main",
+        "headSha": "6c85886c03c22227fb4690ffaa298efe15d2dad0",
+        "number": 668,
+        "startedAt": "2026-11-19T01:41:54Z",
+        "status": "completed",
+        "updatedAt": "2026-11-19T02:01:59Z",
+        "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769",
+        "workflowName": "Product quality"
+      },
+      {
+        "attempt": 1,
+        "conclusion": "success",
+        "createdAt": "2026-11-19T01:17:46Z",
+        "databaseId": 44435812072,
+        "event": "pull_request",
+        "headBranch": "codex/633-images-media",
+        "headSha": "757352785b9bd5c8c62185b23c67d6032e2d7bdb",
+        "number": 667,
+        "startedAt": "2026-11-19T01:17:46Z",
+        "status": "completed",
+        "updatedAt": "2026-11-19T01:39:31Z",
+        "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072",
+        "workflowName": "Product quality"
+      }
+    ]
+  },
+  "runs": [
+    {
+      "selectionRank": 1,
+      "runId": 44532254699,
+      "attempt": 1,
+      "event": "push",
+      "branch": "main",
+      "headSha": "15f350a8fbdecec8b412472953fec551ec7a0c94",
+      "status": "completed",
+      "conclusion": "success",
+      "createdAt": "2026-11-19T13:19:06Z",
+      "startedAt": "2026-11-19T13:19:06Z",
+      "updatedAt": "2026-11-19T13:41:56Z",
+      "workflowMetadataWallSeconds": 1370.0,
+      "jobEnvelopeSeconds": 1367.0,
+      "summedStartedCompletedJobSeconds": 3516.0,
+      "hypotheticalPerJobCeilMinutes": 63,
+      "longestJobNames": [
+        "coding"
+      ],
+      "longestJobSeconds": 1358.0,
+      "jobCount": 9,
+      "startedCompletedJobCount": 9,
+      "skippedJobCount": 0,
+      "notStartedJobCount": 0,
+      "missingCompletionCount": 0,
+      "invalidTimestampCount": 0,
+      "allJobsPrimaryCLI": true,
+      "runUrl": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699"
+    },
+    {
+      "selectionRank": 2,
+      "runId": 44523908461,
+      "attempt": 1,
+      "event": "pull_request",
+      "branch": "codex/643-docs-ci",
+      "headSha": "1511f1fa2265d58218e2a4ac5ca2549b4c2df649",
+      "status": "completed",
+      "conclusion": "success",
+      "createdAt": "2026-11-19T12:26:32Z",
+      "startedAt": "2026-11-19T12:26:32Z",
+      "updatedAt": "2026-11-19T12:51:56Z",
+      "workflowMetadataWallSeconds": 1524.0,
+      "jobEnvelopeSeconds": 1522.0,
+      "summedStartedCompletedJobSeconds": 3482.0,
+      "hypotheticalPerJobCeilMinutes": 62,
+      "longestJobNames": [
+        "coding"
+      ],
+      "longestJobSeconds": 1517.0,
+      "jobCount": 9,
+      "startedCompletedJobCount": 9,
+      "skippedJobCount": 0,
+      "notStartedJobCount": 0,
+      "missingCompletionCount": 0,
+      "invalidTimestampCount": 0,
+      "allJobsPrimaryCLI": true,
+      "runUrl": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461"
+    },
+    {
+      "selectionRank": 3,
+      "runId": 44506480155,
+      "attempt": 1,
+      "event": "push",
+      "branch": "main",
+      "headSha": "bce4b9c48514a054cc4154095e01b567720ea8af",
+      "status": "completed",
+      "conclusion": "success",
+      "createdAt": "2026-11-19T10:31:37Z",
+      "startedAt": "2026-11-19T10:31:37Z",
+      "updatedAt": "2026-11-19T10:53:20Z",
+      "workflowMetadataWallSeconds": 1303.0,
+      "jobEnvelopeSeconds": 1299.0,
+      "summedStartedCompletedJobSeconds": 3166.0,
+      "hypotheticalPerJobCeilMinutes": 56,
+      "longestJobNames": [
+        "browser"
+      ],
+      "longestJobSeconds": 1295.0,
+      "jobCount": 7,
+      "startedCompletedJobCount": 7,
+      "skippedJobCount": 0,
+      "notStartedJobCount": 0,
+      "missingCompletionCount": 0,
+      "invalidTimestampCount": 0,
+      "allJobsPrimaryCLI": true,
+      "runUrl": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155"
+    },
+    {
+      "selectionRank": 4,
+      "runId": 44489104765,
+      "attempt": 1,
+      "event": "pull_request",
+      "branch": "codex/643-docs-ci",
+      "headSha": "d2bf519e44989da3efef41aa2284696e995b6684",
+      "status": "completed",
+      "conclusion": "failure",
+      "createdAt": "2026-11-19T08:36:57Z",
+      "startedAt": "2026-11-19T08:36:57Z",
+      "updatedAt": "2026-11-19T09:01:25Z",
+      "workflowMetadataWallSeconds": 1468.0,
+      "jobEnvelopeSeconds": 1464.0,
+      "summedStartedCompletedJobSeconds": 3094.0,
+      "hypotheticalPerJobCeilMinutes": 57,
+      "longestJobNames": [
+        "coding"
+      ],
+      "longestJobSeconds": 1459.0,
+      "jobCount": 9,
+      "startedCompletedJobCount": 9,
+      "skippedJobCount": 0,
+      "notStartedJobCount": 0,
+      "missingCompletionCount": 0,
+      "invalidTimestampCount": 0,
+      "allJobsPrimaryCLI": true,
+      "runUrl": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765"
+    },
+    {
+      "selectionRank": 5,
+      "runId": 44469626993,
+      "attempt": 1,
+      "event": "push",
+      "branch": "main",
+      "headSha": "7c008c9f1d2d9c050ee97e395869184098e6a95d",
+      "status": "completed",
+      "conclusion": "success",
+      "createdAt": "2026-11-19T06:05:24Z",
+      "startedAt": "2026-11-19T06:05:24Z",
+      "updatedAt": "2026-11-19T06:30:31Z",
+      "workflowMetadataWallSeconds": 1507.0,
+      "jobEnvelopeSeconds": 1504.0,
+      "summedStartedCompletedJobSeconds": 3730.0,
+      "hypotheticalPerJobCeilMinutes": 65,
+      "longestJobNames": [
+        "coding"
+      ],
+      "longestJobSeconds": 1500.0,
+      "jobCount": 7,
+      "startedCompletedJobCount": 7,
+      "skippedJobCount": 0,
+      "notStartedJobCount": 0,
+      "missingCompletionCount": 0,
+      "invalidTimestampCount": 0,
+      "allJobsPrimaryCLI": true,
+      "runUrl": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993"
+    },
+    {
+      "selectionRank": 6,
+      "runId": 44466553771,
+      "attempt": 1,
+      "event": "pull_request",
+      "branch": "codex/632-initial-load",
+      "headSha": "7637971800c260d574b64bbf34a3770c7d3d5bfa",
+      "status": "completed",
+      "conclusion": "success",
+      "createdAt": "2026-11-19T05:38:28Z",
+      "startedAt": "2026-11-19T05:38:28Z",
+      "updatedAt": "2026-11-19T06:03:43Z",
+      "workflowMetadataWallSeconds": 1515.0,
+      "jobEnvelopeSeconds": 1513.0,
+      "summedStartedCompletedJobSeconds": 3500.0,
+      "hypotheticalPerJobCeilMinutes": 62,
+      "longestJobNames": [
+        "coding"
+      ],
+      "longestJobSeconds": 1507.0,
+      "jobCount": 7,
+      "startedCompletedJobCount": 7,
+      "skippedJobCount": 0,
+      "notStartedJobCount": 0,
+      "missingCompletionCount": 0,
+      "invalidTimestampCount": 0,
+      "allJobsPrimaryCLI": true,
+      "runUrl": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771"
+    },
+    {
+      "selectionRank": 7,
+      "runId": 44452144016,
+      "attempt": 1,
+      "event": "push",
+      "branch": "main",
+      "headSha": "0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c",
+      "status": "completed",
+      "conclusion": "success",
+      "createdAt": "2026-11-19T03:32:26Z",
+      "startedAt": "2026-11-19T03:32:26Z",
+      "updatedAt": "2026-11-19T03:56:47Z",
+      "workflowMetadataWallSeconds": 1461.0,
+      "jobEnvelopeSeconds": 1459.0,
+      "summedStartedCompletedJobSeconds": 3494.0,
+      "hypotheticalPerJobCeilMinutes": 61,
+      "longestJobNames": [
+        "browser"
+      ],
+      "longestJobSeconds": 1452.0,
+      "jobCount": 7,
+      "startedCompletedJobCount": 7,
+      "skippedJobCount": 0,
+      "notStartedJobCount": 0,
+      "missingCompletionCount": 0,
+      "invalidTimestampCount": 0,
+      "allJobsPrimaryCLI": true,
+      "runUrl": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016"
+    },
+    {
+      "selectionRank": 8,
+      "runId": 44449005865,
+      "attempt": 1,
+      "event": "pull_request",
+      "branch": "codex/635-responsive-device-matrix",
+      "headSha": "e861d856842bdc9be26b7f48e7b62c5645831fdb",
+      "status": "completed",
+      "conclusion": "success",
+      "createdAt": "2026-11-19T03:05:54Z",
+      "startedAt": "2026-11-19T03:05:54Z",
+      "updatedAt": "2026-11-19T03:31:36Z",
+      "workflowMetadataWallSeconds": 1542.0,
+      "jobEnvelopeSeconds": 1540.0,
+      "summedStartedCompletedJobSeconds": 3805.0,
+      "hypotheticalPerJobCeilMinutes": 67,
+      "longestJobNames": [
+        "browser"
+      ],
+      "longestJobSeconds": 1531.0,
+      "jobCount": 7,
+      "startedCompletedJobCount": 7,
+      "skippedJobCount": 0,
+      "notStartedJobCount": 0,
+      "missingCompletionCount": 0,
+      "invalidTimestampCount": 0,
+      "allJobsPrimaryCLI": true,
+      "runUrl": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865"
+    },
+    {
+      "selectionRank": 9,
+      "runId": 44438847769,
+      "attempt": 1,
+      "event": "push",
+      "branch": "main",
+      "headSha": "6c85886c03c22227fb4690ffaa298efe15d2dad0",
+      "status": "completed",
+      "conclusion": "success",
+      "createdAt": "2026-11-19T01:41:54Z",
+      "startedAt": "2026-11-19T01:41:54Z",
+      "updatedAt": "2026-11-19T02:01:59Z",
+      "workflowMetadataWallSeconds": 1205.0,
+      "jobEnvelopeSeconds": 1202.0,
+      "summedStartedCompletedJobSeconds": 2799.0,
+      "hypotheticalPerJobCeilMinutes": 49,
+      "longestJobNames": [
+        "coding"
+      ],
+      "longestJobSeconds": 1196.0,
+      "jobCount": 7,
+      "startedCompletedJobCount": 7,
+      "skippedJobCount": 0,
+      "notStartedJobCount": 0,
+      "missingCompletionCount": 0,
+      "invalidTimestampCount": 0,
+      "allJobsPrimaryCLI": true,
+      "runUrl": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769"
+    },
+    {
+      "selectionRank": 10,
+      "runId": 44435812072,
+      "attempt": 1,
+      "event": "pull_request",
+      "branch": "codex/633-images-media",
+      "headSha": "757352785b9bd5c8c62185b23c67d6032e2d7bdb",
+      "status": "completed",
+      "conclusion": "success",
+      "createdAt": "2026-11-19T01:17:46Z",
+      "startedAt": "2026-11-19T01:17:46Z",
+      "updatedAt": "2026-11-19T01:39:31Z",
+      "workflowMetadataWallSeconds": 1305.0,
+      "jobEnvelopeSeconds": 1302.0,
+      "summedStartedCompletedJobSeconds": 3245.0,
+      "hypotheticalPerJobCeilMinutes": 57,
+      "longestJobNames": [
+        "coding"
+      ],
+      "longestJobSeconds": 1296.0,
+      "jobCount": 7,
+      "startedCompletedJobCount": 7,
+      "skippedJobCount": 0,
+      "notStartedJobCount": 0,
+      "missingCompletionCount": 0,
+      "invalidTimestampCount": 0,
+      "allJobsPrimaryCLI": true,
+      "runUrl": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072"
+    }
+  ],
+  "jobs": [
+    {
+      "selectionRank": 1,
+      "runId": 44532254699,
+      "attempt": 1,
+      "databaseId": 135588359050,
+      "name": "sql",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T13:19:09Z",
+      "completedAt": "2026-11-19T13:19:52Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359050",
+      "timingCategory": "started-completed",
+      "durationSeconds": 43.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 1,
+      "runId": 44532254699,
+      "attempt": 1,
+      "databaseId": 135588359478,
+      "name": "tests",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T13:19:10Z",
+      "completedAt": "2026-11-19T13:26:39Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359478",
+      "timingCategory": "started-completed",
+      "durationSeconds": 449.0,
+      "hypotheticalCeilMinutes": 8
+    },
+    {
+      "selectionRank": 1,
+      "runId": 44532254699,
+      "attempt": 1,
+      "databaseId": 135588359539,
+      "name": "quickjs",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T13:19:09Z",
+      "completedAt": "2026-11-19T13:20:01Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359539",
+      "timingCategory": "started-completed",
+      "durationSeconds": 52.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 1,
+      "runId": 44532254699,
+      "attempt": 1,
+      "databaseId": 135588359555,
+      "name": "client-build",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T13:19:09Z",
+      "completedAt": "2026-11-19T13:21:39Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359555",
+      "timingCategory": "started-completed",
+      "durationSeconds": 150.0,
+      "hypotheticalCeilMinutes": 3
+    },
+    {
+      "selectionRank": 1,
+      "runId": 44532254699,
+      "attempt": 1,
+      "databaseId": 135588359775,
+      "name": "coding",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T13:19:09Z",
+      "completedAt": "2026-11-19T13:41:47Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359775",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1358.0,
+      "hypotheticalCeilMinutes": 23
+    },
+    {
+      "selectionRank": 1,
+      "runId": 44532254699,
+      "attempt": 1,
+      "databaseId": 135588359986,
+      "name": "container",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T13:19:09Z",
+      "completedAt": "2026-11-19T13:25:20Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359986",
+      "timingCategory": "started-completed",
+      "durationSeconds": 371.0,
+      "hypotheticalCeilMinutes": 7
+    },
+    {
+      "selectionRank": 1,
+      "runId": 44532254699,
+      "attempt": 1,
+      "databaseId": 135589819003,
+      "name": "static",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T13:21:41Z",
+      "completedAt": "2026-11-19T13:23:51Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135589819003",
+      "timingCategory": "started-completed",
+      "durationSeconds": 130.0,
+      "hypotheticalCeilMinutes": 3
+    },
+    {
+      "selectionRank": 1,
+      "runId": 44532254699,
+      "attempt": 1,
+      "databaseId": 135589819197,
+      "name": "browser",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T13:21:41Z",
+      "completedAt": "2026-11-19T13:37:39Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135589819197",
+      "timingCategory": "started-completed",
+      "durationSeconds": 958.0,
+      "hypotheticalCeilMinutes": 16
+    },
+    {
+      "selectionRank": 1,
+      "runId": 44532254699,
+      "attempt": 1,
+      "databaseId": 135601509127,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T13:41:51Z",
+      "completedAt": "2026-11-19T13:41:56Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135601509127",
+      "timingCategory": "started-completed",
+      "durationSeconds": 5.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 2,
+      "runId": 44523908461,
+      "attempt": 1,
+      "databaseId": 135559329615,
+      "name": "client-build",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T12:26:34Z",
+      "completedAt": "2026-11-19T12:29:07Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559329615",
+      "timingCategory": "started-completed",
+      "durationSeconds": 153.0,
+      "hypotheticalCeilMinutes": 3
+    },
+    {
+      "selectionRank": 2,
+      "runId": 44523908461,
+      "attempt": 1,
+      "databaseId": 135559329964,
+      "name": "coding",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T12:26:34Z",
+      "completedAt": "2026-11-19T12:51:51Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559329964",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1517.0,
+      "hypotheticalCeilMinutes": 26
+    },
+    {
+      "selectionRank": 2,
+      "runId": 44523908461,
+      "attempt": 1,
+      "databaseId": 135559330066,
+      "name": "container",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T12:26:35Z",
+      "completedAt": "2026-11-19T12:31:55Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559330066",
+      "timingCategory": "started-completed",
+      "durationSeconds": 320.0,
+      "hypotheticalCeilMinutes": 6
+    },
+    {
+      "selectionRank": 2,
+      "runId": 44523908461,
+      "attempt": 1,
+      "databaseId": 135559330088,
+      "name": "tests",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T12:26:35Z",
+      "completedAt": "2026-11-19T12:34:24Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559330088",
+      "timingCategory": "started-completed",
+      "durationSeconds": 469.0,
+      "hypotheticalCeilMinutes": 8
+    },
+    {
+      "selectionRank": 2,
+      "runId": 44523908461,
+      "attempt": 1,
+      "databaseId": 135559330112,
+      "name": "sql",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T12:26:35Z",
+      "completedAt": "2026-11-19T12:27:24Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559330112",
+      "timingCategory": "started-completed",
+      "durationSeconds": 49.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 2,
+      "runId": 44523908461,
+      "attempt": 1,
+      "databaseId": 135559330131,
+      "name": "quickjs",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T12:26:34Z",
+      "completedAt": "2026-11-19T12:27:32Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559330131",
+      "timingCategory": "started-completed",
+      "durationSeconds": 58.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 2,
+      "runId": 44523908461,
+      "attempt": 1,
+      "databaseId": 135560679269,
+      "name": "browser",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T12:29:09Z",
+      "completedAt": "2026-11-19T12:42:26Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135560679269",
+      "timingCategory": "started-completed",
+      "durationSeconds": 797.0,
+      "hypotheticalCeilMinutes": 14
+    },
+    {
+      "selectionRank": 2,
+      "runId": 44523908461,
+      "attempt": 1,
+      "databaseId": 135560679391,
+      "name": "static",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T12:29:08Z",
+      "completedAt": "2026-11-19T12:31:04Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135560679391",
+      "timingCategory": "started-completed",
+      "durationSeconds": 116.0,
+      "hypotheticalCeilMinutes": 2
+    },
+    {
+      "selectionRank": 2,
+      "runId": 44523908461,
+      "attempt": 1,
+      "databaseId": 135573031830,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T12:51:53Z",
+      "completedAt": "2026-11-19T12:51:56Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135573031830",
+      "timingCategory": "started-completed",
+      "durationSeconds": 3.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 3,
+      "runId": 44506480155,
+      "attempt": 1,
+      "databaseId": 135499312074,
+      "name": "coding",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T10:31:40Z",
+      "completedAt": "2026-11-19T10:50:03Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312074",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1103.0,
+      "hypotheticalCeilMinutes": 19
+    },
+    {
+      "selectionRank": 3,
+      "runId": 44506480155,
+      "attempt": 1,
+      "databaseId": 135499312263,
+      "name": "sql",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T10:31:40Z",
+      "completedAt": "2026-11-19T10:32:30Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312263",
+      "timingCategory": "started-completed",
+      "durationSeconds": 50.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 3,
+      "runId": 44506480155,
+      "attempt": 1,
+      "databaseId": 135499312432,
+      "name": "tests",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T10:31:40Z",
+      "completedAt": "2026-11-19T10:39:28Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312432",
+      "timingCategory": "started-completed",
+      "durationSeconds": 468.0,
+      "hypotheticalCeilMinutes": 8
+    },
+    {
+      "selectionRank": 3,
+      "runId": 44506480155,
+      "attempt": 1,
+      "databaseId": 135499312659,
+      "name": "static",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T10:31:40Z",
+      "completedAt": "2026-11-19T10:35:19Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312659",
+      "timingCategory": "started-completed",
+      "durationSeconds": 219.0,
+      "hypotheticalCeilMinutes": 4
+    },
+    {
+      "selectionRank": 3,
+      "runId": 44506480155,
+      "attempt": 1,
+      "databaseId": 135499312730,
+      "name": "quickjs",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T10:31:40Z",
+      "completedAt": "2026-11-19T10:32:09Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312730",
+      "timingCategory": "started-completed",
+      "durationSeconds": 29.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 3,
+      "runId": 44506480155,
+      "attempt": 1,
+      "databaseId": 135499312873,
+      "name": "browser",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T10:31:40Z",
+      "completedAt": "2026-11-19T10:53:15Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312873",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1295.0,
+      "hypotheticalCeilMinutes": 22
+    },
+    {
+      "selectionRank": 3,
+      "runId": 44506480155,
+      "attempt": 1,
+      "databaseId": 135510670617,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T10:53:17Z",
+      "completedAt": "2026-11-19T10:53:19Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135510670617",
+      "timingCategory": "started-completed",
+      "durationSeconds": 2.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 4,
+      "runId": 44489104765,
+      "attempt": 1,
+      "databaseId": 135439897753,
+      "name": "quickjs",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T08:37:00Z",
+      "completedAt": "2026-11-19T08:38:16Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439897753",
+      "timingCategory": "started-completed",
+      "durationSeconds": 76.0,
+      "hypotheticalCeilMinutes": 2
+    },
+    {
+      "selectionRank": 4,
+      "runId": 44489104765,
+      "attempt": 1,
+      "databaseId": 135439898076,
+      "name": "tests",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T08:37:00Z",
+      "completedAt": "2026-11-19T08:44:46Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898076",
+      "timingCategory": "started-completed",
+      "durationSeconds": 466.0,
+      "hypotheticalCeilMinutes": 8
+    },
+    {
+      "selectionRank": 4,
+      "runId": 44489104765,
+      "attempt": 1,
+      "databaseId": 135439898136,
+      "name": "coding",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T08:37:00Z",
+      "completedAt": "2026-11-19T09:01:19Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898136",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1459.0,
+      "hypotheticalCeilMinutes": 25
+    },
+    {
+      "selectionRank": 4,
+      "runId": 44489104765,
+      "attempt": 1,
+      "databaseId": 135439898174,
+      "name": "client-build",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T08:37:00Z",
+      "completedAt": "2026-11-19T08:39:01Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898174",
+      "timingCategory": "started-completed",
+      "durationSeconds": 121.0,
+      "hypotheticalCeilMinutes": 3
+    },
+    {
+      "selectionRank": 4,
+      "runId": 44489104765,
+      "attempt": 1,
+      "databaseId": 135439898266,
+      "name": "container",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T08:37:01Z",
+      "completedAt": "2026-11-19T08:42:38Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898266",
+      "timingCategory": "started-completed",
+      "durationSeconds": 337.0,
+      "hypotheticalCeilMinutes": 6
+    },
+    {
+      "selectionRank": 4,
+      "runId": 44489104765,
+      "attempt": 1,
+      "databaseId": 135439898725,
+      "name": "sql",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T08:37:00Z",
+      "completedAt": "2026-11-19T08:37:41Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898725",
+      "timingCategory": "started-completed",
+      "durationSeconds": 41.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 4,
+      "runId": 44489104765,
+      "attempt": 1,
+      "databaseId": 135440874149,
+      "name": "static",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T08:39:03Z",
+      "completedAt": "2026-11-19T08:41:12Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135440874149",
+      "timingCategory": "started-completed",
+      "durationSeconds": 129.0,
+      "hypotheticalCeilMinutes": 3
+    },
+    {
+      "selectionRank": 4,
+      "runId": 44489104765,
+      "attempt": 1,
+      "databaseId": 135440874331,
+      "name": "browser",
+      "status": "completed",
+      "conclusion": "failure",
+      "startedAt": "2026-11-19T08:39:03Z",
+      "completedAt": "2026-11-19T08:46:45Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135440874331",
+      "timingCategory": "started-completed",
+      "durationSeconds": 462.0,
+      "hypotheticalCeilMinutes": 8
+    },
+    {
+      "selectionRank": 4,
+      "runId": 44489104765,
+      "attempt": 1,
+      "databaseId": 135451703805,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "failure",
+      "startedAt": "2026-11-19T09:01:21Z",
+      "completedAt": "2026-11-19T09:01:24Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135451703805",
+      "timingCategory": "started-completed",
+      "durationSeconds": 3.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 5,
+      "runId": 44469626993,
+      "attempt": 1,
+      "databaseId": 135375644620,
+      "name": "static",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T06:05:27Z",
+      "completedAt": "2026-11-19T06:08:35Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375644620",
+      "timingCategory": "started-completed",
+      "durationSeconds": 188.0,
+      "hypotheticalCeilMinutes": 4
+    },
+    {
+      "selectionRank": 5,
+      "runId": 44469626993,
+      "attempt": 1,
+      "databaseId": 135375644938,
+      "name": "browser",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T06:05:27Z",
+      "completedAt": "2026-11-19T06:30:01Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375644938",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1474.0,
+      "hypotheticalCeilMinutes": 25
+    },
+    {
+      "selectionRank": 5,
+      "runId": 44469626993,
+      "attempt": 1,
+      "databaseId": 135375644940,
+      "name": "tests",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T06:05:27Z",
+      "completedAt": "2026-11-19T06:13:16Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375644940",
+      "timingCategory": "started-completed",
+      "durationSeconds": 469.0,
+      "hypotheticalCeilMinutes": 8
+    },
+    {
+      "selectionRank": 5,
+      "runId": 44469626993,
+      "attempt": 1,
+      "databaseId": 135375644972,
+      "name": "quickjs",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T06:05:26Z",
+      "completedAt": "2026-11-19T06:06:19Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375644972",
+      "timingCategory": "started-completed",
+      "durationSeconds": 53.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 5,
+      "runId": 44469626993,
+      "attempt": 1,
+      "databaseId": 135375645013,
+      "name": "coding",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T06:05:26Z",
+      "completedAt": "2026-11-19T06:30:26Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375645013",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1500.0,
+      "hypotheticalCeilMinutes": 25
+    },
+    {
+      "selectionRank": 5,
+      "runId": 44469626993,
+      "attempt": 1,
+      "databaseId": 135375645016,
+      "name": "sql",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T06:05:26Z",
+      "completedAt": "2026-11-19T06:06:09Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375645016",
+      "timingCategory": "started-completed",
+      "durationSeconds": 43.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 5,
+      "runId": 44469626993,
+      "attempt": 1,
+      "databaseId": 135385618206,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T06:30:27Z",
+      "completedAt": "2026-11-19T06:30:30Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135385618206",
+      "timingCategory": "started-completed",
+      "durationSeconds": 3.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 6,
+      "runId": 44466553771,
+      "attempt": 1,
+      "databaseId": 135365618952,
+      "name": "tests",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T05:38:31Z",
+      "completedAt": "2026-11-19T05:46:01Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365618952",
+      "timingCategory": "started-completed",
+      "durationSeconds": 450.0,
+      "hypotheticalCeilMinutes": 8
+    },
+    {
+      "selectionRank": 6,
+      "runId": 44466553771,
+      "attempt": 1,
+      "databaseId": 135365619221,
+      "name": "static",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T05:38:31Z",
+      "completedAt": "2026-11-19T05:42:03Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619221",
+      "timingCategory": "started-completed",
+      "durationSeconds": 212.0,
+      "hypotheticalCeilMinutes": 4
+    },
+    {
+      "selectionRank": 6,
+      "runId": 44466553771,
+      "attempt": 1,
+      "databaseId": 135365619244,
+      "name": "browser",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T05:38:31Z",
+      "completedAt": "2026-11-19T05:58:56Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619244",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1225.0,
+      "hypotheticalCeilMinutes": 21
+    },
+    {
+      "selectionRank": 6,
+      "runId": 44466553771,
+      "attempt": 1,
+      "databaseId": 135365619272,
+      "name": "sql",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T05:38:30Z",
+      "completedAt": "2026-11-19T05:39:13Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619272",
+      "timingCategory": "started-completed",
+      "durationSeconds": 43.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 6,
+      "runId": 44466553771,
+      "attempt": 1,
+      "databaseId": 135365619330,
+      "name": "quickjs",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T05:38:30Z",
+      "completedAt": "2026-11-19T05:39:30Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619330",
+      "timingCategory": "started-completed",
+      "durationSeconds": 60.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 6,
+      "runId": 44466553771,
+      "attempt": 1,
+      "databaseId": 135365619381,
+      "name": "coding",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T05:38:31Z",
+      "completedAt": "2026-11-19T06:03:38Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619381",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1507.0,
+      "hypotheticalCeilMinutes": 26
+    },
+    {
+      "selectionRank": 6,
+      "runId": 44466553771,
+      "attempt": 1,
+      "databaseId": 135374953408,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T06:03:40Z",
+      "completedAt": "2026-11-19T06:03:43Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135374953408",
+      "timingCategory": "started-completed",
+      "durationSeconds": 3.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 7,
+      "runId": 44452144016,
+      "attempt": 1,
+      "databaseId": 135318425788,
+      "name": "tests",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:32:29Z",
+      "completedAt": "2026-11-19T03:40:22Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318425788",
+      "timingCategory": "started-completed",
+      "durationSeconds": 473.0,
+      "hypotheticalCeilMinutes": 8
+    },
+    {
+      "selectionRank": 7,
+      "runId": 44452144016,
+      "attempt": 1,
+      "databaseId": 135318426156,
+      "name": "quickjs",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:32:28Z",
+      "completedAt": "2026-11-19T03:33:24Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426156",
+      "timingCategory": "started-completed",
+      "durationSeconds": 56.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 7,
+      "runId": 44452144016,
+      "attempt": 1,
+      "databaseId": 135318426199,
+      "name": "coding",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:32:29Z",
+      "completedAt": "2026-11-19T03:54:07Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426199",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1298.0,
+      "hypotheticalCeilMinutes": 22
+    },
+    {
+      "selectionRank": 7,
+      "runId": 44452144016,
+      "attempt": 1,
+      "databaseId": 135318426237,
+      "name": "static",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:32:29Z",
+      "completedAt": "2026-11-19T03:35:11Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426237",
+      "timingCategory": "started-completed",
+      "durationSeconds": 162.0,
+      "hypotheticalCeilMinutes": 3
+    },
+    {
+      "selectionRank": 7,
+      "runId": 44452144016,
+      "attempt": 1,
+      "databaseId": 135318426249,
+      "name": "sql",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:32:29Z",
+      "completedAt": "2026-11-19T03:33:19Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426249",
+      "timingCategory": "started-completed",
+      "durationSeconds": 50.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 7,
+      "runId": 44452144016,
+      "attempt": 1,
+      "databaseId": 135318426317,
+      "name": "browser",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:32:29Z",
+      "completedAt": "2026-11-19T03:56:41Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426317",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1452.0,
+      "hypotheticalCeilMinutes": 25
+    },
+    {
+      "selectionRank": 7,
+      "runId": 44452144016,
+      "attempt": 1,
+      "databaseId": 135327408712,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:56:44Z",
+      "completedAt": "2026-11-19T03:56:47Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135327408712",
+      "timingCategory": "started-completed",
+      "durationSeconds": 3.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 8,
+      "runId": 44449005865,
+      "attempt": 1,
+      "databaseId": 135308045003,
+      "name": "quickjs",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:05:56Z",
+      "completedAt": "2026-11-19T03:06:49Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045003",
+      "timingCategory": "started-completed",
+      "durationSeconds": 53.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 8,
+      "runId": 44449005865,
+      "attempt": 1,
+      "databaseId": 135308045386,
+      "name": "browser",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:05:57Z",
+      "completedAt": "2026-11-19T03:31:28Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045386",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1531.0,
+      "hypotheticalCeilMinutes": 26
+    },
+    {
+      "selectionRank": 8,
+      "runId": 44449005865,
+      "attempt": 1,
+      "databaseId": 135308045464,
+      "name": "tests",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:05:56Z",
+      "completedAt": "2026-11-19T03:13:45Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045464",
+      "timingCategory": "started-completed",
+      "durationSeconds": 469.0,
+      "hypotheticalCeilMinutes": 8
+    },
+    {
+      "selectionRank": 8,
+      "runId": 44449005865,
+      "attempt": 1,
+      "databaseId": 135308045466,
+      "name": "coding",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:05:57Z",
+      "completedAt": "2026-11-19T03:31:11Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045466",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1514.0,
+      "hypotheticalCeilMinutes": 26
+    },
+    {
+      "selectionRank": 8,
+      "runId": 44449005865,
+      "attempt": 1,
+      "databaseId": 135308045475,
+      "name": "static",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:05:56Z",
+      "completedAt": "2026-11-19T03:09:09Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045475",
+      "timingCategory": "started-completed",
+      "durationSeconds": 193.0,
+      "hypotheticalCeilMinutes": 4
+    },
+    {
+      "selectionRank": 8,
+      "runId": 44449005865,
+      "attempt": 1,
+      "databaseId": 135308045581,
+      "name": "sql",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:05:56Z",
+      "completedAt": "2026-11-19T03:06:36Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045581",
+      "timingCategory": "started-completed",
+      "durationSeconds": 40.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 8,
+      "runId": 44449005865,
+      "attempt": 1,
+      "databaseId": 135318047057,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T03:31:31Z",
+      "completedAt": "2026-11-19T03:31:36Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135318047057",
+      "timingCategory": "started-completed",
+      "durationSeconds": 5.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 9,
+      "runId": 44438847769,
+      "attempt": 1,
+      "databaseId": 135274385936,
+      "name": "coding",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T01:41:58Z",
+      "completedAt": "2026-11-19T02:01:54Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274385936",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1196.0,
+      "hypotheticalCeilMinutes": 20
+    },
+    {
+      "selectionRank": 9,
+      "runId": 44438847769,
+      "attempt": 1,
+      "databaseId": 135274386313,
+      "name": "tests",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T01:41:57Z",
+      "completedAt": "2026-11-19T01:49:16Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386313",
+      "timingCategory": "started-completed",
+      "durationSeconds": 439.0,
+      "hypotheticalCeilMinutes": 8
+    },
+    {
+      "selectionRank": 9,
+      "runId": 44438847769,
+      "attempt": 1,
+      "databaseId": 135274386418,
+      "name": "sql",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T01:41:57Z",
+      "completedAt": "2026-11-19T01:42:43Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386418",
+      "timingCategory": "started-completed",
+      "durationSeconds": 46.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 9,
+      "runId": 44438847769,
+      "attempt": 1,
+      "databaseId": 135274386499,
+      "name": "quickjs",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T01:41:56Z",
+      "completedAt": "2026-11-19T01:42:49Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386499",
+      "timingCategory": "started-completed",
+      "durationSeconds": 53.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 9,
+      "runId": 44438847769,
+      "attempt": 1,
+      "databaseId": 135274386504,
+      "name": "static",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T01:41:56Z",
+      "completedAt": "2026-11-19T01:45:53Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386504",
+      "timingCategory": "started-completed",
+      "durationSeconds": 237.0,
+      "hypotheticalCeilMinutes": 4
+    },
+    {
+      "selectionRank": 9,
+      "runId": 44438847769,
+      "attempt": 1,
+      "databaseId": 135274386604,
+      "name": "browser",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T01:41:57Z",
+      "completedAt": "2026-11-19T01:55:43Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386604",
+      "timingCategory": "started-completed",
+      "durationSeconds": 826.0,
+      "hypotheticalCeilMinutes": 14
+    },
+    {
+      "selectionRank": 9,
+      "runId": 44438847769,
+      "attempt": 1,
+      "databaseId": 135282472955,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T02:01:56Z",
+      "completedAt": "2026-11-19T02:01:58Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135282472955",
+      "timingCategory": "started-completed",
+      "durationSeconds": 2.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 10,
+      "runId": 44435812072,
+      "attempt": 1,
+      "databaseId": 135264260019,
+      "name": "quickjs",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T01:17:49Z",
+      "completedAt": "2026-11-19T01:18:54Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260019",
+      "timingCategory": "started-completed",
+      "durationSeconds": 65.0,
+      "hypotheticalCeilMinutes": 2
+    },
+    {
+      "selectionRank": 10,
+      "runId": 44435812072,
+      "attempt": 1,
+      "databaseId": 135264260351,
+      "name": "tests",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T01:17:48Z",
+      "completedAt": "2026-11-19T01:26:46Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260351",
+      "timingCategory": "started-completed",
+      "durationSeconds": 538.0,
+      "hypotheticalCeilMinutes": 9
+    },
+    {
+      "selectionRank": 10,
+      "runId": 44435812072,
+      "attempt": 1,
+      "databaseId": 135264260419,
+      "name": "browser",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T01:17:48Z",
+      "completedAt": "2026-11-19T01:35:31Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260419",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1063.0,
+      "hypotheticalCeilMinutes": 18
+    },
+    {
+      "selectionRank": 10,
+      "runId": 44435812072,
+      "attempt": 1,
+      "databaseId": 135264260631,
+      "name": "static",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T01:17:48Z",
+      "completedAt": "2026-11-19T01:21:41Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260631",
+      "timingCategory": "started-completed",
+      "durationSeconds": 233.0,
+      "hypotheticalCeilMinutes": 4
+    },
+    {
+      "selectionRank": 10,
+      "runId": 44435812072,
+      "attempt": 1,
+      "databaseId": 135264260713,
+      "name": "coding",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T01:17:48Z",
+      "completedAt": "2026-11-19T01:39:24Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260713",
+      "timingCategory": "started-completed",
+      "durationSeconds": 1296.0,
+      "hypotheticalCeilMinutes": 22
+    },
+    {
+      "selectionRank": 10,
+      "runId": 44435812072,
+      "attempt": 1,
+      "databaseId": 135264260962,
+      "name": "sql",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T01:17:49Z",
+      "completedAt": "2026-11-19T01:18:35Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260962",
+      "timingCategory": "started-completed",
+      "durationSeconds": 46.0,
+      "hypotheticalCeilMinutes": 1
+    },
+    {
+      "selectionRank": 10,
+      "runId": 44435812072,
+      "attempt": 1,
+      "databaseId": 135273351199,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-11-19T01:39:26Z",
+      "completedAt": "2026-11-19T01:39:30Z",
+      "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135273351199",
+      "timingCategory": "started-completed",
+      "durationSeconds": 4.0,
+      "hypotheticalCeilMinutes": 1
+    }
+  ],
+  "summary": {
+    "selectionStartedAtUtc": "2026-11-19T14:19:58.597867+00:00",
+    "selectionFinishedAtUtc": "2026-11-19T14:19:59.660691+00:00",
+    "runCount": 10,
+    "eventCounts": {
+      "push": 5,
+      "pull_request": 5
+    },
+    "statusCounts": {
+      "completed": 10
+    },
+    "conclusionCounts": {
+      "success": 9,
+      "failure": 1
+    },
+    "jobCount": 76,
+    "jobStatusCounts": {
+      "completed": 76
+    },
+    "jobConclusionCounts": {
+      "success": 74,
+      "failure": 2
+    },
+    "timingCategoryCounts": {
+      "started-completed": 76
+    },
+    "sumWorkflowMetadataWallSeconds": 14200.0,
+    "meanWorkflowMetadataWallSeconds": 1420.0,
+    "medianWorkflowMetadataWallSeconds": 1464.5,
+    "summedStartedCompletedJobSeconds": 33831.0,
+    "hypotheticalPerJobCeilMinutes": 599,
+    "allCliJobsComplete": true,
+    "hypotheticalFormula": "sum(ceil((job.completedAt-job.startedAt)/60)) over non-skipped jobs with both valid timestamps; no runner multiplier or price model",
+    "billingClaim": false,
+    "jobNameAggregates": [
+      {
+        "jobName": "browser",
+        "observedJobs": 10,
+        "startedCompletedJobs": 10,
+        "summedSeconds": 11083.0,
+        "meanSeconds": 1108.3,
+        "medianSeconds": 1144.0,
+        "hypotheticalCeilMinutes": 189
+      },
+      {
+        "jobName": "client-build",
+        "observedJobs": 3,
+        "startedCompletedJobs": 3,
+        "summedSeconds": 424.0,
+        "meanSeconds": 141.33333333333334,
+        "medianSeconds": 150.0,
+        "hypotheticalCeilMinutes": 9
+      },
+      {
+        "jobName": "coding",
+        "observedJobs": 10,
+        "startedCompletedJobs": 10,
+        "summedSeconds": 13748.0,
+        "meanSeconds": 1374.8,
+        "medianSeconds": 1408.5,
+        "hypotheticalCeilMinutes": 234
+      },
+      {
+        "jobName": "container",
+        "observedJobs": 3,
+        "startedCompletedJobs": 3,
+        "summedSeconds": 1028.0,
+        "meanSeconds": 342.6666666666667,
+        "medianSeconds": 337.0,
+        "hypotheticalCeilMinutes": 19
+      },
+      {
+        "jobName": "quickjs",
+        "observedJobs": 10,
+        "startedCompletedJobs": 10,
+        "summedSeconds": 555.0,
+        "meanSeconds": 55.5,
+        "medianSeconds": 54.5,
+        "hypotheticalCeilMinutes": 12
+      },
+      {
+        "jobName": "sql",
+        "observedJobs": 10,
+        "startedCompletedJobs": 10,
+        "summedSeconds": 451.0,
+        "meanSeconds": 45.1,
+        "medianSeconds": 44.5,
+        "hypotheticalCeilMinutes": 10
+      },
+      {
+        "jobName": "static",
+        "observedJobs": 10,
+        "startedCompletedJobs": 10,
+        "summedSeconds": 1819.0,
+        "meanSeconds": 181.9,
+        "medianSeconds": 190.5,
+        "hypotheticalCeilMinutes": 35
+      },
+      {
+        "jobName": "tests",
+        "observedJobs": 10,
+        "startedCompletedJobs": 10,
+        "summedSeconds": 4690.0,
+        "meanSeconds": 469.0,
+        "medianSeconds": 468.5,
+        "hypotheticalCeilMinutes": 81
+      },
+      {
+        "jobName": "verify",
+        "observedJobs": 10,
+        "startedCompletedJobs": 10,
+        "summedSeconds": 33.0,
+        "meanSeconds": 3.3,
+        "medianSeconds": 3.0,
+        "hypotheticalCeilMinutes": 10
+      }
+    ],
+    "arithmeticReconciles": {
+      "runJobSecondsEqualJobRows": true,
+      "runCeilMinutesEqualJobRows": true,
+      "jobAggregatesEqualJobRows": true
+    }
+  },
+  "cliRestCompletenessChecks": [
+    {
+      "runId": 44532254699,
+      "cliExitCode": 0,
+      "restExitCode": 0,
+      "cliCount": 9,
+      "restCount": 9,
+      "restPageCounts": [
+        9
+      ],
+      "restTotalCounts": [
+        9
+      ],
+      "jobIdsEqual": true,
+      "noDuplicateRestIds": true,
+      "cliRunMatchesSelection": true,
+      "jobFieldsEqual": true,
+      "restComplete": true,
+      "selectedSource": "cli"
+    },
+    {
+      "runId": 44523908461,
+      "cliExitCode": 0,
+      "restExitCode": 0,
+      "cliCount": 9,
+      "restCount": 9,
+      "restPageCounts": [
+        9
+      ],
+      "restTotalCounts": [
+        9
+      ],
+      "jobIdsEqual": true,
+      "noDuplicateRestIds": true,
+      "cliRunMatchesSelection": true,
+      "jobFieldsEqual": true,
+      "restComplete": true,
+      "selectedSource": "cli"
+    },
+    {
+      "runId": 44506480155,
+      "cliExitCode": 0,
+      "restExitCode": 0,
+      "cliCount": 7,
+      "restCount": 7,
+      "restPageCounts": [
+        7
+      ],
+      "restTotalCounts": [
+        7
+      ],
+      "jobIdsEqual": true,
+      "noDuplicateRestIds": true,
+      "cliRunMatchesSelection": true,
+      "jobFieldsEqual": true,
+      "restComplete": true,
+      "selectedSource": "cli"
+    },
+    {
+      "runId": 44489104765,
+      "cliExitCode": 0,
+      "restExitCode": 0,
+      "cliCount": 9,
+      "restCount": 9,
+      "restPageCounts": [
+        9
+      ],
+      "restTotalCounts": [
+        9
+      ],
+      "jobIdsEqual": true,
+      "noDuplicateRestIds": true,
+      "cliRunMatchesSelection": true,
+      "jobFieldsEqual": true,
+      "restComplete": true,
+      "selectedSource": "cli"
+    },
+    {
+      "runId": 44469626993,
+      "cliExitCode": 0,
+      "restExitCode": 0,
+      "cliCount": 7,
+      "restCount": 7,
+      "restPageCounts": [
+        7
+      ],
+      "restTotalCounts": [
+        7
+      ],
+      "jobIdsEqual": true,
+      "noDuplicateRestIds": true,
+      "cliRunMatchesSelection": true,
+      "jobFieldsEqual": true,
+      "restComplete": true,
+      "selectedSource": "cli"
+    },
+    {
+      "runId": 44466553771,
+      "cliExitCode": 0,
+      "restExitCode": 0,
+      "cliCount": 7,
+      "restCount": 7,
+      "restPageCounts": [
+        7
+      ],
+      "restTotalCounts": [
+        7
+      ],
+      "jobIdsEqual": true,
+      "noDuplicateRestIds": true,
+      "cliRunMatchesSelection": true,
+      "jobFieldsEqual": true,
+      "restComplete": true,
+      "selectedSource": "cli"
+    },
+    {
+      "runId": 44452144016,
+      "cliExitCode": 0,
+      "restExitCode": 0,
+      "cliCount": 7,
+      "restCount": 7,
+      "restPageCounts": [
+        7
+      ],
+      "restTotalCounts": [
+        7
+      ],
+      "jobIdsEqual": true,
+      "noDuplicateRestIds": true,
+      "cliRunMatchesSelection": true,
+      "jobFieldsEqual": true,
+      "restComplete": true,
+      "selectedSource": "cli"
+    },
+    {
+      "runId": 44449005865,
+      "cliExitCode": 0,
+      "restExitCode": 0,
+      "cliCount": 7,
+      "restCount": 7,
+      "restPageCounts": [
+        7
+      ],
+      "restTotalCounts": [
+        7
+      ],
+      "jobIdsEqual": true,
+      "noDuplicateRestIds": true,
+      "cliRunMatchesSelection": true,
+      "jobFieldsEqual": true,
+      "restComplete": true,
+      "selectedSource": "cli"
+    },
+    {
+      "runId": 44438847769,
+      "cliExitCode": 0,
+      "restExitCode": 0,
+      "cliCount": 7,
+      "restCount": 7,
+      "restPageCounts": [
+        7
+      ],
+      "restTotalCounts": [
+        7
+      ],
+      "jobIdsEqual": true,
+      "noDuplicateRestIds": true,
+      "cliRunMatchesSelection": true,
+      "jobFieldsEqual": true,
+      "restComplete": true,
+      "selectedSource": "cli"
+    },
+    {
+      "runId": 44435812072,
+      "cliExitCode": 0,
+      "restExitCode": 0,
+      "cliCount": 7,
+      "restCount": 7,
+      "restPageCounts": [
+        7
+      ],
+      "restTotalCounts": [
+        7
+      ],
+      "jobIdsEqual": true,
+      "noDuplicateRestIds": true,
+      "cliRunMatchesSelection": true,
+      "jobFieldsEqual": true,
+      "restComplete": true,
+      "selectedSource": "cli"
+    }
+  ],
+  "originalSafeMetadata": [
+    {
+      "runId": 44532254699,
+      "cli": {
+        "command": [
+          "gh",
+          "run",
+          "view",
+          "44532254699",
+          "--attempt",
+          "1",
+          "--repo",
+          "lukaskourilcz/devshark",
+          "--json",
+          "attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,number,startedAt,status,updatedAt,url,workflowName"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:29.867901+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:31.641522+00:00",
+        "exitCode": 0,
+        "run": {
+          "attempt": 1,
+          "conclusion": "success",
+          "createdAt": "2026-11-19T13:19:06Z",
+          "databaseId": 44532254699,
+          "event": "push",
+          "headBranch": "main",
+          "headSha": "15f350a8fbdecec8b412472953fec551ec7a0c94",
+          "number": 676,
+          "startedAt": "2026-11-19T13:19:06Z",
+          "status": "completed",
+          "updatedAt": "2026-11-19T13:41:57Z",
+          "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/attempts/1",
+          "workflowName": "Product quality"
+        },
+        "jobs": [
+          {
+            "databaseId": 135588359050,
+            "name": "sql",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T13:19:09Z",
+            "completedAt": "2026-11-19T13:19:52Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359050"
+          },
+          {
+            "databaseId": 135588359478,
+            "name": "tests",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T13:19:10Z",
+            "completedAt": "2026-11-19T13:26:39Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359478"
+          },
+          {
+            "databaseId": 135588359539,
+            "name": "quickjs",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T13:19:09Z",
+            "completedAt": "2026-11-19T13:20:01Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359539"
+          },
+          {
+            "databaseId": 135588359555,
+            "name": "client-build",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T13:19:09Z",
+            "completedAt": "2026-11-19T13:21:39Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359555"
+          },
+          {
+            "databaseId": 135588359775,
+            "name": "coding",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T13:19:09Z",
+            "completedAt": "2026-11-19T13:41:47Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359775"
+          },
+          {
+            "databaseId": 135588359986,
+            "name": "container",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T13:19:09Z",
+            "completedAt": "2026-11-19T13:25:20Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359986"
+          },
+          {
+            "databaseId": 135589819003,
+            "name": "static",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T13:21:41Z",
+            "completedAt": "2026-11-19T13:23:51Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135589819003"
+          },
+          {
+            "databaseId": 135589819197,
+            "name": "browser",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T13:21:41Z",
+            "completedAt": "2026-11-19T13:37:39Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135589819197"
+          },
+          {
+            "databaseId": 135601509127,
+            "name": "verify",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T13:41:51Z",
+            "completedAt": "2026-11-19T13:41:56Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135601509127"
+          }
+        ]
+      },
+      "rest": {
+        "command": [
+          "gh",
+          "api",
+          "--method",
+          "GET",
+          "--paginate",
+          "--slurp",
+          "repos/lukaskourilcz/devshark/actions/runs/44532254699/attempts/1/jobs?per_page=100"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:31.642280+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:32.458602+00:00",
+        "exitCode": 0,
+        "pages": [
+          {
+            "totalCount": 9,
+            "jobs": [
+              {
+                "databaseId": 135588359050,
+                "name": "sql",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T13:19:09Z",
+                "completedAt": "2026-11-19T13:19:52Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359050"
+              },
+              {
+                "databaseId": 135588359478,
+                "name": "tests",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T13:19:10Z",
+                "completedAt": "2026-11-19T13:26:39Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359478"
+              },
+              {
+                "databaseId": 135588359539,
+                "name": "quickjs",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T13:19:09Z",
+                "completedAt": "2026-11-19T13:20:01Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359539"
+              },
+              {
+                "databaseId": 135588359555,
+                "name": "client-build",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T13:19:09Z",
+                "completedAt": "2026-11-19T13:21:39Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359555"
+              },
+              {
+                "databaseId": 135588359775,
+                "name": "coding",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T13:19:09Z",
+                "completedAt": "2026-11-19T13:41:47Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359775"
+              },
+              {
+                "databaseId": 135588359986,
+                "name": "container",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T13:19:09Z",
+                "completedAt": "2026-11-19T13:25:20Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135588359986"
+              },
+              {
+                "databaseId": 135589819003,
+                "name": "static",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T13:21:41Z",
+                "completedAt": "2026-11-19T13:23:51Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135589819003"
+              },
+              {
+                "databaseId": 135589819197,
+                "name": "browser",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T13:21:41Z",
+                "completedAt": "2026-11-19T13:37:39Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135589819197"
+              },
+              {
+                "databaseId": 135601509127,
+                "name": "verify",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T13:41:51Z",
+                "completedAt": "2026-11-19T13:41:56Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44532254699/job/135601509127"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "runId": 44523908461,
+      "cli": {
+        "command": [
+          "gh",
+          "run",
+          "view",
+          "44523908461",
+          "--attempt",
+          "1",
+          "--repo",
+          "lukaskourilcz/devshark",
+          "--json",
+          "attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,number,startedAt,status,updatedAt,url,workflowName"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:29.868826+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:32.234252+00:00",
+        "exitCode": 0,
+        "run": {
+          "attempt": 1,
+          "conclusion": "success",
+          "createdAt": "2026-11-19T12:26:32Z",
+          "databaseId": 44523908461,
+          "event": "pull_request",
+          "headBranch": "codex/643-docs-ci",
+          "headSha": "1511f1fa2265d58218e2a4ac5ca2549b4c2df649",
+          "number": 675,
+          "startedAt": "2026-11-19T12:26:32Z",
+          "status": "completed",
+          "updatedAt": "2026-11-19T12:51:57Z",
+          "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/attempts/1",
+          "workflowName": "Product quality"
+        },
+        "jobs": [
+          {
+            "databaseId": 135559329615,
+            "name": "client-build",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T12:26:34Z",
+            "completedAt": "2026-11-19T12:29:07Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559329615"
+          },
+          {
+            "databaseId": 135559329964,
+            "name": "coding",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T12:26:34Z",
+            "completedAt": "2026-11-19T12:51:51Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559329964"
+          },
+          {
+            "databaseId": 135559330066,
+            "name": "container",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T12:26:35Z",
+            "completedAt": "2026-11-19T12:31:55Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559330066"
+          },
+          {
+            "databaseId": 135559330088,
+            "name": "tests",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T12:26:35Z",
+            "completedAt": "2026-11-19T12:34:24Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559330088"
+          },
+          {
+            "databaseId": 135559330112,
+            "name": "sql",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T12:26:35Z",
+            "completedAt": "2026-11-19T12:27:24Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559330112"
+          },
+          {
+            "databaseId": 135559330131,
+            "name": "quickjs",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T12:26:34Z",
+            "completedAt": "2026-11-19T12:27:32Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559330131"
+          },
+          {
+            "databaseId": 135560679269,
+            "name": "browser",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T12:29:09Z",
+            "completedAt": "2026-11-19T12:42:26Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135560679269"
+          },
+          {
+            "databaseId": 135560679391,
+            "name": "static",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T12:29:08Z",
+            "completedAt": "2026-11-19T12:31:04Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135560679391"
+          },
+          {
+            "databaseId": 135573031830,
+            "name": "verify",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T12:51:53Z",
+            "completedAt": "2026-11-19T12:51:56Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135573031830"
+          }
+        ]
+      },
+      "rest": {
+        "command": [
+          "gh",
+          "api",
+          "--method",
+          "GET",
+          "--paginate",
+          "--slurp",
+          "repos/lukaskourilcz/devshark/actions/runs/44523908461/attempts/1/jobs?per_page=100"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:32.235124+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:33.199968+00:00",
+        "exitCode": 0,
+        "pages": [
+          {
+            "totalCount": 9,
+            "jobs": [
+              {
+                "databaseId": 135559329615,
+                "name": "client-build",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T12:26:34Z",
+                "completedAt": "2026-11-19T12:29:07Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559329615"
+              },
+              {
+                "databaseId": 135559329964,
+                "name": "coding",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T12:26:34Z",
+                "completedAt": "2026-11-19T12:51:51Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559329964"
+              },
+              {
+                "databaseId": 135559330066,
+                "name": "container",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T12:26:35Z",
+                "completedAt": "2026-11-19T12:31:55Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559330066"
+              },
+              {
+                "databaseId": 135559330088,
+                "name": "tests",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T12:26:35Z",
+                "completedAt": "2026-11-19T12:34:24Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559330088"
+              },
+              {
+                "databaseId": 135559330112,
+                "name": "sql",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T12:26:35Z",
+                "completedAt": "2026-11-19T12:27:24Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559330112"
+              },
+              {
+                "databaseId": 135559330131,
+                "name": "quickjs",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T12:26:34Z",
+                "completedAt": "2026-11-19T12:27:32Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135559330131"
+              },
+              {
+                "databaseId": 135560679269,
+                "name": "browser",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T12:29:09Z",
+                "completedAt": "2026-11-19T12:42:26Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135560679269"
+              },
+              {
+                "databaseId": 135560679391,
+                "name": "static",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T12:29:08Z",
+                "completedAt": "2026-11-19T12:31:04Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135560679391"
+              },
+              {
+                "databaseId": 135573031830,
+                "name": "verify",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T12:51:53Z",
+                "completedAt": "2026-11-19T12:51:56Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44523908461/job/135573031830"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "runId": 44506480155,
+      "cli": {
+        "command": [
+          "gh",
+          "run",
+          "view",
+          "44506480155",
+          "--attempt",
+          "1",
+          "--repo",
+          "lukaskourilcz/devshark",
+          "--json",
+          "attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,number,startedAt,status,updatedAt,url,workflowName"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:29.863576+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:31.926577+00:00",
+        "exitCode": 0,
+        "run": {
+          "attempt": 1,
+          "conclusion": "success",
+          "createdAt": "2026-11-19T10:31:37Z",
+          "databaseId": 44506480155,
+          "event": "push",
+          "headBranch": "main",
+          "headSha": "bce4b9c48514a054cc4154095e01b567720ea8af",
+          "number": 674,
+          "startedAt": "2026-11-19T10:31:37Z",
+          "status": "completed",
+          "updatedAt": "2026-11-19T10:53:20Z",
+          "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/attempts/1",
+          "workflowName": "Product quality"
+        },
+        "jobs": [
+          {
+            "databaseId": 135499312074,
+            "name": "coding",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T10:31:40Z",
+            "completedAt": "2026-11-19T10:50:03Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312074"
+          },
+          {
+            "databaseId": 135499312263,
+            "name": "sql",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T10:31:40Z",
+            "completedAt": "2026-11-19T10:32:30Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312263"
+          },
+          {
+            "databaseId": 135499312432,
+            "name": "tests",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T10:31:40Z",
+            "completedAt": "2026-11-19T10:39:28Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312432"
+          },
+          {
+            "databaseId": 135499312659,
+            "name": "static",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T10:31:40Z",
+            "completedAt": "2026-11-19T10:35:19Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312659"
+          },
+          {
+            "databaseId": 135499312730,
+            "name": "quickjs",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T10:31:40Z",
+            "completedAt": "2026-11-19T10:32:09Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312730"
+          },
+          {
+            "databaseId": 135499312873,
+            "name": "browser",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T10:31:40Z",
+            "completedAt": "2026-11-19T10:53:15Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312873"
+          },
+          {
+            "databaseId": 135510670617,
+            "name": "verify",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T10:53:17Z",
+            "completedAt": "2026-11-19T10:53:19Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135510670617"
+          }
+        ]
+      },
+      "rest": {
+        "command": [
+          "gh",
+          "api",
+          "--method",
+          "GET",
+          "--paginate",
+          "--slurp",
+          "repos/lukaskourilcz/devshark/actions/runs/44506480155/attempts/1/jobs?per_page=100"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:31.927313+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:32.694878+00:00",
+        "exitCode": 0,
+        "pages": [
+          {
+            "totalCount": 7,
+            "jobs": [
+              {
+                "databaseId": 135499312074,
+                "name": "coding",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T10:31:40Z",
+                "completedAt": "2026-11-19T10:50:03Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312074"
+              },
+              {
+                "databaseId": 135499312263,
+                "name": "sql",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T10:31:40Z",
+                "completedAt": "2026-11-19T10:32:30Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312263"
+              },
+              {
+                "databaseId": 135499312432,
+                "name": "tests",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T10:31:40Z",
+                "completedAt": "2026-11-19T10:39:28Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312432"
+              },
+              {
+                "databaseId": 135499312659,
+                "name": "static",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T10:31:40Z",
+                "completedAt": "2026-11-19T10:35:19Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312659"
+              },
+              {
+                "databaseId": 135499312730,
+                "name": "quickjs",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T10:31:40Z",
+                "completedAt": "2026-11-19T10:32:09Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312730"
+              },
+              {
+                "databaseId": 135499312873,
+                "name": "browser",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T10:31:40Z",
+                "completedAt": "2026-11-19T10:53:15Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135499312873"
+              },
+              {
+                "databaseId": 135510670617,
+                "name": "verify",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T10:53:17Z",
+                "completedAt": "2026-11-19T10:53:19Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44506480155/job/135510670617"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "runId": 44489104765,
+      "cli": {
+        "command": [
+          "gh",
+          "run",
+          "view",
+          "44489104765",
+          "--attempt",
+          "1",
+          "--repo",
+          "lukaskourilcz/devshark",
+          "--json",
+          "attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,number,startedAt,status,updatedAt,url,workflowName"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:29.863833+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:32.405357+00:00",
+        "exitCode": 0,
+        "run": {
+          "attempt": 1,
+          "conclusion": "failure",
+          "createdAt": "2026-11-19T08:36:57Z",
+          "databaseId": 44489104765,
+          "event": "pull_request",
+          "headBranch": "codex/643-docs-ci",
+          "headSha": "d2bf519e44989da3efef41aa2284696e995b6684",
+          "number": 673,
+          "startedAt": "2026-11-19T08:36:57Z",
+          "status": "completed",
+          "updatedAt": "2026-11-19T09:01:25Z",
+          "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/attempts/1",
+          "workflowName": "Product quality"
+        },
+        "jobs": [
+          {
+            "databaseId": 135439897753,
+            "name": "quickjs",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T08:37:00Z",
+            "completedAt": "2026-11-19T08:38:16Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439897753"
+          },
+          {
+            "databaseId": 135439898076,
+            "name": "tests",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T08:37:00Z",
+            "completedAt": "2026-11-19T08:44:46Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898076"
+          },
+          {
+            "databaseId": 135439898136,
+            "name": "coding",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T08:37:00Z",
+            "completedAt": "2026-11-19T09:01:19Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898136"
+          },
+          {
+            "databaseId": 135439898174,
+            "name": "client-build",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T08:37:00Z",
+            "completedAt": "2026-11-19T08:39:01Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898174"
+          },
+          {
+            "databaseId": 135439898266,
+            "name": "container",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T08:37:01Z",
+            "completedAt": "2026-11-19T08:42:38Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898266"
+          },
+          {
+            "databaseId": 135439898725,
+            "name": "sql",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T08:37:00Z",
+            "completedAt": "2026-11-19T08:37:41Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898725"
+          },
+          {
+            "databaseId": 135440874149,
+            "name": "static",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T08:39:03Z",
+            "completedAt": "2026-11-19T08:41:12Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135440874149"
+          },
+          {
+            "databaseId": 135440874331,
+            "name": "browser",
+            "status": "completed",
+            "conclusion": "failure",
+            "startedAt": "2026-11-19T08:39:03Z",
+            "completedAt": "2026-11-19T08:46:45Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135440874331"
+          },
+          {
+            "databaseId": 135451703805,
+            "name": "verify",
+            "status": "completed",
+            "conclusion": "failure",
+            "startedAt": "2026-11-19T09:01:21Z",
+            "completedAt": "2026-11-19T09:01:24Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135451703805"
+          }
+        ]
+      },
+      "rest": {
+        "command": [
+          "gh",
+          "api",
+          "--method",
+          "GET",
+          "--paginate",
+          "--slurp",
+          "repos/lukaskourilcz/devshark/actions/runs/44489104765/attempts/1/jobs?per_page=100"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:32.406100+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:33.383477+00:00",
+        "exitCode": 0,
+        "pages": [
+          {
+            "totalCount": 9,
+            "jobs": [
+              {
+                "databaseId": 135439897753,
+                "name": "quickjs",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T08:37:00Z",
+                "completedAt": "2026-11-19T08:38:16Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439897753"
+              },
+              {
+                "databaseId": 135439898076,
+                "name": "tests",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T08:37:00Z",
+                "completedAt": "2026-11-19T08:44:46Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898076"
+              },
+              {
+                "databaseId": 135439898136,
+                "name": "coding",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T08:37:00Z",
+                "completedAt": "2026-11-19T09:01:19Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898136"
+              },
+              {
+                "databaseId": 135439898174,
+                "name": "client-build",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T08:37:00Z",
+                "completedAt": "2026-11-19T08:39:01Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898174"
+              },
+              {
+                "databaseId": 135439898266,
+                "name": "container",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T08:37:01Z",
+                "completedAt": "2026-11-19T08:42:38Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898266"
+              },
+              {
+                "databaseId": 135439898725,
+                "name": "sql",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T08:37:00Z",
+                "completedAt": "2026-11-19T08:37:41Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135439898725"
+              },
+              {
+                "databaseId": 135440874149,
+                "name": "static",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T08:39:03Z",
+                "completedAt": "2026-11-19T08:41:12Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135440874149"
+              },
+              {
+                "databaseId": 135440874331,
+                "name": "browser",
+                "status": "completed",
+                "conclusion": "failure",
+                "startedAt": "2026-11-19T08:39:03Z",
+                "completedAt": "2026-11-19T08:46:45Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135440874331"
+              },
+              {
+                "databaseId": 135451703805,
+                "name": "verify",
+                "status": "completed",
+                "conclusion": "failure",
+                "startedAt": "2026-11-19T09:01:21Z",
+                "completedAt": "2026-11-19T09:01:24Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44489104765/job/135451703805"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "runId": 44469626993,
+      "cli": {
+        "command": [
+          "gh",
+          "run",
+          "view",
+          "44469626993",
+          "--attempt",
+          "1",
+          "--repo",
+          "lukaskourilcz/devshark",
+          "--json",
+          "attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,number,startedAt,status,updatedAt,url,workflowName"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:29.875281+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:31.839357+00:00",
+        "exitCode": 0,
+        "run": {
+          "attempt": 1,
+          "conclusion": "success",
+          "createdAt": "2026-11-19T06:05:24Z",
+          "databaseId": 44469626993,
+          "event": "push",
+          "headBranch": "main",
+          "headSha": "7c008c9f1d2d9c050ee97e395869184098e6a95d",
+          "number": 672,
+          "startedAt": "2026-11-19T06:05:24Z",
+          "status": "completed",
+          "updatedAt": "2026-11-19T06:30:31Z",
+          "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/attempts/1",
+          "workflowName": "Product quality"
+        },
+        "jobs": [
+          {
+            "databaseId": 135375644620,
+            "name": "static",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T06:05:27Z",
+            "completedAt": "2026-11-19T06:08:35Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375644620"
+          },
+          {
+            "databaseId": 135375644938,
+            "name": "browser",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T06:05:27Z",
+            "completedAt": "2026-11-19T06:30:01Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375644938"
+          },
+          {
+            "databaseId": 135375644940,
+            "name": "tests",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T06:05:27Z",
+            "completedAt": "2026-11-19T06:13:16Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375644940"
+          },
+          {
+            "databaseId": 135375644972,
+            "name": "quickjs",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T06:05:26Z",
+            "completedAt": "2026-11-19T06:06:19Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375644972"
+          },
+          {
+            "databaseId": 135375645013,
+            "name": "coding",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T06:05:26Z",
+            "completedAt": "2026-11-19T06:30:26Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375645013"
+          },
+          {
+            "databaseId": 135375645016,
+            "name": "sql",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T06:05:26Z",
+            "completedAt": "2026-11-19T06:06:09Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375645016"
+          },
+          {
+            "databaseId": 135385618206,
+            "name": "verify",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T06:30:27Z",
+            "completedAt": "2026-11-19T06:30:30Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135385618206"
+          }
+        ]
+      },
+      "rest": {
+        "command": [
+          "gh",
+          "api",
+          "--method",
+          "GET",
+          "--paginate",
+          "--slurp",
+          "repos/lukaskourilcz/devshark/actions/runs/44469626993/attempts/1/jobs?per_page=100"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:31.840187+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:32.661335+00:00",
+        "exitCode": 0,
+        "pages": [
+          {
+            "totalCount": 7,
+            "jobs": [
+              {
+                "databaseId": 135375644620,
+                "name": "static",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T06:05:27Z",
+                "completedAt": "2026-11-19T06:08:35Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375644620"
+              },
+              {
+                "databaseId": 135375644938,
+                "name": "browser",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T06:05:27Z",
+                "completedAt": "2026-11-19T06:30:01Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375644938"
+              },
+              {
+                "databaseId": 135375644940,
+                "name": "tests",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T06:05:27Z",
+                "completedAt": "2026-11-19T06:13:16Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375644940"
+              },
+              {
+                "databaseId": 135375644972,
+                "name": "quickjs",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T06:05:26Z",
+                "completedAt": "2026-11-19T06:06:19Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375644972"
+              },
+              {
+                "databaseId": 135375645013,
+                "name": "coding",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T06:05:26Z",
+                "completedAt": "2026-11-19T06:30:26Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375645013"
+              },
+              {
+                "databaseId": 135375645016,
+                "name": "sql",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T06:05:26Z",
+                "completedAt": "2026-11-19T06:06:09Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135375645016"
+              },
+              {
+                "databaseId": 135385618206,
+                "name": "verify",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T06:30:27Z",
+                "completedAt": "2026-11-19T06:30:30Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44469626993/job/135385618206"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "runId": 44466553771,
+      "cli": {
+        "command": [
+          "gh",
+          "run",
+          "view",
+          "44466553771",
+          "--attempt",
+          "1",
+          "--repo",
+          "lukaskourilcz/devshark",
+          "--json",
+          "attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,number,startedAt,status,updatedAt,url,workflowName"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:29.876099+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:31.886423+00:00",
+        "exitCode": 0,
+        "run": {
+          "attempt": 1,
+          "conclusion": "success",
+          "createdAt": "2026-11-19T05:38:28Z",
+          "databaseId": 44466553771,
+          "event": "pull_request",
+          "headBranch": "codex/632-initial-load",
+          "headSha": "7637971800c260d574b64bbf34a3770c7d3d5bfa",
+          "number": 671,
+          "startedAt": "2026-11-19T05:38:28Z",
+          "status": "completed",
+          "updatedAt": "2026-11-19T06:03:43Z",
+          "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/attempts/1",
+          "workflowName": "Product quality"
+        },
+        "jobs": [
+          {
+            "databaseId": 135365618952,
+            "name": "tests",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T05:38:31Z",
+            "completedAt": "2026-11-19T05:46:01Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365618952"
+          },
+          {
+            "databaseId": 135365619221,
+            "name": "static",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T05:38:31Z",
+            "completedAt": "2026-11-19T05:42:03Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619221"
+          },
+          {
+            "databaseId": 135365619244,
+            "name": "browser",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T05:38:31Z",
+            "completedAt": "2026-11-19T05:58:56Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619244"
+          },
+          {
+            "databaseId": 135365619272,
+            "name": "sql",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T05:38:30Z",
+            "completedAt": "2026-11-19T05:39:13Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619272"
+          },
+          {
+            "databaseId": 135365619330,
+            "name": "quickjs",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T05:38:30Z",
+            "completedAt": "2026-11-19T05:39:30Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619330"
+          },
+          {
+            "databaseId": 135365619381,
+            "name": "coding",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T05:38:31Z",
+            "completedAt": "2026-11-19T06:03:38Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619381"
+          },
+          {
+            "databaseId": 135374953408,
+            "name": "verify",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T06:03:40Z",
+            "completedAt": "2026-11-19T06:03:43Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135374953408"
+          }
+        ]
+      },
+      "rest": {
+        "command": [
+          "gh",
+          "api",
+          "--method",
+          "GET",
+          "--paginate",
+          "--slurp",
+          "repos/lukaskourilcz/devshark/actions/runs/44466553771/attempts/1/jobs?per_page=100"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:31.887233+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:32.630526+00:00",
+        "exitCode": 0,
+        "pages": [
+          {
+            "totalCount": 7,
+            "jobs": [
+              {
+                "databaseId": 135365618952,
+                "name": "tests",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T05:38:31Z",
+                "completedAt": "2026-11-19T05:46:01Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365618952"
+              },
+              {
+                "databaseId": 135365619221,
+                "name": "static",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T05:38:31Z",
+                "completedAt": "2026-11-19T05:42:03Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619221"
+              },
+              {
+                "databaseId": 135365619244,
+                "name": "browser",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T05:38:31Z",
+                "completedAt": "2026-11-19T05:58:56Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619244"
+              },
+              {
+                "databaseId": 135365619272,
+                "name": "sql",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T05:38:30Z",
+                "completedAt": "2026-11-19T05:39:13Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619272"
+              },
+              {
+                "databaseId": 135365619330,
+                "name": "quickjs",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T05:38:30Z",
+                "completedAt": "2026-11-19T05:39:30Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619330"
+              },
+              {
+                "databaseId": 135365619381,
+                "name": "coding",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T05:38:31Z",
+                "completedAt": "2026-11-19T06:03:38Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135365619381"
+              },
+              {
+                "databaseId": 135374953408,
+                "name": "verify",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T06:03:40Z",
+                "completedAt": "2026-11-19T06:03:43Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44466553771/job/135374953408"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "runId": 44452144016,
+      "cli": {
+        "command": [
+          "gh",
+          "run",
+          "view",
+          "44452144016",
+          "--attempt",
+          "1",
+          "--repo",
+          "lukaskourilcz/devshark",
+          "--json",
+          "attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,number,startedAt,status,updatedAt,url,workflowName"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:29.891573+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:32.099480+00:00",
+        "exitCode": 0,
+        "run": {
+          "attempt": 1,
+          "conclusion": "success",
+          "createdAt": "2026-11-19T03:32:26Z",
+          "databaseId": 44452144016,
+          "event": "push",
+          "headBranch": "main",
+          "headSha": "0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c",
+          "number": 670,
+          "startedAt": "2026-11-19T03:32:26Z",
+          "status": "completed",
+          "updatedAt": "2026-11-19T03:56:47Z",
+          "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/attempts/1",
+          "workflowName": "Product quality"
+        },
+        "jobs": [
+          {
+            "databaseId": 135318425788,
+            "name": "tests",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:32:29Z",
+            "completedAt": "2026-11-19T03:40:22Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318425788"
+          },
+          {
+            "databaseId": 135318426156,
+            "name": "quickjs",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:32:28Z",
+            "completedAt": "2026-11-19T03:33:24Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426156"
+          },
+          {
+            "databaseId": 135318426199,
+            "name": "coding",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:32:29Z",
+            "completedAt": "2026-11-19T03:54:07Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426199"
+          },
+          {
+            "databaseId": 135318426237,
+            "name": "static",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:32:29Z",
+            "completedAt": "2026-11-19T03:35:11Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426237"
+          },
+          {
+            "databaseId": 135318426249,
+            "name": "sql",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:32:29Z",
+            "completedAt": "2026-11-19T03:33:19Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426249"
+          },
+          {
+            "databaseId": 135318426317,
+            "name": "browser",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:32:29Z",
+            "completedAt": "2026-11-19T03:56:41Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426317"
+          },
+          {
+            "databaseId": 135327408712,
+            "name": "verify",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:56:44Z",
+            "completedAt": "2026-11-19T03:56:47Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135327408712"
+          }
+        ]
+      },
+      "rest": {
+        "command": [
+          "gh",
+          "api",
+          "--method",
+          "GET",
+          "--paginate",
+          "--slurp",
+          "repos/lukaskourilcz/devshark/actions/runs/44452144016/attempts/1/jobs?per_page=100"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:32.100118+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:32.936863+00:00",
+        "exitCode": 0,
+        "pages": [
+          {
+            "totalCount": 7,
+            "jobs": [
+              {
+                "databaseId": 135318425788,
+                "name": "tests",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:32:29Z",
+                "completedAt": "2026-11-19T03:40:22Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318425788"
+              },
+              {
+                "databaseId": 135318426156,
+                "name": "quickjs",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:32:28Z",
+                "completedAt": "2026-11-19T03:33:24Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426156"
+              },
+              {
+                "databaseId": 135318426199,
+                "name": "coding",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:32:29Z",
+                "completedAt": "2026-11-19T03:54:07Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426199"
+              },
+              {
+                "databaseId": 135318426237,
+                "name": "static",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:32:29Z",
+                "completedAt": "2026-11-19T03:35:11Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426237"
+              },
+              {
+                "databaseId": 135318426249,
+                "name": "sql",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:32:29Z",
+                "completedAt": "2026-11-19T03:33:19Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426249"
+              },
+              {
+                "databaseId": 135318426317,
+                "name": "browser",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:32:29Z",
+                "completedAt": "2026-11-19T03:56:41Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135318426317"
+              },
+              {
+                "databaseId": 135327408712,
+                "name": "verify",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:56:44Z",
+                "completedAt": "2026-11-19T03:56:47Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44452144016/job/135327408712"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "runId": 44449005865,
+      "cli": {
+        "command": [
+          "gh",
+          "run",
+          "view",
+          "44449005865",
+          "--attempt",
+          "1",
+          "--repo",
+          "lukaskourilcz/devshark",
+          "--json",
+          "attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,number,startedAt,status,updatedAt,url,workflowName"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:29.877184+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:32.118675+00:00",
+        "exitCode": 0,
+        "run": {
+          "attempt": 1,
+          "conclusion": "success",
+          "createdAt": "2026-11-19T03:05:54Z",
+          "databaseId": 44449005865,
+          "event": "pull_request",
+          "headBranch": "codex/635-responsive-device-matrix",
+          "headSha": "e861d856842bdc9be26b7f48e7b62c5645831fdb",
+          "number": 669,
+          "startedAt": "2026-11-19T03:05:54Z",
+          "status": "completed",
+          "updatedAt": "2026-11-19T03:31:37Z",
+          "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/attempts/1",
+          "workflowName": "Product quality"
+        },
+        "jobs": [
+          {
+            "databaseId": 135308045003,
+            "name": "quickjs",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:05:56Z",
+            "completedAt": "2026-11-19T03:06:49Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045003"
+          },
+          {
+            "databaseId": 135308045386,
+            "name": "browser",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:05:57Z",
+            "completedAt": "2026-11-19T03:31:28Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045386"
+          },
+          {
+            "databaseId": 135308045464,
+            "name": "tests",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:05:56Z",
+            "completedAt": "2026-11-19T03:13:45Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045464"
+          },
+          {
+            "databaseId": 135308045466,
+            "name": "coding",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:05:57Z",
+            "completedAt": "2026-11-19T03:31:11Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045466"
+          },
+          {
+            "databaseId": 135308045475,
+            "name": "static",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:05:56Z",
+            "completedAt": "2026-11-19T03:09:09Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045475"
+          },
+          {
+            "databaseId": 135308045581,
+            "name": "sql",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:05:56Z",
+            "completedAt": "2026-11-19T03:06:36Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045581"
+          },
+          {
+            "databaseId": 135318047057,
+            "name": "verify",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T03:31:31Z",
+            "completedAt": "2026-11-19T03:31:36Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135318047057"
+          }
+        ]
+      },
+      "rest": {
+        "command": [
+          "gh",
+          "api",
+          "--method",
+          "GET",
+          "--paginate",
+          "--slurp",
+          "repos/lukaskourilcz/devshark/actions/runs/44449005865/attempts/1/jobs?per_page=100"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:32.119585+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:32.886357+00:00",
+        "exitCode": 0,
+        "pages": [
+          {
+            "totalCount": 7,
+            "jobs": [
+              {
+                "databaseId": 135308045003,
+                "name": "quickjs",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:05:56Z",
+                "completedAt": "2026-11-19T03:06:49Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045003"
+              },
+              {
+                "databaseId": 135308045386,
+                "name": "browser",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:05:57Z",
+                "completedAt": "2026-11-19T03:31:28Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045386"
+              },
+              {
+                "databaseId": 135308045464,
+                "name": "tests",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:05:56Z",
+                "completedAt": "2026-11-19T03:13:45Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045464"
+              },
+              {
+                "databaseId": 135308045466,
+                "name": "coding",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:05:57Z",
+                "completedAt": "2026-11-19T03:31:11Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045466"
+              },
+              {
+                "databaseId": 135308045475,
+                "name": "static",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:05:56Z",
+                "completedAt": "2026-11-19T03:09:09Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045475"
+              },
+              {
+                "databaseId": 135308045581,
+                "name": "sql",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:05:56Z",
+                "completedAt": "2026-11-19T03:06:36Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135308045581"
+              },
+              {
+                "databaseId": 135318047057,
+                "name": "verify",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T03:31:31Z",
+                "completedAt": "2026-11-19T03:31:36Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44449005865/job/135318047057"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "runId": 44438847769,
+      "cli": {
+        "command": [
+          "gh",
+          "run",
+          "view",
+          "44438847769",
+          "--attempt",
+          "1",
+          "--repo",
+          "lukaskourilcz/devshark",
+          "--json",
+          "attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,number,startedAt,status,updatedAt,url,workflowName"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:29.880029+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:31.866228+00:00",
+        "exitCode": 0,
+        "run": {
+          "attempt": 1,
+          "conclusion": "success",
+          "createdAt": "2026-11-19T01:41:54Z",
+          "databaseId": 44438847769,
+          "event": "push",
+          "headBranch": "main",
+          "headSha": "6c85886c03c22227fb4690ffaa298efe15d2dad0",
+          "number": 668,
+          "startedAt": "2026-11-19T01:41:54Z",
+          "status": "completed",
+          "updatedAt": "2026-11-19T02:01:59Z",
+          "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/attempts/1",
+          "workflowName": "Product quality"
+        },
+        "jobs": [
+          {
+            "databaseId": 135274385936,
+            "name": "coding",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T01:41:58Z",
+            "completedAt": "2026-11-19T02:01:54Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274385936"
+          },
+          {
+            "databaseId": 135274386313,
+            "name": "tests",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T01:41:57Z",
+            "completedAt": "2026-11-19T01:49:16Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386313"
+          },
+          {
+            "databaseId": 135274386418,
+            "name": "sql",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T01:41:57Z",
+            "completedAt": "2026-11-19T01:42:43Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386418"
+          },
+          {
+            "databaseId": 135274386499,
+            "name": "quickjs",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T01:41:56Z",
+            "completedAt": "2026-11-19T01:42:49Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386499"
+          },
+          {
+            "databaseId": 135274386504,
+            "name": "static",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T01:41:56Z",
+            "completedAt": "2026-11-19T01:45:53Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386504"
+          },
+          {
+            "databaseId": 135274386604,
+            "name": "browser",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T01:41:57Z",
+            "completedAt": "2026-11-19T01:55:43Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386604"
+          },
+          {
+            "databaseId": 135282472955,
+            "name": "verify",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T02:01:56Z",
+            "completedAt": "2026-11-19T02:01:58Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135282472955"
+          }
+        ]
+      },
+      "rest": {
+        "command": [
+          "gh",
+          "api",
+          "--method",
+          "GET",
+          "--paginate",
+          "--slurp",
+          "repos/lukaskourilcz/devshark/actions/runs/44438847769/attempts/1/jobs?per_page=100"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:31.866921+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:32.670280+00:00",
+        "exitCode": 0,
+        "pages": [
+          {
+            "totalCount": 7,
+            "jobs": [
+              {
+                "databaseId": 135274385936,
+                "name": "coding",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T01:41:58Z",
+                "completedAt": "2026-11-19T02:01:54Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274385936"
+              },
+              {
+                "databaseId": 135274386313,
+                "name": "tests",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T01:41:57Z",
+                "completedAt": "2026-11-19T01:49:16Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386313"
+              },
+              {
+                "databaseId": 135274386418,
+                "name": "sql",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T01:41:57Z",
+                "completedAt": "2026-11-19T01:42:43Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386418"
+              },
+              {
+                "databaseId": 135274386499,
+                "name": "quickjs",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T01:41:56Z",
+                "completedAt": "2026-11-19T01:42:49Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386499"
+              },
+              {
+                "databaseId": 135274386504,
+                "name": "static",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T01:41:56Z",
+                "completedAt": "2026-11-19T01:45:53Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386504"
+              },
+              {
+                "databaseId": 135274386604,
+                "name": "browser",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T01:41:57Z",
+                "completedAt": "2026-11-19T01:55:43Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135274386604"
+              },
+              {
+                "databaseId": 135282472955,
+                "name": "verify",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T02:01:56Z",
+                "completedAt": "2026-11-19T02:01:58Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44438847769/job/135282472955"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "runId": 44435812072,
+      "cli": {
+        "command": [
+          "gh",
+          "run",
+          "view",
+          "44435812072",
+          "--attempt",
+          "1",
+          "--repo",
+          "lukaskourilcz/devshark",
+          "--json",
+          "attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,number,startedAt,status,updatedAt,url,workflowName"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:29.958585+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:32.092723+00:00",
+        "exitCode": 0,
+        "run": {
+          "attempt": 1,
+          "conclusion": "success",
+          "createdAt": "2026-11-19T01:17:46Z",
+          "databaseId": 44435812072,
+          "event": "pull_request",
+          "headBranch": "codex/633-images-media",
+          "headSha": "757352785b9bd5c8c62185b23c67d6032e2d7bdb",
+          "number": 667,
+          "startedAt": "2026-11-19T01:17:46Z",
+          "status": "completed",
+          "updatedAt": "2026-11-19T01:39:31Z",
+          "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/attempts/1",
+          "workflowName": "Product quality"
+        },
+        "jobs": [
+          {
+            "databaseId": 135264260019,
+            "name": "quickjs",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T01:17:49Z",
+            "completedAt": "2026-11-19T01:18:54Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260019"
+          },
+          {
+            "databaseId": 135264260351,
+            "name": "tests",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T01:17:48Z",
+            "completedAt": "2026-11-19T01:26:46Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260351"
+          },
+          {
+            "databaseId": 135264260419,
+            "name": "browser",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T01:17:48Z",
+            "completedAt": "2026-11-19T01:35:31Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260419"
+          },
+          {
+            "databaseId": 135264260631,
+            "name": "static",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T01:17:48Z",
+            "completedAt": "2026-11-19T01:21:41Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260631"
+          },
+          {
+            "databaseId": 135264260713,
+            "name": "coding",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T01:17:48Z",
+            "completedAt": "2026-11-19T01:39:24Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260713"
+          },
+          {
+            "databaseId": 135264260962,
+            "name": "sql",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T01:17:49Z",
+            "completedAt": "2026-11-19T01:18:35Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260962"
+          },
+          {
+            "databaseId": 135273351199,
+            "name": "verify",
+            "status": "completed",
+            "conclusion": "success",
+            "startedAt": "2026-11-19T01:39:26Z",
+            "completedAt": "2026-11-19T01:39:30Z",
+            "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135273351199"
+          }
+        ]
+      },
+      "rest": {
+        "command": [
+          "gh",
+          "api",
+          "--method",
+          "GET",
+          "--paginate",
+          "--slurp",
+          "repos/lukaskourilcz/devshark/actions/runs/44435812072/attempts/1/jobs?per_page=100"
+        ],
+        "collectionStartedAtUtc": "2026-11-19T14:20:32.093426+00:00",
+        "collectionFinishedAtUtc": "2026-11-19T14:20:32.859720+00:00",
+        "exitCode": 0,
+        "pages": [
+          {
+            "totalCount": 7,
+            "jobs": [
+              {
+                "databaseId": 135264260019,
+                "name": "quickjs",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T01:17:49Z",
+                "completedAt": "2026-11-19T01:18:54Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260019"
+              },
+              {
+                "databaseId": 135264260351,
+                "name": "tests",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T01:17:48Z",
+                "completedAt": "2026-11-19T01:26:46Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260351"
+              },
+              {
+                "databaseId": 135264260419,
+                "name": "browser",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T01:17:48Z",
+                "completedAt": "2026-11-19T01:35:31Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260419"
+              },
+              {
+                "databaseId": 135264260631,
+                "name": "static",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T01:17:48Z",
+                "completedAt": "2026-11-19T01:21:41Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260631"
+              },
+              {
+                "databaseId": 135264260713,
+                "name": "coding",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T01:17:48Z",
+                "completedAt": "2026-11-19T01:39:24Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260713"
+              },
+              {
+                "databaseId": 135264260962,
+                "name": "sql",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T01:17:49Z",
+                "completedAt": "2026-11-19T01:18:35Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135264260962"
+              },
+              {
+                "databaseId": 135273351199,
+                "name": "verify",
+                "status": "completed",
+                "conclusion": "success",
+                "startedAt": "2026-11-19T01:39:26Z",
+                "completedAt": "2026-11-19T01:39:30Z",
+                "url": "https://github.com/lukaskourilcz/devshark/actions/runs/44435812072/job/135273351199"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "limits": [
+    "Not latest ten after the recorded14:19:58UTC selection.",
+    "Workflow wall, parallel summed job elapsed time and hypothetical rounding are different quantities.",
+    "No billing/spend/multipliers/allowances queried;599 is not actual billed minutes.",
+    "No F14 successful-main browser baseline is replaced; no controlled speedup claim."
+  ],
+  "inputProvenance": {
+    "f1-35-ci-snapshot-2026-11-19T141958Z/selection.json": {
+      "sha256": "4cf4f345b5988f38b7fbea206af703f781bbfda64ef8670437b754a43ebb6e0f",
+      "bytes": 5845
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/runs-calculated.json": {
+      "sha256": "796338cd1e2d4c67622aac3311eaaf465325103a4d9bba1c544c9140c2de06f5",
+      "bytes": 9059
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/jobs-calculated.json": {
+      "sha256": "83e5c133693fe1fdd2037e49136f19273e3d8478fc8266615db438c75c5868e2",
+      "bytes": 36112
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/summary.json": {
+      "sha256": "a1a5c5ca4cb61eca959aca5d302fabdc73e4c43e9798243c4c5b69d4d89b0508",
+      "bytes": 3178
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/completeness-checks.json": {
+      "sha256": "b161a1529bd95f8d0f8570b4f78cce18be84871aa8bd0fdcf15a77c0a58087f8",
+      "bytes": 3733
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44532254699-cli.json": {
+      "sha256": "a6373a66f17d53f19b39b160c53113ef432deb178a560dcce1ee827e20b82d95",
+      "bytes": 3816
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44532254699-rest-jobs.json": {
+      "sha256": "c9c7ae21903c2b5bcfb2b38c625e582534fa19c783d5960cad9ed86240a8a020",
+      "bytes": 3608
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44523908461-cli.json": {
+      "sha256": "7d12094c11af66cc5df1d9a3c2b74fbd7dc556b06842bdd3835d3c870052271e",
+      "bytes": 3837
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44523908461-rest-jobs.json": {
+      "sha256": "b882cea3915dcdfd93f2cfa822a60e7816f8814286496d9528ae91bed7c79eb8",
+      "bytes": 3608
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44506480155-cli.json": {
+      "sha256": "34bb440300b96213253e466c089676e43a4745fc4d79dd880699731ee398b3b7",
+      "bytes": 3171
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44506480155-rest-jobs.json": {
+      "sha256": "05fa4b2e3f02c134091fd93f3d7c8f316127cdc34310e267228e593f141db8d9",
+      "bytes": 2891
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44489104765-cli.json": {
+      "sha256": "623bbe6fe58f8f6fb0a652449b75c96f02f1abbc457a9c7b86ab077d94d563b0",
+      "bytes": 3837
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44489104765-rest-jobs.json": {
+      "sha256": "133298f53b6bf95ae560ce89073ff0268bc862c22f6a4a66efd6c09ff8c7e3da",
+      "bytes": 3608
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44469626993-cli.json": {
+      "sha256": "a01c8209825947e9ab8f759854e968bcd053b99c4a9e1f426c59361ab5ea83cb",
+      "bytes": 3171
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44469626993-rest-jobs.json": {
+      "sha256": "663f16c76c1da09ab28136ec97d4c9375f1d2fed2e9655be1bd1d0da9cdd45f6",
+      "bytes": 2891
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44466553771-cli.json": {
+      "sha256": "de5d0e2647fcd3abbe88de120d48d60effc2f7978c620ae7b1c90333521a0b88",
+      "bytes": 3197
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44466553771-rest-jobs.json": {
+      "sha256": "c4339279267d55ef7a440c3c23108c9e39c156a59c35769497a543be1a9c0ff3",
+      "bytes": 2891
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44452144016-cli.json": {
+      "sha256": "cf50f3b399ec63a4fa09cbb371f54b8446782471cc9abe7576cf48ec75762fc8",
+      "bytes": 3171
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44452144016-rest-jobs.json": {
+      "sha256": "bda08913f55bd294b0a76b54c4003019c97253cbe57c2ba59031eee0c9141be9",
+      "bytes": 2891
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44449005865-cli.json": {
+      "sha256": "c970b6257ba5f740c39c04c137eadcecf3cc85ae9477568e4dba8560a6588dc8",
+      "bytes": 3209
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44449005865-rest-jobs.json": {
+      "sha256": "7623571fcd4db5e49f5419e742888f6b465570055122a67acddb7370f9207c76",
+      "bytes": 2891
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44438847769-cli.json": {
+      "sha256": "dbf8e14a45cd04ca80b4bea7474b56c33965e44c81f116d36b6260718ecfb509",
+      "bytes": 3171
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44438847769-rest-jobs.json": {
+      "sha256": "c68ac89b4502ee8a1b9a0beaa6e04296bb90bf27698da59d08c81a1cedbd89ab",
+      "bytes": 2891
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44435812072-cli.json": {
+      "sha256": "565900a6519a80d91df4930e2741988617f37ed6cd9d4fda1f3d21c81c533c77",
+      "bytes": 3197
+    },
+    "f1-35-ci-snapshot-2026-11-19T141958Z/run-44435812072-rest-jobs.json": {
+      "sha256": "af377be45ce15710130a4403cd93f0b1c74d0194cca9b02404ecf55b11bb325a",
+      "bytes": 2891
+    }
+  }
+}
