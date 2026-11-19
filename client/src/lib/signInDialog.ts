@@ -23,24 +23,24 @@ type SignInDetail = { view?: SignInView; returnTo?: string; email?: string };
 
 let current: SignInRequest | null = null;
 let counter = 0;
-// What had focus when the dialog opened. The dialog unmounts on close, and a
-// dialog removed from the page drops focus to <body>, so the host gives focus
-// back to this instead.
+// The trigger, or what had focus for a programmatic open. A pointer need
+// not focus its button in Safari. The dialog unmounts on close, so the host
+// gives focus back to the saved element instead of leaving it on <body>.
 let opener: HTMLElement | null = null;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((listener) => listener());
 
-export function openSignIn(detail: SignInDetail = {}): void {
+export function openSignIn(detail: SignInDetail = {}, trigger?: HTMLElement): void {
   if (!current && typeof document !== 'undefined') {
     const active = document.activeElement;
-    opener = active instanceof HTMLElement && active !== document.body ? active : null;
+    opener = trigger ?? (active instanceof HTMLElement && active !== document.body ? active : null);
   }
   counter += 1;
   current = { view: detail.view ?? 'signIn', returnTo: detail.returnTo, email: detail.email, id: counter };
   emit();
 }
 
-/** The element that had focus when the dialog opened, handed out once. */
+/** The opening trigger or previous focus target, handed out once. */
 export function takeSignInOpener(): HTMLElement | null {
   const element = opener;
   opener = null;
