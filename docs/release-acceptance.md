@@ -8052,3 +8052,12 @@ The old 95-file / 407,658-byte premise predates F4 and is not a current
 expectation. Source-line widths, basenames and dynamic-prefix matches remain
 lexical hints; rendered size and served reachability are not established.
 The release image checker and its caps remain independent and unchanged.
+
+
+## Epic F1 remaining baseline: F1-32: historical database advisors (19 November 2026)
+
+Issue #630. Saved evidence in `docs/audit/database-advisors-2026-11.json`
+was projected offline on 19 November; this paragraph records its original
+observation scope, not new sampling.
+
+The full byte-preserved projection contains 90 nested findings in five groups: 33 security INFO, 39 performance WARN and 18 performance INFO. The supporting snapshot has 76 RLS tables, 43 SELECT-only policies and no public views. All 33 no-policy identities lack effective browser table CRUD in that snapshot. Advisor, catalog and key observations retain their separate 07:40, 07:43 and 07:57 UTC clocks. Migration head and function ACLs remain unobserved. The text-linter mismatch is not planner evidence; intentional friendships uniqueness is retained. No database query, DDL, DML, policy or index change was made by this projection.
