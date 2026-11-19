@@ -53,6 +53,52 @@ it('forwards cancellation to an in-flight admin request', async () => {
 });
 
 describe('the real account-clear boundary', () => {
+  it('aborts both active reads while the view stays mounted and discards their late responses', async () => {
+    const seen: Partial<Record<'questions' | 'triage', AbortSignal>> = {};
+    const responded = new Set<'questions' | 'triage'>();
+    let release = () => {};
+    const held = new Promise<void>((resolve) => { release = resolve; });
+    server.use(
+      http.get('*/api/admin/questions', async ({ request }) => {
+        seen.questions = request.signal;
+        await held;
+        responded.add('questions');
+        return HttpResponse.json({ questions: [], categories: ['react'], reportCounts: {} });
+      }),
+      http.get('*/api/admin/triage', async ({ request }) => {
+        seen.triage = request.signal;
+        await held;
+        responded.add('triage');
+        return HttpResponse.json(overlay('late-private-account'));
+      }),
+    );
+    const view = render(<QueryClientProvider client={queryClient}><LanguageProvider><DevTriage /></LanguageProvider></QueryClientProvider>);
+    try {
+      await waitFor(() => {
+        expect(seen.questions).toBeDefined();
+        expect(seen.triage).toBeDefined();
+      });
+      for (const key of [['admin', 'questions'], ['admin', 'triage']]) {
+        const query = queryClient.getQueryCache().find({ queryKey: key, exact: true });
+        expect(query?.getObserversCount()).toBeGreaterThan(0);
+        expect(query?.state.fetchStatus).toBe('fetching');
+      }
+
+      // No unmount: only the real registered account-clear callback can
+      // cancel these still-observed requests and remove their private cache.
+      act(() => clearAccountData());
+      expect(seen.questions?.aborted).toBe(true);
+      expect(seen.triage?.aborted).toBe(true);
+      expect(queryClient.getQueryCache().findAll({ queryKey: ['admin'] })).toEqual([]);
+
+      release();
+      await waitFor(() => expect([...responded].sort()).toEqual(['questions', 'triage']));
+      expect(queryClient.getQueryData(['admin', 'questions'])).toBeUndefined();
+      expect(queryClient.getQueryData(['admin', 'triage'])).toBeUndefined();
+      expect(screen.queryByText('late-private-account')).toBeNull();
+    } finally { release(); view.unmount(); }
+  });
+
   it('aborts the old overlay and never restores it into the next admin view', async () => {
     let seen: AbortSignal | undefined;
     let release = () => {};
