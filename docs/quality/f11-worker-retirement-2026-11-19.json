@@ -1,0 +1,745 @@
+{
+  "finding": "F11-36",
+  "status": "local committed focused validation; final composed gates and merge pending",
+  "baseHead": "6b43f37551e8c311d05d89c918d2b96eda6abd95",
+  "testCommit": "d71ac4e1af200d31dda773ba1b5abd9272dcafa1",
+  "fixCommit": "cbf4bdc54f938e04bc1ed2172ca6417eff8b4a6e",
+  "audit": "https://github.com/lukaskourilcz/devshark/issues/640#issuecomment-7022410630",
+  "red": {
+    "disposal": {
+      "command": [
+        "node",
+        "node_modules/.cache/shark/f11-retirement-limits.mjs",
+        "--disposal-controls"
+      ],
+      "head": "6b43f37551e8c311d05d89c918d2b96eda6abd95",
+      "source": "tests-only dirty; product before fix",
+      "seconds": 1.589,
+      "positiveGroups": 1,
+      "failure": "real SDK disposer completed and controlled fault produced its fixed marker; worker.retired=false, expected true",
+      "receipt": "red-worker-disposal.json",
+      "log": "red-worker-disposal.log"
+    },
+    "reportedLimit": {
+      "command": [
+        "node",
+        "node_modules/.cache/shark/f11-retirement-limits.mjs"
+      ],
+      "head": "6b43f37551e8c311d05d89c918d2b96eda6abd95",
+      "source": "tests-only dirty; product before fix",
+      "seconds": 10.606,
+      "positiveGroups": 7,
+      "failure": "exact reported call out-of-memory kept one live thread; expected zero after the unchanged exit observation",
+      "receipt": "red-reported-limits.json",
+      "log": "red-reported-limits.log"
+    }
+  },
+  "green": {
+    "command": [
+      "node",
+      "node_modules/.cache/shark/f11-retirement-limits.mjs"
+    ],
+    "head": "d71ac4e1af200d31dda773ba1b5abd9272dcafa1",
+    "source": "minimal product fix dirty, then committed byte-identically as cbf4bdc5",
+    "seconds": 58.948,
+    "printedPassGroups": 66,
+    "sixRunCapElapsedMs": 5077,
+    "watchdogFired": false,
+    "realWorkerDisposalControls": 3,
+    "terminationFaultModes": [
+      "reject",
+      "throw"
+    ],
+    "receipt": "green-resource-retirement.json",
+    "log": "green-resource-retirement.log"
+  },
+  "costMeasurement": {
+    "complete": true,
+    "head": "cbf4bdc54f938e04bc1ed2172ca6417eff8b4a6e",
+    "baselineRef": "d71ac4e1af200d31dda773ba1b5abd9272dcafa1",
+    "node": "v24.22.3",
+    "esbuild": "0.25.12",
+    "toolSha256": "fe2892b5356d98a22db1cc2e36ab2896872eea2022fdc81358202b2acee8acb6",
+    "baselineSourcePins": {
+      "lib/coding/vendor/quickjs-node24.cjs": "e3772a79c640b51a33a7d5530795bded483af997d2e5ce38b46a659cdc2d890e",
+      "lib/coding/quickjs-variant.ts": "9e93c73c884cc4ab800296e755b63b845f8184a68797eee10c2dba4a7a95c707",
+      "shared/coding-console.ts": "8a860c3ba8f7f734d5f273753919958c4fe0b49179faf237c9b751085b8096d5",
+      "shared/coding-evaluate.ts": "1c71fb391b6132bc71806181e350589f13748e3e1815662b31581d2e45b2beab",
+      "shared/coding-error-text.ts": "56c7b0574ea457f1e91969a632993f8dbd2365655142857519eec51aab078092",
+      "lib/coding/vm-errors.ts": "0c403a5b2e022cb460fb8e9f1f3a2b5a4be2323304098d16e7bb2f1187d01cc8",
+      "shared/coding-utc-time.ts": "5b01e6d6c32ae5a183ee5c7d1ee382aaac7981854f04efaf8eb0fccaf564f4df",
+      "shared/coding-task-runtime.ts": "50a4de80a94d22429ac05db4be61246608999918fa8293da76f26ccca31265ec",
+      "shared/coding-locale.ts": "f70d61b893142482a9c3a4f4e32330c2be81971b1a3746da20f52cd9bc966959",
+      "lib/coding/sandbox-web-apis.ts": "e38e0044b8a52b9a3366019a7696cbe523ebb24c6ea62da849619ac6ce9919eb",
+      "lib/coding/grader-capacity.ts": "aff557879cbb92dcb281b2d9c604e95f875f5ca33d9141c93bd465a1130e70b7",
+      "lib/coding/sandbox.ts": "a787c8aa6d0c96caf69297148a6ebe0222a05fa8c075df5551e654e1ade730c0",
+      "scripts/sandbox-worker-entry.ts": "0c40b7add1033714012d609db10eac7871af654d77edcf6324a18f8a4b14e268"
+    },
+    "artifacts": {
+      "baseline": {
+        "path": "/private/tmp/devshark-epic-f-handoff/f11-20-32-candidate-c55ba3c4/quickjs-sandbox.cjs",
+        "sha256": "9e0c0717e6582a2d94fb04ac0c8d4d559efe4ada155084cf55f080d333a0b5b9"
+      },
+      "candidate": {
+        "path": "/private/tmp/devshark-epic-f11-30/lib/coding/generated/quickjs-sandbox.cjs",
+        "sha256": "78399055b31a3e5b78497c551178a24dfd8084491a17f3d05166bdbc96545d0d"
+      }
+    },
+    "samples": [
+      {
+        "sample": 1,
+        "kind": "success",
+        "stage": "baseline",
+        "firstMs": 8.42391699552536,
+        "exitWaitMs": 0.009750008583068848,
+        "nextMs": 9.165416985750198,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "64daa2b90c21cc225b650d24925bb6e4da78f03c94fc62bde5ad54c2f22d3c31",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 1,
+        "kind": "success",
+        "stage": "candidate",
+        "firstMs": 7.566125005483627,
+        "exitWaitMs": 0.009874999523162842,
+        "nextMs": 10.174208015203476,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "64daa2b90c21cc225b650d24925bb6e4da78f03c94fc62bde5ad54c2f22d3c31",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 1,
+        "kind": "wrong",
+        "stage": "baseline",
+        "firstMs": 8.554292023181915,
+        "exitWaitMs": 0.007666975259780884,
+        "nextMs": 11.034083992242813,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "b05b588e2306b27c18627811068708d5412617d1b8c8d1f588e6170450a95a47",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 1,
+        "kind": "wrong",
+        "stage": "candidate",
+        "firstMs": 9.8262500166893,
+        "exitWaitMs": 0.008540987968444824,
+        "nextMs": 10.57362499833107,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "b05b588e2306b27c18627811068708d5412617d1b8c8d1f588e6170450a95a47",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 1,
+        "kind": "neutral",
+        "stage": "baseline",
+        "firstMs": 8.993332982063293,
+        "exitWaitMs": 0.01129201054573059,
+        "nextMs": 10.316666007041931,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "c3d893abc8c451a4751a9f6dba1d0d18ad6b6aeae05bc71d0210b4019d5f58ac",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 1,
+        "kind": "neutral",
+        "stage": "candidate",
+        "firstMs": 9.73666700720787,
+        "exitWaitMs": 0.01241600513458252,
+        "nextMs": 11.269749999046326,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "c3d893abc8c451a4751a9f6dba1d0d18ad6b6aeae05bc71d0210b4019d5f58ac",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 1,
+        "kind": "forged",
+        "stage": "baseline",
+        "firstMs": 8.997542023658752,
+        "exitWaitMs": 0.012749999761581421,
+        "nextMs": 11.042458981275558,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "d6b5c20b574c3be593a8be2bab697d65087d0448b75c1060019a2d46f66044a3",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 1,
+        "kind": "forged",
+        "stage": "candidate",
+        "firstMs": 9.280874997377396,
+        "exitWaitMs": 22.450084000825882,
+        "nextMs": 59.240707993507385,
+        "liveAfter": 0,
+        "idleAfter": 0,
+        "workerStarts": 2,
+        "recoveryStarts": 1,
+        "publicResultSha256": "d6b5c20b574c3be593a8be2bab697d65087d0448b75c1060019a2d46f66044a3",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 1,
+        "kind": "stack",
+        "stage": "baseline",
+        "firstMs": 18.09662500023842,
+        "exitWaitMs": 0.00658300518989563,
+        "nextMs": 11.25670799612999,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "683e7b72ac23a8e2fae171fcec4e7ed8568e90b21c595fc442b7d7f95dda1930",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 1,
+        "kind": "stack",
+        "stage": "candidate",
+        "firstMs": 19.277374982833862,
+        "exitWaitMs": 22.081375002861023,
+        "nextMs": 57.996459007263184,
+        "liveAfter": 0,
+        "idleAfter": 0,
+        "workerStarts": 2,
+        "recoveryStarts": 1,
+        "publicResultSha256": "683e7b72ac23a8e2fae171fcec4e7ed8568e90b21c595fc442b7d7f95dda1930",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 1,
+        "kind": "memory",
+        "stage": "baseline",
+        "firstMs": 826.105583012104,
+        "exitWaitMs": 0.009458988904953003,
+        "nextMs": 8.185083001852036,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "ab4f576e28edefcfbb22d514adbd573214d27dc9577942cf4d1e648643782c11",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 1,
+        "kind": "memory",
+        "stage": "candidate",
+        "firstMs": 806.1133750081062,
+        "exitWaitMs": 21.81308400630951,
+        "nextMs": 54.65708401799202,
+        "liveAfter": 0,
+        "idleAfter": 0,
+        "workerStarts": 2,
+        "recoveryStarts": 1,
+        "publicResultSha256": "ab4f576e28edefcfbb22d514adbd573214d27dc9577942cf4d1e648643782c11",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 2,
+        "kind": "memory",
+        "stage": "candidate",
+        "firstMs": 763.7051250040531,
+        "exitWaitMs": 22.013000011444092,
+        "nextMs": 54.02291598916054,
+        "liveAfter": 0,
+        "idleAfter": 0,
+        "workerStarts": 2,
+        "recoveryStarts": 1,
+        "publicResultSha256": "ab4f576e28edefcfbb22d514adbd573214d27dc9577942cf4d1e648643782c11",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 2,
+        "kind": "memory",
+        "stage": "baseline",
+        "firstMs": 770.6102499961853,
+        "exitWaitMs": 0.006541013717651367,
+        "nextMs": 7.429250001907349,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "ab4f576e28edefcfbb22d514adbd573214d27dc9577942cf4d1e648643782c11",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 2,
+        "kind": "stack",
+        "stage": "candidate",
+        "firstMs": 18.03337499499321,
+        "exitWaitMs": 22.171625018119812,
+        "nextMs": 53.8427500128746,
+        "liveAfter": 0,
+        "idleAfter": 0,
+        "workerStarts": 2,
+        "recoveryStarts": 1,
+        "publicResultSha256": "683e7b72ac23a8e2fae171fcec4e7ed8568e90b21c595fc442b7d7f95dda1930",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 2,
+        "kind": "stack",
+        "stage": "baseline",
+        "firstMs": 16.846500009298325,
+        "exitWaitMs": 0.006541013717651367,
+        "nextMs": 7.463125020265579,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "683e7b72ac23a8e2fae171fcec4e7ed8568e90b21c595fc442b7d7f95dda1930",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 2,
+        "kind": "forged",
+        "stage": "candidate",
+        "firstMs": 9.510208010673523,
+        "exitWaitMs": 21.2591669857502,
+        "nextMs": 54.13708299398422,
+        "liveAfter": 0,
+        "idleAfter": 0,
+        "workerStarts": 2,
+        "recoveryStarts": 1,
+        "publicResultSha256": "d6b5c20b574c3be593a8be2bab697d65087d0448b75c1060019a2d46f66044a3",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 2,
+        "kind": "forged",
+        "stage": "baseline",
+        "firstMs": 7.920542001724243,
+        "exitWaitMs": 0.011041998863220215,
+        "nextMs": 9.51554200053215,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "d6b5c20b574c3be593a8be2bab697d65087d0448b75c1060019a2d46f66044a3",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 2,
+        "kind": "neutral",
+        "stage": "candidate",
+        "firstMs": 8.566040992736816,
+        "exitWaitMs": 0.011375010013580322,
+        "nextMs": 10.317915976047516,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "c3d893abc8c451a4751a9f6dba1d0d18ad6b6aeae05bc71d0210b4019d5f58ac",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 2,
+        "kind": "neutral",
+        "stage": "baseline",
+        "firstMs": 7.7211669981479645,
+        "exitWaitMs": 0.010082989931106567,
+        "nextMs": 9.997000008821487,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "c3d893abc8c451a4751a9f6dba1d0d18ad6b6aeae05bc71d0210b4019d5f58ac",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 2,
+        "kind": "wrong",
+        "stage": "candidate",
+        "firstMs": 7.612542003393173,
+        "exitWaitMs": 0.007708996534347534,
+        "nextMs": 9.05774998664856,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "b05b588e2306b27c18627811068708d5412617d1b8c8d1f588e6170450a95a47",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 2,
+        "kind": "wrong",
+        "stage": "baseline",
+        "firstMs": 9.140583992004395,
+        "exitWaitMs": 0.008041024208068848,
+        "nextMs": 9.415833979845047,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "b05b588e2306b27c18627811068708d5412617d1b8c8d1f588e6170450a95a47",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 2,
+        "kind": "success",
+        "stage": "candidate",
+        "firstMs": 8.485583007335663,
+        "exitWaitMs": 0.005665987730026245,
+        "nextMs": 10.081208974123001,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "64daa2b90c21cc225b650d24925bb6e4da78f03c94fc62bde5ad54c2f22d3c31",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 2,
+        "kind": "success",
+        "stage": "baseline",
+        "firstMs": 7.668417006731033,
+        "exitWaitMs": 0.010749995708465576,
+        "nextMs": 10.160250008106232,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "64daa2b90c21cc225b650d24925bb6e4da78f03c94fc62bde5ad54c2f22d3c31",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 3,
+        "kind": "success",
+        "stage": "baseline",
+        "firstMs": 7.823832988739014,
+        "exitWaitMs": 0.010084003210067749,
+        "nextMs": 9.789833009243011,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "64daa2b90c21cc225b650d24925bb6e4da78f03c94fc62bde5ad54c2f22d3c31",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 3,
+        "kind": "success",
+        "stage": "candidate",
+        "firstMs": 7.507125020027161,
+        "exitWaitMs": 0.01029101014137268,
+        "nextMs": 9.65420800447464,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "64daa2b90c21cc225b650d24925bb6e4da78f03c94fc62bde5ad54c2f22d3c31",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 3,
+        "kind": "wrong",
+        "stage": "baseline",
+        "firstMs": 8.828916996717453,
+        "exitWaitMs": 0.009082973003387451,
+        "nextMs": 10.880291998386383,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "b05b588e2306b27c18627811068708d5412617d1b8c8d1f588e6170450a95a47",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 3,
+        "kind": "wrong",
+        "stage": "candidate",
+        "firstMs": 10.93791601061821,
+        "exitWaitMs": 0.006291985511779785,
+        "nextMs": 11.813791006803513,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "b05b588e2306b27c18627811068708d5412617d1b8c8d1f588e6170450a95a47",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 3,
+        "kind": "neutral",
+        "stage": "baseline",
+        "firstMs": 11.176750004291534,
+        "exitWaitMs": 0.006125003099441528,
+        "nextMs": 11.5225830078125,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "c3d893abc8c451a4751a9f6dba1d0d18ad6b6aeae05bc71d0210b4019d5f58ac",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 3,
+        "kind": "neutral",
+        "stage": "candidate",
+        "firstMs": 9.149832993745804,
+        "exitWaitMs": 0.01266700029373169,
+        "nextMs": 10.99541699886322,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "c3d893abc8c451a4751a9f6dba1d0d18ad6b6aeae05bc71d0210b4019d5f58ac",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 3,
+        "kind": "forged",
+        "stage": "baseline",
+        "firstMs": 9.109375,
+        "exitWaitMs": 0.010791987180709839,
+        "nextMs": 10.400791019201279,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "d6b5c20b574c3be593a8be2bab697d65087d0448b75c1060019a2d46f66044a3",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 3,
+        "kind": "forged",
+        "stage": "candidate",
+        "firstMs": 9.578583002090454,
+        "exitWaitMs": 21.844541996717453,
+        "nextMs": 54.39416602253914,
+        "liveAfter": 0,
+        "idleAfter": 0,
+        "workerStarts": 2,
+        "recoveryStarts": 1,
+        "publicResultSha256": "d6b5c20b574c3be593a8be2bab697d65087d0448b75c1060019a2d46f66044a3",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 3,
+        "kind": "stack",
+        "stage": "baseline",
+        "firstMs": 16.474833011627197,
+        "exitWaitMs": 0.007624983787536621,
+        "nextMs": 9.838582992553711,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "683e7b72ac23a8e2fae171fcec4e7ed8568e90b21c595fc442b7d7f95dda1930",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 3,
+        "kind": "stack",
+        "stage": "candidate",
+        "firstMs": 18.292750000953674,
+        "exitWaitMs": 22.19354099035263,
+        "nextMs": 52.822125017642975,
+        "liveAfter": 0,
+        "idleAfter": 0,
+        "workerStarts": 2,
+        "recoveryStarts": 1,
+        "publicResultSha256": "683e7b72ac23a8e2fae171fcec4e7ed8568e90b21c595fc442b7d7f95dda1930",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 3,
+        "kind": "memory",
+        "stage": "baseline",
+        "firstMs": 735.0732499957085,
+        "exitWaitMs": 0.0069580078125,
+        "nextMs": 7.650665998458862,
+        "liveAfter": 1,
+        "idleAfter": 1,
+        "workerStarts": 1,
+        "recoveryStarts": 0,
+        "publicResultSha256": "ab4f576e28edefcfbb22d514adbd573214d27dc9577942cf4d1e648643782c11",
+        "nextGradePassed": true
+      },
+      {
+        "sample": 3,
+        "kind": "memory",
+        "stage": "candidate",
+        "firstMs": 738.9509579837322,
+        "exitWaitMs": 22.727874994277954,
+        "nextMs": 53.88800001144409,
+        "liveAfter": 0,
+        "idleAfter": 0,
+        "workerStarts": 2,
+        "recoveryStarts": 1,
+        "publicResultSha256": "ab4f576e28edefcfbb22d514adbd573214d27dc9577942cf4d1e648643782c11",
+        "nextGradePassed": true
+      }
+    ],
+    "scope": "Three samples of six fixed pairs per stage, serial fresh children. Pre36 host source is a pinned virtual onLoad view and its worker is an archived actual normal20 build with identical tracked inputs. Candidate uses actual source/artifact. No checkout/generated artifact replacement. Stage order reverses on sample2; no minimum selection or distribution claim."
+  },
+  "costMedians": {
+    "success": {
+      "baseline": {
+        "firstMedianMs": 7.823832988739014,
+        "exitObservationMedianMs": 0.010084003210067749,
+        "nextMedianMs": 9.789833009243011,
+        "recoveryStarts": [
+          0,
+          0,
+          0
+        ]
+      },
+      "candidate": {
+        "firstMedianMs": 7.566125005483627,
+        "exitObservationMedianMs": 0.009874999523162842,
+        "nextMedianMs": 10.081208974123001,
+        "recoveryStarts": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "wrong": {
+      "baseline": {
+        "firstMedianMs": 8.828916996717453,
+        "exitObservationMedianMs": 0.008041024208068848,
+        "nextMedianMs": 10.880291998386383,
+        "recoveryStarts": [
+          0,
+          0,
+          0
+        ]
+      },
+      "candidate": {
+        "firstMedianMs": 9.8262500166893,
+        "exitObservationMedianMs": 0.007708996534347534,
+        "nextMedianMs": 10.57362499833107,
+        "recoveryStarts": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "neutral": {
+      "baseline": {
+        "firstMedianMs": 8.993332982063293,
+        "exitObservationMedianMs": 0.010082989931106567,
+        "nextMedianMs": 10.316666007041931,
+        "recoveryStarts": [
+          0,
+          0,
+          0
+        ]
+      },
+      "candidate": {
+        "firstMedianMs": 9.149832993745804,
+        "exitObservationMedianMs": 0.01241600513458252,
+        "nextMedianMs": 10.99541699886322,
+        "recoveryStarts": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "forged": {
+      "baseline": {
+        "firstMedianMs": 8.997542023658752,
+        "exitObservationMedianMs": 0.011041998863220215,
+        "nextMedianMs": 10.400791019201279,
+        "recoveryStarts": [
+          0,
+          0,
+          0
+        ]
+      },
+      "candidate": {
+        "firstMedianMs": 9.510208010673523,
+        "exitObservationMedianMs": 21.844541996717453,
+        "nextMedianMs": 54.39416602253914,
+        "recoveryStarts": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "stack": {
+      "baseline": {
+        "firstMedianMs": 16.846500009298325,
+        "exitObservationMedianMs": 0.00658300518989563,
+        "nextMedianMs": 9.838582992553711,
+        "recoveryStarts": [
+          0,
+          0,
+          0
+        ]
+      },
+      "candidate": {
+        "firstMedianMs": 18.292750000953674,
+        "exitObservationMedianMs": 22.171625018119812,
+        "nextMedianMs": 53.8427500128746,
+        "recoveryStarts": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "memory": {
+      "baseline": {
+        "firstMedianMs": 770.6102499961853,
+        "exitObservationMedianMs": 0.0069580078125,
+        "nextMedianMs": 7.650665998458862,
+        "recoveryStarts": [
+          0,
+          0,
+          0
+        ]
+      },
+      "candidate": {
+        "firstMedianMs": 763.7051250040531,
+        "exitObservationMedianMs": 22.013000011444092,
+        "nextMedianMs": 54.02291598916054,
+        "recoveryStarts": [
+          1,
+          1,
+          1
+        ]
+      }
+    }
+  },
+  "scopeLimits": [
+    "Reported-outcome retirement includes exact learner-forged limit reports; no unforgeable native cause or learner-caught successful limit detection.",
+    "Actual disposal health is tested through the real worker producer, plus a disabled callback negative; no forged done packet.",
+    "Capacity quarantine is for acquired run/warm retirements; unrelated idle-error admission event races and fulfilled-without-exit fault injection are not newly covered.",
+    "Three samples per kind/stage describe local cost, not a distribution/p95/provider guarantee. Physical-exit observation polls20ms and may overstate actual exit latency.",
+    "Old20 worker artifact is an archived actual normal build with tracked input identity verified against the pre36 source; baseline host is an exact pinned virtual source view. No source rollback or canonical generated replacement.",
+    "Full composed grading/reference/Coding/types/launch/parity/remote merge acceptance remains pending."
+  ],
+  "sha256": {
+    "/tmp/devshark-epic-f-handoff/f11-remaining-execution-3fa8f8ed/36/red-worker-disposal.log": "25b38f5efa379e6c672d690ac029bb1d58fbee1f3d107187fbc7058762959b49",
+    "/tmp/devshark-epic-f-handoff/f11-remaining-execution-3fa8f8ed/36/red-reported-limits.log": "143668da22a91e5263be1307e2a1bc3ccd3663e93fabb65d9a0c4cb265bd0c90",
+    "/tmp/devshark-epic-f-handoff/f11-remaining-execution-3fa8f8ed/36/green-resource-retirement.log": "4ead91702d1eed9d65715b9f5bc22ba3b6d2dbb8e531300dd4070181ce978c4e",
+    "/tmp/devshark-epic-f-handoff/f11-36-recovery-cost-cbf4bdc5.json": "375a76eba27e5b2aa5d9096e4554988c1275bf2f3ee5787a742afa85f64c33cf",
+    "/tmp/devshark-epic-f-handoff/f11-remaining-execution-3fa8f8ed/36/measure-recovery.mjs": "fe2892b5356d98a22db1cc2e36ab2896872eea2022fdc81358202b2acee8acb6"
+  }
+}

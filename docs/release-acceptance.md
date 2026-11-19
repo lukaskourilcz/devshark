@@ -8838,3 +8838,29 @@ The durable measurement and all raw sample values are in
 record current generated files, rather than historical prototype sizes, and
 keep the earlier untrimmed16 virtual-reference receipt distinct from pending
 normal trimmed-builder integration.
+
+
+### Epic F, F11-36 reported-limit retirement (19 November 2026)
+
+Local test `d71ac4e1`, fix `cbf4bdc5`. Actual red disposal command failed
+physical retirement after a normal positive (1.589 s); the actual limits entry
+passed seven groups then retained one thread instead of zero for an exact
+reported call limit (10.606 s). Product fixes followed that committed red.
+The affected resource entry then passed 66 groups in 58.948 s, retaining all
+16/17 boundaries, actual-parent positive/negative, six-run/four-live controls,
+three real-worker disposal controls and warm/run rejected/throwing termination
+quarantine, existing queue deadline and physical-exit recovery.
+
+A 36-row, three-sample local cost comparison preserves public-result hashes.
+Correct/wrong/neutral outcomes add no recovery worker. Reported forged/stack/
+allocation outcomes add one; next-grade medians rise from 7.651–10.401 ms to
+53.843–54.394 ms after confirmed retirement. Exit observation uses 20 ms
+polling. No latency distribution, provider memory, native-cause detection or
+learner-caught-success guarantee follows. Grading results and numeric limits
+are unchanged. Full composed gates/remote integration remain pending.
+
+Complete commands, stage/source provenance and every sample are recorded in
+`docs/quality/f11-worker-retirement-2026-11-19.md` and its adjacent JSON, with
+raw receipts under the 36 external execution folder. The baseline host is a
+pinned source projection paired with an archived actual normal worker; it is
+not a checkout rollback or an invented before measurement.
