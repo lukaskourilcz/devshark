@@ -37,7 +37,7 @@ The `sql` job runs separately: `npm run test:sql` on `supabase/postgres:17.6.1.1
 - **`CI=true`**, as GitHub Actions sets it.
 - **Build env** for `build`, `check:public` and `check:bundle`: `VITE_PRODUCT=devshark`, `VITE_LOCK_SUBJECT=webdev`, and `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from `measuredBuild.env` in `docs/quality/bundle-budget.json`. `check:bundle` measures against that placeholder project, and `tests/browser/lazy-auth.spec.ts` signs in through it.
 - **`CHROME_BIN`.** CI exports Playwright's Chromium path just before `check:responsive`, so the browser specs launch Playwright's own browser and `check:responsive`, `test:harness` and the steps after them get `CHROME_BIN`. The script does the same. In the Claude Code cloud sandbox it uses `/opt/pw-browsers/chromium`; an explicit `CHROME_BIN` wins everywhere.
-- **Ports** 4173 (preview) and, in a full run, 6006 (Storybook) must be free. The script exits 2 before step 1 when either already answers, because an old server would serve an old build. Never start two runs at once.
+- **Ports.** The local preview defaults to 4173; `--preview-port 4174` selects another decimal port from 1024 to 65535. Use separate worktrees and log directories for independent runs. The runner sets `TEST_BASE_URL` and `RESPONSIVE_BASE_URL` for its children, targets Lighthouse at that preview and uses Vite's strict port option. Any existing HTTP response on the chosen port causes exit 2 before the first gate. CI's command remains on 4173 and the drift check compares that literal command. Full runs still require the shared Storybook port 6006; two full runs cannot share it. The sandbox harness starts its own ephemeral server. Coordinate CPU-sensitive Coding runs even when their preview ports differ.
 - **`DATABASE_URL`** for the `sql` job only. It must point at an empty Postgres; `scripts/test-sql.mjs` refuses a database that already has tables in `public`, and it needs a local `psql` client:
 
   ```sh
@@ -54,6 +54,7 @@ The `sql` job runs separately: `npm run test:sql` on `supabase/postgres:17.6.1.1
 ```sh
 npm run ci:parity -- --list               # the plan, nothing runs
 npm run ci:parity -- --fast               # steps 1-33 and 35-38
+npm run ci:parity -- --fast --preview-port 4174 --log-dir artifacts/ci-parity-f14
 npm run ci:parity                         # the whole verify job
 npm run ci:parity -- --only test:launch,build --log-dir artifacts/ci-parity-only
 npm run ci:parity -- --fast --bail        # stop at the first failure, as CI does

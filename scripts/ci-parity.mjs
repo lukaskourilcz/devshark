@@ -11,6 +11,7 @@
 //   npm run ci:parity -- --only test:launch,build
 //   npm run ci:parity -- --bail       stop at the first failure, as CI does
 //   npm run ci:parity -- --install    run `npm ci` even when node_modules exist
+//   npm run ci:parity -- --preview-port 4174  use this worktree's own preview
 //
 // Before running anything the script compares its plan with the `verify` job.
 // Every `npm` and `npx playwright` command there, in order and with its env
@@ -47,6 +48,20 @@ function usage(message) {
   console.error(message);
   process.exit(2);
 }
+
+function previewPort() {
+  const values = args.flatMap((arg, index) => arg === '--preview-port' ? [args[index + 1]]
+    : arg.startsWith('--preview-port=') ? [arg.slice('--preview-port='.length)] : []);
+  if (!values.length) return 4173;
+  const value = values[0];
+  if (values.length !== 1 || typeof value !== 'string' || !/^\d+$/.test(value)
+    || Number(value) < 1024 || Number(value) > 65535) {
+    usage('--preview-port must be one decimal integer from 1024 to 65535.');
+  }
+  return Number(value);
+}
+const PREVIEW_PORT = previewPort();
+const PREVIEW_URL = `http://localhost:${PREVIEW_PORT}`;
 
 if (!existsSync(WORKFLOW) || !existsSync('package.json')) usage('Run ci:parity from the repository root.');
 
@@ -275,7 +290,7 @@ const KNOWN_GLUE = [
   "run: exit 1"
 ];
 
-const env = { ...process.env, CI: 'true' };
+const env = { ...process.env, CI: 'true', TEST_BASE_URL: PREVIEW_URL, RESPONSIVE_BASE_URL: PREVIEW_URL };
 let budget;
 try {
   budget = JSON.parse(readFileSync('docs/quality/bundle-budget.json', 'utf8')).measuredBuild.env;
@@ -330,8 +345,8 @@ const PLAN = [
     'test:react-authority', 'test:paths', 'test:billing', 'test:fallbacks', 'test:garden',
     'test:live-grading', 'test:client', 'test:coding'].map((script) => step(script, npmRun(script))),
   step('chromium', 'npx playwright install chromium', { ci: ['npx playwright install --with-deps chromium'], kind: 'chromium' }),
-  step('preview', 'npm run preview --prefix client -- --host 0.0.0.0 --port 4173',
-    { kind: 'server', url: 'http://localhost:4173', needs: ['build'] }),
+  step('preview', `npm run preview --prefix client -- --host 0.0.0.0 --port ${PREVIEW_PORT} --strictPort`,
+    { ci: ['npm run preview --prefix client -- --host 0.0.0.0 --port 4173'], kind: 'server', url: PREVIEW_URL, needs: ['build'] }),
   ...BROWSER_SPECS.map((specs) => step('browser:chromium',
     npmRun('test:browser', `-- --project=chromium --workers=2 ${specs}`), { tier: 'full', needs: ['preview', 'chromium'] })),
   step('check:responsive', npmRun('check:responsive', RESPONSIVE_LIGHT), { needs: ['preview', 'chromium'], chrome: true }),
@@ -344,7 +359,9 @@ const PLAN = [
     needs: ['preview', 'chromium'], chrome: true, env: { RESPONSIVE_ZOOM: String(zoom) },
   })),
   step('test:harness', npmRun('test:harness'), { tier: 'full', needs: ['build', 'chromium'], chrome: true }),
-  step('audit:performance', npmRun('audit:performance'), { tier: 'full', needs: ['preview', 'chromium'], chrome: true }),
+  step('audit:performance', npmRun('audit:performance', PREVIEW_PORT === 4173 ? '' : `-- --url=${PREVIEW_URL}`), {
+    ci: [npmRun('audit:performance')], tier: 'full', needs: ['preview', 'chromium'], chrome: true,
+  }),
   step('build:storybook', npmRun('build:storybook'), { tier: 'full', needs: ['build'] }),
   step('storybook', npmRun('storybook', '--prefix client -- --ci'),
     { tier: 'full', kind: 'server', url: 'http://localhost:6006', needs: ['build:storybook'] }),
@@ -390,6 +407,8 @@ const MODE = ONLY ? 'partial' : FAST ? 'fast' : 'full';
 const inMode = (one) => (ONLY ? ONLY.includes(one.id) : !(FAST && one.tier === 'full'));
 
 if (LIST) {
+  console.log(`Local preview ${PREVIEW_URL}`);
+  console.log(`Child targets: TEST_BASE_URL=${PREVIEW_URL} RESPONSIVE_BASE_URL=${PREVIEW_URL}`);
   for (const one of selected) console.log(`${one.id.padEnd(40)} ${(inMode(one) ? 'run' : 'skip').padEnd(5)} ${one.command}`);
   process.exit(0);
 }
@@ -409,8 +428,11 @@ let finished = false;
 const logFile = (one) => path.join(LOG_DIR, `${one.id.replace(/[^\w.-]+/g, '_')}.log`);
 const summaryFile = path.join(LOG_DIR, 'summary.json');
 
-async function answers(url) {
-  try { return (await fetch(url, { signal: AbortSignal.timeout(1000) })).ok; } catch { return false; }
+async function answers(url, requireOk = true) {
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(1000) });
+    return requireOk ? response.ok : true;
+  } catch { return false; }
 }
 async function waitFor(url, attempts = 120) {
   for (let attempt = 0; attempt < attempts; attempt++) {
@@ -422,7 +444,8 @@ async function waitFor(url, attempts = 120) {
 
 // A preview or Storybook left over from another run would serve another build.
 for (const server of selected.filter((one) => one.kind === 'server' && inMode(one))) {
-  if (await answers(server.url)) usage(`${server.url} already answers. Stop that server (or the other ci:parity run) first.`);
+  // Any HTTP response occupies the port; readiness below still requires 2xx.
+  if (await answers(server.url, false)) usage(`${server.url} already answers. Stop that server (or the other ci:parity run) first.`);
 }
 
 mkdirSync(LOG_DIR, { recursive: true });
@@ -433,6 +456,8 @@ function writeSummary(stopped) {
   const count = (result) => rows.filter((row) => row.result === result).length;
   const summary = {
     mode: MODE,
+    previewPort: PREVIEW_PORT,
+    previewUrl: PREVIEW_URL,
     only: ONLY ?? null,
     complete: finished && !stopped,
     stopped: stopped ?? null,
