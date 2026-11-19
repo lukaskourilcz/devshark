@@ -3,6 +3,28 @@ import { Button } from '@astryxdesign/core/Button';
 import { useT } from '../i18n/LanguageContext';
 import { CloseIcon } from './ui/icons';
 
+/** Layout visibility, not offsetParent: the drawer itself is fixed-position. */
+function visibleTarget(element: HTMLElement | null): element is HTMLElement {
+  return Boolean(element?.isConnected && element.getClientRects().length > 0 &&
+    getComputedStyle(element).visibility !== 'hidden' && !element.closest('[inert]') &&
+    !element.matches(':disabled'));
+}
+
+function restoreDrawerFocus(panel: HTMLElement, opener: HTMLElement | null) {
+  if (visibleTarget(opener)) {
+    opener.focus({ preventScroll: true });
+    return;
+  }
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && active !== document.body &&
+      !panel.contains(active) && visibleTarget(active)) return;
+  [
+    document.querySelector<HTMLElement>('nav.ss-nav-center a[aria-current="page"]'),
+    document.querySelector<HTMLElement>('header.ss-header a.ss-header-brand'),
+    document.getElementById('main-content'),
+  ].find(visibleTarget)?.focus({ preventScroll: true });
+}
+
 /** Both the cold menu and its loaded renderer keep the same modal contract. */
 export function useDrawerFocus(
   open: boolean,
@@ -12,12 +34,14 @@ export function useDrawerFocus(
 ) {
   useEffect(() => {
     const panel = panelRef.current;
-    if (!open || !panel) return;
+    if (!open || !panel || !visibleTarget(panel)) return;
     const focusables = () => Array.from(panel.querySelectorAll<HTMLElement>(
       'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    )).filter((element) => element.offsetParent !== null);
+    )).filter(visibleTarget);
     (focusables()[0] ?? panel).focus();
     const onKey = (event: KeyboardEvent) => {
+      // CSS can hide the panel before React processes the media-query change.
+      if (!visibleTarget(panel)) return;
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
@@ -39,7 +63,7 @@ export function useDrawerFocus(
     document.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('keydown', onKey);
-      if (opener?.isConnected) opener.focus();
+      restoreDrawerFocus(panel, opener);
     };
   }, [open, panelRef, opener, onClose]);
 }

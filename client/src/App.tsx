@@ -4,7 +4,7 @@ import { Routes, Route, Link, Navigate, useLocation, useNavigate, useNavigationT
 import { Button } from '@astryxdesign/core/Button';
 import { IconButton as AxIconButton } from '@astryxdesign/core/IconButton';
 import { AppToast } from './components/ui/AppToast';
-import { useIsMobile } from './lib/useMediaQuery';
+import { useIsMobile, useMediaQuery } from './lib/useMediaQuery';
 import './styles/app-shell.css';
 import './styles/route-transition.css';
 import { MobileNavigationStatus } from './components/MobileNavigationStatus';
@@ -301,6 +301,12 @@ function App() {
   const [drawerRequested, setDrawerRequested] = useState(false);
   const drawerOpener = useRef<HTMLElement | null>(null);
   const closeMobileNav = useCallback(() => setMobileNavOpen(false), []);
+  const desktopNav = useMediaQuery('(min-width: 1024px)');
+  useEffect(() => {
+    if (!desktopNav) return;
+    closeMobileNav();
+    setDrawerRequested(false);
+  }, [desktopNav, closeMobileNav]);
   const { user, isLoading: authLoading, signInResumeFailed, passwordRecovery, draftsKept, dismissDraftsKept } = useAuth();
   const [signupBonusOpen, setSignupBonusOpen] = useState(false);
   // A sign-in pressed before a reload (lib/auth.tsx) failed in this document,
@@ -549,8 +555,8 @@ function App() {
             {/* Left slot: mobile menu + logo. Flex-basis 0 so all three slots
                 share width equally, keeping the centre slot truly centred. */}
             <div className="ss-slot">
-              {/* Nav links appear from 760px (tablets), not MUI's 900px `md`,
-                  so a 768px iPad doesn't get a mostly-empty toolbar. */}
+              {/* The drawer serves widths below the shared 1024px nav
+                  breakpoint; inline links take over from that width. */}
               <span className="ss-show-mobile" style={{ marginRight: 4 }}>
                 <AxIconButton
                   variant="ghost"
@@ -568,7 +574,7 @@ function App() {
             </div>
 
             {/* Centre slot: primary nav links, perfectly centred between logo
-                and auth widget from 760px up. Below that, the drawer. */}
+                and auth widget from 1024px up. Below that, the drawer. */}
             <nav className="ss-nav-center">
               {primaryNavItems.map((item) => (
                 <Link
@@ -588,7 +594,7 @@ function App() {
                 the auth widget. On mobile the sound/theme toggles live in the
                 nav drawer (not here), so they never crowd the account avatar. */}
             <div className="ss-slot ss-slot-end">
-              {/* Icon links to the non-learning surfaces. Hidden below 760px —
+              {/* Icon links to the non-learning surfaces. Hidden below 1024px —
                   the drawer covers them there. 44×44 like every other page
                   control, with 20px glyphs and 4px apart (UX audit
                   shell-public-10): they were 28px ghost buttons 2px apart
@@ -652,7 +658,7 @@ function App() {
             </div>
           </div>
         </header>
-        {drawerRequested && <Suspense fallback={<MobileNavigationStatus open={mobileNavOpen} opener={drawerOpener.current} onClose={closeMobileNav} />}>
+        {drawerRequested && !desktopNav && <Suspense fallback={<MobileNavigationStatus open={mobileNavOpen} opener={drawerOpener.current} onClose={closeMobileNav} />}>
           <ShellPartBoundary fallback={(retry, busy) => <MobileNavigationStatus open={mobileNavOpen} opener={drawerOpener.current} onClose={closeMobileNav} retry={retry} busy={busy} />}>
             <MobileNavigation open={mobileNavOpen} opener={drawerOpener.current} onClose={closeMobileNav}>
               <Link
