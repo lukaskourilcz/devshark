@@ -206,7 +206,7 @@ export function summaries(rows) {
 }
 export async function main(config, root = process.cwd()) {
   assertInventory(root); // before any connection or compilation
-  if (config.local) return (await import('./perf-cold-import.mjs')).localImports(config, root);
+  if (config.local) return (await import('./perf-cold-import.mjs')).localImports(config, root, { probes: PROBES, summarize: summaries });
   const rows = []; let stopped = false;
   for (const id of config.ids) for (let sample = 0; sample < config.samples; sample++) {
     const probe = PROBES.find(candidate => candidate.id === id);

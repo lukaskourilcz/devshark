@@ -6,13 +6,12 @@ import { arch, cpus, platform } from 'node:os';
 import { dirname, join } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { fileURLToPath } from 'node:url';
-import { PROBES, summaries } from './perf-cold-start.mjs';
 import { bundleColdEntry } from './cold-start-bundle.mjs';
 
 export const F7_MARKERS = ['lib/rewards/handlers.ts', 'lib/learning-paths/catalog.ts', 'lib/learning-paths/content/fde.ts', 'lib/learning-paths/validate.ts', 'lib/coding/active.ts', 'lib/coding/ts-check-pool.ts', 'lib/coding/solutions/index.ts', 'lib/learning-paths/handlers.ts', 'lib/learn-lessons/serve.ts', 'lib/learn-lessons/index.ts'];
 const worker = join(dirname(fileURLToPath(import.meta.url)), 'perf-cold-import-worker.cjs');
 const hash = file => createHash('sha256').update(readFileSync(file)).digest('hex');
-export async function localImports(config, root) {
+export async function localImports(config, root, { probes, summarize }) {
   // Reuse the established CommonJS/packages-external compilation boundary.
   const { version: esbuildVersion } = await import('esbuild');
   const parent = join(root, 'node_modules/.cache/shark');
@@ -22,7 +21,7 @@ export async function localImports(config, root) {
   const markers = config.markers ? F7_MARKERS : [];
   try {
     for (const id of config.ids) {
-      const probe = PROBES.find(item => item.id === id);
+      const probe = probes.find(item => item.id === id);
       const artifact = join(owned, `${id}.cjs`);
       const compileStarted = performance.now();
       try { await bundleColdEntry(probe.file, artifact, markers, root, true); }
@@ -44,6 +43,6 @@ export async function localImports(config, root) {
         rows.push({ handler: id, sample, childProcessWallMs, ...(child.status === 0 && shape ? value : { ok: false, error: child.error?.code === 'ETIMEDOUT' ? 'child_timeout' : 'child_result_invalid' }) });
       }
     }
-    return { mode: 'fresh-process-cjs-import-proxy', rows, artifacts, summary: summaries(rows), totals: { planned: config.ids.length * config.samples, attempted: rows.filter(row => row.error !== 'compile_failed').length, sent: 0, skipped: rows.filter(row => row.error === 'compile_failed').length }, compilation: { esbuildVersion, target: 'shared helper default; no override', bundle: true, platform: 'node', format: 'cjs', packages: 'external', markers }, environment: { node: process.version, platform: platform(), arch: arch(), cpu: cpus()[0]?.model ?? null, rootLockSha256: hash(join(root, 'package-lock.json')), clientLockSha256: hash(join(root, 'client/package-lock.json')), childEnvironmentKeys: ['PATH', 'NODE_ENV', 'NODE_PATH', 'TZ'] }, notes: ['Import wall/CPU/heap are sampled around require only, after network-denial setup; compilation and child-process wall are separate', 'No request handler or first business operation is invoked', 'Fresh process is a local synchronous CJS import proxy, never deployed platform boot; OS file caches are not controlled', 'Heap deltas are unforced-GC snapshots, not retained-memory or listener-leak evidence', 'Module markers change the measured artifact; compare only matching marker configurations', 'Denied transport/process attempts make the sample fail even if imported code catches the denial'] };
+    return { mode: 'fresh-process-cjs-import-proxy', rows, artifacts, summary: summarize(rows), totals: { planned: config.ids.length * config.samples, attempted: rows.filter(row => row.error !== 'compile_failed').length, sent: 0, skipped: rows.filter(row => row.error === 'compile_failed').length }, compilation: { esbuildVersion, target: 'shared helper default; no override', bundle: true, platform: 'node', format: 'cjs', packages: 'external', markers }, environment: { node: process.version, platform: platform(), arch: arch(), cpu: cpus()[0]?.model ?? null, rootLockSha256: hash(join(root, 'package-lock.json')), clientLockSha256: hash(join(root, 'client/package-lock.json')), childEnvironmentKeys: ['PATH', 'NODE_ENV', 'NODE_PATH', 'TZ'] }, notes: ['Import wall/CPU/heap are sampled around require only, after network-denial setup; compilation and child-process wall are separate', 'No request handler or first business operation is invoked', 'Fresh process is a local synchronous CJS import proxy, never deployed platform boot; OS file caches are not controlled', 'Heap deltas are unforced-GC snapshots, not retained-memory or listener-leak evidence', 'Module markers change the measured artifact; compare only matching marker configurations', 'Denied transport/process attempts make the sample fail even if imported code catches the denial'] };
   } finally { rmSync(owned, { recursive: true, force: true }); }
 }
