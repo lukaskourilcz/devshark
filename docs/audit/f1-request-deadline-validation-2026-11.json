@@ -1,0 +1,74 @@
+{
+  "status": "ACTUALLY EXECUTED local TDD and one offline TLS setup probe; no production retry by this correction executor",
+  "recordedAt": "2026-11-19T18:36:30.905302+00:00",
+  "node": "v24.22.3",
+  "cwd": "/Users/lukas/.t3/projects/devshark/react-express-app",
+  "pathPrefix": "/tmp/devshark-epic-f-handoff/node24/node_modules/.bin",
+  "baseHead": "dfcafcffe0c8f149f45152b744652f94bb610c93",
+  "redHead": "503bc0fce725ac8c40104c42e8f622a18aa85696",
+  "fixHead": "6d46789aad4e322af9d7dabdd05ae529fa5caf6e",
+  "cleanWorktreeObservedBeforeReleasingRuntime": true,
+  "commands": [
+    {
+      "command": "node --test --test-name-pattern='live monotonic request deadline' scripts/test-perf-tools.mjs",
+      "phase": "red",
+      "exitCode": 1,
+      "pass": 1,
+      "fail": 3,
+      "log": "actual-red-node24.log"
+    },
+    {
+      "command": "node --test --test-name-pattern='live monotonic request deadline' scripts/test-perf-tools.mjs",
+      "phase": "green",
+      "exitCode": 0,
+      "pass": 4,
+      "fail": 0,
+      "log": "actual-focused-green-node24.log"
+    },
+    {
+      "command": "node --test scripts/test-perf-tools.mjs",
+      "exitCode": 0,
+      "pass": 68,
+      "fail": 0,
+      "skip": 0,
+      "log": "actual-full-perf-tools-node24.log"
+    },
+    {
+      "command": "npm run typecheck:scripts",
+      "exitCode": 0,
+      "log": "actual-scripts-types-node24.log"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "node /tmp/devshark-epic-f-handoff/f1-request-deadline-draft-dfcafcff/offline-tls-setup-probe.mjs /tmp/devshark-epic-f-handoff/f1-request-deadline-draft-dfcafcff/actual-offline-tls-node24.json",
+      "exitCode": 0,
+      "executionCount": 1,
+      "report": "actual-offline-tls-node24.json"
+    }
+  ],
+  "preservation": {
+    "allSourceOutsideRawBundleResponseByteIdentical": true,
+    "defaultInitialRequestsAndMeasureBuildByteIdentical": true,
+    "budgetFileByteIdentical": true,
+    "limitsUnchanged": true,
+    "onlyAuthorizedSourceFilesChanged": [
+      "scripts/test-perf-tools.mjs",
+      "scripts/check-bundle.mjs"
+    ],
+    "actualSourcesEqualFrozenProposed": true
+  },
+  "productionObservation": {
+    "newRequestsByThisCorrectionExecutor": 0,
+    "originalAttempted": 3,
+    "originalSent": 3,
+    "originalComplete": false,
+    "priorFirstRowElapsedMs": 29443.519334,
+    "priorTotalElapsedMs": 30002.009040999998,
+    "cause": "Not established. Offline TLS context creation did not reproduce the delay.",
+    "immutableInputPath": "/tmp/devshark-epic-f-handoff/f1-execution-8d1de23d/production-bundle-live-partial.json"
+  },
+  "packagingNote": "A guard rejected the first packaging attempt because the normal mutable bundle-live.json had already been replaced by a newer complete parent observation. This final package uses the independently saved original partial report, verifies its producer hash and 3/3 incomplete counters, and does not attribute the newer parent observation to this correction executor."
+}

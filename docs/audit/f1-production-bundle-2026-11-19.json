@@ -1,0 +1,211 @@
+{
+  "status": "COMPLETE_ACTUAL_OBSERVATION_AFTER_TESTED_DEADLINE_FIX",
+  "command": "npm run check:bundle -- --url=https://devshark.app",
+  "toolHead": "6d46789aad4e322af9d7dabdd05ae529fa5caf6e",
+  "exitCode": 0,
+  "rawReportSha256": "a89eee7f9a6595b431fe8c1ab2986317dff4b73d2bcc79743d23aee757016506",
+  "deploymentCorroboration": {
+    "observedAt": "2026-11-19 18:35:08 UTC",
+    "id": "dpl_Efb7TFTrUEyYUqSebQWv3ccv6zve",
+    "url": "react-express-idzhrango-lukas-kourils-projects.vercel.app",
+    "state": "READY",
+    "target": "production",
+    "regions": [
+      "arn1"
+    ],
+    "alias": [
+      "devshark.app",
+      "react-express-app-five.vercel.app",
+      "react-express-app-lukas-kourils-projects.vercel.app",
+      "react-express-app-git-main-lukas-kourils-projects.vercel.app"
+    ],
+    "githubCommitSha": "cbdfa2aa995e7dd71c7d0197fee7f35df21ca205"
+  },
+  "report": {
+    "mode": "live-transfer",
+    "complete": true,
+    "origin": "https://devshark.app",
+    "observedAt": "2026-11-19T18:35:08.850Z",
+    "node": "v24.22.3",
+    "scope": "Anonymous sequential GETs of document and HTML-linked public initial scripts/modulepreloads/styles/preloaded fonts only. Encoded HTTP body bytes exclude headers, chunk framing, TLS and browser-only dynamic/CSS discoveries. No redirects, retries, cookies or authorization.",
+    "scriptSha256": "61367c5c553f9a067cc3a0504a8bcea3b507190be2459489ed8463037fae2d7e",
+    "budgetSha256": "7b781a2bbd34f58b99649790da1117199ad40513782db1b92dd97243832015ca",
+    "localGzipBudgetReference": 218675,
+    "budgetApplied": false,
+    "limits": {
+      "assets": 32,
+      "encoded": 8388608,
+      "decoded": 8388608,
+      "totalEncoded": 33554432,
+      "totalDecoded": 67108864,
+      "html": 1048576,
+      "requestMs": 15000,
+      "totalMs": 30000
+    },
+    "deployment": {
+      "id": null,
+      "sha": null,
+      "source": "Not established by this transfer observation; only returned response/cache/request headers are retained."
+    },
+    "requestsPlanned": 5,
+    "requestsAttempted": 5,
+    "requestsSent": 5,
+    "rows": [
+      {
+        "path": "/",
+        "requestSent": true,
+        "status": 200,
+        "headers": {
+          "content-type": "text/html; charset=utf-8",
+          "content-encoding": "br",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "etag": "W/\"e6335a1dd246b061fc1d18be03e459ed\"",
+          "last-modified": "Thu, 19 Nov 2026 17:19:07 GMT",
+          "x-vercel-cache": "HIT",
+          "x-vercel-id": "fra1::gcqxf-1795113309107-86937cfbb331",
+          "date": "Thu, 19 Nov 2026 18:35:09 GMT"
+        },
+        "receivedBodyBytes": 1811,
+        "elapsedMs": 236.366792,
+        "error": null,
+        "kind": "document",
+        "transferredBytes": 1811,
+        "decodedBytes": 4656,
+        "decodedGzip6Bytes": 1751,
+        "encodedSha256": "2a933a24cd5eed3b3f271840084f8224602df0b433bd985637fe6fdc9ea2de67",
+        "decodedSha256": "a7ac182a0d55e800bf3109d25c0c1612dee26538591f31b415502bdd5c954b68",
+        "encoding": "br"
+      },
+      {
+        "path": "/assets/main-BI4UW2Ue.js",
+        "requestSent": true,
+        "status": 200,
+        "headers": {
+          "content-type": "application/javascript; charset=utf-8",
+          "content-encoding": "br",
+          "cache-control": "public, max-age=31536000, immutable",
+          "etag": "W/\"24b11c0038a110eeb38a85f3d7274aae\"",
+          "last-modified": "Thu, 19 Nov 2026 17:19:08 GMT",
+          "x-vercel-cache": "HIT",
+          "x-vercel-id": "fra1::58679-1795113309235-4eb3b3ead776",
+          "date": "Thu, 19 Nov 2026 18:35:09 GMT"
+        },
+        "receivedBodyBytes": 107727,
+        "elapsedMs": 151.341,
+        "error": null,
+        "kind": "script",
+        "transferredBytes": 107727,
+        "decodedBytes": 321127,
+        "decodedGzip6Bytes": 106268,
+        "encodedSha256": "8d3b01a7394b7f17ab04efad7ff8752c84a32b2312f87e2b6692234934e3c6d7",
+        "decodedSha256": "cb68ff7afdbf3600293eded8199cecefcbb4684cf39bb4f397e1f00a026a446c",
+        "encoding": "br"
+      },
+      {
+        "path": "/assets/react-Cvu_Vp9I.js",
+        "requestSent": true,
+        "status": 200,
+        "headers": {
+          "content-type": "application/javascript; charset=utf-8",
+          "content-encoding": "br",
+          "cache-control": "public, max-age=31536000, immutable",
+          "etag": "W/\"1d02178b132828b526fdbf210de57493\"",
+          "last-modified": "Thu, 19 Nov 2026 17:19:08 GMT",
+          "x-vercel-cache": "HIT",
+          "x-vercel-id": "fra1::2dgk5-1795113309385-0eb7f8044816",
+          "date": "Thu, 19 Nov 2026 18:35:09 GMT"
+        },
+        "receivedBodyBytes": 76841,
+        "elapsedMs": 137.74762499999997,
+        "error": null,
+        "kind": "script",
+        "transferredBytes": 76841,
+        "decodedBytes": 233608,
+        "decodedGzip6Bytes": 74807,
+        "encodedSha256": "811376ac977fbab588de2b6c23aa868379b8bb89aa1fb9ee4de7bd692a2b0b9d",
+        "decodedSha256": "a4fb0a01114ff12a7d8ada11598aae19f2af55c02d33d4c29969ee47e2a5ca4b",
+        "encoding": "br"
+      },
+      {
+        "path": "/assets/tanstack-BZh9zEA-.js",
+        "requestSent": true,
+        "status": 200,
+        "headers": {
+          "content-type": "application/javascript; charset=utf-8",
+          "content-encoding": "br",
+          "cache-control": "public, max-age=31536000, immutable",
+          "etag": "W/\"469355c02b93f76a9eb16410045085e8\"",
+          "last-modified": "Thu, 19 Nov 2026 18:35:09 GMT",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "fra1::pbsbc-1795113309536-e77a28c0ba63",
+          "date": "Thu, 19 Nov 2026 18:35:09 GMT"
+        },
+        "receivedBodyBytes": 13709,
+        "elapsedMs": 367.45120900000006,
+        "error": null,
+        "kind": "script",
+        "transferredBytes": 13709,
+        "decodedBytes": 43513,
+        "decodedGzip6Bytes": 12989,
+        "encodedSha256": "10a8a36f4583b7e27784b897b12fc09f69f581dcc0a29b0b15e3272d5b4010f4",
+        "decodedSha256": "3b689716bfb341ff516863efa51a9087eab48ef4f176b28fa0a891a3fcab3a73",
+        "encoding": "br"
+      },
+      {
+        "path": "/assets/main-CZGD7IdB.css",
+        "requestSent": true,
+        "status": 200,
+        "headers": {
+          "content-type": "text/css; charset=utf-8",
+          "content-encoding": "br",
+          "cache-control": "public, max-age=31536000, immutable",
+          "etag": "W/\"3556fe3809d46eeb3e4e2b292d6dcbb7\"",
+          "last-modified": "Thu, 19 Nov 2026 18:35:10 GMT",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "fra1::2dgk5-1795113309897-b8de64663034",
+          "date": "Thu, 19 Nov 2026 18:35:10 GMT"
+        },
+        "receivedBodyBytes": 25809,
+        "elapsedMs": 258.19329200000004,
+        "error": null,
+        "kind": "style",
+        "transferredBytes": 25809,
+        "decodedBytes": 126475,
+        "decodedGzip6Bytes": 24633,
+        "encodedSha256": "e034b16d6820fc0afd696da9093d2f91d47f23dc71e1f8cee4a10391f0505e93",
+        "decodedSha256": "7f25942166f3509d6db4a900b1a53f4cade587334b44f9089b9cdad8a7858f46",
+        "encoding": "br"
+      }
+    ],
+    "excludedReferences": {},
+    "error": null,
+    "totals": {
+      "initialTransferredBytes": 224086,
+      "initialDecodedGzip6Bytes": 218697,
+      "preloadedFontTransferredBytes": 0,
+      "documentTransferredBytes": 1811,
+      "receivedBodyBytes": 225897,
+      "decodedBytes": 729379,
+      "completeBodiesOnly": true
+    },
+    "completedAt": "2026-11-19T18:35:10.034Z",
+    "elapsedMs": 1184.5959169999999
+  },
+  "localComparison": {
+    "checkpoint": "d09ec769",
+    "initialGzip6Bytes": 218661,
+    "gate": 218675,
+    "actualProductionDecodedGzip6Bytes": 218697,
+    "differenceFromLocalBytes": 36,
+    "differenceFromLocalGateBytes": 22,
+    "onlyDifferingChunk": "main script: production106268 vs shaped106232 gzip6 bytes",
+    "gateAppliedToProduction": false,
+    "note": "The configured gate runs on the local public-placeholder build. Production uses real public build configuration and a different main asset hash; environment compression is a plausible explanation for the36-byte difference, not independently proven here."
+  },
+  "limits": [
+    "Encoded HTTP body bytes exclude headers, framing and TLS.",
+    "Document1811B is separate from224086B initial assets; total observed complete bodies225897B.",
+    "No CSS recursion, dynamic imports, page rendering, cache population, API, auth, cookies, redirects or retries are selected by this observation.",
+    "This success does not attribute or erase the earlier29.4-second delay."
+  ]
+}

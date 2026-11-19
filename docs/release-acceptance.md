@@ -8146,3 +8146,45 @@ regression and minimal monotonic-deadline fix are required before another
 observation. No retry or cap relaxation occurred. The partial ledger now has
 149 declared request counts and156 known completed response observations;
 older incomplete/approximate history stays separate. F1-23 remains incomplete.
+
+
+## Epic F1 raw production baseline and deadline correction (19 November 2026)
+
+F1-23 now has a complete actual observation at tool head `6d46789a`,
+18:35:08–18:35:10 UTC: five planned/attempted/locally-finished GETs, five
+complete HTTP200 bodies, elapsed1,184.6ms. No retry, redirect, API, auth or
+cookie was selected. A separately queried READY production alias still maps
+to merged main cbdfa2aa. `docs/audit/f1-production-bundle-2026-11-19.json`
+retains exact body/cache/header/hash rows and that separate corroboration.
+
+| Scope | Actual bytes |
+| --- | ---: |
+| Initial JavaScript/CSS, raw Brotli bodies | 224,086 |
+| Document, raw Brotli body | 1,811 |
+| Total five observed encoded bodies | 225,897 |
+| Initial assets decoded then gzip6 | 218,697 |
+| Preloaded fonts | 0 |
+
+The decoded/recompressed production graph is36bytes above the shaped local
+218,661 checkpoint, all in the differently hashed main script. It is22bytes
+above the local218,675 reference; the live tool applies no budget gate.
+Different real/public-placeholder build values plausibly explain this small
+difference, but that cause is not independently established. Preserve these
+actual values without raising the local cap or relabelling wire bytes as gzip.
+
+The genuine timer regression is fixed separately: `503bc0fc` records three
+late-success failures and one healthy control; `6d46789a` passes all four,
+the complete68-case tool suite and scripts typing. The existing15s/30s and
+byte/header caps remain. Timing begins before synchronous client setup and
+monotonic gates reject expired setup/callbacks even when a timer cannot
+preempt blocked native work. Original graph/build function bodies remain
+byte-identical. The offline fresh-child TLS probe makes no HTTP/DNS request
+and does not reproduce or attribute the earlier delay (firstcontext1.545ms).
+`docs/audit/f1-request-deadline-validation-2026-11.json` preserves actual checks.
+
+The earlier failed3-attempt run is retained independently. The two raw runs
+make8 attempts/7 completed responses, including one unknown response. The
+selected later ledger now contains154 declared counts,161 known completed
+response observations and56 explicitly instrumented attempts; the older
+approximate/incomplete history remains separate. Production browser
+calibration and complete branch parity/required CI remain pending.

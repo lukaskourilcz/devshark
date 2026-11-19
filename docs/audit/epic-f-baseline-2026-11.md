@@ -14,7 +14,7 @@ credential or real provider is needed for those local builds.
 
 | Measurement category | Actual evidence | Remaining boundary |
 | --- | --- | --- |
-| Initial graph | [Shaped bundle](f1-bundle-2026-11.json): four initial files, 218,661 gzip bytes / 218,675 cap, no preloaded fonts; matching monitoring 46,800 / 60,000. | New local checkpoint, not a recreated original `a9882348` observation. Raw production transfer F1-23 is unmeasured. |
+| Initial graph | [Shaped bundle](f1-bundle-2026-11.json): four initial files, 218,661 gzip bytes / 218,675 cap, no preloaded fonts; matching monitoring 46,800 / 60,000. | New local checkpoint, not a recreated original `a9882348` observation. [Actual production transfer](f1-production-bundle-2026-11-19.json) records five complete bodies, 225,897 encoded bytes including HTML; the earlier partial run remains separate. |
 | Largest chunks and treemap | The same artifact retains all ten largest of 233 chunks and hashes of the matching generated treemap/module report, saved with the external execution logs. | Lazy compiler/editor chunks are separate from initial bytes. Per-module gzip estimates do not add up to whole-file gzip. |
 | Lighthouse and CDP | Existing F3 Home comparisons retain their own source/build/state provenance. | The eight-route mobile/desktop matrix is pending. Production browser calibration F1-45 is unmeasured. A static preview's error state is not populated API acceptance. |
 | Handler entry and imports | [Complete handler baseline](f1-handler-baseline-2026-11-19.json): actual merged-F7 production 36 read/refusal responses, and two original twelve-handler local import checkpoints with 36 samples each. | Local CJS imports are not deployed Lambda inventory, platform boot, retained memory or authorized learner-operation timing. Slower rows and unknown module markers remain. |
@@ -26,8 +26,8 @@ credential or real provider is needed for those local builds.
 ## Request scope and missing historical baseline
 
 [The partial ledger](f1-production-request-ledger-2026-11-19.json) reconciles
-146 declared request counts and 154 known completed response observations in
-the selected 19 November evidence. Only F7's 48 responses carry explicit
+154 declared request counts and 161 known completed response observations in
+the selected 19 November evidence. F7's 48 attempts and both later raw-transfer runs' eight attempts carry explicit
 attempt counters in that selected set. Earlier canonical evidence separately
 reports about 290 requests without a raw exact ledger. It is not valid to add
 that approximation to exact rows, reset the counter or infer remaining
@@ -37,8 +37,8 @@ NEEDED.md records the reversible local eight-route choice and the explicitly
 authorized small production Home calibration. The earlier no-more-probes
 choice inferred an owner gate from contradictory historical under-250 wording;
 review of the original brief corrected that interpretation. Raw production
-transfer and browser calibration are still pending collection; they are not
-zero. Every new attempt must be counted with its own scope and bounds. The missing original pre-fix
+transfer is now recorded after its genuine deadline correction; browser
+calibration is still pending collection, not zero. Every new attempt must be counted with its own scope and bounds. The missing original pre-fix
 timing cannot be recreated as an observation from its original date or SHA.
 These gaps keep #630 open even after eligible tool and evidence work lands.
 
