@@ -28,8 +28,8 @@ test('F14: two workers shard complete viewport groups without changing geometry 
   assert.deepEqual(parallel.routes, ordinary.routes);
   assert.deepEqual(parallel.viewports, ordinary.viewports);
   assert.deepEqual(parallel.shards, [
-    { worker: 1, viewportLabels: ['390@200%', '1280@200%'], probes: 6 },
-    { worker: 2, viewportLabels: ['768@200%'], probes: 3 },
+    { worker: 1, viewportLabels: ordinary.viewports.filter((_, index) => index % 2 === 0).map(({ label }) => label), probes: 6 },
+    { worker: 2, viewportLabels: [ordinary.viewports[1].label], probes: 3 },
   ]);
 });
 

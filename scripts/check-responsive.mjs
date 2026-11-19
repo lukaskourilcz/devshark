@@ -23,6 +23,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CLEARANCE, TOUCH_TARGETS } from './responsive-clearance.mjs';
 import { closeBrowserProcess } from './responsive-browser-process.mjs';
+import { runViewportWorkers, viewportShards } from './responsive-workers.mjs';
 
 const CHROME_CANDIDATES = [
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -290,6 +291,14 @@ function normalizeRoute(route) {
 class UsageError extends Error {}
 
 function selectedMatrix() {
+  const workerText = optionValue('--workers') ?? (process.env.RESPONSIVE_WORKERS || '1');
+  if (!['1', '2'].includes(workerText) || (process.argv.includes('--workers') && optionValue('--workers') === undefined)) {
+    throw new UsageError(`Invalid responsive workers: ${workerText}. Use 1 or 2.`);
+  }
+  const workers = Number(workerText);
+  const portText = process.env.RESPONSIVE_DEBUG_PORT || '0';
+  if (!/^\d+$/.test(portText) || Number(portText) > 65535) throw new UsageError(`Invalid responsive debug port: ${portText}. Use 0 or an integer from 1 through 65535.`);
+  if (workers > 1 && Number(portText) !== 0) throw new UsageError('A fixed RESPONSIVE_DEBUG_PORT cannot be shared by multiple workers. Remove it or use 0 for ephemeral ports.');
   const authMode = optionValue('--auth') ?? (process.env.RESPONSIVE_AUTH || 'signed-in');
   if (!['signed-in', 'guest'].includes(authMode)) throw new UsageError(`Invalid responsive auth mode: ${authMode}. Use signed-in or guest.`);
   const zoomText = optionValue('--zoom') ?? (process.env.RESPONSIVE_ZOOM || '100');
@@ -316,7 +325,7 @@ function selectedMatrix() {
   if (unsupported?.length) {
     throw new UsageError(`Unsupported responsive width(s): ${unsupported.join(', ')}. Use one of: ${DEFAULT_VIEWPORTS.map(({ width }) => width).join(', ')}.`);
   }
-  return { routes, zoom, authMode, viewports: viewports.map((viewport) => ({
+  return { routes, zoom, authMode, workers, viewports: viewports.map((viewport) => ({
     ...viewport,
     physicalWidth: viewport.width,
     physicalHeight: viewport.height,
@@ -343,15 +352,19 @@ Options:
   --print-matrix      Print the selected route and viewport inventory as JSON
   --zoom <percent>    Reflow at 100, 200 or 400 percent (RESPONSIVE_ZOOM)
   --auth <mode>       Local signed-in fixture (default) or guest
+  --workers <count>   Independent browser sessions: 1 (default) or 2
   --help              Show this help
 
 The same settings are available through RESPONSIVE_ROUTES,
 RESPONSIVE_WIDTHS, RESPONSIVE_BASE_URL, RESPONSIVE_OUTPUT_DIR,
+RESPONSIVE_WORKERS (1 or 2; CLI overrides),
 RESPONSIVE_BLOCK_EXTERNAL=1 (or --block-external) to block the webfont
 hosts on a runner without outbound network, and RESPONSIVE_THEME=dark to
 sweep the other theme. A route under /not-found-… is expected to render the
 not-found page; every other route must not.
-Failure screenshots use a temporary directory by default.`);
+Failure screenshots use a temporary directory by default. Chrome chooses an
+ephemeral debug port per session. RESPONSIVE_DEBUG_PORT can set a fixed port
+only for a single worker; 0 keeps ephemeral ports.`);
   console.log('Zoom profiles keep the physical viewport and image pixel dimensions, shrink the CSS viewport and increase device pixel density. At 400 percent, 1280px becomes 320 CSS pixels. This synthetic full-page zoom does not establish physical-device keyboard behavior.');
 }
 
@@ -360,9 +373,12 @@ Failure screenshots use a temporary directory by default.`);
 // route costs one route rather than the run.
 const CALL_TIMEOUT_MS = 30000;
 
-async function waitFor(predicate, { timeout = 15000, interval = 200 } = {}) {
+async function waitFor(predicate, { timeout = 15000, interval = 200, signal, failure } = {}) {
   const start = Date.now();
   while (Date.now() - start < timeout) {
+    signal?.throwIfAborted();
+    const error = failure?.();
+    if (error) throw error;
     try {
       if (await predicate()) return true;
     } catch {
@@ -373,8 +389,9 @@ async function waitFor(predicate, { timeout = 15000, interval = 200 } = {}) {
   throw new Error(`waitFor timed out after ${timeout}ms`);
 }
 
-async function getJSON(url) {
-  const res = await fetch(url);
+async function getJSON(url, signal) {
+  const timeout = AbortSignal.timeout(5000);
+  const res = await fetch(url, { signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   return res.json();
 }
@@ -382,6 +399,12 @@ async function getJSON(url) {
 function rpc(ws) {
   let id = 1;
   const pending = new Map();
+  const rejectPending = () => {
+    for (const { reject } of pending.values()) reject(new Error('Chrome DevTools socket closed'));
+    pending.clear();
+  };
+  ws.addEventListener('close', rejectPending);
+  ws.addEventListener('error', rejectPending);
   ws.addEventListener('message', (event) => {
     const msg = JSON.parse(String(event.data));
     if (msg.id && pending.has(msg.id)) {
@@ -410,7 +433,8 @@ function rpc(ws) {
         fn(value);
       };
       pending.set(reqId, { resolve: settle(resolve), reject: settle(reject) });
-      ws.send(JSON.stringify({ id: reqId, method, params }));
+      try { ws.send(JSON.stringify({ id: reqId, method, params })); }
+      catch (error) { pending.delete(reqId); clearTimeout(timer); reject(error); }
     });
 }
 
@@ -623,10 +647,6 @@ async function screenshot(call, outDir, name) {
   return file;
 }
 
-// Bumped per launch so a relaunch never reuses the port a wedged browser may
-// still be holding.
-let browserGeneration = 0;
-
 /**
  * Start a browser and connect to its page target.
  *
@@ -636,10 +656,11 @@ let browserGeneration = 0;
  * remaining route goes unmeasured. Relaunching costs a couple of seconds and
  * recovers the rest of the sweep, which is worth far more than the seconds.
  */
-async function openBrowser(seed, baseUrl, authMode) {
+async function openBrowser(seed, baseUrl, authMode, signal) {
+  signal?.throwIfAborted();
+  const chromeBinary = resolveChrome();
   const userData = mkdtempSync(path.join(tmpdir(), 'shark-responsive-profile-'));
-  const debugPort = Number.parseInt(process.env.RESPONSIVE_DEBUG_PORT ?? '', 10)
-    || 9300 + ((process.pid + browserGeneration++) % 500);
+  let debugPort = Number(process.env.RESPONSIVE_DEBUG_PORT || 0);
   const chromeArgs = [
     '--headless=new',
     '--disable-gpu',
@@ -650,31 +671,52 @@ async function openBrowser(seed, baseUrl, authMode) {
     'about:blank',
   ];
   if (IS_LINUX) chromeArgs.unshift('--no-sandbox', '--disable-dev-shm-usage');
-  const chrome = spawn(resolveChrome(), chromeArgs, { stdio: ['ignore', 'pipe', 'pipe'] });
+  const chrome = spawn(chromeBinary, chromeArgs, { stdio: ['ignore', 'pipe', 'pipe'] });
 
   let devtoolsSocket;
   let closed = false;
+  let launchError;
+  const removeProfile = () => { try { rmSync(userData, { recursive: true, force: true }); } catch { /* ignore */ } };
+  chrome.once('error', (error) => { launchError = error; });
+  chrome.once('exit', (code, signal) => { if (!closed) launchError = new Error(`Chrome exited before shutdown (${signal ?? code})`); });
+  // The child can still finish filesystem work after kill(). Remove again
+  // once its pipes close so a restart does not leave a profile behind.
+  chrome.once('close', removeProfile);
   const close = () => {
     if (closed) return;
     closed = true;
+    signal?.removeEventListener('abort', close);
     // Release the control socket explicitly before shutting down its peer.
     try { devtoolsSocket?.close(); } catch { /* ignore */ }
     closeBrowserProcess(chrome);
-    try { rmSync(userData, { recursive: true, force: true }); } catch { /* ignore */ }
+    removeProfile();
   };
+  signal?.addEventListener('abort', close, { once: true });
 
   try {
+    // Port 0 belongs to this unique Chrome profile. Reading its own file also
+    // prevents connecting to another check's stale or concurrently used port.
+    if (debugPort === 0) {
+      await waitFor(() => {
+        debugPort = Number(readFileSync(path.join(userData, 'DevToolsActivePort'), 'utf8').split('\n')[0]);
+        return Number.isInteger(debugPort) && debugPort > 0 && debugPort <= 65535;
+      }, { signal, failure: () => launchError });
+    }
     await waitFor(async () => {
-      const tabs = await getJSON(`http://127.0.0.1:${debugPort}/json`);
+      const tabs = await getJSON(`http://127.0.0.1:${debugPort}/json`, signal);
       return Array.isArray(tabs) && tabs.some((t) => t.type === 'page');
-    });
-    const tabs = await getJSON(`http://127.0.0.1:${debugPort}/json`);
+    }, { signal, failure: () => launchError });
+    const tabs = await getJSON(`http://127.0.0.1:${debugPort}/json`, signal);
     const tab = tabs.find((t) => t.type === 'page');
     const ws = devtoolsSocket = new globalThis.WebSocket(tab.webSocketDebuggerUrl);
     await new Promise((resolve, reject) => {
-      ws.addEventListener('open', resolve, { once: true });
-      ws.addEventListener('error', () => reject(new Error('Unable to connect to Chrome DevTools.')), { once: true });
+      const timeout = setTimeout(() => reject(new Error('Chrome DevTools connection timed out.')), CALL_TIMEOUT_MS);
+      const finish = (callback) => () => { clearTimeout(timeout); callback(); };
+      ws.addEventListener('open', finish(resolve), { once: true });
+      ws.addEventListener('error', finish(() => reject(new Error('Unable to connect to Chrome DevTools.'))), { once: true });
+      ws.addEventListener('close', finish(() => reject(new Error('Chrome DevTools closed during connection.'))), { once: true });
     });
+    signal?.throwIfAborted();
     const call = rpc(ws);
     await call('Page.enable');
     await call('Runtime.enable');
@@ -731,9 +773,12 @@ async function main() {
   if (typeof globalThis.WebSocket !== 'function') {
     throw new Error('Responsive checks require Node.js 22 or newer (the version declared in package.json).');
   }
-  const { routes, viewports, zoom, authMode } = selectedMatrix();
+  const { routes, viewports, zoom, authMode, workers } = selectedMatrix();
   if (process.argv.includes('--print-matrix')) {
-    console.log(JSON.stringify({ routes, viewports, zoom, authMode }, null, 2));
+    const shards = viewportShards(viewports, workers).map(({ worker, viewports: assigned }) => ({
+      worker, viewportLabels: assigned.map(({ label }) => label), probes: assigned.length * routes.length,
+    }));
+    console.log(JSON.stringify({ routes, viewports, zoom, authMode, workers, shards }, null, 2));
     return;
   }
   SERVER = await loadServerFixtures();
@@ -749,54 +794,31 @@ async function main() {
     ? `try { localStorage.setItem(${JSON.stringify(sessionKey)}, ${JSON.stringify(JSON.stringify(fixtureSession()))}); sessionStorage.setItem('devquiz:auth-reported', '1'); } catch (e) {}`
     : '';
   const seed = SEED + authSeed;
-  let session = await openBrowser(seed, baseUrl, authMode);
   console.log(`  fixture auth=${authMode}; unlisted API, Auth and external requests are blocked`);
   if (SEED) console.log(`  seeded theme=${THEME}`);
   console.log(`  zoom=${zoom}%: physical viewport to effective CSS viewport: ${viewports.map((vp) => `${vp.physicalWidth}x${vp.physicalHeight} -> ${vp.width}x${vp.height} at ${vp.deviceScaleFactor} density`).join('; ')}`);
 
-  let cleaned = false;
-  const cleanup = () => {
-    if (cleaned) return;
-    cleaned = true;
-    session.close();
-  };
+  const controller = new AbortController();
+  const cleanup = () => controller.abort();
+  const interrupt = () => { cleanup(); process.exit(130); };
+  const terminate = () => { cleanup(); process.exit(143); };
   process.on('exit', cleanup);
-  process.on('SIGINT', () => { cleanup(); process.exit(130); });
+  process.on('SIGINT', interrupt);
+  process.on('SIGTERM', terminate);
 
   try {
-    const notFoundHeading = await notFoundReference(session, baseUrl, viewports[0]);
-    const results = [];
-    for (const vp of viewports) {
-      for (const route of routes) {
-        // A route that cannot be probed is a result, not a gap. Reported as a
-        // failure and skipped, so one bad route costs its own line rather than
-        // the rest of the sweep — and never passes by being unmeasured.
-        let r;
-        try {
-          r = await probeRoute(session, baseUrl, route, vp, notFoundHeading);
-        } catch (first) {
-          // A timed-out command usually means the renderer has wedged, and a
-          // wedged renderer answers nothing again — so every route after this
-          // one would fail too. Start a fresh browser and give the route one
-          // more try; if it fails on a browser that has just started, the
-          // route is the problem rather than the browser.
-          process.stdout.write(`  ..... ${vp.label.padEnd(10)} ${route}  (restarting the browser)\n`);
-          try {
-            session.close();
-            session = await openBrowser(seed, baseUrl, authMode);
-            r = await probeRoute(session, baseUrl, route, vp, notFoundHeading);
-          } catch (second) {
-            const reason = second instanceof Error ? second.message : String(second);
-            results.push({
-              route, viewport: vp.label, error: reason, overflow: 0,
-              horizOffenders: [], parentOffenders: [], covered: [], problems: [], ready: false,
-              winW: vp.width, docW: vp.width,
-            });
-            process.stdout.write(`  ERROR ${vp.label.padEnd(10)} ${route}  (${reason})\n`);
-            continue;
-          }
+    console.log(`  workers=${workers}; viewport groups run in independent Chrome profiles`);
+    const rows = await runViewportWorkers({
+      routes, viewports, workers, signal: controller.signal,
+      openSession: (_worker, signal) => openBrowser(seed, baseUrl, authMode, signal),
+      reference: (session, vp) => notFoundReference(session, baseUrl, vp),
+      probe: (session, route, vp, heading) => probeRoute(session, baseUrl, route, vp, heading),
+      onRestart: ({ viewport: vp, route }) => process.stdout.write(`  ..... ${vp.label.padEnd(10)} ${route}  (restarting the browser)\n`),
+      onResult: async ({ result: r, error, route, viewport: vp }, session) => {
+        if (error) {
+          process.stdout.write(`  ERROR ${vp.label.padEnd(10)} ${route}  (${error})\n`);
+          return;
         }
-        results.push(r);
         const broken = r.overflow > 0 || r.parentOffenders.length > 0 || r.covered.length > 0 || r.problems.length > 0 || r.targets.violations.length > 0;
         const tag = broken ? 'FAIL' : 'OK';
         const slow = r.ready ? '' : '  (measured before load finished)';
@@ -805,9 +827,14 @@ async function main() {
           const safeRoute = route === '/' ? '_home' : route.replace(/\//g, '_');
           await screenshot(session.call, outDir, `${vp.label}_${safeRoute}.png`);
         }
-      }
-    }
-    session.close();
+      },
+    });
+    const results = rows.map(({ result, error, route, viewport: vp }) => ({
+      ...(result ?? { route, viewport: vp.label, overflow: 0,
+        horizOffenders: [], parentOffenders: [], covered: [], problems: [], ready: false,
+        winW: vp.width, docW: vp.width }),
+      ...(error ? { error } : {}),
+    }));
 
     const errored = results.filter((r) => r.error);
     const fails = results.filter((r) => r.overflow > 0 || r.parentOffenders.length > 0 || r.covered.length > 0 || r.problems.length > 0 || r.targets?.violations.length > 0);
@@ -858,6 +885,9 @@ async function main() {
     }
   } finally {
     cleanup();
+    process.removeListener('exit', cleanup);
+    process.removeListener('SIGINT', interrupt);
+    process.removeListener('SIGTERM', terminate);
   }
 }
 
