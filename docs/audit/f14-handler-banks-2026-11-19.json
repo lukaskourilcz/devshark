@@ -1,0 +1,270 @@
+{
+  "recorded": "2026-11-19T04:08:59.514Z",
+  "issue": 643,
+  "finding": "F14-09",
+  "measurementType": "Current Docker-config handler bundles versus an external build-only prototype; no optimization shipped",
+  "source": {
+    "head": "6fe446e6e01fb05930a3db6dcb03e60e56a86c11",
+    "endHead": "6fe446e6e01fb05930a3db6dcb03e60e56a86c11",
+    "dirtyAtStart": [
+      "M .claude/skills/ci-parity-and-pr/SKILL.md",
+      " M .github/workflows/quality.yml",
+      " M AGENTS.md",
+      " M docker/runtime-dependencies.test.mjs",
+      " M docs/quality/README.md",
+      " M package.json",
+      " M scripts/ci-parity.mjs",
+      " M scripts/measure-container.mjs"
+    ],
+    "inputCount": 313,
+    "snapshotSha256": "7894f4bfe0066fa4e148fdcaef076f89146ab2cf38569217206d081786582dd7",
+    "selectedInputHashes": [
+      {
+        "path": "lib/curation-registry.ts",
+        "bytes": 1206110,
+        "sha256": "928ab596e2c2fdc72479026635a0eafa74648bc582f9c6e168aab1626510b9b6"
+      },
+      {
+        "path": "lib/curation.ts",
+        "bytes": 13452,
+        "sha256": "9a1193f51c700aec733d4e5dcc3903c4323b77f8e971adde1f946f9463a98cd4"
+      },
+      {
+        "path": "lib/quiz-data.ts",
+        "bytes": 596407,
+        "sha256": "d8e020d709f3063424bbd2d098546ce3550082fb91b9288e9e6fda976d9c44f0"
+      },
+      {
+        "path": "shared/curation.ts",
+        "bytes": 19895,
+        "sha256": "68febb9b4c6fa90e2a751a9d8eecd8199efbc3da4432ab80ac08548a26b5fd04"
+      }
+    ],
+    "dockerBuildConfiguration": {
+      "path": "docker/build-handlers.mjs",
+      "bytes": 1258,
+      "sha256": "3604ea9bcbe4e166f6cedc4b87791ca36ac2ef12826f41233225758cbd7020e0",
+      "matchesMeasuredCommit": true
+    }
+  },
+  "toolVersions": {
+    "node": "v22.23.4",
+    "esbuild": "0.25.12",
+    "typescript": "5.9.3"
+  },
+  "config": {
+    "bundle": true,
+    "platform": "node",
+    "format": "cjs",
+    "target": "node24",
+    "packages": "external",
+    "minify": false,
+    "splitting": false,
+    "sourceMap": false,
+    "handlers": 12
+  },
+  "prototype": {
+    "transform": "literal coreQuestions pruned by exact existing category === code-snippets private assembly filter",
+    "transformedLoads": 1,
+    "coreBefore": 850,
+    "coreRetained": 55,
+    "coreRemovedFromOutput": 795,
+    "originalSourceBytes": 596407,
+    "prototypeSourceBytes": 44856,
+    "sourceBankDeletion": false
+  },
+  "comparisons": [
+    {
+      "handler": "admin/[op]",
+      "baselineBytes": 6096966,
+      "prototypeBytes": 5507594,
+      "savedBytes": 589372,
+      "percentSaved": 9.66664403245811,
+      "baselineBankBytesInOutput": 2602035,
+      "prototypeBankBytesInOutput": 2012663
+    },
+    {
+      "handler": "flashcards",
+      "baselineBytes": 4072002,
+      "prototypeBytes": 3482630,
+      "savedBytes": 589372,
+      "percentSaved": 14.473764993239199,
+      "baselineBankBytesInOutput": 2602035,
+      "prototypeBankBytesInOutput": 2012663
+    },
+    {
+      "handler": "health",
+      "baselineBytes": 38343,
+      "prototypeBytes": 38343,
+      "savedBytes": 0,
+      "percentSaved": 0,
+      "baselineBankBytesInOutput": 0,
+      "prototypeBankBytesInOutput": 0
+    },
+    {
+      "handler": "leaderboard",
+      "baselineBytes": 59807,
+      "prototypeBytes": 59807,
+      "savedBytes": 0,
+      "percentSaved": 0,
+      "baselineBankBytesInOutput": 0,
+      "prototypeBankBytesInOutput": 0
+    },
+    {
+      "handler": "play/[action]",
+      "baselineBytes": 4115775,
+      "prototypeBytes": 3526403,
+      "savedBytes": 589372,
+      "percentSaved": 14.319830408610771,
+      "baselineBankBytesInOutput": 2602035,
+      "prototypeBankBytesInOutput": 2012663
+    },
+    {
+      "handler": "quiz/challenge",
+      "baselineBytes": 5422152,
+      "prototypeBytes": 4832780,
+      "savedBytes": 589372,
+      "percentSaved": 10.86970634537726,
+      "baselineBankBytesInOutput": 2602035,
+      "prototypeBankBytesInOutput": 2012663
+    },
+    {
+      "handler": "quiz/daily",
+      "baselineBytes": 4096158,
+      "prototypeBytes": 3506786,
+      "savedBytes": 589372,
+      "percentSaved": 14.388409822082059,
+      "baselineBankBytesInOutput": 2602035,
+      "prototypeBankBytesInOutput": 2012663
+    },
+    {
+      "handler": "quiz/questions",
+      "baselineBytes": 10165642,
+      "prototypeBytes": 9576270,
+      "savedBytes": 589372,
+      "percentSaved": 5.797685970054818,
+      "baselineBankBytesInOutput": 2602037,
+      "prototypeBankBytesInOutput": 2012665
+    },
+    {
+      "handler": "quiz/roadmap",
+      "baselineBytes": 13177625,
+      "prototypeBytes": 12588253,
+      "savedBytes": 589372,
+      "percentSaved": 4.472520655277411,
+      "baselineBankBytesInOutput": 2602266,
+      "prototypeBankBytesInOutput": 2012894
+    },
+    {
+      "handler": "quiz/submit",
+      "baselineBytes": 4103560,
+      "prototypeBytes": 3514188,
+      "savedBytes": 589372,
+      "percentSaved": 14.36245601380265,
+      "baselineBankBytesInOutput": 2602035,
+      "prototypeBankBytesInOutput": 2012663
+    },
+    {
+      "handler": "settings",
+      "baselineBytes": 1362469,
+      "prototypeBytes": 1362469,
+      "savedBytes": 0,
+      "percentSaved": 0,
+      "baselineBankBytesInOutput": 24172,
+      "prototypeBankBytesInOutput": 24172
+    },
+    {
+      "handler": "user/[op]",
+      "baselineBytes": 10445097,
+      "prototypeBytes": 10445097,
+      "savedBytes": 0,
+      "percentSaved": 0,
+      "baselineBankBytesInOutput": 24779,
+      "prototypeBankBytesInOutput": 24779
+    }
+  ],
+  "totals": {
+    "baselineBytes": 63155596,
+    "prototypeBytes": 58440620,
+    "savedBytes": 4714976,
+    "percentSaved": 7.465650391455414
+  },
+  "equivalence": {
+    "rawBankQuestions": 2607,
+    "fullRawBankDeepEqual": true,
+    "orderedIdsHash": "54cf8b26732d5c93b6910a94e06cdfaac5bd4f3531cfd740c255f99ee9502a7c",
+    "rawBankHash": "f67f2f57ca2adbcae3e41a6b1f0d46884a156dbb783116e5b3f68b16bcaac155",
+    "contentHashesEqual": true,
+    "versionInputsEqual": true,
+    "eligibilityEqual": true,
+    "eligibleQuestions": 2453,
+    "deliverableQuestions": 2134,
+    "withheldHistoryQuestionsPreserved": 154,
+    "registryUnchanged": true,
+    "codingSourcesUnmodified": true,
+    "runtimeGradingSuiteRun": false
+  },
+  "retiredSourceAttribution": [
+    {
+      "source": "lib/roadmap-questions-html.ts",
+      "inputPresent": false,
+      "bytesAcrossHandlerOutputs": 0
+    },
+    {
+      "source": "lib/roadmap-questions-css.ts",
+      "inputPresent": false,
+      "bytesAcrossHandlerOutputs": 0
+    },
+    {
+      "source": "lib/roadmap-questions-cool-stuff.ts",
+      "inputPresent": true,
+      "bytesAcrossHandlerOutputs": 302552
+    },
+    {
+      "source": "lib/roadmap-questions-testing.ts",
+      "inputPresent": true,
+      "bytesAcrossHandlerOutputs": 355120
+    },
+    {
+      "source": "lib/roadmap-questions-abbreviations.ts",
+      "inputPresent": true,
+      "bytesAcrossHandlerOutputs": 281352
+    }
+  ],
+  "aggressiveEligibilityFilter": {
+    "built": false,
+    "wouldRemoveRawHistoryQuestions": 154,
+    "validCandidate": false,
+    "reason": "question-store historyById/admin/override workflows deliberately retain withheld raw questions"
+  },
+  "buildSeconds": {
+    "baseline": 0.291989917,
+    "prototype": 0.191249917
+  },
+  "proposal": {
+    "qualifyingHandlers": [
+      "flashcards",
+      "play/[action]",
+      "quiz/challenge",
+      "quiz/daily",
+      "quiz/submit"
+    ],
+    "aggregateExceedsTenPercent": false,
+    "scope": "Consider only the existing private coreQuestions assembly filter as a build-time transformation. Do not delete source banks or remove withheld history, and do not change build configuration in this measurement.",
+    "acceptanceBeforeImplementation": "Test the transform against complete raw-bank objects/order, IDs, content hashes, version inputs, eligibility, history/admin/overrides and existing grader/payload contracts, then run the normal required gates."
+  },
+  "invalidAttempt": {
+    "retainedExternally": true,
+    "reason": "First external runner used /tmp without canonicalizing /private/tmp; its prototype did not run. The corrected runner asserts a transformed load and exact prototype input byte count. Invalid output is not used here."
+  },
+  "limitations": [
+    "Bundled handler bytes are not Vercel deployment trace bytes, runtime image size or cold-start latency.",
+    "No handler, grader, production API or database was executed.",
+    "Current source includes recorded shared export-cleanup edits; paired source contents are captured in source-inputs.json.",
+    "No bank, content registry or repository build configuration was changed."
+  ],
+  "reproduction": {
+    "command": "output_dir=$(mktemp -d)\\nnode scripts/measure-handler-banks.mjs --out \"$output_dir\"",
+    "output": "External per-handler CJS files, per-handler/global metafiles, source-input hashes and comparison.json; no repository source writes."
+  }
+}
