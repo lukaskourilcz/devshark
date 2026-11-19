@@ -8,10 +8,12 @@
   "functions": {
     "api/quiz/roadmap.ts": {
       "maxDuration": 45,
-      "includeFiles": "{lib/coding/generated/*.cjs,node_modules/typescript/lib/lib.{es,decorators}*.d.ts}"
+      "includeFiles": "{lib/coding/generated/*.cjs,node_modules/typescript/lib/lib.{es,decorators}*.d.ts}",
+      "excludeFiles": "node_modules/typescript/lib/{lib{,.dom{,.asynciterable,.iterable},.scripthost,.webworker{,.asynciterable,.importscripts,.iterable}},tsserverlibrary,typescript}.d.ts"
     },
     "api/**/*.ts": {
-      "maxDuration": 10
+      "maxDuration": 10,
+      "excludeFiles": "node_modules/typescript/lib/{lib{,.dom{,.asynciterable,.iterable},.scripthost,.webworker{,.asynciterable,.importscripts,.iterable}},tsserverlibrary,typescript}.d.ts"
     }
   },
   "routes": [
