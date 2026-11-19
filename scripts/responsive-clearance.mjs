@@ -157,8 +157,13 @@ export const TOUCH_TARGETS = String.raw`(() => {
     if (!area || area.width === 0 || area.height === 0) continue;
     measured++;
     if (area.width >= 43.99 && area.height >= 43.99) continue;
-    const prose = el.tagName === 'A' && style.display === 'inline' && el.closest('p,li,dd,dt,blockquote,figcaption');
-    if (prose) {
+    let prose = el.tagName === 'A' && style.display === 'inline' ? el.parentElement : null;
+    while (prose && ['inline', 'contents'].includes(getComputedStyle(prose).display)) prose = prose.parentElement;
+    // Surrounding words must share the link's own inline formatting context.
+    // A heading elsewhere in a list card cannot excuse its standalone action.
+    const inlineContext = prose && ['block', 'flow-root', 'list-item'].includes(getComputedStyle(prose).display) &&
+      [...prose.children].every((child) => ['none', 'contents', 'inline', 'inline-block', 'inline-flex', 'inline-grid'].includes(getComputedStyle(child).display));
+    if (inlineContext) {
       const surrounding = prose.cloneNode(true);
       surrounding.querySelectorAll(selector).forEach((target) => target.remove());
       if (/[\p{L}\p{N}]/u.test(surrounding.textContent ?? '')) {
