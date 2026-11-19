@@ -1,5 +1,5 @@
-// Check the declarations the roadmap function actually includes, using Node 24's
-// glob engines. The caller supplies the real checker selector and root lib.
+// Check explicit includes and the declaration trace ceiling using Node 24's
+// glob engines. This config contract is not a deployed Lambda inventory.
 import assert from 'node:assert/strict';
 import { globSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, join, matchesGlob, posix } from 'node:path';
@@ -23,6 +23,32 @@ export function assertTypeScriptLibPackaging({ root, isCheckerLibFile, rootLib }
     return new Set(actual);
   };
   const included = assertSelection(pattern);
+
+  // Includes are additive: NFT can trace the entire compiler lib directory
+  // through filesystem reads or its TypeScript special case. Protect both
+  // applicable rules against that observed input, not just the worker trace.
+  const declarations = readdirSync(libDir).filter((name) => name.endsWith('.d.ts')).sort();
+  const nonreader = declarations.filter((name) => !expected.includes(name));
+  const assertTraceCeiling = (rule, explicit = []) => {
+    const excluded = rule?.excludeFiles;
+    assert.equal(typeof excluded, 'string', 'each function rule excludes traced nonreader declarations');
+    assert.ok(excluded.length <= 256, 'excludeFiles fits the provider schema');
+    const excludedOnDisk = globSync(excluded, { cwd: root }).map((name) => name.replaceAll('\\', '/')).sort();
+    assert.deepEqual(excludedOnDisk, nonreader.map((name) => `${libPrefix}${name}`),
+      'exclusions select exactly the nonreader declarations');
+    const remaining = declarations.filter((name) => !matchesGlob(`${libPrefix}${name}`, excluded));
+    assert.deepEqual([...new Set([...remaining, ...explicit])].sort(), expected,
+      'traced declarations plus additive includes match the reader selection');
+    for (const name of ['typescript.js', 'tsc.js', '_tsc.js', 'package.json']) {
+      assert.equal(matchesGlob(`${libPrefix}${name}`, excluded), false, `${name}: compiler runtime is retained`);
+    }
+    for (const name of ['node_modules/typescript/package.json', 'lib/coding/generated/ts-check-worker.cjs', 'lib/coding/generated/quickjs-sandbox.cjs']) {
+      assert.equal(matchesGlob(name, excluded), false, `${name}: runtime metadata/bundles are retained`);
+    }
+  };
+  for (const key of ['api/quiz/roadmap.ts', 'api/**/*.ts']) {
+    assertTraceCeiling(config.functions[key], key === 'api/quiz/roadmap.ts' ? included : []);
+  }
 
   // These include nonexistent paths intentionally: they test nested brace
   // semantics, not whether a generated worker happens to exist before a build.
@@ -66,5 +92,9 @@ export function assertTypeScriptLibPackaging({ root, isCheckerLibFile, rootLib }
   assert.throws(() => assertSelection('{lib/coding/generated/*.cjs,node_modules/typescript/lib/lib.*.d.ts}'), /packaged declarations match/);
   assert.throws(() => assertSelection('{lib/coding/generated/*.cjs,node_modules/typescript/lib/lib.es*.d.ts}'), /packaged declarations match/);
   assert.throws(() => assertClosure(new Set([...included].filter((name) => name !== 'lib.decorators.d.ts'))), /lib\.decorators\.d\.ts: required checker declaration/);
-  console.log(`PASS cold start: the roadmap ships ${included.size} checker declarations with a closed ${reachable.size}-file root graph and no host declarations`);
+  assert.throws(() => assertTraceCeiling({}), /each function rule excludes/);
+  assert.throws(() => assertTraceCeiling({ excludeFiles: `${libPrefix}lib.*.d.ts` }), /exclusions select exactly/);
+  assert.throws(() => assertTraceCeiling({ excludeFiles: `${libPrefix}lib.{dom*,webworker*,scripthost}.d.ts` }), /exclusions select exactly/);
+  assert.throws(() => assertTraceCeiling(config.functions['api/quiz/roadmap.ts'], declarations), /traced declarations plus additive includes/);
+  console.log(`PASS cold start: config retains ${included.size} checker declarations with a closed ${reachable.size}-file root graph and excludes ${nonreader.length} nonreader declarations from both trace rules`);
 }

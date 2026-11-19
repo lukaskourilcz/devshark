@@ -1,4 +1,4 @@
-/** Check actual deployment selection and the configured checker root's references. */
+/** Check the config's additive trace ceiling and the checker's root references. */
 export function assertTypeScriptLibPackaging(input: {
   root: string;
   isCheckerLibFile: (name: string) => boolean;
