@@ -8,7 +8,7 @@
   "functions": {
     "api/quiz/roadmap.ts": {
       "maxDuration": 45,
-      "includeFiles": "{lib/coding/generated/*.cjs,node_modules/typescript/lib/lib.*.d.ts}"
+      "includeFiles": "{lib/coding/generated/*.cjs,node_modules/typescript/lib/lib.{es,decorators}*.d.ts}"
     },
     "api/**/*.ts": {
       "maxDuration": 10
