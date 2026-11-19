@@ -7948,3 +7948,27 @@ boot, retained-memory or population-call-reduction acceptance is claimed.
 Separately, two anonymous static HTML GETs at 14:07 UTC confirm production
 Privacy and Terms titles and self canonicals, completing that existing F15
 owner:ai task. They execute no JavaScript or API and change no legal text.
+
+
+## Epic F1 remaining baseline: repository object store (19 November 2026)
+
+Issue #630, F1-33. The read-only snapshot in
+`docs/audit/repository-weight-2026-11.json` measures objects reachable from
+merged main `cbdfa2aa995e7dd71c7d0197fee7f35df21ca205`, separately from the
+shared store and the clean F1 checkout `d09ec769`. It ran at 16:55 UTC.
+
+| Scope | Actual result |
+| --- | --- |
+| Exact-main reachable objects | 41,772 objects; 2,893,272,699 logical bytes |
+| Sum of reachable objectsize:disk | 106,650,880 bytes, a representation estimate |
+| Shared common Git directory | 132,988 KiB from du; packs 99.97 MiB and loose 29.01 MiB from count-objects |
+| Checkout directories from du | docs 20,172 KiB; media 1,512 KiB; client/public 284 KiB |
+
+The artifact retains the exact commands, object-ID digest, per-type totals and
+raw count-objects output. The original checkout has a real `.git` directory; a
+linked worktree has a pointer file and must resolve `--git-common-dir`. The
+shared store includes other refs and worktree metadata. Summed stored object
+sizes are neither reclaimable bytes nor the size of a standalone pack; shared
+delta bases prevent those claims. No repack, garbage collection, history edit
+or new deployment-duration query ran. This is current main evidence, not a
+recreated `a9882348` observation or a comparison with the brief's old 81 MB.
