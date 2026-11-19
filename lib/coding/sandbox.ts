@@ -394,6 +394,33 @@ export const SANDBOX_SLOT_WAIT_MS = 5_000;
 export const SANDBOX_IDLE_THREADS = 2;
 
 const idleWorkers: Worker[] = [];
+const exitedWorkers = new WeakSet<Worker>();
+
+/** A retired worker owns its acquired reservation until actual exit. A
+ * rejected/throwing terminate must not free capacity for a fifth live worker,
+ * or leave the completed learner response waiting forever. */
+function workerSlotLease() {
+  let heldForExit = false, released = false;
+  const releaseOnce = () => {
+    if (released) return;
+    released = true;
+    slots.release();
+  };
+  return {
+    holdUntilExit(worker: Worker) {
+      if (heldForExit) return;
+      heldForExit = true;
+      if (exitedWorkers.has(worker)) releaseOnce();
+      else worker.once('exit', releaseOnce);
+    },
+    release() { if (!heldForExit) releaseOnce(); },
+  };
+}
+
+const REPORTED_LIMIT_ERRORS: ReadonlySet<string> = new Set([TIMEOUT_MESSAGE, STACK_MESSAGE, OUT_OF_MEMORY_MESSAGE]);
+const reportsLimit = (result: EvaluateResult): boolean => result.timedOut === true ||
+  (result.codeError !== null && REPORTED_LIMIT_ERRORS.has(result.codeError)) ||
+  result.results.some((one) => one.error === 'out of memory' || one.error === 'stack overflow');
 /** Threads started and not yet exited: busy, idle or being stopped. */
 let liveThreads = 0;
 const slots = threadSlots({ threads: SANDBOX_MAX_THREADS, waiting: SANDBOX_MAX_WAITING, waitMs: SANDBOX_SLOT_WAIT_MS, name: 'sandbox' });
@@ -413,7 +440,7 @@ const sandboxWorkerFile = (): string | null => {
   return workerFile;
 };
 
-type WorkerReply = { type: 'start' } | { type: 'done'; result: EvaluateResult } | { type: 'fail'; message: string };
+type WorkerReply = { type: 'start' } | { type: 'done'; result: EvaluateResult; healthy: boolean } | { type: 'fail'; message: string };
 
 /** The thread could not be started or never picked the run up: a fault of
  * the host, not of the learner's program. */
@@ -434,11 +461,11 @@ function newWorker(file: string): Worker {
   worker.on('error', forget);
   worker.on('exit', forget);
   // A thread emits 'exit' once, after an 'error' too.
-  worker.once('exit', () => { liveThreads--; });
+  worker.once('exit', () => { exitedWorkers.add(worker); liveThreads--; });
   return worker;
 }
 
-function runOnWorker(file: string, input: SandboxInput): Promise<EvaluateResult> {
+function runOnWorker(file: string, input: SandboxInput, holdUntilExit: (worker: Worker) => void): Promise<EvaluateResult> {
   const idle = idleWorkers.pop();
   const worker = idle ?? newWorker(file);
   return new Promise<EvaluateResult>((resolve, reject) => {
@@ -452,7 +479,13 @@ function runOnWorker(file: string, input: SandboxInput): Promise<EvaluateResult>
       worker.off('error', onFailure);
       worker.off('exit', onFailure);
       if (keep && idleWorkers.length < SANDBOX_IDLE_THREADS) idleWorkers.push(worker);
-      else void worker.terminate();
+      else {
+        // Register before terminate: already-exited and synchronous-rejection
+        // paths must also retain exactly one reservation until actual exit.
+        holdUntilExit(worker);
+        const failed = () => console.warn(JSON.stringify({ level: 'warn', msg: 'sandbox_worker_retirement_failed' }));
+        try { void worker.terminate().catch(failed); } catch { failed(); }
+      }
     };
     const finish = (result: EvaluateResult) => {
       if (settled) return;
@@ -476,7 +509,7 @@ function runOnWorker(file: string, input: SandboxInput): Promise<EvaluateResult>
         timer = setTimeout(() => finish(stopped(TIMEOUT_MESSAGE, true)), (input.deadlineMs ?? SANDBOX_DEADLINE_MS) + SANDBOX_WORKER_GRACE_MS);
         return;
       }
-      settle(reply.type === 'done');
+      settle(reply.type === 'done' && reply.healthy === true && !reportsLimit(reply.result));
       if (reply.type === 'done') { resolve(reply.result); return; }
       // The thread could not run the program at all: QuickJS would not load
       // or would not give it a runtime, before any learner code ran. That is
@@ -516,6 +549,7 @@ export async function runInSandbox(input: SandboxInput): Promise<EvaluateResult>
     throw new GraderBusyError('sandbox_worker_missing', 30);
   }
   await slots.acquire();
+  const lease = workerSlotLease();
   running++;
   try {
     const pause = idleWorkers.length === 0 ? boot.pause() : 0;
@@ -523,7 +557,7 @@ export async function runInSandbox(input: SandboxInput): Promise<EvaluateResult>
       if (inThreadGradingAllowed()) return runInQuickJS(input);
       throw new GraderBusyError('sandbox_worker_backoff', pause / 1000);
     }
-    return await runOnWorker(file, input);
+    return await runOnWorker(file, input, lease.holdUntilExit);
   } catch (error) {
     if (!(error instanceof WorkerUnavailableError)) throw error;
     boot.failed();
@@ -532,7 +566,7 @@ export async function runInSandbox(input: SandboxInput): Promise<EvaluateResult>
     throw new GraderBusyError(error.message, boot.pause() / 1000);
   } finally {
     running--;
-    slots.release();
+    lease.release();
   }
 }
 
@@ -564,10 +598,11 @@ export function warmSandbox(): void {
   if (!file) return;
   warming = (async () => {
     await slots.acquire();
+    const lease = workerSlotLease();
     try {
-      if (running === 0 && idleWorkers.length === 0) await runOnWorker(file, WARM_INPUT);
+      if (running === 0 && idleWorkers.length === 0) await runOnWorker(file, WARM_INPUT, lease.holdUntilExit);
     } finally {
-      slots.release();
+      lease.release();
     }
   })().then(() => undefined, () => undefined).finally(() => { warming = null; });
 }
@@ -582,7 +617,7 @@ export const sandboxThreads = (): number => liveThreads;
 
 /** Runs one program in this thread. The worker entry calls this; everything
  * else goes through `runInSandbox`. */
-export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult> {
+export async function runInQuickJS(input: SandboxInput, onDisposalFailure?: () => void): Promise<EvaluateResult> {
   const QuickJS = await getModule();
   const runtime = QuickJS.newRuntime();
   const deadline = Date.now() + (input.deadlineMs ?? SANDBOX_DEADLINE_MS);
@@ -710,7 +745,12 @@ export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult>
     try { driver?.dispose(); } catch { disposalFailed = true; }
     try { vm.dispose(); } catch { disposalFailed = true; }
     try { runtime.dispose(); } catch { disposalFailed = true; }
-    if (disposalFailed) modulePromise = null;
+    if (disposalFailed) {
+      modulePromise = null;
+      // Worker-only host observer; no binding or metadata enters the VM or
+      // public result. Keep disposal diagnostics from replacing the verdict.
+      try { onDisposalFailure?.(); } catch { /* an observer cannot alter grading */ }
+    }
   }
 }
 
