@@ -66,3 +66,7 @@ test('F6-05: a reachable control below a scrollport still receives a target meas
   const result = await measure('<div style="height:100px;overflow:hidden"><main style="height:100px;overflow:auto"><div style="height:200px"></div><button id="below" style="width:43px">Go</button></main></div>');
   assert.ok(result.violations.some((row) => row.selector === '#below' && row.width === 43));
 });
+test('F6-05: an outer clipped aperture limits a control inside a scrollport', async () => {
+  const result = await measure('<div style="height:20px;overflow:hidden"><main style="height:100px;overflow:auto"><div style="height:200px"></div><button id="aperture">Go</button></main></div>');
+  assert.ok(result.violations.some((row) => row.selector === '#aperture' && row.height === 20));
+});
