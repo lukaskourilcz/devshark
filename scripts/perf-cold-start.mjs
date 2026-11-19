@@ -1,5 +1,6 @@
 // Bounded shared F1/F7 collector: local import proxies and anonymous entry/read/refusal observations.
 import http from 'node:http';
+import { loadPreviewAccess, PreviewAccessError, validatePreviewOrigin } from './cold-start-preview-access.mjs';
 import https from 'node:https';
 import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
@@ -22,8 +23,8 @@ export const PROBES = Object.freeze([
   { id: 'play', file: 'api/play/[action].ts', path: '/api/play/__perf_probe__', purpose: 'unknown-action/configuration/feature refusal, no room', kind: 'refusal', outcomes: [[404, 'unknown_action'], [503, 'not_configured'], [503, 'feature_disabled']] },
   { id: 'admin', file: 'api/admin/[op].ts', path: '/api/admin/__perf_probe__', purpose: 'anonymous admin refusal, no legacy password', kind: 'refusal', outcomes: [[403, 'forbidden'], [401, 'unauthorized']] },
 ]);
-export const USAGE = 'node scripts/perf-cold-start.mjs (--url=<bare HTTPS or HTTP loopback origin> | --local) [--handlers=<ids>] [--samples=1..10] [--interval-ms=1100..60000] [--bypass-cache] [--markers] [--output=<file>]';
-const FLAGS = { url: 'value', local: 'switch', handlers: 'value', samples: 'value', 'interval-ms': 'value', 'bypass-cache': 'switch', markers: 'switch', output: 'value', help: 'switch' };
+export const USAGE = 'node scripts/perf-cold-start.mjs (--url=<bare HTTPS or HTTP loopback origin> | --local) [--handlers=<ids>] [--samples=1..10] [--interval-ms=1100..60000] [--bypass-cache] [--markers] [--output=<file>] [--preview-state=<approved-one-cookie-state-file>]';
+const FLAGS = { url: 'value', local: 'switch', handlers: 'value', samples: 'value', 'interval-ms': 'value', 'bypass-cache': 'switch', markers: 'switch', output: 'value', 'preview-state': 'value', help: 'switch' };
 const LOOPBACK = new Set(['localhost', '127.0.0.1', '[::1]']);
 export class UsageError extends Error {}
 export function options(argv) {
@@ -43,6 +44,7 @@ export function options(argv) {
   if (new Set(ids).size !== ids.length || ids.some(id => !PROBES.some(probe => probe.id === id))) throw new UsageError('unknown/duplicate handler');
   if (args.local && (args['interval-ms'] || args['bypass-cache'])) throw new UsageError('remote flags cannot be used with --local');
   if (!args.local && args.markers) throw new UsageError('--markers is local-only');
+  if (args.local && args['preview-state']) throw new UsageError('--preview-state is remote-only');
   let origin = null;
   if (args.url) {
     let url;
@@ -50,10 +52,11 @@ export function options(argv) {
     if (url.username || url.password || /\/\/[^/]*@/.test(args.url) || args.url.includes('?') || args.url.includes('#') || url.pathname !== '/' || (url.protocol !== 'https:' && !(url.protocol === 'http:' && LOOPBACK.has(url.hostname)))) throw new UsageError('use a credential-free bare HTTPS origin, or HTTP loopback');
     origin = url.origin;
   }
+  if (args['preview-state']) validatePreviewOrigin(origin);
   const interval = args['interval-ms'] ?? '1100';
   const minimum = origin && LOOPBACK.has(new URL(origin).hostname) ? 0 : 1100;
   if (!/^\d+$/.test(interval) || Number(interval) < minimum || Number(interval) > 60000) throw new UsageError('invalid interval');
-  return { local: Boolean(args.local), origin, samples: Number(samples), ids, intervalMs: Number(interval), bypassCache: Boolean(args['bypass-cache']), markers: Boolean(args.markers), output: args.output ?? 'artifacts/performance/cold-start.json' };
+  return { local: Boolean(args.local), origin, samples: Number(samples), ids, intervalMs: Number(interval), bypassCache: Boolean(args['bypass-cache']), markers: Boolean(args.markers), previewState: args['preview-state'] ?? null, output: args.output ?? 'artifacts/performance/cold-start.json' };
 }
 
 export function assertInventory(root) {
@@ -124,7 +127,7 @@ export function originClassification(headers) {
   return { cache: knownMiss ? 'MISS' : 'unknown', instance: knownMiss && spans.valid && cacheAllowsMarker(headers['cache-control']) ? spans.marker ?? 'unknown' : 'unknown', timingStatus: !knownMiss ? 'cache-unknown' : spans.valid ? 'parsed' : 'malformed', spans: { appMs: spans.appMs, dbHttpMs: spans.dbHttpMs, dbCalls: spans.dbCalls, authHttpMs: spans.authHttpMs, authCalls: spans.authCalls } };
 }
 
-export function remoteSample(origin, probe, { bypassCache = false, timeoutMs = 15000 } = {}) {
+export function remoteSample(origin, probe, { bypassCache = false, timeoutMs = 15000, previewAccess = null } = {}) {
   const url = new URL(probe.path, origin);
   if (bypassCache && probe.nonce) url.searchParams.set('__perf_probe', randomUUID());
   const transport = url.protocol === 'https:' ? https : http;
@@ -138,7 +141,7 @@ export function remoteSample(origin, probe, { bypassCache = false, timeoutMs = 1
       if (settled) return; settled = true; clearTimeout(timeout); agent.destroy();
       resolve({ handler: probe.id, kind: probe.kind, purpose: probe.purpose, requestSent: sent, ...result, raw });
     };
-    const request = transport.request(url, { method: 'GET', agent, headers: { Accept: 'application/json', 'Accept-Encoding': 'identity', 'User-Agent': 'devShark-EpicF-cold-start/1' } }, response => {
+    const request = transport.request(url, { method: 'GET', agent, headers: { Accept: 'application/json', 'Accept-Encoding': 'identity', 'User-Agent': 'devShark-EpicF-cold-start/1', ...(previewAccess ? previewAccess.headersFor(url) : {}) } }, response => {
       receivedStatus = response.statusCode;
       raw.headersMs = elapsed();
       let bytes = 0; const prefix = []; let prefixBytes = 0;
@@ -204,19 +207,23 @@ export function summaries(rows) {
     return { handler: probe.id, measured: relevant.filter(row => !row.skipped).length, errors: relevant.filter(row => !row.skipped && !row.ok).length, skipped: relevant.filter(row => row.skipped).length, clientFirstByteMs: stats(good.map(row => row.raw?.firstByteMs)), classes, importWallMs: stats(good.map(row => row.importWallMs)), cpuUserMicros: stats(good.map(row => row.cpu?.userMicros)), cpuSystemMicros: stats(good.map(row => row.cpu?.systemMicros)), heapDeltaBytes: stats(good.map(row => row.heapDeltaBytes)) };
   });
 }
-export async function main(config, root = process.cwd()) {
+export async function main(config, root = process.cwd(), preparedPreviewAccess = null) {
   assertInventory(root); // before any connection or compilation
   if (config.local) return (await import('./perf-cold-import.mjs')).localImports(config, root, { probes: PROBES, summarize: summaries });
-  const rows = []; let stopped = false;
-  for (const id of config.ids) for (let sample = 0; sample < config.samples; sample++) {
-    const probe = PROBES.find(candidate => candidate.id === id);
-    if (stopped) { rows.push({ handler: id, sample, skipped: true, reason: 'rate_limited' }); continue; }
-    if (rows.length) await new Promise(resolve => setTimeout(resolve, config.intervalMs));
-    const row = { sample, ...(await remoteSample(config.origin, probe, config)) };
-    rows.push(row);
-    if (row.status === 429) stopped = true;
-  }
-  return { mode: 'anonymous-entry-read-refusal', origin: config.origin, samples: config.samples, intervalMs: config.intervalMs, bypassCache: config.bypassCache, rows, summary: summaries(rows), totals: { planned: config.ids.length * config.samples, attempted: rows.filter(row => !row.skipped).length, sent: rows.filter(row => row.requestSent).length, responses: rows.filter(row => Number.isInteger(row.status)).length, skipped: rows.filter(row => row.skipped).length }, notes: ['first/repeat is an origin timing-module invocation marker, never platform cold-boot duration', 'CDN HIT/STALE is replayed; unknown cache status is unclassified', 'GET probes may affect logs, rate counters or readiness reads; no learner/session/wallet operation is selected', 'No automatic redirects or retries; sent counts Node request-finish events, not provider ingestion', 'Raw timing offsets include network/edge/queueing; no boot-duration residual is invented'] };
+  const previewAccess = preparedPreviewAccess ?? (config.previewState ? loadPreviewAccess(config.origin, config.previewState) : null);
+  try {
+    previewAccess?.assertOutputAllowed(config.output);
+    const rows = []; let stopped = false;
+    for (const id of config.ids) for (let sample = 0; sample < config.samples; sample++) {
+      const probe = PROBES.find(candidate => candidate.id === id);
+      if (stopped) { rows.push({ handler: id, sample, skipped: true, reason: 'rate_limited' }); continue; }
+      if (rows.length) await new Promise(resolve => setTimeout(resolve, config.intervalMs));
+      const row = { sample, ...(await remoteSample(config.origin, probe, { ...config, previewAccess })) };
+      rows.push(row);
+      if (row.status === 429) stopped = true;
+    }
+    return { ...(previewAccess ? { frontdoorAccess: { kind: previewAccess.kind, exchangeRequests: 0 } } : {}), mode: 'anonymous-entry-read-refusal', origin: config.origin, samples: config.samples, intervalMs: config.intervalMs, bypassCache: config.bypassCache, rows, summary: summaries(rows), totals: { planned: config.ids.length * config.samples, attempted: rows.filter(row => !row.skipped).length, sent: rows.filter(row => row.requestSent).length, responses: rows.filter(row => Number.isInteger(row.status)).length, skipped: rows.filter(row => row.skipped).length }, notes: ['Any protection-state preflight belongs to a separate explicit ledger; this command makes no exchange or document request', 'first/repeat is an origin timing-module invocation marker, never platform cold-boot duration', 'CDN HIT/STALE is replayed; unknown cache status is unclassified', 'GET probes may affect logs, rate counters or readiness reads; no learner/session/wallet operation is selected', 'No automatic redirects or retries; sent counts Node request-finish events, not provider ingestion', 'Raw timing offsets include network/edge/queueing; no boot-duration residual is invented'] };
+  } finally { previewAccess?.dispose(); }
 }
 function direct() { try { return import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href; } catch { return false; } }
 const range = (value, unit) => value ? `${value.median.toFixed(1)}${unit} (${value.min.toFixed(1)}..${value.max.toFixed(1)})` : 'unavailable';
@@ -236,14 +243,23 @@ if (direct()) {
     const config = options(process.argv.slice(2));
     if (config.help) console.log(USAGE);
     else {
-      const report = await main(config);
-      let revision = null;
-      try { revision = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { /* source archive */ }
-      mkdirSync(dirname(config.output), { recursive: true });
-      writeFileSync(config.output, JSON.stringify({ ...report, localSourceRevision: revision, deploymentRevision: null, node: process.version, recorded: new Date().toISOString() }, null, 2) + '\n');
-      printHandlers(report);
-      console.log(JSON.stringify({ mode: report.mode, totals: report.totals, output: config.output }));
-      if (report.rows.some(row => !row.ok)) process.exitCode = 1;
+      let previewAccess = null;
+      try {
+        if (config.previewState) {
+          assertInventory(process.cwd());
+          previewAccess = loadPreviewAccess(config.origin, config.previewState);
+        }
+        const report = await main(config, process.cwd(), previewAccess);
+        let revision = null;
+        try { revision = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { /* source archive */ }
+        mkdirSync(dirname(config.output), { recursive: true });
+        const content = JSON.stringify({ ...report, localSourceRevision: revision, deploymentRevision: null, node: process.version, recorded: new Date().toISOString() }, null, 2) + '\n';
+        if (previewAccess) previewAccess.writeReport(config.output, content);
+        else writeFileSync(config.output, content);
+        printHandlers(report);
+        console.log(JSON.stringify({ mode: report.mode, totals: report.totals, output: config.output }));
+        if (report.rows.some(row => !row.ok)) process.exitCode = 1;
+      } finally { previewAccess?.dispose(); }
     }
-  } catch (error) { console.error(error instanceof UsageError ? `${error.message}\n${USAGE}` : 'cold-start collection failed; no raw provider/body/header error is printed'); process.exitCode = error instanceof UsageError ? 2 : 1; }
+  } catch (error) { console.error((error instanceof UsageError || error instanceof PreviewAccessError) ? `${error.message}\n${USAGE}` : 'cold-start collection failed; no raw provider/body/header error is printed'); process.exitCode = (error instanceof UsageError || error instanceof PreviewAccessError) ? 2 : 1; }
 }
