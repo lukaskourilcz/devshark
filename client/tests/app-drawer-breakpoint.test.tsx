@@ -2,8 +2,11 @@ import { beforeEach, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
 import App from '../src/App';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
+import settings from '../../tests/fixtures/api-settings.json';
+import { server } from './mocks/server';
 
 const viewport = vi.hoisted(() => ({ wide: false }));
 const drawer = vi.hoisted(() => ({
@@ -49,6 +52,7 @@ vi.mock('../src/components/MobileNavigation', () => ({
 beforeEach(() => {
   viewport.wide = false;
   drawer.attempts = 0;
+  server.use(http.get('*/api/settings', () => HttpResponse.json(settings)));
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
 });
 
