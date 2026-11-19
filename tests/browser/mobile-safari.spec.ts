@@ -81,9 +81,10 @@ async function editorFonts(page: Page) {
 test.describe('touch editor typography', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
-  test('a real task uses at least 16px editable text at 390px with a coarse pointer', async ({ page }) => {
+  test('a real task uses at least 16px editable text at 390px with a coarse pointer', async ({ page }, info) => {
     await openEditor(page);
     const font = await editorFonts(page);
+    await info.attach('editor-typography', { body: JSON.stringify(font), contentType: 'application/json' });
     expect(font.coarse).toBe(true);
     expect(font.width).toBe(390);
     expect(font.editor).toBeGreaterThanOrEqual(16);
@@ -176,11 +177,12 @@ test.describe('touch editor typography', () => {
     await expect(trigger).toBeFocused();
   });
 
-  test('the Profile sharkname input provides a 44px actual field target', async ({ page }) => {
+  test('the Profile sharkname input provides a 44px actual field target', async ({ page }, info) => {
     const misses = await openProfile(page);
     const field = page.getByRole('textbox', { name: 'Sharkname', exact: true });
     await field.scrollIntoViewIfNeeded();
     const bounds = await field.boundingBox();
+    await info.attach('sharkname-rectangle', { body: JSON.stringify(bounds), contentType: 'application/json' });
     expect(bounds!.width).toBeGreaterThanOrEqual(44);
     expect(bounds!.height).toBeGreaterThanOrEqual(44);
     await field.focus();
@@ -188,7 +190,7 @@ test.describe('touch editor typography', () => {
     expect(misses).toEqual([]);
   });
 
-  test('Profile radio labels provide 44px targets without enlarging the visual radio', async ({ page }) => {
+  test('Profile radio labels provide 44px targets without enlarging the visual radio', async ({ page }, info) => {
     const misses = await openProfile(page);
     const radios = page.locator('.sn-card input[type="radio"]');
     const geometry = await radios.evaluateAll((elements) => elements.map((input) => {
@@ -201,6 +203,7 @@ test.describe('touch editor typography', () => {
       });
       return { name: [...(radio.labels ?? [])].map((label) => label.textContent).join(' '), wrapper: { width: wrapper.width, height: wrapper.height }, mark: { width: mark.width, height: mark.height }, targets };
     }));
+    await info.attach('radio-rectangles', { body: JSON.stringify(geometry), contentType: 'application/json' });
     for (const radio of geometry) {
       expect(radio.targets.some((target) => target.width >= 44 && target.height >= 44), JSON.stringify(radio)).toBe(true);
       expect(radio.wrapper).toEqual({ width: 24, height: 24 });
@@ -257,9 +260,10 @@ test.describe('touch editor typography', () => {
 test.describe('desktop editor typography', () => {
   test.use({ viewport: { width: 1280, height: 900 }, hasTouch: false, isMobile: false });
 
-  test('a desktop task retains compact 14px editable text', async ({ page }) => {
+  test('a desktop task retains compact 14px editable text', async ({ page }, info) => {
     await openEditor(page);
     const font = await editorFonts(page);
+    await info.attach('editor-typography', { body: JSON.stringify(font), contentType: 'application/json' });
     expect(font.coarse).toBe(false);
     expect(font.editor).toBe(14);
     expect(font.content).toBe(14);
