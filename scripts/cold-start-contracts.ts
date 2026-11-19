@@ -298,6 +298,7 @@ export async function coldStartContracts(): Promise<void> {
     }
     console.log('PASS cold start: only the roadmap rule explicitly includes grader bundles and compiler declarations');
   }
+  await (await import('./f11-lazy-runtime-contracts')).lazyCodingRuntimeContracts();
 }
 
 /** Bundle a test script as the npm scripts do and run it in its own process,
