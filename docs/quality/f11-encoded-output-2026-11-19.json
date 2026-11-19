@@ -1,0 +1,117 @@
+{
+  "schema": "devshark.f11-16-encoded-output/v1",
+  "observedAtUtc": "2026-11-19T15:57:51.743Z",
+  "sourceHead": "1e3dd005284b0f12ce3b0332b457c3c5ab110641",
+  "status": "measured",
+  "referenceMeasurementComplete": true,
+  "runtime": {
+    "node": "v24.22.3",
+    "nodeBinarySha256": "ba7073582822078d8c90bca3facacc46690bc5366fab4b815aeef9148cd6e854",
+    "esbuildVersion": "0.25.12",
+    "esbuildPackageSha256": "cb7d5b1fe478f8cbaae566a86031b6fdf5f7d444354f35d1cb3cba9adf6d2935",
+    "typeScriptVersion": "5.9.3",
+    "selectedTypeScriptLibs": 91
+  },
+  "cohort": {
+    "catalogueTasks": 814,
+    "eligibleTasks": 586,
+    "variants": 1702,
+    "variantKinds": {
+      "reference": 586,
+      "junior": 543,
+      "senior": 543,
+      "deferred-start": 2,
+      "rethrowing-chain": 1,
+      "filled-skeleton": 16,
+      "known-right": 11
+    },
+    "variantsByTrack": {
+      "javascript": 914,
+      "typescript": 436,
+      "algorithms": 352
+    },
+    "measuredRuns": 3404,
+    "runPhases": {
+      "visible": 1702,
+      "hidden": 1702
+    },
+    "excludedTasks": 228,
+    "exclusions": {
+      "React suite, not this sandbox output encoder": 183,
+      "non-call grading mode": 45
+    },
+    "maxCallsPerRunObserved": 51
+  },
+  "maximumUtf16": {
+    "taskId": "js-run-length-encode",
+    "variant": "reference",
+    "track": "javascript",
+    "sourceSha256": "7ca8238d8f8c617b04da82392f22bb8ac063d2dd65e6f3829889aa38fc906cf4",
+    "phase": "hidden",
+    "rawUtf16Chars": 20455,
+    "rawUtf8Bytes": 20455,
+    "calls": 7,
+    "displayJsonChars": 20126
+  },
+  "maximumUtf8": {
+    "taskId": "js-run-length-encode",
+    "variant": "reference",
+    "track": "javascript",
+    "sourceSha256": "7ca8238d8f8c617b04da82392f22bb8ac063d2dd65e6f3829889aa38fc906cf4",
+    "phase": "hidden",
+    "rawUtf16Chars": 20455,
+    "rawUtf8Bytes": 20455,
+    "calls": 7,
+    "displayJsonChars": 20126
+  },
+  "controls": {
+    "enabledPassed": true,
+    "disabledObserverRejectedAfterPublicPass": true,
+    "controlRowsExcludedFromReferenceMaximum": true
+  },
+  "candidateComparison": {
+    "candidate": 900000,
+    "existingBackstop": 1000000,
+    "measuredHeadroom": 879545,
+    "choiceMade": false
+  },
+  "verification": {
+    "allBuildSourceSnapshotsUnchanged": 135,
+    "allRequiredSourcePinsUnchanged": 19,
+    "allRuntimeCompilerFilesUnchanged": 93,
+    "headAndTrackedUntrackedSourceUnchanged": true,
+    "engineArtifactUnchanged": {
+      "file": "lib/coding/vendor/quickjs-node24.cjs",
+      "sha256": "e3772a79c640b51a33a7d5530795bded483af997d2e5ce38b46a659cdc2d890e",
+      "unchanged": true
+    },
+    "allVirtualEncoderBodiesUnchanged": true,
+    "virtualSourceTransforms": 4,
+    "programEncoderSourceSha256": "d459ea6b4c44fd49bf72990991f74abe371868698d86d07074bda95c7bfa0f1b",
+    "renderedMeasurementDriverSha256": "247554fdc05804b402f62b6509a97854711e82dbf488b381ed4761291f2d8f13",
+    "normalAndDisabledWorkerHostBuilds": 4,
+    "allChildrenExitedZero": true,
+    "watchdogAndOutputLimitTriggers": false,
+    "temporaryBundlesRemoved": true,
+    "stderrBytes": 0
+  },
+  "artifacts": {
+    "externalManifestSha256": "7d021da499e6b5f01899e79558f4c0e8a41a8f8505b64f0bc6ce55c616bf7c5f",
+    "retainedFileSha256": {
+      "measure.json": "e2b4abcb33ef30fad4efb903109062797c14c1c975f1f076a1bdc952408281a1",
+      "enabled-control.json": "dd7d87dcd4a0116780908c54a800adf05348ae343a4312ae0510b5b53be18d40",
+      "disabled-control.json": "b2ac5c1bb5750efa5c06351cca649dc607f688c168f1b643228df33ab294b617",
+      "provenance.json": "652f56328f02d6c0705ee72d5b9b4e186d2c2cc2860966aaad873fa75a99606b"
+    },
+    "supervisorRecordSha256": "cfd162890e685b573aad9dd5192ca1f69c56100fb9471d0da6c54ace3e4f0aa3",
+    "rawMetadataDirectory": "/tmp/devshark-epic-f-handoff/f11-16-measured-1e3dd005-20261119",
+    "supervisorDirectory": "/tmp/devshark-epic-f-handoff/f11-16-execution-1e3dd005-20261119"
+  },
+  "limitations": [
+    "Non-React call-test encoder cohort only; not all catalogue814tasks",
+    "Canonical reversed hidden order, not every hidden permutation",
+    "Trusted authored positives include boards/async/skeleton/known-right cases, not wrong mutants or browser realm",
+    "Raw returned values/calls/expectations/code/errors were not persisted",
+    "No budget implementation/choice, CI or merge claim"
+  ]
+}
