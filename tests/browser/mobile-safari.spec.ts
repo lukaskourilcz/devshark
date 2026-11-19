@@ -34,7 +34,7 @@ async function openEditor(page: Page) {
   await expect(page.locator('.cm-content')).toBeVisible();
 }
 
-async function openProfile(page: Page) {
+async function prepareLearner(page: Page) {
   await prepare(page);
   // Reuse the responsive runner's invented learner and wire bodies. A
   // variable import keeps the native .mjs helper outside TS's module graph.
@@ -58,6 +58,11 @@ async function openProfile(page: Page) {
     misses.push(`${request.method()} ${url.pathname}${url.search}`);
     return route.fulfill({ status: 503, json: { error: { code: 'offline', message: 'Local browser fixture missing' } } });
   });
+  return misses;
+}
+
+async function openProfile(page: Page) {
+  const misses = await prepareLearner(page);
   await page.goto('/profile');
   await expect(page.locator('.sn-card input.sn-input')).toBeVisible();
   await expect(page.locator('.sn-card input[type="radio"]')).toHaveCount(4);
@@ -217,6 +222,36 @@ test.describe('touch editor typography', () => {
     await expect(checked).toBeFocused();
     expect(misses).toEqual([]);
   });
+
+  for (const { path, selector, label } of [
+    { path: '/topics/javascript-closures', selector: '.ss-topic-article section > a', label: 'Read the documentation' },
+    { path: '/daily', selector: '.ss-breadcrumb a', label: 'Today' },
+    { path: '/learn', selector: '.ss-breadcrumb a', label: 'Learn' },
+    { path: '/learn/web-developer', selector: '.ss-breadcrumb a', label: 'Learn' },
+    { path: '/coding/javascript', selector: '.ss-breadcrumb a', label: 'Coding' },
+    { path: '/privacy', selector: '.ss-legal-index a', label: 'Email' },
+    { path: '/terms', selector: '.ss-legal-trader a', label: 'support@devshark.app' },
+  ]) {
+    test(`${path}: the standalone ${label} link has a real 44px target`, async ({ page }, info) => {
+      const misses = await prepareLearner(page);
+      await page.goto(path);
+      // A cold public guide intentionally preserves its native focus; the
+      // other routes perform the shell's delayed focus handoff to main.
+      if (path.startsWith('/topics/')) await expect(page.locator('.ss-route .ss-topic-article')).toBeVisible();
+      else await expect(page.locator('#main-content')).toBeFocused();
+      if (path === '/privacy') await page.locator('.ss-legal-index summary').click();
+      const link = page.locator(selector).filter({ hasText: new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) });
+      await expect(link).toHaveCount(1);
+      await link.scrollIntoViewIfNeeded();
+      const bounds = await link.boundingBox();
+      await info.attach('target-rectangle', { body: JSON.stringify({ path, label, bounds }), contentType: 'application/json' });
+      expect(bounds!.width).toBeGreaterThanOrEqual(44);
+      expect(bounds!.height).toBeGreaterThanOrEqual(44);
+      await link.focus();
+      await expect(link).toBeFocused();
+      expect(misses).toEqual([]);
+    });
+  }
 });
 
 test.describe('desktop editor typography', () => {
