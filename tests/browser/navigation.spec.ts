@@ -14,6 +14,46 @@ const HOLD_MS = 600;
 // are not in it for a visitor without a session.
 const SECTIONS = ['/coding', '/quiz', '/learn', '/challenge', '/play', '/premium'];
 
+for (const closeWhileLoading of [false, true]) test(`a delayed mobile navigation chunk keeps keyboard control (${closeWhileLoading ? 'closed before load' : 'opened after load'})`, async ({ page }) => {
+  await prepare(page, 390);
+  let release = () => {};
+  const waiting = new Promise<void>((resolve) => { release = resolve; });
+  await page.route(/\/assets\/MobileNavigation-[\w-]+\.js$/, async (route) => {
+    await waiting;
+    await route.continue();
+  });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  const opener = page.getByRole('button', { name: 'Open navigation menu', exact: true });
+  await opener.click();
+  const dialog = page.getByRole('dialog', { name: 'Navigation', exact: true });
+  try {
+    await expect(dialog.getByRole('status')).toHaveText('Loading…', { timeout: 2000 });
+    const dismiss = dialog.getByRole('button', { name: 'Dismiss', exact: true });
+    await expect(dismiss).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(dismiss).toBeFocused();
+    if (closeWhileLoading) {
+      await page.keyboard.press('Escape');
+      await expect(dialog).toHaveCount(0);
+      await expect(opener).toBeFocused();
+    }
+  } finally {
+    release();
+  }
+  if (closeWhileLoading) {
+    // An import completing after dismissal must not reopen or steal focus.
+    await expect(dialog).toHaveCount(0);
+    await expect(opener).toBeFocused();
+    await opener.click();
+  }
+  await expect(dialog.getByRole('link', { name: 'Quiz', exact: true })).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Dismiss', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
+});
+
 for (const theme of ['light', 'dark'] as const) for (const width of [360, 1280]) {
   test(`Quiz task-first setup preserves topic logos and ocean at ${width}px in ${theme}`, async ({ page }, info) => {
     await prepare(page, width);
