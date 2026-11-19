@@ -86,6 +86,12 @@ export const TOUCH_TARGETS = String.raw`(() => {
   const visible = (el) => {
     const style = getComputedStyle(el);
     if (style.display === 'none' || style.visibility === 'hidden') return false;
+    for (let parent = el.parentElement; parent; parent = parent.parentElement) {
+      if (parent.tagName === 'DETAILS' && !parent.open) {
+        const summary = [...parent.children].find((child) => child.tagName === 'SUMMARY');
+        if (!summary?.contains(el)) return false;
+      }
+    }
     for (let parent = el; parent; parent = parent.parentElement) if (Number(getComputedStyle(parent).opacity) === 0) return false;
     return true;
   };
