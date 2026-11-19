@@ -13,6 +13,7 @@
 import assert from 'node:assert/strict';
 import { jsonKind } from '../shared/coding-failure';
 import { buildSandboxWorker } from './build-sandbox-worker.mjs';
+import { runSandboxWatchdogControls } from './sandbox-watchdog-controls';
 import {
   runInSandbox, sandboxPool, sandboxThreads, type SandboxInput,
   SANDBOX_DEADLINE_MS, SANDBOX_IDLE_THREADS, SANDBOX_MAX_THREADS, SANDBOX_MAX_TICKS, SANDBOX_MAX_WAITING,
@@ -66,12 +67,14 @@ async function settledThreads(name: string): Promise<number> {
 
 /** Runs one limit case. `thread` says what becomes of the thread that ran it:
  * `ended` when the host had to stop it, `kept` when QuickJS stopped the
- * program and the thread went back to the pool. */
+ * program and the thread went back to the pool. Natural native workloads
+ * may reach their own deadline or the parent watchdog: either path must
+ * settle every live thread and allow the next actual grade. */
 async function limitCase(
   name: string,
   input: Omit<SandboxInput, 'expectations'> & { expectations?: unknown[] | null },
   check: (run: EvaluateResult, took: number) => void,
-  thread: 'ended' | 'kept',
+  thread: 'ended' | 'kept' | 'engine-or-host',
 ): Promise<void> {
   // A loaded thread first, so the time below is the run's and not a thread start.
   await grades(`before ${name}`);
@@ -83,7 +86,8 @@ async function limitCase(
   assert.ok(took <= LONGEST_RUN_MS, `${name}: ended within the deadline, the grace and the margin (${took} ms)`);
   const after = await settledThreads(name);
   if (thread === 'ended') assert.equal(after, before - 1, `${name}: the host stopped the thread that ran it`);
-  else assert.equal(after, before, `${name}: the thread that ran it went back to the pool`);
+  else if (thread === 'kept') assert.equal(after, before, `${name}: the thread that ran it went back to the pool`);
+  else assert.ok(after === before || after === before - 1, `${name}: the deadline either returned an idle thread or physically ended it`);
   await grades(name);
   console.log(`PASS sandbox limits: ${name} (${took} ms, thread ${thread})`);
 }
@@ -98,11 +102,9 @@ const atDeadline = (name: string) => (run: EvaluateResult, took: number) => {
   timedOut(name)(run);
   assert.ok(took >= SANDBOX_DEADLINE_MS - 50, `${name}: the program had its whole deadline (${took} ms)`);
 };
-/** The host stopped the thread at the deadline plus the grace. */
-const atGrace = (name: string) => (run: EvaluateResult, took: number) => {
-  timedOut(name)(run);
-  assert.ok(took >= SANDBOX_DEADLINE_MS + SANDBOX_WORKER_GRACE_MS - 20, `${name}: the host waited out the deadline and the grace (${took} ms)`);
-};
+// A protocol spinner cannot reach QuickJS's interrupt or post-jobs clock.
+// This proves the strict parent grace separately, including its negative.
+await runSandboxWatchdogControls({ longestRunMs: LONGEST_RUN_MS, exitWaitMs: EXIT_WAIT_MS });
 
 // ── busy-waits: QuickJS interrupts the bytecode at the deadline ──────────
 for (const [name, code, calls] of [
@@ -125,21 +127,22 @@ await limitCase('an interval that never lets a call settle', {
   assert.ok(took < SANDBOX_DEADLINE_MS, `the tick limit stopped it before the deadline (${took} ms)`);
 }, 'kept');
 
-// ── native-call loops: the host stops the thread ────────────────────────
+// ── native-call loops: the engine deadline or host stops the run ────────
 // QuickJS polls its interrupt handler every 10,000 loop iterations, and a
 // loop whose iterations go into native calls reaches that poll seconds after
-// the deadline: run on this thread, the three loops below stopped after
-// about 40 s, 12 s and 10 s. The host ends their thread at the deadline plus
-// the grace instead.
+// the deadline. These workloads may also return to an engine interrupt or
+// post-jobs clock gate before the parent grace. Keep their real resource,
+// fixed-timeout, upper-bound, settled-thread and next-grade controls; the
+// deterministic fixture above independently pins the strict parent path.
 await limitCase('a loop of native string calls', {
   code: 'const repeat = () => { let total = 0; while (true) { total += "x".repeat(2e6).length; } };', calls: ['repeat()'],
-}, atGrace('a loop of native string calls'), 'ended');
+}, atDeadline('a loop of native string calls'), 'engine-or-host');
 await limitCase('an allocating loop of native calls', {
   code: 'const hoard = () => { const kept = []; for (;;) kept.push("x".repeat(1e6) + kept.length); };', calls: ['hoard()'],
-}, atGrace('an allocating loop of native calls'), 'ended');
+}, atDeadline('an allocating loop of native calls'), 'engine-or-host');
 await limitCase('an allocating loop spread over promise jobs', {
   code: 'const hoard = async () => { const kept = []; for (;;) { kept.push("x".repeat(1e6) + kept.length); await 0; } };', calls: ['hoard()'],
-}, atGrace('an allocating loop spread over promise jobs'), 'ended');
+}, atDeadline('an allocating loop spread over promise jobs'), 'engine-or-host');
 
 // ── memory: a call past 64 MB fails, the run goes on ─────────────────────
 await limitCase('an allocating loop inside a call', {
