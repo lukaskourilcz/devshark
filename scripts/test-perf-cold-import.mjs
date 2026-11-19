@@ -1,8 +1,10 @@
 // Tiny source fixtures; no real handler profiling in CI.
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { PROBES, main, options } from './perf-cold-start.mjs';
 
@@ -70,4 +72,18 @@ test('opt-in evaluation markers report only fixed approved modules', async t => 
   assert.deepEqual(marked.rows[0].markers, ['lib/rewards/handlers.ts']);
   assert(!JSON.stringify(marked).includes('unapproved-private-path'));
   assert.notEqual(marked.artifacts[0].artifactSha256, unmarked.artifacts[0].artifactSha256, 'instrumented artifacts are identified separately');
+});
+
+test('direct local CLI completes its awaited import and writes all samples', async t => {
+  const root = fixture(t, 'export default null;');
+  const output = join(root, 'local-report.json');
+  const script = fileURLToPath(new URL('./perf-cold-start.mjs', import.meta.url));
+  const result = await new Promise(resolve => {
+    execFile(process.execPath, [script, '--local', '--handlers=health', '--samples=3', '--markers', `--output=${output}`], { cwd: root, timeout: 10000 }, (error, stdout, stderr) => resolve({ code: error?.code ?? 0, stdout, stderr }));
+  });
+  assert.equal(result.code, 0, result.stderr);
+  const report = JSON.parse(readFileSync(output, 'utf8'));
+  assert.equal(report.rows.length, 3);
+  assert(report.rows.every(row => row.ok));
+  assert.match(result.stdout, /^health import: observations=3 errors=0 skipped=0 require=/m);
 });
