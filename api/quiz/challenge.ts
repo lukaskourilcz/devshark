@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from '../../lib/vercel-types.js';
-import { creditVerifiedXp } from '../../lib/rewards/handlers';
-import { settleMilestones } from '../../lib/rewards/coins';
+import { creditVerifiedXp, settleMilestones } from '../../lib/rewards/coins';
 import {
   secureShuffle,
   weightedSample,
