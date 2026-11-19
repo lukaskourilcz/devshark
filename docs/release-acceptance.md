@@ -8061,3 +8061,12 @@ was projected offline on 19 November; this paragraph records its original
 observation scope, not new sampling.
 
 The full byte-preserved projection contains 90 nested findings in five groups: 33 security INFO, 39 performance WARN and 18 performance INFO. The supporting snapshot has 76 RLS tables, 43 SELECT-only policies and no public views. All 33 no-policy identities lack effective browser table CRUD in that snapshot. Advisor, catalog and key observations retain their separate 07:40, 07:43 and 07:57 UTC clocks. Migration head and function ACLs remain unobserved. The text-linter mismatch is not planner evidence; intentional friendships uniqueness is retained. No database query, DDL, DML, policy or index change was made by this projection.
+
+
+## Epic F1 remaining baseline: F1-35: frozen CI population (19 November 2026)
+
+Issue #630. Saved evidence in `docs/audit/f1-ci-quality-snapshot-2026-11-19.json`
+was projected offline on 19 November; this paragraph records its original
+observation scope, not new sampling.
+
+At the original 14:19:58 UTC cutoff, the all-event/all-conclusion latest-ten selection has ten runs and 76 jobs: five pushes, five PRs, nine successes and one failure. Complete CLI/REST metadata reconciles 33,831 job seconds and 599 hypothetical per-job ceiling minutes. The sum of metadata wall-time proxies is 14,200 seconds, with mean 1,420 and median 1,464.5 seconds. Coding is longest in seven runs and browser in three. Different job layouts, overlapping work and failed runs preclude a controlled speedup or billing claim. Later F7 runs are outside this historical population.
