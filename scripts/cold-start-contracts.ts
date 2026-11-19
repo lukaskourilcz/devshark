@@ -34,7 +34,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { build } from 'esbuild';
+import { bundleColdEntry } from './cold-start-bundle.mjs';
 
 const root = process.cwd();
 const out = join(root, 'node_modules/.cache/shark/cold-start');
@@ -55,28 +55,7 @@ interface Loaded {
 export async function loadFresh(entry: string, probe = 'null', extraEnv: Record<string, string> = {}, markers: string[] = [], beforeImport = ''): Promise<Loaded> {
   mkdirSync(out, { recursive: true });
   const outfile = join(out, `${entry.replace(/[/[\]]/g, '_').replace(/\.ts$/, '')}${markers.length ? '-marked' : ''}.cjs`);
-  const { readFile } = await import('node:fs/promises');
-  await build({
-    entryPoints: [join(root, entry)],
-    bundle: true,
-    platform: 'node',
-    format: 'cjs',
-    packages: 'external',
-    outfile,
-    logLevel: 'warning',
-    absWorkingDir: root,
-    plugins: markers.length ? [{
-      name: 'evaluation-markers',
-      setup(plugin) {
-        const wanted = new Set(markers.map((file) => join(root, file)));
-        plugin.onLoad({ filter: /\.ts$/ }, async (args) => {
-          if (!wanted.has(args.path)) return undefined;
-          const marker = `(globalThis.__evaluated ??= []).push(${JSON.stringify(args.path.slice(root.length + 1))});\n`;
-          return { contents: marker + await readFile(args.path, 'utf8'), loader: 'ts' };
-        });
-      },
-    }] : [],
-  });
+  await bundleColdEntry(entry, outfile, markers, root);
   const code = [
     beforeImport,
     `const mod = require(${JSON.stringify(outfile)});`,
