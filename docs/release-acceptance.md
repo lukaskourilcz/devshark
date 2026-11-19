@@ -8906,3 +8906,23 @@ outputs agree. No provider/VM or distribution claim follows. Source states,
 raw samples, commands and packaging limits are in
 `docs/quality/f11-react-compiler-pool-2026-11-19.md` and its adjacent JSON.
 Full composed build/grading/Coding/launch/parity and merge remain pending.
+
+
+### Epic F, F11-34/37 deferred grading engines (19 November 2026)
+
+Test `bc7af72d`, fixture correction `eca6edd6`, product fix `9bd237dc`.
+Actual red: four positive controls pass, five import/route/unused-compiler
+assertions fail. First postfix 8/9 exposed a metadata-counting fixture marker;
+canonical engine-entry observation corrects it, retaining the unmocked import
+and real CJS/ESM/fault/negative controls. Corrected focused 9/9 pass 1.170 s.
+
+Normal runner build 0.522 s, full performance 77.457 s, API 7.366 s and scripts 9.958 s
+pass. Whole-source preservation confines sandbox changes to imports/getModule;
+36 leases/health, 16/17 output, 20/32 trim, 19 digest and 09/11 behavior remain.
+F7 now observes its actual coding-handler evaluation and independently rejects
+eager QuickJS. No platform latency/memory or provider inventory claim follows.
+
+Exact logs, source states, artifact hashes and the fixture failure are in
+`docs/quality/f11-lazy-engines-2026-11-19.md` and its adjacent JSON. Final
+clean-head fast plus one additional same-head Launch, CI and merge remain
+pending; no extra full Launch or Coding run is claimed here.
