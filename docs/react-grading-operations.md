@@ -186,6 +186,12 @@ stylesheet, script, frame, media or object loads nothing and runs no inline scri
 or handler. Its VM part runs only with `REACT_RUNNER_SNAPSHOT_ID` set. These local
 checks do not replace the real microVM integration check.
 
+Required CI and local parity run `test:sandbox-limits` and the local guest
+checks through `test:grading-integrity`. That umbrella clears
+`REACT_RUNNER_SNAPSHOT_ID` only for the isolation child. The standalone
+`test:react-isolation` command keeps its optional VM probes when a snapshot
+and Sandbox credentials are configured.
+
 `.github/workflows/grading-monitor.yml` checks signed-out production reference and
 wrong submissions for `react-counter` and `js-double-numbers` every six hours and
 on demand. Missing snapshots/credentials and broken engines fail the workflow.

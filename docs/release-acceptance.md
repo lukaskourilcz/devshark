@@ -8470,3 +8470,30 @@ changes no source bytes. No application/provider/production request, dependency
 update, root/F11 install, extra managed worktree or historical-date claim was
 part of this retake. The compact [historical-source artifact](audit/f1-historical-bundle-retake-2026-11-19.json)
 links exact inputs, raw hashes, the original five-file graph and failure chronology.
+
+## F11-30 required local grader checks: implementation checkpoint — 19 November 2026
+
+At main `15f350a8`, both `test:sandbox-limits` and `test:react-isolation` existed
+as standalone commands but neither ran through the required workflow or local
+parity. Fix `f9fa07aa` composes both sequentially into `test:grading-integrity`,
+which those existing gates already invoke. Their real child output will be
+required evidence; a green umbrella label alone is not sufficient.
+
+Only the isolation child receives an empty `REACT_RUNNER_SNAPSHOT_ID`, so its
+local guest checks run and its existing remote-VM branch explicitly skips. The
+standalone isolation command retains its optional configured VM probes. This
+does not establish a snapshot, VM network policy or live grading acceptance.
+The real-VM owner task remains open. All 44 parity step IDs and their order,
+installed-tool handling, QuickJS guard and container behavior remain unchanged.
+
+JSON structure and `git diff --check` pass. Sandbox/isolation, the complete
+umbrella, parity, build, Coding, browser and new CI checks have not run for this
+checkpoint: root is profiling F7 and controls the quiet runtime slot. Earlier
+green F14 run `44523908461` did not invoke these suites. Fresh execution, checked
+CI and merge remain required before F11-30 is checked; #640 stays open.
+
+F11-31 declaration packaging is implemented on the separate unmerged F7 branch
+and retains its own acceptance requirements. This change does not repeat that
+work or mark it complete. No grading outcome, resource bound or handler changed.
+
+Refs #640, #646 and #629.
