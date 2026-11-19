@@ -8070,3 +8070,12 @@ was projected offline on 19 November; this paragraph records its original
 observation scope, not new sampling.
 
 At the original 14:19:58 UTC cutoff, the all-event/all-conclusion latest-ten selection has ten runs and 76 jobs: five pushes, five PRs, nine successes and one failure. Complete CLI/REST metadata reconciles 33,831 job seconds and 599 hypothetical per-job ceiling minutes. The sum of metadata wall-time proxies is 14,200 seconds, with mean 1,420 and median 1,464.5 seconds. Coding is longest in seven runs and browser in three. Different job layouts, overlapping work and failed runs preclude a controlled speedup or billing claim. Later F7 runs are outside this historical population.
+
+
+## Epic F1 remaining baseline: F1-29/46: existing handler entry and import evidence (19 November 2026)
+
+Issue #630. Saved evidence in `docs/audit/f1-handler-baseline-2026-11-19.json`
+was projected offline on 19 November; this paragraph records its original
+observation scope, not new sampling.
+
+Actual merged-F7 production collection records 36 attempted, sent and completed expected read/refusal responses with zero errors: eight first, sixteen repeat and twelve unknown module markers. Separate READY/alias metadata corroborates cbdfa2aa in arn1; the collector deploymentRevision:null remains intact. Existing before/final import checkpoints each contain 36 successful fresh-process samples across all twelve handlers, using Node 24.22.3, Apple M3 and locked esbuild 0.25.12. Original f12b396a/3fb1a0d1 measurement sources and full mixed/slower rows remain; runtime trees, locks and import tools match merged cbdf. A local CJS proxy is not a provider Lambda, retained-memory result, business operation or platform-boot measurement. No duplicate probe/import run was made.

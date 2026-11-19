@@ -1,0 +1,5464 @@
+{
+  "schemaVersion": 1,
+  "historicalObservedEvidence": true,
+  "packagedAtUtc": "2026-11-19T16:56:23.240708+00:00",
+  "projectionBaselineHead": "cbdfa2aa995e7dd71c7d0197fee7f35df21ca205",
+  "packagingMode": "offline projection of existing saved observations; no new runtime/provider/application query",
+  "findingIds": [
+    "F1-29",
+    "F1-46"
+  ],
+  "local": {
+    "baseline": {
+      "mode": "fresh-process-cjs-import-proxy",
+      "rows": [
+        {
+          "handler": "health",
+          "sample": 0,
+          "childProcessWallMs": 74.94183399999999,
+          "ok": true,
+          "pid": 28382,
+          "importWallMs": 19.820375,
+          "cpu": {
+            "userMicros": 19833,
+            "systemMicros": 3294
+          },
+          "heapBeforeBytes": 6540120,
+          "heapAfterBytes": 9601480,
+          "heapDeltaBytes": 3061360,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "health",
+          "sample": 1,
+          "childProcessWallMs": 71.80808300000001,
+          "ok": true,
+          "pid": 28383,
+          "importWallMs": 18.554083000000002,
+          "cpu": {
+            "userMicros": 19417,
+            "systemMicros": 2698
+          },
+          "heapBeforeBytes": 6627432,
+          "heapAfterBytes": 9601480,
+          "heapDeltaBytes": 2974048,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "health",
+          "sample": 2,
+          "childProcessWallMs": 72.45762500000004,
+          "ok": true,
+          "pid": 28384,
+          "importWallMs": 18.993333000000003,
+          "cpu": {
+            "userMicros": 19739,
+            "systemMicros": 2685
+          },
+          "heapBeforeBytes": 6494104,
+          "heapAfterBytes": 9601392,
+          "heapDeltaBytes": 3107288,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "settings",
+          "sample": 0,
+          "childProcessWallMs": 87.72337500000003,
+          "ok": true,
+          "pid": 28388,
+          "importWallMs": 34.818416000000006,
+          "cpu": {
+            "userMicros": 34841,
+            "systemMicros": 3910
+          },
+          "heapBeforeBytes": 6505328,
+          "heapAfterBytes": 14692920,
+          "heapDeltaBytes": 8187592,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learning-paths/catalog.ts",
+            "lib/learning-paths/content/fde.ts",
+            "lib/learning-paths/validate.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "settings",
+          "sample": 1,
+          "childProcessWallMs": 88.150083,
+          "ok": true,
+          "pid": 28389,
+          "importWallMs": 34.325708000000006,
+          "cpu": {
+            "userMicros": 34397,
+            "systemMicros": 3905
+          },
+          "heapBeforeBytes": 6525704,
+          "heapAfterBytes": 14692920,
+          "heapDeltaBytes": 8167216,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learning-paths/catalog.ts",
+            "lib/learning-paths/content/fde.ts",
+            "lib/learning-paths/validate.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "settings",
+          "sample": 2,
+          "childProcessWallMs": 86.36462500000005,
+          "ok": true,
+          "pid": 28390,
+          "importWallMs": 33.172084,
+          "cpu": {
+            "userMicros": 33483,
+            "systemMicros": 3785
+          },
+          "heapBeforeBytes": 6615968,
+          "heapAfterBytes": 14688048,
+          "heapDeltaBytes": 8072080,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learning-paths/catalog.ts",
+            "lib/learning-paths/content/fde.ts",
+            "lib/learning-paths/validate.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "leaderboard",
+          "sample": 0,
+          "childProcessWallMs": 72.96479099999999,
+          "ok": true,
+          "pid": 28391,
+          "importWallMs": 19.518583000000003,
+          "cpu": {
+            "userMicros": 20087,
+            "systemMicros": 2828
+          },
+          "heapBeforeBytes": 6540232,
+          "heapAfterBytes": 9679872,
+          "heapDeltaBytes": 3139640,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "leaderboard",
+          "sample": 1,
+          "childProcessWallMs": 74.08629200000007,
+          "ok": true,
+          "pid": 28392,
+          "importWallMs": 18.992625000000004,
+          "cpu": {
+            "userMicros": 19811,
+            "systemMicros": 2704
+          },
+          "heapBeforeBytes": 6509352,
+          "heapAfterBytes": 9624032,
+          "heapDeltaBytes": 3114680,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "leaderboard",
+          "sample": 2,
+          "childProcessWallMs": 75.09691699999996,
+          "ok": true,
+          "pid": 28393,
+          "importWallMs": 19.369417,
+          "cpu": {
+            "userMicros": 20057,
+            "systemMicros": 2732
+          },
+          "heapBeforeBytes": 6519272,
+          "heapAfterBytes": 9624088,
+          "heapDeltaBytes": 3104816,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "questions",
+          "sample": 0,
+          "childProcessWallMs": 161.99304200000006,
+          "ok": true,
+          "pid": 28394,
+          "importWallMs": 105.002625,
+          "cpu": {
+            "userMicros": 101587,
+            "systemMicros": 7763
+          },
+          "heapBeforeBytes": 7072544,
+          "heapAfterBytes": 33250480,
+          "heapDeltaBytes": 26177936,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "questions",
+          "sample": 1,
+          "childProcessWallMs": 159.10799999999995,
+          "ok": true,
+          "pid": 28395,
+          "importWallMs": 104.91925,
+          "cpu": {
+            "userMicros": 101458,
+            "systemMicros": 7514
+          },
+          "heapBeforeBytes": 6644488,
+          "heapAfterBytes": 33246128,
+          "heapDeltaBytes": 26601640,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "questions",
+          "sample": 2,
+          "childProcessWallMs": 159.77366699999993,
+          "ok": true,
+          "pid": 28399,
+          "importWallMs": 106.89274999999999,
+          "cpu": {
+            "userMicros": 103267,
+            "systemMicros": 7578
+          },
+          "heapBeforeBytes": 6495888,
+          "heapAfterBytes": 33248208,
+          "heapDeltaBytes": 26752320,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "roadmap",
+          "sample": 0,
+          "childProcessWallMs": 188.45550000000003,
+          "ok": true,
+          "pid": 28400,
+          "importWallMs": 131.93012499999998,
+          "cpu": {
+            "userMicros": 126987,
+            "systemMicros": 9381
+          },
+          "heapBeforeBytes": 6528968,
+          "heapAfterBytes": 40300312,
+          "heapDeltaBytes": 33771344,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learn-lessons/index.ts",
+            "lib/learn-lessons/serve.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "roadmap",
+          "sample": 1,
+          "childProcessWallMs": 185.92208300000016,
+          "ok": true,
+          "pid": 28401,
+          "importWallMs": 131.07725,
+          "cpu": {
+            "userMicros": 126664,
+            "systemMicros": 8645
+          },
+          "heapBeforeBytes": 6620272,
+          "heapAfterBytes": 40091440,
+          "heapDeltaBytes": 33471168,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learn-lessons/index.ts",
+            "lib/learn-lessons/serve.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "roadmap",
+          "sample": 2,
+          "childProcessWallMs": 182.1350420000001,
+          "ok": true,
+          "pid": 28402,
+          "importWallMs": 127.504792,
+          "cpu": {
+            "userMicros": 123206,
+            "systemMicros": 8571
+          },
+          "heapBeforeBytes": 6673504,
+          "heapAfterBytes": 40339608,
+          "heapDeltaBytes": 33666104,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learn-lessons/index.ts",
+            "lib/learn-lessons/serve.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "challenge",
+          "sample": 0,
+          "childProcessWallMs": 144.61691700000029,
+          "ok": true,
+          "pid": 28403,
+          "importWallMs": 87.064334,
+          "cpu": {
+            "userMicros": 83312,
+            "systemMicros": 7109
+          },
+          "heapBeforeBytes": 6542552,
+          "heapAfterBytes": 26194928,
+          "heapDeltaBytes": 19652376,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learning-paths/catalog.ts",
+            "lib/learning-paths/content/fde.ts",
+            "lib/learning-paths/validate.ts",
+            "lib/rewards/handlers.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "challenge",
+          "sample": 1,
+          "childProcessWallMs": 139.75808400000005,
+          "ok": true,
+          "pid": 28407,
+          "importWallMs": 83.33779100000001,
+          "cpu": {
+            "userMicros": 81475,
+            "systemMicros": 6488
+          },
+          "heapBeforeBytes": 6343784,
+          "heapAfterBytes": 26197376,
+          "heapDeltaBytes": 19853592,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learning-paths/catalog.ts",
+            "lib/learning-paths/content/fde.ts",
+            "lib/learning-paths/validate.ts",
+            "lib/rewards/handlers.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "challenge",
+          "sample": 2,
+          "childProcessWallMs": 140.57549999999992,
+          "ok": true,
+          "pid": 28408,
+          "importWallMs": 83.43812500000001,
+          "cpu": {
+            "userMicros": 81491,
+            "systemMicros": 6331
+          },
+          "heapBeforeBytes": 6507056,
+          "heapAfterBytes": 26194904,
+          "heapDeltaBytes": 19687848,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learning-paths/catalog.ts",
+            "lib/learning-paths/content/fde.ts",
+            "lib/learning-paths/validate.ts",
+            "lib/rewards/handlers.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "daily",
+          "sample": 0,
+          "childProcessWallMs": 120.29937500000005,
+          "ok": true,
+          "pid": 28409,
+          "importWallMs": 65.47687499999999,
+          "cpu": {
+            "userMicros": 63374,
+            "systemMicros": 6837
+          },
+          "heapBeforeBytes": 6036016,
+          "heapAfterBytes": 20917000,
+          "heapDeltaBytes": 14880984,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "daily",
+          "sample": 1,
+          "childProcessWallMs": 128.29966700000023,
+          "ok": true,
+          "pid": 28410,
+          "importWallMs": 64.586334,
+          "cpu": {
+            "userMicros": 62541,
+            "systemMicros": 6703
+          },
+          "heapBeforeBytes": 6494912,
+          "heapAfterBytes": 20921824,
+          "heapDeltaBytes": 14426912,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "daily",
+          "sample": 2,
+          "childProcessWallMs": 126.52220800000032,
+          "ok": true,
+          "pid": 28411,
+          "importWallMs": 67.005708,
+          "cpu": {
+            "userMicros": 65197,
+            "systemMicros": 6604
+          },
+          "heapBeforeBytes": 6617664,
+          "heapAfterBytes": 20890152,
+          "heapDeltaBytes": 14272488,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "submit",
+          "sample": 0,
+          "childProcessWallMs": 117.23508300000003,
+          "ok": true,
+          "pid": 28412,
+          "importWallMs": 61.222750000000005,
+          "cpu": {
+            "userMicros": 59395,
+            "systemMicros": 6032
+          },
+          "heapBeforeBytes": 6618848,
+          "heapAfterBytes": 20877272,
+          "heapDeltaBytes": 14258424,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "submit",
+          "sample": 1,
+          "childProcessWallMs": 113.45325000000003,
+          "ok": true,
+          "pid": 28416,
+          "importWallMs": 59.962125,
+          "cpu": {
+            "userMicros": 58162,
+            "systemMicros": 5758
+          },
+          "heapBeforeBytes": 6055864,
+          "heapAfterBytes": 20934656,
+          "heapDeltaBytes": 14878792,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "submit",
+          "sample": 2,
+          "childProcessWallMs": 111.74045800000022,
+          "ok": true,
+          "pid": 28417,
+          "importWallMs": 57.288083,
+          "cpu": {
+            "userMicros": 55513,
+            "systemMicros": 5669
+          },
+          "heapBeforeBytes": 6610024,
+          "heapAfterBytes": 20931912,
+          "heapDeltaBytes": 14321888,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "flashcards",
+          "sample": 0,
+          "childProcessWallMs": 111.97795799999994,
+          "ok": true,
+          "pid": 28418,
+          "importWallMs": 57.920083,
+          "cpu": {
+            "userMicros": 56190,
+            "systemMicros": 5592
+          },
+          "heapBeforeBytes": 6503816,
+          "heapAfterBytes": 20790384,
+          "heapDeltaBytes": 14286568,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "flashcards",
+          "sample": 1,
+          "childProcessWallMs": 113.8627919999999,
+          "ok": true,
+          "pid": 28419,
+          "importWallMs": 55.755333,
+          "cpu": {
+            "userMicros": 54188,
+            "systemMicros": 5749
+          },
+          "heapBeforeBytes": 7075168,
+          "heapAfterBytes": 20764120,
+          "heapDeltaBytes": 13688952,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "flashcards",
+          "sample": 2,
+          "childProcessWallMs": 110.7058750000001,
+          "ok": true,
+          "pid": 28420,
+          "importWallMs": 57.367166999999995,
+          "cpu": {
+            "userMicros": 55645,
+            "systemMicros": 5494
+          },
+          "heapBeforeBytes": 6592264,
+          "heapAfterBytes": 20790456,
+          "heapDeltaBytes": 14198192,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "user",
+          "sample": 0,
+          "childProcessWallMs": 155.43712499999947,
+          "ok": true,
+          "pid": 28421,
+          "importWallMs": 99.48625,
+          "cpu": {
+            "userMicros": 96012,
+            "systemMicros": 7462
+          },
+          "heapBeforeBytes": 6607712,
+          "heapAfterBytes": 31441248,
+          "heapDeltaBytes": 24833536,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "user",
+          "sample": 1,
+          "childProcessWallMs": 141.30783299999985,
+          "ok": true,
+          "pid": 28448,
+          "importWallMs": 87.454875,
+          "cpu": {
+            "userMicros": 84641,
+            "systemMicros": 6794
+          },
+          "heapBeforeBytes": 6625064,
+          "heapAfterBytes": 31269208,
+          "heapDeltaBytes": 24644144,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "user",
+          "sample": 2,
+          "childProcessWallMs": 144.9199580000004,
+          "ok": true,
+          "pid": 28449,
+          "importWallMs": 90.453333,
+          "cpu": {
+            "userMicros": 87974,
+            "systemMicros": 6772
+          },
+          "heapBeforeBytes": 7091080,
+          "heapAfterBytes": 31416088,
+          "heapDeltaBytes": 24325008,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "play",
+          "sample": 0,
+          "childProcessWallMs": 119.41750000000047,
+          "ok": true,
+          "pid": 28450,
+          "importWallMs": 59.442249999999994,
+          "cpu": {
+            "userMicros": 57787,
+            "systemMicros": 5770
+          },
+          "heapBeforeBytes": 6644504,
+          "heapAfterBytes": 20915448,
+          "heapDeltaBytes": 14270944,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "play",
+          "sample": 1,
+          "childProcessWallMs": 113.90808399999969,
+          "ok": true,
+          "pid": 28451,
+          "importWallMs": 58.153292,
+          "cpu": {
+            "userMicros": 56496,
+            "systemMicros": 5525
+          },
+          "heapBeforeBytes": 6609896,
+          "heapAfterBytes": 20912776,
+          "heapDeltaBytes": 14302880,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "play",
+          "sample": 2,
+          "childProcessWallMs": 113.96804100000008,
+          "ok": true,
+          "pid": 28452,
+          "importWallMs": 58.58241699999999,
+          "cpu": {
+            "userMicros": 56937,
+            "systemMicros": 5402
+          },
+          "heapBeforeBytes": 6523880,
+          "heapAfterBytes": 20917648,
+          "heapDeltaBytes": 14393768,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "admin",
+          "sample": 0,
+          "childProcessWallMs": 133.28029200000037,
+          "ok": true,
+          "pid": 28453,
+          "importWallMs": 78.38054199999999,
+          "cpu": {
+            "userMicros": 75882,
+            "systemMicros": 6653
+          },
+          "heapBeforeBytes": 6038160,
+          "heapAfterBytes": 27406320,
+          "heapDeltaBytes": 21368160,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learning-paths/catalog.ts",
+            "lib/learning-paths/content/fde.ts",
+            "lib/learning-paths/validate.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "admin",
+          "sample": 1,
+          "childProcessWallMs": 134.8237909999998,
+          "ok": true,
+          "pid": 28454,
+          "importWallMs": 79.217792,
+          "cpu": {
+            "userMicros": 76737,
+            "systemMicros": 6613
+          },
+          "heapBeforeBytes": 6678528,
+          "heapAfterBytes": 27411144,
+          "heapDeltaBytes": 20732616,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learning-paths/catalog.ts",
+            "lib/learning-paths/content/fde.ts",
+            "lib/learning-paths/validate.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "admin",
+          "sample": 2,
+          "childProcessWallMs": 131.53941699999996,
+          "ok": true,
+          "pid": 28458,
+          "importWallMs": 78.786708,
+          "cpu": {
+            "userMicros": 76382,
+            "systemMicros": 6675
+          },
+          "heapBeforeBytes": 6627464,
+          "heapAfterBytes": 27406200,
+          "heapDeltaBytes": 20778736,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learning-paths/catalog.ts",
+            "lib/learning-paths/content/fde.ts",
+            "lib/learning-paths/validate.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        }
+      ],
+      "artifacts": [
+        {
+          "handler": "health",
+          "sourceSha256": "4fee2431e14e8b2688d7994aec1a8938ac8d6dac57afb385759fc3f88044445b",
+          "artifactSha256": "a73280f4bbf1c99339faea336c87d30fa1a61823c785c99c85ca5f923f6f92ee",
+          "artifactBytes": 38343,
+          "compileWallMs": 40.211625
+        },
+        {
+          "handler": "settings",
+          "sourceSha256": "5350723752c327d3ff73952838286778871ad750fb64e12f46e579612128f6c3",
+          "artifactSha256": "a314edff42c59625251fd0c05f6e6c23b4f795746ae301eb4e00c47e65a1360e",
+          "artifactBytes": 1362687,
+          "compileWallMs": 21.286542000000054
+        },
+        {
+          "handler": "leaderboard",
+          "sourceSha256": "9bf8fcc27b2b11f619a7f2187af6607665d51f5f099684dd3efda9d06157294f",
+          "artifactSha256": "1b228a8e81655462d2e2820863e7225dea6ef34ec2902138814543075829b2ad",
+          "artifactBytes": 59807,
+          "compileWallMs": 7.10125000000005
+        },
+        {
+          "handler": "questions",
+          "sourceSha256": "b7b25fb4368b5df6f799cb980a01c57e4277bc4a4e1aa8e1a81d46894d9b61b0",
+          "artifactSha256": "a2424debca89feb25452578bdf77c33e814e78fc1f61929e6c0ce4416bdb38ef",
+          "artifactBytes": 10165783,
+          "compileWallMs": 123.42083400000001
+        },
+        {
+          "handler": "roadmap",
+          "sourceSha256": "8cfd0556c1e6344d9246b85406ce1a80b37429a32d6b1eb1238bb27c91c86584",
+          "artifactSha256": "09f52d471bafec84440e3814228fcf1bd80cd7c524cfd3ae934ddaceafae27ac",
+          "artifactBytes": 13178589,
+          "compileWallMs": 145.25316599999996
+        },
+        {
+          "handler": "challenge",
+          "sourceSha256": "8abadf4cce220ebb954fe9dc9d2f1ea16ba8ac26f535ec025249ba87b1569c6a",
+          "artifactSha256": "4c8661aad10e3d4155116997ce818e374bd6c5a3d9e4055aebff32d6295b47b8",
+          "artifactBytes": 5422470,
+          "compileWallMs": 124.55616699999973
+        },
+        {
+          "handler": "daily",
+          "sourceSha256": "5df831a1a150312ff18698442aa4b63fcdbbfed86fa1fa4837eff8d5c50115cf",
+          "artifactSha256": "ab4d61e08bf8378f7d7b8db7c72508dbad42aa14c8a3a9ef92578e4e0403cbcc",
+          "artifactBytes": 4096158,
+          "compileWallMs": 88.39904200000001
+        },
+        {
+          "handler": "submit",
+          "sourceSha256": "6961168f9bb1c749c4f3f3168d496ce9e037b5099b6283d637f2bfc8b770dea1",
+          "artifactSha256": "8ef1cd0f4016ae395a1a417634265b6e4eef8547530b9dddc545eff257252b06",
+          "artifactBytes": 4103560,
+          "compileWallMs": 107.69924999999967
+        },
+        {
+          "handler": "flashcards",
+          "sourceSha256": "86788f49d19826c4980c01bbdad7944d05201a56b58393c0dda987c363e77caa",
+          "artifactSha256": "7de1ca4614eb5caf3fbf366012182e6937fefa9a9609624c8cc2357486df5c7c",
+          "artifactBytes": 4072002,
+          "compileWallMs": 83.88475000000017
+        },
+        {
+          "handler": "user",
+          "sourceSha256": "1bfc3de83739e3fdbbc890038575e56d435621da1a6ab59938d929735c5a0a34",
+          "artifactSha256": "026995dde5ffc60544fb1a3bb07096445c93c2e7e1675d37469799e171166f41",
+          "artifactBytes": 10445977,
+          "compileWallMs": 145.31316700000025
+        },
+        {
+          "handler": "play",
+          "sourceSha256": "6a8dc8062e0d9848eb9b096cb3a7971dd750f460cb3b08ba1ec02acf60234604",
+          "artifactSha256": "7cd0eaac6dece540d7a7892cd15c16b5b04856f3fedbb268c24f02dc106c70c4",
+          "artifactBytes": 4115775,
+          "compileWallMs": 81.36375000000044
+        },
+        {
+          "handler": "admin",
+          "sourceSha256": "3cf8ca4575f5253cdc9dc9891b4c6c418ac36141f73893edc0a2e0fd8f6cb631",
+          "artifactSha256": "8bb50d2f5822d17d72e137a7639eade6c19193bb00b819f282c6d93bcdfc976e",
+          "artifactBytes": 6097184,
+          "compileWallMs": 107.17916699999932
+        }
+      ],
+      "summary": [
+        {
+          "handler": "health",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 18.993333000000003,
+            "min": 18.554083000000002,
+            "max": 19.820375
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 19739,
+            "min": 19417,
+            "max": 19833
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 2698,
+            "min": 2685,
+            "max": 3294
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 3061360,
+            "min": 2974048,
+            "max": 3107288
+          }
+        },
+        {
+          "handler": "settings",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 34.325708000000006,
+            "min": 33.172084,
+            "max": 34.818416000000006
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 34397,
+            "min": 33483,
+            "max": 34841
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 3905,
+            "min": 3785,
+            "max": 3910
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 8167216,
+            "min": 8072080,
+            "max": 8187592
+          }
+        },
+        {
+          "handler": "leaderboard",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 19.369417,
+            "min": 18.992625000000004,
+            "max": 19.518583000000003
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 20057,
+            "min": 19811,
+            "max": 20087
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 2732,
+            "min": 2704,
+            "max": 2828
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 3114680,
+            "min": 3104816,
+            "max": 3139640
+          }
+        },
+        {
+          "handler": "questions",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 105.002625,
+            "min": 104.91925,
+            "max": 106.89274999999999
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 101587,
+            "min": 101458,
+            "max": 103267
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 7578,
+            "min": 7514,
+            "max": 7763
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 26601640,
+            "min": 26177936,
+            "max": 26752320
+          }
+        },
+        {
+          "handler": "roadmap",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 131.07725,
+            "min": 127.504792,
+            "max": 131.93012499999998
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 126664,
+            "min": 123206,
+            "max": 126987
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 8645,
+            "min": 8571,
+            "max": 9381
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 33666104,
+            "min": 33471168,
+            "max": 33771344
+          }
+        },
+        {
+          "handler": "challenge",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 83.43812500000001,
+            "min": 83.33779100000001,
+            "max": 87.064334
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 81491,
+            "min": 81475,
+            "max": 83312
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 6488,
+            "min": 6331,
+            "max": 7109
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 19687848,
+            "min": 19652376,
+            "max": 19853592
+          }
+        },
+        {
+          "handler": "daily",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 65.47687499999999,
+            "min": 64.586334,
+            "max": 67.005708
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 63374,
+            "min": 62541,
+            "max": 65197
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 6703,
+            "min": 6604,
+            "max": 6837
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 14426912,
+            "min": 14272488,
+            "max": 14880984
+          }
+        },
+        {
+          "handler": "submit",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 59.962125,
+            "min": 57.288083,
+            "max": 61.222750000000005
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 58162,
+            "min": 55513,
+            "max": 59395
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 5758,
+            "min": 5669,
+            "max": 6032
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 14321888,
+            "min": 14258424,
+            "max": 14878792
+          }
+        },
+        {
+          "handler": "flashcards",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 57.367166999999995,
+            "min": 55.755333,
+            "max": 57.920083
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 55645,
+            "min": 54188,
+            "max": 56190
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 5592,
+            "min": 5494,
+            "max": 5749
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 14198192,
+            "min": 13688952,
+            "max": 14286568
+          }
+        },
+        {
+          "handler": "user",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 90.453333,
+            "min": 87.454875,
+            "max": 99.48625
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 87974,
+            "min": 84641,
+            "max": 96012
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 6794,
+            "min": 6772,
+            "max": 7462
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 24644144,
+            "min": 24325008,
+            "max": 24833536
+          }
+        },
+        {
+          "handler": "play",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 58.58241699999999,
+            "min": 58.153292,
+            "max": 59.442249999999994
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 56937,
+            "min": 56496,
+            "max": 57787
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 5525,
+            "min": 5402,
+            "max": 5770
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 14302880,
+            "min": 14270944,
+            "max": 14393768
+          }
+        },
+        {
+          "handler": "admin",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 78.786708,
+            "min": 78.38054199999999,
+            "max": 79.217792
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 76382,
+            "min": 75882,
+            "max": 76737
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 6653,
+            "min": 6613,
+            "max": 6675
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 20778736,
+            "min": 20732616,
+            "max": 21368160
+          }
+        }
+      ],
+      "totals": {
+        "planned": 36,
+        "attempted": 36,
+        "sent": 0,
+        "skipped": 0
+      },
+      "compilation": {
+        "esbuildVersion": "0.25.12",
+        "target": "shared helper default; no override",
+        "bundle": true,
+        "platform": "node",
+        "format": "cjs",
+        "packages": "external",
+        "markers": [
+          "lib/rewards/handlers.ts",
+          "lib/learning-paths/catalog.ts",
+          "lib/learning-paths/content/fde.ts",
+          "lib/learning-paths/validate.ts",
+          "lib/coding/active.ts",
+          "lib/coding/ts-check-pool.ts",
+          "lib/coding/solutions/index.ts",
+          "lib/learning-paths/handlers.ts",
+          "lib/learn-lessons/serve.ts",
+          "lib/learn-lessons/index.ts"
+        ]
+      },
+      "environment": {
+        "node": "v24.22.3",
+        "platform": "darwin",
+        "arch": "arm64",
+        "cpu": "Apple M3",
+        "rootLockSha256": "98d0093a62b8d2ae7dda5f4f4e4a2f3594f08075a70d13219ddb1216200176b4",
+        "clientLockSha256": "29777af01ecd7d182c1b0e002bd64b473ab2ddf78af3d3807b2cf2fe8aab9d44",
+        "childEnvironmentKeys": [
+          "PATH",
+          "NODE_ENV",
+          "NODE_PATH",
+          "TZ"
+        ]
+      },
+      "notes": [
+        "Import wall/CPU/heap are sampled around require only, after network-denial setup; compilation and child-process wall are separate",
+        "No request handler or first business operation is invoked",
+        "Fresh process is a local synchronous CJS import proxy, never deployed platform boot; OS file caches are not controlled",
+        "Heap deltas are unforced-GC snapshots, not retained-memory or listener-leak evidence",
+        "Module markers change the measured artifact; compare only matching marker configurations",
+        "Denied transport/process attempts make the sample fail even if imported code catches the denial"
+      ],
+      "localSourceRevision": "f12b396aff6e4bff3d7cfa5a98c7bf92347b7c4a",
+      "deploymentRevision": null,
+      "node": "v24.22.3",
+      "recorded": "2026-11-19T11:43:24.939Z"
+    },
+    "finalRuntime": {
+      "mode": "fresh-process-cjs-import-proxy",
+      "rows": [
+        {
+          "handler": "health",
+          "sample": 0,
+          "childProcessWallMs": 73.85162500000001,
+          "ok": true,
+          "pid": 73230,
+          "importWallMs": 20.419208,
+          "cpu": {
+            "userMicros": 21384,
+            "systemMicros": 3494
+          },
+          "heapBeforeBytes": 6574272,
+          "heapAfterBytes": 8875144,
+          "heapDeltaBytes": 2300872,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "health",
+          "sample": 1,
+          "childProcessWallMs": 74.588458,
+          "ok": true,
+          "pid": 73231,
+          "importWallMs": 19.486041,
+          "cpu": {
+            "userMicros": 20609,
+            "systemMicros": 2741
+          },
+          "heapBeforeBytes": 6039408,
+          "heapAfterBytes": 9711904,
+          "heapDeltaBytes": 3672496,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "health",
+          "sample": 2,
+          "childProcessWallMs": 73.44429199999999,
+          "ok": true,
+          "pid": 73232,
+          "importWallMs": 19.805917,
+          "cpu": {
+            "userMicros": 21266,
+            "systemMicros": 2891
+          },
+          "heapBeforeBytes": 6516992,
+          "heapAfterBytes": 8848424,
+          "heapDeltaBytes": 2331432,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "settings",
+          "sample": 0,
+          "childProcessWallMs": 88.054708,
+          "ok": true,
+          "pid": 73233,
+          "importWallMs": 34.708124999999995,
+          "cpu": {
+            "userMicros": 35531,
+            "systemMicros": 3754
+          },
+          "heapBeforeBytes": 6615440,
+          "heapAfterBytes": 14817792,
+          "heapDeltaBytes": 8202352,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learning-paths/catalog.ts",
+            "lib/learning-paths/content/fde.ts",
+            "lib/learning-paths/validate.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "settings",
+          "sample": 1,
+          "childProcessWallMs": 87.91900000000004,
+          "ok": true,
+          "pid": 73234,
+          "importWallMs": 34.8575,
+          "cpu": {
+            "userMicros": 35477,
+            "systemMicros": 3856
+          },
+          "heapBeforeBytes": 6622880,
+          "heapAfterBytes": 14815048,
+          "heapDeltaBytes": 8192168,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learning-paths/catalog.ts",
+            "lib/learning-paths/content/fde.ts",
+            "lib/learning-paths/validate.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "settings",
+          "sample": 2,
+          "childProcessWallMs": 89.25650000000002,
+          "ok": true,
+          "pid": 73235,
+          "importWallMs": 35.543542,
+          "cpu": {
+            "userMicros": 36485,
+            "systemMicros": 3905
+          },
+          "heapBeforeBytes": 7075240,
+          "heapAfterBytes": 14822584,
+          "heapDeltaBytes": 7747344,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [
+            "lib/learning-paths/catalog.ts",
+            "lib/learning-paths/content/fde.ts",
+            "lib/learning-paths/validate.ts"
+          ],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "leaderboard",
+          "sample": 0,
+          "childProcessWallMs": 73.61212499999999,
+          "ok": true,
+          "pid": 73236,
+          "importWallMs": 20.446084,
+          "cpu": {
+            "userMicros": 21676,
+            "systemMicros": 2912
+          },
+          "heapBeforeBytes": 6552120,
+          "heapAfterBytes": 9010512,
+          "heapDeltaBytes": 2458392,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "leaderboard",
+          "sample": 1,
+          "childProcessWallMs": 72.86566700000003,
+          "ok": true,
+          "pid": 73237,
+          "importWallMs": 19.945165999999997,
+          "cpu": {
+            "userMicros": 21477,
+            "systemMicros": 2876
+          },
+          "heapBeforeBytes": 6610824,
+          "heapAfterBytes": 9072032,
+          "heapDeltaBytes": 2461208,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "leaderboard",
+          "sample": 2,
+          "childProcessWallMs": 73.65283399999998,
+          "ok": true,
+          "pid": 73238,
+          "importWallMs": 19.925875,
+          "cpu": {
+            "userMicros": 21617,
+            "systemMicros": 2911
+          },
+          "heapBeforeBytes": 6592368,
+          "heapAfterBytes": 8933176,
+          "heapDeltaBytes": 2340808,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "questions",
+          "sample": 0,
+          "childProcessWallMs": 163.171333,
+          "ok": true,
+          "pid": 73242,
+          "importWallMs": 105.966833,
+          "cpu": {
+            "userMicros": 102373,
+            "systemMicros": 8100
+          },
+          "heapBeforeBytes": 6622952,
+          "heapAfterBytes": 33443592,
+          "heapDeltaBytes": 26820640,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "questions",
+          "sample": 1,
+          "childProcessWallMs": 153.10933299999988,
+          "ok": true,
+          "pid": 73243,
+          "importWallMs": 98.66891599999998,
+          "cpu": {
+            "userMicros": 95785,
+            "systemMicros": 7392
+          },
+          "heapBeforeBytes": 6620272,
+          "heapAfterBytes": 33443448,
+          "heapDeltaBytes": 26823176,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "questions",
+          "sample": 2,
+          "childProcessWallMs": 159.7840000000001,
+          "ok": true,
+          "pid": 73244,
+          "importWallMs": 104.07974999999999,
+          "cpu": {
+            "userMicros": 101041,
+            "systemMicros": 7510
+          },
+          "heapBeforeBytes": 6687712,
+          "heapAfterBytes": 33448584,
+          "heapDeltaBytes": 26760872,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "roadmap",
+          "sample": 0,
+          "childProcessWallMs": 179.73341600000003,
+          "ok": true,
+          "pid": 73245,
+          "importWallMs": 124.393792,
+          "cpu": {
+            "userMicros": 120999,
+            "systemMicros": 9020
+          },
+          "heapBeforeBytes": 7078960,
+          "heapAfterBytes": 39892256,
+          "heapDeltaBytes": 32813296,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "roadmap",
+          "sample": 1,
+          "childProcessWallMs": 183.157958,
+          "ok": true,
+          "pid": 73246,
+          "importWallMs": 126.29037500000001,
+          "cpu": {
+            "userMicros": 122498,
+            "systemMicros": 8565
+          },
+          "heapBeforeBytes": 6510712,
+          "heapAfterBytes": 39833424,
+          "heapDeltaBytes": 33322712,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "roadmap",
+          "sample": 2,
+          "childProcessWallMs": 178.34391700000015,
+          "ok": true,
+          "pid": 73250,
+          "importWallMs": 122.330958,
+          "cpu": {
+            "userMicros": 118779,
+            "systemMicros": 8301
+          },
+          "heapBeforeBytes": 6529056,
+          "heapAfterBytes": 39833496,
+          "heapDeltaBytes": 33304440,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "challenge",
+          "sample": 0,
+          "childProcessWallMs": 114.32662500000015,
+          "ok": true,
+          "pid": 73251,
+          "importWallMs": 60.077125,
+          "cpu": {
+            "userMicros": 59083,
+            "systemMicros": 5779
+          },
+          "heapBeforeBytes": 7089680,
+          "heapAfterBytes": 21338304,
+          "heapDeltaBytes": 14248624,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "challenge",
+          "sample": 1,
+          "childProcessWallMs": 119.6345409999999,
+          "ok": true,
+          "pid": 73252,
+          "importWallMs": 65.53975,
+          "cpu": {
+            "userMicros": 64772,
+            "systemMicros": 6919
+          },
+          "heapBeforeBytes": 6347544,
+          "heapAfterBytes": 21337008,
+          "heapDeltaBytes": 14989464,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "challenge",
+          "sample": 2,
+          "childProcessWallMs": 120.81945799999994,
+          "ok": true,
+          "pid": 73255,
+          "importWallMs": 64.557334,
+          "cpu": {
+            "userMicros": 63180,
+            "systemMicros": 6262
+          },
+          "heapBeforeBytes": 7073632,
+          "heapAfterBytes": 21338272,
+          "heapDeltaBytes": 14264640,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "daily",
+          "sample": 0,
+          "childProcessWallMs": 114.94900000000007,
+          "ok": true,
+          "pid": 73256,
+          "importWallMs": 58.118916999999996,
+          "cpu": {
+            "userMicros": 56919,
+            "systemMicros": 5576
+          },
+          "heapBeforeBytes": 6505656,
+          "heapAfterBytes": 20980784,
+          "heapDeltaBytes": 14475128,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "daily",
+          "sample": 1,
+          "childProcessWallMs": 114.2696249999999,
+          "ok": true,
+          "pid": 73257,
+          "importWallMs": 59.269957999999995,
+          "cpu": {
+            "userMicros": 57964,
+            "systemMicros": 5836
+          },
+          "heapBeforeBytes": 6508656,
+          "heapAfterBytes": 20940328,
+          "heapDeltaBytes": 14431672,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "daily",
+          "sample": 2,
+          "childProcessWallMs": 109.40658399999984,
+          "ok": true,
+          "pid": 73258,
+          "importWallMs": 55.90325,
+          "cpu": {
+            "userMicros": 54776,
+            "systemMicros": 5601
+          },
+          "heapBeforeBytes": 6624112,
+          "heapAfterBytes": 20979008,
+          "heapDeltaBytes": 14354896,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "submit",
+          "sample": 0,
+          "childProcessWallMs": 121.18345799999997,
+          "ok": true,
+          "pid": 73262,
+          "importWallMs": 65.15174999999999,
+          "cpu": {
+            "userMicros": 64127,
+            "systemMicros": 6626
+          },
+          "heapBeforeBytes": 6620368,
+          "heapAfterBytes": 21027120,
+          "heapDeltaBytes": 14406752,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "submit",
+          "sample": 1,
+          "childProcessWallMs": 133.71904200000017,
+          "ok": true,
+          "pid": 73263,
+          "importWallMs": 73.04775,
+          "cpu": {
+            "userMicros": 68535,
+            "systemMicros": 7600
+          },
+          "heapBeforeBytes": 6604128,
+          "heapAfterBytes": 21033552,
+          "heapDeltaBytes": 14429424,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "submit",
+          "sample": 2,
+          "childProcessWallMs": 123.33125000000018,
+          "ok": true,
+          "pid": 73266,
+          "importWallMs": 64.788375,
+          "cpu": {
+            "userMicros": 63707,
+            "systemMicros": 6541
+          },
+          "heapBeforeBytes": 7087112,
+          "heapAfterBytes": 21037888,
+          "heapDeltaBytes": 13950776,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "flashcards",
+          "sample": 0,
+          "childProcessWallMs": 139.76566700000012,
+          "ok": true,
+          "pid": 73267,
+          "importWallMs": 79.535416,
+          "cpu": {
+            "userMicros": 70271,
+            "systemMicros": 9788
+          },
+          "heapBeforeBytes": 6525696,
+          "heapAfterBytes": 21042360,
+          "heapDeltaBytes": 14516664,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "flashcards",
+          "sample": 1,
+          "childProcessWallMs": 113.74366599999985,
+          "ok": true,
+          "pid": 73268,
+          "importWallMs": 57.937,
+          "cpu": {
+            "userMicros": 56902,
+            "systemMicros": 5492
+          },
+          "heapBeforeBytes": 6628464,
+          "heapAfterBytes": 21042288,
+          "heapDeltaBytes": 14413824,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "flashcards",
+          "sample": 2,
+          "childProcessWallMs": 111.16091600000027,
+          "ok": true,
+          "pid": 73269,
+          "importWallMs": 56.071792,
+          "cpu": {
+            "userMicros": 54925,
+            "systemMicros": 5626
+          },
+          "heapBeforeBytes": 6520120,
+          "heapAfterBytes": 20984976,
+          "heapDeltaBytes": 14464856,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "user",
+          "sample": 0,
+          "childProcessWallMs": 149.4519580000001,
+          "ok": true,
+          "pid": 73273,
+          "importWallMs": 91.104625,
+          "cpu": {
+            "userMicros": 88079,
+            "systemMicros": 6735
+          },
+          "heapBeforeBytes": 6528712,
+          "heapAfterBytes": 31731024,
+          "heapDeltaBytes": 25202312,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "user",
+          "sample": 1,
+          "childProcessWallMs": 143.01858400000037,
+          "ok": true,
+          "pid": 73274,
+          "importWallMs": 89.15249999999999,
+          "cpu": {
+            "userMicros": 87226,
+            "systemMicros": 6360
+          },
+          "heapBeforeBytes": 6617560,
+          "heapAfterBytes": 31635456,
+          "heapDeltaBytes": 25017896,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "user",
+          "sample": 2,
+          "childProcessWallMs": 143.40979200000038,
+          "ok": true,
+          "pid": 73275,
+          "importWallMs": 89.559583,
+          "cpu": {
+            "userMicros": 87727,
+            "systemMicros": 6383
+          },
+          "heapBeforeBytes": 6727424,
+          "heapAfterBytes": 31745272,
+          "heapDeltaBytes": 25017848,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "play",
+          "sample": 0,
+          "childProcessWallMs": 109.61700000000019,
+          "ok": true,
+          "pid": 73276,
+          "importWallMs": 56.050959000000006,
+          "cpu": {
+            "userMicros": 55263,
+            "systemMicros": 5275
+          },
+          "heapBeforeBytes": 6631512,
+          "heapAfterBytes": 21020648,
+          "heapDeltaBytes": 14389136,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "play",
+          "sample": 1,
+          "childProcessWallMs": 111.85474999999951,
+          "ok": true,
+          "pid": 73277,
+          "importWallMs": 58.079792000000005,
+          "cpu": {
+            "userMicros": 57411,
+            "systemMicros": 5187
+          },
+          "heapBeforeBytes": 6616288,
+          "heapAfterBytes": 21022408,
+          "heapDeltaBytes": 14406120,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "play",
+          "sample": 2,
+          "childProcessWallMs": 111.15912500000013,
+          "ok": true,
+          "pid": 73278,
+          "importWallMs": 57.811042,
+          "cpu": {
+            "userMicros": 56859,
+            "systemMicros": 5221
+          },
+          "heapBeforeBytes": 6536880,
+          "heapAfterBytes": 21198480,
+          "heapDeltaBytes": 14661600,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "admin",
+          "sample": 0,
+          "childProcessWallMs": 126.36300000000028,
+          "ok": true,
+          "pid": 73282,
+          "importWallMs": 70.126166,
+          "cpu": {
+            "userMicros": 68664,
+            "systemMicros": 5834
+          },
+          "heapBeforeBytes": 6509048,
+          "heapAfterBytes": 25329688,
+          "heapDeltaBytes": 18820640,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "admin",
+          "sample": 1,
+          "childProcessWallMs": 126.02804100000048,
+          "ok": true,
+          "pid": 73283,
+          "importWallMs": 72.29249999999999,
+          "cpu": {
+            "userMicros": 70837,
+            "systemMicros": 5951
+          },
+          "heapBeforeBytes": 6630096,
+          "heapAfterBytes": 25318664,
+          "heapDeltaBytes": 18688568,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        },
+        {
+          "handler": "admin",
+          "sample": 2,
+          "childProcessWallMs": 126.32454200000029,
+          "ok": true,
+          "pid": 73284,
+          "importWallMs": 71.522333,
+          "cpu": {
+            "userMicros": 69990,
+            "systemMicros": 5903
+          },
+          "heapBeforeBytes": 6527768,
+          "heapAfterBytes": 25329688,
+          "heapDeltaBytes": 18801920,
+          "packages": [
+            "@supabase/auth-js",
+            "@supabase/functions-js",
+            "@supabase/phoenix",
+            "@supabase/postgrest-js",
+            "@supabase/realtime-js",
+            "@supabase/storage-js",
+            "@supabase/supabase-js",
+            "iceberg-js",
+            "tslib"
+          ],
+          "markers": [],
+          "deniedAttempts": 0,
+          "suppressedLogCalls": 0
+        }
+      ],
+      "artifacts": [
+        {
+          "handler": "health",
+          "sourceSha256": "4fee2431e14e8b2688d7994aec1a8938ac8d6dac57afb385759fc3f88044445b",
+          "artifactSha256": "bf426bb7772aeb5c707438ce66f2548019ea08f792993674f690a05fede66a74",
+          "artifactBytes": 39336,
+          "compileWallMs": 18.024625
+        },
+        {
+          "handler": "settings",
+          "sourceSha256": "1491b208a4ecd0a07410229f568305998ff6a5717923a8393fd7bf8115a7f7ff",
+          "artifactSha256": "789b25856e9875f8f035356e8d13bbdd222734f55aa89a8b886ab6aa4a77d43b",
+          "artifactBytes": 1365753,
+          "compileWallMs": 22.633916999999997
+        },
+        {
+          "handler": "leaderboard",
+          "sourceSha256": "09955f4f7fe1eed80ee423e2c4518c480dd3c16387ff05f443a492d93b095575",
+          "artifactSha256": "76ca55b575ed9c810acb2f55f3ad0e24f841de04f7fe9cb516769c2f2d1fb5c6",
+          "artifactBytes": 63010,
+          "compileWallMs": 7.254208000000062
+        },
+        {
+          "handler": "questions",
+          "sourceSha256": "e208749392ed5137b2bb35bb3de7d1470c07bcd4eedb469c2107244a9e08c60b",
+          "artifactSha256": "d36fee8ba934755207f504313dbb7397e6bd08f33fbf700df9cb56d77566e9d6",
+          "artifactBytes": 10168885,
+          "compileWallMs": 119.24870800000008
+        },
+        {
+          "handler": "roadmap",
+          "sourceSha256": "baa1e629c853860cb96051c6eee3f372e5f35ef2969be9969c4b55da88cb0d58",
+          "artifactSha256": "8b937eabcc9c9d6727082b07f9c176c3ea4519c0189c93a25e6e5cbc57899488",
+          "artifactBytes": 13208863,
+          "compileWallMs": 157.00266699999997
+        },
+        {
+          "handler": "challenge",
+          "sourceSha256": "2925c6a281aa2ef11d95d088e9698db36747ce908ba10628819d839a9282dd6d",
+          "artifactSha256": "082fd1cc69afafe98e334f8354cc8051e860a30b80e83783315ca08ad679339e",
+          "artifactBytes": 4131715,
+          "compileWallMs": 84.5381669999997
+        },
+        {
+          "handler": "daily",
+          "sourceSha256": "5df831a1a150312ff18698442aa4b63fcdbbfed86fa1fa4837eff8d5c50115cf",
+          "artifactSha256": "499e82517f23b87457254007baa111acb8811d701e2e1a991ae4b37b72e9be1e",
+          "artifactBytes": 4097151,
+          "compileWallMs": 90.58295899999985
+        },
+        {
+          "handler": "submit",
+          "sourceSha256": "6961168f9bb1c749c4f3f3168d496ce9e037b5099b6283d637f2bfc8b770dea1",
+          "artifactSha256": "40796a22a6b85d7bfa0c5a7883ee37a2bbb638972c2f7e6d0594d02ccb3d95dd",
+          "artifactBytes": 4104553,
+          "compileWallMs": 88.52445799999987
+        },
+        {
+          "handler": "flashcards",
+          "sourceSha256": "86788f49d19826c4980c01bbdad7944d05201a56b58393c0dda987c363e77caa",
+          "artifactSha256": "9e5a63f58de43d1e04e2cad89bfc990ef1a1163cf7eafdcff56eec89e730851d",
+          "artifactBytes": 4072995,
+          "compileWallMs": 95.81970899999988
+        },
+        {
+          "handler": "user",
+          "sourceSha256": "1bfc3de83739e3fdbbc890038575e56d435621da1a6ab59938d929735c5a0a34",
+          "artifactSha256": "2a7a96d8b33388fa6703fbdf7f68f34501ed9a06109545abb91d063f87619123",
+          "artifactBytes": 10449240,
+          "compileWallMs": 137.61712499999976
+        },
+        {
+          "handler": "play",
+          "sourceSha256": "6a8dc8062e0d9848eb9b096cb3a7971dd750f460cb3b08ba1ec02acf60234604",
+          "artifactSha256": "1691db568137ec35b0539585e91ef8927a72a1719e406a5874485c0e140457e1",
+          "artifactBytes": 4116768,
+          "compileWallMs": 78.23462500000005
+        },
+        {
+          "handler": "admin",
+          "sourceSha256": "8e34eed4e6f514edd1573c644eef00cb482778dadb97d278793c8b99563af7e1",
+          "artifactSha256": "1b9c9065d4bdff0fdb2782b82dd5be6e6aa8490accaa9e0c8bba21865193d3e0",
+          "artifactBytes": 6164536,
+          "compileWallMs": 93.70087499999954
+        }
+      ],
+      "summary": [
+        {
+          "handler": "health",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 19.805917,
+            "min": 19.486041,
+            "max": 20.419208
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 21266,
+            "min": 20609,
+            "max": 21384
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 2891,
+            "min": 2741,
+            "max": 3494
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 2331432,
+            "min": 2300872,
+            "max": 3672496
+          }
+        },
+        {
+          "handler": "settings",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 34.8575,
+            "min": 34.708124999999995,
+            "max": 35.543542
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 35531,
+            "min": 35477,
+            "max": 36485
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 3856,
+            "min": 3754,
+            "max": 3905
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 8192168,
+            "min": 7747344,
+            "max": 8202352
+          }
+        },
+        {
+          "handler": "leaderboard",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 19.945165999999997,
+            "min": 19.925875,
+            "max": 20.446084
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 21617,
+            "min": 21477,
+            "max": 21676
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 2911,
+            "min": 2876,
+            "max": 2912
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 2458392,
+            "min": 2340808,
+            "max": 2461208
+          }
+        },
+        {
+          "handler": "questions",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 104.07974999999999,
+            "min": 98.66891599999998,
+            "max": 105.966833
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 101041,
+            "min": 95785,
+            "max": 102373
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 7510,
+            "min": 7392,
+            "max": 8100
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 26820640,
+            "min": 26760872,
+            "max": 26823176
+          }
+        },
+        {
+          "handler": "roadmap",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 124.393792,
+            "min": 122.330958,
+            "max": 126.29037500000001
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 120999,
+            "min": 118779,
+            "max": 122498
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 8565,
+            "min": 8301,
+            "max": 9020
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 33304440,
+            "min": 32813296,
+            "max": 33322712
+          }
+        },
+        {
+          "handler": "challenge",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 64.557334,
+            "min": 60.077125,
+            "max": 65.53975
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 63180,
+            "min": 59083,
+            "max": 64772
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 6262,
+            "min": 5779,
+            "max": 6919
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 14264640,
+            "min": 14248624,
+            "max": 14989464
+          }
+        },
+        {
+          "handler": "daily",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 58.118916999999996,
+            "min": 55.90325,
+            "max": 59.269957999999995
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 56919,
+            "min": 54776,
+            "max": 57964
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 5601,
+            "min": 5576,
+            "max": 5836
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 14431672,
+            "min": 14354896,
+            "max": 14475128
+          }
+        },
+        {
+          "handler": "submit",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 65.15174999999999,
+            "min": 64.788375,
+            "max": 73.04775
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 64127,
+            "min": 63707,
+            "max": 68535
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 6626,
+            "min": 6541,
+            "max": 7600
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 14406752,
+            "min": 13950776,
+            "max": 14429424
+          }
+        },
+        {
+          "handler": "flashcards",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 57.937,
+            "min": 56.071792,
+            "max": 79.535416
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 56902,
+            "min": 54925,
+            "max": 70271
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 5626,
+            "min": 5492,
+            "max": 9788
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 14464856,
+            "min": 14413824,
+            "max": 14516664
+          }
+        },
+        {
+          "handler": "user",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 89.559583,
+            "min": 89.15249999999999,
+            "max": 91.104625
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 87727,
+            "min": 87226,
+            "max": 88079
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 6383,
+            "min": 6360,
+            "max": 6735
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 25017896,
+            "min": 25017848,
+            "max": 25202312
+          }
+        },
+        {
+          "handler": "play",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 57.811042,
+            "min": 56.050959000000006,
+            "max": 58.079792000000005
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 56859,
+            "min": 55263,
+            "max": 57411
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 5221,
+            "min": 5187,
+            "max": 5275
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 14406120,
+            "min": 14389136,
+            "max": 14661600
+          }
+        },
+        {
+          "handler": "admin",
+          "measured": 3,
+          "errors": 0,
+          "skipped": 0,
+          "clientFirstByteMs": null,
+          "classes": [],
+          "importWallMs": {
+            "samples": 3,
+            "median": 71.522333,
+            "min": 70.126166,
+            "max": 72.29249999999999
+          },
+          "cpuUserMicros": {
+            "samples": 3,
+            "median": 69990,
+            "min": 68664,
+            "max": 70837
+          },
+          "cpuSystemMicros": {
+            "samples": 3,
+            "median": 5903,
+            "min": 5834,
+            "max": 5951
+          },
+          "heapDeltaBytes": {
+            "samples": 3,
+            "median": 18801920,
+            "min": 18688568,
+            "max": 18820640
+          }
+        }
+      ],
+      "totals": {
+        "planned": 36,
+        "attempted": 36,
+        "sent": 0,
+        "skipped": 0
+      },
+      "compilation": {
+        "esbuildVersion": "0.25.12",
+        "target": "shared helper default; no override",
+        "bundle": true,
+        "platform": "node",
+        "format": "cjs",
+        "packages": "external",
+        "markers": [
+          "lib/rewards/handlers.ts",
+          "lib/learning-paths/catalog.ts",
+          "lib/learning-paths/content/fde.ts",
+          "lib/learning-paths/validate.ts",
+          "lib/coding/active.ts",
+          "lib/coding/ts-check-pool.ts",
+          "lib/coding/solutions/index.ts",
+          "lib/learning-paths/handlers.ts",
+          "lib/learn-lessons/serve.ts",
+          "lib/learn-lessons/index.ts"
+        ]
+      },
+      "environment": {
+        "node": "v24.22.3",
+        "platform": "darwin",
+        "arch": "arm64",
+        "cpu": "Apple M3",
+        "rootLockSha256": "98d0093a62b8d2ae7dda5f4f4e4a2f3594f08075a70d13219ddb1216200176b4",
+        "clientLockSha256": "29777af01ecd7d182c1b0e002bd64b473ab2ddf78af3d3807b2cf2fe8aab9d44",
+        "childEnvironmentKeys": [
+          "PATH",
+          "NODE_ENV",
+          "NODE_PATH",
+          "TZ"
+        ]
+      },
+      "notes": [
+        "Import wall/CPU/heap are sampled around require only, after network-denial setup; compilation and child-process wall are separate",
+        "No request handler or first business operation is invoked",
+        "Fresh process is a local synchronous CJS import proxy, never deployed platform boot; OS file caches are not controlled",
+        "Heap deltas are unforced-GC snapshots, not retained-memory or listener-leak evidence",
+        "Module markers change the measured artifact; compare only matching marker configurations",
+        "Denied transport/process attempts make the sample fail even if imported code catches the denial"
+      ],
+      "localSourceRevision": "3fb1a0d1a4522881a28bbd1e2d6d42f42903e195",
+      "deploymentRevision": null,
+      "node": "v24.22.3",
+      "recorded": "2026-11-19T13:58:59.168Z"
+    },
+    "baselineProvenance": {
+      "sourceHead": "f12b396aff6e4bff3d7cfa5a98c7bf92347b7c4a",
+      "sourceTree": "06cecf2109822870430bb6cf34a5e4ced5dfb6c0",
+      "worktreeClean": true,
+      "node": "v24.22.3",
+      "startedUtc": "2026-11-19T11:43:19.363354+00:00",
+      "completedUtc": "2026-11-19T11:43:24.947181+00:00",
+      "sources": {
+        "api/admin/[op].ts": {
+          "bytes": 18197,
+          "sha256": "3cf8ca4575f5253cdc9dc9891b4c6c418ac36141f73893edc0a2e0fd8f6cb631"
+        },
+        "api/flashcards.ts": {
+          "bytes": 6329,
+          "sha256": "86788f49d19826c4980c01bbdad7944d05201a56b58393c0dda987c363e77caa"
+        },
+        "api/health.ts": {
+          "bytes": 4759,
+          "sha256": "4fee2431e14e8b2688d7994aec1a8938ac8d6dac57afb385759fc3f88044445b"
+        },
+        "api/leaderboard.ts": {
+          "bytes": 15039,
+          "sha256": "9bf8fcc27b2b11f619a7f2187af6607665d51f5f099684dd3efda9d06157294f"
+        },
+        "api/play/[action].ts": {
+          "bytes": 44262,
+          "sha256": "6a8dc8062e0d9848eb9b096cb3a7971dd750f460cb3b08ba1ec02acf60234604"
+        },
+        "api/quiz/challenge.ts": {
+          "bytes": 19064,
+          "sha256": "8abadf4cce220ebb954fe9dc9d2f1ea16ba8ac26f535ec025249ba87b1569c6a"
+        },
+        "api/quiz/daily.ts": {
+          "bytes": 10367,
+          "sha256": "5df831a1a150312ff18698442aa4b63fcdbbfed86fa1fa4837eff8d5c50115cf"
+        },
+        "api/quiz/questions.ts": {
+          "bytes": 16961,
+          "sha256": "b7b25fb4368b5df6f799cb980a01c57e4277bc4a4e1aa8e1a81d46894d9b61b0"
+        },
+        "api/quiz/roadmap.ts": {
+          "bytes": 97219,
+          "sha256": "8cfd0556c1e6344d9246b85406ce1a80b37429a32d6b1eb1238bb27c91c86584"
+        },
+        "api/quiz/submit.ts": {
+          "bytes": 24857,
+          "sha256": "6961168f9bb1c749c4f3f3168d496ce9e037b5099b6283d637f2bfc8b770dea1"
+        },
+        "api/settings.ts": {
+          "bytes": 2922,
+          "sha256": "5350723752c327d3ff73952838286778871ad750fb64e12f46e579612128f6c3"
+        },
+        "api/user/[op].ts": {
+          "bytes": 44505,
+          "sha256": "1bfc3de83739e3fdbbc890038575e56d435621da1a6ab59938d929735c5a0a34"
+        },
+        "client/package-lock.json": {
+          "bytes": 347778,
+          "sha256": "29777af01ecd7d182c1b0e002bd64b473ab2ddf78af3d3807b2cf2fe8aab9d44"
+        },
+        "lib/coding/ts-check-node.ts": {
+          "bytes": 3589,
+          "sha256": "b6d82f93627ef023569309ad256e340a9a56114841cc121be727286f18c49924"
+        },
+        "lib/http.ts": {
+          "bytes": 23565,
+          "sha256": "95a423fa2a8da76e5872c9b16b7246307c2ab11242e6914213e190f710056d83"
+        },
+        "lib/request-timing.ts": {
+          "bytes": 2640,
+          "sha256": "261bbb69a73f69de4640e25b3022f860faf321745c78e553bbcef88f8d689ffb"
+        },
+        "package-lock.json": {
+          "bytes": 150051,
+          "sha256": "98d0093a62b8d2ae7dda5f4f4e4a2f3594f08075a70d13219ddb1216200176b4"
+        },
+        "shared/coding-ts-check.ts": {
+          "bytes": 8848,
+          "sha256": "a1eeecb4e6ddc49c354a63b717fb0972cd5b80266576edac29028029c683042d"
+        },
+        "vercel.json": {
+          "bytes": 6188,
+          "sha256": "25302e9382805babc1f7cf9247ed6d99a85978b70767f4d2e3c19002984ceebe"
+        }
+      },
+      "tools": {
+        "scripts/perf-cold-start.mjs": {
+          "bytes": 22037,
+          "sha256": "2d02822f9376a5647f4aae849994d50c46fcd109bf23ad992e80d5c4260663e5"
+        },
+        "scripts/perf-cold-import.mjs": {
+          "bytes": 5062,
+          "sha256": "121b442487f6d5e59f90ce44b97f7817c44a2323427206f96215b1d4df9db861"
+        },
+        "scripts/perf-cold-import-worker.cjs": {
+          "bytes": 3026,
+          "sha256": "74a5801dda8019cd9ff6c3eac57f6547517ce3a6d38793503685d2e57a7d3ea0"
+        },
+        "scripts/cold-start-bundle.mjs": {
+          "bytes": 1415,
+          "sha256": "d2cab38ccdd91eea2471d3fafc83b4f99b5e366e8c484abf8fdf1c9661857671"
+        },
+        "scripts/cold-start-preview-access.mjs": {
+          "bytes": 4544,
+          "sha256": "1aca66a9941c515f5f0beb70ceff66c241420e927e3773d5dedf5b6cb2d3a965"
+        }
+      },
+      "handlerInvocations": 0,
+      "liveApiRequests": 0,
+      "scope": "12 handlers x 3 fresh-process CJS require proxies; no platform boot or operation latency",
+      "exitCode": 0,
+      "worktreeCleanAfter": true,
+      "hashesUnchangedAfter": true,
+      "commandNormalizedPaths": [
+        "node24",
+        "scripts/perf-cold-start.mjs",
+        "--local",
+        "--samples=3",
+        "--markers",
+        "--output=<saved-report>"
+      ],
+      "commandPathNote": "Only machine-specific path spellings normalized; exact original metadata remains hash-pinned."
+    },
+    "finalRuntimeProvenance": {
+      "sourceHead": "3fb1a0d1a4522881a28bbd1e2d6d42f42903e195",
+      "sourceTree": "a847f2af7552d6888a9b56d6e9075cd3558a11f1",
+      "worktreeClean": true,
+      "node": "v24.22.3",
+      "startedUtc": "2026-11-19T13:58:53.772306+00:00",
+      "completedUtc": "2026-11-19T13:58:59.176097+00:00",
+      "sources": {
+        "api/admin/[op].ts": {
+          "bytes": 18209,
+          "sha256": "8e34eed4e6f514edd1573c644eef00cb482778dadb97d278793c8b99563af7e1"
+        },
+        "api/flashcards.ts": {
+          "bytes": 6329,
+          "sha256": "86788f49d19826c4980c01bbdad7944d05201a56b58393c0dda987c363e77caa"
+        },
+        "api/health.ts": {
+          "bytes": 4759,
+          "sha256": "4fee2431e14e8b2688d7994aec1a8938ac8d6dac57afb385759fc3f88044445b"
+        },
+        "api/leaderboard.ts": {
+          "bytes": 15228,
+          "sha256": "09955f4f7fe1eed80ee423e2c4518c480dd3c16387ff05f443a492d93b095575"
+        },
+        "api/play/[action].ts": {
+          "bytes": 44262,
+          "sha256": "6a8dc8062e0d9848eb9b096cb3a7971dd750f460cb3b08ba1ec02acf60234604"
+        },
+        "api/quiz/challenge.ts": {
+          "bytes": 19091,
+          "sha256": "2925c6a281aa2ef11d95d088e9698db36747ce908ba10628819d839a9282dd6d"
+        },
+        "api/quiz/daily.ts": {
+          "bytes": 10367,
+          "sha256": "5df831a1a150312ff18698442aa4b63fcdbbfed86fa1fa4837eff8d5c50115cf"
+        },
+        "api/quiz/questions.ts": {
+          "bytes": 17033,
+          "sha256": "e208749392ed5137b2bb35bb3de7d1470c07bcd4eedb469c2107244a9e08c60b"
+        },
+        "api/quiz/roadmap.ts": {
+          "bytes": 55036,
+          "sha256": "baa1e629c853860cb96051c6eee3f372e5f35ef2969be9969c4b55da88cb0d58"
+        },
+        "api/quiz/submit.ts": {
+          "bytes": 24857,
+          "sha256": "6961168f9bb1c749c4f3f3168d496ce9e037b5099b6283d637f2bfc8b770dea1"
+        },
+        "api/settings.ts": {
+          "bytes": 3038,
+          "sha256": "1491b208a4ecd0a07410229f568305998ff6a5717923a8393fd7bf8115a7f7ff"
+        },
+        "api/user/[op].ts": {
+          "bytes": 44505,
+          "sha256": "1bfc3de83739e3fdbbc890038575e56d435621da1a6ab59938d929735c5a0a34"
+        },
+        "client/package-lock.json": {
+          "bytes": 347778,
+          "sha256": "29777af01ecd7d182c1b0e002bd64b473ab2ddf78af3d3807b2cf2fe8aab9d44"
+        },
+        "lib/coding/ts-check-node.ts": {
+          "bytes": 3589,
+          "sha256": "b6d82f93627ef023569309ad256e340a9a56114841cc121be727286f18c49924"
+        },
+        "lib/http.ts": {
+          "bytes": 23565,
+          "sha256": "95a423fa2a8da76e5872c9b16b7246307c2ab11242e6914213e190f710056d83"
+        },
+        "lib/request-timing.ts": {
+          "bytes": 4182,
+          "sha256": "2772282a3426aca4b2ef3d335c54bd62c5f180371e644fa4abeb89a3ce4551a7"
+        },
+        "package-lock.json": {
+          "bytes": 150051,
+          "sha256": "98d0093a62b8d2ae7dda5f4f4e4a2f3594f08075a70d13219ddb1216200176b4"
+        },
+        "shared/coding-ts-check.ts": {
+          "bytes": 8855,
+          "sha256": "f14d5da6c47c92027040655b43a8c1c5a041c254f809e4d241158c86fa3f3e58"
+        },
+        "vercel.json": {
+          "bytes": 6203,
+          "sha256": "42b51460aecc437d5e898f79e325cc746366f26fef62fd9dc22e024ff4b54991"
+        }
+      },
+      "tools": {
+        "scripts/perf-cold-start.mjs": {
+          "bytes": 22037,
+          "sha256": "2d02822f9376a5647f4aae849994d50c46fcd109bf23ad992e80d5c4260663e5"
+        },
+        "scripts/perf-cold-import.mjs": {
+          "bytes": 5062,
+          "sha256": "121b442487f6d5e59f90ce44b97f7817c44a2323427206f96215b1d4df9db861"
+        },
+        "scripts/perf-cold-import-worker.cjs": {
+          "bytes": 3026,
+          "sha256": "74a5801dda8019cd9ff6c3eac57f6547517ce3a6d38793503685d2e57a7d3ea0"
+        },
+        "scripts/cold-start-bundle.mjs": {
+          "bytes": 1415,
+          "sha256": "d2cab38ccdd91eea2471d3fafc83b4f99b5e366e8c484abf8fdf1c9661857671"
+        },
+        "scripts/cold-start-preview-access.mjs": {
+          "bytes": 4544,
+          "sha256": "1aca66a9941c515f5f0beb70ceff66c241420e927e3773d5dedf5b6cb2d3a965"
+        }
+      },
+      "handlerInvocations": 0,
+      "liveApiRequests": 0,
+      "scope": "12 handlers x 3 fresh-process CJS require proxies; no platform boot or operation latency",
+      "exitCode": 0,
+      "worktreeCleanAfter": true,
+      "hashesUnchangedAfter": true,
+      "commandNormalizedPaths": [
+        "node24",
+        "scripts/perf-cold-start.mjs",
+        "--local",
+        "--samples=3",
+        "--markers",
+        "--output=<saved-report>"
+      ],
+      "commandPathNote": "Only machine-specific path spellings normalized; exact original metadata remains hash-pinned."
+    },
+    "mergedSourceBoundaryCheck": {
+      "sourceHead": "cbdfa2aa995e7dd71c7d0197fee7f35df21ca205",
+      "historicalProfileHead": "3fb1a0d1a4522881a28bbd1e2d6d42f42903e195",
+      "checks": [
+        {
+          "file": "api/admin/[op].ts",
+          "observedSourceSha256": "8e34eed4e6f514edd1573c644eef00cb482778dadb97d278793c8b99563af7e1",
+          "currentSha256": "8e34eed4e6f514edd1573c644eef00cb482778dadb97d278793c8b99563af7e1",
+          "matches": true
+        },
+        {
+          "file": "api/flashcards.ts",
+          "observedSourceSha256": "86788f49d19826c4980c01bbdad7944d05201a56b58393c0dda987c363e77caa",
+          "currentSha256": "86788f49d19826c4980c01bbdad7944d05201a56b58393c0dda987c363e77caa",
+          "matches": true
+        },
+        {
+          "file": "api/health.ts",
+          "observedSourceSha256": "4fee2431e14e8b2688d7994aec1a8938ac8d6dac57afb385759fc3f88044445b",
+          "currentSha256": "4fee2431e14e8b2688d7994aec1a8938ac8d6dac57afb385759fc3f88044445b",
+          "matches": true
+        },
+        {
+          "file": "api/leaderboard.ts",
+          "observedSourceSha256": "09955f4f7fe1eed80ee423e2c4518c480dd3c16387ff05f443a492d93b095575",
+          "currentSha256": "09955f4f7fe1eed80ee423e2c4518c480dd3c16387ff05f443a492d93b095575",
+          "matches": true
+        },
+        {
+          "file": "api/play/[action].ts",
+          "observedSourceSha256": "6a8dc8062e0d9848eb9b096cb3a7971dd750f460cb3b08ba1ec02acf60234604",
+          "currentSha256": "6a8dc8062e0d9848eb9b096cb3a7971dd750f460cb3b08ba1ec02acf60234604",
+          "matches": true
+        },
+        {
+          "file": "api/quiz/challenge.ts",
+          "observedSourceSha256": "2925c6a281aa2ef11d95d088e9698db36747ce908ba10628819d839a9282dd6d",
+          "currentSha256": "2925c6a281aa2ef11d95d088e9698db36747ce908ba10628819d839a9282dd6d",
+          "matches": true
+        },
+        {
+          "file": "api/quiz/daily.ts",
+          "observedSourceSha256": "5df831a1a150312ff18698442aa4b63fcdbbfed86fa1fa4837eff8d5c50115cf",
+          "currentSha256": "5df831a1a150312ff18698442aa4b63fcdbbfed86fa1fa4837eff8d5c50115cf",
+          "matches": true
+        },
+        {
+          "file": "api/quiz/questions.ts",
+          "observedSourceSha256": "e208749392ed5137b2bb35bb3de7d1470c07bcd4eedb469c2107244a9e08c60b",
+          "currentSha256": "e208749392ed5137b2bb35bb3de7d1470c07bcd4eedb469c2107244a9e08c60b",
+          "matches": true
+        },
+        {
+          "file": "api/quiz/roadmap.ts",
+          "observedSourceSha256": "baa1e629c853860cb96051c6eee3f372e5f35ef2969be9969c4b55da88cb0d58",
+          "currentSha256": "baa1e629c853860cb96051c6eee3f372e5f35ef2969be9969c4b55da88cb0d58",
+          "matches": true
+        },
+        {
+          "file": "api/quiz/submit.ts",
+          "observedSourceSha256": "6961168f9bb1c749c4f3f3168d496ce9e037b5099b6283d637f2bfc8b770dea1",
+          "currentSha256": "6961168f9bb1c749c4f3f3168d496ce9e037b5099b6283d637f2bfc8b770dea1",
+          "matches": true
+        },
+        {
+          "file": "api/settings.ts",
+          "observedSourceSha256": "1491b208a4ecd0a07410229f568305998ff6a5717923a8393fd7bf8115a7f7ff",
+          "currentSha256": "1491b208a4ecd0a07410229f568305998ff6a5717923a8393fd7bf8115a7f7ff",
+          "matches": true
+        },
+        {
+          "file": "api/user/[op].ts",
+          "observedSourceSha256": "1bfc3de83739e3fdbbc890038575e56d435621da1a6ab59938d929735c5a0a34",
+          "currentSha256": "1bfc3de83739e3fdbbc890038575e56d435621da1a6ab59938d929735c5a0a34",
+          "matches": true
+        },
+        {
+          "file": "client/package-lock.json",
+          "observedSourceSha256": "29777af01ecd7d182c1b0e002bd64b473ab2ddf78af3d3807b2cf2fe8aab9d44",
+          "currentSha256": "29777af01ecd7d182c1b0e002bd64b473ab2ddf78af3d3807b2cf2fe8aab9d44",
+          "matches": true
+        },
+        {
+          "file": "lib/coding/ts-check-node.ts",
+          "observedSourceSha256": "b6d82f93627ef023569309ad256e340a9a56114841cc121be727286f18c49924",
+          "currentSha256": "b6d82f93627ef023569309ad256e340a9a56114841cc121be727286f18c49924",
+          "matches": true
+        },
+        {
+          "file": "lib/http.ts",
+          "observedSourceSha256": "95a423fa2a8da76e5872c9b16b7246307c2ab11242e6914213e190f710056d83",
+          "currentSha256": "95a423fa2a8da76e5872c9b16b7246307c2ab11242e6914213e190f710056d83",
+          "matches": true
+        },
+        {
+          "file": "lib/request-timing.ts",
+          "observedSourceSha256": "2772282a3426aca4b2ef3d335c54bd62c5f180371e644fa4abeb89a3ce4551a7",
+          "currentSha256": "2772282a3426aca4b2ef3d335c54bd62c5f180371e644fa4abeb89a3ce4551a7",
+          "matches": true
+        },
+        {
+          "file": "package-lock.json",
+          "observedSourceSha256": "98d0093a62b8d2ae7dda5f4f4e4a2f3594f08075a70d13219ddb1216200176b4",
+          "currentSha256": "98d0093a62b8d2ae7dda5f4f4e4a2f3594f08075a70d13219ddb1216200176b4",
+          "matches": true
+        },
+        {
+          "file": "shared/coding-ts-check.ts",
+          "observedSourceSha256": "f14d5da6c47c92027040655b43a8c1c5a041c254f809e4d241158c86fa3f3e58",
+          "currentSha256": "f14d5da6c47c92027040655b43a8c1c5a041c254f809e4d241158c86fa3f3e58",
+          "matches": true
+        },
+        {
+          "file": "vercel.json",
+          "observedSourceSha256": "42b51460aecc437d5e898f79e325cc746366f26fef62fd9dc22e024ff4b54991",
+          "currentSha256": "33696eb265a5b6f3c126bef95152753fb48fd0afd95e02ea77305d39a9221462",
+          "matches": false
+        },
+        {
+          "file": "scripts/perf-cold-start.mjs",
+          "observedSourceSha256": "2d02822f9376a5647f4aae849994d50c46fcd109bf23ad992e80d5c4260663e5",
+          "currentSha256": "2d02822f9376a5647f4aae849994d50c46fcd109bf23ad992e80d5c4260663e5",
+          "matches": true
+        },
+        {
+          "file": "scripts/perf-cold-import.mjs",
+          "observedSourceSha256": "121b442487f6d5e59f90ce44b97f7817c44a2323427206f96215b1d4df9db861",
+          "currentSha256": "121b442487f6d5e59f90ce44b97f7817c44a2323427206f96215b1d4df9db861",
+          "matches": true
+        },
+        {
+          "file": "scripts/perf-cold-import-worker.cjs",
+          "observedSourceSha256": "74a5801dda8019cd9ff6c3eac57f6547517ce3a6d38793503685d2e57a7d3ea0",
+          "currentSha256": "74a5801dda8019cd9ff6c3eac57f6547517ce3a6d38793503685d2e57a7d3ea0",
+          "matches": true
+        },
+        {
+          "file": "scripts/cold-start-bundle.mjs",
+          "observedSourceSha256": "d2cab38ccdd91eea2471d3fafc83b4f99b5e366e8c484abf8fdf1c9661857671",
+          "currentSha256": "d2cab38ccdd91eea2471d3fafc83b4f99b5e366e8c484abf8fdf1c9661857671",
+          "matches": true
+        },
+        {
+          "file": "scripts/cold-start-preview-access.mjs",
+          "observedSourceSha256": "1aca66a9941c515f5f0beb70ceff66c241420e927e3773d5dedf5b6cb2d3a965",
+          "currentSha256": "1aca66a9941c515f5f0beb70ceff66c241420e927e3773d5dedf5b6cb2d3a965",
+          "matches": true
+        }
+      ],
+      "runtimeTreeAndLocksAndImportToolsDiff": "",
+      "runtimeTreeComparisonScope": [
+        "api",
+        "lib",
+        "shared",
+        "package-lock.json",
+        "client/package-lock.json",
+        "scripts/cold-start-bundle.mjs",
+        "scripts/perf-cold-import.mjs",
+        "scripts/perf-cold-import-worker.cjs",
+        "scripts/perf-cold-start.mjs"
+      ],
+      "note": "Only vercel.json differs among24 historical pins, for later11-declaration exclude correction; do not reinterpret the old import artifact as a provider trace."
+    }
+  },
+  "production": {
+    "mode": "anonymous-entry-read-refusal",
+    "origin": "https://devshark.app",
+    "samples": 3,
+    "intervalMs": 1100,
+    "bypassCache": true,
+    "rows": [
+      {
+        "sample": 0,
+        "handler": "health",
+        "kind": "read",
+        "purpose": "public dependency readiness read",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 141,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "first",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 169,
+          "dbHttpMs": 228.8,
+          "dbCalls": 2,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 70.23037500000001,
+          "tcpConnectEndMs": 84.210458,
+          "tlsHandshakeEndMs": 126.606416,
+          "firstByteMs": 748.2805410000001,
+          "headersMs": 749.0421249999999,
+          "bodyEndMs": 749.9190410000001
+        }
+      },
+      {
+        "sample": 1,
+        "handler": "health",
+        "kind": "read",
+        "purpose": "public dependency readiness read",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 141,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 64.9,
+          "dbHttpMs": 72.3,
+          "dbCalls": 2,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 2.535334000000148,
+          "tcpConnectEndMs": 18.723459000000048,
+          "tlsHandshakeEndMs": 55.8470420000001,
+          "firstByteMs": 331.578209,
+          "headersMs": 331.7107090000002,
+          "bodyEndMs": 331.90366700000027
+        }
+      },
+      {
+        "sample": 2,
+        "handler": "health",
+        "kind": "read",
+        "purpose": "public dependency readiness read",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 141,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 49.8,
+          "dbHttpMs": 76.6,
+          "dbCalls": 2,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 2.1165829999999914,
+          "tcpConnectEndMs": 16.843624999999975,
+          "tlsHandshakeEndMs": 56.708958000000166,
+          "firstByteMs": 308.1877920000002,
+          "headersMs": 308.32916699999987,
+          "bodyEndMs": 308.512917
+        }
+      },
+      {
+        "sample": 0,
+        "handler": "settings",
+        "kind": "read",
+        "purpose": "public settings read",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 1074,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "unknown",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 94.3,
+          "dbHttpMs": 88.7,
+          "dbCalls": 1,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 2.1283330000005662,
+          "tcpConnectEndMs": 17.166791000000558,
+          "tlsHandshakeEndMs": 62.72154099999989,
+          "firstByteMs": 573.9731250000004,
+          "headersMs": 574.0979580000003,
+          "bodyEndMs": 574.2611660000002
+        }
+      },
+      {
+        "sample": 1,
+        "handler": "settings",
+        "kind": "read",
+        "purpose": "public settings read",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 1074,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "unknown",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 0.6,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 2.053541999999652,
+          "tcpConnectEndMs": 18.371208999999908,
+          "tlsHandshakeEndMs": 58.02916699999969,
+          "firstByteMs": 147.43325000000004,
+          "headersMs": 147.57395899999938,
+          "bodyEndMs": 147.74983399999928
+        }
+      },
+      {
+        "sample": 2,
+        "handler": "settings",
+        "kind": "read",
+        "purpose": "public settings read",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 1074,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "unknown",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 0.2,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 2.1396250000007058,
+          "tcpConnectEndMs": 28.544333000000734,
+          "tlsHandshakeEndMs": 68.22129200000018,
+          "firstByteMs": 138.21791699999994,
+          "headersMs": 138.34600000000046,
+          "bodyEndMs": 138.57650000000012
+        }
+      },
+      {
+        "sample": 0,
+        "handler": "leaderboard",
+        "kind": "read",
+        "purpose": "public board, no personal row",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 337,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "unknown",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 234.1,
+          "dbHttpMs": 75.3,
+          "dbCalls": 1,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.9885000000012951,
+          "tcpConnectEndMs": 20.128917,
+          "tlsHandshakeEndMs": 63.00079200000073,
+          "firstByteMs": 552.7115420000009,
+          "headersMs": 552.8474580000002,
+          "bodyEndMs": 553.0130829999998
+        }
+      },
+      {
+        "sample": 1,
+        "handler": "leaderboard",
+        "kind": "read",
+        "purpose": "public board, no personal row",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 337,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "unknown",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 106.8,
+          "dbHttpMs": 57.7,
+          "dbCalls": 1,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.9330420000005688,
+          "tcpConnectEndMs": 24.298917000000074,
+          "tlsHandshakeEndMs": 63.28795899999932,
+          "firstByteMs": 377.07829200000015,
+          "headersMs": 377.3954169999997,
+          "bodyEndMs": 377.5795419999995
+        }
+      },
+      {
+        "sample": 2,
+        "handler": "leaderboard",
+        "kind": "read",
+        "purpose": "public board, no personal row",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 337,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "unknown",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 80.9,
+          "dbHttpMs": 34.1,
+          "dbCalls": 1,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 2.023624999999811,
+          "tcpConnectEndMs": 24.256083000000217,
+          "tlsHandshakeEndMs": 62.889624999999796,
+          "firstByteMs": 232.17554199999904,
+          "headersMs": 232.3089170000003,
+          "bodyEndMs": 232.49116700000013
+        }
+      },
+      {
+        "sample": 0,
+        "handler": "questions",
+        "kind": "read",
+        "purpose": "coverage only, no question session",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 142,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "unknown",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 660.4,
+          "dbHttpMs": 65,
+          "dbCalls": 1,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 2.2202910000014526,
+          "tcpConnectEndMs": 18.820416000000478,
+          "tlsHandshakeEndMs": 60.516875000001164,
+          "firstByteMs": 883.1563750000005,
+          "headersMs": 883.3519580000011,
+          "bodyEndMs": 883.633041000001
+        }
+      },
+      {
+        "sample": 1,
+        "handler": "questions",
+        "kind": "read",
+        "purpose": "coverage only, no question session",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 142,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "unknown",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 151.4,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.8626669999994192,
+          "tcpConnectEndMs": 20.12854200000038,
+          "tlsHandshakeEndMs": 54.68537499999911,
+          "firstByteMs": 292.0387499999997,
+          "headersMs": 292.15058300000055,
+          "bodyEndMs": 292.3682919999992
+        }
+      },
+      {
+        "sample": 2,
+        "handler": "questions",
+        "kind": "read",
+        "purpose": "coverage only, no question session",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 142,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "unknown",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 161.5,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.4405409999999392,
+          "tcpConnectEndMs": 15.040583000001789,
+          "tlsHandshakeEndMs": 66.4633329999997,
+          "firstByteMs": 429.6423329999998,
+          "headersMs": 429.72316599999976,
+          "bodyEndMs": 429.85212500000125
+        }
+      },
+      {
+        "sample": 0,
+        "handler": "roadmap",
+        "kind": "read",
+        "purpose": "public structure only, no attempt",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 29111,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "unknown",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 1155.1,
+          "dbHttpMs": 71,
+          "dbCalls": 1,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.8621669999993173,
+          "tcpConnectEndMs": 20.616417000001093,
+          "tlsHandshakeEndMs": 55.835917000000336,
+          "firstByteMs": 1524.0803339999984,
+          "headersMs": 1524.1679169999989,
+          "bodyEndMs": 1524.4023339999985
+        }
+      },
+      {
+        "sample": 1,
+        "handler": "roadmap",
+        "kind": "read",
+        "purpose": "public structure only, no attempt",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 29111,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "unknown",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 48.9,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.863083000000188,
+          "tcpConnectEndMs": 18.859583000001294,
+          "tlsHandshakeEndMs": 56.94812500000262,
+          "firstByteMs": 191.38233300000138,
+          "headersMs": 191.4709580000017,
+          "bodyEndMs": 191.729083000002
+        }
+      },
+      {
+        "sample": 2,
+        "handler": "roadmap",
+        "kind": "read",
+        "purpose": "public structure only, no attempt",
+        "requestSent": true,
+        "ok": true,
+        "status": 200,
+        "errorCode": null,
+        "bytes": 29111,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "unknown",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 47.7,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.9625830000004498,
+          "tcpConnectEndMs": 16.949165999998513,
+          "tlsHandshakeEndMs": 57.584750000001804,
+          "firstByteMs": 175.7848750000012,
+          "headersMs": 175.87291600000026,
+          "bodyEndMs": 177.71716599999854
+        }
+      },
+      {
+        "sample": 0,
+        "handler": "challenge",
+        "kind": "refusal",
+        "purpose": "unknown-resource refusal before question batch",
+        "requestSent": true,
+        "ok": true,
+        "status": 404,
+        "errorCode": "unknown_resource",
+        "bytes": 129,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "first",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 1.3,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.9436669999995502,
+          "tcpConnectEndMs": 16.953207999998995,
+          "tlsHandshakeEndMs": 60.46612499999901,
+          "firstByteMs": 172.79637499999808,
+          "headersMs": 172.8860829999976,
+          "bodyEndMs": 173.02958299999955
+        }
+      },
+      {
+        "sample": 1,
+        "handler": "challenge",
+        "kind": "refusal",
+        "purpose": "unknown-resource refusal before question batch",
+        "requestSent": true,
+        "ok": true,
+        "status": 404,
+        "errorCode": "unknown_resource",
+        "bytes": 129,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 0.1,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 2.019125000002532,
+          "tcpConnectEndMs": 18.686750000000757,
+          "tlsHandshakeEndMs": 61.40920900000128,
+          "firstByteMs": 142.1008750000001,
+          "headersMs": 142.5136249999996,
+          "bodyEndMs": 142.73912500000006
+        }
+      },
+      {
+        "sample": 2,
+        "handler": "challenge",
+        "kind": "refusal",
+        "purpose": "unknown-resource refusal before question batch",
+        "requestSent": true,
+        "ok": true,
+        "status": 404,
+        "errorCode": "unknown_resource",
+        "bytes": 129,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 0.1,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.987874999998894,
+          "tcpConnectEndMs": 26.829499999999825,
+          "tlsHandshakeEndMs": 68.42341699999815,
+          "firstByteMs": 145.80633300000045,
+          "headersMs": 145.89687499999854,
+          "bodyEndMs": 146.0358329999981
+        }
+      },
+      {
+        "sample": 0,
+        "handler": "daily",
+        "kind": "refusal",
+        "purpose": "invalid-date refusal before question/session selection",
+        "requestSent": true,
+        "ok": true,
+        "status": 400,
+        "errorCode": "bad_request",
+        "bytes": 141,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "first",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 249.2,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.8580839999995078,
+          "tcpConnectEndMs": 19.488792000000103,
+          "tlsHandshakeEndMs": 53.61724999999933,
+          "firstByteMs": 465.24774999999863,
+          "headersMs": 465.3392090000016,
+          "bodyEndMs": 465.48104199999943
+        }
+      },
+      {
+        "sample": 1,
+        "handler": "daily",
+        "kind": "refusal",
+        "purpose": "invalid-date refusal before question/session selection",
+        "requestSent": true,
+        "ok": true,
+        "status": 400,
+        "errorCode": "bad_request",
+        "bytes": 141,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 94.3,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.897000000000844,
+          "tcpConnectEndMs": 41.160250000000815,
+          "tlsHandshakeEndMs": 80.23912500000006,
+          "firstByteMs": 253.47854200000074,
+          "headersMs": 253.56850000000122,
+          "bodyEndMs": 253.68166700000074
+        }
+      },
+      {
+        "sample": 2,
+        "handler": "daily",
+        "kind": "refusal",
+        "purpose": "invalid-date refusal before question/session selection",
+        "requestSent": true,
+        "ok": true,
+        "status": 400,
+        "errorCode": "bad_request",
+        "bytes": 141,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 91.8,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.813916999999492,
+          "tcpConnectEndMs": 23.452417000000423,
+          "tlsHandshakeEndMs": 57.83579199999804,
+          "firstByteMs": 235.95712500000081,
+          "headersMs": 236.04724999999962,
+          "bodyEndMs": 236.1842919999981
+        }
+      },
+      {
+        "sample": 0,
+        "handler": "submit",
+        "kind": "refusal",
+        "purpose": "GET method refusal, never grading/reporting",
+        "requestSent": true,
+        "ok": true,
+        "status": 405,
+        "errorCode": "method_not_allowed",
+        "bytes": 123,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "first",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 1.8,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.9677080000001297,
+          "tcpConnectEndMs": 23.39679199999955,
+          "tlsHandshakeEndMs": 64.2143329999999,
+          "firstByteMs": 171.98179199999868,
+          "headersMs": 172.0744999999988,
+          "bodyEndMs": 172.2052079999994
+        }
+      },
+      {
+        "sample": 1,
+        "handler": "submit",
+        "kind": "refusal",
+        "purpose": "GET method refusal, never grading/reporting",
+        "requestSent": true,
+        "ok": true,
+        "status": 405,
+        "errorCode": "method_not_allowed",
+        "bytes": 123,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 0.1,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.9426250000033178,
+          "tcpConnectEndMs": 16.328417000004265,
+          "tlsHandshakeEndMs": 57.48045899999852,
+          "firstByteMs": 134.47587500000373,
+          "headersMs": 134.56662499999948,
+          "bodyEndMs": 134.68424999999843
+        }
+      },
+      {
+        "sample": 2,
+        "handler": "submit",
+        "kind": "refusal",
+        "purpose": "GET method refusal, never grading/reporting",
+        "requestSent": true,
+        "ok": true,
+        "status": 405,
+        "errorCode": "method_not_allowed",
+        "bytes": 123,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 0,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.8856250000026193,
+          "tcpConnectEndMs": 21.425332999999227,
+          "tlsHandshakeEndMs": 62.60100000000239,
+          "firstByteMs": 145.80750000000262,
+          "headersMs": 145.8962909999973,
+          "bodyEndMs": 146.02916600000026
+        }
+      },
+      {
+        "sample": 0,
+        "handler": "flashcards",
+        "kind": "refusal",
+        "purpose": "anonymous auth/configuration refusal",
+        "requestSent": true,
+        "ok": true,
+        "status": 401,
+        "errorCode": "missing_token",
+        "bytes": 120,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "first",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 1.6,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.8815830000021379,
+          "tcpConnectEndMs": 25.580708000001323,
+          "tlsHandshakeEndMs": 65.1317909999998,
+          "firstByteMs": 194.44574999999895,
+          "headersMs": 194.549208000004,
+          "bodyEndMs": 228.99716600000102
+        }
+      },
+      {
+        "sample": 1,
+        "handler": "flashcards",
+        "kind": "refusal",
+        "purpose": "anonymous auth/configuration refusal",
+        "requestSent": true,
+        "ok": true,
+        "status": 401,
+        "errorCode": "missing_token",
+        "bytes": 120,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 0.1,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.9135830000013812,
+          "tcpConnectEndMs": 20.145250000001397,
+          "tlsHandshakeEndMs": 63.29262500000186,
+          "firstByteMs": 144.67412499999773,
+          "headersMs": 144.75974999999744,
+          "bodyEndMs": 144.88762499999575
+        }
+      },
+      {
+        "sample": 2,
+        "handler": "flashcards",
+        "kind": "refusal",
+        "purpose": "anonymous auth/configuration refusal",
+        "requestSent": true,
+        "ok": true,
+        "status": 401,
+        "errorCode": "missing_token",
+        "bytes": 120,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 0.1,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.899915999994846,
+          "tcpConnectEndMs": 21.26529099999607,
+          "tlsHandshakeEndMs": 55.1705409999995,
+          "firstByteMs": 131.7312499999971,
+          "headersMs": 131.81654100000014,
+          "bodyEndMs": 131.94608299999527
+        }
+      },
+      {
+        "sample": 0,
+        "handler": "user",
+        "kind": "refusal",
+        "purpose": "unknown-op/configuration refusal, never wallet/rewards",
+        "requestSent": true,
+        "ok": true,
+        "status": 404,
+        "errorCode": "unknown_op",
+        "bytes": 128,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "first",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 9.2,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 2.0027919999993173,
+          "tcpConnectEndMs": 22.46808299999975,
+          "tlsHandshakeEndMs": 56.440332999998645,
+          "firstByteMs": 169.48241699999926,
+          "headersMs": 169.5670420000024,
+          "bodyEndMs": 169.68383300000278
+        }
+      },
+      {
+        "sample": 1,
+        "handler": "user",
+        "kind": "refusal",
+        "purpose": "unknown-op/configuration refusal, never wallet/rewards",
+        "requestSent": true,
+        "ok": true,
+        "status": 404,
+        "errorCode": "unknown_op",
+        "bytes": 128,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 0.1,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.8722500000003492,
+          "tcpConnectEndMs": 19.73308299999917,
+          "tlsHandshakeEndMs": 57.151749999997264,
+          "firstByteMs": 141.16941699999734,
+          "headersMs": 141.25545799999963,
+          "bodyEndMs": 141.36595799999486
+        }
+      },
+      {
+        "sample": 2,
+        "handler": "user",
+        "kind": "refusal",
+        "purpose": "unknown-op/configuration refusal, never wallet/rewards",
+        "requestSent": true,
+        "ok": true,
+        "status": 404,
+        "errorCode": "unknown_op",
+        "bytes": 128,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 0.1,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.8352090000043972,
+          "tcpConnectEndMs": 18.784124999998312,
+          "tlsHandshakeEndMs": 59.61441700000432,
+          "firstByteMs": 134.90229199999885,
+          "headersMs": 134.9860420000041,
+          "bodyEndMs": 135.10691700000461
+        }
+      },
+      {
+        "sample": 0,
+        "handler": "play",
+        "kind": "refusal",
+        "purpose": "unknown-action/configuration/feature refusal, no room",
+        "requestSent": true,
+        "ok": true,
+        "status": 404,
+        "errorCode": "unknown_action",
+        "bytes": 136,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "first",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 135.1,
+          "dbHttpMs": 125.5,
+          "dbCalls": 1,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.8792499999981374,
+          "tcpConnectEndMs": 20.06437499999447,
+          "tlsHandshakeEndMs": 55.013874999996915,
+          "firstByteMs": 316.60683399999834,
+          "headersMs": 316.69399999999587,
+          "bodyEndMs": 316.8243749999965
+        }
+      },
+      {
+        "sample": 1,
+        "handler": "play",
+        "kind": "refusal",
+        "purpose": "unknown-action/configuration/feature refusal, no room",
+        "requestSent": true,
+        "ok": true,
+        "status": 404,
+        "errorCode": "unknown_action",
+        "bytes": 136,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 0.1,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.872457999998005,
+          "tcpConnectEndMs": 24.085999999995693,
+          "tlsHandshakeEndMs": 59.984958000000915,
+          "firstByteMs": 140.7300419999956,
+          "headersMs": 140.8222919999971,
+          "bodyEndMs": 140.97262499999488
+        }
+      },
+      {
+        "sample": 2,
+        "handler": "play",
+        "kind": "refusal",
+        "purpose": "unknown-action/configuration/feature refusal, no room",
+        "requestSent": true,
+        "ok": true,
+        "status": 404,
+        "errorCode": "unknown_action",
+        "bytes": 136,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 0.1,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.8953750000000582,
+          "tcpConnectEndMs": 20.967499999998836,
+          "tlsHandshakeEndMs": 66.52020800000173,
+          "firstByteMs": 150.08350000000064,
+          "headersMs": 150.29650000000402,
+          "bodyEndMs": 150.4502500000017
+        }
+      },
+      {
+        "sample": 0,
+        "handler": "admin",
+        "kind": "refusal",
+        "purpose": "anonymous admin refusal, no legacy password",
+        "requestSent": true,
+        "ok": true,
+        "status": 403,
+        "errorCode": "forbidden",
+        "bytes": 126,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "first",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 145.5,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.8282499999986612,
+          "tcpConnectEndMs": 29.32024999999703,
+          "tlsHandshakeEndMs": 64.53316699999414,
+          "firstByteMs": 305.5769999999975,
+          "headersMs": 305.66441699999996,
+          "bodyEndMs": 305.7914579999997
+        }
+      },
+      {
+        "sample": 1,
+        "handler": "admin",
+        "kind": "refusal",
+        "purpose": "anonymous admin refusal, no legacy password",
+        "requestSent": true,
+        "ok": true,
+        "status": 403,
+        "errorCode": "forbidden",
+        "bytes": 126,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 48.8,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.978625000003376,
+          "tcpConnectEndMs": 19.805833999998868,
+          "tlsHandshakeEndMs": 52.400916999999026,
+          "firstByteMs": 178.6336250000022,
+          "headersMs": 178.7172500000015,
+          "bodyEndMs": 178.8415840000016
+        }
+      },
+      {
+        "sample": 2,
+        "handler": "admin",
+        "kind": "refusal",
+        "purpose": "anonymous admin refusal, no legacy password",
+        "requestSent": true,
+        "ok": true,
+        "status": 403,
+        "errorCode": "forbidden",
+        "bytes": 126,
+        "region": [
+          "fra1",
+          "arn1"
+        ],
+        "cache": "MISS",
+        "instance": "repeat",
+        "timingStatus": "parsed",
+        "spans": {
+          "appMs": 48.7,
+          "dbHttpMs": 0,
+          "dbCalls": 0,
+          "authHttpMs": 0,
+          "authCalls": 0
+        },
+        "raw": {
+          "dnsLookupEndMs": 1.8864169999942533,
+          "tcpConnectEndMs": 33.95908399999462,
+          "tlsHandshakeEndMs": 67.57174999999552,
+          "firstByteMs": 205.5711669999946,
+          "headersMs": 205.65329199999542,
+          "bodyEndMs": 205.81624999999622
+        }
+      }
+    ],
+    "summary": [
+      {
+        "handler": "health",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 331.578209,
+          "min": 308.1877920000002,
+          "max": 748.2805410000001
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "first",
+            "status": 200,
+            "firstByteMs": {
+              "samples": 1,
+              "median": 748.2805410000001,
+              "min": 748.2805410000001,
+              "max": 748.2805410000001
+            },
+            "originAppMs": {
+              "samples": 1,
+              "median": 169,
+              "min": 169,
+              "max": 169
+            }
+          },
+          {
+            "cache": "MISS",
+            "instance": "repeat",
+            "status": 200,
+            "firstByteMs": {
+              "samples": 2,
+              "median": 319.8830005000001,
+              "min": 308.1877920000002,
+              "max": 331.578209
+            },
+            "originAppMs": {
+              "samples": 2,
+              "median": 57.35,
+              "min": 49.8,
+              "max": 64.9
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "settings",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 147.43325000000004,
+          "min": 138.21791699999994,
+          "max": 573.9731250000004
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 200,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 147.43325000000004,
+              "min": 138.21791699999994,
+              "max": 573.9731250000004
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 0.6,
+              "min": 0.2,
+              "max": 94.3
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "leaderboard",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 377.07829200000015,
+          "min": 232.17554199999904,
+          "max": 552.7115420000009
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 200,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 377.07829200000015,
+              "min": 232.17554199999904,
+              "max": 552.7115420000009
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 106.8,
+              "min": 80.9,
+              "max": 234.1
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "questions",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 429.6423329999998,
+          "min": 292.0387499999997,
+          "max": 883.1563750000005
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 200,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 429.6423329999998,
+              "min": 292.0387499999997,
+              "max": 883.1563750000005
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 161.5,
+              "min": 151.4,
+              "max": 660.4
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "roadmap",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 191.38233300000138,
+          "min": 175.7848750000012,
+          "max": 1524.0803339999984
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "unknown",
+            "status": 200,
+            "firstByteMs": {
+              "samples": 3,
+              "median": 191.38233300000138,
+              "min": 175.7848750000012,
+              "max": 1524.0803339999984
+            },
+            "originAppMs": {
+              "samples": 3,
+              "median": 48.9,
+              "min": 47.7,
+              "max": 1155.1
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "challenge",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 145.80633300000045,
+          "min": 142.1008750000001,
+          "max": 172.79637499999808
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "first",
+            "status": 404,
+            "firstByteMs": {
+              "samples": 1,
+              "median": 172.79637499999808,
+              "min": 172.79637499999808,
+              "max": 172.79637499999808
+            },
+            "originAppMs": {
+              "samples": 1,
+              "median": 1.3,
+              "min": 1.3,
+              "max": 1.3
+            }
+          },
+          {
+            "cache": "MISS",
+            "instance": "repeat",
+            "status": 404,
+            "firstByteMs": {
+              "samples": 2,
+              "median": 143.95360400000027,
+              "min": 142.1008750000001,
+              "max": 145.80633300000045
+            },
+            "originAppMs": {
+              "samples": 2,
+              "median": 0.1,
+              "min": 0.1,
+              "max": 0.1
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "daily",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 253.47854200000074,
+          "min": 235.95712500000081,
+          "max": 465.24774999999863
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "first",
+            "status": 400,
+            "firstByteMs": {
+              "samples": 1,
+              "median": 465.24774999999863,
+              "min": 465.24774999999863,
+              "max": 465.24774999999863
+            },
+            "originAppMs": {
+              "samples": 1,
+              "median": 249.2,
+              "min": 249.2,
+              "max": 249.2
+            }
+          },
+          {
+            "cache": "MISS",
+            "instance": "repeat",
+            "status": 400,
+            "firstByteMs": {
+              "samples": 2,
+              "median": 244.71783350000078,
+              "min": 235.95712500000081,
+              "max": 253.47854200000074
+            },
+            "originAppMs": {
+              "samples": 2,
+              "median": 93.05,
+              "min": 91.8,
+              "max": 94.3
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "submit",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 145.80750000000262,
+          "min": 134.47587500000373,
+          "max": 171.98179199999868
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "first",
+            "status": 405,
+            "firstByteMs": {
+              "samples": 1,
+              "median": 171.98179199999868,
+              "min": 171.98179199999868,
+              "max": 171.98179199999868
+            },
+            "originAppMs": {
+              "samples": 1,
+              "median": 1.8,
+              "min": 1.8,
+              "max": 1.8
+            }
+          },
+          {
+            "cache": "MISS",
+            "instance": "repeat",
+            "status": 405,
+            "firstByteMs": {
+              "samples": 2,
+              "median": 140.14168750000317,
+              "min": 134.47587500000373,
+              "max": 145.80750000000262
+            },
+            "originAppMs": {
+              "samples": 2,
+              "median": 0.05,
+              "min": 0,
+              "max": 0.1
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "flashcards",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 144.67412499999773,
+          "min": 131.7312499999971,
+          "max": 194.44574999999895
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "first",
+            "status": 401,
+            "firstByteMs": {
+              "samples": 1,
+              "median": 194.44574999999895,
+              "min": 194.44574999999895,
+              "max": 194.44574999999895
+            },
+            "originAppMs": {
+              "samples": 1,
+              "median": 1.6,
+              "min": 1.6,
+              "max": 1.6
+            }
+          },
+          {
+            "cache": "MISS",
+            "instance": "repeat",
+            "status": 401,
+            "firstByteMs": {
+              "samples": 2,
+              "median": 138.2026874999974,
+              "min": 131.7312499999971,
+              "max": 144.67412499999773
+            },
+            "originAppMs": {
+              "samples": 2,
+              "median": 0.1,
+              "min": 0.1,
+              "max": 0.1
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "user",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 141.16941699999734,
+          "min": 134.90229199999885,
+          "max": 169.48241699999926
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "first",
+            "status": 404,
+            "firstByteMs": {
+              "samples": 1,
+              "median": 169.48241699999926,
+              "min": 169.48241699999926,
+              "max": 169.48241699999926
+            },
+            "originAppMs": {
+              "samples": 1,
+              "median": 9.2,
+              "min": 9.2,
+              "max": 9.2
+            }
+          },
+          {
+            "cache": "MISS",
+            "instance": "repeat",
+            "status": 404,
+            "firstByteMs": {
+              "samples": 2,
+              "median": 138.0358544999981,
+              "min": 134.90229199999885,
+              "max": 141.16941699999734
+            },
+            "originAppMs": {
+              "samples": 2,
+              "median": 0.1,
+              "min": 0.1,
+              "max": 0.1
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "play",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 150.08350000000064,
+          "min": 140.7300419999956,
+          "max": 316.60683399999834
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "first",
+            "status": 404,
+            "firstByteMs": {
+              "samples": 1,
+              "median": 316.60683399999834,
+              "min": 316.60683399999834,
+              "max": 316.60683399999834
+            },
+            "originAppMs": {
+              "samples": 1,
+              "median": 135.1,
+              "min": 135.1,
+              "max": 135.1
+            }
+          },
+          {
+            "cache": "MISS",
+            "instance": "repeat",
+            "status": 404,
+            "firstByteMs": {
+              "samples": 2,
+              "median": 145.40677099999812,
+              "min": 140.7300419999956,
+              "max": 150.08350000000064
+            },
+            "originAppMs": {
+              "samples": 2,
+              "median": 0.1,
+              "min": 0.1,
+              "max": 0.1
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      },
+      {
+        "handler": "admin",
+        "measured": 3,
+        "errors": 0,
+        "skipped": 0,
+        "clientFirstByteMs": {
+          "samples": 3,
+          "median": 205.5711669999946,
+          "min": 178.6336250000022,
+          "max": 305.5769999999975
+        },
+        "classes": [
+          {
+            "cache": "MISS",
+            "instance": "first",
+            "status": 403,
+            "firstByteMs": {
+              "samples": 1,
+              "median": 305.5769999999975,
+              "min": 305.5769999999975,
+              "max": 305.5769999999975
+            },
+            "originAppMs": {
+              "samples": 1,
+              "median": 145.5,
+              "min": 145.5,
+              "max": 145.5
+            }
+          },
+          {
+            "cache": "MISS",
+            "instance": "repeat",
+            "status": 403,
+            "firstByteMs": {
+              "samples": 2,
+              "median": 192.1023959999984,
+              "min": 178.6336250000022,
+              "max": 205.5711669999946
+            },
+            "originAppMs": {
+              "samples": 2,
+              "median": 48.75,
+              "min": 48.7,
+              "max": 48.8
+            }
+          }
+        ],
+        "importWallMs": null,
+        "cpuUserMicros": null,
+        "cpuSystemMicros": null,
+        "heapDeltaBytes": null
+      }
+    ],
+    "totals": {
+      "planned": 36,
+      "attempted": 36,
+      "sent": 36,
+      "responses": 36,
+      "skipped": 0
+    },
+    "notes": [
+      "Any protection-state preflight belongs to a separate explicit ledger; this command makes no exchange or document request",
+      "first/repeat is an origin timing-module invocation marker, never platform cold-boot duration",
+      "CDN HIT/STALE is replayed; unknown cache status is unclassified",
+      "GET probes may affect logs, rate counters or readiness reads; no learner/session/wallet operation is selected",
+      "No automatic redirects or retries; sent counts Node request-finish events, not provider ingestion",
+      "Raw timing offsets include network/edge/queueing; no boot-duration residual is invented"
+    ],
+    "localSourceRevision": "cbdfa2aa995e7dd71c7d0197fee7f35df21ca205",
+    "deploymentRevision": null,
+    "node": "v24.22.3",
+    "recorded": "2026-11-19T16:17:24.297Z"
+  },
+  "productionIdentityCorroboration": {
+    "id": "dpl_Efb7TFTrUEyYUqSebQWv3ccv6zve",
+    "state": "READY",
+    "url": "react-express-idzhrango-lukas-kourils-projects.vercel.app",
+    "alias": [
+      "devshark.app",
+      "react-express-app-five.vercel.app",
+      "react-express-app-lukas-kourils-projects.vercel.app",
+      "react-express-app-git-main-lukas-kourils-projects.vercel.app"
+    ],
+    "regions": [
+      "arn1"
+    ],
+    "createdAt": 1795104769911,
+    "buildingAt": 1795104771020,
+    "ready": 1795104937749,
+    "githubCommitSha": "cbdfa2aa995e7dd71c7d0197fee7f35df21ca205",
+    "source": "separate saved provider READY/alias metadata, not derived from collector response bytes"
+  },
+  "productionMarkerCounts": {
+    "first": 8,
+    "repeat": 16,
+    "unknown": 12
+  },
+  "limits": [
+    "Actual raw measurements retain their separate source heads, commands, recorded timestamps and compiler configuration.",
+    "Fresh-process CJS import proxy, not actual deployed Lambda trace or platform initialization.",
+    "Heap snapshots are unforced-GC deltas, not retained memory; retain all slower/mixed rows.",
+    "Production selects anonymous reads/refusals, not authorized grading or learner-operation latency.",
+    "First/repeat marks timing-module invocation; cache/public/unknown stays unknown.",
+    "Collector deploymentRevision:null retained; separate READY metadata corroborates target independently."
+  ],
+  "inputProvenance": {
+    "f7-final-main-baseline-f12b396a.json": {
+      "sha256": "51fe9ba5e695bea1523c37aa81cfd97ccffe1d32d7b9daf8ed876fc3abdf890a",
+      "bytes": 41732
+    },
+    "f7-final-r3-3fb1a0d1.json": {
+      "sha256": "366e4cb68e373c5feca78610c4e03fe2d848d9bcf17fd5e692e51454daed6ca4",
+      "bytes": 40467
+    },
+    "f7-final-main-baseline-f12b396a.metadata.json": {
+      "sha256": "f3a0a2069a5f36af9c925dd016843f2b696fa9601c1584d6136ef4d925357cbf",
+      "bytes": 4388
+    },
+    "f7-final-r3-3fb1a0d1.metadata.json": {
+      "sha256": "69fbf052a2c5512ca837cb50ade22935ef4640689812b464c913b56c1a262fff",
+      "bytes": 4399
+    },
+    "f1-refresh-cbdfa2aa/f7-profile-source-boundary-refresh.json": {
+      "sha256": "121dc913af6adaa86ebe437c1620b4f41a3f353bda859dd7afd3c36a0d9243ff",
+      "bytes": 6965
+    },
+    "f7-production-http-cbdfa2aa.json": {
+      "sha256": "f6811462f85a616be8f473067f5d29f57e256ffcd6b00591970c5e86b7c7fe7a",
+      "bytes": 44512
+    },
+    "f7-production-ready-cbdfa2aa.json": {
+      "sha256": "c587fbc58bff6b83e26b1aca029c838f18748ea594d399866d00b574cd29cdfe",
+      "bytes": 1153
+    }
+  }
+}
