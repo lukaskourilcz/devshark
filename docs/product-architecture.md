@@ -465,8 +465,10 @@ learner sees a timeout whose message names the type check. Submit sends the
 code at once, and the browser's own run (its type check has 8 s once the
 compiler is loaded) is a preview the server's run replaces. The same thread
 transpiles the TypeScript, so code nested too deeply for the compiler is an
-`error` verdict, not an HTTP 500. React code that nests too deeply for its
-compiler fails the same way, before any sandbox starts. System-design answers
+`error` verdict, not an HTTP 500. React learner syntax is converted on its own one-thread compiler pool, with
+a 4 s first-start deadline and 256 MB old-generation heap. A stopped or deeply
+nested compile keeps the existing learner error before any VM starts; busy or
+unavailable compiler capacity propagates the existing unrecorded 503/Retry-After. System-design answers
 are graded against a key sealed in the coding session.
 
 A coding session seals the exact task and grader version (hidden checks,
@@ -477,9 +479,11 @@ id, and the editor keeps its draft. The version stays inside the encrypted
 token. A runtime-only grading or reward change must bump the attempt tag in
 `lib/coding/session.ts`.
 
-**Capacity and rate limits.** Both thread pools bound how long a run waits
-for a thread, and their queues hold a class of 32 submitting at once twice
-over. One caller (an account, or an address for a guest) has at most two
+**Capacity and rate limits.** All three thread pools bound admission: QuickJS
+has four live/two idle threads, 160 waiters/5 s wait; the TypeScript checker has
+two/one, 64 waiters/8 s; the React compiler one/one, 32 waiters/4 s. Boot budgets
+are 10/20/6 s respectively; compiler work deadlines are 4 s. See the complete
+source-number table in [React grading operations](./react-grading-operations.md#resource-bounds). One caller (an account, or an address for a guest) has at most two
 submits grading at once on one task or learning-path activity, and three
 across all of them, one fewer than an instance's four QuickJS threads
 (`GRADING_PER_TASK`, `GRADING_PER_CALLER` in `lib/coding/grader-capacity.ts`,
@@ -516,8 +520,8 @@ and `btoa` (`lib/coding/sandbox-web-apis.ts`); the host's WHATWG parser reads
 learner code runs, the Run worker removes every global and built-in member
 the grader lacks (`shared/coding-checker-globals.ts`: `Intl`, `crypto`,
 `fetch` and some two hundred more), and using one reads "`Intl` isn't
-available in the checker. Submit runs without it." React tasks keep the full
-browser and Node built-ins in both runners. Task-specific built-in
+available in the checker. Submit runs without it." React preview uses its browser realm; the server learner receives only the
+allowlisted QuickJS capabilities described below, without Node authority. Task-specific built-in
 restrictions live in `shared/coding-task-runtime.ts`; the server derives them
 from the canonical task id, and Learn reuses the same policy. Clone
 Promise.all, for one, replaces the native `Promise.all` with a
@@ -536,6 +540,26 @@ every call of a helper; past that it reports no estimate ("The analysis limit
 was reached"). Dynamic value flow still needs manual review; the check is
 bounded, not a general type analysis.
 
+**Output and worker health.** Non-React QuickJS reserves complete error packets
+inside a 900,000-UTF16-unit run budget, including JSON framing and escaping;
+failed partial encoding spends no other call's reservation. Depth 40 and
+10,000-entry limits and the independent 1,000,000-unit VM/host backstop remain.
+The server compares full values before cutting displayed actual/error/codeError
+to 2,000 units plus the existing marker; Run preserves compile-only JavaScript.
+Console output has 100 lines/2,000 per line/64,000 total with cut markers and stops
+formatting discarded arguments. These limits do not change pass/fail authority.
+
+Reported timeout/fixed stack/OOM results, exact per-call limit reports and
+actual disposal failure retire the QuickJS worker. Ordinary wrong/neutral/size
+failures keep healthy reuse. The private disposer-health reply is not learner
+input. Retiring acquired capacity releases only on actual exit; failed
+termination quarantines it under the queue/503 policy. Exact forged limit text
+may also retire a worker; this policy does not claim native-origin detection.
+QuickJS/its variant load only inside the shared first-operation Promise,
+retaining cached boot rejection and disposal reset. React/system-design
+complexity return their existing unknown result without acquiring TypeScript;
+JS/TS load failures remain loud and retryable.
+
 **System design** returns, for a failed or partly right submission, only
 whether each step was right and the learner's own answer (`gradeDesign`). The
 correct options, orders and ranges, the explanations and the reference answer
@@ -545,7 +569,14 @@ travel only with a pass.
 Sandbox microVM with network denied, no application credentials, a 256 MB
 Node heap and an externally enforced command deadline.
 `REACT_RUNNER_SNAPSHOT_ID` selects the dependency-only snapshot; each run
-uploads the current grader bundle. `lib/coding/react-runner.ts` is trusted
+uploads the current grader bundle. Before VM creation the API checks the
+exact guest bytes against a passively parsed same-build SHA-256 sidecar, caches
+only successful verified reads and retries a failed copy after repair. Shared
+build pack/restore require that pair and the generated compiler worker. This
+is copy integrity, not freshness or authentication against replacement of both
+files. The current composed guest is 887,989 raw/346,774 local-gzip bytes at
+`dbfde6ad`, down from the recorded 18 November 2,100,887/691,960 baseline; actual
+input/tar/network costs remain separate. `lib/coding/react-runner.ts` is trusted
 test and guest code only and must never evaluate learner code inside an API
 process. Coding and learning-path React submissions both use this boundary.
 A React task can keep hidden cases beside its solution; Submit runs them after
@@ -554,7 +585,14 @@ submits without `preventDefault()` fails, on Submit and on Run, because in the
 preview that submission reloads the frame. See
 [`react-grading-operations.md`](./react-grading-operations.md). The
 self-hosted `client/sandbox/` iframe serves the preview and the Run button's
-immediate feedback; the server's verdict is the record.
+immediate feedback; the server's verdict is the record. The React learner's
+outermost entry owns its 2.5 s clock; nested callbacks share it and a real
+interrupt latches across retries/later entries. The trusted case-body race is
+5s, while hooks/native work remain bounded by the 10 s command/22 s request
+signal/25 s VM expiry. The compile slot releases before VM execution; no separate
+per-instance React VM concurrency cap exists yet. That owner cost/cap decision
+and snapshot baking remain open. The trusted page has no native Node fetch;
+authored fixtures and web-data APIs retain their existing behavior.
 
 Every issued task is `verify: 'tests'`. A `verify: 'checklist'` pass would be
 recorded as unverified, with no XP, no coins, no link to a Learn level attempt

@@ -8,8 +8,12 @@ inside the Sandbox.
 
 ## Authority inside the VM
 
-The API converts learner TypeScript/JSX to ES2015 CommonJS without evaluating it
-(`react-transpile.ts`). The two fetch fixture modules are converted once per
+The API asks the dedicated React compiler worker to convert learner
+TypeScript/JSX to ES2015 CommonJS without evaluating it (`react-transpile.ts`).
+The compiler has one live/idle worker, a first-start 4 s deadline and a 256 MB
+old-generation heap; stopped or excessively nested conversion returns the
+existing learner compile error before any VM starts. Capacity or compiler
+infrastructure failure keeps the existing unrecorded 503/Retry-After response. The two fetch fixture modules are converted once per
 API instance and reused by every Submit. Downlevelled async functions use the private learner
 Promise kernel. The API uploads the guest bundle and an input containing compiled
 learner/fixture modules, trusted visible/hidden suite and random run nonce.
@@ -73,17 +77,79 @@ covers every possible incorrect solution or a platform penetration-test claim.
 
 ## Resource bounds
 
-- Fresh non-persistent VM per submission, outbound network denied.
-- Node heap 256 MB; QuickJS heap 64 MB and stack 1 MB.
-- QuickJS bytecode interrupts after 2.5 seconds per synchronous engine call and
-  promise flushes stop after 10,000 jobs. Native allocation/GC paths may require
-  the external command deadline; internal interrupts are not the only bound.
-- Command 10 seconds; request work 22 seconds; VM expiry 25 seconds; cleanup has
-  its own 2-second budget. Timers and listeners are cleared on engine disposal.
-- The existing roadmap handler allows 45 seconds; Submit waits up to 50 seconds.
-  Exactly twelve physical API handlers remain.
+These values are checked against the current source, 19 November 2026.
+Worker heap limits are Node old-generation MB; QuickJS memory/stack are MiB.
+They are different layers, not process RSS or provider memory guarantees.
+
+| Server worker pool | Live / retained idle | Waiting / slot wait | Boot / work deadline | Node heap |
+| --- | --- | --- | --- | --- |
+| JavaScript/TypeScript QuickJS (`sandbox.ts`) | 4 / 2 | 160 / 5,000 ms | 10,000 ms boot; 2,500 ms run plus 1,500 ms parent grace | 192 MB per worker |
+| TypeScript check/transpile (`ts-check-pool.ts`) | 2 / 1 | 64 / 8,000 ms | 20,000 ms boot; 4,000 ms from start | 512 MB per worker |
+| React syntax conversion (`react-compile-pool.ts`) | 1 / 1 | 32 / 4,000 ms | 6,000 ms boot; 4,000 ms from first start | 256 MB per worker |
+
+Queues refuse overflow or an expired wait with unrecorded 503 `grader_busy`
+and Retry-After. Worker startup failure uses the shared 1 s doubling backoff,
+capped at 30 s and reset by a successful start. Deployment grading has no
+request-thread fallback. One caller is limited to two simultaneous submissions
+per task/activity and three across them; those gates answer 429 `grader_busy`.
+
+QuickJS reported timeout/fixed stack/OOM outcomes, exact per-call `out of memory`
+or `stack overflow`, and actual disposal failure retire the worker. Exact
+forged reports may also cause conservative retirement; ordinary wrong answers,
+neutral throws, size errors and successful data keep healthy reuse. The private
+health flag comes from the actual finally/disposer, not learner output. Acquired
+retirement capacity releases only on physical exit; failed termination keeps it
+quarantined under the existing queue/503 policy. This is reported-outcome cleanup,
+not unforgeable native-cause detection or detection of learner-caught limits.
+React compiler retirement also holds its capacity until actual exit.
+
+| Boundary | Current limit and consequence |
+| --- | --- |
+| Learner code received by Coding Submit | 20 × 1,024 = 20,480 UTF8 bytes; excess is HTTP 413 before grading. Type-test sources are authored server data. |
+| Non-React QuickJS run | 64 MiB heap, 1 MiB stack, 10,000 rounds of jobs/timers; actual interrupt or unfinished/tick exhaustion returns a timeout. Native work can require the parent stop at deadline plus grace. |
+| Returned values | Depth through 40, at most 10,000 array entries/object keys; a deeper/wider/circular or uncloneable value fails that call. |
+| Non-React encoded result | 900,000 UTF16 JSON units across complete packets, framing, escaped keys/values and errors. Each call reserves a size-error packet; failed partial encoding rolls back. Excess fails the call with `Result size limit exceeded`; both VM pre-transfer and host retain the independent 1,000,000-unit backstop. |
+| Error/display text | VM thrown text is first cut to 2,001 units. Submit compares the complete value before cutting displayed actual/error/codeError to 2,000 plus the line marker; surrogate boundaries and null are preserved. Run cuts outgoing display fields but preserves compile-only JavaScript. |
+| Run and non-React Submit console | 100 lines, 2,000 units per line, 64,000 stored text units; cut markers may add a line/units beyond the nominal cap. Table rendering shows 50 rows. Discarded output skips argument serialization after the cap. |
+| URL bridge | Each input string is limited to 65,536 units; oversized arguments are refused before host URL parsing. |
+| React learner engine | 64 MiB heap, 1 MiB stack; only the outermost independent entry renews the existing 2,500 ms deadline. Reentry shares it and the first actual interrupt latches, so retries/later learner entries fail immediately. Promise draining stops past 10,000 jobs. |
+| React capability bridge | Capability/prop nesting through 50, at most 1,000 call arguments, request text at most 1,000,000 units; host capability errors are cut to 2,000. |
+| Trusted React case | 5,000 ms asynchronous case-body race. Hooks/cleanup are outside it, and it cannot interrupt synchronous native work; it is not a whole-suite deadline. |
+| React VM and command | Fresh VM, deny-all outbound policy, 1 vCPU, 256 MB guest Node old-generation heap; command 10,000 ms, request signal 22,000 ms after compile, VM expiry 25,000 ms and stop cleanup 2,000 ms. |
+| React reply | Exactly one nonce-bound reply; at most 256,000 UTF16 units and 500 cases, with the exact authored case count and recomputed totals. The 900,000 budget above is not a React reply limit. |
+| Browser Run | Download/compile wait 45,000 ms; loaded TypeScript check 8,000 ms; execution 2,000 ms synchronous or 6,000 ms async. These are preview bounds, not server authority. |
+
+The roadmap function remains 45 s and the client Submit wait 50 s. Component
+arithmetic is not an end-to-end promise: visible and hidden QuickJS programs
+run serially (a visible code error/timeout skips hidden). With warm workers,
+two queue/run phases give 2 × (5 + 4) = 18 s; adding a warm TypeScript
+queue/check gives 8 + 4 + 18 = 30 s. A cold QuickJS worker can add 10 s boot
+and a cold checker 20 s; serial exhaustion can therefore exceed the outer
+limits. A single cold queued QuickJS phase is 5 + 10 + 4 = 19 s. React
+compile admission/boot/work plus its 22 s signal gives 4 + 6 + 4 + 22 = 36 s,
+excluding auth, artifact reads and other outer work. No timer was raised to
+make these sums fit. Record the actual phase that stopped a request.
+
+There is currently no separate per-instance concurrent-React-VM semaphore.
+The one-thread compiler releases its slot before the VM runs; caller gates
+and provider capacity do not establish a global per-instance VM cap. Owner
+F11-29 remains open, as does snapshot baking F11-28. Exactly twelve physical
+handlers and current platform settings remain unchanged.
 
 ## Upload per Submit
+
+Current normal build at `dbfde6ad`, 19 November 2026: the uploaded
+`react-sandbox.cjs` is **887,989 raw bytes / 346,774 gzip bytes** (Python gzip
+level 9, mtime 0), SHA-256
+`e8fbce059948a41c72c5ca6cb0c591d8c0ff03be495e3fa1a799cb1332a4bae1`.
+It matches that build's complete shared-artifact inventory. The 67-byte passive
+sidecar stays in the API, as do the 10,395-byte compiler worker and 2,340,572-byte
+bundled Sandbox SDK. Each VM still receives the current guest plus its variable
+input. These are file/local-codec sizes, not a measured SDK tar transfer or
+upload duration. Current receipts are in
+[`quality/f11-final-documentation-2026-11-19.json`](quality/f11-final-documentation-2026-11-19.json).
+
+### Historical 18 November baseline
 
 Measured 18 November 2026 (Epic F, F11) on the branch point of
 `claude/f11-grading-sandbox-limits`, after `node scripts/build-react-runner.mjs`.
@@ -114,7 +180,9 @@ What `runner.cjs` carries, by esbuild's `bytesInOutput`:
 | Everything else (the learner engine, the runner, mini-jest, UTC time, realm lockdown, the guest) | 110,302 | Yes. |
 | esbuild module wrappers and the `"use strict"` banner | 3,206 | Yes. |
 
-Reproduce the table from the repository root:
+The following historical exploratory projection bypasses the current normal
+trim helper; it is not the current builder or an exact baseline retake. Use
+`npm run build:react-runner` for current generated artifacts:
 
 ```sh
 node --input-type=module -e "
@@ -142,6 +210,8 @@ with its hidden suite, both compiled fixtures and a 48-character nonce.
 |---|---:|---:|
 | Baseline above | 2,100,887 | 691,960 |
 | Error helpers moved to `shared/coding-error-text.ts` and `lib/coding/vm-errors.ts`, so the guest no longer imports `sandbox.ts` | 2,056,252 | 679,802 |
+| Actual normal20/32 trim checkpoint `c55ba3c4` | 887,329 | 346,595 |
+| Actual composed build `dbfde6ad`, including later deadline fixes | 887,989 | 346,774 |
 
 ## Configuration and rollout
 
