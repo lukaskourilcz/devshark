@@ -15,7 +15,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { Worker } from 'node:worker_threads';
-import { newQuickJSWASMModuleFromVariant, shouldInterruptAfterDeadline, type QuickJSWASMModule, type QuickJSHandle } from 'quickjs-emscripten';
+import { newQuickJSWASMModuleFromVariant, type QuickJSWASMModule, type QuickJSHandle } from 'quickjs-emscripten';
 import variant from './quickjs-variant';
 import type { EvaluateResult } from '../../shared/coding-evaluate';
 import { LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, MAX_LOGS, PROBE_IS_INDEX_SOURCE, PROBE_LINE, TIMEOUT_MESSAGE, deepEqual, displayValue } from '../../shared/coding-evaluate';
@@ -128,7 +128,10 @@ const emit = line => {
   logChars += text.length;
   logs[logs.length] = text;
 };
+// Past the cap emit drops the line, so the arguments are not turned into
+// JSON first: a loop that logs a big array would spend the deadline there.
 const format = value => {
+  if (logsCut || logs.length >= ${MAX_LOGS}) return '';
   if (typeof value === 'string') return value;
   try { const text = stringify(value); return text === undefined ? string(value) : text; } catch { return '[unprintable]'; }
 };
@@ -531,7 +534,15 @@ export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult>
   const deadline = Date.now() + (input.deadlineMs ?? SANDBOX_DEADLINE_MS);
   runtime.setMemoryLimit(input.memoryBytes ?? SANDBOX_MEMORY_BYTES);
   runtime.setMaxStackSize(SANDBOX_STACK_BYTES);
-  runtime.setInterruptHandler(shouldInterruptAfterDeadline(deadline));
+  // Whether QuickJS stopped the program at its deadline. A timeout is read
+  // from this, never from an error's text: a learner's own top-level
+  // `throw new Error("Download interrupted")` read as an infinite loop.
+  let interrupted = false;
+  runtime.setInterruptHandler(() => {
+    if (Date.now() <= deadline) return false;
+    interrupted = true;
+    return true;
+  });
   const vm = runtime.newContext();
   // The host's URL parser (sandbox-web-apis.ts). Strings in, one string of
   // JSON or null out: no host object reaches the VM, and a string past the
@@ -574,17 +585,26 @@ export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult>
     try { logs = readLogs(); } catch { /* the VM may be unusable after an interrupt */ }
     return { results: [], logs, codeError: cutErrorText(message), timedOut };
   };
-  const isInterrupt = (message: string) => /interrupted|InternalError: interrupted/i.test(message);
-  const isStackOverflow = (message: string) => /stack overflow|maximum call stack|gc_obj_list/i.test(message);
+  /** An error QuickJS itself raised when a limit stopped the program:
+   * `stack overflow` or `out of memory`. A learner's
+   * `throw new Error("stack overflow in my parser")` is not one. */
+  const isQuickJSLimit = (error: unknown, message: 'stack overflow' | 'out of memory') =>
+    typeof error === 'object' && error !== null && (error as { name?: unknown }).name === 'InternalError' && (error as { message?: unknown }).message === message;
+  /** An overflow the host itself hit: QuickJS's error passed on by a driver
+   * call, V8's RangeError, or the WebAssembly abort a run that exhausted the
+   * stack can leave behind. No text the program produced reaches the catch
+   * below, so its words can be trusted there. */
+  const isHostStackOverflow = (message: string) => /stack overflow|maximum call stack|gc_obj_list/i.test(message);
 
   try {
     const shownCalls = Math.max(0, Math.min(input.calls.length, Math.floor(input.shownCalls ?? input.calls.length)));
     const evaluated = vm.evalCode(program(input.code, input.calls, shownCalls, input.runtimePolicy), 'task.js');
     if (evaluated.error) {
       const error = dumpError(evaluated.error) as { message?: string; name?: string } | string;
+      if (interrupted) return failure(TIMEOUT_MESSAGE, true);
+      if (isQuickJSLimit(error, 'stack overflow')) return failure(STACK_MESSAGE);
+      if (isQuickJSLimit(error, 'out of memory')) return failure(OUT_OF_MEMORY_MESSAGE);
       const message = typeof error === 'string' ? error : `${error?.name ?? 'Error'}: ${error?.message ?? 'failed'}`;
-      if (isInterrupt(message)) return failure(TIMEOUT_MESSAGE, true);
-      if (isStackOverflow(message)) return failure(STACK_MESSAGE);
       return failure(message.replace(/^SyntaxError: /, 'SyntaxError: '));
     }
     driver = evaluated.value;
@@ -592,9 +612,8 @@ export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult>
     for (let tick = 0; tick < SANDBOX_MAX_TICKS; tick++) {
       const jobs = runtime.executePendingJobs();
       if (jobs.error) {
-        const error = dumpError(jobs.error) as { message?: string } | string;
-        const message = typeof error === 'string' ? error : error?.message ?? 'failed';
-        if (isInterrupt(message)) return failure(TIMEOUT_MESSAGE, true);
+        dumpError(jobs.error);
+        if (interrupted) return failure(TIMEOUT_MESSAGE, true);
         // An unhandled rejection inside a job: keep pumping, the harness catches per call.
       }
       if (Date.now() > deadline) return failure(TIMEOUT_MESSAGE, true);
@@ -623,8 +642,8 @@ export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult>
     return { results, logs, codeError: null, timedOut: false };
   } catch (error) {
     const message = String((error as Error)?.message ?? error);
-    if (isInterrupt(message)) return failure(TIMEOUT_MESSAGE, true);
-    if (isStackOverflow(message)) return failure(STACK_MESSAGE);
+    if (interrupted) return failure(TIMEOUT_MESSAGE, true);
+    if (isHostStackOverflow(message)) return failure(STACK_MESSAGE);
     return failure(message.includes('memory') ? OUT_OF_MEMORY_MESSAGE : message);
   } finally {
     // Disposal can fail after a run that exhausted the stack: QuickJS asserts

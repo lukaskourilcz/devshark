@@ -17,13 +17,15 @@ import {
   SANDBOX_DEADLINE_MS, SANDBOX_IDLE_THREADS, SANDBOX_MAX_THREADS, SANDBOX_MAX_TICKS, SANDBOX_MAX_WAITING,
   SANDBOX_MEMORY_BYTES, SANDBOX_SLOT_WAIT_MS, SANDBOX_STACK_BYTES, SANDBOX_WORKER_GRACE_MS,
 } from '../lib/coding/sandbox';
-import { MAX_LOGS, TIMEOUT_MESSAGE, type EvaluateResult } from '../shared/coding-evaluate';
+import { LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, MAX_LOGS, TIMEOUT_MESSAGE, type EvaluateResult } from '../shared/coding-evaluate';
 
 await buildSandboxWorker();
 process.env.VERCEL = '1';
 
 /** What a learner reads when the program itself ran out of stack. */
 const STACK_MESSAGE = 'The call stack ran out of room: the recursion went too deep, or a base case is never reached.';
+/** What a learner reads when the program itself ran out of memory. */
+const OUT_OF_MEMORY_MESSAGE = 'Out of memory.';
 /** Room on top of a limit for a CI runner shared with other jobs. */
 const MARGIN_MS = 1_000;
 /** The longest any single run may take: its deadline, the grace before the
@@ -148,6 +150,19 @@ await limitCase('an allocating loop inside a call', {
   assert.equal(run.results[1]?.pass, true, 'its memory is freed, and 32 MB fits under the limit');
   assert.deepEqual(run.results[2], { pass: false, actual: null, error: 'out of memory' }, '80 MB does not');
 }, 'kept');
+// Past 64 MB at the top level the whole program fails, and the learner reads
+// the fixed message, as for a thread that ran out of memory, in place of
+// QuickJS's "InternalError: out of memory".
+for (const [name, code] of [
+  ['an allocating loop at the top level', 'const kept = []; for (;;) kept.push(1);'],
+  ['a loop of 1 MB buffers at the top level', 'const kept = []; for (;;) kept.push(new Uint8Array(1024 * 1024));'],
+] as const) {
+  await limitCase(name, { code, calls: ['1'] }, (run) => {
+    assert.equal(run.codeError, OUT_OF_MEMORY_MESSAGE, `${name}: the learner reads the out-of-memory message`);
+    assert.equal(run.timedOut, false, `${name}: running out of memory is not a timeout`);
+    assert.deepEqual(run.results, [], `${name}: no call has a result`);
+  }, 'kept');
+}
 
 // ── stack: unbounded recursion fails the call or the program ─────────────
 await limitCase('unbounded recursion inside a call', {
@@ -165,6 +180,27 @@ await limitCase('unbounded recursion at the top level', {
   assert.equal(run.timedOut, false, 'a stack overflow is not a timeout');
 }, 'kept');
 
+// ── a learner's own error is not a limit, whatever its words ────────────
+// The grader used to read a timeout or a stack overflow off the error text,
+// so a program that threw "Download interrupted" at load read as an infinite
+// loop, and one that threw "stack overflow in my parser" lost its message.
+// Only the interrupt handler firing is a timeout, and only QuickJS's own
+// stack overflow is the stack message; the two cases above still are.
+for (const [thrown, codeError] of [
+  ['new Error("Download interrupted")', 'Error: Download interrupted'],
+  ['"interrupted"', 'interrupted'],
+  ['new Error("stack overflow in my parser")', 'Error: stack overflow in my parser'],
+  ['new RangeError("Maximum call stack size exceeded, says my parser")', 'RangeError: Maximum call stack size exceeded, says my parser'],
+  ['new Error("gc_obj_list is my variable")', 'Error: gc_obj_list is my variable'],
+] as const) {
+  const name = `a top-level throw of ${thrown}`;
+  await limitCase(name, { code: `throw ${thrown};`, calls: ['1'] }, (run) => {
+    assert.equal(run.codeError, codeError, `${name}: the learner reads their own error`);
+    assert.equal(run.timedOut, false, `${name}: it is not a timeout`);
+    assert.deepEqual(run.results, [], `${name}: no call has a result`);
+  }, 'kept');
+}
+
 // ── output: a console flood keeps the first lines only ──────────────────
 await limitCase('a console.log flood of 200,000 lines', {
   code: 'const shout = () => { for (let i = 0; i < 2e5; i++) console.log(i); return 1; };', calls: ['shout()'], expectations: [1],
@@ -173,6 +209,35 @@ await limitCase('a console.log flood of 200,000 lines', {
   assert.equal(run.logs.length, MAX_LOGS, `the first ${MAX_LOGS} lines are kept`);
   assert.deepEqual([run.logs[0], run.logs.at(-1)], ['0', String(MAX_LOGS - 1)], 'in the order they were printed');
   assert.ok(took < SANDBOX_DEADLINE_MS, `inside the deadline (${took} ms)`);
+}, 'kept');
+// A correct answer that logs a 20,000-number array 3,000 times. Each line is
+// cut to 2,000 characters, so 31 fit the 64,000-character cap and the 32nd
+// is the cut marker. The grader used to turn every argument into JSON before
+// it dropped the line and spent the deadline on 2,968 lines nobody sees, so
+// the answer graded "timeout"; past the cap it skips that work.
+const bigLine = MAX_LOG_LINE_CHARS + LOG_LINE_CUT.length;
+const keptBigLines = Math.floor(MAX_LOG_CHARS / bigLine);
+await limitCase('3,000 logs of a 20,000-number array', {
+  code: 'const loud = () => { const numbers = Array.from({ length: 2e4 }, (_, i) => i); for (let i = 0; i < 3000; i++) console.log(numbers); return 1; };',
+  calls: ['loud()'], expectations: [1],
+}, (run, took) => {
+  assert.equal(run.timedOut, false, `the run ends before its deadline (${took} ms)`);
+  assert.equal(run.codeError, null, 'the run finishes');
+  assert.equal(run.results[0]?.pass, true, 'the correct answer passes');
+  assert.equal(keptBigLines, 31, '31 cut lines fit under the output cap');
+  assert.equal(run.logs.length, keptBigLines + 1, 'the learner reads 31 lines and the cut marker');
+  assert.ok(run.logs.slice(0, -1).every((line) => line.length === bigLine && line.endsWith(LOG_LINE_CUT)), 'each line is cut to 2,000 characters');
+  assert.equal(run.logs.at(-1), LOG_OUTPUT_CUT, 'the last entry marks the cut');
+}, 'kept');
+// The same past the line cap: 100 short lines, then 3,000 big ones nobody sees.
+await limitCase('3,000 logs of a 20,000-number array after 100 short lines', {
+  code: 'const loud = () => { for (let i = 0; i < 100; i++) console.log(i); const numbers = Array.from({ length: 2e4 }, (_, i) => i); for (let i = 0; i < 3000; i++) console.log(numbers); return 1; };',
+  calls: ['loud()'], expectations: [1],
+}, (run, took) => {
+  assert.equal(run.timedOut, false, `the run ends before its deadline (${took} ms)`);
+  assert.equal(run.results[0]?.pass, true, 'the correct answer passes');
+  assert.equal(run.logs.length, MAX_LOGS, `the first ${MAX_LOGS} lines are kept`);
+  assert.equal(run.logs.at(-1), String(MAX_LOGS - 1), 'and none of the big ones');
 }, 'kept');
 
 // ── output: a return value deeper than 40 levels or wider than 10,000 ────
