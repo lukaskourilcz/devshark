@@ -20,6 +20,16 @@ function inventory(root, relative) {
   if (!stat.isFile()) throw new Error(`Unexpected build entry: ${relative}`);
   return [{ path: relative, sha256: hash(target) }];
 }
+// The generic archive inventory proves each stored file matches its manifest.
+// Independently require the guest/digest pair, so an inventory recomputed
+// around a missing or stale pair cannot pass on its own. No record is evaluated.
+function verifyReactArtifact(root) {
+  try {
+    const runner = readFileSync(path.join(root, 'lib/coding/generated/react-sandbox.cjs'));
+    const expected = JSON.parse(readFileSync(path.join(root, 'lib/coding/generated/react-sandbox.sha256.cjs'), 'utf8'));
+    if (typeof expected !== 'string' || !/^[a-f0-9]{64}$/.test(expected) || createHash('sha256').update(runner).digest('hex') !== expected) throw new Error();
+  } catch { throw new Error('React guest artifact/digest pair is missing or invalid.'); }
+}
 function head() {
   const value = process.env.GITHUB_SHA || execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   if (!/^[a-f0-9]{40}$/.test(value)) throw new Error('A full commit head is required.');
@@ -33,6 +43,7 @@ try {
       if (!existsSync(required)) throw new Error(`Missing required build manifest/input: ${required}`);
     }
     const files = roots.flatMap((root) => inventory('.', root));
+    verifyReactArtifact('.');
     if (!files.some((file) => file.path.endsWith('.js.map'))) throw new Error('Missing build source maps.');
     mkdirSync(path.dirname(manifestPath), { recursive: true });
     writeFileSync(manifestPath, JSON.stringify({ head: expectedHead, files }, null, 2) + '\n');
@@ -54,6 +65,7 @@ try {
       execFileSync('tar', ['-xf', archive, '-C', temporary]);
       const actual = roots.flatMap((root) => inventory(temporary, root));
       if (JSON.stringify(actual) !== JSON.stringify(metadata.files)) throw new Error('Shared build file/hash inventory differs.');
+      verifyReactArtifact(temporary);
       for (const root of roots) {
         rmSync(root, { recursive: true, force: true }); mkdirSync(path.dirname(root), { recursive: true });
         cpSync(path.join(temporary, root), root, { recursive: true });

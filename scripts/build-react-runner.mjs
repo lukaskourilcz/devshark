@@ -1,4 +1,6 @@
 import { build } from 'esbuild';
+import { createHash } from 'node:crypto';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { buildSandboxWorker } from './build-sandbox-worker.mjs';
@@ -43,3 +45,8 @@ execFileSync(process.execPath, [
   '--no-experimental-require-module', '-e',
   'if (!require("./lib/coding/generated/vercel-sandbox.cjs").Sandbox) process.exit(1)',
 ], { stdio: 'inherit' });
+
+// Passive data with a .cjs suffix so the existing generated-file inclusion
+// carries it. Read/parse this JSON string; never require or evaluate it.
+const runnerDigest = createHash('sha256').update(readFileSync('lib/coding/generated/react-sandbox.cjs')).digest('hex');
+writeFileSync('lib/coding/generated/react-sandbox.sha256.cjs', JSON.stringify(runnerDigest) + '\n');

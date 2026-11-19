@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
@@ -52,16 +52,28 @@ const fixtures = () => compiledFixtureModules ??= {
   './localFetch': compileReactLearner(LOCAL_FETCH_SOURCE, false),
 };
 
-/** The grader bundle the VM runs, 2 MB, read from the deployment once per
- * instance and reused (#587, server item 14): it is built with the
- * deployment and cannot change under a running instance, and every Submit
- * read it from disk again. Every run still uploads it, byte for byte. A
- * failed read is not kept, so the next run reads again. */
+/** The exact guest bytes and passive same-build SHA-256 record are read once
+ * per instance. Check copy integrity before starting any VM, then reuse the
+ * verified Buffer. A failed read or check is not cached, so a repair retries.
+ * This detects a copy mismatch; it does not prove build freshness or
+ * authenticate an attacker who could replace both files. */
 let runnerBytes: Promise<Buffer> | null = null;
 const runnerArtifact = (): Promise<Buffer> =>
-  runnerBytes ??= readFile(join(process.cwd(), 'lib/coding/generated/react-sandbox.cjs')).catch((error) => {
+  runnerBytes ??= (async () => {
+    const [runner, record] = await Promise.all([
+      readFile(join(process.cwd(), 'lib/coding/generated/react-sandbox.cjs')),
+      readFile(join(process.cwd(), 'lib/coding/generated/react-sandbox.sha256.cjs'), 'utf8'),
+    ]).catch((error) => { throw runnerFailure('Artifact', error); });
+    let expected: unknown;
+    try { expected = JSON.parse(record); } catch { throw runnerFailure('ArtifactIntegrity'); }
+    if (typeof expected !== 'string' || !/^[a-f0-9]{64}$/.test(expected) ||
+        createHash('sha256').update(runner).digest('hex') !== expected) {
+      throw runnerFailure('ArtifactIntegrity');
+    }
+    return runner;
+  })().catch((error) => {
     runnerBytes = null;
-    throw runnerFailure('Artifact', error);
+    throw error;
   });
 
 /** No code, environment secrets, or writable state are shared between runs.

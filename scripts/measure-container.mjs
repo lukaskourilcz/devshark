@@ -38,6 +38,17 @@ try {
       const packages = JSON.parse(packageInventory);
       const locked = JSON.parse(readFileSync('package-lock.json', 'utf8')).packages['node_modules/typescript'].version;
       if (packages.typescript !== locked || packages.knip || packages.playwright) throw new Error('Candidate must retain locked TypeScript and exclude build-only packages.');
+      // The historical before image predates this sidecar. Verify only the
+      // candidate's actual copied files, without changing its shared reference
+      // harness or making any provider/application request.
+      logged('after-react-artifact', 'docker', ['run', '--rm', '--network=none', '--entrypoint', 'node', tag, '-e', `
+        const fs = require('node:fs'), crypto = require('node:crypto');
+        const runner = fs.readFileSync('lib/coding/generated/react-sandbox.cjs');
+        const digest = JSON.parse(fs.readFileSync('lib/coding/generated/react-sandbox.sha256.cjs', 'utf8'));
+        if (typeof digest !== 'string' || !/^[a-f0-9]{64}$/.test(digest) || crypto.createHash('sha256').update(runner).digest('hex') !== digest) throw Error('Candidate guest artifact/digest pair is invalid');
+        console.log('PASS candidate container: copied React guest and passive digest agree');
+      `]);
+      record.reactArtifactIntegrity = 'pass';
     }
     logged(`${name}-references`, 'docker', ['run', '--rm', '--network=none', '--mount', `type=bind,source=${path.join(output, 'runtime-reference.cjs')},target=/app/docker/runtime-reference.cjs,readonly`, '--entrypoint', 'node', tag, '/app/docker/runtime-reference.cjs']);
   }
