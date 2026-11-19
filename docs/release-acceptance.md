@@ -7370,3 +7370,11 @@ No accounts, scores, orders or production data were changed. The preceding
 F4 section retains local failures, corrected reruns, image measurements and
 unrun checks. Issue #633 is closed; #646 now checks F15-59. Physical-device,
 field-performance and the other packages' acceptance remain separate work.
+
+## Epic F6 production acceptance: responsive and device matrix (19 November 2026)
+
+PR #665 merged at `0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c` after required Product quality run 44449005865 explicitly passed `verify` and `sql` at frozen head `e861d856842bdc9be26b7f48e7b62c5645831fdb`. CI completed in 25m40s overall: quickjs 53s, static 3m13s, tests 7m49s, coding 25m14s, browser 25m31s, sql 40s and the aggregate verify 5s. Both named gates were checked independently before merge. Live main/base still matched `6c85886c`; the F6 worktree was clean and the PR contained no migration or Vercel header diff.
+
+Matching production deployment `dpl_HLwbhPzXrGT93w3hCZEMqwKsdYj1` is READY for that exact merge SHA and serves `devshark.app`. The guest HTTP-only smoke passed 19 GET requests for Home, a free Coding task, Profile and Privacy HTML plus entry/Coding CSS, entry/vendor JavaScript, the web manifest and declared icons. Every response was 200 with the expected document/asset MIME category and no asset HTML fallback. Downloaded response bodies total 848,530 bytes; this is a smoke byte count, not a new compressed initial-load measurement. Evidence: `f6-pr665-gate.json`, `f6-pr665-ci.json`, `f6-pr665-merge.json`, `f6-pr665-production.json` and `f6-pr665-http-smoke.json` in the session handoff.
+
+The explicit final `npm run check:design` also passed at `e861d856`, with 13 fixtures and 24 allowlisted selectors, in addition to its passing execution inside `check:public`. Local fast counts and the separately recorded 85-case Chromium/WebKit runs remain unchanged. SQL is required CI/Supabase-image evidence, not a production advisor or SQL check. The smoke did not execute the app in a browser or call any production API, settings, Auth or business-write endpoint. Physical-phone and full screen-reader checks remain open owner work; F12-20 stays unchecked pending F3 merge. PRs #657 and #660 remain held and untouched.
