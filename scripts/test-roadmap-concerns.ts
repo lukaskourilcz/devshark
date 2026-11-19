@@ -63,7 +63,10 @@ for (const [name, query, signedIn] of [
       ${responseFixture}
       const before = evaluated();
       const res = await read(${JSON.stringify(query)}, ${signedIn ? "{ headers: { authorization: 'Bearer invented-roadmap-token' } }" : '{}'});
-      return { before, after: evaluated(), status: res.statusCode, body: res.body, cache: res.headers['cache-control'], etag: res.headers.etag, unexpected, calls };
+      // Return the catalogue's stable identity rather than its large manifest.
+      // loadFresh's child exits after printing; a large pipe write can truncate.
+      const body = ${query.resource === 'learning-path-catalog' ? '{ pathIds: res.body.paths.map(path => path.manifest.id), versions: res.body.versions }' : 'res.body'};
+      return { before, after: evaluated(), status: res.statusCode, body, cache: res.headers['cache-control'], etag: res.headers.etag, unexpected, calls };
     })()`, ENV, LESSON_MARKERS, beforeImport);
     const value = fresh.probe as { before: string[]; after: string[]; status: number; body: any; cache: string; etag?: string; unexpected: string[]; calls: { path: string }[] };
     assert.equal(value.status, 200, JSON.stringify(value.body));
@@ -78,6 +81,10 @@ for (const [name, query, signedIn] of [
     } else {
       assert.match(value.cache, /^public,/);
       assert.match(value.etag ?? '', /^W\/"[a-f0-9]{64}"$/);
+      if (query.resource === 'learning-path-catalog') {
+        assert.ok(value.body.pathIds.length > 0);
+        assert.deepEqual([...value.body.pathIds].sort(), Object.keys(value.body.versions).sort());
+      }
       if (!query.resource || query.resource === 'unrecognized-resource') {
         assert.ok(value.body.topics.includes('dsa'));
         assert.equal(value.body.structure.dsa.levels[0].lessonId, 'dsa-v1-d01-l1', 'Map lesson IDs remain available without full lesson text');
