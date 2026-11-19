@@ -321,9 +321,86 @@ test('phone: the drawer groups its links and keeps the toggles at its bottom', a
 });
 
 
+async function desktopFocus(page: Page) {
+  return page.evaluate(() => {
+    const node = document.activeElement;
+    if (!(node instanceof HTMLElement)) return null;
+    return {
+      tag: node.tagName, id: node.id, href: node.getAttribute('href'),
+      label: node.getAttribute('aria-label'), role: node.getAttribute('role'), tabIndex: node.tabIndex,
+      body: node === document.body, drawer: Boolean(node.closest('.ss-drawer-panel')),
+      visible: node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden',
+    };
+  });
+}
+
+/** Preserve this engine's native traversal, including its link-tab preference. */
+async function desktopTabCycle(page: Page) {
+  await page.locator('header.ss-header a.ss-header-brand').focus();
+  await page.evaluate(() => {
+    const keys: { shift: boolean; prevented: boolean }[] = [];
+    const observe = (event: KeyboardEvent) => {
+      if (event.key === 'Tab') keys.push({ shift: event.shiftKey, prevented: event.defaultPrevented });
+    };
+    window.addEventListener('keydown', observe);
+    Object.assign(window, { __drawerNativeKeys: { keys, stop: () => window.removeEventListener('keydown', observe) } });
+  });
+  const focus = [];
+  try {
+    for (const key of ['Tab', 'Shift+Tab']) {
+      await page.keyboard.press(key);
+      focus.push(await desktopFocus(page));
+    }
+    const keys = await page.evaluate(() => (window as unknown as { __drawerNativeKeys: { keys: { shift: boolean; prevented: boolean }[] } }).__drawerNativeKeys.keys);
+    return { focus, keys };
+  } finally {
+    await page.evaluate(() => {
+      const probe = window as unknown as { __drawerNativeKeys?: { stop: () => void } };
+      probe.__drawerNativeKeys?.stop();
+      delete probe.__drawerNativeKeys;
+    });
+  }
+}
+
+test('the desktop native Tab oracle detects a stale hidden-panel interceptor', async ({ page }) => {
+  await prepare(page, 1024);
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  const baseline = await desktopTabCycle(page);
+  expect(baseline.keys).toEqual([{ shift: false, prevented: false }, { shift: true, prevented: false }]);
+  expect(baseline.focus[0]).toMatchObject({ body: false, drawer: false, visible: true });
+  await page.evaluate(() => {
+    const hiddenPanel = document.createElement('div');
+    hiddenPanel.className = 'ss-drawer-panel';
+    hiddenPanel.style.display = 'none';
+    const hiddenButton = document.createElement('button');
+    hiddenPanel.append(hiddenButton);
+    document.body.append(hiddenPanel);
+    const intercept = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      event.preventDefault();
+      hiddenButton.focus();
+    };
+    document.addEventListener('keydown', intercept);
+    Object.assign(window, { __removeDrawerInterception: () => { document.removeEventListener('keydown', intercept); hiddenPanel.remove(); } });
+  });
+  try {
+    const intercepted = await desktopTabCycle(page);
+    expect(intercepted.keys).toEqual([{ shift: false, prevented: true }, { shift: true, prevented: true }]);
+    expect(intercepted).not.toEqual(baseline);
+  } finally {
+    await page.evaluate(() => {
+      const probe = window as unknown as { __removeDrawerInterception?: () => void };
+      probe.__removeDrawerInterception?.();
+      delete probe.__removeDrawerInterception;
+    });
+  }
+  expect(await desktopTabCycle(page)).toEqual(baseline);
+});
+
 // F3 breakpoint contract: a CSS-hidden drawer must never keep its modal keys.
 for (const menuState of ['loaded', 'held', 'failed'] as const) {
-  test(`a ${menuState} mobile menu closes at the desktop breakpoint without trapping focus`, async ({ page }) => {
+  test(`a ${menuState} mobile menu closes at the desktop breakpoint without trapping focus`, async ({ page, browserName }) => {
     await prepare(page, 390);
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     let release = () => {};
@@ -340,13 +417,26 @@ for (const menuState of ['loaded', 'held', 'failed'] as const) {
       });
     }
     if (menuState === 'failed') {
-      // Same narrow expected failure as route-errors.spec.ts; no blanket ignore.
-      allowConsoleErrors(page, /^TypeError: Failed to fetch dynamically imported module: \S+\/assets\/MobileNavigation-[\w-]+\.js/);
+      // WebKit omits the URL. This exact message is expected only in the case
+      // that aborts the named menu chunk and asserts its actual error state.
+      allowConsoleErrors(page, browserName === 'webkit'
+        ? /^TypeError: Importing a module script failed\.$/
+        : /^TypeError: Failed to fetch dynamically imported module: \S+\/assets\/MobileNavigation-[\w-]+\.js/);
     }
     try {
       await page.goto('/');
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
       const opener = page.getByRole('button', { name: 'Open navigation menu', exact: true });
+      const brand = page.locator('header.ss-header a.ss-header-brand');
+      // Record the real closed desktop order before any drawer owns keys.
+      // Native WebKit can skip anchors and return to body on reverse Tab.
+      await page.setViewportSize({ width: 1024, height: 844 });
+      await expect(opener).toBeHidden();
+      const nativeCycle = await desktopTabCycle(page);
+      expect(nativeCycle.keys).toEqual([{ shift: false, prevented: false }, { shift: true, prevented: false }]);
+      expect(nativeCycle.focus[0]).toMatchObject({ body: false, drawer: false, visible: true });
+      await page.setViewportSize({ width: 390, height: 844 });
+      await expect(opener).toBeVisible();
       await opener.click();
       const menu = page.getByRole('dialog', { name: 'Navigation', exact: true });
       if (menuState === 'loaded') await expect(menu.getByRole('link', { name: 'Quiz', exact: true })).toBeVisible();
@@ -363,20 +453,12 @@ for (const menuState of ['loaded', 'held', 'failed'] as const) {
       await expect(opener).toBeHidden();
       await expect.soft(page.locator('.ss-drawer-panel')).toHaveCount(0);
       // Home has no current primary nav link, so the visible brand is next.
-      const brand = page.locator('header.ss-header a.ss-header-brand');
       await expect.soft(brand).toBeFocused();
       // Establish a known visible origin too, so a missing restoration does
       // not hide an independent document-level Tab interception failure.
-      await brand.focus();
-      await page.keyboard.press('Tab');
-      expect.soft(await page.evaluate(() => {
-        const node = document.activeElement;
-        return node instanceof HTMLElement && node !== document.body &&
-          node.getClientRects().length > 0 && !node.closest('.ss-drawer-panel') &&
-          !node.matches('.ss-header-brand');
-      })).toBe(true);
-      await page.keyboard.press('Shift+Tab');
-      await expect.soft(brand).toBeFocused();
+      const afterResize = await desktopTabCycle(page);
+      expect.soft(afterResize).toEqual(nativeCycle);
+      const desktopDestination = afterResize.focus.at(-1);
       await page.setViewportSize({ width: 1280, height: 844 });
       await expect.soft(page.locator('.ss-drawer-panel')).toHaveCount(0);
       if (menuState === 'held') {
@@ -384,7 +466,7 @@ for (const menuState of ['loaded', 'held', 'failed'] as const) {
         await expect.poll(() => served).toBeGreaterThan(0);
         await page.waitForLoadState('networkidle');
         await expect.soft(page.locator('.ss-drawer-panel')).toHaveCount(0);
-        await expect.soft(brand).toBeFocused();
+        expect.soft(await desktopFocus(page)).toEqual(desktopDestination);
       }
       // Shrinking back does not replay the old open request.
       await page.setViewportSize({ width: 390, height: 844 });
