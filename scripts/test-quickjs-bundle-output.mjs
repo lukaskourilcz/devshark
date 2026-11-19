@@ -1,4 +1,4 @@
-// F11-20/32 production regression draft: run only in an authorized quiet slot.
+// F11-20/32: inspect both artifacts from the actual normal builder.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
