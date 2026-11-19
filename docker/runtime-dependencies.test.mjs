@@ -41,6 +41,7 @@ async function fixture(t, { transitive = false, corruptIntegrity = false } = {})
   const cache = join(scratch, 'npm-cache');
   const temporary = join(scratch, 'temporary');
   for (const dir of [app, cache, temporary]) mkdirSync(dir, { recursive: true });
+  writeFileSync(join(temporary, 'unrelated-owner-file'), 'preserve unrelated temporary files');
   const env = { ...process.env, npm_config_offline: 'true', npm_config_cache: cache, TMPDIR: temporary };
   for (const name of ['NODE_ENV', 'npm_config_omit', 'NPM_CONFIG_OMIT', 'npm_config_production', 'NPM_CONFIG_PRODUCTION']) delete env[name];
   const tarballs = new Map();
@@ -99,7 +100,12 @@ async function fixture(t, { transitive = false, corruptIntegrity = false } = {})
       assert.equal(cached.status, 0, cached.stderr);
     }
   } finally { await new Promise(resolveClose => registry.close(resolveClose)); }
-  if (corruptIntegrity) compiler.integrity = `sha512-${Buffer.alloc(64).toString('base64')}`;
+  if (corruptIntegrity) {
+    // A local tarball guarantees npm reads the mismatched bytes while offline,
+    // instead of rejecting the incorrect digest as a missing cache key.
+    compiler.resolved = `file:${tarballs.get('typescript')}`;
+    compiler.integrity = `sha512-${Buffer.alloc(64).toString('base64')}`;
+  }
   const pkg = { name: 'runtime-contract-fixture', version: '1.0.0', private: true, dependencies: { 'fixture-prod': '1.0.0' }, devDependencies: { typescript: compilerVersion, 'fixture-extra-dev': '1.0.0' } };
   const lock = { name: pkg.name, version: pkg.version, lockfileVersion: 3, requires: true, packages: { '': pkg, 'node_modules/fixture-prod': prod, 'node_modules/typescript': { ...compiler, dev: true }, 'node_modules/fixture-extra-dev': { ...extra, dev: true } } };
   writeFileSync(join(app, 'package.json'), JSON.stringify(pkg));
@@ -124,7 +130,8 @@ test('runtime installs the locked compiler and its libraries without unrelated d
   assert.equal(readFileSync(join(app, 'node_modules/typescript/LICENSE.txt'), 'utf8'), 'fixture license\n');
   assert.deepEqual(readdirSync(join(app, 'node_modules')).filter(name => !name.startsWith('.')).sort(), ['fixture-prod', 'typescript']);
   assert.equal(digest(readFileSync(join(app, 'package-lock.json'))), before);
-  assert.deepEqual(readdirSync(temporary), [], 'the installer cleans only its owned temporary prefix');
+  assert.deepEqual(readdirSync(temporary).filter(name => name.startsWith('devshark-runtime-typescript-')), [], 'the installer cleans its owned temporary prefix');
+  assert.equal(readFileSync(join(temporary, 'unrelated-owner-file'), 'utf8'), 'preserve unrelated temporary files');
 });
 
 test('a future compiler dependency requires an explicit locked-closure design', async (t) => {
@@ -141,5 +148,6 @@ test('compiler tarball integrity is enforced and a failed install leaves no copi
   assert.match(output, /EINTEGRITY/);
   assert.equal(existsSync(join(app, 'node_modules/typescript')), false);
   assert.equal(digest(readFileSync(join(app, 'package-lock.json'))), before);
-  assert.deepEqual(readdirSync(temporary), []);
+  assert.deepEqual(readdirSync(temporary).filter(name => name.startsWith('devshark-runtime-typescript-')), []);
+  assert.equal(readFileSync(join(temporary, 'unrelated-owner-file'), 'utf8'), 'preserve unrelated temporary files');
 });
