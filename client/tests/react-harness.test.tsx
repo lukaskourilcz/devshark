@@ -52,6 +52,21 @@ it('retries a failed preview with a new readiness budget and ignores the old fra
   replacement.remove();
 });
 
+it('keeps the completed timeout result when the runtime budget restarts its frame', async () => {
+  vi.useFakeTimers();
+  const h = mountHarness();
+  h.message({ type: 'ready' });
+  let run!: ReturnType<typeof h.result.current.start>;
+  await act(async () => { run = h.result.current.start({}, { tests: true, preview: true }); });
+  await act(async () => { await vi.advanceTimersByTimeAsync(20_001); });
+  expect((await run).status).toBe('timeout');
+  expect(h.result.current.run?.status).toBe('timeout');
+  expect(h.result.current.ready).toBe(false);
+  expect(h.result.current.frameKey).toBe(1);
+  h.unmount();
+  h.frame.remove();
+});
+
 it('settles a pending run when the sandbox is restarted', async () => {
   vi.useFakeTimers();
   const h = mountHarness();
