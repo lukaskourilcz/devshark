@@ -8571,3 +8571,52 @@ in this bounded slot. Required exact-head integration/CI and merge remain
 pending. The real-VM owner task, F11-28/29 decisions and remaining F11 findings
 stay open. F7 owns declaration-packaging changes; this follow-up does not
 replace them. F11-10/22/36 remain separate external drafts at this checkpoint.
+
+## Epic F11 local follow-up: quiet disposal and trusted fetch — 19 November 2026
+
+After the separately committed F11-16 measurement record (`476f17e5`),
+F11-10 and F11-22 gained real failing regressions before their separate fixes:
+`6b73d9b6` → `dce659df` for disposal and `4f6b8f94` → `f3b46b3e` for the trusted
+page binding. The measurement's encoder/runtime baseline remains its recorded
+clean `1e3dd005` source; these later changes do not rewrite that evidence.
+
+Quiet disposal attempts cleanup and resets only a failed captured wasm cache.
+Real recursion no longer escapes through `runtime.dispose()` as an uncaught
+`gc_obj_list` abort. Original overflow errors, later cases and subsequent
+learners remain available. The first fixed run exposed a test-only wording
+assumption: a module error retained "Maximum call stack size exceeded" while
+the draft required "stack overflow". The test accepts those two genuine
+spellings without normalizing production text or changing classification.
+Two upstream caught abort diagnostics still print during these recursion
+controls; they no longer replace the verdict.
+
+The trusted page drops only native Node fetch. Existing learner refusal,
+fixture delegation and web data APIs remain. Local XHR success/socket refusal
+and an authored withFetch reference/incomplete starter provide positive and
+negative controls. All committed F11-19 artifact helper bytes, private modes
+and normal invocation were preserved through the isolation-test composition.
+
+| Actual bounded Node 24.22.3 check | Result |
+| --- | --- |
+| F11-10 test-only authority reproduction | RED, 1.846s: existing promise/bridge/base controls pass, then real render recursion escapes through disposal |
+| F11-10 first fixed authority run | Failed the over-specific module-overflow wording assertion; preserved as evidence before the test-only correction |
+| `npm run test:react-authority` after correction | PASS, eight groups, 6.866s; includes two real recursion sites, later-case/subsequent-learner and forged-text controls |
+| F11-10 API/script types | PASS, 5.942s / 7.758s |
+| F11-22 test-only local isolation reproduction | RED, 6.240s: original credentials/page controls pass; native fetch remains a function while data APIs pass |
+| `REACT_RUNNER_SNAPSHOT_ID= npm run test:react-isolation` after binding removal | PASS, 10.853s: nine real local-guest groups, seven preserved artifact groups and one explicit VM SKIP |
+| F11-22 API/script types | PASS, 5.850s / 7.508s |
+| Combined quiet-disposal/fetch-removal authority recheck | PASS, the same eight groups, 6.849s; retained 85 learner globals and capability controls pass |
+
+Repeated authority/artifact checks overlap earlier checks and are not additional
+unique coverage. Raw red, failed-first-green and successful logs/source receipts
+remain under `/tmp/devshark-epic-f-handoff/f11-10-22-execution-476f17e5/` on the
+audit machine. No deadline, memory/stack/output cap, queue/thread count, public
+result shape, grading classifier, VM policy or snapshot setting changed here.
+
+The credentialed VM probe remains UNRUN. Its cross-origin XHR refusal alone
+cannot distinguish deny-all from CORS or another transport failure; effective
+policy acceptance still needs its real control/evidence. Full React-engine,
+Coding, launch, application/bundle, browser, broad parity and exact-head CI/
+Preview/merge gates were not run in this bounded phase. Remaining F11 findings
+and the real-VM owner task stay open; no completion checkbox is earned by this
+local checkpoint.

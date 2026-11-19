@@ -160,6 +160,13 @@ with its hidden suite, both compiled fixtures and a 48-character nonce.
 
 ## Verification
 
+The learner's cleanup attempts timer/listener and engine-handle disposal
+without replacing its original failure or completed verdict. Failed disposal
+invalidates only that captured wasm module's cache, so a later learner in the
+same process can start a fresh engine. Upstream may still print a caught abort
+diagnostic; it must not become the learner's compile/case error. Real recursion,
+later cases and subsequent learner runs are covered by `test:react-authority`.
+
 `npm run test:react-engine` checks the 183 issued React tasks and every
 reference, junior and senior solution they carry, visible and hidden cases
 together. CI does not run it. `npm run test:coding` additionally checks untouched
@@ -193,6 +200,15 @@ on `window`; its `fetch` refuses without a fixture; and markup that names an ima
 stylesheet, script, frame, media or object loads nothing and runs no inline script
 or handler. Its VM part runs only with `REACT_RUNNER_SNAPSHOT_ID` set. These local
 checks do not replace the real microVM integration check.
+
+The trusted page has no native Node `fetch`; its Headers, Request, Response,
+FormData and Blob data APIs remain. The learner's existing fetch guard still
+refuses without a training fixture and delegates to a trusted suite's current
+fixture when installed. Local checks cover delegation/override/restoration,
+real jsdom XHR success and socket refusal against a controlled server, and an
+authored reference/starter pair. The optional real-VM probe sends jsdom XHR
+under unchanged deny-all. Cross-origin refusal can also be caused by CORS or
+other transport failure, so it alone does not establish the policy's cause.
 
 Required CI and local parity run `test:sandbox-limits` and the local guest
 checks through `test:grading-integrity`. That umbrella clears
