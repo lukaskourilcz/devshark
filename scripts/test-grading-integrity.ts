@@ -29,7 +29,7 @@ import { createMiniJest } from '../shared/coding-mini-jest';
 import { runReactSuite } from '../lib/coding/react-runner';
 import { withHiddenCases } from '../lib/coding/react-hidden';
 import { guestResultLine, readGuestResult, serializeGuestResult } from '../lib/coding/react-guest';
-import { allPassed, evaluateCalls, hiddenGlobalMessage, LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, MAX_LOGS, TIMEOUT_MESSAGE } from '../shared/coding-evaluate';
+import { allPassed, evaluateCalls, hiddenGlobalMessage, LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, MAX_LOGS, TIMEOUT_MESSAGE, type EvaluateResult } from '../shared/coding-evaluate';
 import { CHECKER_GLOBALS, CHECKER_MEMBERS } from '../shared/coding-checker-globals';
 import { nodeTypeScriptChecker } from '../lib/coding/ts-check-node';
 import { evaluateInRunRealm } from './run-realm-node';
@@ -1534,9 +1534,7 @@ const fillDays = (readings: readonly Reading[]): Reading[] => {
 {
   // The grader's realm is what shared/coding-checker-globals.ts lists, which
   // is what the Run worker keeps.
-  const listing = await runInSandbox({
-    code: '',
-    calls: [`(() => {
+  const inventoryCall = `(() => {
       void Date; void URL; (1).toLocaleString();
       const own = (o) => Object.getOwnPropertyNames(o).sort().join(' ');
       const members = {};
@@ -1551,12 +1549,35 @@ const fillDays = (readings: readonly Reading[]): Reading[] => {
       members['%TypedArray%'] = own(typed);
       members['%TypedArray%.prototype'] = own(typed.prototype);
       return [Object.getOwnPropertyNames(globalThis).sort(), members];
-    })()`],
-    expectations: null,
-  });
-  const [globals, members] = JSON.parse(listing.results[0].actual!) as [string[], Record<string, string>];
-  assert.deepEqual(globals, [...CHECKER_GLOBALS].sort(), 'CHECKER_GLOBALS lists the grader\'s globals');
-  assert.deepEqual(members, CHECKER_MEMBERS, 'CHECKER_MEMBERS lists the grader\'s built-in members');
+    })()`;
+  const pinnedInventory = [[...CHECKER_GLOBALS].sort(), CHECKER_MEMBERS];
+  assert.ok(JSON.stringify(pinnedInventory).length > MAX_LOG_LINE_CHARS, 'the full inventory exceeds the display boundary');
+  const inventory = (code = '') => runInSandbox({ code, calls: [inventoryCall], expectations: [pinnedInventory] });
+  const assertInventoryShape = (run: EvaluateResult, label: string) => {
+    assert.equal(run.codeError, null, label);
+    assert.equal(run.timedOut, false, label);
+    assert.equal(run.results.length, 1, label);
+    assert.equal(run.results[0].error, null, `${label}: setup errors cannot serve as an inventory mismatch`);
+    assert.equal(typeof run.results[0].actual, 'string', label);
+  };
+  const listing = await inventory();
+  assertInventoryShape(listing, 'complete live inventory');
+  assert.equal(listing.results[0].pass, true, 'complete global names and own built-in/prototype members match the pinned inventory before display cutting');
+  assert.equal(listing.results[0].actual?.endsWith(LOG_LINE_CUT), true, 'only the displayed copy is cut');
+  for (const [label, code, sameDisplay] of [
+    ['added global function', 'Object.defineProperty(globalThis,"__f11UnlistedGlobal",{value:()=>1,configurable:true});', false],
+    ['added late prototype member', 'Object.defineProperty(Uint8ClampedArray.prototype,"__f11UnlistedMember",{value:()=>1,configurable:true});', true],
+    ['missing late builtin member', 'if(!Reflect.deleteProperty(Math,"hypot"))throw new Error("inventory mutation did not apply");', true],
+  ] as const) {
+    const changed = await inventory(code);
+    assertInventoryShape(changed, label);
+    assert.equal(changed.results[0].pass, false, `${label}: the same complete-value inventory oracle rejects any drift`);
+    if (sameDisplay) assert.equal(changed.results[0].actual, listing.results[0].actual, `${label}: a change beyond identical capped text is still detected`);
+  }
+  const recovered = await inventory();
+  assertInventoryShape(recovered, 'fresh inventory after mutations');
+  assert.equal(recovered.results[0].pass, true, 'inventory mutations stay inside their own run');
+  console.log('PASS integrity: complete global/member inventory compares before display cutting and rejects added globals plus late added/missing members');
   // Using what the grader lacks fails on Run too, and says why.
   const missing = ['Intl.NumberFormat', 'crypto.randomUUID()', 'fetch("/x")', 'new BroadcastChannel("x")', 'Array.fromAsync([1])'];
   const lacking = await evaluateInRunRealm({ code: '', calls: missing, expectations: null });
