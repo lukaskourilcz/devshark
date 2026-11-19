@@ -20,5 +20,6 @@ export interface VercelResponse {
   send(body: unknown): VercelResponse;
   end(body?: unknown): void;
   setHeader(name: string, value: string | readonly string[] | number): VercelResponse;
+  getHeader?(name: string): string | readonly string[] | number | undefined;
   redirect(statusOrUrl: number | string, url?: string): VercelResponse;
 }
