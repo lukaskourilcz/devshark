@@ -114,7 +114,7 @@ jobs:
       - run: npm ci --no-audit && npm ci --no-audit --prefix client
       - run: npm run typecheck:api && npm run typecheck:scripts && npm run typecheck:tooling --prefix client
       - run: npm run audit:native-reviews
-      - run: npm run check:unused && npm run check:security
+      - run: npm run check:unused && npm run check:security && npm run check:docs-archive && npm run check:deploy-contexts
       - name: Compare new binaries with the event base
         env:
           BINARY_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
@@ -226,12 +226,35 @@ jobs:
             test-results/
             client/storybook-static/
           retention-days: 14
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CONTAINER_BASE_SHA: 0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci --no-audit
+      - name: Fetch the published container baseline
+        run: git fetch --no-tags --depth=1 origin "$CONTAINER_BASE_SHA"
+      - run: npm run test:container
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: container-measurement
+          path: artifacts/container/
+          if-no-files-found: warn
+          retention-days: 14
   verify:
-    needs: [quickjs, client-build, static, tests, coding, browser]
+    needs: [quickjs, client-build, static, tests, coding, browser, container]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - run: echo "quickjs=${{ needs.quickjs.result }} client-build=${{ needs.client-build.result }} static=${{ needs.static.result }} tests=${{ needs.tests.result }} coding=${{ needs.coding.result }} browser=${{ needs.browser.result }}"
+      - run: echo "quickjs=${{ needs.quickjs.result }} client-build=${{ needs.client-build.result }} static=${{ needs.static.result }} tests=${{ needs.tests.result }} coding=${{ needs.coding.result }} browser=${{ needs.browser.result }} container=${{ needs.container.result }}"
       - if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}
         run: exit 1

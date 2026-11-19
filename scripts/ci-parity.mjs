@@ -243,15 +243,36 @@ const KNOWN_GLUE = [
   "test-results/",
   "client/storybook-static/",
   "retention-days: 14",
+  "container:",
+  "runs-on: ubuntu-latest",
+  "timeout-minutes: 30",
+  "env:",
+  "CONTAINER_BASE_SHA: 0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c",
+  "steps:",
+  "- uses: actions/checkout@v4",
+  "- uses: actions/setup-node@v4",
+  "with:",
+  "node-version: 24",
+  "cache: npm",
+  "cache-dependency-path: package-lock.json",
+  "- name: Fetch the published container baseline",
+  "run: git fetch --no-tags --depth=1 origin \"$CONTAINER_BASE_SHA\"",
+  "- uses: actions/upload-artifact@v4",
+  "if: always()",
+  "with:",
+  "name: container-measurement",
+  "path: artifacts/container/",
+  "if-no-files-found: warn",
+  "retention-days: 14",
   "verify:",
-  "needs: [quickjs, client-build, static, tests, coding, browser]",
+  "needs: [quickjs, client-build, static, tests, coding, browser, container]",
   "if: ${{ always() }}",
   "runs-on: ubuntu-latest",
   "timeout-minutes: 5",
   "steps:",
-  "- run: echo \"quickjs=${{ needs.quickjs.result }} client-build=${{ needs.client-build.result }} static=${{ needs.static.result }} tests=${{ needs.tests.result }} coding=${{ needs.coding.result }} browser=${{ needs.browser.result }}\"",
+  "- run: echo \"quickjs=${{ needs.quickjs.result }} client-build=${{ needs.client-build.result }} static=${{ needs.static.result }} tests=${{ needs.tests.result }} coding=${{ needs.coding.result }} browser=${{ needs.browser.result }} container=${{ needs.container.result }}\"",
   "- if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}",
-  "run: exit 1",
+  "run: exit 1"
 ];
 
 const env = { ...process.env, CI: 'true' };
@@ -297,6 +318,8 @@ const PLAN = [
   step('audit:native-reviews', npmRun('audit:native-reviews')),
   step('check:unused', npmRun('check:unused')),
   step('check:security', npmRun('check:security')),
+  step('check:docs-archive', npmRun('check:docs-archive')),
+  step('check:deploy-contexts', npmRun('check:deploy-contexts')),
   step('check:binary-size', npmRun('check:binary-size')),
   step('check:images', npmRun('check:images'), { needs: ['build'] }),
   step('check:public', npmRun('check:public'), { env: BUILD_ENV, needs: ['build'] }),
@@ -330,6 +353,7 @@ const PLAN = [
     tier: 'full', needs: ['storybook', 'chromium'], chrome: true, env: { STORYBOOK_URL: 'http://localhost:6006' },
   }),
 ];
+PLAN.push(step('test:container', npmRun('test:container'), { tier: 'full', kind: 'container' }));
 const SQL_STEP = step('test:sql', npmRun('test:sql'), { ci: [], kind: 'sql' });
 
 function firstDifference(expected, actual) {
@@ -460,6 +484,9 @@ function playwrightChromium() {
 
 /** Why a step cannot run here, or null. */
 function precondition(one) {
+  if (one.kind === 'container' && spawnSync('docker', ['info'], { timeout: 10000, stdio: 'ignore' }).status !== 0) {
+    return 'Docker CLI/daemon unavailable; compare both images on the Linux/amd64 CI runner';
+  }
   if (one.kind === 'sql' && !env.DATABASE_URL) {
     return 'DATABASE_URL is not set; scripts/test-sql.mjs needs an empty Postgres';
   }

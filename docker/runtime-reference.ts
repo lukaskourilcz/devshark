@@ -17,11 +17,16 @@ for (const track of ['javascript', 'typescript', 'react'] as const) {
   assert.ok(task, `Missing ${track} reference task`);
   const solution = solutionFor(task.id)!;
   if (track === 'react') {
+    assert.ok(solution.hiddenSuite?.trim(), 'React reference requires a hidden suite');
+    const visible = await runReactSuite({ appSource: solution.solution, suite: task.suite! });
+    assert.equal(visible.compileError, null); assert.equal(visible.failed, 0);
     const result = await runReactSuite({ appSource: solution.solution, suite: withHiddenCases(task.suite!, solution.hiddenSuite) });
     assert.equal(result.compileError, null); assert.ok(result.total > 0); assert.equal(result.failed, 0, JSON.stringify(result));
+    assert.ok(result.total > visible.total, 'Combined React reference must execute hidden cases');
   } else {
     let code = solution.solution;
     if (track === 'typescript') {
+      assert.ok((task.typeTests?.length ?? 0) + (solution.hiddenTypeTests?.length ?? 0) > 0, 'TypeScript reference requires type assertions');
       const types = await checkTypes(code, [task.typeTests ?? [], solution.hiddenTypeTests ?? []]);
       assert.ok(!types.stopped && types.results.every(typesPassed), JSON.stringify(types));
       assert.ok(types.javascript); code = types.javascript;

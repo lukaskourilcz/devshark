@@ -8,7 +8,7 @@ import path from 'node:path';
 const base = process.env.CONTAINER_BASE_SHA || '0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c';
 const output = path.resolve('artifacts/container');
 mkdirSync(output, { recursive: true });
-const record = { base, head: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(), platform: 'linux/amd64', complete: false, images: [] };
+const record = { base, head: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(), platform: 'linux/amd64', harness: 'same current source harness against each image runtime packages and generated workers, not baseline handler-code equivalence', complete: false, images: [] };
 const command = (name, args, options = {}) => execFileSync(name, args, { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, ...options });
 function logged(name, executable, args) {
   const fd = openSync(path.join(output, `${name}.log`), 'w');
@@ -23,14 +23,16 @@ try {
   const before = path.join(temporary, 'source'); mkdirSync(before);
   command('tar', ['-xf', path.join(temporary, 'before.tar'), '-C', before]);
   logged('base-image-pull', 'docker', ['pull', '--platform=linux/amd64', 'node:24-bookworm-slim']);
-  record.nodeBase = JSON.parse(command('docker', ['image', 'inspect', 'node:24-bookworm-slim']))[0].Id;
+  const nodeBase = JSON.parse(command('docker', ['image', 'inspect', 'node:24-bookworm-slim']))[0];
+  record.nodeBase = nodeBase.Id;
   command('node_modules/.bin/esbuild', ['docker/runtime-reference.ts', '--bundle', '--platform=node', '--format=cjs', '--packages=external', '--target=node24', `--outfile=${path.join(output, 'runtime-reference.cjs')}`, '--log-level=warning']);
   for (const [name, context] of [['before', before], ['after', process.cwd()]]) {
     const tag = `devshark:f14-${name}`;
     logged(`${name}-build`, 'docker', ['build', '--platform=linux/amd64', '--progress=plain', '-t', tag, context]);
     const image = JSON.parse(command('docker', ['image', 'inspect', tag]))[0];
+    if (JSON.stringify(image.RootFS.Layers.slice(0, nodeBase.RootFS.Layers.length)) !== JSON.stringify(nodeBase.RootFS.Layers)) throw new Error('Measured image uses a different Node base layer set.');
     record.images.push({ name, tag, id: image.Id, bytes: image.Size, architecture: image.Architecture, os: image.Os });
-    const packageInventory = command('docker', ['run', '--rm', '--entrypoint', 'node', tag, '-e', 'console.log(JSON.stringify({node:process.version,typescript:require("typescript/package.json").version,knip:require("node:fs").existsSync("node_modules/knip"),playwright:require("node:fs").existsSync("node_modules/playwright")}))']);
+    const packageInventory = command('docker', ['run', '--rm', '--entrypoint', 'node', tag, '-e', 'console.log(JSON.stringify({node:process.version,npm:require("node:child_process").execFileSync("npm",["--version"],{encoding:"utf8"}).trim(),typescript:require("typescript/package.json").version,knip:require("node:fs").existsSync("node_modules/knip"),playwright:require("node:fs").existsSync("node_modules/playwright")}))']);
     writeFileSync(path.join(output, `${name}-runtime-packages.json`), packageInventory);
     if (name === 'after') {
       const packages = JSON.parse(packageInventory);

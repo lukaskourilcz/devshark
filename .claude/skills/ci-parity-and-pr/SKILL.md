@@ -5,13 +5,13 @@ description: Reproduce the `verify` CI job locally with `npm run ci:parity`, the
 
 # CI parity and pull requests
 
-`main` is protected: GitHub merges a pull request only when the `verify` and `sql` jobs of `.github/workflows/quality.yml` pass, for admins too, and refuses force-pushes (CLAUDE.md, "Git workflow"). The `verify` gates run 41 steps across six jobs of at most 30 minutes each, and the job named `verify` passes only when all six passed. A step you skip locally can cost a whole CI cycle: PR #401 passed a short local check list and then failed `check:bundle` by 182 gzip bytes ("15 October — PR #401 initial-load correction" in `docs/release-acceptance.md`).
+`main` is protected: GitHub merges a pull request only when the `verify` and `sql` jobs of `.github/workflows/quality.yml` pass, for admins too, and refuses force-pushes (CLAUDE.md, "Git workflow"). The `verify` gates run 44 steps across seven jobs of at most 30 minutes each, and the job named `verify` passes only when all seven passed. A step you skip locally can cost a whole CI cycle: PR #401 passed a short local check list and then failed `check:bundle` by 182 gzip bytes ("15 October — PR #401 initial-load correction" in `docs/release-acceptance.md`).
 
 `scripts/ci-parity.mjs` runs the same steps in the same order with the same environment and prints each step's real result. Before it runs anything it reads `quality.yml` and checks two things: the job's `npm` and `npx playwright` commands, in order and with their env prefixes, must equal the plan's, and every other line of the job (setup, `env:`, `if:`, shell glue) must equal `KNOWN_GLUE` in the script. On any difference it exits 2 and prints the first one. Change `PLAN` or `KNOWN_GLUE` and the table below in the same commit as the workflow.
 
 ## The `verify` sequence
 
-The commands come from `.github/workflows/quality.yml`. `client-build` produces one artifact with the complete client and generated runner outputs. `static` and `browser` depend on that producer and verify its commit and SHA-256 inventory before using it. The local runner builds and packs once instead of downloading its own artifact. `verify` requires all six non-SQL jobs and rejects skipped or cancelled jobs.
+The commands come from `.github/workflows/quality.yml`. `client-build` produces one artifact with the complete client and generated runner outputs. `static` and `browser` depend on that producer and verify its commit and SHA-256 inventory before using it. The local runner builds and packs once instead of downloading its own artifact. `verify` requires all seven non-SQL jobs and rejects skipped or cancelled jobs.
 
 | # | Step id | Command | Notes |
 |---|---|---|---|
@@ -19,14 +19,15 @@ The commands come from `.github/workflows/quality.yml`. `client-build` produces 
 | 2 | `check:quickjs-build` | `npm run check:quickjs-build` | Changed runtime/package inputs trigger the pinned rebuild. Local Python 3.10+/emsdk is required; an unavailable rebuild is not a pass. |
 | 3-4 | `build`, `check:ci-build-artifact` | `npm run build && npm run check:ci-build-artifact` | The placeholder environment below matches CI. The tar preserves hidden Vite manifests, source maps, sandbox output and generated runner files. |
 | 5-7 | Types | `typecheck:api`, `typecheck:scripts`, client `typecheck:tooling` | |
-| 8-11 | Native and static guards | `audit:native-reviews`, `check:unused`, `check:security`, `check:binary-size` | The binary gate compares against the fetched event base. |
-| 12-16 | Build guards and production audits | `check:images`, `check:public`, `check:bundle`, `npm audit --omit=dev`, client production audit | |
-| 17-29 | Contract, client and coding suites | `test:performance`, `test:launch`, `test:coding-auth`, `test:grading-integrity`, `test:path-authority`, `test:react-authority`, `test:paths`, `test:billing`, `test:fallbacks`, `test:garden`, `test:live-grading`, `test:client`, `test:coding` | Keep the coding timing guard unchanged. |
-| 30-31 | Chromium and preview | `npx playwright install --with-deps chromium`, client preview on 4173 | CI caches browser files by OS, architecture and the installed browser revision file. It still installs system dependencies. Local installed Chrome can replace the download. |
-| 32 | `browser:chromium` | `npm run test:browser -- --project=chromium --workers=2 <explicit specs>` | The 33 previous specs plus `triage-private` share one invocation. Files may run concurrently; tests within each file retain their order. `BROWSER_SPECS` records the exact selection. |
-| 33-36 | Responsive | Light 20 routes by 9 widths, dark 20 by 3, synthetic 200% and 400% Home reflow | Matrices and strict fixture/target contracts remain intact. |
-| 37 | `test:harness` | `npm run test:harness` | |
-| 38-41 | Performance and Storybook | `audit:performance`, `build:storybook`, Storybook server, `browser:storybook` | CI runs these when the shared build restored successfully, including after another browser failure. |
+| 8-13 | Native and static guards | `audit:native-reviews`, `check:unused`, `check:security`, `check:docs-archive`, `check:deploy-contexts`, `check:binary-size` | The binary gate compares against the fetched event base. |
+| 14-18 | Build guards and production audits | `check:images`, `check:public`, `check:bundle`, `npm audit --omit=dev`, client production audit | |
+| 19-31 | Contract, client and coding suites | `test:performance`, `test:launch`, `test:coding-auth`, `test:grading-integrity`, `test:path-authority`, `test:react-authority`, `test:paths`, `test:billing`, `test:fallbacks`, `test:garden`, `test:live-grading`, `test:client`, `test:coding` | Keep the coding timing guard unchanged. |
+| 32-33 | Chromium and preview | `npx playwright install --with-deps chromium`, client preview on 4173 | CI caches browser files by OS, architecture and the installed browser revision file. It still installs system dependencies. Local installed Chrome can replace the download. |
+| 34 | `browser:chromium` | `npm run test:browser -- --project=chromium --workers=2 <explicit specs>` | The 33 previous specs plus `triage-private` share one invocation. Files may run concurrently; tests within each file retain their order. `BROWSER_SPECS` records the exact selection. |
+| 35-38 | Responsive | Light 20 routes by 9 widths, dark 20 by 3, synthetic 200% and 400% Home reflow | Matrices and strict fixture/target contracts remain intact. |
+| 39 | `test:harness` | `npm run test:harness` | |
+| 40-43 | Performance and Storybook | `audit:performance`, `build:storybook`, Storybook server, `browser:storybook` | CI runs these when the shared build restored successfully, including after another browser failure. |
+| 44 | `test:container` | `npm run test:container` | Full mode only. CI compares baseline/candidate image bytes and one current reference harness against each image's dependencies and generated workers on one Linux/amd64 runner. Docker is required; the Mac does not start a VM for this step. |
 
 The `sql` job runs separately: `npm run test:sql` on `supabase/postgres:17.6.1.171` (`scripts/test-sql.mjs`).
 
@@ -52,7 +53,7 @@ The `sql` job runs separately: `npm run test:sql` on `supabase/postgres:17.6.1.1
 
 ```sh
 npm run ci:parity -- --list               # the plan, nothing runs
-npm run ci:parity -- --fast               # steps 1-31 and 33-36
+npm run ci:parity -- --fast               # steps 1-33 and 35-38
 npm run ci:parity                         # the whole verify job
 npm run ci:parity -- --only test:launch,build --log-dir artifacts/ci-parity-only
 npm run ci:parity -- --fast --bail        # stop at the first failure, as CI does
