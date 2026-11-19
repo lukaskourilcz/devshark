@@ -22,7 +22,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../lib/auth';
 import { useActiveSubject, useSubject, deliveryCategoriesForSubject } from '../lib/subjects';
 import { visuallyHidden } from '../theme/MuiTheme';
-import { MotionPop } from '../lib/motion';
+import { MotionPop, MotionProvider } from '../lib/motion';
 import { SharkFin } from './SharkFin';
 import { renderQuestion } from './CodeBlock';
 import { QuoteLoader, holdLoadingScreen } from './LoadingScreen';
@@ -207,7 +207,7 @@ function useBoardFirstData() {
   useFirstData(`challenge ${subject}`, () => settled([readOnce(queryClient, challengeLeaderboardQuery(subject))]));
 }
 
-export default function Challenge({ onActiveChange }: { onActiveChange?: (active: boolean) => void } = {}) {
+function Challenge({ onActiveChange }: { onActiveChange?: (active: boolean) => void } = {}) {
   useBoardFirstData();
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -1225,4 +1225,8 @@ function LeaderboardList({ board }: { board: ChallengeLeaderboard }) {
       ))}
     </ol>
   );
+}
+
+export default function ChallengePage(props: Parameters<typeof Challenge>[0]) {
+  return <MotionProvider><Challenge {...props} /></MotionProvider>;
 }

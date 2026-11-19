@@ -265,17 +265,18 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) test(`Motionâ€
   const routeBox = page.locator('.ss-route');
   const opacity = () => routeBox.evaluate((node) => getComputedStyle(node).opacity);
 
-  // With reduced motion the page never asks for the chunk (perf baseline #587
-  // C18, lib/motion.tsx motionFeaturesFor) and draws as a failed load does.
-  if (reducedMotion === 'reduce') expect(motion.dropped).toBe(0);
-  else expect(motion.dropped).toBeGreaterThan(0);
+  // Untouched Home has no Motion consumer. The Quiz route below owns its
+  // provider and still has to recover when its animation features fail.
+  expect(motion.dropped + motion.served).toBe(0);
   await expect.poll(opacity).toBe('1');
-  await expect(page.locator('html')).toHaveAttribute('data-motion', 'off');
   await expectShell(page);
 
   await page.locator('nav.ss-nav-center a[href="/quiz"]').click();
   await expect(page).toHaveURL(/\/quiz$/);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  if (reducedMotion === 'reduce') expect(motion.dropped).toBe(0);
+  else await expect.poll(() => motion.dropped).toBeGreaterThan(0);
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'off');
   await expect.poll(opacity).toBe('1');
   // Poll like the opacity: right after the navigation the keyed route box is
   // being replaced, and a read in that tick found the outgoing node.

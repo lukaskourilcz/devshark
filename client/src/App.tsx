@@ -6,6 +6,8 @@ import { IconButton as AxIconButton } from '@astryxdesign/core/IconButton';
 import { AppToast } from './components/ui/AppToast';
 import { useIsMobile } from './lib/useMediaQuery';
 import './styles/app-shell.css';
+import './styles/route-transition.css';
+import { MobileNavigationStatus } from './components/MobileNavigationStatus';
 import LoadingScreen from './components/LoadingScreen';
 import { SwimmingFin, Waterline } from './components/SharkFin';
 import BrandLogo from './components/BrandLogo';
@@ -25,11 +27,10 @@ import { useAuth } from './lib/auth';
 import { useEntitlement } from './lib/entitlement';
 import { useWallet } from './lib/rewards';
 import { capturePageview, identifyUser, resetAnalytics } from './lib/analytics';
-import { m, AnimatePresence, useReducedMotion } from './lib/motion';
 import BrandFooter, { SettingsToggles } from './components/BrandFooter';
 import CookieConsent from './components/CookieConsent';
 import { CURRENT_PRODUCT } from './lib/products';
-import { CloseIcon, CoinsIcon, TrophyIcon } from './components/ui/icons';
+import { CoinsIcon, TrophyIcon } from './components/ui/icons';
 import ConnectionStatus from './components/ui/ConnectionStatus';
 import UpgradeSheetHost from './components/UpgradeSheetHost';
 import SignInDialogHost from './components/auth/SignInDialogHost';
@@ -47,6 +48,7 @@ import { ShellPartBoundary } from './components/ShellPartBoundary';
 // `lazyShellPart`, not `lazy`: its boundary in the header can ask for it again
 // (lib/routeRecovery.ts).
 const AuthButton = lazyShellPart(() => import('./components/AuthButton'));
+const MobileNavigation = lazyShellPart(() => import('./components/MobileNavigation'));
 
 // Each page's chunk, registered with the paths that render it so a link can
 // start loading its page before the click lands (lib/routePreload.ts). Pages
@@ -154,17 +156,6 @@ const PremiumCheckoutPage = lazyPage(() => loadBilling().then((m) => ({ default:
 const PremiumCancelPage = lazyPage(() => loadBilling().then((m) => ({ default: m.PremiumCancelPage })));
 const EmailConfirmedPage = lazyPage(() => loadAuthPages().then((m) => ({ default: m.EmailConfirmedPage })));
 const ResetPasswordPage = lazyPage(() => loadAuthPages().then((m) => ({ default: m.ResetPasswordPage })));
-
-// Route-transition variants, hoisted so the m.div props keep a stable identity
-// across App re-renders (App re-renders on every navigation — hottest path).
-// Enter-only fade: the previous AnimatePresence mode="wait" exit pass left a
-// blank beat between routes that read as flicker; pages supply their own
-// subtle entrance motion on top of this.
-const ROUTE_ANIM = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-} as const;
-const ROUTE_TRANSITION = { duration: 0.14, ease: 'easeOut' } as const;
 
 // The route box. flex-basis auto (not 0): the box must GROW with tall pages so
 // the wrapper's bottom reserve lands below the content. With basis 0 the box
@@ -298,7 +289,6 @@ function AccountRetry({ retry, busy }: { retry: () => void; busy: boolean }) {
 }
 
 function App() {
-  const reduceMotion = useReducedMotion();
   const location = useLocation();
   const startupGuidePath = useRef(/^\/topics\//.test(location.pathname) ? location.pathname : null);
   const navigate = useNavigate();
@@ -308,7 +298,9 @@ function App() {
   // An active quiz or a live Challenge run: the route hides the chrome (focus mode).
   const [quizActive, setQuizActive] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const drawerRef = useRef<HTMLDivElement | null>(null);
+  const [drawerRequested, setDrawerRequested] = useState(false);
+  const drawerOpener = useRef<HTMLElement | null>(null);
+  const closeMobileNav = useCallback(() => setMobileNavOpen(false), []);
   const { user, isLoading: authLoading, signInResumeFailed, passwordRecovery, draftsKept, dismissDraftsKept } = useAuth();
   const [signupBonusOpen, setSignupBonusOpen] = useState(false);
   // A sign-in pressed before a reload (lib/auth.tsx) failed in this document,
@@ -360,47 +352,6 @@ function App() {
     const main = document.getElementById('main-content');
     if (main) main.scrollTop = 0;
   }, [location.pathname]);
-
-  // The drawer is modal while open: focus moves in, Tab cycles inside, Escape
-  // closes, and focus returns to whatever opened it (the hamburger). Every
-  // other overlay gets this from Astryx's Dialog; the drawer is hand-rolled
-  // for the slide-in layout, so it implements the same contract here.
-  useEffect(() => {
-    if (!mobileNavOpen) return;
-    const panel = drawerRef.current;
-    if (!panel) return;
-    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const focusables = () =>
-      Array.from(
-        panel.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'),
-      ).filter((el) => el.offsetParent !== null);
-    (focusables()[0] ?? panel).focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation();
-        setMobileNavOpen(false);
-        return;
-      }
-      if (e.key !== 'Tab') return;
-      const list = focusables();
-      if (list.length === 0) return;
-      const first = list[0];
-      const last = list[list.length - 1];
-      const active = document.activeElement;
-      if (e.shiftKey && (active === first || active === panel)) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      opener?.focus();
-    };
-  }, [mobileNavOpen]);
 
   // Tie analytics events to the signed-in learner (and drop the identity on
   // sign-out). No-op unless PostHog is configured.
@@ -605,7 +556,11 @@ function App() {
                   variant="ghost"
                   size="lg"
                   label={t('nav.menu')}
-                  onClick={() => setMobileNavOpen(true)}
+                  onClick={(event) => {
+                    drawerOpener.current = event.currentTarget;
+                    setDrawerRequested(true);
+                    setMobileNavOpen(true);
+                  }}
                   icon={<MenuIcon />}
                 />
               </span>
@@ -697,34 +652,9 @@ function App() {
             </div>
           </div>
         </header>
-        <AnimatePresence>
-        {mobileNavOpen && (
-          <m.div className="ss-show-mobile" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>
-            <div className="ss-drawer-backdrop" onClick={() => setMobileNavOpen(false)} />
-            <m.div
-              ref={drawerRef}
-              className="ss-drawer-panel"
-              initial={reduceMotion ? { opacity: 0 } : { x: '-100%' }}
-              animate={reduceMotion ? { opacity: 1 } : { x: 0 }}
-              exit={reduceMotion ? { opacity: 0 } : { x: '-100%' }}
-              transition={reduceMotion ? { duration: 0.12 } : { type: 'spring', stiffness: 440, damping: 42 }}
-              role="dialog"
-              aria-modal="true"
-              aria-label={t('nav.menuTitle')}
-              tabIndex={-1}
-              onClick={() => setMobileNavOpen(false)}
-            >
-              <button
-                type="button"
-                className="ss-drawer-close"
-                aria-label={t('common.dismiss')}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setMobileNavOpen(false);
-                }}
-              >
-                <CloseIcon size={20} />
-              </button>
+        {drawerRequested && <Suspense fallback={<MobileNavigationStatus open={mobileNavOpen} opener={drawerOpener.current} onClose={closeMobileNav} />}>
+          <ShellPartBoundary fallback={(retry, busy) => <MobileNavigationStatus open={mobileNavOpen} opener={drawerOpener.current} onClose={closeMobileNav} retry={retry} busy={busy} />}>
+            <MobileNavigation open={mobileNavOpen} opener={drawerOpener.current} onClose={closeMobileNav}>
               <Link
                 to="/"
                 aria-label={t('nav.home', { brand: CURRENT_PRODUCT.brand })}
@@ -764,10 +694,9 @@ function App() {
               <div className="ss-drawer-settings" role="group" aria-label={t('profile.preferences')} onClick={(event) => event.stopPropagation()}>
                 <SettingsToggles className="ss-drawer-link" />
               </div>
-            </m.div>
-          </m.div>
-        )}
-        </AnimatePresence>
+            </MobileNavigation>
+          </ShellPartBoundary>
+        </Suspense>}
         </>
       )}
 
@@ -837,9 +766,8 @@ function App() {
           }}
         >
           {/* Route transition: the new view fades in over a stable backdrop —
-              no exit phase, so navigation never shows a blank beat. A page
-              that opens with reduced motion loads no motion features, so its
-              routes appear without the fade (lib/motion.tsx).
+              no exit phase, so navigation never shows a blank beat. The CSS
+              fade needs no animation runtime and respects reduced motion.
               The Suspense boundary sits OUTSIDE the keyed route box on
               purpose. Inside it, every pathname mounted a fresh boundary, and
               React shows a fresh boundary's fallback at once even in a
@@ -873,14 +801,12 @@ function App() {
               the same frame. */}
           <Suspense fallback={<div style={ROUTE_BOX_STYLE}><RouteLoader /></div>}>
             {!booted ? <div style={ROUTE_BOX_STYLE}><RouteLoader /></div> : <>
-            <m.div
+            <div
               key={boxKey}
               className="ss-route"
               // The page waiting for its successor (see `navigating` above).
               aria-busy={navigating || undefined}
               style={ROUTE_BOX_STYLE}
-              {...ROUTE_ANIM}
-              transition={ROUTE_TRANSITION}
             >
               {/* An active quiz or Challenge run hides the chrome; a page that fails brings it back. */}
               <RouteErrorBoundary onError={() => setQuizActive(false)}>
@@ -937,7 +863,7 @@ function App() {
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </RouteErrorBoundary>
-            </m.div>
+            </div>
             {showChrome && <BrandFooter />}
             </>}
           </Suspense>

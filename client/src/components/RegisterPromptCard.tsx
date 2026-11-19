@@ -8,7 +8,7 @@
 import { createPortal } from 'react-dom';
 import { Button } from '@astryxdesign/core/Button';
 import { Text } from '@astryxdesign/core/Text';
-import { m, AnimatePresence, useReducedMotion, stillIfReduced } from '../lib/motion';
+import { m, AnimatePresence, MotionProvider, useReducedMotion, stillIfReduced } from '../lib/motion';
 import { useIsMobile } from '../lib/useMediaQuery';
 import { useT } from '../i18n/LanguageContext';
 import { useGameConfig } from '../lib/gameConfig';
@@ -21,7 +21,7 @@ const CloseIcon = () => (
   </svg>
 );
 
-export default function RegisterPromptCard({ open, onClose, onSignIn }: {
+function RegisterPromptCard({ open, onClose, onSignIn }: {
   open: boolean;
   onClose: () => void;
   onSignIn: () => void;
@@ -126,4 +126,8 @@ export default function RegisterPromptCard({ open, onClose, onSignIn }: {
     </div>,
     document.body,
   );
+}
+
+export default function RegisterPromptCardWithMotion(props: Parameters<typeof RegisterPromptCard>[0]) {
+  return <MotionProvider><RegisterPromptCard {...props} /></MotionProvider>;
 }

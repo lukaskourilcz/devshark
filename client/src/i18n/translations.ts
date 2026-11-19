@@ -64,6 +64,7 @@ export const en = {
   'nav.home': '{brand} home',
   'nav.menu': 'Open navigation menu',
   'nav.menuTitle': 'Navigation',
+  'nav.menuError': 'Navigation did not load.',
   'page.onThisPage': 'On this page',
   'page.legalKicker': 'Legal',
   'nav.groupPractice': 'Practice',
