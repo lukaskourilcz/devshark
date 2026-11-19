@@ -193,7 +193,6 @@ const KEY_INVENTORY: KeyEntry[] = [
   { prefix: ['learn-lesson'], class: 'public', key: () => learnLessonQuery('html-1').queryKey, what: 'a Learn level\'s lesson (components/learn/lessonQuery.ts)' },
   { prefix: ['coding', 'brief'], class: 'public', key: () => codingKeys.brief('html-1'), what: 'a coding task\'s brief (coding/api.ts)' },
   { prefix: ['challenge', 'leaderboard'], class: 'public', key: () => challengeLeaderboardQuery('webdev').queryKey, what: 'Challenge top ten and champion (lib/queries.ts)' },
-  { prefix: ['triage', 'verdicts'], class: 'public', key: () => ['triage', 'verdicts'], what: 'the static triage verdicts file (components/dev/DevTriage.tsx)' },
 ];
 
 const callerKeys = KEY_INVENTORY.filter((entry) => entry.class !== 'public');

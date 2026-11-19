@@ -226,7 +226,7 @@ export default function DevQuestions() {
   const activeSubject = useActiveSubject();
   const { data, isPending: loading, error: queryError, refetch } = useQuery({
     queryKey: ['admin', 'questions'],
-    queryFn: listQuestions,
+    queryFn: ({ signal }) => listQuestions(signal),
   });
   const subjectCategories = useMemo(() => new Set<string>(activeSubject.categories), [activeSubject]);
   const questions = useMemo(

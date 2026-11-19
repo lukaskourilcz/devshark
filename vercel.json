@@ -37,9 +37,9 @@
     {
       "src": "^/triage-verdicts\\.json$",
       "headers": {
-        "Cache-Control": "public, max-age=86400"
+        "Cache-Control": "no-store"
       },
-      "continue": true
+      "status": 404
     },
     {
       "src": "^/assets/coding-worker/.*$",

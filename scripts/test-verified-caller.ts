@@ -2033,7 +2033,7 @@ async function main() {
         playAction('answer', 'POST', { code: ROOM, question_idx: 0, selected_idx: 0 }),
         playAction('distribution', 'GET', { code: ROOM, q: '0' }),
         playAction('heartbeat', 'POST', { code: ROOM }),
-        ...['users', 'emails', 'questions', 'reports', 'logs', 'settings', 'quality', 'learning-paths', 'entitlements', 'vouchers'].map((name) => adminOp(name)),
+        ...['users', 'emails', 'questions', 'reports', 'logs', 'settings', 'quality', 'triage', 'learning-paths', 'entitlements', 'vouchers'].map((name) => adminOp(name)),
         adminOp('save', 'POST', question),
         adminOp('delete', 'POST', { id: 'rm-js-1' }),
         adminOp('reset', 'POST', { id: 'rm-js-1' }),

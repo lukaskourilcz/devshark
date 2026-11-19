@@ -2,7 +2,7 @@
 // triage/README.md): every scored question with its gate verdict + 1-5 axis
 // scores, defaulting to the "cut" candidates so the owner can eyeball each one
 // and click Remove (soft-delete via the same admin endpoint as the Questions
-// tab). The verdicts are a static overlay (triage-verdicts.json); the live
+// tab). The verdicts are a private admin overlay; the live
 // question text and current deleted state come from the admin API.
 
 import { useEffect, useMemo, useState } from 'react';
@@ -24,7 +24,7 @@ import { AppToast } from '../ui/AppToast';
 import { getCategoryLabel, textOnColor } from '../../lib/categories';
 import { friendlyError } from '../../lib/api';
 import { deleteQuestions, listQuestions, setQuestionDeleted, type AdminQuestion } from '../../lib/devApi';
-import { loadTriageVerdicts, GATE_LABEL, type TriageVerdict } from '../../lib/triageApi';
+import { triageVerdictsQuery, GATE_LABEL, type TriageVerdict } from '../../lib/triageApi';
 import { useActiveSubject } from '../../lib/subjects';
 import { BrandedConfirmDialog, type ConfirmRequest } from '../ui/BrandedConfirmDialog';
 
@@ -61,8 +61,8 @@ const reasonLabel = (r: string): string =>
 
 export default function DevTriage() {
   const activeSubject = useActiveSubject();
-  const questionsQuery = useQuery({ queryKey: ['admin', 'questions'], queryFn: listQuestions });
-  const triageQuery = useQuery({ queryKey: ['triage', 'verdicts'], queryFn: () => loadTriageVerdicts() });
+  const questionsQuery = useQuery({ queryKey: ['admin', 'questions'], queryFn: ({ signal }) => listQuestions(signal) });
+  const triageQuery = useQuery(triageVerdictsQuery);
 
   const [decision, setDecision] = useState<DecisionFilter>('cut');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -83,7 +83,10 @@ export default function DevTriage() {
     : triageQuery.error
       ? friendlyError(triageQuery.error)
       : null;
-  const reload = () => void questionsQuery.refetch();
+  const reload = () => {
+    void questionsQuery.refetch();
+    void triageQuery.refetch();
+  };
   // The Question bank tab reads the same cached list: after a delete here it
   // is out of date, and for a minute that tab still listed the deleted
   // questions as live.

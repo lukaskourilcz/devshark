@@ -86,7 +86,7 @@ describe('/dev → Quality triage', () => {
     const deleted: string[] = [];
     server.use(
       http.get('*/api/admin/questions', () => HttpResponse.json({ questions: ['t1', 't2', 't3'].map(question), categories: ['react'], reportCounts: {} })),
-      http.get('*/triage-verdicts.json', () => HttpResponse.json({
+      http.get('*/api/admin/triage', () => HttpResponse.json({
         meta: { total: 3, keep: 0, cut: 3, generatedFrom: 'test', keepRule: 'test' },
         verdicts: { t1: verdict(1), t2: verdict(2), t3: verdict(3) },
       })),
@@ -114,7 +114,7 @@ describe('/dev → Quality triage and the Question bank', () => {
     let bank = ['t1', 't2'];
     server.use(
       http.get('*/api/admin/questions', () => HttpResponse.json({ questions: bank.map(question), categories: ['react'], reportCounts: {} })),
-      http.get('*/triage-verdicts.json', () => HttpResponse.json({
+      http.get('*/api/admin/triage', () => HttpResponse.json({
         meta: { total: 2, keep: 0, cut: 2, generatedFrom: 'test', keepRule: 'test' },
         verdicts: { t1: verdict(1), t2: verdict(2) },
       })),
