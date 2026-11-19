@@ -637,7 +637,7 @@ export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult>
       if (outcome[0] === 'error' && typeof outcome[1] === 'string') return { pass: false, actual: null, error: cutErrorText(outcome[1]) };
       if (outcome[0] !== 'value') throw new Error('Malformed result');
       const actual = decode(outcome[1]);
-      return { pass: input.expectations ? deepEqual(actual, input.expectations[index]) : null, actual: displayValue(actual), error: null };
+      return { pass: input.expectations ? deepEqual(actual, input.expectations[index]) : null, actual: cutErrorText(displayValue(actual)), error: null };
     });
     return { results, logs, codeError: null, timedOut: false };
   } catch (error) {
