@@ -15,8 +15,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { Worker } from 'node:worker_threads';
-import { newQuickJSWASMModuleFromVariant, type QuickJSWASMModule, type QuickJSHandle } from 'quickjs-emscripten';
-import variant from './quickjs-variant';
+import type { QuickJSWASMModule, QuickJSHandle } from 'quickjs-emscripten';
 import type { EvaluateResult } from '../../shared/coding-evaluate';
 import { LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, MAX_LOGS, PROBE_IS_INDEX_SOURCE, PROBE_LINE, TIMEOUT_MESSAGE, deepEqual, displayValue } from '../../shared/coding-evaluate';
 import { cutErrorText } from '../../shared/coding-error-text';
@@ -29,7 +28,12 @@ import { hostURL, MAX_URL_TEXT, WEB_APIS_SOURCE } from './sandbox-web-apis';
 import { bootBackoff, GraderBusyError, inThreadGradingAllowed, threadSlots } from './grader-capacity';
 
 let modulePromise: Promise<QuickJSWASMModule> | null = null;
-const getModule = () => (modulePromise ??= newQuickJSWASMModuleFromVariant(variant));
+const getModule = () => (modulePromise ??= (async () => {
+  const [{ newQuickJSWASMModuleFromVariant }, { default: variant }] = await Promise.all([
+    import('quickjs-emscripten'), import('./quickjs-variant'),
+  ]);
+  return newQuickJSWASMModuleFromVariant(variant);
+})());
 
 export interface SandboxInput {
   runtimePolicy?: TaskRuntimePolicy;
