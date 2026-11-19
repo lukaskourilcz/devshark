@@ -40,6 +40,8 @@ execFileSync(process.execPath, ['--test', 'scripts/test-perf-cold-start.mjs', 's
 await (await import('./cold-start-contracts')).coldStartContracts();
 // Real Challenge/admin operations preserve authority while deferring imports (#636).
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-f7-import-operations.ts');
+// The public JSON runner includes every route case and all six helper contracts.
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-public-json.ts');
 // The rate-limit prelude's round trips (#587), in a process of its own.
 await (await import('./cold-start-contracts')).runIsolated('scripts/test-prelude.ts');
 // The Learn branches' round trips (#587), in a process of their own.
