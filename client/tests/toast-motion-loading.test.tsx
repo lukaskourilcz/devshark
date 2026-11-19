@@ -68,7 +68,8 @@ describe('toast hosts while animation code is unavailable', () => {
     expect(screen.getByText('+25 XP earned')).toBeVisible();
     await advance(2199);
     expect(screen.getByRole('status')).toHaveTextContent('+25 XP');
-    await advance(200);
+    await advance(1);
+    await advance(199);
     expect(screen.queryByText('+50 XP earned')).toBeNull();
     await advance(1);
     expect(screen.getByText('+50 XP earned')).toBeVisible();
@@ -86,7 +87,8 @@ describe('toast hosts while animation code is unavailable', () => {
     expect(screen.getByRole('status')).toBeVisible();
     await advance(duration - 1);
     expect(screen.queryByText('+75 XP earned')).toBeNull();
-    await advance(200);
+    await advance(1);
+    await advance(199);
     expect(screen.queryByText('+75 XP earned')).toBeNull();
     await advance(1);
     expect(screen.getByText('+75 XP earned')).toBeVisible();

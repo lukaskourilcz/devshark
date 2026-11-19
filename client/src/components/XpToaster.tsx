@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Text } from '@astryxdesign/core/Text';
 import { clockTime, onXpToast, type XpHold, type XpToast } from '../lib/xp';
 import { useT } from '../i18n/LanguageContext';
 import type { TranslationKey } from '../i18n/translations';
-import { MotionPop, m, AnimatePresence, useReducedMotion, stillIfReduced } from '../lib/motion';
 import { useIsMobile } from '../lib/useMediaQuery';
 import { BoltIcon, ClockIcon, TrophyIcon } from './ui/icons';
+import { ToastMotion } from './ui/ToastMotion';
 
 // A global, self-contained listener for XP events. Mounted once at the app root
 // so XP gains and rank-ups toast from anywhere (quiz results, the learning path,
@@ -48,7 +48,6 @@ export default function XpToaster() {
   const [queue, setQueue] = useState<XpToast[]>([]);
   const [current, setCurrent] = useState<XpToast | null>(null);
   const [open, setOpen] = useState(false);
-  const seq = useRef(0);
 
   useEffect(() => onXpToast((toast) => setQueue((q) => [...q, toast])), []);
 
@@ -71,11 +70,7 @@ export default function XpToaster() {
 
   // After the exit transition, clear `current` so the next item can show.
   const handleExited = () => setCurrent(null);
-  const reduce = useReducedMotion();
-
-  if (!current) return null;
-  const isRankUp = current.kind === 'rankup';
-  seq.current += 1;
+  if (typeof document === 'undefined') return null;
 
   return createPortal(
     <div
@@ -92,84 +87,74 @@ export default function XpToaster() {
         padding: '0 16px',
       }}
     >
-      {/* AnimatePresence provides the exit transition (was the Snackbar's Grow);
-          MotionPop springs the content on a separate node so the two never fight
-          over transform. */}
-      <AnimatePresence onExitComplete={handleExited}>
-        {open && (
-          <m.div
-            key={seq.current}
-            initial={stillIfReduced(reduce, { opacity: 0, y: 12 })}
-            animate={stillIfReduced(reduce, { opacity: 1, y: 0 })}
-            exit={stillIfReduced(reduce, { opacity: 0, y: 12 })}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+      <div role={current && open ? 'status' : undefined} aria-live="polite">
+        {current && (
+          <ToastMotion
+            open={open}
+            kind="xp"
+            onExited={handleExited}
             style={{ pointerEvents: 'auto' }}
           >
-            <MotionPop>
-              {isRankUp ? (
-                <div
-                  role="status"
-                  className="rm-celebrate"
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px',
-                    borderRadius: 'var(--radius-element)',
-                    color: '#3a2c00', fontWeight: 700,
-                    background: '#fbc94a',
-                    boxShadow: 'var(--shadow-med)',
-                  }}
-                >
-                  <span style={{ display: 'inline-flex' }} aria-hidden>
-                    <TrophyIcon size={22} />
+            {current.kind === 'rankup' ? (
+              <div
+                className="rm-celebrate"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px',
+                  borderRadius: 'var(--radius-element)',
+                  color: '#3a2c00', fontWeight: 700,
+                  background: '#fbc94a',
+                  boxShadow: 'var(--shadow-med)',
+                }}
+              >
+                <span style={{ display: 'inline-flex' }} aria-hidden>
+                  <TrophyIcon size={22} />
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <span style={{ display: 'block', fontWeight: 800, fontSize: '0.7rem', letterSpacing: 1, textTransform: 'uppercase', opacity: 0.8 }}>
+                    {t('xp.rankUpKicker')}
                   </span>
-                  <div style={{ minWidth: 0 }}>
-                    <span style={{ display: 'block', fontWeight: 800, fontSize: '0.7rem', letterSpacing: 1, textTransform: 'uppercase', opacity: 0.8 }}>
-                      {t('xp.rankUpKicker')}
-                    </span>
-                    <Text as="div" color="inherit" weight="bold">
-                      {t('xp.rankUp', { title: t(current.titleKey, current.titleVars) })}
-                    </Text>
-                  </div>
-                </div>
-              ) : current.kind === 'held' ? (
-                <div
-                  role="status"
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', maxWidth: 'min(92vw, 460px)',
-                    borderRadius: 'var(--radius-element)', fontWeight: 700,
-                    color: 'var(--color-text-primary)', background: 'var(--color-background-surface)',
-                    border: '1px solid var(--color-border)', borderLeft: '4px solid var(--ss-info)',
-                    boxShadow: 'var(--shadow-med)',
-                  }}
-                >
-                  <span style={{ display: 'inline-flex', flexShrink: 0, color: 'var(--ss-info)' }} aria-hidden>
-                    <ClockIcon size={18} />
-                  </span>
-                  <Text as="span" color="inherit" weight="bold">
-                    {heldMessage(t, current.hold)}
+                  <Text as="div" color="inherit" weight="bold">
+                    {t('xp.rankUp', { title: t(current.titleKey, current.titleVars) })}
                   </Text>
                 </div>
-              ) : (
-                <div
-                  role="status"
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 999,
-                    color: 'var(--ss-on-success-strong)', fontWeight: 700,
-                    background: 'var(--ss-success-strong)',
-                    boxShadow: 'var(--shadow-med)',
-                  }}
-                >
-                  <span style={{ display: 'inline-flex' }} aria-hidden>
-                    <BoltIcon size={16} />
-                  </span>
-                  <Text as="span" color="inherit" weight="bold">
-                    {t(GAIN_KEY[current.source], { xp: current.amount })}
-                  </Text>
-                </div>
-              )}
-            </MotionPop>
-          </m.div>
+              </div>
+            ) : current.kind === 'held' ? (
+              <div
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', maxWidth: 'min(92vw, 460px)',
+                  borderRadius: 'var(--radius-element)', fontWeight: 700,
+                  color: 'var(--color-text-primary)', background: 'var(--color-background-surface)',
+                  border: '1px solid var(--color-border)', borderLeft: '4px solid var(--ss-info)',
+                  boxShadow: 'var(--shadow-med)',
+                }}
+              >
+                <span style={{ display: 'inline-flex', flexShrink: 0, color: 'var(--ss-info)' }} aria-hidden>
+                  <ClockIcon size={18} />
+                </span>
+                <Text as="span" color="inherit" weight="bold">
+                  {heldMessage(t, current.hold)}
+                </Text>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 999,
+                  color: 'var(--ss-on-success-strong)', fontWeight: 700,
+                  background: 'var(--ss-success-strong)',
+                  boxShadow: 'var(--shadow-med)',
+                }}
+              >
+                <span style={{ display: 'inline-flex' }} aria-hidden>
+                  <BoltIcon size={16} />
+                </span>
+                <Text as="span" color="inherit" weight="bold">
+                  {t(GAIN_KEY[current.source], { xp: current.amount })}
+                </Text>
+              </div>
+            )}
+          </ToastMotion>
         )}
-      </AnimatePresence>
+      </div>
     </div>,
     document.body,
   );

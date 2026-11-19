@@ -20,7 +20,7 @@ it('keeps both toast hosts usable and drains XP after an animation chunk fails',
       announceVerifiedQuestXp(25);
       announceVerifiedQuestXp(50);
     });
-    await act(async () => {});
+    await act(async () => { await vi.dynamicImportSettled(); });
     expect(loader.calls, 'the fixture rejected the animation import').toBe(1);
     expect(screen.getByText('Still saved.')).toBeVisible();
     expect(screen.getByText('+25 XP earned')).toBeVisible();
@@ -28,7 +28,8 @@ it('keeps both toast hosts usable and drains XP after an animation chunk fails',
     expect(close).toHaveBeenCalledTimes(1);
     await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
     expect(close).toHaveBeenCalledTimes(2);
-    await act(async () => { await vi.advanceTimersByTimeAsync(1400); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(1200); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(200); });
     expect(screen.getByText('+50 XP earned')).toBeVisible();
     expect(screen.queryByText('+25 XP earned')).toBeNull();
   } finally {
