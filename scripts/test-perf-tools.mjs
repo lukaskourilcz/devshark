@@ -815,3 +815,97 @@ test('perf:fixture retains synthetic 400ms API-only settings and provider refusa
   assert.equal(refused.status, 503); assert.equal(JSON.parse(refused.body.toString()).error.code, 'fixture_only'); assert.equal(refused.headers['access-control-allow-origin'], undefined);
   assert.equal((await fixtureRead(server.origin, '/api/settings', { method: 'POST' })).status, 405);
 });
+
+// The child alone overrides its monotonic clock and the native HTTP constructor.
+// Real requests reach only the parent's owned loopback fixture. No delay/sleep,
+// browser, application, DNS lookup or external network is involved.
+const liveDeadlineChild = String.raw`
+  import http from 'node:http';
+  import { performance } from 'node:perf_hooks';
+  const [moduleUrl, mode, origin, outputDirectory] = process.argv.slice(1);
+  const { measureLiveBundle } = await import(moduleUrl);
+  const nativeNow = performance.now.bind(performance), nativeRequest = http.request;
+  const clockDescriptor = Object.getOwnPropertyDescriptor(performance, 'now');
+  let offset = 0, triggered = false, endCalls = 0, requestCalls = 0;
+  const jump = () => { if (!triggered) { triggered = true; offset += 2000; } };
+  Object.defineProperty(performance, 'now', { configurable: true, value: () => nativeNow() + offset });
+  http.request = function (url, options, onResponse) {
+    if (url.origin !== origin) throw new Error('Only the owned origin is allowed');
+    requestCalls += 1;
+    const first = requestCalls === 1;
+    const request = nativeRequest.call(this, url, options, incoming => {
+      if (first && mode === 'headers') jump();
+      if (first && mode === 'body-end') {
+        const nativeOnce = incoming.once;
+        incoming.once = function (event, listener) {
+          return nativeOnce.call(this, event, event === 'end' ? function (...args) {
+            jump(); return listener.apply(this, args);
+          } : listener);
+        };
+      }
+      onResponse(incoming);
+    });
+    const nativeEnd = request.end;
+    request.end = function (...args) { endCalls += 1; return nativeEnd.apply(this, args); };
+    if (first && mode === 'setup') jump();
+    return request;
+  };
+  try {
+    const report = await measureLiveBundle({ origin, outputDirectory, timeoutMs: 1000, totalTimeoutMs: 5000 });
+    console.log(JSON.stringify({ marker: 'live-deadline-control-complete', mode, triggered, endCalls, requestCalls,
+      complete: report.complete, error: report.error?.code ?? null, requestsAttempted: report.requestsAttempted,
+      requestsSent: report.requestsSent, rows: report.rows.map(row => ({ error: row.error,
+        elapsedMs: row.elapsedMs, transferredBytes: row.transferredBytes, decodedBytes: row.decodedBytes })) }));
+  } finally {
+    http.request = nativeRequest;
+    if (clockDescriptor) Object.defineProperty(performance, 'now', clockDescriptor);
+    else delete performance.now;
+  }
+`;
+
+for (const mode of ['healthy', 'setup', 'headers', 'body-end']) {
+  test('check:bundle live monotonic request deadline survives ' + mode, async (t) => {
+    const server = await ownPerfServer(t, (req, res) => {
+      res.setHeader('Content-Type', req.url === '/' ? 'text/html' : 'text/javascript');
+      res.end(req.url === '/' ? '<script type="module" src="/assets/a.js"></script>' : 'export {};');
+    });
+    const outputDirectory = perfScratch(t, 'devshark-bundle-deadline-');
+    const run = await runPerfChild(t, '--input-type=module', ['-e', liveDeadlineChild,
+      new URL('./check-bundle.mjs', import.meta.url).href, mode, server.origin, outputDirectory], root);
+    assert.equal(run.status, 0, 'the control child completed, not a crash/watchdog: ' + run.stderr);
+    assert.equal(run.stderr, '');
+    const control = JSON.parse(run.stdout);
+    assert.equal(control.marker, 'live-deadline-control-complete');
+    assert.equal(control.mode, mode);
+    const saved = JSON.parse(readFileSync(join(outputDirectory, 'bundle-live.json'), 'utf8'));
+    assert.equal(saved.complete, control.complete, 'the actual persisted partial report agrees');
+    if (mode === 'healthy') {
+      assert.equal(control.triggered, false);
+      assert.equal(control.complete, true);
+      assert.equal(control.error, null);
+      assert.equal(control.requestCalls, 2); assert.equal(control.endCalls, 2);
+      assert.equal(control.requestsAttempted, 2); assert.equal(control.requestsSent, 2);
+      assert.deepEqual(server.calls.map(call => call.path), ['/', '/assets/a.js']);
+    } else {
+      assert.equal(control.triggered, true, 'the intended monotonic clock fault actually ran');
+      assert.equal(control.complete, false, 'an elapsed per-request deadline cannot be accepted as success');
+      assert.equal(control.error, 'request_timeout');
+      assert.equal(saved.error.code, 'request_timeout');
+      assert.equal(control.requestsAttempted, 1, 'stop before any asset request');
+      assert.equal(control.requestCalls, 1);
+      assert.equal(control.rows[0].error, 'request_timeout');
+      assert.ok(control.rows[0].elapsedMs >= 2000);
+      assert.equal(control.rows[0].transferredBytes, null, 'a late body is not a completed transfer');
+      assert.equal(control.rows[0].decodedBytes, null);
+      if (mode === 'setup') {
+        assert.equal(control.endCalls, 0, 'expired synchronous setup must not call request.end');
+        assert.equal(control.requestsSent, 0, 'no Node finish event was observed');
+        assert.equal(server.calls.length, 0, 'no HTTP request reached the owned server');
+      } else {
+        assert.equal(control.endCalls, 1);
+        assert.equal(control.requestsSent, 1, 'the sent request remains counted after a late callback');
+        assert.deepEqual(server.calls.map(call => call.path), ['/']);
+      }
+    }
+  });
+}
