@@ -14,6 +14,40 @@ const HOLD_MS = 600;
 // are not in it for a visitor without a session.
 const SECTIONS = ['/coding', '/quiz', '/learn', '/challenge', '/play', '/premium'];
 
+test('a mobile menu stays usable while its animation features are delayed', async ({ page }) => {
+  await prepare(page, 390);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  let release = () => {};
+  const waiting = new Promise<void>((resolve) => { release = resolve; });
+  await page.route(/\/assets\/motion-features-[\w-]+\.js$/, async (route) => {
+    await waiting;
+    await route.continue();
+  });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  const opener = page.getByRole('button', { name: 'Open navigation menu', exact: true });
+  await opener.click();
+  const menu = page.getByRole('dialog', { name: 'Navigation', exact: true });
+  try {
+    await expect(menu.getByRole('link', { name: 'Quiz', exact: true })).toBeVisible();
+    // Playwright visibility alone accepts opacity:0 and offscreen transforms.
+    await expect.poll(() => menu.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      let visible = rect.left >= -1 && rect.right > 0 && rect.right <= innerWidth + 1;
+      for (let parent: Element | null = element; parent; parent = parent.parentElement) {
+        visible &&= Number(getComputedStyle(parent).opacity) > 0.9;
+      }
+      return visible;
+    }), { timeout: 2000 }).toBe(true);
+    await expect(menu.getByRole('button', { name: 'Dismiss', exact: true })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(opener).toBeFocused();
+  } finally {
+    release();
+  }
+  await expect(menu).toHaveCount(0);
+});
+
 for (const closeWhileLoading of [false, true]) test(`a delayed mobile navigation chunk keeps keyboard control (${closeWhileLoading ? 'closed before load' : 'opened after load'})`, async ({ page }) => {
   await prepare(page, 390);
   let release = () => {};
