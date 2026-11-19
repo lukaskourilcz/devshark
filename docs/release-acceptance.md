@@ -8864,3 +8864,26 @@ Complete commands, stage/source provenance and every sample are recorded in
 raw receipts under the 36 external execution folder. The baseline host is a
 pinned source projection paired with an archived actual normal worker; it is
 not a checkout rollback or an invented before measurement.
+
+
+### Epic F, F11-11/12/14 React deadline ownership (19 November 2026)
+
+Local test `609002e7`, fix `e18dcf8f`. Authority real red failed four false
+timeout cases; the local guest failed six deadline/reentry cases while finite
+callbacks passed. Reviewed fixes preserve the outer deadline across nested
+callbacks and latch actual interrupts across retries, using the canonical
+case-clock prefix rather than broad learner-text matching. No existing
+resource/command limit or grading shape changed.
+
+Authority passed in 12.547 s and local guest in 33.157 s, including all seven
+new probes, nine prior local and seven artifact groups. Busy/later learner
+durations changed from 7,517/2,501 ms to 2,513/0 ms; the subsequent authored
+case still passed. Credentialed VM was explicitly skipped. Two visible
+upstream disposal diagnostics remain inside the existing intentional recursion
+block with healthy recovery, also present in prior F11-10 green logs. Saved
+output merges streams and cannot separately map those lines to each recursion;
+this record makes no clean-stderr or native-cause claim.
+
+Exact red/green provenance, log hashes and scope limits are retained in
+`docs/quality/f11-react-deadlines-2026-11-19.md` and its adjacent JSON. Final
+composed types, Coding/reference, launch/parity and merge acceptance remain.

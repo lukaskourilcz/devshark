@@ -1,0 +1,211 @@
+{
+  "date": "2026-11-19",
+  "scope": [
+    "F11-11",
+    "F11-12",
+    "F11-14"
+  ],
+  "status": "local focused checks pass; composed integration and merge pending",
+  "testCommit": "609002e7487a548cd3b55756d0a29832a5b4742c",
+  "fixCommit": "e18dcf8f53bfc1929593ca8fec2575fa9d24da93",
+  "auditComment": "https://github.com/lukaskourilcz/devshark/issues/640#issuecomment-7022875405",
+  "runs": [
+    {
+      "label": "red-authority",
+      "command": [
+        "npm",
+        "run",
+        "test:react-authority"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "948377247bd1ece0a91f81ee4c07b8d710515265",
+      "dirty": " M scripts/test-react-authority.ts\n M scripts/test-react-isolation.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T21:47:01.878335+00:00",
+      "outerWatchdogSeconds": 180,
+      "exitCode": 1,
+      "watchdogFired": false,
+      "wallSeconds": 6.922,
+      "logSha256": "af32dbe6b35afb3d484b4d89f4a75c22d25c940f9e165df15404aadc2eac6276"
+    },
+    {
+      "label": "red-local-guest",
+      "command": [
+        "env",
+        "REACT_RUNNER_SNAPSHOT_ID=",
+        "npm",
+        "run",
+        "test:react-isolation"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "948377247bd1ece0a91f81ee4c07b8d710515265",
+      "dirty": " M scripts/test-react-authority.ts\n M scripts/test-react-isolation.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T21:48:19.815556+00:00",
+      "outerWatchdogSeconds": 240,
+      "exitCode": 1,
+      "watchdogFired": false,
+      "wallSeconds": 69.573,
+      "logSha256": "0a7cdc1ef120c5b19c43532c654e65291092a06e1611206158e1558b65c31079"
+    },
+    {
+      "label": "green-authority",
+      "command": [
+        "npm",
+        "run",
+        "test:react-authority"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "609002e7487a548cd3b55756d0a29832a5b4742c",
+      "dirty": " M lib/coding/react-learner.ts\n M lib/coding/react-runner.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T21:51:26.105078+00:00",
+      "outerWatchdogSeconds": 180,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 12.547,
+      "logSha256": "36c33863bcc6e659df86aa3ba176ddede8bd1c92823723735acaa25dbf603739"
+    },
+    {
+      "label": "green-local-guest",
+      "command": [
+        "env",
+        "REACT_RUNNER_SNAPSHOT_ID=",
+        "npm",
+        "run",
+        "test:react-isolation"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "609002e7487a548cd3b55756d0a29832a5b4742c",
+      "dirty": " M lib/coding/react-learner.ts\n M lib/coding/react-runner.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T21:52:30.648034+00:00",
+      "outerWatchdogSeconds": 180,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 33.157,
+      "logSha256": "23b539182da0c957091418b116bd9c191f240bc81d993aedc1cca597c9bf00cb"
+    }
+  ],
+  "red": {
+    "authorityFalseTimeoutFailures": 4,
+    "actualCaseClockPositivePassed": true,
+    "localNewFailures": 6,
+    "localFinitePositivePassed": true,
+    "busyCaseDurationsMs": [
+      7517,
+      2501,
+      0
+    ],
+    "moduleReentryElapsedMs": [
+      17671,
+      8938
+    ],
+    "stoppedEnvelopeCause": "Existing child wrapper reported a stopped process; native OOM origin and terminal signal were not captured."
+  },
+  "green": {
+    "newClassificationControls": 5,
+    "newLocalProbes": 7,
+    "priorLocalGroups": 9,
+    "artifactGroups": 7,
+    "busyCaseDurationsMs": [
+      2513,
+      0,
+      1
+    ],
+    "renderCallbackDurationsMs": [
+      2518,
+      2518
+    ],
+    "moduleCallbackElapsedMs": [
+      3251,
+      3295
+    ],
+    "realVm": "SKIP: snapshot explicitly blank"
+  },
+  "diagnostics": {
+    "exactLine": "Aborted(Assertion failed: list_empty(&rt->gc_obj_list), at: ../../vendor/quickjs/quickjs.c,2036,JS_FreeRuntime)\n",
+    "lineBytesIncludingLf": 112,
+    "lineSha256": "97142da45461c0b7dd21869079e671d938847bd1a75631837be32e4504c80ff8",
+    "currentOccurrences": 2,
+    "currentBytes": 224,
+    "logs": [
+      {
+        "path": "/tmp/devshark-epic-f-handoff/f11-remaining-execution-3fa8f8ed/11-12-14/green-authority.log",
+        "bytes": 2177,
+        "sha256": "36c33863bcc6e659df86aa3ba176ddede8bd1c92823723735acaa25dbf603739",
+        "exactOccurrences": 2,
+        "exactLineNumbers": [
+          14,
+          15
+        ]
+      },
+      {
+        "path": "/tmp/devshark-epic-f-handoff/f11-remaining-execution-3fa8f8ed/11-12-14/red-authority.log",
+        "bytes": 7672,
+        "sha256": "af32dbe6b35afb3d484b4d89f4a75c22d25c940f9e165df15404aadc2eac6276",
+        "exactOccurrences": 0,
+        "exactLineNumbers": []
+      },
+      {
+        "path": "/tmp/devshark-epic-f-handoff/f11-10-22-execution-476f17e5/10-red-authority.log",
+        "bytes": 21991,
+        "sha256": "f7d199e59a202e1f4ab33e1281a4851e26604a323ec98a197d6c1ec83493ddc6",
+        "exactOccurrences": 1,
+        "exactLineNumbers": [
+          9
+        ]
+      },
+      {
+        "path": "/tmp/devshark-epic-f-handoff/f11-10-22-execution-476f17e5/10-green-authority-wording.log",
+        "bytes": 1774,
+        "sha256": "96bf2d526cdcb753c249ef9dccf8f06f9abfe379e43ab8a92111303c005ef5e3",
+        "exactOccurrences": 2,
+        "exactLineNumbers": [
+          9,
+          10
+        ]
+      },
+      {
+        "path": "/tmp/devshark-epic-f-handoff/f11-10-22-execution-476f17e5/10-22-combined-authority.log",
+        "bytes": 1774,
+        "sha256": "96bf2d526cdcb753c249ef9dccf8f06f9abfe379e43ab8a92111303c005ef5e3",
+        "exactOccurrences": 2,
+        "exactLineNumbers": [
+          9,
+          10
+        ]
+      }
+    ],
+    "sourceBlock": "scripts/test-react-authority.ts:146-192",
+    "scope": "Intentional real render/module recursion exhaustion, fresh healthy learner recovery, then forged text controls; old block unchanged by this fix.",
+    "provenanceLimit": "Saved command logs merge stdout and stderr. Emscripten prints this diagnostic via captured console.error before throwing, but no per-stream or per-recursion markers were captured; exact line-to-case attribution is not independently recorded.",
+    "baseline": "Same exact two diagnostic lines precede this change in completed F11-10 authority logs. Current red stops before that block, so its absence is not a negative control.",
+    "claim": "No stderr-clean, ordinary reference-flow, native OOM or eliminated upstream assertion claim."
+  },
+  "preserved": {
+    "memoryMiB": 64,
+    "stackMiB": 1,
+    "learnerDeadlineMs": 2500,
+    "caseDeadlineMs": 5000,
+    "networkPolicy": "F11-22 unchanged",
+    "sourceFiles": {
+      "lib/coding/react-learner.ts": "2eb881745fe662abd72a60a10ac0d1d1866c0602ee353ddb1cff0d67f539d91a",
+      "lib/coding/react-runner.ts": "897f0f5edc8d03657b7c77b2ec403a3cc615e2d9192ace59d44a938263118245",
+      "scripts/test-react-authority.ts": "a8d4818d427e7933b2a2b328fb5fa2f69dd738f64c307dcb62bfad83bfd35756",
+      "scripts/test-react-isolation.ts": "ef1d2072df062d519b118cdd1a564a707647dcc52758fa6ab7c798fb39110f4d",
+      "scripts/sandbox-watchdog-controls.ts": "0adc85410849470f7ec1a3b5e27165fbc2226a09bce011f7d7342b3a3094ca20"
+    }
+  },
+  "independentReview": {
+    "path": "/tmp/devshark-epic-f-handoff/f11-11-12-14-actual-review-e18dcf8f/review.json",
+    "sha256": "58da741cc7ad0cd2231d26c1392649119ea5c4a652c103293a8fb8f9a75ab391",
+    "outcome": "No actionable static finding; twenty preservation checks and four log hashes verified."
+  },
+  "limits": [
+    "No credentialed VM run",
+    "No types, full Coding, launch or parity at this stage; final composed gates remain",
+    "No native-cause inference from stopped child text",
+    "No numeric cap, public verdict or trusted network capability change"
+  ]
+}
