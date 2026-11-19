@@ -119,10 +119,13 @@ describe('control heights on every pointer', () => {
 
   // The glossary chips ("Terms in this question") were 32px on every pointer.
   it('puts the glossary term chips on the button scale: 44px, or 36px with a 44px hit area in .ss-compact', () => {
-    expect(declared(topLevel, '.ss-term__button', 'min-height')).toBe('var(--ss-control-height)');
-    expect(declared(topLevel, '.ss-term__button', 'position')).toBe('relative');
-    expect(declared(fine, '.ss-compact .ss-term__button', 'min-height')).toBe('var(--ss-control-height-compact)');
-    expect(declared(fine, '.ss-compact .ss-term__button::before', 'inset')).toBe(
+    const terms = addSheet('terms');
+    const termRules = [...terms.cssRules].filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule);
+    const compactTerms = mediaRules(terms, 'pointer: fine');
+    expect(declared(termRules, '.ss-term__button', 'min-height')).toBe('var(--ss-control-height)');
+    expect(declared(termRules, '.ss-term__button', 'position')).toBe('relative');
+    expect(declared(compactTerms, '.ss-compact .ss-term__button', 'min-height')).toBe('var(--ss-control-height-compact)');
+    expect(declared(compactTerms, '.ss-compact .ss-term__button::before', 'inset')).toBe(
       'calc((var(--ss-control-height-compact) - var(--ss-control-height)) / 2)',
     );
   });

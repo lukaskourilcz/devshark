@@ -23,6 +23,7 @@ import { useT } from '../../i18n/LanguageContext';
 import { TermsBar } from './Terms';
 import { glossaryDomainFor } from '../../lib/glossaryDomain';
 import type { LessonFigure as Figure } from '../../../../shared/lesson-figures';
+import './LessonFigure.css';
 
 export function LessonFigures({ figures }: { figures: readonly Figure[] }) {
   if (figures.length === 0) return null;

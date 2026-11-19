@@ -2,6 +2,27 @@
  * accent marks the coin and the balance and nothing else. Every control is at
  * least 44px tall, and a Premium row says "Premium" in text. */
 
+/* Shop: the ledger under the balance, the order list, and the checkout
+   fields. Every control clears 44px on touch. */
+.ss-ledger { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.ss-ledger li { display: flex; justify-content: space-between; gap: 12px; font-size: var(--ss-type-meta); }
+.ss-ledger__in { color: var(--ss-success); font-variant-numeric: tabular-nums; }
+.ss-ledger__out { color: var(--color-text-secondary); font-variant-numeric: tabular-nums; }
+
+.ss-orders { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ss-orders li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-element);
+  font-size: var(--ss-type-compact);
+}
+.ss-orders__items { font-weight: 600; }
+.ss-orders__state { color: var(--color-text-secondary); }
+
 .rw-muted { margin: 0; color: var(--color-text-secondary); line-height: 1.5; }
 .rw-label {
   margin: 0;

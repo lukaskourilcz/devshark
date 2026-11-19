@@ -458,27 +458,6 @@
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
 }
 
-/* Shop: the ledger under the balance, the order list, and the checkout
-   fields. Every control clears 44px on touch. */
-.ss-ledger { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-.ss-ledger li { display: flex; justify-content: space-between; gap: 12px; font-size: var(--ss-type-meta); }
-.ss-ledger__in { color: var(--ss-success); font-variant-numeric: tabular-nums; }
-.ss-ledger__out { color: var(--color-text-secondary); font-variant-numeric: tabular-nums; }
-
-.ss-orders { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.ss-orders li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-element);
-  font-size: var(--ss-type-compact);
-}
-.ss-orders__items { font-weight: 600; }
-.ss-orders__state { color: var(--color-text-secondary); }
-
 .ss-field-label { display: block; font-size: var(--ss-type-meta); font-weight: 600; margin-bottom: 4px; }
 .ss-input, .ss-select {
   width: 100%;
@@ -505,147 +484,6 @@
 @media (forced-colors: active) {
   :root :is(select:not([multiple]):not([size]), select[size="1"]:not([multiple])) { appearance: auto; background-image: none; }
 }
-
-/* Contextual abbreviation help. One control per block: never inside an answer
-   button, never injected into code. Each term is a control on the button
-   scale: 44px on every pointer, or 36px with a 44px hit area inside an
-   .ss-compact scope (the compact rule below). */
-.ss-terms { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 10px; }
-.ss-terms__label { font-size: var(--ss-type-label); letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-secondary); }
-.ss-terms__list { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
-.ss-term { position: relative; display: inline-flex; }
-.ss-term__button {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-height: var(--ss-control-height);
-  padding: 0 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--color-text-secondary);
-  font: 600 var(--ss-type-label) var(--font-family-body);
-  cursor: pointer;
-}
-.ss-term__button:hover { background: var(--color-background-muted); color: var(--color-text-primary); }
-.ss-term__button:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 2px; }
-.ss-term__glyph {
-  display: inline-grid;
-  place-items: center;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  background: var(--brand-accent);
-  color: var(--brand-on-accent);
-  font-size: var(--ss-type-label);
-  font-style: italic;
-}
-.ss-term__popover {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 30;
-  width: min(320px, 78vw);
-  padding: 10px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-element);
-  background: var(--color-background-surface);
-  box-shadow: 0 12px 28px rgba(var(--ss-ink-rgb), 0.18);
-}
-.ss-term__title { margin: 0 0 4px; font-weight: 700; font-size: var(--ss-type-compact); }
-.ss-term__expansion { font-weight: 500; color: var(--color-text-secondary); }
-.ss-term__meaning { margin: 0; font-size: var(--ss-type-meta); color: var(--color-text-primary); }
-.ss-term__note { margin: 6px 0 0; font-size: var(--ss-type-label); color: var(--color-text-secondary); }
-/* Near the right edge the popover would overflow; flip it. */
-@media (max-width: 30rem) {
-  .ss-term__popover { left: auto; right: 0; }
-}
-
-/* Lesson figures. HTML and CSS only: the browser laying out real boxes is the
-   most accurate way to show containment, and the only one that survives a
-   200% zoom in either language. Every mark carries a word as well as a tint. */
-.ss-figure {
-  margin: 16px 0 0;
-  padding: 14px 16px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-element);
-  background: var(--color-background-surface);
-}
-.ss-figure__caption { font-weight: 700; font-size: var(--ss-type-compact); margin-bottom: 10px; }
-.ss-figure__scroll { overflow-x: auto; }
-.ss-figure__assumes { margin: 10px 0 0; font-size: var(--ss-type-meta); color: var(--color-text-secondary); }
-.ss-figure__assumes-label { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: var(--ss-type-label); }
-.ss-figure__text { margin-top: 12px; }
-.ss-figure__toggle, .ss-figure__button {
-  min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--color-text-primary);
-  font: 600 var(--ss-type-meta) var(--font-family-body);
-  cursor: pointer;
-}
-.ss-figure__toggle:hover, .ss-figure__button:hover:not(:disabled) { background: var(--color-background-muted); }
-.ss-figure__toggle:focus-visible, .ss-figure__button:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 2px; }
-.ss-figure__button:disabled { opacity: 0.5; cursor: default; }
-.ss-figure__button--quiet { border-style: dashed; }
-.ss-figure__alt { margin: 10px 0 0; font-size: var(--ss-type-compact); line-height: 1.6; color: var(--color-text-primary); }
-
-/* flow */
-.ss-figure__nodes, .ss-figure__edges, .ss-figure__frames, .ss-figure__cells {
-  list-style: none; margin: 0; padding: 0;
-}
-.ss-figure__nodes { display: flex; flex-wrap: wrap; gap: 8px; }
-.ss-figure__node {
-  display: grid; gap: 2px; padding: 8px 12px;
-  border: 1px solid var(--color-border); border-radius: var(--radius-element);
-  background: var(--color-background-muted);
-}
-.ss-figure__node-label { font-weight: 700; font-size: var(--ss-type-compact); }
-.ss-figure__node-note { font-size: var(--ss-type-label); color: var(--color-text-secondary); }
-.ss-figure__edges { display: grid; gap: 6px; margin-top: 10px; }
-.ss-figure__edges li { display: grid; gap: 1px; }
-.ss-figure__edge-ends { font-size: var(--ss-type-meta); font-weight: 600; }
-.ss-figure__edge-label { font-size: var(--ss-type-meta); color: var(--color-text-secondary); }
-
-/* nested */
-.ss-figure__nested .ss-figure__layer {
-  padding: 8px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-element);
-  margin-top: 6px;
-}
-.ss-figure__nested > .ss-figure__layer { margin-top: 0; }
-.ss-figure__layer-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
-.ss-figure__layer-label { font-weight: 700; font-size: var(--ss-type-meta); }
-.ss-figure__layer-value { font-size: var(--ss-type-meta); font-family: var(--font-family-mono, monospace); }
-.ss-figure__layer-note { font-size: var(--ss-type-label); color: var(--color-text-secondary); }
-
-/* table */
-.ss-figure__table { width: 100%; border-collapse: collapse; font-size: var(--ss-type-compact); }
-.ss-figure__table th, .ss-figure__table td {
-  text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--color-border); white-space: nowrap;
-}
-.ss-figure__table th { font-size: var(--ss-type-label); text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-secondary); }
-.ss-figure__row--marked { background: var(--color-background-muted); }
-
-/* steps */
-.ss-figure__cells { display: flex; gap: 6px; padding-bottom: 4px; }
-.ss-figure__cell {
-  display: grid; gap: 2px; justify-items: center; min-width: 56px;
-  padding: 8px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-element);
-}
-.ss-figure__cell--marked { border-color: var(--brand-accent); border-width: 2px; background: var(--color-background-muted); }
-.ss-figure__cell-value { font-family: var(--font-family-mono, monospace); font-weight: 700; }
-.ss-figure__role { font-size: var(--ss-type-label); text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-secondary); }
-.ss-figure__note { margin: 10px 0 0; font-size: var(--ss-type-compact); }
-.ss-figure__counter { font-family: var(--font-family-mono, monospace); font-weight: 700; }
-.ss-figure__controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
-.ss-figure__position { font-size: var(--ss-type-label); color: var(--color-text-secondary); }
-.ss-figure__frames { margin-top: 10px; display: grid; gap: 4px; font-size: var(--ss-type-meta); color: var(--color-text-secondary); counter-reset: figframe; }
-.ss-figure__frames li::before { counter-increment: figframe; content: counter(figframe) ". "; font-weight: 700; }
 
 /* ── Control heights ────────────────────────────────────────────────────────
  *
@@ -717,14 +555,12 @@
    everywhere. On a coarse pointer the 44px floor holds. */
 @media (pointer: fine) {
   .ss-compact .astryx-button,
-  .ss-compact .astryx-segmented-control-item,
-  .ss-compact .ss-term__button {
+  .ss-compact .astryx-segmented-control-item {
     min-height: var(--ss-control-height-compact) !important;
     min-width: var(--ss-control-height-compact) !important;
   }
   .ss-compact .astryx-button::before,
   .ss-compact .astryx-segmented-control-item::before,
-  .ss-compact .ss-term__button::before,
   .ss-footer-settings button::before {
     content: '';
     position: absolute;
@@ -773,47 +609,6 @@
        hit areas touching. */
     padding-inline: 0.3rem;
   }
-}
-
-/* ── Account menu (the Profile / Log out popover) ───────────────────────────
- *
- * The rows fill the popover's content box rather than declaring a width of
- * their own. They used to ask for 168px inside a 168px surface that carries
- * 12px of padding on every side — 24px wider than the 144px available — so the
- * hover fill painted outside the popover's rounded edge.
- *
- * The fill responds to focus as well as hover, because a keyboard user moving
- * between Profile and Log out needs the same "you are here" the mouse gets.
- */
-.ss-account-menu {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  min-width: 0;
-}
-.ss-account-menu__item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  min-height: 44px;
-  padding: 8px 10px;
-  margin: 0;
-  border: none;
-  border-radius: var(--radius-inner);
-  background: transparent;
-  color: var(--color-text-primary);
-  font: inherit;
-  font-size: var(--ss-type-compact);
-  text-align: left;
-  cursor: pointer;
-}
-.ss-account-menu__item:hover,
-.ss-account-menu__item:focus-visible {
-  background: var(--color-background-muted);
-}
-.ss-account-menu__item:focus-visible {
-  outline: 2px solid var(--ss-focus);
-  outline-offset: -2px;
 }
 
 /* Public guides share the same markup before and after React loads. */
@@ -1034,8 +829,6 @@
 .ss-topic-pill[aria-pressed="true"] { border-color: var(--brand-accent); background: var(--brand-accent-soft); color: var(--brand-accent-on-soft); }
 .ss-topic-pill:focus-visible { outline: 3px solid var(--ss-focus); outline-offset: 2px; }
 
-.ss-topic-picker { border: 0; padding: 0; margin: 0; min-width: 0; width: 100%; }
-.ss-topic-picker legend { margin-bottom: 10px; font-weight: 600; }
 .ss-topic-pills { display: flex; flex-wrap: wrap; gap: 8px; }
 .challenge-topic-count { --ss-challenge-gold: light-dark(#946000, #f5c364); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; min-width: 28px; min-height: 44px; font-size: var(--ss-type-meta); }
 .challenge-topic-count:focus-visible { outline: 3px solid var(--ss-focus); outline-offset: 2px; border-radius: var(--radius-element); }

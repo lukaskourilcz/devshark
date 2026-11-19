@@ -1,0 +1,84 @@
+/* Lesson figures. HTML and CSS only: the browser laying out real boxes is the
+   most accurate way to show containment, and the only one that survives a
+   200% zoom in either language. Every mark carries a word as well as a tint. */
+.ss-figure {
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-element);
+  background: var(--color-background-surface);
+}
+.ss-figure__caption { font-weight: 700; font-size: var(--ss-type-compact); margin-bottom: 10px; }
+.ss-figure__scroll { overflow-x: auto; }
+.ss-figure__assumes { margin: 10px 0 0; font-size: var(--ss-type-meta); color: var(--color-text-secondary); }
+.ss-figure__assumes-label { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: var(--ss-type-label); }
+.ss-figure__text { margin-top: 12px; }
+.ss-figure__toggle, .ss-figure__button {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: 600 var(--ss-type-meta) var(--font-family-body);
+  cursor: pointer;
+}
+.ss-figure__toggle:hover, .ss-figure__button:hover:not(:disabled) { background: var(--color-background-muted); }
+.ss-figure__toggle:focus-visible, .ss-figure__button:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 2px; }
+.ss-figure__button:disabled { opacity: 0.5; cursor: default; }
+.ss-figure__button--quiet { border-style: dashed; }
+.ss-figure__alt { margin: 10px 0 0; font-size: var(--ss-type-compact); line-height: 1.6; color: var(--color-text-primary); }
+
+/* flow */
+.ss-figure__nodes, .ss-figure__edges, .ss-figure__frames, .ss-figure__cells {
+  list-style: none; margin: 0; padding: 0;
+}
+.ss-figure__nodes { display: flex; flex-wrap: wrap; gap: 8px; }
+.ss-figure__node {
+  display: grid; gap: 2px; padding: 8px 12px;
+  border: 1px solid var(--color-border); border-radius: var(--radius-element);
+  background: var(--color-background-muted);
+}
+.ss-figure__node-label { font-weight: 700; font-size: var(--ss-type-compact); }
+.ss-figure__node-note { font-size: var(--ss-type-label); color: var(--color-text-secondary); }
+.ss-figure__edges { display: grid; gap: 6px; margin-top: 10px; }
+.ss-figure__edges li { display: grid; gap: 1px; }
+.ss-figure__edge-ends { font-size: var(--ss-type-meta); font-weight: 600; }
+.ss-figure__edge-label { font-size: var(--ss-type-meta); color: var(--color-text-secondary); }
+
+/* nested */
+.ss-figure__nested .ss-figure__layer {
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-element);
+  margin-top: 6px;
+}
+.ss-figure__nested > .ss-figure__layer { margin-top: 0; }
+.ss-figure__layer-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.ss-figure__layer-label { font-weight: 700; font-size: var(--ss-type-meta); }
+.ss-figure__layer-value { font-size: var(--ss-type-meta); font-family: var(--font-family-mono, monospace); }
+.ss-figure__layer-note { font-size: var(--ss-type-label); color: var(--color-text-secondary); }
+
+/* table */
+.ss-figure__table { width: 100%; border-collapse: collapse; font-size: var(--ss-type-compact); }
+.ss-figure__table th, .ss-figure__table td {
+  text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--color-border); white-space: nowrap;
+}
+.ss-figure__table th { font-size: var(--ss-type-label); text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-secondary); }
+.ss-figure__row--marked { background: var(--color-background-muted); }
+
+/* steps */
+.ss-figure__cells { display: flex; gap: 6px; padding-bottom: 4px; }
+.ss-figure__cell {
+  display: grid; gap: 2px; justify-items: center; min-width: 56px;
+  padding: 8px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-element);
+}
+.ss-figure__cell--marked { border-color: var(--brand-accent); border-width: 2px; background: var(--color-background-muted); }
+.ss-figure__cell-value { font-family: var(--font-family-mono, monospace); font-weight: 700; }
+.ss-figure__role { font-size: var(--ss-type-label); text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-secondary); }
+.ss-figure__note { margin: 10px 0 0; font-size: var(--ss-type-compact); }
+.ss-figure__counter { font-family: var(--font-family-mono, monospace); font-weight: 700; }
+.ss-figure__controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.ss-figure__position { font-size: var(--ss-type-label); color: var(--color-text-secondary); }
+.ss-figure__frames { margin-top: 10px; display: grid; gap: 4px; font-size: var(--ss-type-meta); color: var(--color-text-secondary); counter-reset: figframe; }
+.ss-figure__frames li::before { counter-increment: figframe; content: counter(figframe) ". "; font-weight: 700; }

@@ -9,6 +9,7 @@ const SHEETS = {
   appShell: '../src/styles/app-shell.css',
   roadmap: '../src/components/Roadmap.css',
   deepEnd: '../src/components/DeepEndScreens.css',
+  terms: '../src/components/ui/Terms.css',
 } as const;
 
 export function addSheet(name: keyof typeof SHEETS): CSSStyleSheet {
