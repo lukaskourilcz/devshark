@@ -369,10 +369,10 @@ function App() {
   // follows the learner across devices. The account wins over anything cached
   // on this device: a guest may draft a choice, but signing in never silently
   // replaces what the account already says.
+  const accountTrack = preferredTrackOf(user);
   useEffect(() => {
-    const pref = preferredTrackOf(user);
-    if (pref) setTrackValue(pref);
-  }, [user]);
+    if (accountTrack) setTrackValue(accountTrack);
+  }, [user?.id, accountTrack]);
 
   // Pull the account's verified progress and unlocks once per sign-in. Today,
   // the maps and the header read the browser's copy; on a new device, or after
