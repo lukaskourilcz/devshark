@@ -8362,3 +8362,49 @@ The report records Learn invented level-button text, Daily option labels/Check a
 Raw original/follow-up JSON hashes, exact unrounded summaries/ranges, all source sample references, UI headings/buttons, request ledgers, source/dist rechecks and supervisor/cleanup receipts remain in the profile JSON. Both supervisors exited 0, owned children 0 and scratch removed. No field INP, live API/db latency, historical pre-fix baseline or universal gain follows. Full branch parity and required CI remain separate.
 
 The committed profile artifact is `docs/audit/f1-mobile-cdp-2026-11.json`.
+
+
+## Epic F1 baseline: desktop CDP (19 November 2026)
+
+Issue #630, F1-28. The table uses three samples per cache state. Seven routes use the original d09 cohort; Daily uses the separate corrected f5df cohort. Keep the original Daily six paint rows per profile with missing input in the JSON. These are two named cohorts, not one 108-row baseline or a full-matrix rerun.
+
+Actual date: 19 November 2026 UTC. Original CDP 2026-11-19T18:54:17.733Z to 2026-11-19T19:00:19.124Z; corrected Daily 2026-11-19T19:15:49.674Z to 2026-11-19T19:16:35.748Z. Actual external supervisor command arrays and raw hashes are in the JSON. Equivalent collector parameters, with the owned proxy/wrapper still required:
+
+    npm run perf:measure -- --url=http://127.0.0.1:60938 --routes=/,/learn,/coding,/quiz,/daily,/premium,/topics/javascript-closures,/leaderboard --samples=3 --profiles=mobile,desktop --api-origin=http://127.0.0.1:60939 --api-delay-ms=120 --consent=rejected --output=artifacts/performance/eight-route-cdp.json
+
+    npm run perf:measure -- --url=http://127.0.0.1:64221 --routes=/daily --samples=3 --profiles=mobile,desktop --api-origin=http://127.0.0.1:64222 --api-delay-ms=120 --consent=rejected --output=artifacts/performance/daily-cdp.json
+
+These are historical owned local origins, not instructions to request production or reuse closed ports.
+
+The build stays d09 with all six public build keys and 2,259 files; Chrome 157.0.8103.80, default motion, existing mobile 150 ms/1.6 Mbps/CPU4 and desktop 20 ms/10 Mbps/CPU1. The owned proxy adds local overhead. Public fixture reads replay after 120 ms. No production application request, real session issuance, grading or learner write occurred.
+
+| Route | State | Cohort | LCP ms median [min,max] | CLS median | TBT ms median | INP ms median [min,max] | Matched/registered | LCP element |
+|---|---|---|---:|---:|---:|---|---|---|
+| / | cold-browser | initial | 344.0 [340.0,348.0] | 0.000000 | 0.0 | 80.0 [80.0,80.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| / | repeat-browser | initial | 76.0 [76.0,76.0] | 0.000000 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | a.ss-navlink |
+| /learn | cold-browser | initial | 356.0 [348.0,372.0] | 0.000000 | 0.0 | 112.0 [112.0,120.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /learn | repeat-browser | initial | 556.0 [556.0,560.0] | 0.000000 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | main p.rm-section-line |
+| /coding | cold-browser | initial | 356.0 [352.0,364.0] | 0.000000 | 0.0 | 80.0 [80.0,80.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /coding | repeat-browser | initial | 224.0 [204.0,228.0] | 0.000000 | 0.0 | 48.0 [32.0,48.0] | 3/3 and 3/3 | section.cd-track-directory p.cd-track__blurb |
+| /quiz | cold-browser | initial | 356.0 [352.0,360.0] | 0.000000 | 0.0 | 80.0 [80.0,80.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /quiz | repeat-browser | initial | 108.0 [92.0,124.0] | 0.000202 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | main span |
+| /daily | cold-browser | dailyFollowup | 340.0 [336.0,340.0] | 0.052845 | 0.0 | 64.0 [64.0,64.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /daily | repeat-browser | dailyFollowup | 212.0 [212.0,228.0] | 0.052845 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | main p |
+| /premium | cold-browser | initial | 180.0 [176.0,180.0] | 0.000000 | 0.0 | 88.0 [80.0,88.0] | 3/3 and 3/3 | main.ss-public-fallback h1 |
+| /premium | repeat-browser | initial | 204.0 [204.0,208.0] | 0.000000 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | section.ss-info-card p |
+| /topics/javascript-closures | cold-browser | initial | 188.0 [180.0,192.0] | 0.000000 | 0.0 | 72.0 [72.0,72.0] | 3/3 and 3/3 | main.ss-public-fallback h1 |
+| /topics/javascript-closures | repeat-browser | initial | 72.0 [72.0,72.0] | 0.000000 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | a.ss-navlink |
+| /leaderboard | cold-browser | initial | 344.0 [340.0,356.0] | 0.000000 | 0.0 | 72.0 [72.0,80.0] | 3/3 and 3/3 | section.ss-consent p#_r_4_.ss-consent__body |
+| /leaderboard | repeat-browser | initial | 208.0 [204.0,220.0] | 0.000000 | 0.0 | 32.0 [32.0,32.0] | 3/3 and 3/3 | main span |
+
+Original 96-row cohort: 2,990 page request attempts,132 API copies, 2,728 origin network responses,0 sentApi and 4 fresh Node GETs to the local corpus. Exactly 96 settings + 12 map + 12 daily + 12 board copies; all 200, unlisted 0. Daily follow-up 12 rows: 348 attempts, 24 API copies, 318 origin network responses, 0 sentApi and 2 fresh local corpus GETs. Those forwarded counts belong to each entire invocation, not each profile. Counts include different cache/block/fulfilled definitions and should not be substituted for one another.
+
+Original 84 non-Daily rows and all 12 follow-up Daily rows have matched/registered input. The original 12 Daily rows lacked INP and remain preserved. The f5df collector now makes missing, failed or unregistered interaction return nonzero while keeping paint metrics; registered 0 ms and <16 remain valid. Daily selects only its radio option; source/actual diagnosis proves local setSelected and no Check answer/submit. Other route candidates stay menu/mobile and theme/desktop.
+
+Both rows reset the app color-mode key before navigation. Every matched original desktop control says Dark mode, inferring pre-press light; do not call repeat dark. This comes from the source/control-label contract, not a saved DOM theme attribute. Cold/repeat also differs in consent, so these are not pure-cache causal differences. Legacy consentBanner means DOM presence; ready Daily focus mode hides it despite true, and its cold LCP can retain earlier banner paint.
+
+The report records Learn invented level-button text, Daily option labels/Check answer, and Leaderboard heading/tabs. Corpus 200/valid-shape is transport evidence, not a screenshot proving all board-row text. Resource paths omit origin: a blocked Sentry /api/... path is not a same-origin API. Original origin-qualified sentApi remains 0 because local copies fulfilled the reads.
+
+Raw original/follow-up JSON hashes, exact unrounded summaries/ranges, all source sample references, UI headings/buttons, request ledgers, source/dist rechecks and supervisor/cleanup receipts remain in the profile JSON. Both supervisors exited 0, owned children 0 and scratch removed. No field INP, live API/db latency, historical pre-fix baseline or universal gain follows. Full branch parity and required CI remain separate.
+
+The committed profile artifact is `docs/audit/f1-desktop-cdp-2026-11.json`.
