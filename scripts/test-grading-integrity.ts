@@ -36,11 +36,13 @@ import { evaluateInRunRealm } from './run-realm-node';
 import { checkStructuredCloneOwnKeys } from './structured-clone-contracts';
 import { UTC_REACT_APP, UTC_REACT_SUITE } from './fixtures/utc-react';
 import { buildSandboxWorker } from './build-sandbox-worker.mjs';
+import { checkReactBusyContracts } from './react-busy-contracts';
 
 // Every run below goes through the grader's worker thread, built fresh from
 // the sources under test, exactly as the deployment runs it.
 checkQuickjsProvenance();
 await buildSandboxWorker();
+await checkReactBusyContracts();
 
 // ── a task page loads a grader thread ahead of its first Submit (#587) ───
 // Server item 30: the first Submit on an instance waited for a new thread to
@@ -1900,6 +1902,34 @@ export default function App() { return <p>{String(({}).x) + ' ' + [].push(1)}</p
   const after = await runInSandbox({ code: 'const f = () => 1;', calls: ['f()'], expectations: [1] });
   assert.equal(after.results[0]?.pass, true, 'the next run gets a working thread');
   console.log(`PASS integrity: a runaway run is stopped in ${took} ms without blocking the request thread`);
+}
+
+// React syntax conversion runs off the request thread (F11-09).
+// This red baseline imports no future pool or build helper.
+{
+  const task = CODING_TASKS.find(one => one.track === 'react' && one.verify === 'tests' && one.suite && isFreeCodingTask(one.id) && !evolvingStage(one.id))!;
+  assert.ok(task, 'a free non-evolving React task is required');
+  const code = `export default function App(){ const a=1; return ${Array(9000).fill('a').join('+')}; }`;
+  assert.ok(Buffer.byteLength(code) < 20_000, 'the quadratic compiler probe fits the actual code cap');
+  const out = { statusCode: 200, body: null as null | { verdict?: string; codeError?: string | null; graderUnavailable?: boolean }, setHeader() {}, status(status: number) { this.statusCode = status; return this; }, json(body: never) { this.body = body; return this; } };
+  let worstLag = 0, last = Date.now(), ticks = 0;
+  const beat = setInterval(() => { const now = Date.now(); worstLag = Math.max(worstLag, now - last - 20); last = now; ticks++; }, 20);
+  const started = Date.now();
+  try {
+    await handleCodingSubmit({ method: 'POST', headers: { 'x-forwarded-for': '203.0.113.76' }, body: {
+      session: encodeCodingSession({ taskId: task.id, track: 'react', userId: null }), code,
+    } } as never, out as never, null);
+    // Let a timer observe the delay even if a synchronous baseline resolved
+    // Submit through microtasks before the first interval could run.
+    await new Promise(resolve => setTimeout(resolve, 25));
+  } finally { clearInterval(beat); }
+  assert.ok(ticks > 0, 'the heartbeat must actually run');
+  assert.equal(out.statusCode, 200);
+  assert.equal(out.body?.verdict, 'error');
+  assert.equal(out.body?.graderUnavailable, undefined, 'a stopped/nested compile is the existing learner error');
+  assert.match(out.body?.codeError ?? '', /nests too deeply/);
+  assert.ok(worstLag < 500, `React Submit kept the request thread answering (worst lag ${worstLag} ms)`);
+  console.log(`PASS integrity: React syntax conversion keeps the request thread answering (${Date.now() - started} ms, worst lag ${worstLag} ms)`);
 }
 
 // ── type checking runs off the request thread (CODE-2) ───────────────────

@@ -12,13 +12,22 @@ import { pathById } from '../lib/learning-paths/catalog';
 import { gradePathCode, gradePathCodeWith } from '../lib/learning-paths/grade';
 import { solutionFor } from '../lib/learning-paths/solutions';
 import { PATH_AUTHORITY_FIXTURES, type PathAuthorityFixtureId } from './fixtures/path-authority-fixtures';
-import type { MergedCallTest } from '../lib/learning-paths/types';
+import type { MergedCallTest, MergedCode } from '../lib/learning-paths/types';
+import { GraderBusyError } from '../lib/coding/grader-capacity';
 import { protectedPathHarness } from '../lib/learning-paths/harness';
 import { runChecks } from '../lib/coding/sandbox';
 import { allPassed } from '../shared/coding-evaluate';
 import { buildSandboxWorker } from './build-sandbox-worker.mjs';
 
 await buildSandboxWorker();
+// F11-35: the shared path grading body preserves the same capacity error.
+{
+  const code: MergedCode = { language: 'react', prompt: '', starter: '', hints: [], tests: [], typeTests: [], criteria: [], suite: '' };
+  const busy = new GraderBusyError('react_compile_queue_full', 7);
+  await assert.rejects(gradePathCodeWith(code, undefined, 'unused trusted source', async () => { throw busy; }), error => error === busy);
+  console.log('PASS path authority: a busy React compiler preserves the capacity error for the existing 503/Retry-After handler');
+}
+
 const gradeFixture = (id: PathAuthorityFixtureId, source: string, extra: MergedCallTest[] = []) => {
   const fixture = PATH_AUTHORITY_FIXTURES[id];
   return gradePathCodeWith({ ...fixture.code, tests: [...fixture.code.tests, ...extra] }, fixture.solution, source);

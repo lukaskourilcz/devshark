@@ -20,6 +20,7 @@ function fixture(run) {
     file(source, 'client/dist/sandbox/index.html', '<h1>Sandbox</h1>');
     const runner = 'module.exports = {};';
     file(source, 'lib/coding/generated/react-sandbox.cjs', runner);
+    file(source, 'lib/coding/generated/react-compile-worker.cjs', 'module.exports = { compilerFixture: true };');
     file(source, 'lib/coding/generated/react-sandbox.sha256.cjs', JSON.stringify(createHash('sha256').update(runner).digest('hex')) + '\n');
     run({ dir, source, destination, file, exec });
   } finally { rmSync(dir, { recursive: true, force: true }); }
@@ -28,7 +29,7 @@ function fixture(run) {
 test('shares the exact build including hidden provenance, source maps and grader output', () => fixture(({ source, destination, exec }) => {
   const packed = exec(source, 'pack'); assert.equal(packed.status, 0, packed.stderr);
   const restored = exec(destination, 'restore'); assert.equal(restored.status, 0, restored.stderr);
-  for (const name of ['client/dist/.vite/manifest.json', 'client/dist/assets/main.js.map', 'client/dist/sandbox/index.html', 'lib/coding/generated/react-sandbox.cjs', 'lib/coding/generated/react-sandbox.sha256.cjs']) {
+  for (const name of ['client/dist/.vite/manifest.json', 'client/dist/assets/main.js.map', 'client/dist/sandbox/index.html', 'lib/coding/generated/react-sandbox.cjs', 'lib/coding/generated/react-sandbox.sha256.cjs', 'lib/coding/generated/react-compile-worker.cjs']) {
     assert.deepEqual(readFileSync(path.join(destination, name)), readFileSync(path.join(source, name)));
   }
 }));
@@ -90,3 +91,28 @@ for (const change of ['missing-sidecar', 'changed-runner']) {
     assert.equal(readFileSync(path.join(destination, 'lib/coding/generated/keep.cjs'), 'utf8'), 'keep this generated tree');
   }));
 }
+
+
+// A recomputed generic inventory must not make a missing required compiler
+// artifact acceptable, and a refused restore must preserve the old tree.
+test('refuses packing without the React compiler worker', () => fixture(({ source, exec }) => {
+  rmSync(path.join(source, 'lib/coding/generated/react-compile-worker.cjs'));
+  const packed = exec(source, 'pack');
+  assert.equal(packed.status, 1, packed.stderr); assert.match(packed.stderr, /compiler.*artifact/i);
+}));
+
+test('refuses restoring a missing React compiler even with a recomputed inventory and preserves the destination', () => fixture(({ dir, source, destination, file, exec }) => {
+  assert.equal(exec(source, 'pack').status, 0);
+  rmSync(path.join(source, 'lib/coding/generated/react-compile-worker.cjs'));
+  const manifestPath = path.join(source, 'artifacts/client-build-manifest.json');
+  const metadata = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  metadata.files = metadata.files.filter(one => one.path !== 'lib/coding/generated/react-compile-worker.cjs');
+  writeFileSync(manifestPath, JSON.stringify(metadata, null, 2) + '\n');
+  execFileSync('tar', ['-cf', path.join(dir, 'build.tar'), 'client/dist', 'lib/coding/generated', 'artifacts/client-build-manifest.json'], { cwd: source });
+  file(destination, 'client/dist/index.html', 'keep this client');
+  file(destination, 'lib/coding/generated/keep.cjs', 'keep this generated tree');
+  const restored = exec(destination, 'restore');
+  assert.equal(restored.status, 1, restored.stderr); assert.match(restored.stderr, /compiler.*artifact/i);
+  assert.equal(readFileSync(path.join(destination, 'client/dist/index.html'), 'utf8'), 'keep this client');
+  assert.equal(readFileSync(path.join(destination, 'lib/coding/generated/keep.cjs'), 'utf8'), 'keep this generated tree');
+}));
