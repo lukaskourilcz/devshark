@@ -8408,3 +8408,35 @@ The report records Learn invented level-button text, Daily option labels/Check a
 Raw original/follow-up JSON hashes, exact unrounded summaries/ranges, all source sample references, UI headings/buttons, request ledgers, source/dist rechecks and supervisor/cleanup receipts remain in the profile JSON. Both supervisors exited 0, owned children 0 and scratch removed. No field INP, live API/db latency, historical pre-fix baseline or universal gain follows. Full branch parity and required CI remain separate.
 
 The committed profile artifact is `docs/audit/f1-desktop-cdp-2026-11.json`.
+
+
+## Epic F1 baseline: production Home calibration (19 November 2026)
+
+The fixed Home-only calibration completed at 19:30:24–19:31:05 UTC: one Lighthouse audit per profile and one CDP sample per profile/cache condition, without retries. Fresh READY production metadata at 19:30:23 UTC associated `devshark.app` with `dpl_Efb7TFTrUEyYUqSebQWv3ccv6zve`, source `cbdfa2aa995e7dd71c7d0197fee7f35df21ca205`. The collectors were pinned to `f5df3b6fdb01d4e1f4d187ee75cc9f1cc90fcb8e`, using Chrome 157.0.8103.80 and Lighthouse 13.4.1. No fixture/replay or authenticated session was used.
+
+| Lighthouse profile (one sample) | Performance / accessibility / best practices / SEO | FCP ms | LCP ms | CLS | TBT ms | Speed index ms | Benchmark |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Mobile | 97 / 100 / 100 / 100 | 2097.628 | 2123.128 | 0 | 0.5 | 2097.628 | 2112 |
+| Desktop | 100 / 100 / 100 / 100 | 479.633 | 486.133 | 0 | 0 | 566.164 | 2054 |
+
+Both Lighthouse LCP nodes were the consent paragraph. Saved final screenshots show anonymous Home and the consent banner; no runtime/audit errors or warnings were reported. These are single observations under Lighthouse simulated throttling, not variance estimates or a controlled before/after comparison.
+
+| CDP profile / browser state (one sample) | Consent | TTFB ms | FCP / LCP ms | CLS / TBT ms | Scripted INP ms | Input |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| Mobile cold | undecided | 221.9 | 1800 / 1800 | 0 / 0 | 104 | navigation menu, registered |
+| Mobile repeat | rejected | 152.6 | 276 / 276 | 0 / 0 | 48 | navigation menu, registered |
+| Desktop cold | undecided | 99.2 | 428 / 428 | 0 / 0 | 80 | Dark mode, registered |
+| Desktop repeat | rejected | 21.9 | 64 / 64 | 0 / 0 | 32 | Dark mode, registered |
+
+The CDP cold LCP nodes were also the consent paragraph; repeat nodes were a styled span on mobile and a navigation link on desktop. All four inputs matched and registered, with no interaction failures. CDP writes the light-theme preference on every navigation, and both desktop controls were `Dark mode`; pre-press light appearance is inferred from source/control evidence. Repeat navigation also changes consent and LCP content, so this is not a pure cache comparison. `consentBanner` records DOM presence. Scripted INP is not field INP, and cold browser is not cold server.
+
+The independently reconstructed Lighthouse method ledgers contain 35 public-origin GET/200 events per audit, no redirects/session headers/loading failures, and no foreign HTTP attempt events. Lighthouse's broader request counts of 44/45 also include 9/10 local/data events. Separately, CDP records 94 interception events and 88 same-origin network responses, including four same-origin API responses; ResourceTiming contains `/api/settings` but does not retain status/origin itself. Two mutating-method attempts were refused by the existing CDP guard before forwarding. Their identities/origins were not retained, so no Sentry/application attribution is made.
+
+The CONNECT proxy allowed only `devshark.app:443`, kept TLS end-to-end, and denied foreign transport. Its tunnels/TLS bytes are separate counters; it cannot inspect HTTPS methods or enforce a global GET cap. Normal DNS selected IPv4 for the eight established origin tunnels. Public monitoring configuration was not removed, and proxy overhead remains part of the measurement. This observation does not repair the older incomplete request ledger: the preceding raw-transfer phase remains eight attempts/seven complete responses/one unknown, and no exact combined cumulative count or under 250/headroom assertion is made.
+
+Both collectors and the supervisor exited zero; all 33 pinned source files still match, owned scratch is absent, and the receipt has no cleanup error. No separate process-liveness scan was performed by this projection review. Private raw DevTools/trace assets remain outside the repository under a 0700 directory with 0600 files; only safe metrics and hash pins belong in [the production calibration artifact](audit/f1-production-home-calibration-2026-11-19.json). Keep this Home-only production calibration separate from the eight-route local synthetic cohorts and historical initial-baseline gaps.
+
+A later root read-only process scan at 2026-11-19T19:39:13.467185+00:00
+finds zero processes bearing the three exact owned browser-scratch markers.
+`docs/audit/f1-browser-lifecycle-2026-11.json` retains that narrow observation;
+it does not claim that unrelated browser processes stopped.

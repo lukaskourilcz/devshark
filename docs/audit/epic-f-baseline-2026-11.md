@@ -16,7 +16,7 @@ credential or real provider is needed for those local builds.
 | --- | --- | --- |
 | Initial graph | [Shaped bundle](f1-bundle-2026-11.json): four initial files, 218,661 gzip bytes / 218,675 cap, no preloaded fonts; matching monitoring 46,800 / 60,000. | New local checkpoint, not a recreated original `a9882348` observation. [Actual production transfer](f1-production-bundle-2026-11-19.json) records five complete bodies, 225,897 encoded bytes including HTML; the earlier partial run remains separate. |
 | Largest chunks and treemap | The same artifact retains all ten largest of 233 chunks and hashes of the matching generated treemap/module report, saved with the external execution logs. | Lazy compiler/editor chunks are separate from initial bytes. Per-module gzip estimates do not add up to whole-file gzip. |
-| Lighthouse and CDP | [Mobile Lighthouse](f1-mobile-lighthouse-2026-11.json), [desktop Lighthouse](f1-desktop-lighthouse-2026-11.json): 48 completed audits. [Mobile CDP](f1-mobile-cdp-2026-11.json) and [desktop CDP](f1-desktop-cdp-2026-11.json) preserve the original 96 rows plus the separate corrected Daily cohort. | The primary CDP tables use 84 original interaction-valid rows plus 12 corrected Daily rows; the original twelve missing inputs remain visible. Production Home calibration F1-45 is pending. Static Lighthouse and populated CDP states differ. |
+| Lighthouse and CDP | [Mobile Lighthouse](f1-mobile-lighthouse-2026-11.json), [desktop Lighthouse](f1-desktop-lighthouse-2026-11.json): 48 completed audits. [Mobile CDP](f1-mobile-cdp-2026-11.json) and [desktop CDP](f1-desktop-cdp-2026-11.json) preserve the original 96 rows plus the separate corrected Daily cohort. | The primary CDP tables use 84 original interaction-valid rows plus 12 corrected Daily rows; the original twelve missing inputs remain visible. [Production Home calibration](f1-production-home-calibration-2026-11-19.json) completes two Lighthouse audits and four registered CDP rows under its separate real-origin/proxy scope. Static Lighthouse and populated CDP states differ. |
 | Handler entry and imports | [Complete handler baseline](f1-handler-baseline-2026-11-19.json): actual merged-F7 production 36 read/refusal responses, and two original twelve-handler local import checkpoints with 36 samples each. | Local CJS imports are not deployed Lambda inventory, platform boot, retained memory or authorized learner-operation timing. Slower rows and unknown module markers remain. |
 | Images | [Inventory](image-inventory-2026-11.json) and [provenance](image-inventory-provenance-2026-11.json): two byte-identical executions; independent count of 11 source files / 269,577 bytes. Fresh explicit dist has 907 images / 14,602,295 bytes, including 895 generated OG PNGs. | Source-line size hints and lexical references are not rendered size, reachability or deletion authority. Built package attribution remains unknown. |
 | Production dependencies | [Exact-lock audit logs](f1-production-audits-2026-11-19.json): both final F7 production-only audits pass with zero vulnerabilities; lock hashes match current main. | Historical logs retain their run window. Host npm version and per-command timestamps in this selected evidence are unknown; future branch gates add separate observations. |
@@ -28,7 +28,7 @@ credential or real provider is needed for those local builds.
 [The partial ledger](f1-production-request-ledger-2026-11-19.json) reconciles
 154 declared request counts and 161 known completed response observations in
 the selected 19 November evidence. F7's 48 attempts and both later raw-transfer runs' eight attempts carry explicit
-attempt counters in that selected set. Earlier canonical evidence separately
+attempt counters in that selected set. The later Home calibration is recorded separately: 70 Lighthouse GET events and 88 CDP network responses have different counting boundaries and are not added into an exact combined total. Earlier canonical evidence separately
 reports about 290 requests without a raw exact ledger. It is not valid to add
 that approximation to exact rows, reset the counter or infer remaining
 headroom. Preview63, local loopback and metadata-service queries are separate.
@@ -37,8 +37,8 @@ NEEDED.md records the reversible local eight-route choice and the explicitly
 authorized small production Home calibration. The earlier no-more-probes
 choice inferred an owner gate from contradictory historical under-250 wording;
 review of the original brief corrected that interpretation. Raw production
-transfer is now recorded after its genuine deadline correction; browser
-calibration is still pending collection, not zero. Every new attempt must be counted with its own scope and bounds. The missing original pre-fix
+transfer is now recorded after its genuine deadline correction; the separately
+recorded Home browser calibration is also complete. Every new attempt must be counted with its own scope and bounds. The missing original pre-fix
 timing cannot be recreated as an observation from its original date or SHA.
 These limits remain visible. A new retake of the historical source is being prepared with its actual date and exact dependency versions; it will not be presented as a recovered original observation. Package closeout still requires the remaining measurements, branch parity and required CI.
 

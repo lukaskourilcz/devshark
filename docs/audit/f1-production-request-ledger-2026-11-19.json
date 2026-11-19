@@ -150,5 +150,54 @@
     "locallyFinished": 8,
     "completeHTTP200": 7,
     "unknown": 1
-  }
+  },
+  "counterScope": "Existing numeric totals cover the selected legacy/raw subledger only. Later browser calibration has distinct event/response definitions below and is not folded into a false exact combined HTTP total.",
+  "browserCalibrationPhases": [
+    {
+      "scope": "F1-45 Home calibration; fixed2LH+4CDP rows",
+      "recordedAt": "2026-11-19T19:31:05.895Z",
+      "origin": "https://devshark.app",
+      "lighthouse": {
+        "audits": 2,
+        "publicOriginGetAttemptEvents": 70,
+        "publicOriginStatus200Events": 70,
+        "thirdPartyHttpAttemptEvents": 0,
+        "forbidden": 0
+      },
+      "cdp": {
+        "rows": 4,
+        "requestInterceptionEvents": 94,
+        "sameOriginNetworkResponses": 88,
+        "sameOriginApiNetworkResponses": 4,
+        "blockedMutatingMethodAttempts": 2,
+        "blockedAttemptIdentitiesRetained": false
+      },
+      "countEvidence": "LH: retained official DevTools event ledger independently reconstructed. CDP: original collector interception/response counts. Counts have different boundaries; no exact combined request total is asserted.",
+      "exactInstrumentedAttemptsComparableToRawCollector": null,
+      "historicalBudgetComplete": false,
+      "headroomClaim": false,
+      "evidence": [
+        {
+          "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/run-provenance.json",
+          "bytes": 2401,
+          "sha256": "7a3a5eb1c4ab8f063a7332bd455bc80bc4f7630db5babd7ad08bedb71f94d9c4"
+        },
+        {
+          "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/cdp.json",
+          "bytes": 47349,
+          "sha256": "3b4a1d31cefd9f16b4b7834a440cd482ef67e02492450f007db2f4200988ba9b"
+        },
+        {
+          "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/mobile-home.safe-request-ledger.json",
+          "bytes": 10550,
+          "sha256": "5cdccd95076ec8b68729ac47be82a41f5ca8327cf8ec38d803f967bf6dc2b42d"
+        },
+        {
+          "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/desktop-home.safe-request-ledger.json",
+          "bytes": 10552,
+          "sha256": "d07f32f5af5b340556a8a1a9a633a46d959cff306644c93511fb2f92a5dea1cd"
+        }
+      ]
+    }
+  ]
 }

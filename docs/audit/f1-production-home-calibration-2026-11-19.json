@@ -1,0 +1,1054 @@
+{
+  "schemaVersion": 1,
+  "findingIds": [
+    "F1-45"
+  ],
+  "status": "ACTUAL_COMPLETED_OBSERVATION",
+  "scope": "Production Home only, two Lighthouse audits plus four CDP cold/repeat rows; no retries",
+  "observedAtUtc": {
+    "started": "2026-11-19T19:30:24.064Z",
+    "finished": "2026-11-19T19:31:05.895Z"
+  },
+  "origin": "https://devshark.app",
+  "deploymentBeforeRun": {
+    "observedAt": "2026-11-19 19:30:23 UTC",
+    "id": "dpl_Efb7TFTrUEyYUqSebQWv3ccv6zve",
+    "state": "READY",
+    "target": "production",
+    "regions": [
+      "arn1"
+    ],
+    "alias": [
+      "devshark.app",
+      "react-express-app-five.vercel.app",
+      "react-express-app-lukas-kourils-projects.vercel.app",
+      "react-express-app-git-main-lukas-kourils-projects.vercel.app"
+    ],
+    "githubCommitSha": "cbdfa2aa995e7dd71c7d0197fee7f35df21ca205"
+  },
+  "deploymentBeforeRunEvidence": {
+    "file": "/tmp/devshark-epic-f-handoff/f1-production-deployment-before-home-20261119.json",
+    "bytes": 437,
+    "sha256": "6eb17ce1e76a1bde8b6b18445f5ad6113c0be6ce95c6436977c2730591cc853b"
+  },
+  "toolSourceRevision": "f5df3b6fdb01d4e1f4d187ee75cc9f1cc90fcb8e",
+  "sourcePinCount": 33,
+  "sourcePinsMatchCurrentFiles": true,
+  "sourcePins": [
+    {
+      "path": "scripts/measure-web-performance.mjs",
+      "sha256": "ac5258ef9091a6aacf597a48000f175f9a40a090815db7a978016916957263d7",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "scripts/audit-performance.mjs",
+      "sha256": "8c15861fb013f72c69482c06f5846ed6c5996e17e9d021124e8c60adae571bd4",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/src/components/Home.tsx",
+      "sha256": "02f398eb59d558a8f6bb00ee796bc42cbee60460b6a069802589d86d3f8b1f53",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/src/components/landing/FdePathFeature.tsx",
+      "sha256": "cfcf3ae5fb1b0ffbde8d5686f1c3e2155d8b82d0f2b8dc891f3c498b37e09688",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/src/lib/gameConfig.ts",
+      "sha256": "61e4ff61afac0865208ff10208c140ec18b71bcd7f90a4a1719e22413f3d3704",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/src/lib/entitlement.ts",
+      "sha256": "323f8f4fb61471fb27738ffc638703b8d57c800f76c66634c567efc07746c58e",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/src/lib/auth.tsx",
+      "sha256": "c6b355e401170bc57efd67761d4d7e9b783fcd82cc74b6d4fb9253557399e43a",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/src/lib/analytics.ts",
+      "sha256": "0c6fa36d9dec0494d45debec32dea1e6b3008ba37b9c59eac875678cf3c3889d",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/src/lib/posthogClient.ts",
+      "sha256": "fcb11e0290e542bb72133921fb8f6e22105aebefbfe3ec710638fe38c9c4e210",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/src/lib/sentry.ts",
+      "sha256": "4e2979066a25b9e21011b216b7490ca2b0811826ef070b7d8bdd626f79f89515",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/src/lib/sentry-sdk.ts",
+      "sha256": "2bcbad4405d160533bfd0f8f68a12a9501bf98e7580d162dfbc631b6eb1f85ac",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/src/lib/supabaseClient.ts",
+      "sha256": "de4535b2ddc72cbbc227be3c0204f94dab6c92232e1a9f2bb9c7c169be1fe744",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "shared/learn-section-ids.ts",
+      "sha256": "a4e074cdeabcaac45969b1622f6d6198d00aaa639059ddf4b4a8fd9c37572026",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "node_modules/lighthouse/core/lib/asset-saver.js",
+      "sha256": "39d8a83c048bdf1f8bbcd069d72e1d5cbfea3a87116b6435f17612b5646de7a4",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "node_modules/lighthouse/core/audits/network-requests.js",
+      "sha256": "03d2fe234a788f16d20918a552cb45266c8f406139e27c8db5597387ad814337",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "node_modules/lighthouse/cli/cli-flags.js",
+      "sha256": "163d37bacda6c974602f5ecad3737da64eb4d2505926b92e8d39275877a59a03",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "node_modules/lighthouse/core/lib/sentry.js",
+      "sha256": "ea85b7a359c5c47098d3f896652fca90e9a3b92ccf85aef75750d06bac540dd5",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/public/og-image.png",
+      "sha256": "293a55fb002780585fa731c46919e06677bd43d9cfcf8439ef51c67265f73c79",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/src/lib/publicMetadata.ts",
+      "sha256": "387de713ecfdcc1b6397de792272a22264404762cdf8d1547069c14ae3eb0668",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/vite.config.ts",
+      "sha256": "4b85a20c0ed851f1431e4593a7dfb904c7ad09d888faafedc4e50e6c472c703c",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/public/apple-touch-icon.png",
+      "sha256": "5b1c0f0c0509123e874e558addaa79dfa865c2de342c13dc29bdf139f6519409",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/public/favicon-32.png",
+      "sha256": "3448011cc5b0aa808b0305dfe4325a2874c8d4c661d73a2e71b2e0cb5fc5dd2c",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/public/favicon-white.svg",
+      "sha256": "c10495dbea259c2f2df82a025d8bdc1d80f07a05cf794f3e9d867347518c0547",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/public/favicon.ico",
+      "sha256": "c871d6cbd04d2701c87541b7409efce179cfbd6ed6be8de902e246f171a34a4f",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/public/favicon.svg",
+      "sha256": "c86399a6f713b9b65db7defe34328d27c63f0ced02bca89e0a5ad331cf0a5165",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/public/font-licenses.txt",
+      "sha256": "2cf47f042206507ea0332ba5cfd094d0c55b236a7055d1417f881884a5ff7b17",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/public/icon-192.png",
+      "sha256": "60d4e6862718dc0af0ea0b87a4954ded2b0f6bffa1cda525258cbebcef6fbfcd",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/public/icon-512.png",
+      "sha256": "8df47f8f50a0b7023de1cbbd997cdbf9738c3f2797c3ce4e7f85bfb5f58dadb1",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/public/icon.svg",
+      "sha256": "32265987491fadcad91dcd12d422367d1bb0a6f16ab7b2908b14efb534bb1644",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/src/assets/brand/devshark-wordmark.svg",
+      "sha256": "73a43f77b3839d546797b68c4a41e5dd54656026fd9ab0e70a0222c4be5e7bcb",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/src/components/BrandLogo.tsx",
+      "sha256": "a9b39daede7ed01a0a3cf5aa2b60e744987dc74830fa148618932e60f45b1d4c",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "client/index.html",
+      "sha256": "b566708045250b698b047c5e37b6526d321614c68db3314b3b02ffc0d04dce75",
+      "matchesCurrentFile": true
+    },
+    {
+      "path": "scripts/test-perf-tools.mjs",
+      "sha256": "a4466bdf28bd9198bc4dd27d60d650fe5df61c86fadc8129c319939190c2f36f",
+      "matchesCurrentFile": true
+    }
+  ],
+  "execution": {
+    "supervisorCommand": [
+      "/private/tmp/devshark-epic-f-handoff/node24/node_modules/node/bin/node",
+      "/private/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-UNRUN/run-home.UNRUN.mjs",
+      "/Users/lukas/.t3/projects/devshark/react-express-app",
+      "/private/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119",
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    ],
+    "supervisorManifestSha256": "5563d3683b6b579b5b031851831d430edecfdf2b0583b8c39e90e0f8ba33d845",
+    "chrome": "157.0.8103.80",
+    "chromeExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "node": "24 (collector/controller fail closed outside major24; exact binary is in supervisor command)",
+    "noFixtureOrReplay": true,
+    "lighthouseExitCode": 0,
+    "cdpExitCode": 0,
+    "supervisorExitCode": 0,
+    "elapsedSeconds": 42.451,
+    "scratchAbsent": true,
+    "cleanupError": null
+  },
+  "lighthouse": [
+    {
+      "profile": "mobile",
+      "route": "/",
+      "requestedUrl": "https://devshark.app/",
+      "run": 1,
+      "finalUrl": "https://devshark.app/",
+      "fetchTime": "2026-11-19T19:30:27.676Z",
+      "lighthouseVersion": "13.4.1",
+      "scores": {
+        "performance": 0.97,
+        "accessibility": 1,
+        "best-practices": 1,
+        "seo": 1
+      },
+      "fcpMs": 2097.628,
+      "lcpMs": 2123.128,
+      "cls": 0,
+      "tbtMs": 0.5,
+      "speedIndexMs": 2097.628,
+      "lcpElement": {
+        "selector": "section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_",
+        "nodeLabel": "devShark keeps what sign-in, settings and progress need in this browser. With y…",
+        "subparts": {
+          "timeToFirstByte": 186.042,
+          "elementRenderDelay": 217.672
+        }
+      },
+      "transferredBytes": 337167,
+      "requestCount": 44,
+      "benchmarkIndex": 2112,
+      "throttlingMethod": "simulate",
+      "throttling": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      },
+      "warnings": [],
+      "samples": 1,
+      "runtimeError": null,
+      "auditErrorIds": [],
+      "screenEmulation": {
+        "mobile": true,
+        "width": 412,
+        "height": 823,
+        "deviceScaleFactor": 1.75,
+        "disabled": false
+      },
+      "environment": {
+        "networkUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36",
+        "hostUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+        "benchmarkIndex": 2112,
+        "credits": {
+          "axe-core": "4.13.0"
+        }
+      },
+      "publicRequestLedger": {
+        "getAttempts": 35,
+        "status200": 35,
+        "forbidden": [],
+        "localOrDataAttemptEvents": 9,
+        "thirdPartyAttemptEvents": 0
+      },
+      "report": {
+        "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/mobile-home.report.json",
+        "bytes": 663297,
+        "sha256": "4d647295fa55309709fdcbc69a68c234778a68f268a2b9987523275ef09e8cfb"
+      },
+      "safeLedger": {
+        "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/mobile-home.safe-request-ledger.json",
+        "bytes": 10550,
+        "sha256": "5cdccd95076ec8b68729ac47be82a41f5ca8327cf8ec38d803f967bf6dc2b42d"
+      }
+    },
+    {
+      "profile": "desktop",
+      "route": "/",
+      "requestedUrl": "https://devshark.app/",
+      "run": 1,
+      "finalUrl": "https://devshark.app/",
+      "fetchTime": "2026-11-19T19:30:40.956Z",
+      "lighthouseVersion": "13.4.1",
+      "scores": {
+        "performance": 1,
+        "accessibility": 1,
+        "best-practices": 1,
+        "seo": 1
+      },
+      "fcpMs": 479.633,
+      "lcpMs": 486.133,
+      "cls": 0,
+      "tbtMs": 0,
+      "speedIndexMs": 566.1641583995915,
+      "lcpElement": {
+        "selector": "section.ss-consent > div.ss-consent__inner > div.ss-consent__copy > p#_r_4_",
+        "nodeLabel": "devShark keeps what sign-in, settings and progress need in this browser. With y…",
+        "subparts": {
+          "timeToFirstByte": 109.131,
+          "elementRenderDelay": 381.329
+        }
+      },
+      "transferredBytes": 337218,
+      "requestCount": 45,
+      "benchmarkIndex": 2054,
+      "throttlingMethod": "simulate",
+      "throttling": {
+        "rttMs": 40,
+        "throughputKbps": 10240,
+        "requestLatencyMs": 0,
+        "downloadThroughputKbps": 0,
+        "uploadThroughputKbps": 0,
+        "cpuSlowdownMultiplier": 1
+      },
+      "warnings": [],
+      "samples": 1,
+      "runtimeError": null,
+      "auditErrorIds": [],
+      "screenEmulation": {
+        "mobile": false,
+        "width": 1350,
+        "height": 940,
+        "deviceScaleFactor": 1,
+        "disabled": false
+      },
+      "environment": {
+        "networkUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+        "hostUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+        "benchmarkIndex": 2054,
+        "credits": {
+          "axe-core": "4.13.0"
+        }
+      },
+      "publicRequestLedger": {
+        "getAttempts": 35,
+        "status200": 35,
+        "forbidden": [],
+        "localOrDataAttemptEvents": 10,
+        "thirdPartyAttemptEvents": 0
+      },
+      "report": {
+        "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/desktop-home.report.json",
+        "bytes": 595755,
+        "sha256": "e34ead5b8c28dc6dd5fd4bd3877b4587df2ca61be7d0f3659f5abeaae7e1200a"
+      },
+      "safeLedger": {
+        "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/desktop-home.safe-request-ledger.json",
+        "bytes": 10552,
+        "sha256": "d07f32f5af5b340556a8a1a9a633a46d959cff306644c93511fb2f92a5dea1cd"
+      }
+    }
+  ],
+  "cdp": {
+    "environment": {
+      "origin": "https://devshark.app",
+      "apiOrigin": null,
+      "apiDelayMs": null,
+      "time": "2026-11-19T19:31:05.181Z",
+      "platform": "darwin",
+      "arch": "arm64",
+      "chrome": "157.0.8103.80",
+      "network": "mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP",
+      "samples": 1,
+      "reducedMotion": "no-preference",
+      "consent": {
+        "cold-browser": "undecided",
+        "repeat-browser": "rejected"
+      },
+      "consentBannerDefinition": "DOM presence only; question focus mode can hide the existing banner. This is not a visibility measurement.",
+      "ttfbDefinition": "responseStart (web-vitals)",
+      "clsDefinition": "largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press",
+      "tbtDefinition": "long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)",
+      "summaryDefinition": "one row per profile, path and cache state: the median of each metric over the measured samples (the lower middle one for an even count, so each value is one a sample measured), the LCP element of the median-LCP sample, errors = samples a failure left without a measurement",
+      "requestsDefinition": "requests the page made per kind at the lab interception; sent = responses the origin returned over the network, without cache hits or answers the lab fulfilled",
+      "serverWaitDefinition": "responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)",
+      "scope": "anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP"
+    },
+    "summary": [
+      {
+        "profile": "mobile",
+        "path": "/",
+        "cache": "cold-browser",
+        "samples": 1,
+        "errors": 0,
+        "ttfbMs": 221.8999999910593,
+        "fcpMs": 1800,
+        "lcpMs": 1800,
+        "lcpElement": "section.ss-consent p#_r_4_.ss-consent__body",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 104,
+        "requests": 41
+      },
+      {
+        "profile": "mobile",
+        "path": "/",
+        "cache": "repeat-browser",
+        "samples": 1,
+        "errors": 0,
+        "ttfbMs": 152.6000000089407,
+        "fcpMs": 276,
+        "lcpMs": 276,
+        "lcpElement": "span.xb3r6kr.xlyipyv",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 48,
+        "requests": 9
+      },
+      {
+        "profile": "desktop",
+        "path": "/",
+        "cache": "cold-browser",
+        "samples": 1,
+        "errors": 0,
+        "ttfbMs": 99.20000000298023,
+        "fcpMs": 428,
+        "lcpMs": 428,
+        "lcpElement": "section.ss-consent p#_r_4_.ss-consent__body",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 80,
+        "requests": 39
+      },
+      {
+        "profile": "desktop",
+        "path": "/",
+        "cache": "repeat-browser",
+        "samples": 1,
+        "errors": 0,
+        "ttfbMs": 21.900000005960464,
+        "fcpMs": 64,
+        "lcpMs": 64,
+        "lcpElement": "a.ss-navlink",
+        "cls": 0,
+        "tbtMs": 0,
+        "inpMs": 32,
+        "requests": 5
+      }
+    ],
+    "results": [
+      {
+        "profile": "mobile",
+        "path": "/",
+        "sample": 0,
+        "cache": "cold-browser",
+        "consent": "undecided",
+        "navigation": {
+          "ttfb": 221.8999999910593,
+          "serverWait": 150,
+          "redirect": 0,
+          "dns": 0,
+          "connect": 65.79999999701977,
+          "tls": 50.79999999701977,
+          "download": 18.5,
+          "domContentLoaded": 1640.2000000029802,
+          "load": 2006.7999999970198
+        },
+        "fcp": 1800,
+        "lcp": 1800,
+        "lcpElement": {
+          "tag": "p",
+          "id": "_r_4_",
+          "classes": [
+            "ss-consent__body"
+          ],
+          "container": "section.ss-consent",
+          "size": 33578,
+          "url": null
+        },
+        "cls": 0,
+        "tbtMs": 0,
+        "interaction": {
+          "control": "Open navigation menu",
+          "matched": true,
+          "registered": true,
+          "firstInput": {
+            "event": "pointerdown",
+            "ms": 104
+          }
+        },
+        "inpMs": 104,
+        "interactionCount": 1,
+        "inpParts": {
+          "event": "pointerdown,pointerup,click",
+          "inputDelay": 4.200000002980232,
+          "processing": 34.70000000298023,
+          "presentation": 65.09999999403954
+        },
+        "consentBanner": true,
+        "heading": "Lessons, quizzes and coding tasks for web developers.",
+        "buttons": [
+          "Open navigation menu",
+          "Sign in",
+          "Reject all",
+          "Accept all",
+          "Choose",
+          "Choose a topic",
+          "Sign in",
+          "A6",
+          "B8",
+          "C9",
+          "D5",
+          "Learn JavaScript",
+          "Learn TypeScript",
+          "Learn React",
+          "Learn Next.js",
+          "Learn Node.js",
+          "Learn HTML",
+          "Learn CSS",
+          "See every topic in Learn",
+          "Start learning JavaScript"
+        ],
+        "blockedWrites": 0,
+        "diskHits": 0,
+        "requests": {
+          "document": 1,
+          "script": 32,
+          "stylesheet": 4,
+          "font": 0,
+          "image": 1,
+          "api": 1,
+          "other": 2,
+          "blocked": 0,
+          "sent": 40,
+          "sentApi": 1
+        }
+      },
+      {
+        "profile": "mobile",
+        "path": "/",
+        "sample": 0,
+        "cache": "repeat-browser",
+        "consent": "rejected",
+        "navigation": {
+          "ttfb": 152.6000000089407,
+          "serverWait": 150.1000000089407,
+          "redirect": 0,
+          "dns": 0,
+          "connect": 0,
+          "tls": 0,
+          "download": 8.899999991059303,
+          "domContentLoaded": 215.6000000089407,
+          "load": 223.30000001192093
+        },
+        "fcp": 276,
+        "lcp": 276,
+        "lcpElement": {
+          "tag": "span",
+          "id": null,
+          "classes": [
+            "xb3r6kr",
+            "xlyipyv"
+          ],
+          "container": null,
+          "size": 1007,
+          "url": null
+        },
+        "cls": 0,
+        "tbtMs": 0,
+        "interaction": {
+          "control": "Open navigation menu",
+          "matched": true,
+          "registered": true,
+          "firstInput": {
+            "event": "pointerdown",
+            "ms": 48
+          }
+        },
+        "inpMs": 48,
+        "interactionCount": 1,
+        "inpParts": {
+          "event": "pointerdown,pointerup,click",
+          "inputDelay": 2.7999999970197678,
+          "processing": 24.200000002980232,
+          "presentation": 21
+        },
+        "consentBanner": false,
+        "heading": "Lessons, quizzes and coding tasks for web developers.",
+        "buttons": [
+          "Open navigation menu",
+          "Sign in",
+          "Choose a topic",
+          "Sign in",
+          "A6",
+          "B8",
+          "C9",
+          "D5",
+          "Learn JavaScript",
+          "Learn TypeScript",
+          "Learn React",
+          "Learn Next.js",
+          "Learn Node.js",
+          "Learn HTML",
+          "Learn CSS",
+          "See every topic in Learn",
+          "Start learning JavaScript",
+          "TodayYour plan for today: a little unfinished work, a little review, a little new.",
+          "Career roadmapThe skills each level expects, and where you stand.",
+          "Coding challengesLoops, array methods, types and components with real tests."
+        ],
+        "blockedWrites": 1,
+        "diskHits": 0,
+        "requests": {
+          "document": 1,
+          "script": 4,
+          "stylesheet": 0,
+          "font": 0,
+          "image": 0,
+          "api": 1,
+          "other": 2,
+          "blocked": 1,
+          "sent": 5,
+          "sentApi": 1
+        }
+      },
+      {
+        "profile": "desktop",
+        "path": "/",
+        "sample": 0,
+        "cache": "cold-browser",
+        "consent": "undecided",
+        "navigation": {
+          "ttfb": 99.20000000298023,
+          "serverWait": 39,
+          "redirect": 0,
+          "dns": 0,
+          "connect": 56.70000000298023,
+          "tls": 36.29999999701977,
+          "download": 14.200000002980232,
+          "domContentLoaded": 358.90000000596046,
+          "load": 468.5
+        },
+        "fcp": 428,
+        "lcp": 428,
+        "lcpElement": {
+          "tag": "p",
+          "id": "_r_4_",
+          "classes": [
+            "ss-consent__body"
+          ],
+          "container": "section.ss-consent",
+          "size": 28670,
+          "url": null
+        },
+        "cls": 0,
+        "tbtMs": 0,
+        "interaction": {
+          "control": "Dark mode",
+          "matched": true,
+          "registered": true,
+          "firstInput": {
+            "event": "pointerdown",
+            "ms": 80
+          }
+        },
+        "inpMs": 80,
+        "interactionCount": 1,
+        "inpParts": {
+          "event": "pointerdown,pointerup,click",
+          "inputDelay": 1.4000000059604645,
+          "processing": 2.5999999940395355,
+          "presentation": 76
+        },
+        "consentBanner": true,
+        "heading": "Lessons, quizzes and coding tasks for web developers.",
+        "buttons": [
+          "Open navigation menu",
+          "Sign in",
+          "Reject all",
+          "Accept all",
+          "Choose",
+          "Choose a topic",
+          "Sign in",
+          "A6",
+          "B8",
+          "C9",
+          "D5",
+          "Learn JavaScript",
+          "Learn TypeScript",
+          "Learn React",
+          "Learn Next.js",
+          "Learn Node.js",
+          "Learn HTML",
+          "Learn CSS",
+          "See every topic in Learn",
+          "Start learning JavaScript"
+        ],
+        "blockedWrites": 0,
+        "diskHits": 0,
+        "requests": {
+          "document": 1,
+          "script": 31,
+          "stylesheet": 3,
+          "font": 0,
+          "image": 1,
+          "api": 1,
+          "other": 2,
+          "blocked": 0,
+          "sent": 39,
+          "sentApi": 1
+        }
+      },
+      {
+        "profile": "desktop",
+        "path": "/",
+        "sample": 0,
+        "cache": "repeat-browser",
+        "consent": "rejected",
+        "navigation": {
+          "ttfb": 21.900000005960464,
+          "serverWait": 20.100000008940697,
+          "redirect": 0,
+          "dns": 0,
+          "connect": 0,
+          "tls": 0,
+          "download": 3.699999988079071,
+          "domContentLoaded": 37.900000005960464,
+          "load": 39.20000000298023
+        },
+        "fcp": 64,
+        "lcp": 64,
+        "lcpElement": {
+          "tag": "a",
+          "id": null,
+          "classes": [
+            "ss-navlink"
+          ],
+          "container": null,
+          "size": 1173,
+          "url": null
+        },
+        "cls": 0,
+        "tbtMs": 0,
+        "interaction": {
+          "control": "Dark mode",
+          "matched": true,
+          "registered": true,
+          "firstInput": {
+            "event": "pointerdown",
+            "ms": 32
+          }
+        },
+        "inpMs": 32,
+        "interactionCount": 1,
+        "inpParts": {
+          "event": "pointerdown,pointerup,click",
+          "inputDelay": 0.7000000029802322,
+          "processing": 1.7999999970197678,
+          "presentation": 29.5
+        },
+        "consentBanner": false,
+        "heading": "Lessons, quizzes and coding tasks for web developers.",
+        "buttons": [
+          "Open navigation menu",
+          "Sign in",
+          "Choose a topic",
+          "Sign in",
+          "A6",
+          "B8",
+          "C9",
+          "D5",
+          "Learn JavaScript",
+          "Learn TypeScript",
+          "Learn React",
+          "Learn Next.js",
+          "Learn Node.js",
+          "Learn HTML",
+          "Learn CSS",
+          "See every topic in Learn",
+          "Start learning JavaScript",
+          "TodayYour plan for today: a little unfinished work, a little review, a little new.",
+          "Career roadmapThe skills each level expects, and where you stand.",
+          "Coding challengesLoops, array methods, types and components with real tests."
+        ],
+        "blockedWrites": 1,
+        "diskHits": 0,
+        "requests": {
+          "document": 1,
+          "script": 0,
+          "stylesheet": 0,
+          "font": 0,
+          "image": 0,
+          "api": 1,
+          "other": 2,
+          "blocked": 1,
+          "sent": 4,
+          "sentApi": 1
+        }
+      }
+    ],
+    "interactionFailures": [],
+    "requestTotals": {
+      "requests": 94,
+      "api": 4,
+      "sent": 88,
+      "sentApi": 4,
+      "forwarded": 0
+    },
+    "blockedMutatingMethodAttempts": 2,
+    "blockedAttemptIdentityRetained": false
+  },
+  "transport": {
+    "control": {
+      "connectAttempts": 0,
+      "connectEstablished": 0,
+      "connectFailed": 0,
+      "deniedConnect": 1,
+      "deniedPlainHttp": 0,
+      "deniedUpgrade": 0,
+      "clientTlsBytes": 0,
+      "originTlsBytes": 0,
+      "remoteFamilies": {}
+    },
+    "lh": {
+      "connectAttempts": 6,
+      "connectEstablished": 6,
+      "connectFailed": 0,
+      "deniedConnect": 32,
+      "deniedPlainHttp": 2,
+      "deniedUpgrade": 0,
+      "clientTlsBytes": 21255,
+      "originTlsBytes": 718076,
+      "remoteFamilies": {
+        "IPv4": 6
+      }
+    },
+    "cdp": {
+      "connectAttempts": 2,
+      "connectEstablished": 2,
+      "connectFailed": 0,
+      "deniedConnect": 26,
+      "deniedPlainHttp": 2,
+      "deniedUpgrade": 0,
+      "clientTlsBytes": 13141,
+      "originTlsBytes": 755037,
+      "remoteFamilies": {
+        "IPv4": 2
+      }
+    }
+  },
+  "privateRawEvidence": {
+    "retained": true,
+    "directoryMode": "0700",
+    "fileMode": "0600",
+    "containsRawHeadersOrPayloads": true,
+    "rawFilesCopiedToRepository": false,
+    "note": "Hash pins only. Do not publish raw DevTools or trace data."
+  },
+  "independentValidation": {
+    "ledgerProof": {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-projection-review-f5df3b6f/independent-ledger-proof.json",
+      "bytes": 5608,
+      "sha256": "5ee848958ae266a3ca27943296d9dc3b20a0e3f86f1949f8ab2989d88a04c40c"
+    },
+    "separatelyReconstructedPublicRows": 70,
+    "allPublicGetStatus200": true,
+    "noForbiddenHeaderOrRedirect": true,
+    "lhRuntimeOrAuditErrors": 0,
+    "cdpMatchedRegisteredInputs": 4,
+    "readExistingFilesOnly": true
+  },
+  "requestLedgerLimits": {
+    "priorRawPhase": {
+      "attempts": 8,
+      "completed": 7,
+      "completeObservationGets": 5,
+      "partialObservationAttempts": 3,
+      "partialObservationResponses": 2
+    },
+    "lighthousePublicGetAttempts": 70,
+    "cdpRequestEvents": 94,
+    "cdpNetworkResponses": 88,
+    "cdpSameOriginApiResponses": 4,
+    "exactCombinedCumulativeAttempts": null,
+    "remainingBudget": null
+  },
+  "limits": [
+    "One Lighthouse sample per profile and one CDP sample per profile/cache condition; no range, variance, stable median or causal speedup is established.",
+    "Only anonymous Home was calibrated. This does not replace the separately labelled eight-route local synthetic corpus.",
+    "Cold-browser names fresh browser storage/cache, not a proven cold server or platform initialization.",
+    "CDP INP is one scripted press per load, not field INP. Mobile opens navigation; desktop toggles theme after paint measurement.",
+    "Cold CDP consent is undecided; repeat consent is rejected. Cache, consent and the LCP node differ, so cold/repeat is not a pure cache intervention.",
+    "The collector writes devquiz:color-mode=light on every navigation; both recorded desktop controls are Dark mode. Pre-press light appearance is a source/control inference, not a saved DOM attribute proof.",
+    "consentBanner is DOM presence only. LH screenshots independently show the consent banner and anonymous Home on both profiles.",
+    "Lighthouse uses simulated throttling; CDP directly applies network/CPU emulation. Their timings and TBT windows are different measurements.",
+    "CONNECT proxy permits only devshark.app:443 and keeps TLS end-to-end. It cannot inspect HTTP methods/paths or enforce a global GET cap. Proxy overhead is part of these observations.",
+    "Proxy denial counters include browser/background connections; tunnel counts and TLS byte counts are not HTTP request counts.",
+    "All 70 public-origin Lighthouse request events were GET/200, with no redirects, authorization/cookie headers or loading failure. Lighthouse requestCount 44/45 also includes 9/10 local/data events.",
+    "CDP reports 94 interception request events and 88 same-origin network responses, including four same-origin API responses. ResourceTiming paths show /api/settings but do not retain status or origin themselves.",
+    "Two mutating-method attempts were refused by the original CDP Fetch guard (methods outside GET/HEAD/OPTIONS). Their identities/origins were not retained. No origin, Sentry or application attribution is made; refusal prevents forwarding at that interception.",
+    "The proxy blocks foreign transport; public monitoring configuration was not removed from deployed code. Exact deployed environment values were not exported by this analysis.",
+    "The raw-transfer phase previously made eight instrumented attempts, seven complete responses and one unknown. Older selected/approximate request history stays incomplete; these mixed definitions are not added into an exact cumulative budget or an under250 assertion.",
+    "READY deployment metadata was saved immediately before the browser run; the metadata/alias association is corroboration, not an embedded per-response deployment identifier.",
+    "Private DevTools/trace assets remain mode0600 outside the repository under a mode0700 directory; only safe metrics/metadata/hashes are proposed for adoption.",
+    "Supervisor exit0 has no cleanup error and owned scratch is absent. This analysis did not perform a separate process-liveness scan."
+  ],
+  "artifactPins": [
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/summary.json",
+      "bytes": 2301,
+      "sha256": "f444e79b6efe8128b9719c2b6a7eb1a946d81544833f9fbbf9e1bc5676147279"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/cdp.json",
+      "bytes": 47349,
+      "sha256": "3b4a1d31cefd9f16b4b7834a440cd482ef67e02492450f007db2f4200988ba9b"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/run-provenance.json",
+      "bytes": 2401,
+      "sha256": "7a3a5eb1c4ab8f063a7332bd455bc80bc4f7630db5babd7ad08bedb71f94d9c4"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/supervisor.json",
+      "bytes": 678,
+      "sha256": "02c7733e0b7fb9ae727c7595c93dbf826e6be447d8fa9c2c1129a90cc15c6239"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/transport-final.json",
+      "bytes": 800,
+      "sha256": "33124a08dc68ac89e7269d636da4afe0e8c36943e961d8605eb7b2eb1de64492"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/transport-lh.json",
+      "bytes": 525,
+      "sha256": "0d1492dca024c29122a76b529a4610657fef5d4999ce82718b237bceddf559e7"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/transport-cdp.json",
+      "bytes": 800,
+      "sha256": "33124a08dc68ac89e7269d636da4afe0e8c36943e961d8605eb7b2eb1de64492"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-deployment-before-home-20261119.json",
+      "bytes": 437,
+      "sha256": "6eb17ce1e76a1bde8b6b18445f5ad6113c0be6ce95c6436977c2730591cc853b"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-UNRUN/manifest-UNRUN.json",
+      "bytes": 10147,
+      "sha256": "5563d3683b6b579b5b031851831d430edecfdf2b0583b8c39e90e0f8ba33d845"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-UNRUN/source-pins.json",
+      "bytes": 5799,
+      "sha256": "36269a6887f260dec45c3de0de336d970a84c28a5921232395e3b8a953ec4cf1"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-UNRUN/public-asset-allowlist.json",
+      "bytes": 3682,
+      "sha256": "b7ecbc42543ab73ddb99d8fb715e50636fd0f4d3a7f767f0c6218658052e7b81"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-UNRUN/collect-home.UNRUN.mjs",
+      "bytes": 5440,
+      "sha256": "ddb60afaa252b6ec4c8f5ea558b14883ed45040c60a89166ccf81a07cad7c8a1"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-UNRUN/run-home.UNRUN.mjs",
+      "bytes": 8508,
+      "sha256": "d8632d85992e4bbee784d9df2711c69c0365c6e6f3799afb04a4b7dead2795fc"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-UNRUN/connect-proxy.UNRUN.mjs",
+      "bytes": 2730,
+      "sha256": "8539a5f955a2a10326df4433b3dc207d7489fc65846ac95d4979fd78632e6422"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-UNRUN/supervise.UNRUN.py",
+      "bytes": 3891,
+      "sha256": "0bac70f92a19e0a65e572e5dd9d634c5cad7f6f76957f311aa0f7536102b60b2"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-projection-review-f5df3b6f/independent-ledger-proof.json",
+      "bytes": 5608,
+      "sha256": "5ee848958ae266a3ca27943296d9dc3b20a0e3f86f1949f8ab2989d88a04c40c"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/mobile-home.report.json",
+      "bytes": 663297,
+      "sha256": "4d647295fa55309709fdcbc69a68c234778a68f268a2b9987523275ef09e8cfb"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/mobile-home.safe-request-ledger.json",
+      "bytes": 10550,
+      "sha256": "5cdccd95076ec8b68729ac47be82a41f5ca8327cf8ec38d803f967bf6dc2b42d"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/mobile-home-0.devtoolslog.json",
+      "bytes": 383778,
+      "sha256": "edc98b202a9a650a758d2f5b327125449610210d3b44bfc2875995191d2bf31d"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/mobile-home-0.trace.json",
+      "bytes": 14031584,
+      "sha256": "3dd27182fc57da821fa3ff467472d717be4b37ab4ba3c75e5ec990a20d27a0d7"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-projection-review-f5df3b6f/mobile-home-final.jpg",
+      "bytes": 25027,
+      "sha256": "562622c4ac8aa2c1a69b828b1f74931fa7cd59b0ff8c1f99d684f721eb26b0bd"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/desktop-home.report.json",
+      "bytes": 595755,
+      "sha256": "e34ead5b8c28dc6dd5fd4bd3877b4587df2ca61be7d0f3659f5abeaae7e1200a"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/desktop-home.safe-request-ledger.json",
+      "bytes": 10552,
+      "sha256": "d07f32f5af5b340556a8a1a9a633a46d959cff306644c93511fb2f92a5dea1cd"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/desktop-home-0.devtoolslog.json",
+      "bytes": 404500,
+      "sha256": "4edd3df281bd6f771ff53998bafdadd96061ce5357109d971f9d6c804b5cdc20"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-fixed-scope-20261119/lighthouse/desktop-home-0.trace.json",
+      "bytes": 8907296,
+      "sha256": "335aa87cfd475bee2abfdd46404500cce8cdf2577bd58adf270d763f65053779"
+    },
+    {
+      "file": "/tmp/devshark-epic-f-handoff/f1-production-home-projection-review-f5df3b6f/desktop-home-final.jpg",
+      "bytes": 19059,
+      "sha256": "609830066b8d8f053e5a5dbf5a337e4513a041630ac48857c8e8f91cbf6515d7"
+    }
+  ]
+}
