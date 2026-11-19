@@ -9,6 +9,7 @@ import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { CodingWorkbench } from '../src/coding/CodingWorkbench';
 import type { HarnessRun } from '../src/coding/useReactHarness';
 import { runCodeTests } from '../src/coding/runner/run-tests';
+import { submitCoding } from '../src/coding/api';
 import type { PlayableCodingTask } from '../../shared/coding-catalog';
 import { loadEditor } from '../src/coding/loadEditor';
 
@@ -16,12 +17,12 @@ vi.mock('../src/coding/Editor', () => ({ Editor: () => <textarea aria-label="Tes
 vi.mock('../src/coding/api', () => ({ useCodingApproaches: () => ({ data: undefined }), submitCoding: vi.fn(), revealCoding: vi.fn(), resetCoding: vi.fn() }));
 vi.mock('../src/coding/runner/run-tests', () => ({ warmRunner: () => undefined, holdCompiler: () => () => {}, compilerStarted: () => false, runCodeTests: vi.fn(), runPassed: () => false }));
 const harness = vi.hoisted(() => {
-  const handle: { ready: boolean; run: HarnessRun | null; start: () => Promise<HarnessRun>; reload: () => void; iframeRef: () => void; frameKey: number } = {
-    ready: true, run: null, reload: () => {}, iframeRef: () => {}, frameKey: 0,
-    start: async () => {
+  const handle: { ready: boolean; loadFailed: boolean; run: HarnessRun | null; start: ReturnType<typeof vi.fn<() => Promise<HarnessRun>>>; reload: ReturnType<typeof vi.fn>; iframeRef: () => void; frameKey: number } = {
+    ready: true, loadFailed: false, run: null, reload: vi.fn(), iframeRef: () => {}, frameKey: 0,
+    start: vi.fn(async () => {
       handle.run = { token: 'local', status: 'done', compileError: null, previewError: null, cases: [{ name: 'greets', status: 'pass', error: null, durationMs: 0 }], logs: [], passed: 1, failed: 0, total: 1, ran: true };
       return handle.run;
-    },
+    }),
   };
   return handle;
 });
@@ -33,18 +34,72 @@ const tasks: Record<'javascript' | 'typescript' | 'react', PlayableCodingTask> =
   typescript: { ...base, id: 'ts-tabs', track: 'typescript', tests: [{ call: 'f()', expected: 1 }], typeTests: [{ code: 'f(1)', rejects: true }] } as PlayableCodingTask,
   react: { ...base, id: 'react-tabs', track: 'react', suite: 'test("greets", () => {});' } as PlayableCodingTask,
 };
-const mount = (track: keyof typeof tasks, mode: 'section' | 'lesson' = 'section') => render(
+const workbench = (track: keyof typeof tasks, mode: 'section' | 'lesson' = 'section') => (
   <MemoryRouter><LanguageProvider>
     <CodingWorkbench task={tasks[track]} initialCode={null} session="s" locked={null} signedIn mode={mode} />
-  </LanguageProvider></MemoryRouter>,
+  </LanguageProvider></MemoryRouter>
 );
+const mount = (track: keyof typeof tasks, mode: 'section' | 'lesson' = 'section') => render(workbench(track, mode));
 const tabNames = () => screen.getAllByRole('tab').map((tab) => tab.textContent?.replace(/\d+(\/\d+)?$/, '').trim());
 
 // CodeMirror is its own chunk (perf baseline #587 C12): load it before the
 // first render, as the task screen and an intent preload do.
 beforeAll(async () => { await loadEditor(); });
 
-beforeEach(() => { harness.run = null; });
+beforeEach(() => { harness.run = null; harness.ready = true; harness.loadFailed = false; harness.start.mockClear(); harness.reload.mockClear(); });
+
+it.each(['click', 'shortcut'])('prepares a cold untouched React task on %s without replaying the old Run', async (trigger) => {
+  harness.ready = false;
+  const view = mount('react');
+  expect(view.container.querySelector('iframe')).toBeNull();
+  if (trigger === 'click') fireEvent.click(screen.getByRole('button', { name: 'Run' }));
+  else fireEvent.keyDown(screen.getByLabelText('Test editor'), { key: 'Enter', ctrlKey: true });
+  expect(harness.start).not.toHaveBeenCalled();
+  expect(view.container.querySelector('iframe')).not.toBeNull();
+  expect(screen.getByRole('button', { name: 'Run' })).toHaveAttribute('aria-disabled', 'true');
+  expect(screen.getByText('Preparing the preview. Run your code when it is ready.')).toBeInTheDocument();
+  harness.ready = true;
+  view.rerender(workbench('react'));
+  expect(harness.start).not.toHaveBeenCalled();
+  expect(screen.getByText('Preview ready. Run your code.')).toBeInTheDocument();
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Run' })); });
+  expect(harness.start).toHaveBeenCalledTimes(1);
+});
+
+it('preloads React on editor intent without loading other tracks or exposing the inactive frame to Tab', () => {
+  const view = mount('react');
+  expect(view.container.querySelector('iframe')).toBeNull();
+  fireEvent.focus(screen.getByLabelText('Test editor'));
+  const frame = view.container.querySelector('iframe')!;
+  expect(frame).not.toBeNull();
+  expect(frame).toHaveAttribute('tabindex', '-1');
+  expect(frame.closest('[role="tabpanel"]')).toHaveAttribute('hidden');
+  view.unmount();
+  const javascript = mount('javascript');
+  fireEvent.focus(screen.getByLabelText('Test editor'));
+  expect(javascript.container.querySelector('iframe')).toBeNull();
+});
+
+it('offers a preview retry without running code while the preview has failed to load', () => {
+  harness.ready = false;
+  harness.loadFailed = true;
+  const view = mount('react');
+  fireEvent.pointerEnter(view.container.querySelector('.cd-editor-actions')!);
+  expect(screen.getByText('The preview could not load. Your code has not run here.')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Retry preview' }));
+  expect(harness.reload).toHaveBeenCalledTimes(1);
+  expect(harness.start).not.toHaveBeenCalled();
+});
+
+it('sends authoritative React Submit immediately while preview readiness is pending', async () => {
+  harness.ready = false;
+  harness.start.mockReturnValueOnce(new Promise<never>(() => {}));
+  vi.mocked(submitCoding).mockResolvedValueOnce({ verdict: 'passed', results: [], hidden: null, check: null, logs: [], codeError: null, design: null, designReference: null, failureHint: null, puzzle: null, progress: null, firstPass: false, xpAwarded: 0, xpForfeited: false, applied: false, github: null, solutions: null });
+  mount('react');
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Submit' })); });
+  expect(submitCoding).toHaveBeenCalled();
+  expect(harness.start).toHaveBeenCalledTimes(1);
+});
 
 it('keeps the complete task in Description, without a second brief above the editor or a Target line', () => {
   const task = {

@@ -15,6 +15,21 @@ function mountHarness() {
   return {...hook, frame, message};
 }
 
+it('reports a preview load failure without running code and clears it when readiness arrives', async () => {
+  vi.useFakeTimers();
+  const h = mountHarness();
+  await act(async () => { await vi.advanceTimersByTimeAsync(20_001); });
+  expect(h.result.current.ready).toBe(false);
+  expect(h.result.current.loadFailed).toBe(true);
+  expect(h.result.current.run).toBeNull();
+  h.message({ type: 'ready' });
+  expect(h.result.current.ready).toBe(true);
+  expect(h.result.current.loadFailed).toBe(false);
+  expect(h.result.current.run).toBeNull();
+  h.unmount();
+  h.frame.remove();
+});
+
 it('settles a pending run when the sandbox is restarted', async () => {
   vi.useFakeTimers();
   const h = mountHarness();

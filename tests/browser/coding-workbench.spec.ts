@@ -241,6 +241,35 @@ test('the authored complexity info link opens the Big O guide through the real r
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Big O, simply explained');
 });
 
+test('React: a cold preview never replays Run after readiness, and a fresh Run can focus its fields', async ({ page }) => {
+  await prepare(page);
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => { release = resolve; });
+  await page.route('**/sandbox/index.html', async (route) => {
+    await held;
+    await route.continue();
+  });
+  try {
+    await openTask(page, '/coding/react/react-easy2-focus-the-search');
+    expect(await page.locator('iframe').count()).toBe(0);
+    await fillEditor(page, solutionFor('react-easy2-focus-the-search')!.solution);
+    await page.locator('.cm-content').press('ControlOrMeta+Enter');
+    await expect(page.getByText('Preparing the preview. Run your code when it is ready.', { exact: true })).toBeVisible();
+    const run = page.getByRole('button', { name: 'Run', exact: true });
+    await expect(run).toHaveAttribute('aria-disabled', 'true');
+    release();
+    await expect(page.getByText('Preview ready. Run your code.', { exact: true })).toBeVisible();
+    await expect(run).not.toHaveAttribute('aria-disabled', 'true');
+    await expect(announced(page)).not.toHaveText(/Running your code|of \d+ passing/);
+    await run.focus();
+    await run.press('Enter');
+    await expect(announced(page)).toHaveText('4 of 4 passing', { timeout: 30_000 });
+    await expect(run).toBeFocused();
+  } finally {
+    release();
+  }
+});
+
 test('React: a focus check passes on every Run, not just the first, and a build error is shown (C4-1, C3-2, C3-6)', async ({ page }) => {
   test.setTimeout(120_000);
   await prepare(page);
