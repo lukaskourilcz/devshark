@@ -191,6 +191,13 @@ function purgeAstryxCss(): Plugin {
   };
 }
 
+// Decode only this retired-file comparison. Other routes keep their original
+// URL, including the worker/sandbox paths and malformed-encoding handling.
+function isRetiredTriagePath(url: string | undefined): boolean {
+  try { return decodeURIComponent(url?.split('?')[0] ?? '') === '/triage-verdicts.json'; }
+  catch { return false; }
+}
+
 function productMetadata(env: Record<string, string>): Plugin {
   const id = resolveCatalogProductId({ lockSubject: env.VITE_LOCK_SUBJECT, product: env.VITE_PRODUCT });
   const product = PRODUCT_CATALOG[id];
@@ -228,7 +235,7 @@ function productMetadata(env: Record<string, string>): Plugin {
     },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        if (req.url?.split('?')[0] === '/triage-verdicts.json') {
+        if (isRetiredTriagePath(req.url)) {
           res.statusCode = 404;
           res.setHeader('Cache-Control', 'no-store');
           res.end();
@@ -245,7 +252,7 @@ function productMetadata(env: Record<string, string>): Plugin {
       // the same public HTML that production serves.
       server.middlewares.use((req, res, next) => {
         const [pathname, search] = (req.url || '').split('?');
-        if (req.url?.split('?')[0] === '/triage-verdicts.json') {
+        if (isRetiredTriagePath(req.url)) {
           res.statusCode = 404;
           res.setHeader('Cache-Control', 'no-store');
           res.end();
