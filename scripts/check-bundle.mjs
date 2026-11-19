@@ -182,28 +182,41 @@ function outputTarget(directory) {
 }
 
 function rawBundleResponse(origin, pathname, { timeoutMs, maxBytes }) {
+  const start = performance.now(), deadline = start + timeoutMs;
   const url = new URL(pathname, origin), transport = url.protocol === 'https:' ? https : http;
-  const agent = new transport.Agent({ keepAlive: false, proxyEnv: {} });
-  const start = performance.now();
   return new Promise((resolve) => {
-    let done = false, timer, request, response;
+    let done = false, timer, agent, request, response;
+    const expired = () => performance.now() >= deadline;
     const row = { path: pathname, requestSent: false, status: null, headers: {}, receivedBodyBytes: 0, elapsedMs: null };
     const chunks = [];
     const finish = (error = null) => {
-      if (done) return; done = true; clearTimeout(timer);
-      response?.destroy(); request?.destroy(); agent.destroy();
+      if (done) return;
       row.elapsedMs = performance.now() - start;
+      if (row.elapsedMs >= timeoutMs) error = 'request_timeout';
+      done = true; clearTimeout(timer);
+      response?.destroy(); request?.destroy(); agent?.destroy();
       resolve({ ...row, error, body: error ? null : Buffer.concat(chunks) });
     };
     try {
+      // A timer cannot interrupt synchronous client setup or a busy event loop.
+      // The monotonic gates also prevent late setup/callbacks from succeeding.
+      timer = setTimeout(() => finish('request_timeout'), Math.max(0, deadline - performance.now()));
+      if (expired()) return finish('request_timeout');
+      agent = new transport.Agent({ keepAlive: false, proxyEnv: {} });
+      if (expired()) return finish('request_timeout');
       request = transport.request(url, { method: 'GET', agent, rejectUnauthorized: true, maxHeaderSize: 8192, headers: { Accept: pathname === '/' ? 'text/html' : '*/*', 'Accept-Encoding': 'br, gzip', 'User-Agent': 'devShark-EpicF-bundle-transfer/1' } }, incoming => {
-        response = incoming; row.status = incoming.statusCode;
+        response = incoming;
+        if (done) { incoming.destroy(); return; }
+        row.status = incoming.statusCode;
         for (const name of LIVE_HEADERS) if (typeof incoming.headers[name] === 'string') row.headers[name] = incoming.headers[name].slice(0, 512);
+        if (expired()) return finish('request_timeout');
         if (incoming.statusCode !== 200) return finish(incoming.statusCode >= 300 && incoming.statusCode < 400 ? 'redirect_refused' : 'unexpected_status');
         const declared = incoming.headers['content-length'];
         if (declared !== undefined && (!/^\d+$/.test(declared) || Number(declared) > maxBytes)) return finish('encoded_body_too_large');
         incoming.on('data', chunk => {
+          if (done) return;
           row.receivedBodyBytes += chunk.length;
+          if (expired()) return finish('request_timeout');
           if (row.receivedBodyBytes > maxBytes) finish('encoded_body_too_large'); else chunks.push(chunk);
         });
         incoming.once('error', () => finish('response_error'));
@@ -212,8 +225,9 @@ function rawBundleResponse(origin, pathname, { timeoutMs, maxBytes }) {
       });
       request.once('finish', () => { row.requestSent = true; });
       request.once('error', () => finish('request_error'));
-      timer = setTimeout(() => finish('request_timeout'), timeoutMs);
+      if (expired()) return finish('request_timeout');
       request.end();
+      if (expired()) finish('request_timeout');
     } catch { finish('request_error'); }
   });
 }
