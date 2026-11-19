@@ -49,6 +49,14 @@ test('F6-05: hidden and disabled controls do not count as interactive targets', 
   const result = await measure('<button style="display:none;width:20px;height:20px">Hidden</button><button disabled style="width:20px;height:20px">Disabled</button>');
   assert.deepEqual(result.violations, []);
 });
+test('F6-05: closed disclosure content does not count as a visible target', async () => {
+  const result = await measure('<details><summary style="min-height:44px">Index</summary><ol><li><a id="hidden" href="#email" style="width:20px;height:20px">Email</a></li></ol></details>');
+  assert.equal(result.violations.some((row) => row.selector === '#hidden'), false);
+});
+test('F6-05: open disclosure content still receives target checks', async () => {
+  const result = await measure('<details open><summary style="min-height:44px">Index</summary><a id="open" href="#email" style="width:20px;height:20px">Email</a></details>');
+  assert.ok(result.violations.some((row) => row.selector === '#open'));
+});
 test('F6-05: inline sentence links record the WCAG inline exception', async () => {
   const result = await measure('<p>Read the <a id="inline" style="display:inline" href="#privacy">privacy policy</a> before continuing.</p>');
   assert.deepEqual(result.violations, []);
