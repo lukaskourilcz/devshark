@@ -254,20 +254,45 @@ test('React: a cold preview never replays Run after readiness, and a fresh Run c
     expect(await page.locator('iframe').count()).toBe(0);
     await fillEditor(page, solutionFor('react-easy2-focus-the-search')!.solution);
     await page.locator('.cm-content').press('ControlOrMeta+Enter');
-    await expect(page.getByText('Preparing the preview. Run your code when it is ready.', { exact: true })).toBeVisible();
+    const readiness = page.locator('.cd-editor-actions > p[role="status"]');
+    await expect(readiness).toHaveText('Preparing the preview. Run your code when it is ready.');
     const run = page.getByRole('button', { name: 'Run', exact: true });
     await expect(run).toHaveAttribute('aria-disabled', 'true');
     release();
-    await expect(page.getByText('Preview ready. Run your code.', { exact: true })).toBeVisible();
+    await expect(readiness).toHaveText('Preview ready. Run your code.');
     await expect(run).not.toHaveAttribute('aria-disabled', 'true');
     await expect(announced(page)).not.toHaveText(/Running your code|of \d+ passing/);
-    await run.focus();
-    await run.press('Enter');
+    await run.click();
     await expect(announced(page)).toHaveText('4 of 4 passing', { timeout: 30_000 });
-    await expect(run).toBeFocused();
   } finally {
     release();
   }
+});
+
+test('React: a failed preview can retry without running code or delaying server Submit', async ({ page }) => {
+  const seen = await prepare(page, { signedIn: true });
+  let frames = 0;
+  await page.route('**/sandbox/index.html', (route) => ++frames === 1
+    ? route.abort('internetdisconnected')
+    : route.continue());
+  await openTask(page, '/coding/react/react-easy2-focus-the-search');
+  await page.clock.install();
+  await fillEditor(page, solutionFor('react-easy2-focus-the-search')!.solution);
+  const run = page.getByRole('button', { name: 'Run', exact: true });
+  await run.focus();
+  await expect.poll(() => frames).toBe(1);
+  await page.clock.fastForward(20_001);
+  const readiness = page.locator('.cd-editor-actions > p[role="status"]');
+  await expect(readiness).toContainText('The preview could not load. Your code has not run here.');
+  await page.getByRole('button', { name: 'Submit', exact: true }).click();
+  await expect.poll(() => seen.submits.length).toBe(1);
+  await expect(page.locator('.cd-verdict')).toContainText('Passed');
+  await page.getByRole('button', { name: 'Retry preview', exact: true }).click();
+  await expect(run).toBeFocused();
+  await expect(readiness).toHaveText('Preview ready. Run your code.');
+  await expect(announced(page)).not.toHaveText(/Running your code/);
+  await run.press('Enter');
+  await expect(announced(page)).toHaveText('4 of 4 passing', { timeout: 30_000 });
 });
 
 test('React: a focus check passes on every Run, not just the first, and a build error is shown (C4-1, C3-2, C3-6)', async ({ page }) => {
@@ -289,7 +314,10 @@ test('React: a focus check passes on every Run, not just the first, and a build 
     // open and the note shows.
     if (attempt === 2) await expect(changed).toBeAttached();
     if (attempt > 2) await expect(changed).toBeVisible();
-    await run.click();
+    // Keep the keyboard-origin control focused across frame focus checks.
+    // Safari pointer clicks do not promise focus on their button.
+    await run.focus();
+    await run.press('Enter');
     await expect(announced(page)).toHaveText(`${expectedCases} of ${expectedCases} passing`, { timeout: 30_000 });
     await expect(changed).toHaveCount(0);
     // The first Run that renders opens the preview (coding-04); from the

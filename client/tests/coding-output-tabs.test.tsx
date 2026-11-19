@@ -46,7 +46,7 @@ const tabNames = () => screen.getAllByRole('tab').map((tab) => tab.textContent?.
 // first render, as the task screen and an intent preload do.
 beforeAll(async () => { await loadEditor(); });
 
-beforeEach(() => { harness.run = null; harness.ready = true; harness.loadFailed = false; harness.start.mockClear(); harness.reload.mockClear(); });
+beforeEach(() => { harness.run = null; harness.ready = true; harness.loadFailed = false; harness.start.mockClear(); harness.reload.mockClear(); vi.mocked(submitCoding).mockReset(); });
 
 it.each(['click', 'shortcut'])('prepares a cold untouched React task on %s without replaying the old Run', async (trigger) => {
   harness.ready = false;
@@ -57,7 +57,7 @@ it.each(['click', 'shortcut'])('prepares a cold untouched React task on %s witho
   expect(harness.start).not.toHaveBeenCalled();
   expect(view.container.querySelector('iframe')).not.toBeNull();
   expect(screen.getByRole('button', { name: 'Run' })).toHaveAttribute('aria-disabled', 'true');
-  expect(screen.getByText('Preparing the preview. Run your code when it is ready.')).toBeInTheDocument();
+  expect(screen.getByText('Preparing the preview. Run your code when it is ready.', { selector: 'p[role="status"]' })).toBeInTheDocument();
   harness.ready = true;
   view.rerender(workbench('react'));
   expect(harness.start).not.toHaveBeenCalled();
@@ -85,19 +85,25 @@ it('offers a preview retry without running code while the preview has failed to 
   harness.loadFailed = true;
   const view = mount('react');
   fireEvent.pointerEnter(view.container.querySelector('.cd-editor-actions')!);
-  expect(screen.getByText('The preview could not load. Your code has not run here.')).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: 'Retry preview' }));
+  expect(screen.getByText('The preview could not load. Your code has not run here.', { selector: 'p[role="status"]' })).toBeInTheDocument();
+  const retry = screen.getByRole('button', { name: 'Retry preview' });
+  retry.focus();
+  fireEvent.click(retry);
   expect(harness.reload).toHaveBeenCalledTimes(1);
   expect(harness.start).not.toHaveBeenCalled();
+  expect(screen.getByRole('button', { name: 'Run' })).toHaveFocus();
 });
 
-it('sends authoritative React Submit immediately while preview readiness is pending', async () => {
+it.each(['click', 'shortcut'])('sends authoritative React Submit by %s while preview readiness is pending', async (trigger) => {
   harness.ready = false;
   harness.start.mockReturnValueOnce(new Promise<never>(() => {}));
   vi.mocked(submitCoding).mockResolvedValueOnce({ verdict: 'passed', results: [], hidden: null, check: null, logs: [], codeError: null, design: null, designReference: null, failureHint: null, puzzle: null, progress: null, firstPass: false, xpAwarded: 0, xpForfeited: false, applied: false, github: null, solutions: null });
   mount('react');
-  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Submit' })); });
-  expect(submitCoding).toHaveBeenCalled();
+  await act(async () => {
+    if (trigger === 'click') fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    else fireEvent.keyDown(screen.getByLabelText('Test editor'), { key: 'Enter', ctrlKey: true, shiftKey: true });
+  });
+  expect(submitCoding).toHaveBeenCalledTimes(1);
   expect(harness.start).toHaveBeenCalledTimes(1);
 });
 

@@ -30,6 +30,28 @@ it('reports a preview load failure without running code and clears it when readi
   h.frame.remove();
 });
 
+it('retries a failed preview with a new readiness budget and ignores the old frame', async () => {
+  vi.useFakeTimers();
+  const h = mountHarness();
+  await act(async () => { await vi.advanceTimersByTimeAsync(20_001); });
+  expect(h.result.current.loadFailed).toBe(true);
+  act(() => h.result.current.reload());
+  expect(h.result.current.loadFailed).toBe(false);
+  const replacement = document.createElement('iframe');
+  document.body.append(replacement);
+  act(() => h.result.current.iframeRef(replacement));
+  h.message({ type: 'ready' });
+  expect(h.result.current.ready).toBe(false);
+  act(() => window.dispatchEvent(new MessageEvent('message', { source: replacement.contentWindow, data: { type: 'ready' } })));
+  await act(async () => { await vi.advanceTimersByTimeAsync(20_001); });
+  expect(h.result.current.ready).toBe(true);
+  expect(h.result.current.loadFailed).toBe(false);
+  expect(h.result.current.run).toBeNull();
+  h.unmount();
+  h.frame.remove();
+  replacement.remove();
+});
+
 it('settles a pending run when the sandbox is restarted', async () => {
   vi.useFakeTimers();
   const h = mountHarness();
