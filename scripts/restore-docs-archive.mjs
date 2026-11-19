@@ -43,6 +43,10 @@ function validPath(path) {
 function validateManifest(manifest) {
   if (manifest.schemaVersion !== 1) throw new Error('Unsupported docs archive schemaVersion');
   if (!/^[a-f0-9]{40}$/.test(manifest.sourceCommit ?? '')) throw new Error('Archive source must be a full 40-character commit SHA');
+  if (!/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(manifest.repository ?? '')
+    || manifest.sourceUrl !== `${manifest.repository}/tree/${manifest.sourceCommit}`) {
+    throw new Error('Source URL must point to the pinned commit in the source repository');
+  }
   for (const key of ['archivedFiles', 'preservedInputs', 'requiredPaths']) {
     if (!Array.isArray(manifest[key])) throw new Error(`Manifest must contain ${key}`);
   }

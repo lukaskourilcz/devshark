@@ -1,0 +1,4407 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c",
+  "repository": "https://github.com/lukaskourilcz/devshark",
+  "sourceUrl": "https://github.com/lukaskourilcz/devshark/tree/0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c",
+  "archivedFiles": [
+    {
+      "path": "docs/audit/wip/coding/batch-coding-javascript-loops.json",
+      "bytes": 213553,
+      "sha256": "5f19388dab855407b1bc08c97deb6610253cd58682783f2c0a5113bb5358e0db"
+    },
+    {
+      "path": "docs/audit/wip/coding/batch-coding-javascript.json",
+      "bytes": 167082,
+      "sha256": "bf9cefaa30c423814bed55c7fe59d9b75b8282903c59f2e430e07ac6ca2723a4"
+    },
+    {
+      "path": "docs/audit/wip/coding/batch-coding-react-loops.json",
+      "bytes": 78481,
+      "sha256": "a9c45bd394ec4f6b00031506164c52aca4a9ed5455db63013f2faf9ca68628c7"
+    },
+    {
+      "path": "docs/audit/wip/coding/batch-coding-react.json",
+      "bytes": 221400,
+      "sha256": "51c652c39adee80973c7917bb89fbdda6120036a540a58f0788ff515ec14cbe5"
+    },
+    {
+      "path": "docs/audit/wip/coding/batch-coding-system-design.json",
+      "bytes": 217882,
+      "sha256": "1956c5f2de501cb454c2520c541185383a8cbd1f9a96da4dd4ab392f9684aec9"
+    },
+    {
+      "path": "docs/audit/wip/coding/batch-coding-typescript.json",
+      "bytes": 193542,
+      "sha256": "d577946a3f927c8c72f0fa416c7c63527a91a77df41e7b5d61ef92ade95bc128"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-14-array-boundaries.json",
+      "bytes": 2294,
+      "sha256": "1c87cd6d5b7245d6acec4df9e914bc9ebf4e9b869db1d5e0f389a763e6128cfa"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-14-arrays.json",
+      "bytes": 2292,
+      "sha256": "8809c0216fbac7cac702c85c520e03750a683ecaead11dd8fa4212a3df5eb935"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-14-string-match.json",
+      "bytes": 3000,
+      "sha256": "7de4b6cea5bc9d78148b49bb61c7e2f3cbef21728ed82c14c778f1281f668b09"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-14-typescript-foundations.json",
+      "bytes": 3413,
+      "sha256": "5d5d5a4b27ac2b58e08535999d3e0ffef4f61dce56613efc0cc34ed3138bf45c"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-14-typescript-unions.json",
+      "bytes": 3519,
+      "sha256": "2cec586d24e6725aef862df5bde6d261cf91c17944d7a82d705e475cb8b99e10"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-14.json",
+      "bytes": 1948,
+      "sha256": "55813db903fcd883b241c2a85f4bcbb524da8933181ad2d46fd18874a45603a5"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b001.json",
+      "bytes": 2141,
+      "sha256": "8a5171e632576ca6eed8e0186cf44eb9902926b11ff9d29f8617505007c66600"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b002.json",
+      "bytes": 2278,
+      "sha256": "a14ad371a40df13bfbd630b13037dca4703c3333c179d291d60c19c5e5621d42"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b003.json",
+      "bytes": 2349,
+      "sha256": "b16970060e2a667a1b693f3a0cdb3300073c8dc0f26114a60127f01ba07a7a64"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b004.json",
+      "bytes": 2217,
+      "sha256": "80e22f2fc42f7105f157a687bc13dc74f953765a93bd2a82fdf83f7aa98e4cbf"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b005.json",
+      "bytes": 2759,
+      "sha256": "a60c956febf60e9506035f661320fd9c49031d1753e4fe8ac101cdc7e86af30f"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b006.json",
+      "bytes": 2398,
+      "sha256": "fa4f99eca41e164d640b391084ef48a3cefedbe4b3ec2014763fa4dee0aebd81"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b007.json",
+      "bytes": 2804,
+      "sha256": "c3cf42eaf239abc3b5f6b7857180f9779c86dd121f64e362ba2cff02f8f39fc0"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b008.json",
+      "bytes": 3203,
+      "sha256": "515ea843a430bbee36a846d5fd6bdac3a49005af07a13b371701daca39ffe8e3"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b009.json",
+      "bytes": 3065,
+      "sha256": "c398ff8c61ad84854607451a72f75b28a445f60e4eae12f595a22937c016c6ce"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b010.json",
+      "bytes": 3169,
+      "sha256": "21e4b61705c597429cafb0ca6ba83a87c2a55afb44825bd7dfa41274c2974a19"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b011.json",
+      "bytes": 2624,
+      "sha256": "e79a078c414b1e2dcead391abd3565a840990ab6b28c4170fd1c167dc3df93c8"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b012.json",
+      "bytes": 2954,
+      "sha256": "f92c8cf77ca594b89c938715acc47ecc504574b7a9c5416ec80191faf9c9d200"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b013.json",
+      "bytes": 3270,
+      "sha256": "557ead93d9a4988e147b52cbcaed6b74ff23cab2ce54c29d1c16c98ee3d0e18f"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b014.json",
+      "bytes": 2914,
+      "sha256": "e3adbb6fd430796f04132e4f687561b6b1b1ae3a653f0f08dee225ebbdd20945"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b015.json",
+      "bytes": 1595,
+      "sha256": "82691c2826b8ac793173f8d79abe6f2f4d27b17352cb18edd3d601db8d535d4f"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b016.json",
+      "bytes": 2176,
+      "sha256": "02c7b9f63e636e397910b92db4187a292d7a8538495d6354a0f1420225075a21"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b017.json",
+      "bytes": 1703,
+      "sha256": "c0d1c7e5295b478b5011f251cf25f76cc5071b7d39a0147c1a06e03bca112604"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b018.json",
+      "bytes": 2087,
+      "sha256": "6d42e7a6436041bf31842c7429a5400f70249aaf46efb9d1686f403eef60d9ee"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b019.json",
+      "bytes": 12036,
+      "sha256": "2a4e92f877a6339df37f9c24e50cdf5849c628b88588ea207a034d7f93dc2622"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b020.json",
+      "bytes": 8211,
+      "sha256": "b6f5f1890bc3e2e1d7633f6386d71325da1b4932cd5c1673c3ab7aeecb12f4e4"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b021.json",
+      "bytes": 15409,
+      "sha256": "3468febe93e4233d1368b8e43f59402450d38ca160a00e5ef6b613ad64581522"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b022.json",
+      "bytes": 13943,
+      "sha256": "9a2c89361dfa52dd3365711753ba230b49cb75920ca1a0384452c5b002f9f4d2"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b023.json",
+      "bytes": 14009,
+      "sha256": "438fcb90fd96f9a8d83e07e49c99dd3f8b2bec5132651d94f4842c07ac692b41"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b024.json",
+      "bytes": 31070,
+      "sha256": "8701028abcb1c41f7b5b1ae2e62ba165589a9ab2a7cb89312dfe6ac7436572d9"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b025.json",
+      "bytes": 24351,
+      "sha256": "03fb808a5797794bea35327ab5a3f37c7f87c849c670a0deb5fedc0f163053c6"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b026.json",
+      "bytes": 23440,
+      "sha256": "e71e257d69fea02e39825f06d521b22be353d0d70eef1437875bdb9a226c41ed"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b027.json",
+      "bytes": 1776,
+      "sha256": "80edeae4e9f5c8399b30c3ddf8b96d343dcdec4a0cb3365e25f81d5cdac24f0b"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b028.json",
+      "bytes": 2248,
+      "sha256": "32b474bdc0d7a6fae2578ec1a66a8c73b8f75aa0a7dd76c3a4672f7d1a7131fc"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b029.json",
+      "bytes": 2637,
+      "sha256": "0984083407d42cff13f504c9e1dadc9c9c9d6e3a11cd3500a07548c07c3062ea"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b030.json",
+      "bytes": 2710,
+      "sha256": "9cef29b04f290e022d27521e314122b61766dcd690928b235ac633c41bad36f7"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b031.json",
+      "bytes": 2586,
+      "sha256": "37f44bc30d4845e8ffc7c3641b21e4c422ab7d7a9831c9cbf2b6a76fb0d1bf88"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b032.json",
+      "bytes": 3405,
+      "sha256": "247ed98e179fa1f7903cf25344f632c6186dba4509d8a1341974ffb360dcd021"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b033.json",
+      "bytes": 3035,
+      "sha256": "284ae1a86af5b4f42e794d81fc3c137925e5535405e6a36b7b1d8e18158087c1"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b034.json",
+      "bytes": 2881,
+      "sha256": "23ead22e73e8cedb6d8f8496a6f9122ea15bad30c94cad5959eaab2c0ece50c4"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b035.json",
+      "bytes": 3496,
+      "sha256": "b38105bb2960fa01bd3871d13602c52a5f4579dd2128670278d4b6327bdd69db"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b036.json",
+      "bytes": 5959,
+      "sha256": "ab0245713315e04c0bd214d351b7b02848d7b5c9cda2a0ea32ffbb2902c30fd4"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b037.json",
+      "bytes": 5761,
+      "sha256": "930110b7572b372a09e1f36aeb891fb738dadbb8f4670a35fcf77c74a4cb3a8c"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b038.json",
+      "bytes": 2820,
+      "sha256": "f15fb072889b18b6abcc19bedc0863ccbc2f036940909b1e9cc5e047e6c1c78a"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b039.json",
+      "bytes": 3403,
+      "sha256": "951d7bcf535cbc886c6fb5269a1d7936ae0a778788a056c7a7fc7ec763b42203"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b040.json",
+      "bytes": 4327,
+      "sha256": "c63486dd09149fbf160c7e6f8076b1580b2c97d9a5b463b4de443306d9bed5d8"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b041.json",
+      "bytes": 6980,
+      "sha256": "f2572136a411a8a65a9b989a7e5017f0eef1e547ba04ed7812a68e58966e96b1"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b042.json",
+      "bytes": 7902,
+      "sha256": "df22a48d26e40d87a51833f46f1a07c7340051d9d3056090f2a3691a1c6ddb8e"
+    },
+    {
+      "path": "docs/audit/wip/coding/candidates-2026-10-15-b043.json",
+      "bytes": 2394,
+      "sha256": "6306d4ba8018f474b9c91e6dc01db5ad3745e2977dff8bdc8ff41ae44cb4a372"
+    },
+    {
+      "path": "docs/audit/wip/coding/complexity-targets-2026-10-15-b007.json",
+      "bytes": 189,
+      "sha256": "0d05b3ab49971f5cc897cd201907e11abe0e528963d4e348613f402127b0c0b4"
+    },
+    {
+      "path": "docs/audit/wip/coding/complexity-targets-2026-10-15-b009.json",
+      "bytes": 191,
+      "sha256": "ab7fab36f028c5108e579bf40a20025e60146dc98d3a37ce9bc2751d7e97e5ba"
+    },
+    {
+      "path": "docs/audit/wip/coding/complexity-targets-2026-10-15-b010.json",
+      "bytes": 181,
+      "sha256": "61bdc3243664d3f8f558df5871b11cf01d072bba95541821d47627f2967c80c8"
+    },
+    {
+      "path": "docs/audit/wip/coding/complexity-targets-2026-10-15-b011.json",
+      "bytes": 186,
+      "sha256": "3d81ae9c3abf6715df01ddcc80d331ae81d8443d99e0e7eca408359ed3755d73"
+    },
+    {
+      "path": "docs/audit/wip/coding/complexity-targets-2026-10-15-b013.json",
+      "bytes": 164,
+      "sha256": "0cd45ed7a85b62cb832d617644f5fbe0d060c0ee69591a153515a9c69f629f10"
+    },
+    {
+      "path": "docs/audit/wip/coding/history/review-2026-10-15-b040-clock-before.json",
+      "bytes": 6617,
+      "sha256": "2a378fb1336181dc2ad3ba02c3fb506e7bfe1aff7c86d6288c009f5dee87e58d"
+    },
+    {
+      "path": "docs/audit/wip/coding/history/review-2026-10-15-b046-batch-start-before.json",
+      "bytes": 7150,
+      "sha256": "bee967828e0e86730d21760d849fbb95f491890f7364cbc180079c0feba189f0"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-14-array-boundaries.jsonl",
+      "bytes": 31377,
+      "sha256": "1aedd7f8b8a6b1ecc494caa233e347c447a73f5e4492c7bfeaabeac52fe4b3ce"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-14-arrays.jsonl",
+      "bytes": 31455,
+      "sha256": "9410a3bf346608451a190371e1f9907135dc733f9d74b560076a9fb5210f9541"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-14-foundations.jsonl",
+      "bytes": 26064,
+      "sha256": "7a9c0d86f332a030f9c8434194e668115df2354e6e986ec8a62b80639f4742dd"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-14-string-match.jsonl",
+      "bytes": 34122,
+      "sha256": "64c52fa644e9fe2647b0deabc4e9b9e91764c8d943b1fda95f6436ed20dd611c"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-14-typescript-foundations.jsonl",
+      "bytes": 22988,
+      "sha256": "b9b97450f54cc94dc4eb6c547f9b328ca014e8a23af39b251f5f98d87cb7a476"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-14-typescript-unions.jsonl",
+      "bytes": 22253,
+      "sha256": "31eb1bf21ccff912818697c27c5e9269084308f2a71eb836e4d4efd29acb70f1"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b001.jsonl",
+      "bytes": 28413,
+      "sha256": "1ce9be6bf6a1746feb0b20e71797d245943658a6f49e788d654d1b8182d8d9f9"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b002.jsonl",
+      "bytes": 26092,
+      "sha256": "a96c0961ff0497ab676929ae5aa143a9dcac7b45f3537d7ceb3684e5cc5de9a5"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b003.jsonl",
+      "bytes": 27471,
+      "sha256": "1de8c6e048b6c26890151ebf10803f624b4ce32953482dbeef2a2a5caa6e6ce9"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b004.jsonl",
+      "bytes": 25559,
+      "sha256": "e0262cd2d7ec7dc65938a742f4889a534e96d3b1df157ca0bf8edbb1f9b65e74"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b005.jsonl",
+      "bytes": 27672,
+      "sha256": "23337b6d733e37097bfc3b714b4e3a8c33487435483f6b9c0457937ff810def0"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b006.jsonl",
+      "bytes": 27601,
+      "sha256": "3efbeb03ec6c78b006170a635b2a481773cb96670edf3cf5261ab5be32c0d666"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b007.jsonl",
+      "bytes": 26820,
+      "sha256": "bbe6887f6dc7d1df0a27015de51c7b492f4fa4a31100ab86435f9334a24a7e22"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b008.jsonl",
+      "bytes": 26680,
+      "sha256": "94f0786deb2da092d040a485075ec4d0f848264a3532d40b0f91b0949a680454"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b009.jsonl",
+      "bytes": 26847,
+      "sha256": "1b6e41cd358ee5144bdb6467389e5229b7d78221bc26e08b9eea11d141651218"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b010.jsonl",
+      "bytes": 26361,
+      "sha256": "bcebe4bdd9d21bbdf53c01f1ca6edcf2eee217418ce87df53f5250229e73b00c"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b011.jsonl",
+      "bytes": 26998,
+      "sha256": "c9cb9e0149531de1b94c4a500132d86a1b2a9eb4191365e1bc0172a1be7be00a"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b012.jsonl",
+      "bytes": 26542,
+      "sha256": "fde66d85bdd4aea6c8c39157612fe105e5808f535d3ede1a13d19d3f70e923f3"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b013.jsonl",
+      "bytes": 27386,
+      "sha256": "8765399737ded0901091843d341d8c7ebabbf8054c4258ed6835b6c0e89bbc98"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b014.jsonl",
+      "bytes": 26674,
+      "sha256": "9655208144bcba529545e003d48b18286b8ad236e8b176aed9b99046268775c0"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b015.jsonl",
+      "bytes": 25732,
+      "sha256": "e206661717b357035b4f73979c38d3bb6c0dbe617f6e08f0ae7a76092e778ac9"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b016.jsonl",
+      "bytes": 25445,
+      "sha256": "ba3d2c558712227a3455621474c421f965733e1b6a143b73450c8b6874f1155f"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b017.jsonl",
+      "bytes": 24752,
+      "sha256": "8da82fb309dd783f7428669cb8b1fde1feb6247d3fecb26244e4aa3c6f57ad78"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b018.jsonl",
+      "bytes": 25013,
+      "sha256": "1410fc8c7017ba66cdd0e5ff6dd19df24a1a2a2e9655b0fc7a55824a5522615e"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b019.jsonl",
+      "bytes": 26764,
+      "sha256": "efca6dd5181754bfa79d2af61afd0df8b337858e2d7446ee63c69e96d56b8675"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b020.jsonl",
+      "bytes": 24474,
+      "sha256": "94ddf76de6dd8efa3e931f163f3b650ed5e82c926f35fdf8d8fdbbcfa4fac01a"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b021.jsonl",
+      "bytes": 27124,
+      "sha256": "103ee81840cd99d7581cfc972222e398ffca7924f2f07fce9a4fe80135401e92"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b022.jsonl",
+      "bytes": 27026,
+      "sha256": "ad547d489635bedb4d41af09854a7af93d597b4f42ad3d11a539e8d37f73be9c"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b023.jsonl",
+      "bytes": 26799,
+      "sha256": "0bdee35fdb1e00df80163e94dde2933da6f1510837032d79a7ea51123c11386d"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b024.jsonl",
+      "bytes": 28207,
+      "sha256": "26d7fdc1b4b680c9d31de7737f2f86d526b83d549e629f3c2f61fc1b83619de0"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b025.jsonl",
+      "bytes": 28829,
+      "sha256": "2a7b8eaca229e5c92bd116639fe07856148061a70ffa257df3ef01dc90eb40db"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b026.jsonl",
+      "bytes": 28779,
+      "sha256": "c77a44d201be081c8cd43382486d41dda166a7acc9a7ced26c8405e4fe39abff"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b027.jsonl",
+      "bytes": 28189,
+      "sha256": "f362c81d7a8abc3d5cdd2041c17c955b3d47e0e44193f7b35d8113f97f2b6da3"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b028.jsonl",
+      "bytes": 28455,
+      "sha256": "3e66f1081ae9711c55d5910635c54a19798882f34afbae6819fc2dbeaf7c9ebb"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b029.jsonl",
+      "bytes": 27910,
+      "sha256": "eb1606ec7e236f08358a94903d69e5d72b97f9a47b4959841c34f9c4973bbd4d"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b030.jsonl",
+      "bytes": 29864,
+      "sha256": "cd0529139a7ca837f43d44e30f6afa0580c58baafbc6a3a454c8f6e3476618c6"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b031.jsonl",
+      "bytes": 29062,
+      "sha256": "19e1c44c0075ab0910a48152f315e80ab388fd4821740b025f80e14b0ab9df53"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b032.jsonl",
+      "bytes": 29196,
+      "sha256": "9e65c477b5f93568cf750c2227ac222ced3a6e2e9332ef44ec96ffe93c5cfe64"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b033.jsonl",
+      "bytes": 29582,
+      "sha256": "6aaea5e0ef9c2e83ae4de8df8f5b09e8f3cb567b1a997bfe0866d9cab32747f3"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b034.jsonl",
+      "bytes": 27736,
+      "sha256": "af35540e21ebe7f1879e1e3bee8b423cbb0da20756a21229e64ec867cbc6fc1f"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b035.jsonl",
+      "bytes": 26701,
+      "sha256": "38f6025045cfc5c6e678ee9f8ba1b84ff22876cae4825a13fb6bf66be06ee4b9"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b036.jsonl",
+      "bytes": 26035,
+      "sha256": "eb8246669572c4d415ad9f49991ebcb8d025d68aff15dd77af70156aea2bd605"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b037.jsonl",
+      "bytes": 25927,
+      "sha256": "c54e73b454216c36bf3ba8814f0b4ffe3ded18414e0804b4a63ef084302efe93"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b038.jsonl",
+      "bytes": 27245,
+      "sha256": "9442d427646b96f4f37125eba6bbd639395bc47ec956eee2e844c8a54d20574f"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b039.jsonl",
+      "bytes": 27656,
+      "sha256": "c895c64915b54c4befa2d6055dba68c4be9a9db3a03c98a1683d773a9e5385b4"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b040.jsonl",
+      "bytes": 27573,
+      "sha256": "cae2416f05f66b51d20ad2ebc3967f37dd44903354c172f509a3149808c32434"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b041.jsonl",
+      "bytes": 27286,
+      "sha256": "057d414a3b535da14fe53ad776dfcaf0634f9dd696b40a54a792e539ef4a44ff"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b042.jsonl",
+      "bytes": 28346,
+      "sha256": "f6863df112f5b67d0b64762a675a0a1b42abc43767401f5fa8680a8c7d0f1244"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b043.jsonl",
+      "bytes": 26900,
+      "sha256": "17d91e71c43e8427fdd1c22b7aaf671ead196c90e97688c7550fd35991d5e3c4"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b044.jsonl",
+      "bytes": 28195,
+      "sha256": "43a401081125c22ce9ecce31acbcbbe998104251dcee24a57405e733445a11ef"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b045.jsonl",
+      "bytes": 28380,
+      "sha256": "717a76578379e448026798657a3524d956656b39b02ebdca64cfc770d97af0a7"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b046.jsonl",
+      "bytes": 30919,
+      "sha256": "6064b8f458390205e8613dd75b71d5deca1bd44cbce6cb62c1a5ff88ac4acd30"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b047.jsonl",
+      "bytes": 28005,
+      "sha256": "89e804cdccb27b25a99d264f0fd5d6c13147ece9b8f38eee8396bbdff219d6f2"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b048.jsonl",
+      "bytes": 27237,
+      "sha256": "3631470d3f5b056a7f48f4c59ffc6ea8b8f0019118b6b649ce0b4d300d4d0a57"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b049.jsonl",
+      "bytes": 27232,
+      "sha256": "6b8910346d7a522aab89a5e1522b675a12244f6e37b0ab60ce13beb2b122f543"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b050.jsonl",
+      "bytes": 27487,
+      "sha256": "cd190300ab2f4956ee95e0a1a1d33fb321ca5ff1fb54fd47913f729a468a41fa"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b051.jsonl",
+      "bytes": 27509,
+      "sha256": "48cd0c19f82f69f7353f8c8ef20483c0c6740b4106db6cae620e963bd8627239"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b052.jsonl",
+      "bytes": 27851,
+      "sha256": "fc1911b0ea367ecf14410025cd02d933182b8967de62a775d4c1397256b2de26"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b053.jsonl",
+      "bytes": 27290,
+      "sha256": "782eec3ec368aec936732af62a7bfb225c62ad90df181daca40c8c16f1855cf9"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b054.jsonl",
+      "bytes": 27264,
+      "sha256": "0281aa8a498c2ab18cf5ca3168edd7c9ceea3297f0303c22806fb6bda1778c42"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b055.jsonl",
+      "bytes": 27618,
+      "sha256": "e117ab4699a7169a5823a886b4e7a0408d5b4cec3ed5873cce9ba70f443aba44"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b056.jsonl",
+      "bytes": 26820,
+      "sha256": "2b8f2becf810cee06f765326adfeeb1856e74b93c6320eabc882f7977c1f69ec"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b057.jsonl",
+      "bytes": 27440,
+      "sha256": "a7a2a86c2f880b5730ebfa5c70ad2c07fde7820793c700aad861f2e7d6c94ee6"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b058.jsonl",
+      "bytes": 28408,
+      "sha256": "b0cc7501915bb0d780d5655547db8a81752c98425560a38978bfc647ddc498e4"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b059.jsonl",
+      "bytes": 28317,
+      "sha256": "2ec181d3903285fb6597c13cd5a1ecaf2569374fc596fffa3b574caffd813c2f"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b060.jsonl",
+      "bytes": 28848,
+      "sha256": "6e14faa6d0e816ec0e983b4202ee8ef920c049cbb5c83dcf1c1416b6030466c3"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b061.jsonl",
+      "bytes": 29225,
+      "sha256": "6b612fa89ee6ed0bc8e6ebe7807a54ed9895ad0b95122593699ba033cbc5dfcc"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b062.jsonl",
+      "bytes": 29319,
+      "sha256": "17587feb868aa62765d45b395cd04e0fb853b70846dcee4baa399f17d3fdb5e2"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b063.jsonl",
+      "bytes": 28830,
+      "sha256": "d1ce2ee8b310cc785d217f5d03e1a18ae1eca323f132cba8e995c6b3b2dd89f7"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b064.jsonl",
+      "bytes": 30018,
+      "sha256": "443b799982af964719613cd05398b7aba3d7a3b195307bda69737827ac5baafa"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b065.jsonl",
+      "bytes": 27982,
+      "sha256": "49b56a89f06ed89e5128b22fea435705dda85378c44136ec9a4613cb6b16bd10"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b066.jsonl",
+      "bytes": 27595,
+      "sha256": "77102ffd3a301abf5e32e234a89d50e564f88cd7c3d16a2acd97c92b78e4d700"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b067.jsonl",
+      "bytes": 28107,
+      "sha256": "5b26b97932d09b1e2a53b3fd3f4dda7996e7ece6e00e9b76f5c4ba121b814a04"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b068.jsonl",
+      "bytes": 28109,
+      "sha256": "41c9992300f57319e276d0512d5e7fdf4600cf3c7ff016d0338f073b9bab6b6e"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b069.jsonl",
+      "bytes": 28215,
+      "sha256": "d3d1d9992690cf0db2f7d2dcd0196deeee97ff8373eccad9dc1280a6172c22ff"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b070.jsonl",
+      "bytes": 25416,
+      "sha256": "486dc4c2a53c8c351e71396816be96a1030789382b0992be6dc89fe2a91bc075"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b071.jsonl",
+      "bytes": 25553,
+      "sha256": "e6a1212ff985c8342abd2e987c7aab8b1f97fe886a446651f7173c9183733414"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b072.jsonl",
+      "bytes": 26557,
+      "sha256": "658d95c250e36ae5734c7ff456c26bec9f7c027ef3d63768f0f46a0c1d4e94d7"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b073.jsonl",
+      "bytes": 26511,
+      "sha256": "d9ca0368197a17e46eedf48cda1bc2ca8ca1f18a2cefe76474c8d1b1790bddf2"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b074.jsonl",
+      "bytes": 27100,
+      "sha256": "5fc06fef87d8d5054c39e5d69da16447b86cebf30751bb41ce1444198d2d8f11"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b075.jsonl",
+      "bytes": 27417,
+      "sha256": "352347a5e13b60b72814a6e5997b61623ab2294ccbcf7026a16f345c67641a84"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b076.jsonl",
+      "bytes": 27636,
+      "sha256": "05645c057184d08ab3e3924514e84c8aaf783efa13030767a11e91c90546549c"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b077.jsonl",
+      "bytes": 27622,
+      "sha256": "ab31ff12c448077fa895e0a2ef8afeba4f3cbec2997b179b77f10b556676e95e"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b078.jsonl",
+      "bytes": 31290,
+      "sha256": "10fb54cb636d13ff215e386b5a089a702575ab623926812c4ce7a329ed7c22f2"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b079.jsonl",
+      "bytes": 27512,
+      "sha256": "dc74d86589e2aa8505e91be87484ef2ef860df5a7cff158af34a221a46a834aa"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b080.jsonl",
+      "bytes": 27663,
+      "sha256": "da74dde17d4494e22ce7dab42a6eb1dc01e7fe1ce5b23f5fad86aec75a054fec"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b081.jsonl",
+      "bytes": 29579,
+      "sha256": "453d34b582795c51f41d9b85012558cb8bc2900a40c8cbae2ce3abb0a8db763f"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-15-b082.jsonl",
+      "bytes": 30164,
+      "sha256": "a9e4e1e2f177e968bfeec2bdc6b05956958b391462d09742f33e2236d9ccd49d"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b083.jsonl",
+      "bytes": 28741,
+      "sha256": "e89fec5a9dd3064b51555f83f2c8e1421974ac4cf3c61d01d365cf0a0a24a4a3"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b084.jsonl",
+      "bytes": 28695,
+      "sha256": "d5052d93c57e696f81b8c41fd6c93074dffce7da01556c8b4e426ed1b38f7523"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b085.jsonl",
+      "bytes": 29236,
+      "sha256": "dd63810cc9a0da00db09f4473809340f0daffdb001d9864672c00c831af8d2f5"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b086.jsonl",
+      "bytes": 28722,
+      "sha256": "69d4e363db78468c9c04e01a44b4535510b2e88139158a2b1483f968439925ae"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b087.jsonl",
+      "bytes": 29754,
+      "sha256": "60f091f786b9fbe2d4443afeb12688f1e6330bb1b49fbeaf5c89b00409ccffd9"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b088.jsonl",
+      "bytes": 28887,
+      "sha256": "1eca040b4a372d054934039f485507c244be114d0b7014febaf4e98812dcedc9"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b089.jsonl",
+      "bytes": 29645,
+      "sha256": "3f654a1f4aa321d6d39babc18647a44a4bada9f249f4352e7f83c425561a1698"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b090.jsonl",
+      "bytes": 28437,
+      "sha256": "a598b4ae6507762cac3d9be381a195adbd1ee807c48890c2149724fb0b2cd5c1"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b091.jsonl",
+      "bytes": 28808,
+      "sha256": "f1677a1c75f604fa779023682089e67f95c99c8ce967c80bbf1b042178d4c020"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b092.jsonl",
+      "bytes": 27987,
+      "sha256": "ca5aa103d126b5668241152704ba926d720f7dbd5f2ccf6edebeff405dfd0d8f"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b093.jsonl",
+      "bytes": 30670,
+      "sha256": "d858b15d2e3b5948e17cf07310c9560f67ad315d0ccd05bd2560c721ee3c5a45"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b094.jsonl",
+      "bytes": 29873,
+      "sha256": "64250da8daf3ae7b5f94c613b60ce02c8cbc45f6c4e8dbb94d634f47bb579e45"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b095.jsonl",
+      "bytes": 29269,
+      "sha256": "1cb427d17a5ee0a998a720627dce3f38a186cd3a353e2ed19305fef298c84d4c"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b096.jsonl",
+      "bytes": 29279,
+      "sha256": "ae25d913ebaae3b3776059480ec3f78bc0a98bdd6db4e7f641445e7dfb4ea664"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b097.jsonl",
+      "bytes": 29427,
+      "sha256": "34a40a55214998f754bf4e5bed5a0d8f297b9c14b038af7f6abe9c2863e24004"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b098.jsonl",
+      "bytes": 30739,
+      "sha256": "b8a69e9c9dcf33baad2591046db2fcec6628f498553f5c9ec8a007a9721a63bb"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b099.jsonl",
+      "bytes": 29919,
+      "sha256": "094284652182c5e7f3aad3705a88d5d028ee5aa0b4b952e4e515143876b48465"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b100.jsonl",
+      "bytes": 32104,
+      "sha256": "c550be01828b6df78c66bd654f0632d96c043e7200c127b631e7cfb1130793ff"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b101.jsonl",
+      "bytes": 31437,
+      "sha256": "313bba938d967b972e90c35f24a396d96df57e919a63393836443d98ac449a5c"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b102.jsonl",
+      "bytes": 30795,
+      "sha256": "9212bcf89136eb8c42c214e426ad17b9f49440d38b179a280352860d42fc49d4"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b103.jsonl",
+      "bytes": 31242,
+      "sha256": "327fc75292812b382aae2a05a7204f5d03cf3e127a26046d221f1969fcdc0d05"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b104.jsonl",
+      "bytes": 30888,
+      "sha256": "9b46f143ad346521ef43adbc272eb3eaef9f3b459d33de136c8b671e5735a319"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b105.jsonl",
+      "bytes": 31051,
+      "sha256": "fb88670fc59c3750ea0e8f33d42437b9d4e473f1d7c49275b3b5c7b2258824ad"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b106.jsonl",
+      "bytes": 31716,
+      "sha256": "6b729b7fad41acb59b8b5f470f917a108601c187084927e5fc823cab2bd0b0f3"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b107.jsonl",
+      "bytes": 30154,
+      "sha256": "64a29b52d3e5e337626104f339f35dec2983132c32c323c73af02df8ce0afcd4"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b108.jsonl",
+      "bytes": 31663,
+      "sha256": "ee20cde2db43b4e248af1757db01e41745d4c74dd88d647bff0411426d4bf5bc"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b109.jsonl",
+      "bytes": 31735,
+      "sha256": "e9a446980c7f667f6d2c330ad1c964e0fbbaed81f7ead6df819e9ee5e10c47ef"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b110.jsonl",
+      "bytes": 31901,
+      "sha256": "c99f8d1ab48b9da26e5583d3e15718ead0bb27c5b811a230334bac07a22407f6"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b111.jsonl",
+      "bytes": 31661,
+      "sha256": "75a97db8e7b57e15c7f2eb544d15e4544018cea3f65b8d9ad80474e2605939f8"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b112.jsonl",
+      "bytes": 34309,
+      "sha256": "7e0c6c92afd00b7761d6d624f38a6e718a7a75d830a2b24cde3f94812eed9c5f"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b113.jsonl",
+      "bytes": 32530,
+      "sha256": "a4f8c6ba30df94a108625105b168d2154abf3afee7187def6add438db5943df5"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b114.jsonl",
+      "bytes": 29790,
+      "sha256": "05c3e6754a6067b884f35fa66231590dd64cf5e99ae91f0af9bcf7817d6a9e36"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b115.jsonl",
+      "bytes": 32632,
+      "sha256": "32e5897e366f8d427550456677929f497c2d11fecfb81647a3749fded52c6110"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b116.jsonl",
+      "bytes": 30521,
+      "sha256": "dba6121b55714d1601e45adab032ac296786ad158d2d958c946cbe0ccd7bc596"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b117.jsonl",
+      "bytes": 29653,
+      "sha256": "f80db53a4ebe73f3145939749c4f4eb6573c9e291e74e78c25afe3d359df6445"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b118.jsonl",
+      "bytes": 29722,
+      "sha256": "629a00e527498aec0693604905e2b896041ed211a39e71122dd2987394eaa92f"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b119.jsonl",
+      "bytes": 30535,
+      "sha256": "63608578acca1660e2427c30b037454d0d3e3e8540f0884ee6c9c7b2fcf2286e"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b120.jsonl",
+      "bytes": 32839,
+      "sha256": "0565b0d64967f79f3ab993dfe9d776a183edd7acbcc77bf94ed67c7431f96aa6"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b121.jsonl",
+      "bytes": 30986,
+      "sha256": "daca3dab9eca6c4b9ecdd91b3be1ab9a65b5756aa1b34c2eb15132d48acee7ad"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b122.jsonl",
+      "bytes": 32080,
+      "sha256": "df7b5808bfb3fec38da3c735ef73c85ecb2039803c80f7eb4cb1e1b9590ecaac"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b123.jsonl",
+      "bytes": 29655,
+      "sha256": "326c9f690742ffa0e17eb041802bbe940bde016cadc555600529cb04d2509645"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-16-b124.jsonl",
+      "bytes": 32895,
+      "sha256": "d8b1c70064938ba85c6b9c7c1bd1404fa2fe0c60163047b5d1a544855aa0c214"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b125.jsonl",
+      "bytes": 39364,
+      "sha256": "121505969f2eb2fbcb144c5cb817db843dc365f1668123b53ae5a434d7b09e79"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b126.jsonl",
+      "bytes": 28576,
+      "sha256": "0608ccbc167adf81958b41f80997ef2a71f728776f184c6a24a41224c244c4c7"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b127.jsonl",
+      "bytes": 27032,
+      "sha256": "62dffa075414707fde28e075dec466f1cc3ea00dbd7891432894df97eba3eb81"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b128.jsonl",
+      "bytes": 27991,
+      "sha256": "b2906948d79578ea9957b49f619d4f6604c7b4700900149929a05f52fc1baa27"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b129.jsonl",
+      "bytes": 27757,
+      "sha256": "f718078468bbef61f3b20e355aa37daff7be08903eb0baed6c85181b3250cc29"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b130.jsonl",
+      "bytes": 28015,
+      "sha256": "e2cb6c400c35accab4b6a7d481fdae31497452d56a9199e1feef7577eed3f298"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b131.jsonl",
+      "bytes": 27541,
+      "sha256": "e683b1de3a066fb2d5b797d1e33a8a9aabb6316a093845beac94a68463fa639b"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b132.jsonl",
+      "bytes": 28311,
+      "sha256": "a92c726192ad680d79ea589e8f31ca53ae07ffdc84b6105a9ce753dfef67edcc"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b133.jsonl",
+      "bytes": 34090,
+      "sha256": "6cc31c5c42a7a94ba046c1c02ce98a036d74f42abf57557348e808a2081eeb90"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b134.jsonl",
+      "bytes": 36112,
+      "sha256": "d9530f0b1ddca319b215c11e46a3441026944f21d5c70f8c37bbd93105864c16"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b135.jsonl",
+      "bytes": 29700,
+      "sha256": "df5126a64ccf37deb7a278b836c49cd04b084932a475424fe5ccaccce23170c0"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b136.jsonl",
+      "bytes": 29183,
+      "sha256": "ec8e7bc0853a1c518e2d5a2d7c6ffc3503d1a136f9b7eafb511ef5ca0cefdbe3"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b137.jsonl",
+      "bytes": 31005,
+      "sha256": "f06884b055f40cd52e7c7a386532401dc8c1c055c3ef82ddf9096235c7f8bc3e"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b138.jsonl",
+      "bytes": 35304,
+      "sha256": "6bf30b2da3970709b874ed673080473bfd579c0ccaa27e8bbf77dea7c98fdcc7"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-b139.jsonl",
+      "bytes": 30150,
+      "sha256": "5220e7cefc4f9ac618dd4d22d854e913279f122b63a5a8229264b055e6230e7c"
+    },
+    {
+      "path": "docs/audit/wip/coding/review-2026-10-17-comments-plan-revision.jsonl",
+      "bytes": 8032,
+      "sha256": "689183df9c5988ffb2b7309c13a75877beb054789700ca22ada3e228af46e65d"
+    },
+    {
+      "path": "docs/audit/wip/coding/revisions/continuation-2026-10-15-b040-clock.json",
+      "bytes": 740,
+      "sha256": "d859f8382bae893ddd90696c55f2f2313107f8b1dc2d62ad7d15ea3a4867c174"
+    },
+    {
+      "path": "docs/audit/wip/coding/revisions/continuation-2026-10-15-b046-batch-start.json",
+      "bytes": 1289,
+      "sha256": "2bc89531810e55b7174742739424611d509452e13a3334611c5fbe3157151b5a"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b014.json",
+      "bytes": 156,
+      "sha256": "92d486e677c2e05d59adadfe15bb7ebfbe8ace293a49fd8bc9b92e84fc5e9a04"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b015.json",
+      "bytes": 168,
+      "sha256": "ad18c8a4644e2491048868e888515c05fa0f430339d9b3625bd5c3fe9f2564df"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b016.json",
+      "bytes": 166,
+      "sha256": "885e4fafaa6c7d28dcf846ed34ea384f5b871f22fdf8dbbabdb2c24f62747c6f"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b017.json",
+      "bytes": 165,
+      "sha256": "0c8082912949221c1bc32e1ccbb292edfc794502cae548232136941c654b7833"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b018.json",
+      "bytes": 173,
+      "sha256": "14cd8d3e8fce6d97c63684add2563b18f90d7d6cb391942365155adbf0410fe7"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b019.json",
+      "bytes": 138,
+      "sha256": "cfa7602fc7e16e0cd295caa16a6983f9ec44dd102666f90d20448c7974e06ef0"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b020.json",
+      "bytes": 126,
+      "sha256": "0cd0b316131c5cd9eef80e0240461ad9622885dd7444e19d591eb7232ef015e7"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b021.json",
+      "bytes": 147,
+      "sha256": "c64e5c4367b670f451d9afca80b5dbbca27fe5d410cc2cdd30c87e7b3d49e714"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b022.json",
+      "bytes": 158,
+      "sha256": "de7ae7667fd95a975d61ea3fe4dbfd7b96857aa99693eb9d3c3ce15774a481ef"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b023.json",
+      "bytes": 146,
+      "sha256": "31ed6d08ce5c917c1fd2f4084995e325c04e6775560096c621ad9aa85467c692"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b024.json",
+      "bytes": 158,
+      "sha256": "a1c5d74a341c839798ba0538db819eb866bc6fcee07f47f26c34497244a5d66d"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b025.json",
+      "bytes": 152,
+      "sha256": "191dfbcb8d3b54909eff7711837a9b8b99e417b0c56c06d766f2adb0c280edf0"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b026.json",
+      "bytes": 136,
+      "sha256": "a52aa367947c9d4f61497a2f60718295e66c6a6604abf28f916fcfbffecba35a"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b027.json",
+      "bytes": 143,
+      "sha256": "6f5b1849e4720b5e70c28a9b8c39a846cc966c39c08e2418ea275d9f4bdb7703"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b028.json",
+      "bytes": 145,
+      "sha256": "7ec9b3f32c59a78c2ed2a57a30c6225e995a7ba744a6e75930243a24e56241bc"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b029.json",
+      "bytes": 154,
+      "sha256": "0b4e8348fe2f8bf1b6446ca78b4bb05123d33209d6224514e3e7f8bcd89b5331"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b030.json",
+      "bytes": 149,
+      "sha256": "5846e40ce011e1bf2ae2be21b8cbba70af90b196312b0c1b2a33af2241a0ad4a"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b031.json",
+      "bytes": 139,
+      "sha256": "0111ed72bf181c0d0d8e82d274757d61866ff8566b790daafd4882d1b56add5e"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b032.json",
+      "bytes": 150,
+      "sha256": "1481f53ed5a95f18155869f66fd1558f566591d000ede850e712e4ac88b66f66"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b033.json",
+      "bytes": 145,
+      "sha256": "18b1fe69d60fabd6e815e3557dc79ac9f5d33af9d4b2fe3fad6ddfeaa4f80b4b"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b034.json",
+      "bytes": 144,
+      "sha256": "c6c9f4cde208eb98d5ea4f74b538763153106319d5126c40a6cede000183240d"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b035.json",
+      "bytes": 169,
+      "sha256": "35f96c178dbe3bbeb2f6f7e30c05914f8ea900a67e2443027abe12a32654eb27"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b036.json",
+      "bytes": 146,
+      "sha256": "965e8db45807fbd17ee4fd2fb27a1299d7657715d355b785f024c86841c61813"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b037.json",
+      "bytes": 148,
+      "sha256": "42c5acfa1055a94d5935b29267156c6c3835284d9a53fc6fdf3db0d65c51f73c"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b038.json",
+      "bytes": 176,
+      "sha256": "e181127f8c00b1b66d4f82965aab375ec7309fd69c37949162ae24dc594b6e91"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b039.json",
+      "bytes": 167,
+      "sha256": "88809377b53176d535b9c78cde4423c46365e0d0fca6ec141b381e70ac99aac6"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b040.json",
+      "bytes": 160,
+      "sha256": "d3065397a50b7661fc88b143cb71b8c1425391b5cfbfc4a74bbe1c58accc3327"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b041.json",
+      "bytes": 166,
+      "sha256": "aeda8d13140d0147787556fccad7aa2e3e3ebb7bbdf1db73260e6f0d13e8277d"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b042.json",
+      "bytes": 162,
+      "sha256": "6f70db28179df3f10d10449e5f5f3eff3973aeffdfb6970f147240b540c69435"
+    },
+    {
+      "path": "docs/audit/wip/coding/targets-2026-10-15-b043.json",
+      "bytes": 185,
+      "sha256": "81921c1fab3d02fec5ca622570ec09fa43f8056a7207f38ac0f379b755accf21"
+    },
+    {
+      "path": "docs/audit/wip/context/context-abbreviations-1.json",
+      "bytes": 1488,
+      "sha256": "5a0bce1d518b594acc2531546d42d187cf9d7de6f17dea9fc33dcc2b5d8c5188"
+    },
+    {
+      "path": "docs/audit/wip/context/context-abbreviations-2.json",
+      "bytes": 1496,
+      "sha256": "9784914ae0bb40c65f858c47794c138d3fcc4fb5355e20beae9201c5bc9e3dc2"
+    },
+    {
+      "path": "docs/audit/wip/context/context-ai-1.json",
+      "bytes": 1356,
+      "sha256": "06540cd37627e4bd187b591851221e45a1eb136e8cbbff2ef58f3cab6ca5c2b9"
+    },
+    {
+      "path": "docs/audit/wip/context/context-ai-2.json",
+      "bytes": 1368,
+      "sha256": "d3b8a8d48c8d262e5a127285c1ecadb73b9d3120951e3ddadfeddbc9d967076a"
+    },
+    {
+      "path": "docs/audit/wip/context/context-ai-3.json",
+      "bytes": 1366,
+      "sha256": "689100b7d969ac11c251110172622c2431f9384567c5e9a197f4191393ab678b"
+    },
+    {
+      "path": "docs/audit/wip/context/context-algorithms-1.json",
+      "bytes": 990,
+      "sha256": "ff99a88b093ae869b11c2b02e44df1d74216444126626c7056cc3f4ce56a662a"
+    },
+    {
+      "path": "docs/audit/wip/context/context-algorithms-2.json",
+      "bytes": 992,
+      "sha256": "0f5676aeadee934d2fcb0ed68f2cbaecea756eee6aee13ec411451cc63922acb"
+    },
+    {
+      "path": "docs/audit/wip/context/context-code-snippets.json",
+      "bytes": 946,
+      "sha256": "2466dff60daab5d6f0879dfa7a6f544122d7f646ab904b339b96fbba0a6a36fd"
+    },
+    {
+      "path": "docs/audit/wip/context/context-cool-stuff-1.json",
+      "bytes": 1521,
+      "sha256": "181a4abef2eb0aca8f7b558ddbfeb1478b8449660a69699cffe5d35d4759db3e"
+    },
+    {
+      "path": "docs/audit/wip/context/context-cool-stuff-2.json",
+      "bytes": 1529,
+      "sha256": "0471277419e41663982250862aa9474f1dbb0ccc4ec66aadfdf0098ab41e926d"
+    },
+    {
+      "path": "docs/audit/wip/context/context-css-legacy.json",
+      "bytes": 873,
+      "sha256": "c6b15336e8e71f9fa5448a5b06e57fce561210329cda8c0382c8aa2df04e723c"
+    },
+    {
+      "path": "docs/audit/wip/context/context-databases-1.json",
+      "bytes": 1041,
+      "sha256": "6d93d739a44cb0194113cd2eccecffc1d40e5bbf49c822ac6081afa1be7e138e"
+    },
+    {
+      "path": "docs/audit/wip/context/context-databases-2.json",
+      "bytes": 1049,
+      "sha256": "1f3975a8570e94b451c679408c74257f9640983f35ad0f1c3328af8e53590f96"
+    },
+    {
+      "path": "docs/audit/wip/context/context-devops-1.json",
+      "bytes": 936,
+      "sha256": "b2460f7b951028e7eba3f3c719037e0b2353a11bede7b2ef3d66acdd707e64ef"
+    },
+    {
+      "path": "docs/audit/wip/context/context-devops-2.json",
+      "bytes": 944,
+      "sha256": "2348d933a15fbe041b192a25dc73bd3c10635367cd72d743a61ae0c608af3d28"
+    },
+    {
+      "path": "docs/audit/wip/context/context-dsa-1.json",
+      "bytes": 962,
+      "sha256": "90de377b5c4481121b4712ad56856737d84f12589374c153dd5fa90adf4237bf"
+    },
+    {
+      "path": "docs/audit/wip/context/context-dsa-2.json",
+      "bytes": 970,
+      "sha256": "1b9d079667d9586f3db036a7b84014218613f3bd8c00f10a1b0fcd88ca8feef8"
+    },
+    {
+      "path": "docs/audit/wip/context/context-general-1.json",
+      "bytes": 1246,
+      "sha256": "6f308e43bd756bcf9913ba1952cdbedb6a6c7698f62bf5398bf814a67fd2e492"
+    },
+    {
+      "path": "docs/audit/wip/context/context-general-2.json",
+      "bytes": 1252,
+      "sha256": "9206939251546ba4ae6760ff5ba63820bfe8b35923c255a286ee929587c07077"
+    },
+    {
+      "path": "docs/audit/wip/context/context-general-3.json",
+      "bytes": 1256,
+      "sha256": "0978985fb2a5b3d93136f681cc8a28f360a93621282a34ebcee4191f9e586ead"
+    },
+    {
+      "path": "docs/audit/wip/context/context-git-1.json",
+      "bytes": 932,
+      "sha256": "aac0d0273503598321cd23ea9c0128371e21b15099cafcc3e16f339535a56aad"
+    },
+    {
+      "path": "docs/audit/wip/context/context-git-2.json",
+      "bytes": 940,
+      "sha256": "5be0471de7e9b294ce72492eb882c12481dcfe57515da6621b35d9583fdd2407"
+    },
+    {
+      "path": "docs/audit/wip/context/context-html-legacy-1.json",
+      "bytes": 883,
+      "sha256": "52a994d50fbef687674f98fa06717404e61fb028b5909d522afa020b24d2b5c9"
+    },
+    {
+      "path": "docs/audit/wip/context/context-html-legacy-2.json",
+      "bytes": 885,
+      "sha256": "3548343dc2ae5b3047673dd022aa0a87f14b529804f468586d742ecd78f079f6"
+    },
+    {
+      "path": "docs/audit/wip/context/context-html.json",
+      "bytes": 915,
+      "sha256": "857fb43839e9e1b87b299622055fbc46393b3174c5b20908af6dba2b25ad58d5"
+    },
+    {
+      "path": "docs/audit/wip/context/context-javascript-1.json",
+      "bytes": 1426,
+      "sha256": "4db4846e17e7f981771710beda05057faf73315f36fdcd9d85c678ebf9229e24"
+    },
+    {
+      "path": "docs/audit/wip/context/context-javascript-2.json",
+      "bytes": 1432,
+      "sha256": "c1911da2f48153d780db9d5cebdbd8e8c93f50c8519774776954badf0d55e514"
+    },
+    {
+      "path": "docs/audit/wip/context/context-javascript-3.json",
+      "bytes": 1436,
+      "sha256": "778450aabeb3fae6cd1d1a15736c9865120f9768ab2228a43b5fd8ab4916a76d"
+    },
+    {
+      "path": "docs/audit/wip/context/context-javascript-4.json",
+      "bytes": 1436,
+      "sha256": "181d686d9c3c35c2692fce5c3c94ee6ca648fb7031dd350a5fcd808c3ed69ed3"
+    },
+    {
+      "path": "docs/audit/wip/context/context-nextjs-1.json",
+      "bytes": 1058,
+      "sha256": "1647a550b81f3f581edad96ef567010384d90c4f7b37133b0774a9afb67281f7"
+    },
+    {
+      "path": "docs/audit/wip/context/context-nextjs-2.json",
+      "bytes": 1066,
+      "sha256": "34e36ca3e0abe161bf1decbbcc4fef6ac2bbfcc6e98332a903d662fc80131bc1"
+    },
+    {
+      "path": "docs/audit/wip/context/context-nodejs-1.json",
+      "bytes": 1227,
+      "sha256": "e20316e5a97922f4fd9ce499a608923460435300abd9a48ace2048ab8baf66ff"
+    },
+    {
+      "path": "docs/audit/wip/context/context-nodejs-2.json",
+      "bytes": 1233,
+      "sha256": "cc5aa6a9b3ed409d79655eb3a4045f36b94691d8e11bab27357147922057848d"
+    },
+    {
+      "path": "docs/audit/wip/context/context-nodejs-3.json",
+      "bytes": 1237,
+      "sha256": "34029738c9eeca12303a2965fe8118dd7b562dd64cea9d2098c29b883f6e00a5"
+    },
+    {
+      "path": "docs/audit/wip/context/context-nodejs-4.json",
+      "bytes": 1237,
+      "sha256": "6fc070334f325818bc2c6f2e55962b9d912662ae3dfff648ee3d364d3f932f38"
+    },
+    {
+      "path": "docs/audit/wip/context/context-react-1.json",
+      "bytes": 1343,
+      "sha256": "adb4223dc389c9694aaa47fe3134da94b62fe434c644265db2c5a94da88c264b"
+    },
+    {
+      "path": "docs/audit/wip/context/context-react-2.json",
+      "bytes": 1349,
+      "sha256": "3d433a29595b0bf681468bdf1e8d2f7777710e650bcdbb003bd70024e0e4734d"
+    },
+    {
+      "path": "docs/audit/wip/context/context-react-3.json",
+      "bytes": 1353,
+      "sha256": "af8009fe428f3b874d7f10cc6eade179f60a8adfd34a1f3edb5199cf8c9324cf"
+    },
+    {
+      "path": "docs/audit/wip/context/context-react-4.json",
+      "bytes": 1353,
+      "sha256": "650e0cffbcbda16a317943c90fa78fa2825d87ca5b911c0ee6b86fee4590c09a"
+    },
+    {
+      "path": "docs/audit/wip/context/context-security-1.json",
+      "bytes": 914,
+      "sha256": "5168cd6070887a283d7ee43fd9cfed340436f8b3499ef34676c15bb6600b3b2b"
+    },
+    {
+      "path": "docs/audit/wip/context/context-security-2.json",
+      "bytes": 922,
+      "sha256": "2890057c889204a3f616d14e007bc6ddd4b38895f624838cf017a22c617655e4"
+    },
+    {
+      "path": "docs/audit/wip/context/context-system-design-1.json",
+      "bytes": 1054,
+      "sha256": "ca2bc5709811ba0486d655a8d2b3bc503a3a9ebccbdd61a976dd2996d0cea9b8"
+    },
+    {
+      "path": "docs/audit/wip/context/context-system-design-2.json",
+      "bytes": 1062,
+      "sha256": "aa5b0cd3b0713906e5e9d1a46a912738bf2c3ade6521379e20d06a77b124d477"
+    },
+    {
+      "path": "docs/audit/wip/context/context-testing-1.json",
+      "bytes": 1526,
+      "sha256": "573e84fdcaba6c3bff1258878b7f2a92e48050377ac22ac163b4346a8a2fa6df"
+    },
+    {
+      "path": "docs/audit/wip/context/context-testing-2.json",
+      "bytes": 1534,
+      "sha256": "0c2cbe203ed11c647124a4c3b26196283a76ae9f23871cd37b0b89dc147bf02c"
+    },
+    {
+      "path": "docs/audit/wip/context/context-testing-fix.json",
+      "bytes": 1211,
+      "sha256": "0371c908fa25d1ea6886667c1ce54e0ca7c4eadd3ac73170abc576c6ef10bf6c"
+    },
+    {
+      "path": "docs/audit/wip/context/context-typescript-1.json",
+      "bytes": 1343,
+      "sha256": "1a931f54a8488323be65cf966aab6ec3ecd73aa9680f6343928f8847db617da3"
+    },
+    {
+      "path": "docs/audit/wip/context/context-typescript-2.json",
+      "bytes": 1349,
+      "sha256": "1f05a38a3abb79f6b5468dbdda6144e10e81247df60cdf94e4360cae1ef592ae"
+    },
+    {
+      "path": "docs/audit/wip/context/context-typescript-3.json",
+      "bytes": 1353,
+      "sha256": "2b7819e5ef982b279afa1fd9a3a68cb12b697bfce4d70fb58b7770c2478a9be1"
+    },
+    {
+      "path": "docs/audit/wip/context/context-typescript-4.json",
+      "bytes": 1353,
+      "sha256": "c53212e0dce8b7357faae48ae5ce266ae5ac6f0fde6494bed38fea0ebefc730c"
+    },
+    {
+      "path": "docs/audit/wip/final/review-2026-10-17-q001.jsonl",
+      "bytes": 15746,
+      "sha256": "751f5e5d3e791864753adc4cd4b4ebeef59e3a840fca1ab8315a0fa104d22366"
+    },
+    {
+      "path": "docs/audit/wip/final/review-2026-10-17-q002.jsonl",
+      "bytes": 18620,
+      "sha256": "c51839b4f5218948cdf4bb76ef3950b9c51bdb6752017e490e8bc46d1bbc2dfb"
+    },
+    {
+      "path": "docs/audit/wip/final/review-2026-10-17-q003.jsonl",
+      "bytes": 19378,
+      "sha256": "9783c364eb2d14260b73fbbf0b515714cbe287b7bda659accb2e8d16eb9af229"
+    },
+    {
+      "path": "docs/audit/wip/final/review-2026-10-17-q004.jsonl",
+      "bytes": 18529,
+      "sha256": "bd2af87a34c9f1ea0db506cfba20d04e85f32b405c8b91aaa0dcc2b606cf6cfa"
+    },
+    {
+      "path": "docs/audit/wip/final/review-2026-10-17-q005.jsonl",
+      "bytes": 20908,
+      "sha256": "f32f84d29edc58db5c8a2b6b58001f8721f34e98d3363ad3150ccd6bcc838526"
+    },
+    {
+      "path": "docs/audit/wip/final/review-2026-10-17-q006.jsonl",
+      "bytes": 21664,
+      "sha256": "9a51cb895cf67ba1ebcfb2dc3d69a7f91131a4c9a683d3ba8fadc1d24f5fea95"
+    },
+    {
+      "path": "docs/audit/wip/final/review-2026-10-17-q007.jsonl",
+      "bytes": 20347,
+      "sha256": "1f2c6155f65e48ccc44469cfa80083e74387b335ffe31f370e37cae3dc8478d3"
+    },
+    {
+      "path": "docs/audit/wip/final/review-2026-10-17-q008.jsonl",
+      "bytes": 19039,
+      "sha256": "fcaa5aba51704196d2ede7a1d8558bf4e05edf1a600f53eef00ff16793a9f508"
+    },
+    {
+      "path": "docs/audit/wip/final/review-2026-10-17-q009.jsonl",
+      "bytes": 20963,
+      "sha256": "55dfc5aa67d953528e5b4e7e974d4a1f96b7e9d9de7fa65d38d331b386fb4866"
+    },
+    {
+      "path": "docs/audit/wip/final/review-2026-10-17-q010.jsonl",
+      "bytes": 18402,
+      "sha256": "4ec3ddde90f0b3cbdcad97b4d40e0b6702f261a65701bff5f9176ee5c694280b"
+    },
+    {
+      "path": "docs/audit/wip/final/review-2026-10-17-q011.jsonl",
+      "bytes": 19289,
+      "sha256": "db4b8d8961a37e3fcc03501fc45955ee6bbcb0e25e29e8bdb1c42f2a8bab32e8"
+    },
+    {
+      "path": "docs/audit/wip/final/review-2026-10-17-q012.jsonl",
+      "bytes": 19835,
+      "sha256": "cc12b108bfe53ce3945cce70364a147946bfbe8bd1fecaa74e56581a666b9216"
+    },
+    {
+      "path": "docs/audit/wip/final/review-2026-10-17-q013.jsonl",
+      "bytes": 15473,
+      "sha256": "d6f644a05b634b753a4e5fa583c25aa6c04fd5921e13382e2a0472cab67931ca"
+    },
+    {
+      "path": "docs/audit/wip/final/review-abbreviations-1.jsonl",
+      "bytes": 85270,
+      "sha256": "933bf83d7554a73f13e2d1c1104c429dda953ccfe38b2a7903d252a1c1c7beca"
+    },
+    {
+      "path": "docs/audit/wip/final/review-abbreviations-2.jsonl",
+      "bytes": 88879,
+      "sha256": "319bd0d73c21f62d642e8b0541d973560cd1269bbc1928a127d5199ced0c7e88"
+    },
+    {
+      "path": "docs/audit/wip/final/review-ai-1.jsonl",
+      "bytes": 172034,
+      "sha256": "14117dda2da081ea34442a767a6adfea3fb61c47b74ddf634da697c09d8f92e2"
+    },
+    {
+      "path": "docs/audit/wip/final/review-ai-2.jsonl",
+      "bytes": 177954,
+      "sha256": "4af2c3ad58d476c7cec509cc67960605d188e75f60fa1fbff0cb93ba8d344986"
+    },
+    {
+      "path": "docs/audit/wip/final/review-ai-3.jsonl",
+      "bytes": 155363,
+      "sha256": "8afb8bab945b078cea2a6d00c4a109c2a6cf93340725769058d7421daecc40ec"
+    },
+    {
+      "path": "docs/audit/wip/final/review-algorithms-1.jsonl",
+      "bytes": 89582,
+      "sha256": "7fa667d93c268d6ef33e251c4593ae6aa6c2a0d485e8cf38eedd281cb3727750"
+    },
+    {
+      "path": "docs/audit/wip/final/review-algorithms-2.jsonl",
+      "bytes": 94711,
+      "sha256": "86d91408e92dbf0a0f588cd7da03763edf274cd620d130c406be78335f0a86de"
+    },
+    {
+      "path": "docs/audit/wip/final/review-code-snippets.jsonl",
+      "bytes": 88059,
+      "sha256": "1397a3292e6ad9692185a6859f5aba4c18fc36fce52f06fb01688bbea3e236b0"
+    },
+    {
+      "path": "docs/audit/wip/final/review-css.jsonl",
+      "bytes": 151517,
+      "sha256": "9e95d1158b5a64f02cc22af154134984140f7107b88f50f5c64cc784d496cdec"
+    },
+    {
+      "path": "docs/audit/wip/final/review-databases-1.jsonl",
+      "bytes": 161277,
+      "sha256": "1ae71a47495b5babcd5d419135b7ab0977eb87f9dbeb300c1a8ff038a9e8f1ad"
+    },
+    {
+      "path": "docs/audit/wip/final/review-databases-2.jsonl",
+      "bytes": 184947,
+      "sha256": "e4786d9e95cbd136b14c1444415c8dd7f35626028029513f605089d6b661be50"
+    },
+    {
+      "path": "docs/audit/wip/final/review-devops-1.jsonl",
+      "bytes": 194874,
+      "sha256": "b596ddcbabfac5e16021fe3a6179880ec47ee4a64104d41ef36f99b4c43ce545"
+    },
+    {
+      "path": "docs/audit/wip/final/review-devops-2.jsonl",
+      "bytes": 176169,
+      "sha256": "b851433d650a7890551678bfd0456071036a07625c84cd79365a342325c462eb"
+    },
+    {
+      "path": "docs/audit/wip/final/review-dsa-1.jsonl",
+      "bytes": 151316,
+      "sha256": "a4d8098c8b05a0f4a37500ba8741ae5031dcaeeacf79c0fd6a5e00922e4e7c14"
+    },
+    {
+      "path": "docs/audit/wip/final/review-dsa-2.jsonl",
+      "bytes": 182889,
+      "sha256": "5bd4bb444218f3a49dc7b69ae783e5807e921aa71b586ef55a4b3c49ef7e2291"
+    },
+    {
+      "path": "docs/audit/wip/final/review-general-1.jsonl",
+      "bytes": 166807,
+      "sha256": "9a1b0e0341ef0e47cfb757ed30a462ccfe93aa2ba7d04d25aadb5d5238e56a2a"
+    },
+    {
+      "path": "docs/audit/wip/final/review-general-2.jsonl",
+      "bytes": 158578,
+      "sha256": "9062c6303241f1c8be359ecaca72da05fe7ce1d2f42ac09efd454afed7b238fc"
+    },
+    {
+      "path": "docs/audit/wip/final/review-general-3.jsonl",
+      "bytes": 135387,
+      "sha256": "031b52888253ba5517b4de7ed6fc74af9e6f8a5ec88a754944fa66f77f0f77b8"
+    },
+    {
+      "path": "docs/audit/wip/final/review-git-1.jsonl",
+      "bytes": 158287,
+      "sha256": "5547dd10c59e03f3b110c107a829a9c7099963c83ae7451e641f9a40ac9dcda1"
+    },
+    {
+      "path": "docs/audit/wip/final/review-git-2.jsonl",
+      "bytes": 173050,
+      "sha256": "5941b2fca9e9ec4aca0057226818f57d3f73554592ce51c0bba00d09c5061c04"
+    },
+    {
+      "path": "docs/audit/wip/final/review-html.jsonl",
+      "bytes": 130980,
+      "sha256": "66ee051ba4a395bd69515926d5df19971dcd24435d58d6243fc40388695d4e85"
+    },
+    {
+      "path": "docs/audit/wip/final/review-javascript-1.jsonl",
+      "bytes": 111420,
+      "sha256": "fcdac2009941d94f046daddf8620c45459e63ccb109e1245b2098e8eb6ef50be"
+    },
+    {
+      "path": "docs/audit/wip/final/review-javascript-2.jsonl",
+      "bytes": 127525,
+      "sha256": "1c1dc85a98418494edb2f37ec842fe65b90203f6dc7653ed261bd1734dc4c2ad"
+    },
+    {
+      "path": "docs/audit/wip/final/review-javascript-3.jsonl",
+      "bytes": 115323,
+      "sha256": "375ba766f2a71f2e46cf22ccfedcdc3a27f2e88ed3c7451ec4fd1b5bc642d43b"
+    },
+    {
+      "path": "docs/audit/wip/final/review-javascript-4.jsonl",
+      "bytes": 124873,
+      "sha256": "5be79212426bbefab3d722f8950e1985d26fe1d4eca32bf0cede9120d029aece"
+    },
+    {
+      "path": "docs/audit/wip/final/review-nextjs-1.jsonl",
+      "bytes": 155711,
+      "sha256": "0b20f50787afeb161a9c09084984c257132cdd57ec75f79669a289bf341eafd2"
+    },
+    {
+      "path": "docs/audit/wip/final/review-nextjs-2.jsonl",
+      "bytes": 178337,
+      "sha256": "e3f757aa55741e96cdaee041aa71f129698693a6f6caca3c14f58f6965947e72"
+    },
+    {
+      "path": "docs/audit/wip/final/review-nodejs-1.jsonl",
+      "bytes": 137347,
+      "sha256": "3be1298c5dd7e4b66905f416f6542f3174b4755ff74d991d290327b34780052d"
+    },
+    {
+      "path": "docs/audit/wip/final/review-nodejs-2.jsonl",
+      "bytes": 141195,
+      "sha256": "d96f3e0a59ac6bfdf4e0541d75b8bc62f2b66f3543316f1d02eb81ff96768acd"
+    },
+    {
+      "path": "docs/audit/wip/final/review-nodejs-3.jsonl",
+      "bytes": 153395,
+      "sha256": "320ac03abbc7c7278cadb96e5889a68372ee8ac077f0e6d0735aaf5edf68c81e"
+    },
+    {
+      "path": "docs/audit/wip/final/review-nodejs-4.jsonl",
+      "bytes": 163742,
+      "sha256": "ce886eefcbbda95fc5f7d0670fcb8ef24cd2f2e412b0705ff4452891ca68f8df"
+    },
+    {
+      "path": "docs/audit/wip/final/review-react-1.jsonl",
+      "bytes": 123266,
+      "sha256": "3fb65742b2b118bf35ecd3c152bff2e37eead2646e3a572133c08f414102d555"
+    },
+    {
+      "path": "docs/audit/wip/final/review-react-2.jsonl",
+      "bytes": 138875,
+      "sha256": "6c54ac0982480250614bfe3f05240cec147820c05aa50834e18c11adf87383f1"
+    },
+    {
+      "path": "docs/audit/wip/final/review-react-3.jsonl",
+      "bytes": 141690,
+      "sha256": "287f5af6809c65a66d8975fee5f61df91dc8a5078d1c2dde5b5f2b6727e7d26a"
+    },
+    {
+      "path": "docs/audit/wip/final/review-react-4.jsonl",
+      "bytes": 146358,
+      "sha256": "5680d8151447324f0ede19e18d501145f61643957548b675a31aac31920f99f8"
+    },
+    {
+      "path": "docs/audit/wip/final/review-security-1.jsonl",
+      "bytes": 174494,
+      "sha256": "7a5b7f9f8be446d200ca3b7b504feddea6be5d247459803a0caee7a5272e5819"
+    },
+    {
+      "path": "docs/audit/wip/final/review-security-2.jsonl",
+      "bytes": 208118,
+      "sha256": "3448b0dfce3ddcb37587814e9f22dbff95c4103d5d022ed52c91bc2d8dba2a9c"
+    },
+    {
+      "path": "docs/audit/wip/final/review-system-design-1.jsonl",
+      "bytes": 151108,
+      "sha256": "302baac3a3b1202a4945f6968496bcb64dd80428227750be60895238ae11dd28"
+    },
+    {
+      "path": "docs/audit/wip/final/review-system-design-2.jsonl",
+      "bytes": 172360,
+      "sha256": "13729e1ffc9f35d0d0aad61899c09037b79d9f41eeb297e36640c2470e7a192b"
+    },
+    {
+      "path": "docs/audit/wip/final/review-testing-1.jsonl",
+      "bytes": 111803,
+      "sha256": "7a34bb26bb25334f0b54c0a88284467cf588c706d6e3cab66419bcbf43514344"
+    },
+    {
+      "path": "docs/audit/wip/final/review-testing-2.jsonl",
+      "bytes": 102328,
+      "sha256": "39ac41e95c37dc4c6c6b2f2580b48225987c16e3f6c918cc79c9f95076f8f909"
+    },
+    {
+      "path": "docs/audit/wip/final/review-testing-fix.jsonl",
+      "bytes": 47268,
+      "sha256": "5ac6416da9ddadb8ba5f4035dda350c35ac5f523b935f756a704d0027fc26bcb"
+    },
+    {
+      "path": "docs/audit/wip/final/review-typescript-1.jsonl",
+      "bytes": 131093,
+      "sha256": "5921e19e4c9dcbf6d97f046d831bfd563c62e0a815437d319f0194939e83ac40"
+    },
+    {
+      "path": "docs/audit/wip/final/review-typescript-2.jsonl",
+      "bytes": 128292,
+      "sha256": "43674b89288dcfb7b79e051be9ebafa4e22264f9a8435ac4b3681c9e35999bb6"
+    },
+    {
+      "path": "docs/audit/wip/final/review-typescript-3.jsonl",
+      "bytes": 129798,
+      "sha256": "f62739dba6b88824d33b4fdd2e437c02a933c94520eb4beb2f9114aa2bca72a6"
+    },
+    {
+      "path": "docs/audit/wip/final/review-typescript-4.jsonl",
+      "bytes": 115382,
+      "sha256": "5cd01c812a607f7b07ad4d4fba22dc9e283536bf446f7c6140ab27d39fc367d4"
+    },
+    {
+      "path": "docs/audit/wip/history/review-2026-10-22-e3-before-concise.json",
+      "bytes": 41391,
+      "sha256": "a9c8fb8cf27e497e0ee20914f48620d215d04dedd3a7db5af608fbdf4d6b033b"
+    },
+    {
+      "path": "docs/audit/wip/history/review-2026-10-22-e3-before.json",
+      "bytes": 366839,
+      "sha256": "d07290b26b4343d186cea50c773c157959655c9163390a73932f79a4e5a34704"
+    },
+    {
+      "path": "docs/audit/wip/history/review-2026-10-22-e3-displaced-seeds.json",
+      "bytes": 35680,
+      "sha256": "d181068c69d03f0e1b903c6cc91c5851f5b29ca261ef245db6bac3e08ae60676"
+    },
+    {
+      "path": "docs/audit/wip/history/review-2026-10-22-e3-origins.json",
+      "bytes": 20715,
+      "sha256": "94409a85a5fed81e78d4f4f099a36d35c7c8589bafeb708d4ccdc002e2372717"
+    },
+    {
+      "path": "docs/audit/wip/history/review-2026-10-22-e4-question-origins.json",
+      "bytes": 1708,
+      "sha256": "8a29e8f0f70ad39fb6847ee03234a8d47dd1b00a26221179f78b48c4ad594159"
+    },
+    {
+      "path": "docs/audit/wip/history/review-2026-10-22-e4-task-placement-before.json",
+      "bytes": 60915,
+      "sha256": "c94f365260fcc7effc0a79bfbd538f7af3b8991794a73ff736293a51b7d0c8ca"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-abbreviations-1.json",
+      "bytes": 79498,
+      "sha256": "d3c82c142029203be81acef337df89e21da128bef6af2a0359d4b56cbd292cc9"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-abbreviations-2.json",
+      "bytes": 81102,
+      "sha256": "007c5eb59d75396fd678042e89587215bc1473ab50a857e86cb9cfe2c335ce68"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-ai-1.json",
+      "bytes": 89747,
+      "sha256": "e979a515d45e16c91b70ac3bda559f11f33e7091d44f25b76f2e5cb09614d78e"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-ai-2.json",
+      "bytes": 92599,
+      "sha256": "797e1fd33a483072818f08e936be3bacfd2cca8e61c9eb099ebf9830d3c15c85"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-ai-3.json",
+      "bytes": 90061,
+      "sha256": "b6760907fe1eb104239bcb1a820ae5aa919b0001d28faddec9e1a817e497b419"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-algorithms-1.json",
+      "bytes": 44653,
+      "sha256": "4280feffcebe749fe02d6a0a5efc4fc38714e47b98785a6868ab7d8b9350e147"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-algorithms-2.json",
+      "bytes": 48442,
+      "sha256": "ff12e7b5fb86c0a846e487d22ba0ab5df39a15743e5d8e229ce3b87dc35ab44f"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-code-snippets.json",
+      "bytes": 90586,
+      "sha256": "36d755b7d8d8b692da1f3b17f5f646be940df8a8f82d4eefa0bbe2651b3d802b"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-cool-stuff-1.json",
+      "bytes": 80520,
+      "sha256": "ad9156d23d4ba7dc5a52210aea3473c1c73528bb6a5fb795c68f6e243ac2cee5"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-cool-stuff-2.json",
+      "bytes": 80158,
+      "sha256": "a4d0cf7bf2de77b9b8513c7d5753a8a7e98126c55a7d0dc1e842d34ba6d4fecc"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-css-legacy.json",
+      "bytes": 64930,
+      "sha256": "0b76eb2c83fbfd3b89638962ce8a7cc8aa5289e58d560adbd0b6b59ef02fef96"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-css.json",
+      "bytes": 78754,
+      "sha256": "e562cf39ba2dfb90a7405d4b617d7d4a148f126e55fffc62d067701329f435ca"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-databases-1.json",
+      "bytes": 83540,
+      "sha256": "64b4105babd9f337dded91c3c5c6f4ab8763bebba8017d39802aebe8bfca669c"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-databases-2.json",
+      "bytes": 88798,
+      "sha256": "621ba01475719686a9c81dc449e17ed45af9263fd554bc19f8af88d15cdcf0d6"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-devops-1.json",
+      "bytes": 87459,
+      "sha256": "db192102feaff9f9b8a6e5f136082da615aa6521c3c934f8aa8c58bbd0a93a0b"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-devops-2.json",
+      "bytes": 88531,
+      "sha256": "4af7e3568b1e69caa77534ad04c60de10092e510208543c1014500822cf47d11"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-dsa-1.json",
+      "bytes": 78851,
+      "sha256": "e02a90985d61eae37579bfee6d47c60422ff72d24f8f95fbadc56a86503b68b8"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-dsa-2.json",
+      "bytes": 78303,
+      "sha256": "0770f4a6b8242d129203486c5889050dce4ad670ef4a82eeb208b5c013acb06a"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-general-1.json",
+      "bytes": 71376,
+      "sha256": "ac5d23081a90ca4cd56a3c46d0767cde1d6046200a5ef14f0808557ef4990437"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-general-2.json",
+      "bytes": 74245,
+      "sha256": "b57ea6741452401db4fa4348efb0a366875aa99416609256d55a63c99fc9cfa6"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-general-3.json",
+      "bytes": 63420,
+      "sha256": "07461d9805f08723102d5e50eb07aa220418ed199d8ff5bc6195b54757c4e62d"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-git-1.json",
+      "bytes": 80978,
+      "sha256": "e0e9a9e6ce9e4abf10be6187c49910a9d2cdd9ee33929dd1920dbe446bebe295"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-git-2.json",
+      "bytes": 83094,
+      "sha256": "2a91ef931cf5d86fb41867bcd2dab72ee1b37b5e680909e918d08120a36ef656"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-html-legacy-1.json",
+      "bytes": 45217,
+      "sha256": "d0d1c0ffd408ce4c56e3d5c8a735b42c8f76621ce87eb0c53539aa15f3a13700"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-html-legacy-2.json",
+      "bytes": 45883,
+      "sha256": "5de8a2fffe4e827e8800bf381586c00cd94db3957cd2428403ebfa29ba75adbd"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-html.json",
+      "bytes": 70293,
+      "sha256": "e58c5cf7a5a9cbc60059d60f203c354a24ccb55ea3bf56b6eb3498b4d695b259"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-javascript-1.json",
+      "bytes": 63200,
+      "sha256": "6e801dec9c0e727b3de5295fb6cc96834a5f9999bae8c3f145c011b297abe97a"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-javascript-2.json",
+      "bytes": 57702,
+      "sha256": "a9b396a6d6d458fd89e7aa888176688e8cf310c05b962dcf4a3d3cb89465c897"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-javascript-3.json",
+      "bytes": 56623,
+      "sha256": "b95eb6eb697ae12118a88cf98706f48096ee9dff729478996e66869ca3fa595a"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-javascript-4.json",
+      "bytes": 59274,
+      "sha256": "496c6ae2d6d2e3f836676d9f439834923ce8a741f0433d13553272b4217fb1cf"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-nextjs-1.json",
+      "bytes": 78319,
+      "sha256": "3070d3b9389b7d5493e10a594842b64764b9119bb9ec14e27d3183bb66105466"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-nextjs-2.json",
+      "bytes": 76963,
+      "sha256": "218078631953961a79d077a84b9b425ea95764772e1f81e3e5a9d6bb0b36db01"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-nodejs-1.json",
+      "bytes": 62706,
+      "sha256": "5c80bc7d07b4773fd33d07b55abd3c21a2a47c267fa6e005361b8258d2a27b9a"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-nodejs-2.json",
+      "bytes": 62891,
+      "sha256": "422180a14f8659e75ee807cdde966f4d58d8f62e9389999fcb50772ba03686fc"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-nodejs-3.json",
+      "bytes": 64280,
+      "sha256": "2b04bfdf3676bd1efa37a5cc858e96080f5ea3ff72d0783a84944989670341ea"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-nodejs-4.json",
+      "bytes": 63331,
+      "sha256": "387caaf2fc10d2fc712b52b82dcd64290c4fd822fb9fa417d6b6859334305435"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-react-1.json",
+      "bytes": 61658,
+      "sha256": "c6b298a9cc10d08f607dd296762ea84a5e8c96bc8586340855e2827d438043e7"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-react-2.json",
+      "bytes": 64599,
+      "sha256": "41200804d17e41a445ba8f4c1fe5322c895bb6ea81ac0c1f964678116eea7220"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-react-3.json",
+      "bytes": 62504,
+      "sha256": "3dd32550b8b5fa5ada37033dc4e065f1a0fa373dd85dcb12cefd05f8c1525d52"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-react-4.json",
+      "bytes": 63018,
+      "sha256": "8c529b37722fd805f09fb6b263812747b9fb178544c83932ce7dda1d151ccaed"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-security-1.json",
+      "bytes": 90480,
+      "sha256": "8f6e31e25d6d22896009913fb10d54f8c5a2564ba3a8a2782d49f2c4864098f5"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-security-2.json",
+      "bytes": 90732,
+      "sha256": "057d8d4f5467e0d30e11e4cc8d129f8fa79178d26861b6c691510e914b6b829f"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-system-design-1.json",
+      "bytes": 96001,
+      "sha256": "f46bba29d7caf9e0cf41354c379793ff72c23609b5e16922a52e9c0260b02188"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-system-design-2.json",
+      "bytes": 93349,
+      "sha256": "04e0aaf77070884393face2a6c31b0c60f4390e21058e304c3001ab67b9fb4e6"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-testing-1.json",
+      "bytes": 87928,
+      "sha256": "ac5f798878683c702bbdd0d717ee047b117072677b2ae3c30557264f6a975fc9"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-testing-2.json",
+      "bytes": 87701,
+      "sha256": "0c3a1e39075638b30cc098324e9de6eb5e8dcfdd82423a6a743141e3929b5690"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-testing-fix.json",
+      "bytes": 57080,
+      "sha256": "d4de4c06cac2954b36eaca2e7a7d04a6c6d847d2ed2f3849311533ba849a6e7c"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-typescript-1.json",
+      "bytes": 61615,
+      "sha256": "9d0297ded18b7a4e1f6b9c686844bdd31a6a24029f215dae3650ba6c13c077b6"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-typescript-2.json",
+      "bytes": 60922,
+      "sha256": "ddff546e9161263c49dcfab3f09df290825e2d1505317ede56a0e9865aa06f43"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-typescript-3.json",
+      "bytes": 62381,
+      "sha256": "afdb6d650c2679f03d5f7190105892458f953b47ea6a12f9480665c7e944eb03"
+    },
+    {
+      "path": "docs/audit/wip/inventory/batch-typescript-4.json",
+      "bytes": 68401,
+      "sha256": "bdabbe9bf2623faa6ede3cf12e1791871bb334689ff0d70bcff51f951346fdba"
+    },
+    {
+      "path": "docs/audit/wip/inventory/inventory.json",
+      "bytes": 1313743,
+      "sha256": "7c61460fade791f55c1ff7e57f95b589bf3534a478780abf94ceb75ad60d7882"
+    },
+    {
+      "path": "docs/audit/wip/review/review-abbreviations-1.jsonl",
+      "bytes": 81821,
+      "sha256": "dc3fdd7bb190fbd772a3e8e9c9e54faaf0e9df4ebc2a7ef43f324e282552409c"
+    },
+    {
+      "path": "docs/audit/wip/review/review-abbreviations-2.jsonl",
+      "bytes": 85378,
+      "sha256": "d26c0a997f3d8808f7c56e92f7e9f21b2a3c553d8f0dfb9c36b59d1be8baa8b8"
+    },
+    {
+      "path": "docs/audit/wip/review/review-ai-1.jsonl",
+      "bytes": 137654,
+      "sha256": "8aac44524ddcd9a00347708729095ab732017cda6236fdf160fb7dd6b05a0da1"
+    },
+    {
+      "path": "docs/audit/wip/review/review-ai-2.jsonl",
+      "bytes": 144105,
+      "sha256": "7bac001ab3314618e386f9de23aeec0bd3ac7b79cb80f14b55024e556806d937"
+    },
+    {
+      "path": "docs/audit/wip/review/review-ai-3.jsonl",
+      "bytes": 120507,
+      "sha256": "c6c6ba02c751f1afda3a3bb909f8c2f203c1b646fa5c8e6025a9d7af226af61e"
+    },
+    {
+      "path": "docs/audit/wip/review/review-algorithms-1.jsonl",
+      "bytes": 72574,
+      "sha256": "9b8a16ee5ee8ebfa7c2a232c934133fb44501f293f6750ad7d103a4b92194beb"
+    },
+    {
+      "path": "docs/audit/wip/review/review-algorithms-2.jsonl",
+      "bytes": 77252,
+      "sha256": "c1a524f31e522423e3bfff348daaf27912ebba5679e74b29ce976d08c92b6bc5"
+    },
+    {
+      "path": "docs/audit/wip/review/review-code-snippets.jsonl",
+      "bytes": 84172,
+      "sha256": "273b25d990fe0943587daadf19edfc163a06138bea51e6d89b604c988c88ff0b"
+    },
+    {
+      "path": "docs/audit/wip/review/review-css.json",
+      "bytes": 130488,
+      "sha256": "03b379cbb7cd63a569ff22d3fb59844166a69b9e2cba291c85875fee99d8ec8e"
+    },
+    {
+      "path": "docs/audit/wip/review/review-databases-1.jsonl",
+      "bytes": 122346,
+      "sha256": "4601dc1f50333dfdd3cf86da9452e275558839818a157bce7599155f4c87e3d7"
+    },
+    {
+      "path": "docs/audit/wip/review/review-databases-2.jsonl",
+      "bytes": 144948,
+      "sha256": "c3fb4fd4e216e3824a89a4a4a88eb758d28e58adf80b2919cb12fe2086854448"
+    },
+    {
+      "path": "docs/audit/wip/review/review-devops-1.jsonl",
+      "bytes": 152266,
+      "sha256": "d2edc91e52a785efdf3df21888e806991c645f12f1ac6abaf33b0f9b6cb56350"
+    },
+    {
+      "path": "docs/audit/wip/review/review-devops-2.jsonl",
+      "bytes": 138348,
+      "sha256": "98caa4e4e1147bfea87337a1f907d14ba99532757678496014cbdf891e48a84a"
+    },
+    {
+      "path": "docs/audit/wip/review/review-dsa-1.jsonl",
+      "bytes": 116396,
+      "sha256": "c8ca4589b4ceab0555e357dce564f7afb8936de6959b78ace726b3221a326e6e"
+    },
+    {
+      "path": "docs/audit/wip/review/review-dsa-2.jsonl",
+      "bytes": 140947,
+      "sha256": "9d12a8741c3184387cd352f70aa448d31e9ea591c9a8288b9bd2455eb3d302ad"
+    },
+    {
+      "path": "docs/audit/wip/review/review-general-1.jsonl",
+      "bytes": 126351,
+      "sha256": "06ddd97d51f653d3be97b37b1d375953acaa3ef2d7072cbad1e929eaf6e11ef5"
+    },
+    {
+      "path": "docs/audit/wip/review/review-general-2.jsonl",
+      "bytes": 120777,
+      "sha256": "32f9fca1563320f83bab7782d22f8263f0eeecae33188fa657543d26f1e026b0"
+    },
+    {
+      "path": "docs/audit/wip/review/review-general-3.jsonl",
+      "bytes": 102183,
+      "sha256": "5fc9c9d841616b4b64259dcb9ab4edc9078ad9a9309ec2667cf4fe3445d15b5a"
+    },
+    {
+      "path": "docs/audit/wip/review/review-git-1.jsonl",
+      "bytes": 124680,
+      "sha256": "fe6ab5fd82996ae76a1abb3d81c6d528cbb47ec8381e7ca3305328c26887e7dc"
+    },
+    {
+      "path": "docs/audit/wip/review/review-git-2.jsonl",
+      "bytes": 135720,
+      "sha256": "444f6065b3ad1d6b3d55c0134d1f7636957c376b0258e15f36e54da21c59757e"
+    },
+    {
+      "path": "docs/audit/wip/review/review-html.jsonl",
+      "bytes": 90822,
+      "sha256": "b93ceeba4f61b4cf59abe1d71596b4f0b16c223465fbbdbf3abac0d9ee81fb72"
+    },
+    {
+      "path": "docs/audit/wip/review/review-javascript-1.jsonl",
+      "bytes": 87803,
+      "sha256": "fc4f21505fe9eb6d15dd553f7a319a46d072962ec5882a104eb7def2b3cf0cdb"
+    },
+    {
+      "path": "docs/audit/wip/review/review-javascript-2.jsonl",
+      "bytes": 105321,
+      "sha256": "30ac4e878edf054ed0e292562db96b4c85cef2c12aa61ef5227d03235a771fb9"
+    },
+    {
+      "path": "docs/audit/wip/review/review-javascript-3.jsonl",
+      "bytes": 94956,
+      "sha256": "7fd8ca63fe1ae836476f50e687772bfe575b522ea11d63e166f15c812b389cdd"
+    },
+    {
+      "path": "docs/audit/wip/review/review-javascript-4.jsonl",
+      "bytes": 106929,
+      "sha256": "f474ef61c0c615e847d3ce2324044ec932c9837cc3f3bd3d2fccd5d12b46cd52"
+    },
+    {
+      "path": "docs/audit/wip/review/review-nextjs-1.jsonl",
+      "bytes": 122128,
+      "sha256": "47168a86f443fe293395de2c4f56c406c40d2dc27b01968a0023dabf5d0f3118"
+    },
+    {
+      "path": "docs/audit/wip/review/review-nextjs-2.jsonl",
+      "bytes": 133964,
+      "sha256": "db216ea06ef20f4d9386bbf3312e943a739bf422a2db659a7ec33d2dacd470c5"
+    },
+    {
+      "path": "docs/audit/wip/review/review-nodejs-1.jsonl",
+      "bytes": 105826,
+      "sha256": "2fea6bbee50fd445089327f27da6cefdf32d8cac7cc6ce0ffc84edc610eb9552"
+    },
+    {
+      "path": "docs/audit/wip/review/review-nodejs-2.jsonl",
+      "bytes": 111707,
+      "sha256": "ec160038a6725b03de07577cf50990fe56175d13162275e28919fbe2d2340266"
+    },
+    {
+      "path": "docs/audit/wip/review/review-nodejs-3.jsonl",
+      "bytes": 118600,
+      "sha256": "34738719de042ffc4809d28851d0395e5676e383881951ccf1b1d584c902cbd6"
+    },
+    {
+      "path": "docs/audit/wip/review/review-nodejs-4.jsonl",
+      "bytes": 125503,
+      "sha256": "24c54792bf7905bb3141ef51c1ea92cbd0ef70f61e2c693c616e2488e75c4f83"
+    },
+    {
+      "path": "docs/audit/wip/review/review-react-1.jsonl",
+      "bytes": 97558,
+      "sha256": "2a1f6e4909dd43a929cea8da3d1341a37504a2df6bb6ddd551959823c15055c8"
+    },
+    {
+      "path": "docs/audit/wip/review/review-react-2.jsonl",
+      "bytes": 112591,
+      "sha256": "f1051bd5f3d9fa5e7959c5135e28eaf7557f705b3a38e134ab089ed160503764"
+    },
+    {
+      "path": "docs/audit/wip/review/review-react-3.jsonl",
+      "bytes": 113593,
+      "sha256": "cadf20de36f87ea798540b356414d6030b3f4221b8e57ad1c646bbbc74fdf562"
+    },
+    {
+      "path": "docs/audit/wip/review/review-react-4.jsonl",
+      "bytes": 118585,
+      "sha256": "fd976a288bd5a79c409856e41b8e91577d7816f3b90097d5aea28af00b4a8199"
+    },
+    {
+      "path": "docs/audit/wip/review/review-security-1.jsonl",
+      "bytes": 136522,
+      "sha256": "e968ee165e9afbf30be319a569dc93a549fddfb2ecd0fb25e94d57838b73e5c6"
+    },
+    {
+      "path": "docs/audit/wip/review/review-security-2.jsonl",
+      "bytes": 162075,
+      "sha256": "044de31f21cd1520b875e35693dc2f7d267b24c69494556d0f19198518a935f9"
+    },
+    {
+      "path": "docs/audit/wip/review/review-system-design-1.jsonl",
+      "bytes": 112020,
+      "sha256": "15933acc78f5603e666589e9eeac82077e412176350d6770f9a24a7162504b9c"
+    },
+    {
+      "path": "docs/audit/wip/review/review-system-design-2.jsonl",
+      "bytes": 136412,
+      "sha256": "538f1024a53952d4db6de474faaf9f6d36215830c5aab0a930717b78f06203ab"
+    },
+    {
+      "path": "docs/audit/wip/review/review-testing-1.jsonl",
+      "bytes": 98189,
+      "sha256": "501ee1995300b3c800fb7901bd89c229d30a68d9f50e75bdcbac301a215d42b9"
+    },
+    {
+      "path": "docs/audit/wip/review/review-testing-2.jsonl",
+      "bytes": 98699,
+      "sha256": "058ef8d8fbb021c893bb4f68c22cc1b6bef2586999b64b8c6a869cd2cd6da848"
+    },
+    {
+      "path": "docs/audit/wip/review/review-testing-fix.jsonl",
+      "bytes": 47268,
+      "sha256": "5ac6416da9ddadb8ba5f4035dda350c35ac5f523b935f756a704d0027fc26bcb"
+    },
+    {
+      "path": "docs/audit/wip/review/review-typescript-1.jsonl",
+      "bytes": 106091,
+      "sha256": "8d60840132718850a35602b04e49cd8cdbe5b9b194e7b78b47fd098683e6edae"
+    },
+    {
+      "path": "docs/audit/wip/review/review-typescript-2.jsonl",
+      "bytes": 101108,
+      "sha256": "3f5e87b9eccacc69eb0e4b48660ec773570db9b77f31d54759398d858748529c"
+    },
+    {
+      "path": "docs/audit/wip/review/review-typescript-3.jsonl",
+      "bytes": 104278,
+      "sha256": "957ee2f2d129434e11b1d24dd64df02ca7a15d545ed050cf741b28a480963ae6"
+    },
+    {
+      "path": "docs/audit/wip/review/review-typescript-4.jsonl",
+      "bytes": 88926,
+      "sha256": "e629c90274b2812ce6946212431d158b7c1fc9d3969cf3581221df736590c9b5"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n012-candidates.json",
+      "bytes": 8517,
+      "sha256": "52440ba6b8779f86eb605823b972d56d9787eeb97e3d79fefdc49dfa4a723e68"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n015-candidates.json",
+      "bytes": 3997,
+      "sha256": "17a050fe5e17082d44fb2e757cbb50e18724e130505750fb5d182162b5dc82cf"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n018-candidates.json",
+      "bytes": 3605,
+      "sha256": "3e8c0233b2bb8af44f527771bd4b6f6e07b0b891c0e2a42f9299d347da5eb7ba"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n031-candidates.json",
+      "bytes": 9820,
+      "sha256": "c948e694d4470c47033823d8db657d5e6662edb6a96819daa67e7d78d87db7ff"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n032-candidates.json",
+      "bytes": 4715,
+      "sha256": "c371cf7c5e87413889f69c593ed8bdbbfd47296f511e09394dd6037c3fe18af9"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n033-candidates.json",
+      "bytes": 3645,
+      "sha256": "c022a646b5703bae3e7cf1554f23fc0756270b5e9965cd02ad30f246ab9e1a1f"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n034-candidates.json",
+      "bytes": 6859,
+      "sha256": "928fbbb5a37fc2bbdc5b97a442650adf35cb9e3054e085f279cdc9a9d79bb7e5"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n035-candidates.json",
+      "bytes": 6214,
+      "sha256": "b3f1d8345947ab644b9e9a9233dbce6af1f56a5a78c1fa0645342eea6ed30ed6"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n036-candidates.json",
+      "bytes": 10492,
+      "sha256": "cc8c9c63e3a029156658c6f7406abd2d9827c409dcbe1a19453ce3c8c0f9871c"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n037-candidates.json",
+      "bytes": 14463,
+      "sha256": "6a5853c16da544384f2246239d59bc075634a381e4e9e49b8706719f10bf324e"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n038-candidates.json",
+      "bytes": 5174,
+      "sha256": "b2e1d4dbc272c9753470c079f55ead768313cc3978954af3366e85705ae141cd"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n039-candidates.json",
+      "bytes": 10589,
+      "sha256": "11bc2f05b48c1ec24bf2a74005cb0d2adc498245842e82a1e5937b707aba5df4"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n040-candidates.json",
+      "bytes": 21230,
+      "sha256": "b48512d63de5055c0f04bb280de2fc6978a58c974d4b2c87ecee396e2e5bf36c"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n041-candidates.json",
+      "bytes": 23962,
+      "sha256": "b228cabdc733169def97c390399e1d0ee6fc0ab66fb356454a06d1a2f936b038"
+    },
+    {
+      "path": "docs/audit/wip/tools/native-2026-10-15-n042-candidates.json",
+      "bytes": 32451,
+      "sha256": "94064b97fca451a4329bc31b714c003065585f83c68907842c4fc386ac5a8e67"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-ai-a.jsonl",
+      "bytes": 34673,
+      "sha256": "da5f4abd3544b639aee4822e850c7e750d0f856ef670e6cefccb68a03eddc8fa"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-ai-b.jsonl",
+      "bytes": 34937,
+      "sha256": "61657ed5e0b781125fe7a41e9cc0a315e79ad2a83354570dc7dfa4aa13eedc25"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-ai-c.jsonl",
+      "bytes": 36336,
+      "sha256": "9545c0b63ff312ba51bf4fc49e3eaeca16538c3c88da85f34010252372a2f7c3"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-algo.jsonl",
+      "bytes": 28701,
+      "sha256": "8168ed5ec818b1b194a37bfd74fbe2d3f36dc6b4f2a5a1c7964cf793d5324fb8"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-css.jsonl",
+      "bytes": 34047,
+      "sha256": "0484d1fdb1f9657227cf245ae6e78fd7b27676bb47047f03ad00f4affb59d047"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-db-a.jsonl",
+      "bytes": 37168,
+      "sha256": "b67f1364eff4afbd85b801a84dd47d0235bb972fd3a2bf7ec9058a386f19e773"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-db-b.jsonl",
+      "bytes": 40969,
+      "sha256": "ba85e547b09a980434e6257a37ddb137f1b0f12c9d6389bc0cf8315bd43b668b"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-devops-a.jsonl",
+      "bytes": 40379,
+      "sha256": "dbbc4ee7d5035433e6c6f2b5793a8aef3d1b9d56f5988ead5467f7a282234b6c"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-devops-b.jsonl",
+      "bytes": 37234,
+      "sha256": "522229005d92812e377a6d9ca4fbdddbe8b147523cba556ff3569bf9aca50b8b"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-dsa-a.jsonl",
+      "bytes": 32834,
+      "sha256": "b6dbb2791625f316d181ee6a83bdee15af72452067dc36c5804fb19602c76f35"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-dsa-b.jsonl",
+      "bytes": 35433,
+      "sha256": "d1c7f05cf9da5464a64992922da8d443f6bef7ab55ebee2af0fab9b9e1c8dbc1"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-duplicates-r2.jsonl",
+      "bytes": 22046,
+      "sha256": "ae1b70e46353d44d1140d0f539246f64f7ec904aa8e75aac0c7264c839449c2a"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-duplicates-r3.jsonl",
+      "bytes": 3761,
+      "sha256": "028bf2a6b7303448a93aa2936bd7eb474824c6bccce3a777cbcbefec0f076871"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-duplicates.jsonl",
+      "bytes": 4966,
+      "sha256": "7ba29df829d9effc74f64de2beddb0dfd0dd831762d39e19294aac27b4b18e6b"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-gen-1.jsonl",
+      "bytes": 42221,
+      "sha256": "cccd1d56ff378a180a67158021e01900bafb89e35f2c47062b5ed7bf3654f7b6"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-gen-2.jsonl",
+      "bytes": 41488,
+      "sha256": "ab9b8b9dc1776c262640e6934a5da2807be44255292c8719003ddbe859b026f6"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-gen-3.jsonl",
+      "bytes": 32259,
+      "sha256": "7ee2c3e98041ea6473425e65711c0126de5ef61adae223b4608e095ca17d7948"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-git-a.jsonl",
+      "bytes": 37605,
+      "sha256": "37f46100a458584bd1f47a4705f1b25839b8f4fe7d82aed5fc0a99ac4909b424"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-git-b.jsonl",
+      "bytes": 35354,
+      "sha256": "3957746c46772abd74f61e925e83eeb51a9f7ebf95bdc85cacf3e8c749e25270"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-html.jsonl",
+      "bytes": 37857,
+      "sha256": "700b146cf54c00443f970c162756464d7a7431e1b225f41be45ea6f9992624a6"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-js-1.jsonl",
+      "bytes": 21246,
+      "sha256": "9df0a9b7d9556c0effc91e1daf4b2d9294f1a944f8cca029da1d2b76d58e5724"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-js-2.jsonl",
+      "bytes": 20418,
+      "sha256": "1ef0c19d570a30f31c89e50753114f610060f3c4b01c3ba9c47ccdafb3863d57"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-js-3.jsonl",
+      "bytes": 17221,
+      "sha256": "6475e4330b04e1b66bd813f0f56079fe78d9f3f2b3eaad5203a2a8c0a9496aec"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-js-4.jsonl",
+      "bytes": 19222,
+      "sha256": "97e8bb1859e7565799608b52c173eabcc74610f27904638cffd6628c0c153dbe"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-next-a.jsonl",
+      "bytes": 32506,
+      "sha256": "d7c683c2abd7ef00969828d199640f9f53e3fdc9d04398fbbfa74993695bef06"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-next-b.jsonl",
+      "bytes": 43876,
+      "sha256": "95669cd48699e41f0ea6d72d6eb256eaf5562f407f5b735ef19e949bc1922386"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-node-a.jsonl",
+      "bytes": 24160,
+      "sha256": "3435689573d19bcc77cd1eb198e6596255bc4f0fc7d896a56c31626ff26a5772"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-node-b.jsonl",
+      "bytes": 33052,
+      "sha256": "4bfe486e1652a84568ad44b0f7495b6da7626405b55ac93329d0bac3c2172cc3"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-node-r2.jsonl",
+      "bytes": 39888,
+      "sha256": "684d65b010198f7a4ed6755ca911a4d647d8e68d00746e0f76bf5c796f82d03f"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-node-r3.jsonl",
+      "bytes": 19970,
+      "sha256": "f22d9bc41cef1241c68a1549e29d35266dda539119ab2eb87ea8343b9e9dc358"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-node-r4.jsonl",
+      "bytes": 30804,
+      "sha256": "253acddc61f226dc963a7d847153e8db3f19a873bd869eecefd46fe31e2d7e9a"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-react-1.jsonl",
+      "bytes": 21866,
+      "sha256": "b0efc1a6d31fcc7d5ed8d37fb31fdee042afb46a7e668df993b5f7073327ebd0"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-react-r2.jsonl",
+      "bytes": 17719,
+      "sha256": "1b5ad4a065fd1836b4eef9ce3c9578fdcfe14ed0618a916b4b4c2324655a821e"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-react-r3.jsonl",
+      "bytes": 29838,
+      "sha256": "03e0f38437f4ff0d32865dd6b890b87b3a6c515f285f244db8bb4dce5a39356d"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-react-r4.jsonl",
+      "bytes": 29182,
+      "sha256": "0584d06f93f3be0a3dcb882cdb77c77c64b8d92b9611c919dc16f970ba8324d7"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-sd-a.jsonl",
+      "bytes": 35925,
+      "sha256": "7d9e1439a85b8623b5da8a14fbdf4054fd24ff713755c6e3b7ec0817a8a73e40"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-sd-b.jsonl",
+      "bytes": 33051,
+      "sha256": "8af2145b8bb1d1ab165e5f9e3e918a9e160bf43becdf968574a847711abba78a"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-sec-a.jsonl",
+      "bytes": 35105,
+      "sha256": "6659360b28059f126f76f4815a84b964eb71265041a83e24bbec4f50cf6de1ec"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-sec-b.jsonl",
+      "bytes": 47871,
+      "sha256": "7a5b20412840698aff03a4bccd89bc37c00ff82b5456c93f65b4c7e8465a1969"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-tail.jsonl",
+      "bytes": 8699,
+      "sha256": "0c8775e82fdbb52260341700ef16deca02d9619454b55220cfbb46f6a8c28991"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-testing-a.jsonl",
+      "bytes": 10151,
+      "sha256": "d157ce722d1003d77d002c76c3d4aa227785c2a18d7684c064b73f72797eef8d"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-ts-a.jsonl",
+      "bytes": 27158,
+      "sha256": "bba591cd9fa1279429e7bc7e58e3ba65c0376ada0755f94a9cdb3b2781003351"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-ts-b.jsonl",
+      "bytes": 24312,
+      "sha256": "6aa3d11461a79980b960d6751f1c71f2988b3f2f62ed5c95120f0f771f2f9eac"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-ts-r2.jsonl",
+      "bytes": 22481,
+      "sha256": "64d583b1688c5ff51093276220c0e00cd7bc1d1c4371be7e42e0b0406267d234"
+    },
+    {
+      "path": "docs/audit/wip/verify/verify-ts-r3.jsonl",
+      "bytes": 27404,
+      "sha256": "3529d374c90e90743dec18c97480014f5d9cb06a036522fc8cfa76b7b543207b"
+    },
+    {
+      "path": "docs/ux-audit-2026-11-03/coding.html",
+      "bytes": 822103,
+      "sha256": "942bd66b9ba286c8d98656d95cc272d3922cd0ad4988519ead79f8947057897f"
+    },
+    {
+      "path": "docs/ux-audit-2026-11-03/index.html",
+      "bytes": 10068297,
+      "sha256": "70ef1e36633a126e842ecc2a72e9ed17b58cc689d3ce86c284eef5706baf8e1d"
+    },
+    {
+      "path": "docs/ux-audit-2026-11-03/learn.html",
+      "bytes": 1976863,
+      "sha256": "1d8b275a997403fe99bd7c702f804200ca01271e66efe8ae6335c59639f33a93"
+    },
+    {
+      "path": "docs/ux-audit-2026-11-03/quiz.html",
+      "bytes": 2003185,
+      "sha256": "863913f358e9e97f1331301ba5b1d03e0b19eb5b4046b10ab4c2d744579d4af2"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/index.html",
+      "bytes": 8207181,
+      "sha256": "e316fc39796531d918bf143a0864a65c958597e0b4d4279119a393198ea88799"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Brilliant-Learning-goals-onboarding-step.webp",
+      "bytes": 42136,
+      "sha256": "00a541ed8d44ff6542fa24e172fffc30935be150f55f13e8188a66cebb452428"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Duolingo-Correct-answer-feedback.webp",
+      "bytes": 40170,
+      "sha256": "c75a05267b02bd5a9d2de46c0a04987521948d3380749d6554dc0c59fdac3694"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Duolingo-Image-choice-exercise.webp",
+      "bytes": 37046,
+      "sha256": "a04fe2d460abaa2f646ae1f6ff90428fe226b282df6f9520f6e600de33c63946"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Duolingo-Selected-answer.webp",
+      "bytes": 37712,
+      "sha256": "9483232f5997c5ef35fcc4259022d428eb6749afb10d36abe49cae6388d10cff"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/GOV-UK-Design-System-Error-summary-overview.webp",
+      "bytes": 185414,
+      "sha256": "7a284fa480be9684aa0b8471ac7f481e3a7c436ee00c8809b7ea7e6d96d0bc7f"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/GitBook-Developer-docs-quickstart.webp",
+      "bytes": 180558,
+      "sha256": "0f926f544ccefa0dfb760457bdaa252658fd32be857833963456f49e1f9d1b74"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Hoppscotch-Request-body-editor.webp",
+      "bytes": 92586,
+      "sha256": "4c8659d54235d0ec3f04eaadd600a2addc647a6fd98a09199fad76cd1aeb8387"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Khan-Academy-Algebra-course-overview.webp",
+      "bytes": 49400,
+      "sha256": "9b3c43b598a2c77d443eb932df39705e6a2eeb533451e887b8d8b1426d4be1f8"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Khan-Academy-Expanded-course-group.webp",
+      "bytes": 38114,
+      "sha256": "95f8be72e672aaf45eebe607209c821c1b6f59b0c6cec128ece5107d946cff3a"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Khan-Academy-Subject-catalogue.webp",
+      "bytes": 45244,
+      "sha256": "8cbfb7ba346a4c6645a2632933ae7d7c7261fc4a192b6f318476d2a0d336a502"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Khan-Academy-Unit-lesson-list.webp",
+      "bytes": 52422,
+      "sha256": "bff71e3c5c964b0bbdb333f7960455d44bd5bb5f10ff51351a93df8ec20d7d12"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Nuxt-Dashboard-Notification-settings-controls.webp",
+      "bytes": 86608,
+      "sha256": "f02d9d9003d40fde2eaa31c47bcf076ff35bccf2454d467676898fe5d3e4bca2"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Sentry-Pricing-plan-comparison.webp",
+      "bytes": 192116,
+      "sha256": "5a522149e1f9af3454befaa4c1bcd5db5a1c1713650105470041d99b704f8782"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Super-Productivity-Project-and-task-view-options.webp",
+      "bytes": 43136,
+      "sha256": "01d8a0d149d3c4f12f96f1ce91dd6bc1933b4b5aa9c3d758d0faba60ec6efbf1"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Svelte-Editor-and-result-view.webp",
+      "bytes": 72572,
+      "sha256": "590a3e373292db4b7113ba4b411a08e07b79c4f44c59e2f0b1ce300b03ed6a16"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/Webflow-Courses-and-interactive-learning.webp",
+      "bytes": 176646,
+      "sha256": "38be7e39130ff8c9669c57709df8832637541d49ac91fb32428289623b86d2d7"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/references/edX-Course-Catalog-Course-subject-directory.webp",
+      "bytes": 269266,
+      "sha256": "8242ebdf127923c8464f225798f1e5c80842ee9cde9c21bfb58ee64305add245"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/coding-discovery-dark-1280-after.webp",
+      "bytes": 150902,
+      "sha256": "dd6497004fc4f802a8a2777379d3c0c76b91ae4a5742ad75a83b4fa9a6640819"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/coding-discovery-dark-1280-before.webp",
+      "bytes": 162138,
+      "sha256": "dfc155ed9010d26c56725065e6bf2a3b333a47a7f87fa994b6001281c44aa2c5"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/coding-discovery-light-1280-after.webp",
+      "bytes": 27686,
+      "sha256": "6e62ba94326574b2d84d0a661214d920dee6c169bb14048823c6838d36765b22"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/coding-discovery-light-1280-before.webp",
+      "bytes": 32078,
+      "sha256": "b50d76179bdc66c397660ea00362c5266b32079f2fd031fefe875b1b6e584809"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/coding-home-dark-1280-after.webp",
+      "bytes": 172872,
+      "sha256": "2d5cf31e70ae3af2e1949b3cd133b48942df54c2a5b30efaf104bb786fac5d88"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/coding-home-dark-1280-before.webp",
+      "bytes": 176224,
+      "sha256": "b050da9d87c3633ec1ac90e1ef19fa731d021c6a56ea5e8aaef2f4c910c690e7"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/coding-home-light-1280-after.webp",
+      "bytes": 42800,
+      "sha256": "312d9c5de78e065daf7f02868a4000ebc81b61e8606455352c99f917f5d88b8f"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/coding-home-light-1280-before.webp",
+      "bytes": 43932,
+      "sha256": "eabafbe3a681dfe7e1b3199a6de2741db4db4891c4d86868469d60cb54c535f1"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/coding-track-light-1280-after.webp",
+      "bytes": 27898,
+      "sha256": "9615567f707bc2c0eb8246071c3c4515bb69b48dd14445bebc3942dc4a0352b8"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/coding-track-light-1280-before.webp",
+      "bytes": 28074,
+      "sha256": "683ade967afa8bd9520b6036d20acea562794f5b6a0803fbbc3a2bdfaec3e6b9"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/daily-light-1280-after.webp",
+      "bytes": 22130,
+      "sha256": "24d2734ecebed62708b34271c4d220a91eb6437f4c85b109d66191fbc74ab986"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/daily-light-1280-before.webp",
+      "bytes": 26266,
+      "sha256": "2c3a47a2c49c90a7248da62b4d53fa2f2f844e123a15d3dd6899a6e13fd30f0f"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/evolving-dark-1280-after.webp",
+      "bytes": 99336,
+      "sha256": "991ab9d425019d4712e2fb8d93ad5d36ed629663bc4382a6498122ce689f1d8f"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/evolving-dark-1280-before.webp",
+      "bytes": 117026,
+      "sha256": "834ddb46d45afe7e7c9de654c0cba519b44388ce5de38846548c9f24f6aa7ea7"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/evolving-light-1280-after.webp",
+      "bytes": 46652,
+      "sha256": "ae2cf2a7829d100ebee0b2f9455495eb7cbef66e3139667eb7602483fed3f168"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/evolving-light-1280-before.webp",
+      "bytes": 52060,
+      "sha256": "857072069a18aea1fdc1127647d289bedf205b2579d799df6b7a13c5c4d44c4e"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/fde-module-dark-1280-after.webp",
+      "bytes": 131782,
+      "sha256": "18d30b5d769d47035945e8eeec37807fb0bc2abb8bf8f7b574a8ae6a1eed0dd4"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/fde-module-dark-1280-before.webp",
+      "bytes": 156572,
+      "sha256": "73b894deedf9c47a0744ee64380214bf003916c7f5e03668226796f41b0c3ad8"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/fde-module-light-1280-after.webp",
+      "bytes": 46152,
+      "sha256": "41f98f3390828aa6eaf180c3380f97bf1c671bec5f59beca3733f96c832c3927"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/fde-module-light-1280-before.webp",
+      "bytes": 43682,
+      "sha256": "2d16779db9f96fe0e2759bfef0bc322098cb408c672069b44d561a80ae469fb6"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/leaderboard-light-1280-after.webp",
+      "bytes": 25068,
+      "sha256": "ece12c4a7cb49934716c0169bfcca3eae2f47c44757620b17dc6d73870e8eaed"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/leaderboard-light-1280-before.webp",
+      "bytes": 25300,
+      "sha256": "b89051581ae4aafecdbb144925874355425bcfbe59d62d26dca3951f1a040736"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/learn-dark-1280-after.webp",
+      "bytes": 314864,
+      "sha256": "a469f55060c16b5bd90afefcfc0de54fda74705fca26630b1701b004659a7673"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/learn-dark-1280-before.webp",
+      "bytes": 282724,
+      "sha256": "7ffbd4d07c5c83d2b82cb5e1ed0bc1d11d01d7ce88f6a5ea2cb688fe6710a2ce"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/learn-light-1280-after.webp",
+      "bytes": 46590,
+      "sha256": "5d0f2bc9c158fbdc4d392143acd01c6df67ef76ed1ed64f1d594790b8209f5eb"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/learn-light-1280-before.webp",
+      "bytes": 42132,
+      "sha256": "e61aacafacbab9644164fc3b055537fa981b68af3e0bd20b5ea4ce244893b34f"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/learn-light-1440-after.webp",
+      "bytes": 46006,
+      "sha256": "5df8000fd9475b862f427697f48be579c1c2baad8399fe00adf9c9742de06cfd"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/learn-light-1440-before.webp",
+      "bytes": 47144,
+      "sha256": "9ca7a9cacda8d86e3bd39520ee51dd53fa0b04004a70deb296ed0749e962ba80"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/learn-light-390-after.webp",
+      "bytes": 24308,
+      "sha256": "93251431609063985c5f81a4f40b2ee65bc1871a12f14bfab9e5e83b113258e2"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/learn-light-390-before.webp",
+      "bytes": 24554,
+      "sha256": "b23128edb1b2da7e8af0de29b92b90d6ed79330416c7de2338c1de47b66dfe3d"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/premium-light-1280-after.webp",
+      "bytes": 31672,
+      "sha256": "3b51f1674a1fb19dd3052d9b464cd07544930cc078b2ccbdacb37a6d2d88a471"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/premium-light-1280-before.webp",
+      "bytes": 34242,
+      "sha256": "38e2c84004ceb88d152de0eaa5906d7aa5e033bd850971d550a4c91a3f7475bd"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/profile-dark-1280-after.webp",
+      "bytes": 112536,
+      "sha256": "a4b3b638ff227add14c5f3ca3e8b42c151c263b44437fcc26e3e41f15430ad52"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/profile-dark-1280-before.webp",
+      "bytes": 158894,
+      "sha256": "01900d88eeb262046d71650c20ea419c3944ac0f6f6b8d201c4ebb6438d1c2dd"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/profile-light-1280-after.webp",
+      "bytes": 49430,
+      "sha256": "ce065e6cff997356e5d2623115367e884c9f30bc9439afd1109ac012dca475ef"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/profile-light-1280-before.webp",
+      "bytes": 51320,
+      "sha256": "ca7755ca1b59e8486d9d1b6ac6b503edc54a224fa7cc76d796b1c4381a007ec0"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-active-dark-1280-after.webp",
+      "bytes": 109988,
+      "sha256": "2d903f4b655e3375b3f9b315bfa025524ae417747cec8e3060523485823a7725"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-active-dark-1280-before.webp",
+      "bytes": 112424,
+      "sha256": "d6bef715b83a4272f8da82508ab86360a7ad227cf6b6eb371a6c2758e51f2921"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-active-light-1280-after.webp",
+      "bytes": 15010,
+      "sha256": "f1ba3cdaf5757ff90f8b011180357478cea2a0efcc036ae470ccdff5b25e9bec"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-active-light-1280-before.webp",
+      "bytes": 14348,
+      "sha256": "37b1c845402e77399764cda94970431625cd514864df204038eb58429f535163"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-active-light-390-after.webp",
+      "bytes": 13118,
+      "sha256": "07618b18d47af625b413b63290141c73a4c91f8b390f39974c85998aa25438d7"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-active-light-390-before.webp",
+      "bytes": 13100,
+      "sha256": "8045277bb5ae2c135711ec4f83ba446ffc7a94735268dddff3df7abb48be7dc3"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-results-light-1280-after.webp",
+      "bytes": 26612,
+      "sha256": "f942678c3708e6ec5cc988c1214f6312d4977b2f1c8f236b3e486c8cda65ef5b"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-results-light-1280-before.webp",
+      "bytes": 27270,
+      "sha256": "dc85d6bce749c3850e5781aec81c64222a2494e1d05fd6f32ca29aab6d695f02"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-setup-dark-1280-after.webp",
+      "bytes": 141152,
+      "sha256": "2c4fe55a44bdf187c4b24584a28b843322fe37383da4f60e8a65853b9ec67582"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-setup-dark-1280-before.webp",
+      "bytes": 124040,
+      "sha256": "23b2847785bdc33b7c91d49531f24d700ff80311695127c538096586fa6f05e8"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-setup-light-1280-after.webp",
+      "bytes": 35230,
+      "sha256": "41e0184a59e89eda4c6a6fde2de07341f0373c5558d0231fd8ed1504ee80aa1a"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-setup-light-1280-before.webp",
+      "bytes": 29744,
+      "sha256": "838cd416de7ed994a70b7574b83593a37861d2cb5db66bcefe89dc97922e5f74"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-setup-light-1440-after.webp",
+      "bytes": 35966,
+      "sha256": "f4aaf31fa54455d338474943ca884d4a5365b922ba6540ab4ff98734e7457521"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/quiz-setup-light-1440-before.webp",
+      "bytes": 33038,
+      "sha256": "25809b1d9e485c498cfb74fad450f78b3798bd8122675139309f18d7266f1c2d"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/today-dark-1280-after.webp",
+      "bytes": 124162,
+      "sha256": "fd38b1671f384a459ea719bda6cabfe7f0897c5fa292d03e3fa2673da007c21f"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/today-dark-1280-before.webp",
+      "bytes": 128096,
+      "sha256": "0258207b868444a7e8058e0e8061ed77a51097e44dfd9fad03af7eaab5d2a4a9"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/today-light-1280-after.webp",
+      "bytes": 26256,
+      "sha256": "32d82bb99e3430a1530f18af6a688ead226b9361f87c282e2ec2aa9eb0ca900c"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/today-light-1280-before.webp",
+      "bytes": 26018,
+      "sha256": "2f58692600d0271a208401c266d0c60e180daec4de1618c67f73a89cfd8fefa8"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/today-light-390-after.webp",
+      "bytes": 18538,
+      "sha256": "6de0d86ae5c365b39e97a668a2422f96cc2f7683b1a7ceeb3c008a8b357c663c"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/today-light-390-before.webp",
+      "bytes": 19510,
+      "sha256": "b472a6aadd9e634f7dd2bfefc71ce0f51132efac6807eb45c351e8172c6fa45c"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/workbench-dark-1280-after.webp",
+      "bytes": 77196,
+      "sha256": "21f63f27bcf975c09151e0f51b5b93b00e5744e87e187b5e8ff520f6c0b547ba"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/workbench-dark-1280-before.webp",
+      "bytes": 94090,
+      "sha256": "e5e0fe633b6256a3204804129eb8e274715b884f3fd61cec8749b1af878ba8c9"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/workbench-light-1280-after.webp",
+      "bytes": 33012,
+      "sha256": "a4ab8c7014f06a65f3bd674dfbf55d48e2dfc57c62e727fc9be5cdfc6affee6d"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/workbench-light-1280-before.webp",
+      "bytes": 42960,
+      "sha256": "bc7601fa726eba5d936df47f300a2f572d4d3d58bc348e3290e6f0f8d5161897"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/workbench-light-1440-after.webp",
+      "bytes": 33282,
+      "sha256": "2ee70ae27131f3a2d3cc996855ecfa5d436af2dd5f546600c839936d6d6275d1"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/workbench-light-1440-before.webp",
+      "bytes": 43254,
+      "sha256": "9f05c7117fe52ca3591b9ea86d3ca5b1e604c88d8a1257134f0fbbde623052af"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/workbench-light-390-after.webp",
+      "bytes": 22380,
+      "sha256": "daf12e4a24534862c769e33c7b0e27da622daf03d7424e181ebcce819a086661"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/workbench-light-390-before.webp",
+      "bytes": 27942,
+      "sha256": "2bb02fda112f5fe0d87769dfbfb65da9cee22a951e1a265b5fce212fd9b688c4"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/workbench-results-light-1280-after.webp",
+      "bytes": 22972,
+      "sha256": "238e9e9cc82d699d8980cc179186951c5fa1ba84679de419f955a369b5141661"
+    },
+    {
+      "path": "docs/ux-review-platform-2026-11-05/screens/workbench-results-light-1280-before.webp",
+      "bytes": 43110,
+      "sha256": "e73850b3bfaaf6e070eca8bf28832a6adf2cfa4f7975a08312f0fd0aaa47515b"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/index.html",
+      "bytes": 8471359,
+      "sha256": "d1719792c4ad0b00f4efa38f7236a60a529096ffb258e2384976e3948202ea0c"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-home-dark-1280x800-after.webp",
+      "bytes": 171726,
+      "sha256": "026acc96a643b9446461bb110d3f2e9c4f1f53a0d2c91a8de4bbcef444655655"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-home-dark-1280x800-before.webp",
+      "bytes": 172990,
+      "sha256": "c79844ead93497129ed3b7f0c0e47f573983c6cd4db0ec9e2e1b36f798dbb2e2"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-home-light-1280x800-after.webp",
+      "bytes": 41650,
+      "sha256": "fe0aba6516bc0ced8fb3ee7c50c5b22e57b0a6f343b57da0ece41afa3e98490b"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-home-light-1280x800-before.webp",
+      "bytes": 42550,
+      "sha256": "615e127290b3b7bc527a1f0ef9743ff4397caa98450d505875d256a5cdd9ce55"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-dark-1280x800-after.webp",
+      "bytes": 139508,
+      "sha256": "fc169aa95784153eb74d9c3838d3bb201c510a12a90bbe3baa4bc37285884e11"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-dark-1280x800-before.webp",
+      "bytes": 141638,
+      "sha256": "952bccbc8fd4a1ea10a4473a5e8cb5b41eae713f3e93115be5b392f5de8a2b74"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-light-1280x800-after.webp",
+      "bytes": 31024,
+      "sha256": "bc1eeabd1c9b697475fc4521218c37e05427d9690eedf37b5123070c7eef66a8"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-light-1280x800-before.webp",
+      "bytes": 27734,
+      "sha256": "ce620ad8234a5523cb3906f345d494416f13f449e43f8d89890d8fcf7cfced5c"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-light-1440x900-after.webp",
+      "bytes": 36240,
+      "sha256": "5b8d2efc8d81e2b5444f06173f1117e5e4a6136c8b4ec0a13b771679f642ba7d"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-light-1440x900-before.webp",
+      "bytes": 31662,
+      "sha256": "ff29d09cbb68490345643d5b9b8ad2a32425b848de2b1f72c40321aac6c8e8bb"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-light-390x844-after.webp",
+      "bytes": 21434,
+      "sha256": "85d0dbeabe0c382a7c959d0b140ed84b57572daeece71a2dc2e2814977d2cd07"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-light-390x844-before.webp",
+      "bytes": 21988,
+      "sha256": "d1fb4c5c43439d57a7d14e17b2836df5742117e348ae413b8ba8988294aeb8bb"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-list-dark-1280x800-after.webp",
+      "bytes": 145810,
+      "sha256": "82e875931b4c74fdeea60a7bc48ed887faaac013905ce7ecfcadbf86ec124026"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-list-dark-1280x800-before.webp",
+      "bytes": 150740,
+      "sha256": "a57b3ce62173cd36cae3f4bba2c608627d563bac7f5720402cbd64a78218aa92"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-list-light-1280x800-after.webp",
+      "bytes": 31052,
+      "sha256": "dc39bd8cef5cf600094176475fd259d818be55a8df2b225bf1ccd28bc4ba2eaf"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-list-light-1280x800-before.webp",
+      "bytes": 31962,
+      "sha256": "7304b086aff2415f8ce3eff33fdf2312353dcbfac5cf21aeb70da2467185d4e4"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-paths-dark-1280x800-after.webp",
+      "bytes": 133592,
+      "sha256": "2de83b9627acfc3f97141d14c00c0f11ee7fea311c278c5951ea229659a57125"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-paths-dark-1280x800-before.webp",
+      "bytes": 148108,
+      "sha256": "a1cea032d599a34709ba11878844e03896e77d16a4b39e03e70b85f0afadc5c2"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-paths-light-1280x800-after.webp",
+      "bytes": 24218,
+      "sha256": "8e135364376a4b673afae9f558b4de4bb6b1f677fe8acbf91191a96fbdaf632d"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/coding-track-paths-light-1280x800-before.webp",
+      "bytes": 32608,
+      "sha256": "60d90f288813351a30422967a528fae0d157f55284d81cff260cdfec297e6f11"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/daily-dark-1280x800-after.webp",
+      "bytes": 117670,
+      "sha256": "8aefc527557fd8a83bab8b4978f6a999603808b0a52d85c220b64adea8aa226b"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/daily-dark-1280x800-before.webp",
+      "bytes": 121534,
+      "sha256": "dbbca9687e79632b2470cdf50a41acde2f5d1f48b1012dfaa2a2560d8b09372d"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/daily-light-1280x800-after.webp",
+      "bytes": 20568,
+      "sha256": "7bdfc5d8fe70045e7be34a00b13fc97fb77fdc9be973f2bcae2ba2136d1ba5ce"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/daily-light-1280x800-before.webp",
+      "bytes": 22144,
+      "sha256": "8853ceae8575b48c84e3f6ae4a76c85625555243c3e41f9fbc80a306eef16c90"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/evolving-dark-1280x800-after.webp",
+      "bytes": 113848,
+      "sha256": "09380b78b9712138e181f928a705c2164967913c5c3162f3484f462cd389c059"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/evolving-dark-1280x800-before.webp",
+      "bytes": 99114,
+      "sha256": "c0fd6a5539d14f1b9a13df2ac85c88a9c1bf61be57cfe8fe2f704cc4fc654478"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/evolving-light-1280x800-after.webp",
+      "bytes": 42960,
+      "sha256": "ec469b65f36c51b43b9a1ac1a822d2bd3e4b0957517abbb8e288bc55770b06c7"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/evolving-light-1280x800-before.webp",
+      "bytes": 46940,
+      "sha256": "f62f1e0a702c14e80df76c3f0e0e1ba92c67a5aca88eddbd0609847df6010017"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/fde-module-dark-1280x800-after.webp",
+      "bytes": 134132,
+      "sha256": "1accf702bb0abeefb048c6cb657864f3854dba2f4dfae13d2f065f7196f590e7"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/fde-module-dark-1280x800-before.webp",
+      "bytes": 131672,
+      "sha256": "b75766912e6d06f97af85656a70b09a4cbf12911376b8476ff1b85d6fa594a35"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/fde-module-light-1280x800-after.webp",
+      "bytes": 49356,
+      "sha256": "c144fe7cde69b76b7cf709d08414fd23c5b4aaa5fd1b6683155c7b78b921f0c0"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/fde-module-light-1280x800-before.webp",
+      "bytes": 46014,
+      "sha256": "c3a9becb3baa6912b957d7b561eeb8c95f92907cdf111450562c2d09ed337069"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/learn-dark-1280x800-after.webp",
+      "bytes": 325474,
+      "sha256": "26153475963a3ec346b652e33c44e0f02e90e341b772f4fdb25e006ee18f7dd9"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/learn-dark-1280x800-before.webp",
+      "bytes": 314228,
+      "sha256": "6bac4f914e9128c8fccc466870597c347b6528ce2efe49c1925e65cbf6999580"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/learn-light-1280x800-after.webp",
+      "bytes": 46168,
+      "sha256": "faa1c7fdb55bee1c56c299742da3df4896f8a05e9c21de4c8547d59b966b740a"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/learn-light-1280x800-before.webp",
+      "bytes": 46916,
+      "sha256": "2557f6d3cf480d38c750436cd72bd38fc50687528c446caa49e2862c83830558"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/profile-account-dark-1280x800-after.webp",
+      "bytes": 157378,
+      "sha256": "56f904cfd380e4514bd53af3f02a9be75c6289fc68b1b7ea7292717b6ae220b5"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/profile-account-dark-1280x800-before.webp",
+      "bytes": 104798,
+      "sha256": "7d70cad546ea6553ff726577bcb3e073ddbce5f631c494feb1ab465f0c4e1724"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/profile-account-light-1280x800-after.webp",
+      "bytes": 35182,
+      "sha256": "1750e5e60ad6aa8e34ac1c56f9606351194d2ef6c91a753c7574a4596edb635e"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/profile-account-light-1280x800-before.webp",
+      "bytes": 32456,
+      "sha256": "25cd8d72c254f32e8c9a1160559cb9eab3de950ea11adc54c16ae6d0511be2f1"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/profile-dark-1280x800-after.webp",
+      "bytes": 172052,
+      "sha256": "c20e391e2bc3d64ecfc9f71468ff940d0473cc89091036b5f683007e6b64ceb2"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/profile-dark-1280x800-before.webp",
+      "bytes": 100082,
+      "sha256": "763ad6c5de19ecb7dfaf618cb547715a7fbfff6b5a13bc40902fcff669e1857f"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/profile-light-1280x800-after.webp",
+      "bytes": 53666,
+      "sha256": "8b21844512299bc46d0f4e8abd5247674c84fb1811edb86297250b269ec58cd4"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/profile-light-1280x800-before.webp",
+      "bytes": 53436,
+      "sha256": "8d4b81d58c9a9eda7631ab47a67a6b4b760bd37a03ac18615b747fa927446821"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/profile-light-1440x900-after.webp",
+      "bytes": 59444,
+      "sha256": "06cd9036f76c49ce4517482c106b86246e9822c1cb701b456bede8053ca9ecdb"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/profile-light-1440x900-before.webp",
+      "bytes": 55530,
+      "sha256": "f1668e6195485459cbac07e43f4892369318f7fad67956459f6d910624d69b4d"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/profile-light-390x844-after.webp",
+      "bytes": 23748,
+      "sha256": "5e7207277ec8a88d76a32278f86da0e84ea845629c0462eca16c07a6d7468a01"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/profile-light-390x844-before.webp",
+      "bytes": 24270,
+      "sha256": "82efbf75bd9120ab5ae82fb4de61c5a5813f41c9df958004c441cdd361fac2f3"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-active-dark-1280x800-after.webp",
+      "bytes": 109992,
+      "sha256": "6af6292ebbd6b698458b564adc527ac27fbf0e70ae2f544565ebf45c829edb51"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-active-dark-1280x800-before.webp",
+      "bytes": 109392,
+      "sha256": "bb466003c985acb17cf11d5ca270e79d29eb7a8b427cfce2e8b8d66fbd7cf02d"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-active-light-1280x680-after.webp",
+      "bytes": 14794,
+      "sha256": "80c42e0840b119ca939afd8f8dfd0b27c53fbaa9f591a0325feef5cf6f6899b1"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-active-light-1280x680-before.webp",
+      "bytes": 14610,
+      "sha256": "23f1821b14f1a5e480ae400c57a88945f7870b036f4a708eef4710733ff351ce"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-active-light-1280x800-after.webp",
+      "bytes": 15216,
+      "sha256": "60cbb6da01119872d08c13ff041193a680594237b2b2ff6e90065a1ace2e8eed"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-active-light-1280x800-before.webp",
+      "bytes": 14962,
+      "sha256": "97c29f3e2f308972e278f29e7b6973054aa8b4d186f22f3456f4aaf606cf0b3a"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-active-light-390x844-after.webp",
+      "bytes": 13350,
+      "sha256": "27cd631405c975dfb257d377eb92885140d5eaf572c340c2678e6a5e1ccd3ec0"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-active-light-390x844-before.webp",
+      "bytes": 12978,
+      "sha256": "cf23fb0ab616d5e2fbcc60c8b00916456558104af960c76c92d8e463d92637df"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-results-dark-1280x800-after.webp",
+      "bytes": 130158,
+      "sha256": "f86ba1df0fa51607dec65a91902173ed72b075250db84f5cc1d556eb3e5151c1"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-results-dark-1280x800-before.webp",
+      "bytes": 119278,
+      "sha256": "134b6c76df1bdb786685d6308cf7ea1b5aa1d35a78cc758d032fc13f5147caed"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-results-grid-dark-1280x800-after.webp",
+      "bytes": 154232,
+      "sha256": "e0d7c4f7fa887a4f1aeaeb18393ee3d33feddda987a446931753e55e5b85c156"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-results-grid-dark-1280x800-before.webp",
+      "bytes": 114398,
+      "sha256": "0113eb60d66e94449a7d9cd89bc348e105f6a6c6fb4f6f3fe307f17896c0b560"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-results-grid-light-1280x800-after.webp",
+      "bytes": 44060,
+      "sha256": "783dc5c2764a2a3f56a0fd4e657bbb19fc56a59a6534d2502a780c7be61e8150"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-results-grid-light-1280x800-before.webp",
+      "bytes": 29496,
+      "sha256": "d1c4511c93288980b1821d0dd8851658ba7f3786bd682b8a3a206c4d57ceb39f"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-results-light-1280x800-after.webp",
+      "bytes": 33800,
+      "sha256": "67fa3f3b9df6f6fdb10d6d1398003b11f752926d5ac67c7b00a9b3b258a1a1c5"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-results-light-1280x800-before.webp",
+      "bytes": 27506,
+      "sha256": "b76a924bd4d2a4e33a977eef67194ce122aa1ea4d2294cf3512c53926609e419"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-results-light-1440x900-after.webp",
+      "bytes": 38414,
+      "sha256": "4c47f607c8a59d3fc0d9046ca0f8917eaeb40f71360ade9c780c822ce549755e"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-results-light-1440x900-before.webp",
+      "bytes": 30808,
+      "sha256": "ffe4980dc4365cae4316ea4b929a75ce045b96edd86cc60efe6d867e6776c753"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-setup-dark-1280x800-after.webp",
+      "bytes": 147462,
+      "sha256": "b44dbebc47eb7ff015844af77912b53c070a900c2ff8a85142f4de183fecbd74"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-setup-dark-1280x800-before.webp",
+      "bytes": 140874,
+      "sha256": "f29f4cf4b977d1f3928d3fe3ff7f914b2bd2f34efdadca62cd94a4256773c9e1"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-setup-light-1280x800-after.webp",
+      "bytes": 39524,
+      "sha256": "9b569394be06926a0d99e7a992ec88a563de31c807b97349659c055daf9d194e"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-setup-light-1280x800-before.webp",
+      "bytes": 35522,
+      "sha256": "d5df441c441c43138771fffa534fe1ef849489dc502e94a87a7182bedbf5ded0"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-setup-light-390x844-after.webp",
+      "bytes": 21916,
+      "sha256": "7aeab5393fe2707e094e014192a614ae3600f364f4750eff36389e0de228f1ef"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/quiz-setup-light-390x844-before.webp",
+      "bytes": 23936,
+      "sha256": "0f3a239bcfbca28ffab1772e8e2d8c7e4dea599eca248f256234c5f6fbbb9774"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/today-dark-1280x800-after.webp",
+      "bytes": 128376,
+      "sha256": "95c03ee58a0e6b75bbc69e95bbc7f745c4376f1f10f8ede83211924c03330f46"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/today-dark-1280x800-before.webp",
+      "bytes": 124386,
+      "sha256": "27a24a001a60f5da5d155e2b3579eb62d0969ae8dd46d9361d357bfc49be5fab"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/today-light-1280x800-after.webp",
+      "bytes": 25734,
+      "sha256": "3e0b5ad10374d4ff7dd657771dd762c30c4e6ee16539b9bb9b855d6b605b14f6"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/today-light-1280x800-before.webp",
+      "bytes": 26186,
+      "sha256": "8aa43063fa204567cb6ded2e512a6fb8bc882aafe5ba4a3e1a475579150b2efa"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/workbench-dark-1280x800-after.webp",
+      "bytes": 96424,
+      "sha256": "c83cd72de8590b6c28fe2fcfaf154fc5ce7cf20bd6fa513b57184e68c8748925"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/workbench-dark-1280x800-before.webp",
+      "bytes": 77178,
+      "sha256": "b8c9655373f3776f4b6e0fe8edffc5b7654aa628890dc96eabf5853b9332f0c2"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/workbench-light-1280x680-after.webp",
+      "bytes": 32036,
+      "sha256": "a60b3d9fb51df586c1064a936de2b0d3100de1e7d6ec5a32451862ebfb6abac1"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/workbench-light-1280x680-before.webp",
+      "bytes": 33134,
+      "sha256": "d81626bec74aef705d6dcf17dc395fa735513bf9ab1de92d63bca691af0887f2"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/workbench-light-1280x800-after.webp",
+      "bytes": 32512,
+      "sha256": "dfb352f9a097a9f28afc1a185826fc3fbfec966a00650abd72c27ef900ad7cac"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/workbench-light-1280x800-before.webp",
+      "bytes": 32924,
+      "sha256": "e141f56e9716a01678243230c81cd160ad83e3c87c0af4eaa46124aba5a140f5"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/workbench-light-1440x900-after.webp",
+      "bytes": 32752,
+      "sha256": "520ce3a670a5e8d2d12180053a9e667503bd49a70d93cc7526b26f7a3bbbba10"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/workbench-light-1440x900-before.webp",
+      "bytes": 33262,
+      "sha256": "87921925cdf1d06931a97e81e58b51524cd705e1b05c2c672ec3f465fa80e207"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/workbench-light-390x844-after.webp",
+      "bytes": 21992,
+      "sha256": "92653e630086a6c95648b56bde6579533172c50d90a22a22fcbb93fc2479c83a"
+    },
+    {
+      "path": "docs/ux-review-platform-comments-2026-11-05/screens/workbench-light-390x844-before.webp",
+      "bytes": 22650,
+      "sha256": "e8aefa3dd2e7efb04a54cb3cb94150f1e3676f687251219780158a5b3b400c12"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/index.html",
+      "bytes": 10882507,
+      "sha256": "4c3701fd7884007a0cf4aa99f61b4c38cd16309a3bbd44b1c1ec41da032cbaf1"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/references/ref-1.webp",
+      "bytes": 92586,
+      "sha256": "4c8659d54235d0ec3f04eaadd600a2addc647a6fd98a09199fad76cd1aeb8387"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/references/ref-2.webp",
+      "bytes": 91750,
+      "sha256": "e7e1b593ffab3b8f934a2e2b00384a829c501629812d48b733c456086b76c656"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/references/ref-3.webp",
+      "bytes": 87776,
+      "sha256": "8db37a37c73b703fae52043df4ae638ef9f898289c0578319fbae5f077905018"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/references/ref-4.webp",
+      "bytes": 86608,
+      "sha256": "f02d9d9003d40fde2eaa31c47bcf076ff35bccf2454d467676898fe5d3e4bca2"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/references/ref-5.webp",
+      "bytes": 227834,
+      "sha256": "ca4615d4a35bd30d79eacbebde9d02a3e09c28067596a92a95a2a5c3426cb722"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/references/ref-6.webp",
+      "bytes": 202640,
+      "sha256": "2137af985622b0daa74a3e91b170b64d15f1a7a3d7a9a7a11e3a826d598180c0"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/catalogue-dark-1280x680-after.png",
+      "bytes": 277964,
+      "sha256": "24b3b9385c45d42fcec8a84b6547c096601a35980024f7fddc8d205095b3707a"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/catalogue-dark-1280x680-before.png",
+      "bytes": 268792,
+      "sha256": "80549ff545f858f7a0fc28d933f642a1ec5aec9334a5845f4f7e3af621abd8bb"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/catalogue-light-1280x680-after.png",
+      "bytes": 98425,
+      "sha256": "979736d25ae309eea03d30a0122199dcdd41e1bc14ab56d0baa135f2b9517c26"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/catalogue-light-1280x680-before.png",
+      "bytes": 91783,
+      "sha256": "cd2a70df29197b88cf7278c439e94b5312281513fb4500f64e60794c7cb1b676"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/catalogue-light-390x844-after.png",
+      "bytes": 62687,
+      "sha256": "cd649e3d27f9838fd2053c8a1f830c37f440ffc808e11fb31b7a7fc85bf0930f"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/catalogue-light-390x844-before.png",
+      "bytes": 58383,
+      "sha256": "caf8a8ff4aa09b0373fc97f553ea391e8ef22af261a183eaa706cba9f75d566a"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/daily-dark-1280x680-after.png",
+      "bytes": 259401,
+      "sha256": "64cefe13fb940866f751f73f2c0041a15d441ee4e9368e3ac9642b68942e9fe0"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/daily-dark-1280x680-before.png",
+      "bytes": 244346,
+      "sha256": "ba3753d44fce166c6f78c19dce166a0b11f931b73c59a6108fca45f1d9ed3051"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/daily-light-1280x680-after.png",
+      "bytes": 74611,
+      "sha256": "060ec14355ba12848e1d27cc2623e8a823f3d4d21c1ea318a1d8d3291661ec54"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/daily-light-1280x680-before.png",
+      "bytes": 67822,
+      "sha256": "7adeaddb4fa68fd8234e9bce8ad7fbae3a3a8b87ede82aa639d364779a4a6b22"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/daily-light-390x844-after.png",
+      "bytes": 65272,
+      "sha256": "5af2fb5432e24e896a2b1e4080b8a888fe7d50dfeb6974a0b68f99bc07b90eaf"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/daily-light-390x844-before.png",
+      "bytes": 58428,
+      "sha256": "bb27255b311ce7d9a1a3a5456dcfc40154dcde121112c6aa9d29d7c84d8a5303"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/editor-mobile-dark-390x844-after.png",
+      "bytes": 145753,
+      "sha256": "dcd051ea7583f3816fd9f7d80f1cd8b2e4e24ca520ce221cfaa7dd9e9f82e5b8"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/editor-mobile-dark-390x844-before.png",
+      "bytes": 142167,
+      "sha256": "d16574906a29d14d0d3e971d61d97ced72573893a82d63b063778b0e49960d4a"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/editor-mobile-light-360x800-after.png",
+      "bytes": 52998,
+      "sha256": "9242daaed52494eb2e6286cc9478bbd77861d52597b7faf19d0770c52a70b077"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/editor-mobile-light-360x800-before.png",
+      "bytes": 53279,
+      "sha256": "eecd595707f26a1f1d5069262b89794f39087a42dad243e73df3ad9ea2af30e1"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/editor-mobile-light-390x844-after.png",
+      "bytes": 55751,
+      "sha256": "71a6875b1537f23e1ac0b44561ef251548a5d52e3f41cac998ac8ed8fc181c37"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/editor-mobile-light-390x844-before.png",
+      "bytes": 56009,
+      "sha256": "c0c49d567148324191c8fabc6097cb13524fb887762e377ff43f6bd8aa250f03"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/fde-module-dark-1280x680-after.png",
+      "bytes": 293660,
+      "sha256": "ec34d65c5d3349dbfbaec2bd3b226a84a76614405dcc8aaaa68427813eb67923"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/fde-module-dark-1280x680-before.png",
+      "bytes": 289722,
+      "sha256": "d180399be4923fd6114e6d53ebcbdc784a69d095a4e4861e0a09c87405395219"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/fde-module-light-1280x680-after.png",
+      "bytes": 131081,
+      "sha256": "2755913226a617e6a0ad3561fe213fb9eb97cc31ed6b351617b4fede34d92f11"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/fde-module-light-1280x680-before.png",
+      "bytes": 127627,
+      "sha256": "4283c06cb7c955a485524fb49c2b4c2d7faebb48e67a9dad5a739af2f5614562"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/fde-module-light-390x844-after.png",
+      "bytes": 70854,
+      "sha256": "e09cf5e3d793009cfd71784f26272647537f6dbfa2cb17425e9f9dcad4cfc4fa"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/fde-module-light-390x844-before.png",
+      "bytes": 66821,
+      "sha256": "b78e848e8257453f19a5be9cd801e7c011fd8a512fb7cfa26c7b69e4fe3526d5"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/learn-mobile-dark-390x844-after.png",
+      "bytes": 205685,
+      "sha256": "f9850231f4827d2b9a289f44f112f054a354f76804ad343e15d6c9ca09928106"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/learn-mobile-dark-390x844-before.png",
+      "bytes": 218562,
+      "sha256": "8ad9635bfdc0dc417f0ecb5e03a9a6661944eb706ffd68950ef3e670e44fdab4"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/learn-mobile-light-360x800-after.png",
+      "bytes": 55393,
+      "sha256": "d3c6decf6a502d15a3d3a7b77d3ef4445ffdfe99f28d7e6d9044a17a0baf75d1"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/learn-mobile-light-360x800-before.png",
+      "bytes": 49828,
+      "sha256": "a8f5cb86962d1d4ad395fae46aba7634864a3ec81c591fdd431bcb0e50ba4cd2"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/learn-mobile-light-390x844-after.png",
+      "bytes": 60986,
+      "sha256": "1b8cc6e7bec25874c5671b235b2d1729a728beecb2639f7fee04109ae7fcf4e7"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/learn-mobile-light-390x844-before.png",
+      "bytes": 57885,
+      "sha256": "8ab1918387cac1b24f35391abce169987369206a23255263585ef23498127352"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/profile-dark-1280x680-after.png",
+      "bytes": 209980,
+      "sha256": "1f6e35dc400ebbac2795957fd7b1c80d2b42549c24cd7a4c06049a198ea6772e"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/profile-dark-1280x680-before.png",
+      "bytes": 206761,
+      "sha256": "39f34c4e2dba6bf7a21fcb384ccd4cc9b557e282f4c650db7746a4b2210ef0e3"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/profile-light-1280x680-after.png",
+      "bytes": 74629,
+      "sha256": "1f2c09dd3c230ff028af2c114c2865ca17825878c6b14e700ffc6495b93a8ac2"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/profile-light-1280x680-before.png",
+      "bytes": 72186,
+      "sha256": "0de37fe97977ec6b72497e74cb28efd6ea8b88aac9397fcafaf76bf4411b0e6f"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/profile-light-390x844-after.png",
+      "bytes": 56151,
+      "sha256": "0e5fb5c53c0fb1c184637632198dd81666615c4449ed65db5648f5dec64897ea"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/profile-light-390x844-before.png",
+      "bytes": 56547,
+      "sha256": "a1b1662572cf2b740bba28b8de987cdc6b244e6e23ca7642dd867259d687ae49"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/projects-dark-1280x680-after.png",
+      "bytes": 243818,
+      "sha256": "0692c69e11a5adff0a1c029804e7ad7f6c3a4594e51fab0fa0e5748ed487a6fa"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/projects-dark-1280x680-before.png",
+      "bytes": 257784,
+      "sha256": "2a5d3da3120d0943a6a51ab999a692b61c958f31071085b4ff4c2060c3e443a1"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/projects-light-1280x680-after.png",
+      "bytes": 74937,
+      "sha256": "64684154cc5d1dfd3906c0f41094ac63c4f4465da49170c74984c155897e8fc1"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/projects-light-1280x680-before.png",
+      "bytes": 81338,
+      "sha256": "af90244f8b8f306b14811c77dabcf7faab4fa473216aa51026b74aaa696028b9"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/projects-light-390x844-after.png",
+      "bytes": 59028,
+      "sha256": "525ca32cd9eec28aee45a743c8c9ba5c304179f319fb3203b59a9865af5c800d"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/projects-light-390x844-before.png",
+      "bytes": 58607,
+      "sha256": "c9035320ca572423eeba04b8b4a3b6a56cc73a9a02d78d80ff2ec3a8d20101a9"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/quiz-jump-dark-1280x680-after.png",
+      "bytes": 215430,
+      "sha256": "d57b86e68ab811825b934b4d83b3c51bb7027e5e00054ed225029989ae45720d"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/quiz-jump-dark-1280x680-before.png",
+      "bytes": 223343,
+      "sha256": "90ebab83ed843950adb0a7b2c5f6923ce6ca5be7119900eb7d73a918ae4abd16"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/quiz-jump-light-1280x680-after.png",
+      "bytes": 46271,
+      "sha256": "804449b5d474e3b8ebaca7a2a7cfd041883503bd72f70e411154636849c19504"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/quiz-jump-light-1280x680-before.png",
+      "bytes": 52670,
+      "sha256": "61af6f68ef07bcd6bfe5dc3ac7abce21c5bf51589919fd0ceb62339d8cd2f47a"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/quiz-jump-light-390x844-after.png",
+      "bytes": 43883,
+      "sha256": "9f9dd9999d24abbc6519f17659d31116692b9907aa3cc386c20db4167a34490e"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/quiz-jump-light-390x844-before.png",
+      "bytes": 44704,
+      "sha256": "1b4107d14f3b20cf3b28490792ae7a8c9896519608dfabef43efbdd1aef77bb6"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/results-dark-1280x680-after.png",
+      "bytes": 206843,
+      "sha256": "cd1da3f75ddef37f58896a8f15568fab4139a37dac850d1b35b79f25b35dc106"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/results-dark-1280x680-before.png",
+      "bytes": 221480,
+      "sha256": "7f6dbfcfbce5443fea57e4ac4bdaff510dceaea4c639914812e954572ca935cd"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/results-light-1280x680-after.png",
+      "bytes": 66419,
+      "sha256": "d272db734519e65cbfbd55af52310d0f4cdbf1fe0d567dfb1b56cd4760198971"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/results-light-1280x680-before.png",
+      "bytes": 79376,
+      "sha256": "027c59c9f99747fd8df7fe8056f0beff934cfa91176107fefbd3c65214d6b07d"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/results-light-390x844-after.png",
+      "bytes": 44067,
+      "sha256": "ce795e1a1bd2d7f94764877584c8665570fce226ae106444ba3af95521b3ec17"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/results-light-390x844-before.png",
+      "bytes": 54721,
+      "sha256": "a8326ee4db06b23770e18b80a7cd163f487cfaec245f962a05aae713420eaae6"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/today-dark-1280x680-after.png",
+      "bytes": 242884,
+      "sha256": "66f449812054bea3b44fb1914c41f5402d007914f4646fdbd99836ec18bfdd29"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/today-dark-1280x680-before.png",
+      "bytes": 235291,
+      "sha256": "4c0298e2176851374f36eadeafb85b8dfb413294c2be51690f45653435f51e7f"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/today-light-1280x680-after.png",
+      "bytes": 75735,
+      "sha256": "f0a32e544ded42a59b5d27ca2d500ea9165a48454f1e2c9c4fe20050f65fdc58"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/today-light-1280x680-before.png",
+      "bytes": 68327,
+      "sha256": "06b085fb53d644e5791f68a77cd9810edc38e4a60937ac36b3da5a068bedb10d"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/today-light-390x844-after.png",
+      "bytes": 50190,
+      "sha256": "2d030a675662c893207a5a05fdba3a217177904c58b4da4d495df58ade20de2a"
+    },
+    {
+      "path": "docs/ux-review-round3-2026-11-05/screens/today-light-390x844-before.png",
+      "bytes": 47420,
+      "sha256": "f29c2fbb8e90d02cbb41e1c22e7ffbd337def325e476437af18ab1d901390de1"
+    },
+    {
+      "path": "docs/ux-review-uizze-2026-11-05/concept.html",
+      "bytes": 55506,
+      "sha256": "141e5aca1f739767fd41713073ce3916998d9b869423e416298c4a9e44730851"
+    },
+    {
+      "path": "docs/ux-review-uizze-2026-11-05/index.html",
+      "bytes": 3400729,
+      "sha256": "e99a07ba64aedfa55b4b58068062b2ff6df974f9cd441fd57e66b0cc69d3a358"
+    }
+  ],
+  "preservedInputs": [
+    {
+      "path": "docs/audit/devshark-content-ledger.json",
+      "bytes": 11730061,
+      "sha256": "695b269c0d0094e21bf3b5b45c1bd8d6729207a936c3a692405984d5f7845ad2"
+    },
+    {
+      "path": "docs/audit/wip/native/candidates-2026-10-15-n004.json",
+      "bytes": 1903,
+      "sha256": "e0cb287f97c2f12e5ef6dc20f821f125ce2a2b3ab875c1978807d156ce1fcc5e"
+    },
+    {
+      "path": "docs/audit/wip/native/candidates-2026-10-15-n006.json",
+      "bytes": 2334,
+      "sha256": "4a1f46a7ff4c6323514df0da4cac7bc5eb97b889b03af00193e1891df8547f52"
+    },
+    {
+      "path": "docs/audit/wip/native/candidates-2026-10-15-n009.json",
+      "bytes": 6484,
+      "sha256": "981605f9e187d380b0195a054a8fd449b774ae2ac0bc0380883e0a5fb61c8b0e"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-14-dsa-d01-retired.json",
+      "bytes": 57055,
+      "sha256": "fd761ee66481ff7e065be4536d6f7051c27362c3ed897956c8caa7fb44379bff"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-14-dsa-d02-retired.json",
+      "bytes": 51724,
+      "sha256": "7588914405054d378648b9536bbe0a5a3bd69978ec86475aa76218128e083426"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-14-dsa-d03-retired.json",
+      "bytes": 47259,
+      "sha256": "00a77f7dfc41edfff1fbcdb0a2df6ef8d900f651202f3adfb959548640d96505"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-14-dsa-d04-retired.json",
+      "bytes": 22968,
+      "sha256": "282ced71fcf96c32e294d4d70a76e27b57fc007f7dcab273c93089ba49a53e7c"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-14-dsa-d05-retired.json",
+      "bytes": 24623,
+      "sha256": "d0c7d4912583f022c01c862d579c0a4595307995fe62dd4279fe38b9d43514a9"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n001-retired.json",
+      "bytes": 17972,
+      "sha256": "c870513e8b3c55792b2e85375607beaefceee8f72b0dfdb71e9cb9f0f863e052"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n002-retired.json",
+      "bytes": 11281,
+      "sha256": "eb3d1fb9a48b802a647d1d96416ed4c37c4ddd23bdd4b35c46aa516da4e19f28"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n003-retired.json",
+      "bytes": 17989,
+      "sha256": "092d159b70e429628a4a72cf18b3f274a7cfd59784540b0779fe3f0fb44d8ce0"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n004-retired.json",
+      "bytes": 17515,
+      "sha256": "476c5128cc85971dc1933bf994643532b484350792555244ce26244cf81bf00c"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n005-retired.json",
+      "bytes": 14483,
+      "sha256": "be0fa4d1ef79e4021ab3c8ac790309e72f8ce129922a3783d9cabeb6a053516c"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n006-retired.json",
+      "bytes": 19562,
+      "sha256": "15575081f8f679cbadf250e2d7a496b0b7fe2225faafe85533a68006286c81fc"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n007-retired.json",
+      "bytes": 19387,
+      "sha256": "c5d7b1bded8baebe27010018df3cae60cb5773be9841922e02456cf7ae9d878f"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n008-retired.json",
+      "bytes": 10164,
+      "sha256": "55ab4b2edba962f71fb18df6f31e31ca116d192feeb1122d63099b3250733cbb"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n009-retired.json",
+      "bytes": 19459,
+      "sha256": "9942f01620be5ee7c56a47957ea5c22618d9ff13b7a436aada51c5a435b339a5"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n010-before.json",
+      "bytes": 22740,
+      "sha256": "791466a94af1d5fb49910eea30b4078a178b02207d12118de50d25e19087873e"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n011-retired.json",
+      "bytes": 10500,
+      "sha256": "11481f3b65bb2d98b60fd6ce67ed93feaa6abb59853866fd1362e4d7d187e0a6"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n012-retired.json",
+      "bytes": 19036,
+      "sha256": "bd1a0b9d5f7ae5d02075df2394e6e48f84391dc8751f627988f6898abba5f39a"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n013-retired.json",
+      "bytes": 18187,
+      "sha256": "3281ae609b1b3399c35e61c0270d9029e6b2478ef8905581637555484e6dadef"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n014-retired.json",
+      "bytes": 18087,
+      "sha256": "264bd2b24e4d35a186fc4e0942c674e85ae335e315cdb879a4849ff7ae4d531e"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n015-retired.json",
+      "bytes": 16178,
+      "sha256": "6299f8b0bb82da6fe9b620989a738174341ec51975db876c596ebac325df644f"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-15-n042-before.json",
+      "bytes": 7360,
+      "sha256": "78329bcd7efd5dbf1f35a9873b8efd302261bae8c090dd9e948e0ced4ddbe2de"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-22-b11-copy-before.json",
+      "bytes": 26241,
+      "sha256": "4c7ec63df344ef02cc0b3402546f09d18f708c748eb9530a8ee740c4e2dfb27c"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-22-b11-handoff-before.json",
+      "bytes": 4241,
+      "sha256": "2f7ed71e8f578939472869be1bf938ea9c6e54e1d161887e1353150de4f1d9d4"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-22-b4-before.json",
+      "bytes": 24336,
+      "sha256": "0ac764973cd81137f895f9d027f877423446a45b6fb38777a2363f01f1bf7a82"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-22-b5-before.json",
+      "bytes": 22875,
+      "sha256": "9a3265f5b0651958a4236f1f448e99abe6b903edf9d9b10e4f7de282b83fd3b8"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-22-b7-before.json",
+      "bytes": 50532,
+      "sha256": "dc02ce02d3c0ade83e7400a4727934e042c3995d92ae92a38a8f7491a08d19a5"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-22-b8-before.json",
+      "bytes": 7482,
+      "sha256": "189d8cd1a9b0c48e2fcf836f99e6e9826c8256678e3f18659c3fa6398d0345e1"
+    },
+    {
+      "path": "docs/audit/wip/native/history/review-2026-10-22-b9-renumber-before.json",
+      "bytes": 31661,
+      "sha256": "deab9f809f4036bc3b3e6a65b7a466e975bcf01409d2b6a17fb52002835ae147"
+    },
+    {
+      "path": "docs/audit/wip/native/learn/review-dsa-readings.jsonl",
+      "bytes": 55826,
+      "sha256": "a950a416496bc33e0b52ef0521cc7c41ab92f577d37e0ce3ba62105e7d370a63"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n015.jsonl",
+      "bytes": 3319,
+      "sha256": "d903d442669d123308eec853a64ef8e61bbb458675e48a20087bfb81780b1ce4"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n016.jsonl",
+      "bytes": 16461,
+      "sha256": "ccef1a6bffb55ea0477b79cb19920e28053534f557021436608b82541bdf7f00"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n017.jsonl",
+      "bytes": 16350,
+      "sha256": "34bfb8096577e2be1cdc932ecf4ddf070708bdba11d33591c552792f0f091210"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n018.jsonl",
+      "bytes": 17349,
+      "sha256": "fe74a7d5421f139213710f22b0f3493bf17e7d5683d2b973ea159eac26b20dd4"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n019.jsonl",
+      "bytes": 16720,
+      "sha256": "baee11d35b44e0da6504de69245080f2077d72905bb3330b602b82edc53cf740"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n020.jsonl",
+      "bytes": 17211,
+      "sha256": "8913ca1b1138ab1428aa7fa9bfe716839d8274d4eb4d733c990d16911e9eac87"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n021.jsonl",
+      "bytes": 18172,
+      "sha256": "3c2fa7dcf78c23a27000dc303a6108f709425cb19bf343015638acfe3c60f306"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n022.jsonl",
+      "bytes": 16580,
+      "sha256": "3c8dda8fc689e4b738cccc4b7c7950bbe4b43aa154e0a5933b53b879ce01b798"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n023.jsonl",
+      "bytes": 17086,
+      "sha256": "7c6227da1ecd2a120b60de4fbbfe73f69bdccaa57ee47ed7f9306140136f5167"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n024.jsonl",
+      "bytes": 17366,
+      "sha256": "fa279e04b939555d79693a77958dd20e450c9311d9643a41c6a39d61e7e9ee47"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n025.jsonl",
+      "bytes": 16463,
+      "sha256": "f88bc22ddeac95820c06bbb34d48696f1037fd8b66e53fcd0ab08c372badded6"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n026.jsonl",
+      "bytes": 16908,
+      "sha256": "ccbd0124f19c899da69dea750b9cb656f8fcafd32ead57d48cfc490e0b6ac4be"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n027.jsonl",
+      "bytes": 16352,
+      "sha256": "6965c60d7df875b89195871bb0b4179271c5f6238ed3c19d369742e8922bb0e7"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n028.jsonl",
+      "bytes": 16177,
+      "sha256": "e5b1562435f2c7db097f9913a7e2046da573889e1ce4c636ecb8207212b17aed"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n029.jsonl",
+      "bytes": 15790,
+      "sha256": "e3834b4b77cc876d87fd6e76aa2bf95b7ceb83563075051471efefff042e819b"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n030.jsonl",
+      "bytes": 15954,
+      "sha256": "2dd85b16968d882290666d47bcba8e7deec6d1015d14cf15c04b3ae5e171d11b"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n031.jsonl",
+      "bytes": 21769,
+      "sha256": "ae418096b023097ec88af3be17e0f93f7ef3702ae5179b91daaad121225a3c59"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n032.jsonl",
+      "bytes": 18999,
+      "sha256": "26be420830fa482e999538073d2b452d6557c1bea3fba57078fcd8c5cce57ff3"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n033.jsonl",
+      "bytes": 15851,
+      "sha256": "2d422bc3d231bfcc20315a03ed9884ff2206611028113dee46e14d8346675a39"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n034.jsonl",
+      "bytes": 19291,
+      "sha256": "9a71f1dc9f0be10890ae1ee4a49b1a64bf0da6490a37c53b3ca84442ffa11625"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n035.jsonl",
+      "bytes": 19352,
+      "sha256": "8970da3f71e4b6049fa46782c59ee08d17ad1cebf1027c50407b01ca04242a97"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n036.jsonl",
+      "bytes": 18988,
+      "sha256": "f84feb9bd8e889bb2bb34ecad7aec9ab90facce26c219367fa227ab856593aee"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n037.jsonl",
+      "bytes": 18502,
+      "sha256": "012bdc4e456f791ee07dcb19ebcfa8ae371e423229ae67e0a69b34f9ce5e1d0e"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n038.jsonl",
+      "bytes": 20393,
+      "sha256": "6fdc1dd065c475c7c95222e69a1cddc0839fef85b6bda1f1c92f2505e8b7b1a1"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n039.jsonl",
+      "bytes": 18387,
+      "sha256": "7d6eb664d847dc624121512d6453b417cd790be8b748364ca14798e32109e095"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n040.jsonl",
+      "bytes": 20732,
+      "sha256": "f2bba4504bd75d61609ad36632624991b0f5b849933c41245d121515da757e17"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n041.jsonl",
+      "bytes": 25695,
+      "sha256": "4a7275e8df4f25c9d48e6455465d2f7b255fb504357f0977e6d7951628a1ac97"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-15-n042.jsonl",
+      "bytes": 12916,
+      "sha256": "db189682099398fb6b5fe26d69264583a30f32a5e3f3b0621b0a4d5c21029933"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-22-b10-ip01.jsonl",
+      "bytes": 32571,
+      "sha256": "202daabb2e1433ca12ba6188916e45eb3107fd6ac16b88a955af64fa65ac8090"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-22-b10-ip02.jsonl",
+      "bytes": 31250,
+      "sha256": "9f7c84755efcb6ad86dd028fe0753d4b313c5f2c44d350d3308f584e3900cab8"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-22-b10-ip03.jsonl",
+      "bytes": 254437,
+      "sha256": "b0b70931979abe5515aba35606c9c9e84b7885d437bf74c7e2bf0a01f55b571e"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-22-b10-ip04.jsonl",
+      "bytes": 43637,
+      "sha256": "7e29aa688e439ab22fe334d76975f3c049bb00a7bdef3c1ff44313a323a7508d"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-22-b11.jsonl",
+      "bytes": 13597,
+      "sha256": "53e9b545b128139bd8064b199781d7b5c534e212e6d046f8f54aca153b7a51bc"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-22-b3-cases.jsonl",
+      "bytes": 234460,
+      "sha256": "f1d1f1d7a02ee51adab7ae9e7f8b36ba19cfb2cbaaf879ed1959c251100a95a5"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-22-b4.jsonl",
+      "bytes": 17339,
+      "sha256": "ceab1f4b21eb1b0efa533e859bcc7dc46114e11c5c9d0bc7907badb44d623537"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-22-b5.jsonl",
+      "bytes": 24548,
+      "sha256": "394d72ac1471cf48618f6403c7742916e8b76d717f5fd8bdcfbc02aa0508e480"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-22-b6.jsonl",
+      "bytes": 38947,
+      "sha256": "27f25e35b288fd6848542567b964640c151642c033060da182c3948fb1d368eb"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-22-b7.jsonl",
+      "bytes": 11606,
+      "sha256": "7f8f4960de4e68c4064345d37cb4d66532a6bd3078dd3e411215c60f60c7f463"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-22-b8.jsonl",
+      "bytes": 58547,
+      "sha256": "663b9a917538604a1f1e7eb3ca8e34b44ac536e66524c3b8d53630ef8c7fcdaa"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-22-b9-m14.jsonl",
+      "bytes": 42752,
+      "sha256": "9066bb215120a6f304dca2e6be0ca5c741b6b475ae076a903e292b0a08435888"
+    },
+    {
+      "path": "docs/audit/wip/native/review-2026-10-22-b9-python.jsonl",
+      "bytes": 60517,
+      "sha256": "78d0030bfa388633dc636b4f4fd3ab1fa15b15e8833d58f95bc9e3e42d21db65"
+    },
+    {
+      "path": "docs/audit/wip/native/revisions/continuation-2026-10-15-n042.json",
+      "bytes": 623,
+      "sha256": "e7fc2bd757c210d4855293777bee40a2d98f0d35a3e99034a1fb6aed13e2d8a5"
+    },
+    {
+      "path": "docs/audit/wip/native/revisions/continuation-2026-10-22-b11-copy.json",
+      "bytes": 1230,
+      "sha256": "aa433e144b5f8b9cdb8db4c99b710dbffb83abdcd30f66c479ea43e43608ee31"
+    },
+    {
+      "path": "docs/audit/wip/native/revisions/continuation-2026-10-22-b11-handoff.json",
+      "bytes": 882,
+      "sha256": "808b99335d7de378203636c0cfc809077c6dc8758adf3c7deec017928513420a"
+    },
+    {
+      "path": "docs/audit/wip/native/revisions/continuation-2026-10-22-b3-cases.json",
+      "bytes": 3340,
+      "sha256": "f6b2192b1346f7a3832499e6adce4ae1d97634a43aa7fa1ec65e797f0a8d4440"
+    },
+    {
+      "path": "docs/audit/wip/native/revisions/continuation-2026-10-22-b4.json",
+      "bytes": 920,
+      "sha256": "a8c897b8975ae77781c2d861797b0cd56bf9e3b35285bc37e70d7490e44fbdbe"
+    },
+    {
+      "path": "docs/audit/wip/native/revisions/continuation-2026-10-22-b5.json",
+      "bytes": 1034,
+      "sha256": "23ccbbf6e3e80fd78eeb2857f92d724bd0d75db7b8dbedc9f0b3dcb4a83661d5"
+    },
+    {
+      "path": "docs/audit/wip/native/revisions/continuation-2026-10-22-b7.json",
+      "bytes": 1298,
+      "sha256": "5e0301c6b8ccac7a993dee522af6f1e9f39385132c0ec8a74e347cbd60195693"
+    },
+    {
+      "path": "docs/audit/wip/native/revisions/continuation-2026-10-22-b8.json",
+      "bytes": 1334,
+      "sha256": "5ed0556fe188899a5e0eb491fc4af285cbbb387849f8e5eaac61f1361b934922"
+    },
+    {
+      "path": "docs/audit/wip/native/revisions/continuation-2026-10-22-b9-renumber.json",
+      "bytes": 1508,
+      "sha256": "e1345e13b970acb87081996946a425add08e09cddcdf9ba0399caa732054c177"
+    },
+    {
+      "path": "docs/audit/wip/native/revisions/continuation-2026-10-22-e5.json",
+      "bytes": 6755,
+      "sha256": "a36ef98e5bfdc2c34bd34226f6ce487d4cf8f25f06307297b2a09cb8bf9a2ab1"
+    },
+    {
+      "path": "docs/audit/wip/native/revisions/targets-2026-10-15-n010.json",
+      "bytes": 3900,
+      "sha256": "6d64a2d8ea2ddf6224e1f8aefc6a974392b0187b7ce06e41e1588783bf953154"
+    }
+  ],
+  "requiredPaths": [
+    "docs/audit/wip/CODING-BRIEF.md",
+    "docs/audit/wip/DUPLICATES-BRIEF.md",
+    "docs/audit/wip/README.md",
+    "docs/audit/wip/REVIEWER-BRIEF.md",
+    "docs/audit/wip/VERIFY-BRIEF.md",
+    "docs/audit/wip/tools/NOTES-followups.md",
+    "docs/audit/wip/tools/apply-rewrites.ts",
+    "docs/audit/wip/tools/build-ledger.ts",
+    "docs/audit/wip/tools/check-coding-2026-10-15-b001-complexity.ts",
+    "docs/audit/wip/tools/check-coding-2026-10-15-b006-complexity.ts",
+    "docs/audit/wip/tools/check-coding-candidates.mjs",
+    "docs/audit/wip/tools/check-coding-typescript-foundations-complexity.ts",
+    "docs/audit/wip/tools/check-coding-typescript-unions-complexity.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n001.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n002.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n003.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n004-worker.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n004.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n005.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n006.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n007.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n008.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n009.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n010.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n011.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n012.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n013.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n014.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n015.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n016.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n017.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n018.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n019.py",
+    "docs/audit/wip/tools/check-native-2026-10-15-n019.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n020.py",
+    "docs/audit/wip/tools/check-native-2026-10-15-n020.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n021.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n022.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n023.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n024.py",
+    "docs/audit/wip/tools/check-native-2026-10-15-n024.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n025.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n026.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n027.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n028.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n029.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n030.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n031.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n032.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n033.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n034.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n035.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n036.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n037.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n038.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n039.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n040.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n041.ts",
+    "docs/audit/wip/tools/check-native-2026-10-15-n042.ts",
+    "docs/audit/wip/tools/check-native-d02.ts",
+    "docs/audit/wip/tools/check-native-d03-questions.ts",
+    "docs/audit/wip/tools/check-native-d03.ts",
+    "docs/audit/wip/tools/check-native-d04-questions.ts",
+    "docs/audit/wip/tools/check-native-d04.ts",
+    "docs/audit/wip/tools/check-native-d05-questions.ts",
+    "docs/audit/wip/tools/check-native-d05.ts",
+    "docs/audit/wip/tools/check-sort-parity.ts",
+    "docs/audit/wip/tools/enrich-batches.py",
+    "docs/audit/wip/tools/export-coding.ts",
+    "docs/audit/wip/tools/export-native.ts",
+    "docs/audit/wip/tools/grade-task.ts",
+    "docs/audit/wip/tools/make-contexts.py",
+    "docs/audit/wip/tools/make-verify-batches.py",
+    "docs/audit/wip/tools/merge-verification.py",
+    "docs/audit/wip/tools/redistribution-report.py",
+    "docs/audit/wip/tools/report-stats.py",
+    "docs/audit/wip/tools/review-summary.py",
+    "docs/audit/wip/tools/seed-locator.ts",
+    "docs/audit/wip/tools/sweep-artifacts.py",
+    "docs/audit/wip/tools/validate-reviews.py",
+    "docs/brand/source/approved/navbar-logo-ink.svg",
+    "docs/brand/source/devshark-approved/README.md",
+    "docs/brand/source/devshark-approved/favicon-16.png",
+    "docs/brand/source/devshark-approved/favicon-180.png",
+    "docs/brand/source/devshark-approved/favicon-192.png",
+    "docs/brand/source/devshark-approved/favicon-32.png",
+    "docs/brand/source/devshark-approved/favicon-48.png",
+    "docs/brand/source/devshark-approved/favicon-512.png",
+    "docs/brand/source/devshark-approved/favicon.ico",
+    "docs/brand/source/devshark-approved/favicon.svg",
+    "docs/brand/source/devshark-approved/fin-clean-green.svg",
+    "docs/brand/source/devshark-approved/fin-clean-ink.svg",
+    "docs/brand/source/devshark-approved/fin-clean-white.svg",
+    "docs/brand/source/devshark-approved/fin-waves-green.svg",
+    "docs/brand/source/devshark-approved/fin-waves-ink.svg",
+    "docs/brand/source/devshark-approved/fin-waves-white.svg",
+    "docs/brand/source/devshark-approved/logo-clean-green.png",
+    "docs/brand/source/devshark-approved/logo-clean-green.svg",
+    "docs/brand/source/devshark-approved/logo-clean-ink.png",
+    "docs/brand/source/devshark-approved/logo-clean-ink.svg",
+    "docs/brand/source/devshark-approved/logo-clean-white.png",
+    "docs/brand/source/devshark-approved/logo-clean-white.svg",
+    "docs/brand/source/devshark-approved/logo-waves-green.png",
+    "docs/brand/source/devshark-approved/logo-waves-green.svg",
+    "docs/brand/source/devshark-approved/logo-waves-ink.png",
+    "docs/brand/source/devshark-approved/logo-waves-ink.svg",
+    "docs/brand/source/devshark-approved/logo-waves-white.png",
+    "docs/brand/source/devshark-approved/logo-waves-white.svg",
+    "docs/brand/source/devshark-approved/manifest.json",
+    "docs/brand/source/og/architecture-current.webp",
+    "docs/brand/source/v9/README.md",
+    "docs/brand/source/v9/favicon/app-icon-180.png",
+    "docs/brand/source/v9/favicon/app-icon-192.png",
+    "docs/brand/source/v9/favicon/app-icon-512.png",
+    "docs/brand/source/v9/favicon/app-icon.svg",
+    "docs/brand/source/v9/favicon/favicon-16.png",
+    "docs/brand/source/v9/favicon/favicon-180.png",
+    "docs/brand/source/v9/favicon/favicon-192.png",
+    "docs/brand/source/v9/favicon/favicon-32.png",
+    "docs/brand/source/v9/favicon/favicon-48.png",
+    "docs/brand/source/v9/favicon/favicon-512.png",
+    "docs/brand/source/v9/favicon/favicon-white.svg",
+    "docs/brand/source/v9/favicon/favicon.ico",
+    "docs/brand/source/v9/favicon/favicon.svg",
+    "docs/brand/source/v9/recommended/devshark-fin-clean-green.png",
+    "docs/brand/source/v9/recommended/devshark-fin-clean-green.svg",
+    "docs/brand/source/v9/recommended/devshark-fin-clean-ink.png",
+    "docs/brand/source/v9/recommended/devshark-fin-clean-ink.svg",
+    "docs/brand/source/v9/recommended/devshark-fin-clean-white.png",
+    "docs/brand/source/v9/recommended/devshark-fin-clean-white.svg",
+    "docs/brand/source/v9/recommended/devshark-fin-wave-green.png",
+    "docs/brand/source/v9/recommended/devshark-fin-wave-green.svg",
+    "docs/brand/source/v9/recommended/devshark-fin-wave-ink.png",
+    "docs/brand/source/v9/recommended/devshark-fin-wave-ink.svg",
+    "docs/brand/source/v9/recommended/devshark-fin-wave-white.png",
+    "docs/brand/source/v9/recommended/devshark-fin-wave-white.svg",
+    "docs/brand/source/v9/recommended/devshark-logo-compact-green.png",
+    "docs/brand/source/v9/recommended/devshark-logo-compact-green.svg",
+    "docs/brand/source/v9/recommended/devshark-logo-compact-ink.png",
+    "docs/brand/source/v9/recommended/devshark-logo-compact-ink.svg",
+    "docs/brand/source/v9/recommended/devshark-logo-compact-white.png",
+    "docs/brand/source/v9/recommended/devshark-logo-compact-white.svg",
+    "docs/brand/source/v9/recommended/devshark-logo-horizontal-green.png",
+    "docs/brand/source/v9/recommended/devshark-logo-horizontal-green.svg",
+    "docs/brand/source/v9/recommended/devshark-logo-horizontal-ink.png",
+    "docs/brand/source/v9/recommended/devshark-logo-horizontal-ink.svg",
+    "docs/brand/source/v9/recommended/devshark-logo-horizontal-small-green.png",
+    "docs/brand/source/v9/recommended/devshark-logo-horizontal-small-green.svg",
+    "docs/brand/source/v9/recommended/devshark-logo-horizontal-small-ink.png",
+    "docs/brand/source/v9/recommended/devshark-logo-horizontal-small-ink.svg",
+    "docs/brand/source/v9/recommended/devshark-logo-horizontal-small-white.png",
+    "docs/brand/source/v9/recommended/devshark-logo-horizontal-small-white.svg",
+    "docs/brand/source/v9/recommended/devshark-logo-horizontal-white.png",
+    "docs/brand/source/v9/recommended/devshark-logo-horizontal-white.svg",
+    "docs/brand/source/v9/recommended/devshark-logo-stacked-green.png",
+    "docs/brand/source/v9/recommended/devshark-logo-stacked-green.svg",
+    "docs/brand/source/v9/recommended/devshark-logo-stacked-ink.png",
+    "docs/brand/source/v9/recommended/devshark-logo-stacked-ink.svg",
+    "docs/brand/source/v9/recommended/devshark-logo-stacked-white.png",
+    "docs/brand/source/v9/recommended/devshark-logo-stacked-white.svg",
+    "docs/ux-audit-2026-11-03/AUDIT-PROMPT.md",
+    "docs/ux-audit-2026-11-03/IMPLEMENTATION.md",
+    "docs/ux-audit-2026-11-03/coding.md",
+    "docs/ux-audit-2026-11-03/learn.md",
+    "docs/ux-audit-2026-11-03/quiz.md",
+    "docs/ux-review-platform-2026-11-05/QA.md",
+    "docs/ux-review-platform-2026-11-05/REVIEW.md",
+    "docs/ux-review-platform-2026-11-05/review-template.html",
+    "docs/ux-review-platform-comments-2026-11-05/QA.md",
+    "docs/ux-review-platform-comments-2026-11-05/REVIEW.md",
+    "docs/ux-review-platform-comments-2026-11-05/review-template.html",
+    "docs/ux-review-round3-2026-11-05/QA.md",
+    "docs/ux-review-round3-2026-11-05/REVIEW.md",
+    "docs/ux-review-round3-2026-11-05/review-template.html",
+    "docs/ux-review-uizze-2026-11-05/IMPLEMENTATION.md",
+    "docs/ux-review-uizze-2026-11-05/REVIEW.md"
+  ],
+  "summary": {
+    "sourceTrackedDocsFiles": 1106,
+    "sourceTrackedDocsBytes": 110447616,
+    "archivedFiles": 757,
+    "archivedBytes": 90894546,
+    "preservedInputs": 85,
+    "preservedInputBytes": 13799670,
+    "projectedTrackedDocsBytesBeforeIndex": 19553070
+  }
+}
