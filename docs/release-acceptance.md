@@ -8252,3 +8252,67 @@ any corrected follow-up. No field INP or universal speedup is claimed.
 The complete local orchestrator later exited 0 in 932.333 seconds, removed
 owned scratch and reported zero remaining children. That lifecycle result
 does not turn the twelve missing Daily interactions into valid INP samples.
+
+
+## Epic F1 baseline: desktop Lighthouse (19 November 2026)
+
+Issue #630, F1-26. Three audits per route produced 24 desktop results;
+all 48 mobile/desktop audits completed without collector errors. The actual
+stage ran from 18:44:53 to 18:54:17 UTC on Chrome 157.0.8103.80. The dated
+artifact is `docs/audit/f1-desktop-lighthouse-2026-11.json`.
+
+The owned copy contains all 2,259 build files (62,308,312 bytes) from tool
+head `d09ec769`, with every measuredBuild public placeholder retained.
+The exact-loopback proxy blocks external transport. Public settings return
+200 and other APIs return synthetic 503 responses after 400 ms. Each
+Lighthouse audit uses fresh storage. These are current static local states;
+they do not recreate an original pre-fix or populated production baseline.
+
+The actual external orchestrator calls the pinned existing
+`scripts/audit-performance.mjs` main/resolveOptions through
+`collect.UNRUN.mjs`. Its equivalent public CLI is:
+
+```sh
+npm run audit:performance -- --url=http://127.0.0.1:60938 --routes=/,/learn,/coding,/quiz,/daily,/premium,/topics/javascript-closures,/leaderboard --runs=3 --output=artifacts/performance/eight-route-lighthouse
+```
+
+| Route | Perf/A11y/BP/SEO median | LCP ms median [min,max] | FCP ms median [min,max] | CLS median [min,max] | TBT ms median [min,max] | Benchmark median [min,max] | Errors |
+|---|---|---:|---:|---:|---:|---:|---:|
+| / | 100/100/100/100 | 580.4 [578.4,583.9] | 509.9 [508.2,513.0] | 0.000000 [0.000000,0.000000] | 0.0 [0.0,0.0] | 2126.0 [2005.5,2151.0] | 0/3 |
+| /learn | 99/96/96/100 | 942.1 [938.7,943.5] | 672.1 [670.3,672.9] | 0.000889 [0.000889,0.000889] | 0.0 [0.0,0.0] | 2106.5 [2001.0,2121.0] | 0/3 |
+| /coding | 100/100/100/100 | 699.0 [697.5,764.6] | 551.9 [551.0,583.9] | 0.000000 [0.000000,0.000000] | 0.0 [0.0,0.0] | 2139.0 [2037.0,2178.5] | 0/3 |
+| /quiz | 99/100/100/100 | 901.4 [900.4,915.2] | 670.1 [668.2,670.6] | 0.000245 [0.000245,0.000245] | 0.0 [0.0,0.0] | 2111.5 [2052.0,2142.5] | 0/3 |
+| /daily | 100/100/96/100 | 733.1 [730.9,733.7] | 443.4 [442.7,490.4] | 0.019182 [0.019182,0.019182] | 0.0 [0.0,0.0] | 2115.0 [2095.0,2122.0] | 0/3 |
+| /premium | 100/100/100/100 | 764.6 [764.3,766.1] | 443.1 [442.9,491.6] | 0.000000 [0.000000,0.014092] | 0.0 [0.0,0.0] | 2116.0 [2093.0,2148.0] | 0/3 |
+| /topics/javascript-closures | 100/100/100/100 | 609.0 [608.6,611.5] | 446.0 [445.8,447.7] | 0.000000 [0.000000,0.000000] | 0.0 [0.0,0.0] | 2113.0 [2108.5,2120.0] | 0/3 |
+| /leaderboard | 100/100/96/100 | 725.6 [723.8,726.2] | 584.7 [583.2,585.1] | 0.000000 [0.000000,0.000000] | 0.0 [0.0,0.0] | 2097.5 [2058.0,2125.0] | 0/3 |
+
+| Route | Actual measured page state | Median-LCP element | Sample |
+|---|---|---|---:|
+| / | Anonymous landing; consent banner visible | Consent paragraph | 1 |
+| /learn | Learn server error/Try again visibly captured; roadmap503 | Consent paragraph | 1 |
+| /coding | Signed-out challenge catalog; no recorded pass | Consent paragraph | 1 |
+| /quiz | Signed-out quiz setup; no start | Consent paragraph | 1 |
+| /daily | Question failed to load/Retry visibly captured; qotd503 | Consent paragraph | 1 |
+| /premium | Premium not on sale yet/voucher; price cards visible; billing disabled | Voucher paragraph: Premium not on sale yet | 2 |
+| /topics/javascript-closures | Static closures article/code sample visible | Consent paragraph | 3 |
+| /leaderboard | Server error/Retry visibly captured; board503 | Consent paragraph | 2 |
+
+The artifact preserves full-precision samples/ranges, scores, LCP selectors
+and subparts, raw report hashes and representative image hashes. Images stay
+outside the repository; all sixteen median-LCP screenshots were reviewed.
+Fifteen show the consent paragraph as LCP; desktop Premium instead uses the
+voucher paragraph. Simulated LCP and observed breakdown durations need not
+sum. Learn navigates to `/learn/web-developer`.
+
+Completed audits include intentional error states. The actual transport
+receipt counts settings 48 × 200, roadmap 18 × 503, Daily 12 × 503 and board
+6 × 503 across both profiles. API errors and blocked monitoring can affect
+category scores. This is not evidence of a production regression. The
+separate CDP corpus and its 120 ms replay delay cannot relabel these pages
+as populated. Its missing Daily interactions are recorded separately before
+any corrected follow-up. No field INP or universal speedup is claimed.
+
+The complete local orchestrator later exited 0 in 932.333 seconds, removed
+owned scratch and reported zero remaining children. That lifecycle result
+does not turn the twelve missing Daily interactions into valid INP samples.
