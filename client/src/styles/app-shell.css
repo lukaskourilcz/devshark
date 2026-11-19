@@ -820,6 +820,7 @@
 .ss-public-fallback { padding: var(--ss-space-gutter); padding-bottom: var(--ss-space-section); }
 .ss-topic-article { gap: var(--ss-space-section); font-size: var(--ss-type-body); }
 .ss-topic-article section { display: grid; gap: 1rem; }
+.ss-topic-article section > a { min-height: var(--ss-control-height); align-content: center; }
 .ss-topic-article h2 { margin: 0; font-family: var(--font-family-heading); }
 .ss-topic-article p { max-width: 68ch; margin: 0; }
 .ss-topic-article pre { max-width: 100%; overflow-x: auto; padding: 1rem; border-radius: var(--radius-inner); background: var(--color-background-muted); font-size: var(--ss-type-compact); }
