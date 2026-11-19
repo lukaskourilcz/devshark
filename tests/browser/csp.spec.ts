@@ -151,7 +151,7 @@ test('a Google profile photo loads on the profile page without a violation', asy
   const user = userWith({ avatar_url: 'https://lh3.googleusercontent.com/a/csp-spec' });
   await storeFakeSession(page, user);
   await localAuth(page, { user: () => user });
-  const photo = readFileSync('client/public/favicon-48.png');
+  const photo = readFileSync('client/public/favicon-32.png');
   let photoRequests = 0;
   await page.route('https://lh3.googleusercontent.com/**', (route) => {
     photoRequests += 1;
