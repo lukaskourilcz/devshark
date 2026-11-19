@@ -11,6 +11,7 @@
 // test-grading-integrity covers the same limits with shortened deadlines and
 // through the Submit handler; this suite keeps the deployed numbers.
 import assert from 'node:assert/strict';
+import { jsonKind } from '../shared/coding-failure';
 import { buildSandboxWorker } from './build-sandbox-worker.mjs';
 import {
   runInSandbox, sandboxPool, sandboxThreads, type SandboxInput,
@@ -238,6 +239,41 @@ await limitCase('3,000 logs of a 20,000-number array after 100 short lines', {
   assert.equal(run.results[0]?.pass, true, 'the correct answer passes');
   assert.equal(run.logs.length, MAX_LOGS, `the first ${MAX_LOGS} lines are kept`);
   assert.equal(run.logs.at(-1), String(MAX_LOGS - 1), 'and none of the big ones');
+}, 'kept');
+
+// F11-17: only the displayed serialization is bounded; grading sees full values.
+const displayedLong = 'x'.repeat(6000);
+await limitCase('displayed long values preserve complete equality and JSON-kind prefixes', {
+  code: 'const text = () => "x".repeat(6000); const list = () => [text()]; const record = () => ({ text: text() });',
+  calls: ['text()', 'text()', 'list()', 'record()'], expectations: [displayedLong, 'x'.repeat(5999) + 'y', [displayedLong], { text: displayedLong }],
+}, (run) => {
+  assert.equal(run.codeError, null); assert.equal(run.timedOut, false);
+  assert.deepEqual(run.results.map(result => result.pass), [true, false, true, true], 'a difference after the display boundary still fails');
+  assert.ok(run.results.every(result => result.actual !== null && result.actual.length <= MAX_LOG_LINE_CHARS + LOG_LINE_CUT.length && result.actual.endsWith(LOG_LINE_CUT)));
+  assert.deepEqual(run.results.map(result => jsonKind(result.actual)), ['string', 'string', 'array', 'object']);
+  assert.ok(run.results.every(result => result.error === null));
+}, 'kept');
+await limitCase('an ungraded long value retains null instead of a grade', {
+  code: 'const text = () => "x".repeat(6000);', calls: ['text()'], expectations: null,
+}, (run) => {
+  assert.deepEqual(run.results, [{ pass: null, actual: '"' + 'x'.repeat(1999) + LOG_LINE_CUT, error: null }]);
+}, 'kept');
+const displayedSurrogate = 'x'.repeat(1998) + '\ud83e\udd88' + 'tail';
+await limitCase('a displayed value never splits the surrogate pair at its boundary', {
+  code: 'const text = () => "x".repeat(1998) + "\\ud83e\\udd88" + "tail";', calls: ['text()'], expectations: [displayedSurrogate],
+}, (run) => {
+  assert.deepEqual(run.results, [{ pass: true, actual: '"' + 'x'.repeat(1998) + LOG_LINE_CUT, error: null }]);
+}, 'kept');
+// Existing F11-21 error cuts are controls, not new display regressions.
+await limitCase('long call errors retain their existing bounded message', {
+  code: 'const fail = () => { throw "q".repeat(6000); };', calls: ['fail()'], expectations: [null],
+}, (run) => {
+  assert.deepEqual(run.results, [{ pass: false, actual: null, error: 'q'.repeat(2000) + LOG_LINE_CUT }]);
+}, 'kept');
+await limitCase('a top-level surrogate error retains its existing cut', {
+  code: 'throw "r".repeat(1999) + "\\ud83e\\udd88" + "tail";', calls: ['1'],
+}, (run) => {
+  assert.deepEqual(run.results, []); assert.equal(run.codeError, 'r'.repeat(1999) + LOG_LINE_CUT); assert.equal(run.timedOut, false);
 }, 'kept');
 
 // ── output: a return value deeper than 40 levels or wider than 10,000 ────
