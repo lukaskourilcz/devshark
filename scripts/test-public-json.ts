@@ -226,6 +226,17 @@ test('public boards: revalidation still reads the authoritative board and change
   } finally { boardRevision = 1; }
 });
 
+test('global leaderboard: the fixture preserves the subject RPC fields read by the lifetime board', async () => {
+  const res = await call(boards, { period: 'global' });
+  assert.equal(res.statusCode, 200);
+  // Migration 055's subject_leaderboard result and Leaderboard.tsx's lifetime
+  // rows use these fields, not the window board's rank/correct/answered shape.
+  assert.deepEqual((res.body as { entries: unknown }).entries, [{
+    display_name: 'Fixture shark 1', picture: null,
+    total_correct: 8, total_questions: 10, accuracy_pct: 80,
+  }]);
+});
+
 for (const period of ['7d', '30d', 'month']) {
   for (const personal of ['me', 'unverified bearer']) {
     test(`${period} leaderboard: ${personal} remains private even with If-None-Match *`, async () => {

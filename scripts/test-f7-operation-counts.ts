@@ -115,6 +115,17 @@ async function collect(item: (typeof manifest)[number], tokenArtifact: string, p
       const from = events.length; const res = await run();
       // A first refused address may have an already-started Auth check. Retain it.
       while (pending.size) await Promise.all([...pending]);
+      if (item.id === 'leaderboard' && res.statusCode === 200) {
+        // Pin migration 055's subject RPC and the lifetime board's read shape
+        // before accepting transport counts from an invented successful reply.
+        const entries = res.body && res.body.entries, entry = entries && entries[0];
+        if (!Array.isArray(entries) || entries.length !== 1 || !entry ||
+          JSON.stringify(Object.keys(entry).sort()) !== JSON.stringify(['accuracy_pct','display_name','picture','total_correct','total_questions']) ||
+          entry.display_name !== 'Fixture shark' || entry.picture !== null ||
+          entry.total_correct !== 8 || entry.total_questions !== 10 || entry.accuracy_pct !== 80) {
+          throw new Error('Global leaderboard fixture must preserve the subject RPC fields consumed by lifetime rows');
+        }
+      }
       // No response payload, URL/query/header/identifier values enter a report.
       const cache = res.headers['cache-control'];
       const cacheClass = cache === 'private, no-store' ? 'private-no-store' : typeof cache === 'string' && cache.startsWith('public,') ? 'public' : 'unknown';
