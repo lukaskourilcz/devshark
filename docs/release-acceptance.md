@@ -7284,3 +7284,76 @@ The per-file archive inventory and pixel/byte evidence live in
 `docs/audit/f4-archived-public-assets-2026-11-18.json` and
 `docs/audit/f4-image-delivery-2026-11-18.json`. This entry records local evidence;
 the package awaits its checked PR merge and read-only deployment smoke.
+
+
+## Epic F6 responsive matrix: browser and zoom acceptance (19 November 2026)
+
+Issue #635, findings F6-01 through F6-09. The responsive gate now verifies twenty
+learner routes with invented account/API fixtures, strict route identity, nine
+required widths and effective 44px targets. It rejects unknown API reads and
+keeps genuine inline prose links. CI retains F4's image gate and public/image
+browser checks; the parity plan contains 58 steps.
+
+Profile's input grew from 42px to 44px. Its labels grew from 17px to 44px while
+the native radio artwork remains 22px inside a 24px wrapper. Seven standalone
+links now provide 44px targets. Coarse-pointer coding text computes to 16px
+instead of 14px; desktop remains 14px. The first cookie choice can scroll in
+a 320 by 200 CSS-pixel viewport: its former 244.53px banner began at y=120 and
+clipped all three actions below y=256. The corrected banner fits y=120 to 170;
+each unchanged 44px action and the privacy link remains reachable.
+
+WebKit exposed a cold React-frame focus failure: an opaque child loaded after
+Run activation falsely failed the unchanged four-case focus suite. Editor and
+command intent now prepare that child, and local Run requires readiness plus a
+fresh action with bounded loading/error/retry feedback. Chromium also exposed
+a keyboard-specific condition: a ready display:none child failed Enter/Space,
+while a laid-out offscreen child passed pointer, Enter and Space. Wanted inactive
+previews now stay parked, aria-hidden and outside Tab order. Submit remains
+immediate and independent. Safari's sign-in opener is captured from its explicit
+trigger rather than inferred only from the active element.
+
+The retained red evidence includes the first WebKit 66-pass/4-fail run, the later
+76-pass/1-fail run, Chromium's 83-pass/2-fail keyboard run and the two failed 400%
+consent cases. Native iframe reductions refuted arbitrary delays, tabindex
+changes and parent focus as fixes. Follow-up targeted cases and the fresh full
+matching engine sets pass. Authored cases, expected answers, grading, XP,
+entitlements, sandbox permissions and the twelve handlers stay unchanged.
+
+| Check at runtime checkpoint `694ba8a7` | Actual result |
+|---|---|
+| `npm run ci:parity -- --fast --install` | Clean Node 24.22.3 run, complete; 31 passed, 0 failed, 26 skipped, 1 not run; 33.21 minutes |
+| API/scripts/client-tooling types, native reviews, unused and security | Pass in fast parity |
+| Build, image/public/bundle gates | Pass; 917 images, 915 HTML pages; initial 235,485/241,651 gzip bytes, monitoring 49,565/60,000 |
+| Both production dependency audits | 0 vulnerabilities |
+| `npm run test:client` | 1,951 tests in 193 files passed |
+| `npm run test:coding` | 814 tasks checked, 769 issued; reference solutions proven and payloads answer-free |
+| Fresh matching Chromium specs | 85 passed, 0 failed/skipped/flaky; 113.908 seconds, one worker |
+| Fresh matching WebKit specs | 85 passed, 0 failed/skipped/flaky; 127.789 seconds, one worker |
+| Light responsive matrix | 180 probes, 0 issues, 0 unprobed; 1,416 targets and 51 inline prose exceptions |
+| Dark responsive matrix | 60 probes, 0 issues, 0 unprobed; 472 targets and 17 prose exceptions |
+| Synthetic 200% and 400% reflow | One clear probe each; physical 1280 by 800 maps to CSS 640 by 400 and 320 by 200 |
+| Focused readiness/inactive-control client tests | 42 passed; explicit opener suites 37 passed; consent suites 26 passed |
+| Matrix/fixture/target regressions | 12/14/18 passed; clearance contracts pass in the responsive wrapper |
+| CI parity drift and `git diff --check` | Pass before the checked PR workflow |
+
+Matching engine coverage includes first-load, navigation, coding-workbench,
+mobile-safari and consent-reflow. Both runs use local invented fixtures and one
+worker; only Chromium receives CHROME_BIN. WebKit uses the configured iPhone
+project with per-test viewport overrides. The committed measurement record is
+`docs/audit/f6-responsive-2026-11-19.json`. The final documentation commit adds
+this record and corrects workflow instructions after the frozen runtime checks.
+
+Not run locally: the QuickJS rebuild needs Python 3.10+/emsdk; the Mac has Python
+3.9 and no configured emsdk. Required CI remains responsible for that rebuild.
+SQL was not run locally because this package changes no SQL; required `sql` must
+pass on the pinned Supabase image. Fast mode excludes twenty browser groups,
+the harness and performance steps, and the three Storybook steps. Installed
+Chrome replaces the separate Chromium download. The matching engine runs above
+are additional checks, not a claim that every full parity browser group ran.
+
+Physical iPhone keyboard/notch/input-zoom checks remain in the existing
+**Check Safari and a real phone** owner task in NEEDED.md. Headless reflow does
+not prove those behaviors. Full screen-reader QA, authenticated production
+behavior and deployment acceptance remain unverified here. No production
+SQL, settings, accounts, scores, orders or messages were changed. The PR must
+pass required verify/sql and merge before production acceptance is recorded.

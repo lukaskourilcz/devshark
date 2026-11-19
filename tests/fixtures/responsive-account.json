@@ -1,0 +1,28 @@
+{
+  "user": {
+    "id": "00000000-0000-4000-8000-00000000f006",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "responsive-learner@example.test",
+    "app_metadata": { "provider": "google", "providers": ["google"] },
+    "user_metadata": {
+      "full_name": "Responsive Learner",
+      "devquiz_track": "frontend",
+      "devquiz_learning_preference_v1": { "schemaVersion": 1, "baseTrack": "frontend", "specialization": null },
+      "devquiz_learner_profile_v2": { "schemaVersion": 2, "baseTrack": "frontend", "specialization": null, "sections": [], "goals": ["level-up"], "experience": "some", "studyTime": "15-30", "updatedAt": "2026-11-18T12:00:00Z" }
+    },
+    "created_at": "2026-09-01T00:00:00Z"
+  },
+  "stats": {
+    "id": "responsive-stats", "user_id": "00000000-0000-4000-8000-00000000f006",
+    "email": null, "name": "Responsive Learner", "picture": null,
+    "total_quizzes": 12, "total_correct": 32, "total_questions": 40,
+    "current_streak": 3, "longest_streak": 7, "last_quiz_date": "2026-11-18",
+    "created_at": "2026-09-01T00:00:00Z", "updated_at": "2026-11-18T12:00:00Z"
+  },
+  "cards": [
+    { "question_id": "js-typeof-null", "question": "What does `typeof null` return?", "category": "javascript", "correct_answer": "object", "explanation": "JavaScript retains this historical result. Test null with strict equality.", "created_at": "2026-11-18T12:00:00Z" }
+  ],
+  "progress": { "html": { "levels": { "1": { "passed": true, "bestPct": 100 } }, "checkpoints": {} } },
+  "wallet": { "subject": "webdev", "balance": 350, "entries": [{ "eventId": "responsive-welcome", "amount": 100, "reason": "welcome", "reference": null, "createdAt": "2026-11-18T12:00:00Z" }], "cosmetics": [], "welcome": { "granted": false, "coins": 100 } }
+}

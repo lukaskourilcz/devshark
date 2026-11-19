@@ -153,30 +153,32 @@ jobs:
         run: |
           npm run preview --prefix client -- --host 0.0.0.0 --port 4173 > /tmp/preview.log 2>&1 &
           node scripts/wait-for-preview.mjs
-          npm run test:browser -- tests/browser/public.spec.ts tests/browser/images.spec.ts
-          npm run test:browser -- tests/browser/guide-startup.spec.ts tests/browser/profile-leaderboard-preferences.spec.ts tests/browser/profile-path-picker.spec.ts tests/browser/admin.spec.ts
-          npm run test:browser -- tests/browser/evolving.spec.ts
-          npm run test:browser -- tests/browser/coding-pages.spec.ts
-          npm run test:browser -- tests/browser/coding-workbench.spec.ts
-          npm run test:browser -- tests/browser/coding-drafts.spec.ts
-          npm run test:browser -- tests/browser/learning-release.spec.ts tests/browser/learn-sections.spec.ts
-          npm run test:browser -- tests/browser/fde-hub.spec.ts tests/browser/fde-taster.spec.ts tests/browser/fde-positioning.spec.ts tests/browser/interview-shelf.spec.ts
-          npm run test:browser -- tests/browser/path-content-shapes.spec.ts tests/browser/portfolio-export.spec.ts tests/browser/diagnostic-overview.spec.ts tests/browser/dsa-advanced.spec.ts
-          npm run test:browser -- tests/browser/segmented.spec.ts
-          npm run test:browser -- tests/browser/on-accent.spec.ts
-          npm run test:browser -- tests/browser/navigation.spec.ts
-          npm run test:browser -- tests/browser/lazy-auth.spec.ts
-          npm run test:browser -- tests/browser/sign-in.spec.ts
-          npm run test:browser -- tests/browser/route-errors.spec.ts
-          npm run test:browser -- tests/browser/first-load.spec.ts
-          npm run test:browser -- tests/browser/home-sample.spec.ts
-          npm run test:browser -- tests/browser/routes-axe.spec.ts
-          npm run test:browser -- tests/browser/daily.spec.ts
-          npm run test:browser -- tests/browser/launch-offer.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/public.spec.ts tests/browser/images.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/guide-startup.spec.ts tests/browser/profile-leaderboard-preferences.spec.ts tests/browser/profile-path-picker.spec.ts tests/browser/admin.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/evolving.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/coding-pages.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/coding-workbench.spec.ts tests/browser/mobile-safari.spec.ts tests/browser/consent-reflow.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/coding-drafts.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/learning-release.spec.ts tests/browser/learn-sections.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/fde-hub.spec.ts tests/browser/fde-taster.spec.ts tests/browser/fde-positioning.spec.ts tests/browser/interview-shelf.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/path-content-shapes.spec.ts tests/browser/portfolio-export.spec.ts tests/browser/diagnostic-overview.spec.ts tests/browser/dsa-advanced.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/segmented.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/on-accent.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/navigation.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/lazy-auth.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/sign-in.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/route-errors.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/first-load.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/home-sample.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/routes-axe.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/daily.spec.ts
+          npm run test:browser -- --project=chromium tests/browser/launch-offer.spec.ts
           export CHROME_BIN=$(node -e "console.log(require('@playwright/test').chromium.executablePath())")
           TOPIC=javascript-closures
-          npm run check:responsive -- --routes /,/quiz,/topics/$TOPIC,/daily,/not-found-responsive-check --widths 360,390,430,768,1024,1280,1440
-          RESPONSIVE_THEME=dark npm run check:responsive -- --routes /,/topics/$TOPIC,/daily --widths 390,768,1280
+          npm run check:responsive -- --routes /,/quiz,/topics/$TOPIC,/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 360,390,430,768,820,1024,1280,1366,1440
+          RESPONSIVE_THEME=dark npm run check:responsive -- --routes /,/quiz,/topics/$TOPIC,/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 390,820,1280
+          RESPONSIVE_ZOOM=200 npm run check:responsive -- --routes / --widths 1280
+          RESPONSIVE_ZOOM=400 npm run check:responsive -- --routes / --widths 1280
           npm run test:harness
       - if: ${{ !cancelled() && steps.build.conclusion == 'success' }}
         name: Storybook and performance
@@ -185,7 +187,7 @@ jobs:
           npm run build:storybook
           npm run storybook --prefix client -- --ci > /tmp/storybook.log 2>&1 &
           TEST_BASE_URL=http://localhost:6006 node scripts/wait-for-preview.mjs
-          STORYBOOK_URL=http://localhost:6006 npm run test:browser -- tests/browser/storybook.spec.ts
+          STORYBOOK_URL=http://localhost:6006 npm run test:browser -- --project=chromium tests/browser/storybook.spec.ts
       - uses: actions/upload-artifact@v4
         if: always()
         with:

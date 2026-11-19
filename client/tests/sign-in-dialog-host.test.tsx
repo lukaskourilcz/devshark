@@ -3,12 +3,13 @@
 // toast, a second failed press reloads and the next document opens the
 // dialog, and the account arriving closes it.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import type { BuildCheck, Recovery } from '../src/lib/routeRecovery';
 import { closeSignIn, openSignIn, takeSignInDialogResume } from '../src/lib/signInDialog';
 import SignInDialogHost from '../src/components/auth/SignInDialogHost';
+import SignInButton from '../src/components/SignInButton';
 import type { SignInRequest } from '../src/lib/signInDialog';
 
 vi.mock('../src/lib/sentry', () => ({ reportError: vi.fn(), initSentry: vi.fn() }));
@@ -47,7 +48,8 @@ async function mountHost(recovery: Recovery = fakeRecovery()) {
     view = render(
       <MemoryRouter>
         <LanguageProvider>
-          <main>the page</main>
+          <main id="main-content" tabIndex={-1}>the page</main>
+          <SignInButton />
           <SignInDialogHost recovery={recovery} />
         </LanguageProvider>
       </MemoryRouter>,
@@ -57,6 +59,43 @@ async function mountHost(recovery: Recovery = fakeRecovery()) {
 }
 
 describe('the sign-in dialog host', () => {
+  it('restores an explicit opener when a pointer leaves focus on the page', async () => {
+    dialog.fails = false;
+    await mountHost();
+    const page = screen.getByText('the page');
+    const trigger = screen.getByRole('button', { name: 'Sign in' });
+    page.focus();
+    await act(async () => openSignIn({}, trigger));
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    act(() => closeSignIn());
+    expect(trigger).toHaveFocus();
+  });
+
+  it('remembers the header trigger even when clicking does not focus it', async () => {
+    dialog.fails = false;
+    await mountHost();
+    const page = screen.getByText('the page');
+    const trigger = screen.getByRole('button', { name: 'Sign in' });
+    page.focus();
+    fireEvent.click(trigger);
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    act(() => closeSignIn());
+    expect(trigger).toHaveFocus();
+  });
+
+  it('keeps active-element restoration for a programmatic open', async () => {
+    dialog.fails = false;
+    await mountHost();
+    const trigger = screen.getByRole('button', { name: 'Sign in' });
+    trigger.focus();
+    await act(async () => openSignIn());
+    const shown = await screen.findByRole('dialog');
+    shown.tabIndex = -1;
+    shown.focus();
+    act(() => closeSignIn());
+    expect(trigger).toHaveFocus();
+  });
+
   it('closes when the dialog’s code does not load and says so, and opens on the next press', async () => {
     dialog.fails = true;
     await mountHost();

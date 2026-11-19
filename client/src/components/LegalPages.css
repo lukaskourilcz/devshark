@@ -29,13 +29,10 @@
 .ss-legal-index summary:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 2px; border-radius: var(--radius-inner); }
 .ss-legal-index ol { margin: 0.25rem 0 0; padding-left: 1.5rem; line-height: 1.5; color: var(--color-text-secondary); }
 .ss-legal-index li { break-inside: avoid; }
-.ss-legal-index a { display: inline-flex; align-items: center; min-height: 32px; color: var(--brand-accent); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.ss-legal-index a { display: inline-flex; align-items: center; min-width: var(--ss-control-height); min-height: var(--ss-control-height); color: var(--brand-accent); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .ss-legal-index a:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 2px; border-radius: var(--radius-inner); }
 @media (min-width: 600px) {
   .ss-legal-index ol { columns: 2; column-gap: 2rem; }
-}
-@media (pointer: coarse) {
-  .ss-legal-index a { min-height: 44px; }
 }
 .ss-legal-section p { max-width: 68ch; margin: 0.55rem 0; color: var(--color-text-secondary); line-height: 1.65; overflow-wrap: anywhere; }
 .ss-legal-section > .ss-info-note { max-width: 68ch; color: var(--color-text-primary); }
@@ -60,7 +57,7 @@
 }
 .ss-legal-trader dt { color: var(--color-text-secondary); font-size: 0.9rem; }
 .ss-legal-trader dd { margin: 0; color: var(--color-text-primary); overflow-wrap: anywhere; }
-.ss-legal-trader a { color: var(--brand-accent); text-underline-offset: 3px; }
+.ss-legal-trader a { display: inline-flex; align-items: center; min-width: var(--ss-control-height); min-height: var(--ss-control-height); color: var(--brand-accent); text-underline-offset: 3px; }
 
 /* The model withdrawal form: a sheet a reader can copy, not a live form. */
 .ss-legal-form {

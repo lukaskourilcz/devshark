@@ -1,0 +1,434 @@
+{
+  "recorded": "2026-11-19",
+  "runtimeHead": "694ba8a76f52c3a7c2bf28c03aafeb5404ff7955",
+  "base": "6c85886c03c22227fb4690ffaa298efe15d2dad0",
+  "localParity": {
+    "mode": "fast",
+    "node": "24.22.3",
+    "complete": true,
+    "dirty": false,
+    "minutes": 33.21,
+    "counts": {
+      "pass": 31,
+      "fail": 0,
+      "skipped": 26,
+      "not-run": 1
+    },
+    "steps": [
+      {
+        "id": "install",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "check:quickjs-build",
+        "result": "not-run",
+        "detail": "the rebuild needs Python 3.10+ (set SHARK_PYTHON) or SHARK_EMSDK_DIR; python3 is older or missing"
+      },
+      {
+        "id": "typecheck:api",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "typecheck:scripts",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "typecheck:tooling",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "audit:native-reviews",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "check:unused",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "check:security",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "build",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "check:images",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "check:public",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "check:bundle",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "audit:prod",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "audit:client",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:performance",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:launch",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:coding-auth",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:grading-integrity",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:path-authority",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:react-authority",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:paths",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:billing",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:fallbacks",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:garden",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:live-grading",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:client",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:coding",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "chromium",
+        "result": "skipped",
+        "detail": "using /Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      },
+      {
+        "id": "preview",
+        "result": "pass",
+        "detail": "serving http://localhost:4173"
+      },
+      {
+        "id": "browser:public+images",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:guide-startup+profile-leaderboard-preferences+profile-path-picker+admin",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:evolving",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:coding-pages",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:coding-workbench+mobile-safari+consent-reflow",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:coding-drafts",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:learning-release+learn-sections",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:fde-hub+fde-taster+fde-positioning+interview-shelf",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:path-content-shapes+portfolio-export+diagnostic-overview+dsa-advanced",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:segmented",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:on-accent",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:navigation",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:lazy-auth",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:sign-in",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:route-errors",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:first-load",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:home-sample",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:routes-axe",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:daily",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:launch-offer",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "check:responsive",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "check:responsive:dark",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "check:responsive:zoom200",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "check:responsive:zoom400",
+        "result": "pass",
+        "detail": ""
+      },
+      {
+        "id": "test:harness",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "audit:performance",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "build:storybook",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "storybook",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      },
+      {
+        "id": "browser:storybook",
+        "result": "skipped",
+        "detail": "not part of --fast"
+      }
+    ]
+  },
+  "browserAcceptance": {
+    "head": "694ba8a76f52c3a7c2bf28c03aafeb5404ff7955",
+    "preview": "http://127.0.0.1:4176",
+    "node": "24.22.3",
+    "matchingSpecs": [
+      "first-load.spec.ts",
+      "navigation.spec.ts",
+      "coding-workbench.spec.ts",
+      "mobile-safari.spec.ts",
+      "consent-reflow.spec.ts"
+    ],
+    "engines": {
+      "chromium": {
+        "startTime": "2026-11-19T02:54:41.016Z",
+        "duration": 113908.338,
+        "expected": 85,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "webkit": {
+        "startTime": "2026-11-19T02:56:44.840Z",
+        "duration": 127789.138,
+        "expected": 85,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    "parity": {
+      "mode": "fast",
+      "minutes": 33.21,
+      "passed": 31,
+      "failed": 0,
+      "skipped": 26,
+      "notRun": 1
+    },
+    "physicalDeviceQa": "not performed"
+  },
+  "responsive": {
+    "light": {
+      "routes": 20,
+      "widths": [
+        360,
+        390,
+        430,
+        768,
+        820,
+        1024,
+        1280,
+        1366,
+        1440
+      ],
+      "probes": 180,
+      "issues": 0,
+      "unprobed": 0,
+      "targets": 1416,
+      "inlineProseExceptions": 51
+    },
+    "dark": {
+      "widths": [
+        390,
+        820,
+        1280
+      ],
+      "probes": 60,
+      "issues": 0,
+      "unprobed": 0,
+      "targets": 472,
+      "inlineProseExceptions": 17
+    },
+    "zoom": {
+      "physical": [
+        1280,
+        800
+      ],
+      "200": {
+        "effectiveCSS": [
+          640,
+          400
+        ],
+        "density": 2,
+        "probes": 1,
+        "issues": 0
+      },
+      "400": {
+        "effectiveCSS": [
+          320,
+          200
+        ],
+        "density": 4,
+        "probes": 1,
+        "issues": 0
+      }
+    }
+  },
+  "client": {
+    "files": 193,
+    "passed": 1951
+  },
+  "coding": {
+    "tasks": 814,
+    "issued": 769,
+    "hiddenSystemDesign": 45,
+    "result": "Reference solutions proven; payloads answer-free; unchanged authored cases and limits."
+  },
+  "limits": [
+    "QuickJS rebuild not run locally: Python3.9/noemsdk; requiredCI must rebuild.",
+    "SQL not run locally: noSQLdiff; requiredCI must pass on Supabase image.",
+    "Fast excludes25full steps, and installedChrome skipsdownload; matching85caseengine runs are separate evidence.",
+    "Headless reflow and iPhone project do not prove physical virtualkeyboard, notch or devicebrowserzoom.",
+    "No authenticated production actions, deployment or production writes were performed."
+  ],
+  "findingIds": [
+    "F6-01",
+    "F6-02",
+    "F6-03",
+    "F6-04",
+    "F6-05",
+    "F6-06",
+    "F6-07",
+    "F6-08",
+    "F6-09"
+  ]
+}

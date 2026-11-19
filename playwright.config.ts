@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 const TEST_DIR = join(__dirname, 'tests/browser');
 
@@ -33,7 +33,18 @@ if (outsideConsoleClean.length > 0) {
 export default defineConfig({
   testDir: './tests/browser', fullyParallel: false, workers: 1,
   use: { baseURL: process.env.TEST_BASE_URL || 'http://localhost:4173',
-    launchOptions: { executablePath: process.env.CHROME_BIN }, trace: 'retain-on-failure', screenshot: 'only-on-failure',
+    trace: 'retain-on-failure', screenshot: 'only-on-failure',
   },
+  projects: [
+    {
+      name: 'chromium',
+      use: { browserName: 'chromium', launchOptions: { executablePath: process.env.CHROME_BIN } },
+    },
+    {
+      name: 'webkit',
+      testMatch: /(?:first-load|navigation|coding-workbench|mobile-safari|consent-reflow)\.spec\.ts$/,
+      use: { ...devices['iPhone 13'], browserName: 'webkit' },
+    },
+  ],
   reporter: [['list'], ['html', { open: 'never' }]],
 });

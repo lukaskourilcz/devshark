@@ -451,12 +451,6 @@
 
 .cd-editor { border-radius: var(--radius-element); overflow: hidden; border: 1px solid var(--ss-card-edge); }
 .cd-editor:focus-within { outline: 3px solid var(--ss-focus); outline-offset: 2px; }
-/* A phone zooms the page into an editable field whose text is under 16px when
-   it takes focus, and the page then scrolls sideways. On a touch screen below
-   the two-column layout the code is 16px, so the editor never triggers it. */
-@media (max-width: 1023px) and (pointer: coarse) {
-  .cd-pane--editor .cd-editor .cm-editor { font-size: 16px; }
-}
 /* The pane takes focus when "Use the editor here" replaces the
    waiting note, and shows it the way the verdict card does. */
 .cd-pane--editor:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 3px; }
@@ -629,6 +623,12 @@
   .cd-workbench:not(.cd-workbench--landing) .cd-editor-bar { padding-inline: 8px; }
   .cd-editor-bar__path { flex-basis: 100%; }
 }
+/* Keep this after the workbench's compact typography. An editable field
+   under 16px makes mobile Safari zoom on focus; desktop keeps its 14px type. */
+@media (max-width: 1023px) and (pointer: coarse) {
+  .cd-pane--editor .cd-editor .cm-editor { font-size: 16px; }
+}
+
 /* The React preview while a suite runs under another tab: laid out, so focus
    can move inside the frame, but off-screen, inert to the pointer and hidden
    from assistive tech (the workbench sets aria-hidden and takes the frame out

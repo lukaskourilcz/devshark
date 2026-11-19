@@ -7,11 +7,15 @@
  * waterline and fins. Card stock as everywhere else: hairline border, a 2px
  * bottom edge, the paper background. No motion: it is there in the first
  * frame, so reduced motion needs nothing. Colours are tokens, so light and
- * dark need nothing either.
+ * dark need nothing either. In a short zoomed viewport the banner gives up
+ * height and scrolls within the shell, keeping every choice reachable.
  */
 .ss-consent {
   order: 1;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   box-sizing: border-box;
   width: 100%;
   margin: 0 0 30px;

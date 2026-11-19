@@ -237,6 +237,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const startedAt = useRef(Date.now());
   const verdictRef = useRef<HTMLElement | null>(null);
   const resetRef = useRef<HTMLButtonElement | null>(null);
+  const runRef = useRef<HTMLButtonElement | null>(null);
   const revealRef = useRef<HTMLButtonElement | null>(null);
   const moreRef = useRef<HTMLButtonElement | null>(null);
   const solutionRef = useRef<HTMLDivElement | null>(null);
@@ -250,7 +251,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const checkedCurrentSource = serverChecked && !stale;
   // The sandbox frame (about 216 KB gzip, and a long task as it boots) loads
   // on the first Run or Submit, when the Preview tab opens, or when a pointer
-  // or the focus reaches the Run and Submit row: not while the brief is read
+  // or the focus reaches the editor or command row: not while the brief is read
   // (perf baseline #587 C13). Once loaded it stays for the visit.
   const [frameWanted, setFrameWanted] = useState(false);
   const wantFrame = useCallback(() => { if (isReact) setFrameWanted(true); }, [isReact]);
@@ -279,7 +280,8 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
     focusEditorPane.current = true;
     setEditorHere(true);
     wantCompiler();
-  }, [wantCompiler]);
+    wantFrame();
+  }, [wantCompiler, wantFrame]);
   // The button that made the choice is gone, so focus goes to the pane that
   // replaced it rather than back to the top of the page.
   useEffect(() => {
@@ -365,6 +367,13 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
 
   const runLocal = useCallback(async () => {
     if (phase !== 'idle') return;
+    // A newly loaded opaque iframe cannot move input focus in WebKit until
+    // a later interaction. Prepare it now, but require a fresh Run after its
+    // readiness handshake rather than replaying this click or shortcut.
+    if (isReact && !harness.ready) {
+      wantFrame();
+      return;
+    }
     setDraftTooLarge(onDraft?.(code) === 'tooLarge');
     localRun.current?.abort();
     setPhase('running');
@@ -406,7 +415,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       setRunPhase(null);
       setPhase('idle');
     }
-  }, [phase, isReact, harness, files, task.id, task.suite, task.tests, task.typeTests, codeTrack, code, onDraft, selectTab, wantCompiler]);
+  }, [phase, isReact, harness, files, task.id, task.suite, task.tests, task.typeTests, codeTrack, code, onDraft, selectTab, wantCompiler, wantFrame]);
 
   /** What a failed request says: the server's reason in the learner's words.
    * Only a request that never arrived is a connection problem. */
@@ -678,6 +687,10 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
     : '';
 
   const busy = phase !== 'idle';
+  const previewPreparing = isReact && frameWanted && !harness.ready;
+  const previewPreparation = harness.loadFailed
+    ? workbenchCopy('coding.preview.loadFailed')
+    : workbenchCopy('coding.preview.preparing');
   const submitDisabled = taskChanged || mode === 'landing' || busy || !session || !online || Boolean(solution);
 
   // The shortcut does what the button would: nothing, while Submit is off,
@@ -1084,7 +1097,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const renderPreview = (): ReactNode => (
     <>
       {reactRun?.previewError && <p className="cd-note cd-note--error">{t('coding.preview.error', { message: reactRun.previewError })}</p>}
-      {reactRun?.status === 'timeout' && <p className="cd-note cd-note--warn">{t('coding.preview.timeout')} <Button variant="ghost" size="sm" onClick={harness.reload} label={t('coding.preview.reload')} /></p>}
+      {reactRun?.status === 'timeout' && <p className="cd-note cd-note--warn">{t('coding.preview.timeout')} {tab === 'preview' && <Button variant="ghost" size="sm" onClick={harness.reload} label={t('coding.preview.reload')} />}</p>}
       {previewIdle ? <p className="cd-console__empty">{workbenchCopy('coding.preview.idle')}</p>
         : !harness.ready && <p className="cd-console__empty">{t('coding.preview.starting')}</p>}
       {frameOn && <iframe key={harness.frameKey} ref={harness.iframeRef} src={HARNESS_URL} sandbox="allow-scripts allow-forms" title={t('coding.preview.title')} className={previewIdle ? 'cd-frame cd-frame--idle' : 'cd-frame'} aria-hidden={previewIdle || undefined} tabIndex={tab === 'preview' && !previewIdle ? undefined : -1} />}
@@ -1269,7 +1282,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const actionBar = (
     <div className="cd-editor-actions" onPointerEnter={reachForRun} onFocus={reachForRun}>
       <div className="cd-actions cd-actions--commands">
-        {!puzzleMode && !pendingOnDesktop && <Button className="ss-action" variant="secondary" onClick={() => void runLocal()} isDisabled={busy} tooltip={busy ? t('coding.status.working') : undefined} label={phase === 'running' ? (runPhase === 'compiling' ? t('coding.compiling') : t('coding.running')) : t('coding.run')} />}
+        {!puzzleMode && !pendingOnDesktop && <Button ref={runRef} className="ss-action" variant="secondary" onClick={() => void runLocal()} isDisabled={busy || previewPreparing} tooltip={busy ? t('coding.status.working') : previewPreparing ? previewPreparation : undefined} label={phase === 'running' ? (runPhase === 'compiling' ? t('coding.compiling') : t('coding.running')) : t('coding.run')} />}
         {mode === 'landing' ? <div className="cd-actions cd-actions--utility"><DropdownMenu
           button={{ label: workbenchCopy('coding.moreActions'), icon: <Icon icon="moreHorizontal" />, isIconOnly: true, variant: 'ghost', tooltip: workbenchCopy('coding.moreActions'), ref: moreRef }}
           hasChevron={false} placement="above">
@@ -1279,6 +1292,12 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
           {!puzzleMode && !pendingOnDesktop && submitAction}
         </>}
       </div>
+      {isReact && frameWanted && !busy && (previewPreparing
+        ? <p className={harness.loadFailed ? 'cd-note cd-note--warn' : 'cd-console__empty'} role="status">
+          {previewPreparation}
+          {harness.loadFailed && <> <Button variant="ghost" onClick={() => { harness.reload(); runRef.current?.focus(); }} label={workbenchCopy('coding.preview.retry')} /></>}
+        </p>
+        : !harness.run && <p className="cd-console__empty" role="status">{workbenchCopy('coding.preview.ready')}</p>)}
     </div>
   );
 
@@ -1309,8 +1328,10 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
     </div>
   );
   const renderPanels = (available: typeof tabs, selected: Tab) => available.map((one) => {
-    // A suite's focus checks need a laid-out frame even while Results shows.
-    const parked = one.key === 'preview' && selected !== 'preview' && busy;
+    // A loaded frame must already be laid out before keyboard Run. Chromium
+    // cannot activate its input focus when display:none ends in that event.
+    // Keep it out of the pointer, accessibility tree and sequential Tab order.
+    const parked = one.key === 'preview' && selected !== 'preview' && (busy || frameOn);
     return <div key={one.key} role="tabpanel" tabIndex={selected === one.key ? 0 : -1}
       id={`${baseId}-panel-${one.key}`} aria-labelledby={`${baseId}-tab-${one.key}`}
       className={`cd-panel${parked ? ' cd-panel--parked' : ''}`}
@@ -1403,7 +1424,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
               so the code survives a resize; the editor inside it mounts once
               it has shown (editorMounted). */}
           <section className="cd-pane cd-pane--editor" ref={editorPaneRef} tabIndex={-1} hidden={puzzleMode || pendingOnDesktop} aria-labelledby={puzzleMode || pendingOnDesktop ? undefined : titleId}>
-            <div className="cd-editor-slot" onPointerEnter={wantCompiler} onFocus={wantCompiler}>
+            <div className="cd-editor-slot" onPointerEnter={reachForRun} onFocus={reachForRun}>
               {!puzzleMode && !pendingOnDesktop && editorBar}
               {/* In the frame (1024px and up) the editor fills the pane above
                   the action bar and scrolls inside; stacked, it
