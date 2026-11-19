@@ -331,10 +331,30 @@ test('Docker keeps the coding worker policy as vercel.json sets it when CSP_CONN
 // Retiring an asset must also block an old copied file before filesystem/fallback.
 test('the retired public triage URL is never served from a copied asset', async (t) => {
   const origin = await startAdapter(t, { files: { 'triage-verdicts.json': '{"verdicts":{"private":"reviewer-note-canary"}}' } });
-  for (const method of ['GET', 'HEAD']) {
-    const response = await fetch(`${origin}/triage-verdicts.json?old=1`, { method });
-    assert.equal(response.status, 404);
-    assert.equal(response.headers.get('cache-control'), 'no-store');
-    assert.equal(await response.text(), '');
+  const filename = 'triage-verdicts.json';
+  const encoded = [...filename].map(char => `%${char.charCodeAt(0).toString(16)}`).join('');
+  const aliases = ['/triage-verdicts.json', '/%74riage-verdicts.json', '/triage-verdicts%2ejson', '/triage-verdicts%2Ejson', `/${encoded}`, `/${encoded.toUpperCase()}`];
+  for (const method of ['GET', 'HEAD']) for (const alias of aliases) for (const query of ['', '?old=1']) {
+    await t.test(`${method} ${alias}${query}`, async () => {
+      const response = await fetch(`${origin}${alias}${query}`, { method });
+      assert.equal(response.status, 404);
+      assert.equal(response.headers.get('cache-control'), 'no-store');
+      assert.equal(await response.text(), '');
+    });
+  }
+});
+
+test('retiring triage preserves other encoded files and ordinary missing-path behavior', async (t) => {
+  const files = { ...SITE, 'café.json': 'public unicode filename', 'triage%2dverdicts.json': 'public literal percent filename', 'triage-verdicts.json.backup': 'public distinct filename' };
+  const origin = await startAdapter(t, { files });
+  for (const [pathname, body] of [
+    ['/caf%C3%A9.json', files['café.json']],
+    ['/triage%252dverdicts.json', files['triage%2dverdicts.json']],
+    ['/triage-verdicts.json.backup', files['triage-verdicts.json.backup']],
+    ['/ordinary-missing-page', APP_DOCUMENT],
+  ]) {
+    const response = await fetch(origin + pathname);
+    assert.equal(response.status, 200, pathname);
+    assert.equal(await response.text(), body, pathname);
   }
 });
