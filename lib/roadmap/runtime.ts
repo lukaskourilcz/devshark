@@ -5,6 +5,7 @@ import { createLogger, createServiceClient, jsonError, tryAuthOnce } from '../ht
 
 export const logEvent = createLogger('quiz/roadmap');
 export const supabase = createServiceClient();
+export const PROGRESS_TABLE = 'roadmap_progress';
 
 export async function optionalAuthSub(req: VercelRequest, res: VercelResponse): Promise<string | null | undefined> {
   try {

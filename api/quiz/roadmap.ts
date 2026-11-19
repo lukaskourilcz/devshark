@@ -1,12 +1,14 @@
 import type { VercelRequest, VercelResponse } from '../../lib/vercel-types.js';
 import { sendPublicJson } from '../../lib/public-json';
 import { buildQuestions } from '../../lib/roadmap/payload';
-import { logEvent, supabase, optionalAuthSub } from '../../lib/roadmap/runtime';
+import { logEvent, supabase, optionalAuthSub, PROGRESS_TABLE } from '../../lib/roadmap/runtime';
+import { roadmapSession, ensureAttempt, attemptMatches, refuseLocked, refuseLockedSession, refuseForeignSession } from '../../lib/roadmap/session';
+import type { ProgressBlob } from '../../lib/roadmap/progress-state';
+export { sanitize } from '../../lib/roadmap/progress-state';
 import { randomBytes } from 'node:crypto';
 import { secureShuffle, type Question } from '../../lib/quiz-runtime';
 import {
   decodeQuizResultReceipt,
-  decodeSessionEnvelope,
   encodeSession,
 } from '../../lib/quiz-tokens';
 import {
@@ -52,11 +54,10 @@ import { deploymentSubjectIds, isDeploymentTopic } from '../../lib/product-scope
 import { isLearnCodingTopic, type CodingTask } from '../../shared/coding-catalog';
 import type { RoadmapTopicStructure } from '../../lib/roadmap';
 import { SUBJECT_SCOPE_CATALOG } from '../../shared/subject-catalog';
-import { subjectForCategory, subjectForTopic, isScopeSubject } from '../../shared/subject-catalog';
+import { subjectForCategory, subjectForTopic } from '../../shared/subject-catalog';
 import {
   assessmentUnlocks,
   ASSESSMENT_QUESTION_COUNT,
-  roadmapEndedOnHearts,
 } from '../../shared/assessment';
 import {
   buildLiveTopic,
@@ -65,8 +66,6 @@ import {
   unavailablePartsOf,
   isRoadmapTopic,
   ROADMAP_TOPICS,
-  ROADMAP_LEVELS,
-  CHECKPOINT_COUNT,
   LEVELS_PER_CHECKPOINT,
   LEVEL_PASS,
   partRanges,
@@ -75,13 +74,7 @@ import {
   PART_TEST_SIZE,
   type RoadmapTopic,
 } from '../../lib/roadmap';
-import { contentVersion } from '../../lib/curation';
-import { loadReviewStates, recordConceptReviews } from '../../lib/concept-review';
-import { conceptOf } from '../../shared/concepts';
-import { creditLearnPass, settleMilestonesAfterPass } from '../../lib/rewards/coins';
-import { creditReferral } from '../../lib/rewards/referral';
 import { isBigOIntroduction, type GatedContent } from '../../shared/tiers';
-import { learnRepeatXpOf, type LearnRepeatXp } from '../../shared/repeat-xp';
 
 // Modules only some resources need load on their first use, not with this
 // function (#587, server item 4). Statically imported, every new instance
@@ -90,6 +83,7 @@ import { learnRepeatXpOf, type LearnRepeatXp } from '../../shared/repeat-xp';
 // or a Learn answer: about 350 ms of import. The names and the dispatch lines
 // are the same as with static imports.
 // The map needs lesson IDs, but only a lesson read needs the full text.
+const handleComplete = lazyExport(() => import('../../lib/roadmap/completion'), 'handleComplete');
 const handleLessonRead = lazyExport(() => import('../../lib/learn-lessons/serve'), 'handleLessonRead');
 const codingHandlers = () => import('../../lib/coding/handlers');
 const handleCodingApproaches = lazyExport(codingHandlers, 'handleCodingApproaches');
@@ -107,9 +101,7 @@ const placementHandlers = () => import('../../lib/roadmap/placement');
 const handlePlacementStart = lazyExport(placementHandlers, 'handlePlacementStart');
 const handlePlacementRound = lazyExport(placementHandlers, 'handlePlacementRound');
 // The tier check reads an index over the coding catalogue (lib/access.ts).
-const refuseLocked = lazyExport(() => import('../../lib/access'), 'refuseLocked');
 const prefetchTier = lazyExport(() => import('../../lib/access'), 'prefetchTier');
-const resolveTier = lazyExport(() => import('../../lib/access'), 'resolveTier');
 /** What a code level seals: its coding tasks, their playable projection and
  * one coding session each. Loaded with the level map or the first code level. */
 const learnCoding = async () => {
@@ -175,7 +167,6 @@ function withCodingCounts(
     }),
   };
 }
-const PROGRESS_TABLE = 'roadmap_progress';
 
 async function playableResponse(input: {
   kind: 'level' | 'checkpoint';
@@ -249,19 +240,6 @@ async function playableResponse(input: {
 
 /* ──── per-user progress (GET ?resource=progress) ───────────────────────── */
 
-interface Entry {
-  passed: boolean;
-  bestPct: number;
-  // Spaced mastery (migration 024), written by the completion routine on
-  // levels only. Optional: older rows and part tests have none.
-  passDays?: string[];
-  mastered?: boolean;
-  masteredAt?: string;
-  lastPassDay?: string;
-}
-type TopicProgress = { levels: Record<string, Entry>; checkpoints: Record<string, Entry> };
-type ProgressBlob = Record<string, TopicProgress>;
-
 // Skill-check unlocks are server-authoritative. Legacy wallet/inventory fields
 // remain readable so existing accounts do not break; nothing the browser sends
 // writes balances, inventory or learning unlocks.
@@ -286,27 +264,6 @@ const MAX_SUBJECT_KEYS = 16;
 const isSafeId = (v: unknown): v is string =>
   typeof v === 'string' && v.length > 0 && v.length <= MAX_STR_LEN && /^[a-z0-9_-]+$/i.test(v);
 const isSubjectKey = (v: string): boolean => /^[a-z][a-z0-9-]{0,31}$/.test(v);
-
-const isDayKey = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
-/** The completion routine keeps at most twelve distinct passing days. */
-const MAX_PASS_DAYS = 12;
-
-/** A level entry's spaced-mastery fields, validated. The client reads them for
- * the map's mastered/due states and Today's review list, so a response that
- * carries progress must keep them exactly as the GET does. */
-function masteryFields(e: Record<string, unknown>): Pick<Entry, 'passDays' | 'mastered' | 'masteredAt' | 'lastPassDay'> {
-  return {
-    ...(Array.isArray(e.passDays) ? { passDays: e.passDays.filter(isDayKey).slice(0, MAX_PASS_DAYS) } : {}),
-    ...(typeof e.mastered === 'boolean' ? { mastered: e.mastered } : {}),
-    ...(isDayKey(e.masteredAt) ? { masteredAt: e.masteredAt } : {}),
-    ...(isDayKey(e.lastPassDay) ? { lastPassDay: e.lastPassDay } : {}),
-  };
-}
-
-const clampPct = (n: unknown): number => {
-  const v = typeof n === 'number' && Number.isFinite(n) ? Math.round(n) : 0;
-  return v < 0 ? 0 : v > 100 ? 100 : v;
-};
 
 const clampBalance = (n: unknown): number => {
   const bal = typeof n === 'number' && Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
@@ -383,47 +340,6 @@ export function sanitizeExtra(input: unknown): ExtraBlob {
     out.inventories = inventories;
   }
 
-  return out;
-}
-
-// Rebuild a clean blob from untrusted input: only known topics, valid level /
-// checkpoint numbers, and bounded values are kept. This bounds the stored size
-// and shape regardless of what the client sends. Exported for tests.
-export function sanitize(input: unknown): ProgressBlob {
-  const out: ProgressBlob = {};
-  if (!input || typeof input !== 'object') return out;
-  const root = input as Record<string, unknown>;
-
-  for (const topic of ROADMAP_TOPICS) {
-    const t = root[topic];
-    if (!t || typeof t !== 'object') continue;
-    const levelsIn = (t as Record<string, unknown>).levels;
-    const checkpointsIn = (t as Record<string, unknown>).checkpoints;
-    const levels: Record<string, Entry> = {};
-    const checkpoints: Record<string, Entry> = {};
-
-    if (levelsIn && typeof levelsIn === 'object') {
-      for (const [k, v] of Object.entries(levelsIn as Record<string, unknown>)) {
-        const n = parseInt(k, 10);
-        if (!Number.isInteger(n) || n < 1 || n > ROADMAP_LEVELS) continue;
-        if (!v || typeof v !== 'object') continue;
-        const e = v as Record<string, unknown>;
-        levels[String(n)] = { passed: e.passed === true, bestPct: clampPct(e.bestPct), ...masteryFields(e) };
-      }
-    }
-    if (checkpointsIn && typeof checkpointsIn === 'object') {
-      for (const [k, v] of Object.entries(checkpointsIn as Record<string, unknown>)) {
-        const n = parseInt(k, 10);
-        if (!Number.isInteger(n) || n < 1 || n > CHECKPOINT_COUNT) continue;
-        if (!v || typeof v !== 'object') continue;
-        const e = v as Record<string, unknown>;
-        checkpoints[String(n)] = { passed: e.passed === true, bestPct: clampPct(e.bestPct) };
-      }
-    }
-    if (Object.keys(levels).length > 0 || Object.keys(checkpoints).length > 0) {
-      out[topic] = { levels, checkpoints };
-    }
-  }
   return out;
 }
 
@@ -666,146 +582,6 @@ function requiredRange(availability: StepAvailability, from: number, to: number)
   return hasGap ? { requiredLevelStart: last, requiredLevelEnd: last } : { requiredLevelStart: from, requiredLevelEnd: to };
 }
 
-function roadmapSession(raw: unknown) {
-  if (typeof raw !== 'string' || raw.length === 0 || raw.length > 16_384) return null;
-  const session = decodeSessionEnvelope(raw);
-  if (
-    !session || session.scope !== 'roadmap' || !session.subject || !session.topic ||
-    !session.roadmapKind || !session.ref || !session.attemptId ||
-    !isRoadmapTopic(session.topic) || !isDeploymentTopic(session.topic) ||
-    subjectForTopic(session.topic) !== session.subject
-  ) return null;
-  return session;
-}
-
-/** The attempt row of a session, inserted when no answer opened it yet.
- * `refused`, when given, is a tier gate that runs at the same time: the read
- * goes ahead, but nothing is inserted until the gate let the session through,
- * and nothing at all when it refused it. `minted` says the attempt id was
- * generated for this request, so there is no row to read before the insert. */
-async function ensureAttempt(
-  session: NonNullable<ReturnType<typeof roadmapSession>>,
-  userId: string | null,
-  refused?: Promise<boolean>,
-  { minted = false }: { minted?: boolean } = {},
-) {
-  const existing = minted
-    ? { data: null, error: null }
-    : await withTimeout(
-      supabase!
-        .from('roadmap_attempts')
-        .select('attempt_id,user_id,subject,topic,kind,ref,total_questions,pass_pct,required_level_start,required_level_end,completed_at')
-        .eq('attempt_id', session.attemptId!)
-        .maybeSingle(),
-    );
-  if (existing.error) return { error: existing.error, data: null };
-  if (!existing.data && refused && (await refused)) return existing;
-  if (!existing.data) {
-    const passPct = session.roadmapKind === 'level' ? LEVEL_PASS : PART_TEST_PASS;
-    const inserted = await withTimeout(
-      supabase!
-        .from('roadmap_attempts')
-        .insert({
-          attempt_id: session.attemptId,
-          user_id: userId,
-          subject: session.subject,
-          topic: session.topic,
-          kind: session.roadmapKind,
-          ref: session.ref,
-          total_questions: session.questions.length,
-          pass_pct: passPct,
-          required_level_start: session.requiredLevelStart ?? null,
-          required_level_end: session.requiredLevelEnd ?? null,
-          coding_task_ids: session.codingTaskIds ?? null,
-          expires_at: new Date(Date.now() + 2 * 60 * 60_000).toISOString(),
-        })
-        .select('attempt_id,user_id,subject,topic,kind,ref,total_questions,pass_pct,required_level_start,required_level_end,completed_at')
-        .single(),
-    );
-    if (!inserted.error) return inserted;
-    // A simultaneous first answer can win the insert. Re-read the row and
-    // verify it below instead of turning a harmless race into a failed lesson.
-    const raced = await withTimeout(
-      supabase!
-        .from('roadmap_attempts')
-        .select('attempt_id,user_id,subject,topic,kind,ref,total_questions,pass_pct,required_level_start,required_level_end,completed_at')
-        .eq('attempt_id', session.attemptId!)
-        .maybeSingle(),
-    );
-    return raced;
-  }
-  return existing;
-}
-
-function attemptMatches(
-  attempt: Record<string, unknown>,
-  session: NonNullable<ReturnType<typeof roadmapSession>>,
-  userId: string | null,
-): boolean {
-  return (
-    (attempt.user_id ?? null) === userId &&
-    attempt.subject === session.subject &&
-    attempt.topic === session.topic &&
-    attempt.kind === session.roadmapKind &&
-    Number(attempt.ref) === session.ref &&
-    Number(attempt.total_questions) === session.questions.length
-    && (attempt.required_level_start == null ? undefined : Number(attempt.required_level_start)) === session.requiredLevelStart
-    && (attempt.required_level_end == null ? undefined : Number(attempt.required_level_end)) === session.requiredLevelEnd
-  );
-}
-
-/** What a sealed Learn session starts, for the tier gate: a level, or the
- * part test a checkpoint session stands for. */
-function sessionContent(session: NonNullable<ReturnType<typeof roadmapSession>>): { content: GatedContent; step: ProgressStep } {
-  return session.roadmapKind === 'level'
-    ? { content: { kind: 'learn-level', topic: session.topic!, level: session.ref! }, step: { kind: 'level', level: session.ref! } }
-    : { content: { kind: 'learn-part-test', topic: session.topic!, part: session.ref! }, step: { kind: 'checkpoint', checkpoint: session.ref! } };
-}
-
-/** The tier gate for answering and completing a Learn session. The seal
- * already refused locked content when the session was issued; this catches a
- * session issued while the account was Premium and used after it lapsed. A
- * step the learner already passed stays open for review. */
-async function refuseLockedSession(
-  res: VercelResponse,
-  userId: string | null,
-  session: NonNullable<ReturnType<typeof roadmapSession>>,
-  /** For an answer: a Premium tier this instance read in the last minute
-   * stands (lib/access.ts, #587 server item 6). A completion asks again. */
-  recentPremium = false,
-): Promise<boolean> {
-  const { content, step } = sessionContent(session);
-  return refuseLocked(res, userId, content, {
-    recentPremium,
-    cleared: async () => {
-      if (!userId || !supabase) return false;
-      const row = await withTimeout(supabase.from(PROGRESS_TABLE).select('data').eq('user_id', userId).maybeSingle());
-      // A failed read is not "never passed": refuseLocked answers it with 503
-      // entitlement_unavailable, not the upgrade sheet for a passed level.
-      if (row.error) throw new Error(`progress_unavailable: ${row.error.message}`);
-      return stepAlreadyPassed((row.data?.data as VerifiedProgress) ?? {}, session.topic!, step);
-    },
-  });
-}
-
-/** A Learn session answers only to the account it was issued to. The
- * progression guard runs when a step is issued, and only for a signed-in
- * request, so a session fetched without a token (or under another account)
- * must not be answered or completed with one: that would record a level the
- * guard never checked. Signing in or out mid-level lands here too; the client
- * restarts the step under the current sign-in. A session sealed before the
- * owner was recorded reads as a guest's. */
-function refuseForeignSession(
-  res: VercelResponse,
-  session: NonNullable<ReturnType<typeof roadmapSession>>,
-  userId: string | null,
-): boolean {
-  if ((session.userId ?? null) === userId) return false;
-  logEvent({ status: 409, kind: 'session_owner_mismatch', topic: session.topic, hasUser: Boolean(userId) });
-  jsonError(res, 409, 'session_owner_mismatch', 'This lesson was opened under a different sign-in. Start it again.');
-  return true;
-}
-
 async function handleAnswer(req: VercelRequest, res: VercelResponse) {
   if (!(await enforceClassRateLimit(req, res, RATE_LIMITS.roadmapAnswerAddress, RATE_LIMITS.roadmapAnswer))) return;
   if (!supabase) return jsonError(res, 503, 'not_configured', 'Learning progress is not configured');
@@ -898,384 +674,6 @@ async function handleAnswer(req: VercelRequest, res: VercelResponse) {
     correctAnswer: Number(stored.correctAnswer),
     isCorrect: stored.isCorrect === true,
     explanation,
-  });
-}
-
-/** Whether a verified progress blob records this session's level or part test
- * as passed. */
-function progressStepPassed(data: unknown, session: NonNullable<ReturnType<typeof roadmapSession>>): boolean {
-  const topic = (data as Record<string, { levels?: Record<string, { passed?: unknown }>; checkpoints?: Record<string, { passed?: unknown }> }> | null)?.[session.topic ?? ''];
-  const steps = session.roadmapKind === 'level' ? topic?.levels : topic?.checkpoints;
-  return steps?.[String(session.ref)]?.passed === true;
-}
-
-/** The account's verified progress row. */
-function stepRow(userId: string) {
-  return withTimeout(supabase!.from(PROGRESS_TABLE).select('data').eq('user_id', userId).maybeSingle());
-}
-
-/** The same question asked of the stored progress, or null when it cannot be
- * read (then nothing is credited: a missed credit beats paying twice for a
- * level passed before coins existed). */
-async function stepPassed(userId: string, session: NonNullable<ReturnType<typeof roadmapSession>>): Promise<boolean | null> {
-  if (!supabase) return null;
-  const row = await stepRow(userId).catch(() => null);
-  if (!row || row.error) return null;
-  return progressStepPassed(row.data?.data, session);
-}
-
-async function handleComplete(req: VercelRequest, res: VercelResponse) {
-  if (!(await enforceClassRateLimit(req, res, RATE_LIMITS.roadmapCompleteAddress, RATE_LIMITS.roadmapComplete))) return;
-  if (!supabase) return jsonError(res, 503, 'not_configured', 'Learning progress is not configured');
-  const body = (req.body || {}) as { sessionId?: unknown };
-  const session = roadmapSession(body.sessionId);
-  if (!session) return jsonError(res, 400, 'invalid_session', 'Learning session expired or invalid');
-  const userId = await optionalAuthSub(req, res);
-  if (userId === undefined) return;
-  if (refuseForeignSession(res, session, userId)) return;
-  // The attempt row, the served question set, the graded answers and, on a
-  // code level, the coding rows are independent reads, so they run together
-  // once the session's owner is confirmed, and with the tier gate (#587,
-  // server item 5: the gate and the coding rows were two more waves). The
-  // gate still decides first: an attempt no answer opened is inserted only
-  // after it let the session through, and a refused session writes nothing.
-  // The answers are used only after the attempt is shown to be this
-  // session's, and only when none of its questions was retired.
-  const codingUnverified = !userId && (session.codingTaskIds?.length ?? 0) > 0;
-  const readsCoding = !codingUnverified && (session.codingTaskIds?.length ?? 0) > 0;
-  const locked = refuseLockedSession(res, userId, session);
-  // A completion that is recorded settles the milestones, whose every credit
-  // sits inside IF is_premium (migration 052): for a Premium account only
-  // (#587, server item 8). The plan is read with the first reads (remembered
-  // for the request, so a Premium step's gate reads the same answer), and a
-  // plan that cannot be read settles: the routine decides.
-  const premium = userId ? resolveTier(userId).then((tier) => tier === 'premium') : null;
-  premium?.catch(() => {});
-  const reads = Promise.all([
-    ensureAttempt(session, userId, locked),
-    getEffectiveQuestionsById(session.subject),
-    withTimeout(
-      supabase
-        .from('roadmap_attempt_answers')
-        .select('question_id,is_correct')
-        .eq('attempt_id', session.attemptId!),
-    ),
-    // Needed only when the questions passed. A failure is kept, and answered
-    // below only if they did, as when the rows were read after the grade.
-    readsCoding
-      ? withTimeout(
-        supabase.from('roadmap_attempt_coding').select('task_id,passed,verified,revealed').eq('attempt_id', session.attemptId!),
-      ).then((read) => ({ read }), (thrown: unknown) => ({ thrown }))
-      : null,
-  ]);
-  // Read below; a gate that refuses leaves it unread.
-  reads.catch(() => {});
-  if (await locked) return;
-  const [attemptResult, served, answers, codingRead] = await reads;
-  if (attemptResult.error || !attemptResult.data) {
-    if (isRpcMissing(attemptResult.error)) {
-      return jsonError(res, 503, 'migration_required', 'Verified learning migration is not installed');
-    }
-    return jsonError(res, 500, 'db_error', 'Could not load the learning attempt');
-  }
-  const attempt = attemptResult.data as Record<string, unknown>;
-  if (!attemptMatches(attempt, session, userId)) {
-    return jsonError(res, 409, 'attempt_conflict', 'This learning attempt belongs to another session');
-  }
-
-  // A question retired while this attempt was open. The verified completion
-  // routine grades every sealed question and cannot void one, so the attempt
-  // is closed without a verdict instead: nothing is written to the learner's
-  // progress, no pass is granted on a flawed item and no fail is recorded for
-  // one. The client offers the level again with its current questions.
-  const retired = session.questions.filter((q) => !served.has(q.questionId)).map((q) => q.questionId);
-  if (retired.length > 0) {
-    if (!attempt.completed_at) {
-      const closed = await withTimeout(
-        supabase
-          .from('roadmap_attempts')
-          .update({ completed_at: new Date().toISOString(), passed: false })
-          .eq('attempt_id', session.attemptId!)
-          .is('completed_at', null),
-      );
-      if (closed.error) return jsonError(res, 500, 'db_error', 'Could not close the learning attempt');
-    }
-    logEvent({ status: 200, kind: 'invalidated', topic: session.topic, retired: retired.length });
-    return res.json({
-      correctAnswers: 0,
-      totalQuestions: session.questions.length,
-      percentage: 0,
-      passed: false,
-      applied: false,
-      codingPending: [],
-      invalidated: { reason: 'content_retired', questionIds: retired },
-    });
-  }
-  if (answers.error) return jsonError(res, 500, 'db_error', 'Could not grade the learning attempt');
-  const graded = answers.data ?? [];
-  const correctAnswers = graded.filter((answer) => answer.is_correct === true).length;
-  const totalQuestions = session.questions.length;
-  const percentage = Math.round((correctAnswers / totalQuestions) * 100);
-  const passPct = Number(attempt.pass_pct);
-  let passed = percentage >= passPct;
-  // A level ends the moment the learner spends their last heart, which normally
-  // leaves the remaining questions unanswered. That lesson is over and failed:
-  // the verified RPC only completes a full answer set, so this attempt is closed
-  // here instead — otherwise the learner is stuck on an error they cannot clear.
-  // The unanswered questions still count against the percentage.
-  const endedOnHearts = roadmapEndedOnHearts(
-    session.roadmapKind,
-    graded.length,
-    graded.filter((answer) => answer.is_correct === false).length,
-    totalQuestions,
-  );
-  if (endedOnHearts) passed = false;
-  // A level with coding tasks passes only when every one of them passed in
-  // this attempt without its solution being revealed, the rule
-  // complete_verified_roadmap_attempt applies from migration 047: a reveal
-  // ends the attempt, and the task is passed again in a fresh one.
-  //
-  // A guest's coding passes are never stored, so for a guest that rule could
-  // only ever fail the level. A guest's level passes on its questions and the
-  // response says the coding was not verified; nothing is recorded for a
-  // guest here, and the browser keeps the pass locally until they sign in.
-  let codingPending: string[] = [];
-  if (passed && session.codingTaskIds && codingRead) {
-    if ('thrown' in codingRead) throw codingRead.thrown;
-    const codingRows = codingRead.read;
-    if (codingRows.error) return jsonError(res, 500, 'db_error', 'Could not grade the coding tasks');
-    const passedIds = new Set((codingRows.data ?? [])
-      .filter((row) => row.passed === true && row.verified === true && row.revealed !== true)
-      .map((row) => String(row.task_id)));
-    codingPending = session.codingTaskIds.filter((id) => !passedIds.has(id));
-    if (codingPending.length > 0) passed = false;
-    const revealed = (codingRows.data ?? []).some(row => session.codingTaskIds!.includes(String(row.task_id)) && row.revealed === true);
-    if (codingPending.length > 0 && !revealed && graded.length === totalQuestions && !attempt.completed_at) {
-      return res.json({ correctAnswers, totalQuestions, percentage, passed: false, applied: false, waiting: true, codingPending });
-    }
-  }
-
-  // The concept items this attempt graded, and the learner's review state
-  // for them. The state is read while the completion runs: the completion
-  // never writes it, and the review is recorded from it at the end.
-  const reviewSubject = userId && isScopeSubject(session.subject) ? session.subject : null;
-  const reviewItems = reviewSubject
-    ? graded.flatMap((answer) => {
-      const question = served.get(String(answer.question_id));
-      if (!question) return [];
-      return [{
-        itemId: question.id,
-        itemVersion: contentVersion(question),
-        category: question.category,
-        tags: question.tags,
-        correct: answer.is_correct === true,
-        kind: 'independent' as const,
-      }];
-    })
-    : [];
-  // Most items name no concept, and an attempt whose items name none has
-  // nothing to record, so its state is not read at all.
-  const reviewStates = userId && reviewSubject && reviewItems.some((item) => conceptOf(item) !== null)
-    ? loadReviewStates(supabase, userId, reviewSubject)
-    : null;
-  // Concept-level review state, from the answers the server itself graded.
-  //
-  // Levels are where a devShark learner spends most of their time, so leaving
-  // this out left spaced practice inert for them: nothing was ever due, and
-  // Review had nothing to offer. Recorded here rather than per answer because
-  // the interval belongs to the concept and a level asking `reduce` three times
-  // is one review of `reduce`, not three; the attempt id makes it idempotent,
-  // so a retried completion reports the stored state and changes nothing.
-  //
-  // Every answer counts as independent retrieval: a level has no hint
-  // affordance, so unlike a quiz there is nothing to downgrade. Questions left
-  // unanswered when the hearts ran out are simply absent from the graded rows
-  // and are not recorded as failures — they were not attempted.
-  //
-  // Started once the attempt is closed, beside what else follows the close
-  // (#587, server item 5), and awaited before the answer, since a function
-  // can be frozen the moment it responds.
-  let reviewsRecorded: Promise<void> | null = null;
-  const recordReviews = (): Promise<void> => {
-    reviewsRecorded ??= userId && reviewSubject && reviewStates
-      ? reviewStates.then((states) => recordConceptReviews(
-        supabase,
-        { userId, subject: reviewSubject, eventId: session.attemptId!, items: reviewItems },
-        states,
-      ))
-      : Promise.resolve();
-    // Awaited below; this keeps a failure of the request meanwhile from
-    // leaving it unhandled.
-    reviewsRecorded.catch(() => {});
-    return reviewsRecorded;
-  };
-
-  let progress: unknown;
-  let applied = false;
-  let repeatXp: LearnRepeatXp | null = null;
-  if (endedOnHearts) {
-    const close = userId && !attempt.completed_at
-      ? await withTimeout(supabase.rpc('complete_roadmap_attempt_on_hearts', {
-        p_user_id: userId,
-        p_attempt_id: session.attemptId,
-      }))
-      : null;
-    if (userId && close && close.error?.code !== 'PGRST202') {
-      if (/invalid_roadmap_attempt/i.test(close.error?.message ?? '')) {
-        return jsonError(res, 409, 'invalid_session', 'This learning attempt expired. Start the lesson again.');
-      }
-      if (/incomplete_roadmap_attempt/i.test(close.error?.message ?? '')) {
-        return jsonError(res, 409, 'incomplete_attempt', 'The learning attempt changed. Try completing it again.');
-      }
-      if (close.error) return jsonError(res, 503, 'progress_unavailable', 'Could not close the learning attempt. Try again.');
-      applied = close.data === true;
-      recordReviews();
-      if (applied) await settleMilestonesAfterPass(supabase, userId, session.subject!, () => premium!);
-    } else if (!attempt.completed_at) {
-      // Guests and deployments before migration 076 use the original close.
-      const closed = await withTimeout(
-        supabase
-          .from('roadmap_attempts')
-          .update({ completed_at: new Date().toISOString(), score_pct: percentage, passed: false })
-          .eq('attempt_id', session.attemptId!),
-      );
-      if (closed.error) return jsonError(res, 500, 'db_error', 'Could not close the learning attempt');
-      applied = true;
-      recordReviews();
-      // A Learn level counts for the streak whether it was passed, failed or
-      // lost on hearts. complete_verified_roadmap_attempt advances the streak
-      // for the other two; this attempt closes without it, so the day is
-      // counted here, once, by the request that closed it. Before migration
-      // 048 the routine does not exist and the level simply does not count.
-      if (userId) {
-        const streak = await withTimeout(supabase.rpc('advance_verified_streak', { p_user_id: userId })).catch(() => null);
-        if (!streak || streak.error) {
-          if (!isRpcMissing(streak?.error)) {
-            logEvent({ status: 500, kind: 'streak_failed', reason: streak?.error?.code ?? 'timeout' });
-          }
-        } else {
-          await settleMilestonesAfterPass(supabase, userId, session.subject!, () => premium!);
-        }
-      }
-    }
-  } else if (userId) {
-    // Only a first pass earns a step's learning XP, so only a first pass
-    // credits coins (#227). From migration 060 the completion says whether
-    // it was the step's first pass, read under the progress lock it holds
-    // while recording it; before 060 the record is read here, before the
-    // completion writes the pass.
-    const completion = {
-      p_user_id: userId,
-      p_attempt_id: session.attemptId,
-      p_coding_task_ids: session.codingTaskIds ?? null,
-    };
-    // From migration 060 the completion also pays a replayed step its XP
-    // again, an hour after the step last paid (owner decision of 9 Oct
-    // 2026), and says so. Before 060 the completion of 056 answers alone.
-    const { coins: coinSettings } = await getGameSettings();
-    let completed = await withTimeout(supabase.rpc('complete_verified_roadmap_attempt_v3', {
-      ...completion,
-      p_coin_rate: coinSettings.xpRate,
-      p_coin_multiplier: coinSettings.premiumMultiplier,
-      p_coin_daily_cap: coinSettings.dailyXpCap,
-    }));
-    // Only a missing entrypoint permits the non-atomic compatibility path.
-    const legacyCompletion = completed.error?.code === 'PGRST202';
-    let passedBefore: boolean | null = null;
-    if (legacyCompletion) {
-      completed = await withTimeout(supabase.rpc('complete_verified_roadmap_attempt_v2', completion));
-      if (completed.error?.code === 'PGRST202') {
-        if (passed) passedBefore = await stepPassed(userId, session);
-        completed = await withTimeout(supabase.rpc('complete_verified_roadmap_attempt', completion));
-      }
-    }
-    if (completed.error) {
-      if (completed.error.code === 'PGRST202') {
-        return jsonError(res, 503, 'migration_required', 'Verified learning migration is not installed');
-      }
-      if (/incomplete_roadmap_attempt/i.test(completed.error.message ?? '')) {
-        return jsonError(res, 409, 'incomplete_attempt', 'Answer every question before completing this lesson');
-      }
-      if (/roadmap_prerequisite_not_met/i.test(completed.error.message ?? '')) {
-        return jsonError(res, 409, 'prerequisite_not_met', 'Complete the preceding learning steps first');
-      }
-      // The routine refuses an attempt that ran past its two hours (the
-      // owner was checked above), which the learner fixes by starting the
-      // level again, as the attempt-status check tells them.
-      if (/invalid_roadmap_attempt/i.test(completed.error.message ?? '')) {
-        return jsonError(res, 409, 'invalid_session', 'This learning attempt expired. Start the lesson again.');
-      }
-      return jsonError(res, 503, 'progress_unavailable', 'Could not save learning progress. Try again.');
-    }
-    const outcome = completed.data as { applied?: unknown; repeatXp?: unknown; firstPass?: unknown } | boolean | null;
-    applied = typeof outcome === 'object' && outcome !== null ? outcome.applied === true : outcome === true;
-    // XP only: a repeat credits no coins and is no first pass.
-    repeatXp = typeof outcome === 'object' && outcome !== null ? learnRepeatXpOf(outcome.repeatXp) : null;
-    const firstPass = typeof outcome === 'object' && outcome !== null ? outcome.firstPass === true : passedBefore === false;
-    // What follows a recorded completion ran one call after another: the
-    // reload, the coin credit, the referral, the milestones and the concept
-    // reviews (#587, server item 5). Only the reload feeds the answer, and
-    // each routine is idempotent under its own event id, so they run as
-    // three branches at once: the reload, then the first pass's referral
-    // and, before 076, its coins. The milestone settlement and concept reviews
-    // run beside the reload. The settlement and the
-    // reviews read nothing the credits write that this answer reports.
-    //
-    // A completed level or part test is a streak day from migration 048, passed
-    // or not, and the last level of a topic is a Premium milestone.
-    const settled = applied ? settleMilestonesAfterPass(supabase, userId, session.subject!, () => premium!) : null;
-    settled?.catch(() => {});
-    recordReviews();
-    const followers = () => Promise.allSettled([settled, reviewsRecorded]);
-    let row: Awaited<ReturnType<typeof stepRow>>;
-    try {
-      row = await stepRow(userId);
-    } catch (error) {
-      await followers();
-      throw error;
-    }
-    if (row.error) {
-      await followers();
-      return jsonError(res, 500, 'db_error', 'Progress saved but could not be reloaded');
-    }
-    progress = sanitize(row.data?.data);
-    if (applied && firstPass && progressStepPassed(row.data?.data, session)) {
-      const coins = legacyCompletion ? creditLearnPass(supabase, {
-        userId,
-        subject: session.subject!,
-        topic: session.topic!,
-        kind: session.roadmapKind!,
-        ref: session.ref!,
-      }) : null;
-      coins?.catch(() => {});
-      try {
-        // A friend's first passed Learn level pays both sides of an invitation
-        // once; the routine reads the verified progress itself (#228). It
-        // runs while the coin credit does.
-        await creditReferral(supabase, userId, session.subject!);
-        await coins;
-      } catch (error) {
-        await followers();
-        throw error;
-      }
-    }
-    await settled;
-  } else if (!attempt.completed_at) {
-    const closed = await withTimeout(
-      supabase.from('roadmap_attempts').update({ completed_at: new Date().toISOString() }).eq('attempt_id', session.attemptId!),
-    );
-    if (closed.error) return jsonError(res, 503, 'progress_unavailable', 'Could not close the learning attempt. Try again.');
-    applied = true;
-  }
-
-  await recordReviews();
-
-  logEvent({ status: 200, kind: 'complete', topic: session.topic, passed, hasUser: !!userId, codingPending: codingPending.length, codingUnverified, outOfHearts: endedOnHearts, repeatXp: repeatXp?.xp ?? null });
-  return res.json({
-    correctAnswers, totalQuestions, percentage, passed, applied, codingPending,
-    ...(codingUnverified ? { codingUnverified: true } : {}),
-    ...(progress ? { progress } : {}),
-    ...(repeatXp ? { repeatXp } : {}),
   });
 }
 
