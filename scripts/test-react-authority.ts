@@ -93,6 +93,55 @@ for(const appSource of [
 
 console.log('PASS React authority: DOM, intrinsics, modules, elements, synchronous/async assertions, detached rejections and long error text');
 
+// F11-10: a disposal abort must not replace a real recursion verdict or poison
+// the cached wasm used by the next learner. These tests use the actual engine.
+{
+  const renders = `import React from 'react';import {render} from '@testing-library/react';import App from './App';
+test('renders the learner',()=>{render(<App/>);});
+test('later trusted case still reports',()=>{expect(2+2).toBe(4);});`;
+  const recurse = `function recurse(){return recurse()+1;}`;
+  const cleanRun = async (after: string) => {
+    const result = await runReactSuite({
+      appSource: 'export default function App(){return <p>ready after recursion</p>;}',
+      suite: `import React from 'react';import {render} from '@testing-library/react';import App from './App';test('new learner works',()=>{const view=render(<App/>);expect(view.container.textContent).toBe('ready after recursion');});`,
+    });
+    assert.equal(result.compileError, null, after);
+    assert.equal(result.failed, 0, JSON.stringify(result));
+    assert.equal(result.passed, 1, after);
+  };
+  for (const [name, appSource] of [
+    ['render recursion', `${recurse}export default function App(){recurse();return null;}`],
+    ['module recursion', `${recurse}recurse();export default function App(){return null;}`],
+  ]) {
+    const result = await runReactSuite({ appSource, suite: renders });
+    const text = JSON.stringify(result);
+    assert.doesNotMatch(text, /Aborted|gc_obj_list|Lifetime not alive/, `${name}: engine disposal internals do not replace the original failure`);
+    assert.equal(result.timedOut, false, `${name}: stack exhaustion is not an interrupt`);
+    if (name === 'render recursion') {
+      assert.equal(result.compileError, null);
+      assert.deepEqual(result.cases.map((one) => one.status), ['fail', 'pass'], text);
+      assert.match(result.cases[0].error ?? '', /stack overflow/i);
+    } else {
+      assert.match(result.compileError ?? '', /stack overflow/i);
+    }
+    await cleanRun(name);
+  }
+  // Ordinary learner text with engine-looking words is still ordinary text.
+  // This change must not add another message-based error classifier.
+  const forged = 'learner Aborted gc_obj_list stack overflow marker';
+  const top = await runReactSuite({ appSource: `throw new Error(${JSON.stringify(forged)});export default function App(){return null;}`, suite: renders });
+  assert.equal(top.compileError, `compiling App: ${forged}`);
+  assert.equal(top.timedOut, false);
+  const rendered = await runReactSuite({ appSource: `export default function App(){throw new Error(${JSON.stringify(forged)});}`, suite: renders });
+  assert.equal(rendered.compileError, null);
+  assert.deepEqual(rendered.cases.map((one) => one.status), ['fail', 'pass']);
+  assert.match(rendered.cases[0].error ?? '', /learner Aborted gc_obj_list stack overflow marker/);
+  assert.equal(rendered.timedOut, false);
+  await cleanRun('ordinary engine-looking error text');
+}
+console.log('PASS React authority: quiet disposal preserves recursion failures and the next learner grades');
+
+
 // What the learner's code throws reaches the verdict through the sandbox's
 // guarded dump (lib/coding/sandbox.ts): a thrown string reads as itself, not
 // as an empty "compiling App: " or "Learner engine failed"; a thrown promise
