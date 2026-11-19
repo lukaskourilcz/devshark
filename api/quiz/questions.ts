@@ -22,6 +22,7 @@ import { loadReviewStates, dueFor, practisedCounts } from '../../lib/concept-rev
 import { conceptOf, conceptById } from '../../shared/concepts';
 import { estimatedMinutes } from '../../shared/spaced-practice';
 import { arrangePractice } from '../../shared/interleave';
+import { sendPublicJson } from '../../lib/public-json';
 
 const ALL_CATEGORIES = Object.values(SUBJECT_SCOPE_CATALOG)
   .flatMap((subject) => [...subject.categories]) as CategoryType[];
@@ -62,7 +63,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     const coverage = await curationCoverage();
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
     logEvent({ status: 200, resource, claim: coverageClaim(coverage), latency_ms: Date.now() - started });
-    return res.json({ coverage, claim: coverageClaim(coverage) });
+    return sendPublicJson(req, res, { coverage, claim: coverageClaim(coverage) });
   }
 
   const settings = await getGameSettings();

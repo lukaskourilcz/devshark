@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '../../lib/vercel-types.js';
+import { sendPublicJson } from '../../lib/public-json';
 import { randomBytes } from 'node:crypto';
 import { secureShuffle, type Question } from '../../lib/quiz-runtime';
 import {
@@ -1601,10 +1602,25 @@ async function handleAttemptStatus(req: VercelRequest, res: VercelResponse) {
  * to five minutes later. Only the handler's public header is replaced; a
  * refusal keeps the private default of withRequestContext. */
 export const LEARNING_PATH_CATALOG_CACHE = 'public, max-age=60, s-maxage=300, stale-while-revalidate=600';
-function shareCatalogWithCdn(res: VercelResponse): VercelResponse {
+function shareCatalogWithCdn(req: VercelRequest, res: VercelResponse): VercelResponse {
   const setHeader = res.setHeader.bind(res);
-  res.setHeader = ((name: string, value: number | string | readonly string[]) =>
-    setHeader(name, name.toLowerCase() === 'cache-control' && /^public\b/.test(String(value)) ? LEARNING_PATH_CATALOG_CACHE : value)) as typeof res.setHeader;
+  let publicCatalog = false;
+  res.setHeader = (name, value) => {
+    if (name.toLowerCase() === 'cache-control') {
+      publicCatalog = /^public\b/.test(String(value));
+      return setHeader(name, publicCatalog ? LEARNING_PATH_CATALOG_CACHE : value);
+    }
+    return setHeader(name, value);
+  };
+  const json = res.json;
+  res.json = (body) => {
+    res.json = json;
+    // Refusals retain the original writer and private policy. The shared
+    // sender sees only the catalogue's completed public success projection.
+    return publicCatalog && (res.statusCode ?? 200) === 200
+      ? sendPublicJson(req, res, body) ?? res
+      : json.call(res, body);
+  };
   return res;
 }
 
@@ -1645,7 +1661,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   //   POST ?resource=learning-path-submit  → server grading and the recorded evidence
   if (resource.startsWith('learning-path-')) {
     try {
-      if (resource === 'learning-path-catalog') return await handleLearningPathCatalog(req, shareCatalogWithCdn(res));
+      if (resource === 'learning-path-catalog') return await handleLearningPathCatalog(req, shareCatalogWithCdn(req, res));
       if (resource === 'learning-path-start') return await handleActivityStart(req, res, supabase);
       if (resource === 'learning-path-submit') return await handleActivitySubmit(req, res, supabase);
       return jsonError(res, 404, 'not_found', 'Unknown learning-path resource');
@@ -1799,7 +1815,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     // function run per minute per region instead of one per Learn visit.
     res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=300');
     logEvent({ status: 200, kind: 'structure', latency_ms: Date.now() - started });
-    return res.json({ topics, structure });
+    return sendPublicJson(req, res, { topics, structure });
   }
 
   if (!isRoadmapTopic(topicRaw) || !isDeploymentTopic(topicRaw)) {

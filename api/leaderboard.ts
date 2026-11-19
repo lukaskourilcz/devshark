@@ -16,6 +16,7 @@ import {
 } from '../lib/product-scope';
 import { AuthError, tryAuth } from '../lib/auth';
 import { enforceRateLimit, RATE_LIMITS } from '../lib/rate-limit';
+import { sendPublicJson } from '../lib/public-json';
 
 // Public responses are served by this scoped API, but leaderboard RPCs are
 // service-only so callers cannot bypass deployment/category validation through
@@ -108,7 +109,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
         return jsonError(res, 500, 'db_error', 'Could not load leaderboard');
       }
       res.setHeader('Cache-Control', 'public, s-maxage=60');
-      return res.json({ period: 'global', categories: cats, entries: data });
+      return sendPublicJson(req, res, { period: 'global', categories: cats, entries: data });
     }
 
     if (period === 'category') {
@@ -135,7 +136,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
         return jsonError(res, 500, 'db_error', 'Could not load category leaderboard');
       }
       res.setHeader('Cache-Control', 'public, s-maxage=60');
-      return res.json({ period: 'category', category, min_attempts: minAttempts, entries: data });
+      return sendPublicJson(req, res, { period: 'category', category, min_attempts: minAttempts, entries: data });
     }
 
     if (period === 'daily') {
@@ -165,7 +166,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
         return jsonError(res, 500, 'db_error', 'Could not load daily leaderboard');
       }
       res.setHeader('Cache-Control', 'public, s-maxage=60');
-      return res.json({ period: 'daily', date: dateParam, subject: scope.subject, entries: data });
+      return sendPublicJson(req, res, { period: 'daily', date: dateParam, subject: scope.subject, entries: data });
     }
 
     return jsonError(res, 400, 'bad_request', 'period must be "30d", "7d", "month", "global", "daily", or "category"');
@@ -265,7 +266,7 @@ async function windowBoard(req: VercelRequest, res: VercelResponse, period: stri
     // about a minute (049).
     res.setHeader('Cache-Control', 'public, s-maxage=60');
   }
-  return res.json(body);
+  return personal ? res.json(body) : sendPublicJson(req, res, body);
 }
 
 /**
@@ -325,7 +326,7 @@ async function monthBoard(req: VercelRequest, res: VercelResponse, limit: number
   } else {
     res.setHeader('Cache-Control', 'public, s-maxage=60');
   }
-  return res.json(body);
+  return personal ? res.json(body) : sendPublicJson(req, res, body);
 }
 
 /** The account a Bearer token verifies, or null: a public read is no place to
