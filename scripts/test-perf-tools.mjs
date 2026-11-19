@@ -11,6 +11,7 @@ import { existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, rmSync, sym
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
+import { chromium } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
 import * as lighthouse from './audit-performance.mjs';
 import * as bundle from './check-bundle.mjs';
@@ -100,6 +101,79 @@ test('perf:measure presses a button the app renders at each profile width', () =
   assert.deepEqual(lab.INTERACTION_CONTROLS.mobile, [label('nav.menu')]);
   assert.deepEqual(lab.INTERACTION_CONTROLS.desktop, [label('footer.darkMode'), label('footer.lightMode')]);
   assert.deepEqual(Object.keys(lab.INTERACTION_CONTROLS), lab.PROFILES);
+});
+
+// Exercise the real collector orchestration with a closed fake browser. The
+// existing owned-local Daily DOM diagnosis checks actual role/visibility.
+async function interactionLab(t, { path = '/daily', option = true, registered = true, zero = false } = {}) {
+  const scratch = mkdtempSync(join(tmpdir(), 'devshark-interaction-contract-'));
+  t.after(() => rmSync(scratch, { recursive: true, force: true }));
+  const clicks = [], roleQueries = [], messages = [];
+  const target = (kind, present) => ({ first() { return this; }, async count() { return present ? 1 : 0; }, async click() { clicks.push(kind); } });
+  const radio = target('daily-radio', option);
+  const button = (name) => target(name, path === '/' && name === label('footer.darkMode'));
+  const page = {
+    async addInitScript() {}, async goto() {}, async waitForTimeout() {}, keyboard: { async press() {} },
+    locator(scope) {
+      assert.equal(scope, '.ss-daily .ss-answer-list', 'only Daily answer options are eligible');
+      return { getByRole(role) { roleQueries.push(role); assert.equal(role, 'radio'); return radio; } };
+    },
+    getByRole(role, { name }) { roleQueries.push(role); assert.equal(role, 'button'); return button(name); },
+    async evaluate(_fn, arg) {
+      if (arg !== undefined) return;
+      if (this.flush) {
+        this.flush = false;
+        return { events: zero ? [{ name: 'click', interactionId: 1, startTime: 0, processingStart: 0, processingEnd: 0, duration: 0 }] : [], firstInput: registered ? { name: 'pointerdown', duration: 0 } : null };
+      }
+      this.flush = true;
+      return { navigation: { responseStart: 1, requestStart: 0, redirectStart: 0, redirectEnd: 0, domainLookupStart: 0, domainLookupEnd: 0, connectStart: 0, connectEnd: 0, secureConnectionStart: 0, responseEnd: 2, domContentLoadedEventEnd: 3, loadEventEnd: 4 }, fcp: 10, lcp: 20, lcpElement: { tag: 'h1', classes: [], size: 1 }, shifts: [], longTasks: [], measuredAt: 30, consentBanner: true, resources: [], heading: 'Invented local page', buttons: [] };
+    },
+  };
+  const cdp = { async send() {}, on() {}, off() {} };
+  const context = { async newPage() { return page; }, async newCDPSession() { return cdp; }, async close() {} };
+  const browser = { version() { return 'closed-fixture'; }, async newContext() { return context; }, async close() {} };
+  t.mock.method(chromium, 'launch', async () => browser);
+  for (const method of ['log', 'warn', 'error', 'table']) t.mock.method(console, method, (...args) => messages.push(args));
+  const previous = process.exitCode;
+  process.exitCode = undefined;
+  try {
+    const output = join(scratch, 'lab.json');
+    const rows = await lab.main({ origin: closedOrigin, routes: [path], samples: 1, profiles: ['desktop'], output });
+    return { rows, report: JSON.parse(readFileSync(output, 'utf8')), exitCode: process.exitCode ?? 0, clicks, roleQueries, messages };
+  } finally { process.exitCode = previous; }
+}
+
+test('perf:measure selects a Daily radio without checking or submitting the answer', async (t) => {
+  const run = await interactionLab(t);
+  assert.deepEqual(run.clicks, ['daily-radio', 'daily-radio'], 'one local selection per cold/repeat row');
+  assert.deepEqual(run.roleQueries, ['radio', 'radio'], 'Daily never searches for Check answer or hidden shell buttons');
+  assert.ok(run.rows.every(row => row.interaction.matched && row.interaction.registered && row.inpMs === '<16'));
+  assert.equal(run.exitCode, 0);
+});
+
+test('perf:measure fails a missing interaction while retaining valid paint rows', async (t) => {
+  const run = await interactionLab(t, { option: false });
+  assert.equal(run.exitCode, 1, 'missing controls make the final run incomplete');
+  assert.equal(run.report.results.length, 2);
+  assert.ok(run.report.results.every(row => !row.error && row.lcp === 20 && row.fcp === 10 && row.inpMs === null));
+  assert.equal(run.report.interactionFailures.length, 2);
+  assert.ok(run.report.interactionFailures.every(row => row.reason === 'control_missing'));
+});
+
+test('perf:measure fails an unregistered press while retaining its paint metrics', async (t) => {
+  const run = await interactionLab(t, { registered: false });
+  assert.equal(run.exitCode, 1, 'a click without FirstInput is not a measured fast interaction');
+  assert.deepEqual(run.clicks, ['daily-radio', 'daily-radio']);
+  assert.ok(run.rows.every(row => !row.error && row.lcp === 20 && row.inpMs === null));
+  assert.ok(run.report.interactionFailures.every(row => row.reason === 'input_unregistered'));
+});
+
+test('perf:measure accepts a registered zero-duration input on its unchanged desktop control', async (t) => {
+  const run = await interactionLab(t, { path: '/', zero: true });
+  assert.deepEqual(run.clicks, [label('footer.darkMode'), label('footer.darkMode')]);
+  assert.ok(run.rows.every(row => row.interaction.registered && row.inpMs === 0));
+  assert.equal(run.exitCode, 0, 'zero is a measured value, not missing input');
+  assert.deepEqual(run.report.interactionFailures ?? [], []);
 });
 
 test('perf:measure loads pages without reduced motion unless --reduced-motion asks for it', () => {
