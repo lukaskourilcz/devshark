@@ -52,7 +52,7 @@ interface Loaded {
  * file named in `markers` records itself in `globalThis.__evaluated` when it
  * evaluates, so a probe can tell whether a module of our own (which has no
  * package to look for) ran. */
-export async function loadFresh(entry: string, probe = 'null', extraEnv: Record<string, string> = {}, markers: string[] = []): Promise<Loaded> {
+export async function loadFresh(entry: string, probe = 'null', extraEnv: Record<string, string> = {}, markers: string[] = [], beforeImport = ''): Promise<Loaded> {
   mkdirSync(out, { recursive: true });
   const outfile = join(out, `${entry.replace(/[/[\]]/g, '_').replace(/\.ts$/, '')}${markers.length ? '-marked' : ''}.cjs`);
   const { readFile } = await import('node:fs/promises');
@@ -78,6 +78,7 @@ export async function loadFresh(entry: string, probe = 'null', extraEnv: Record<
     }] : [],
   });
   const code = [
+    beforeImport,
     `const mod = require(${JSON.stringify(outfile)});`,
     'const packages = [...new Set(Object.keys(require.cache)',
     '  .map((path) => (path.match(/node_modules\\/((?:@[^/]+\\/)?[^/]+)/) || [])[1])',
