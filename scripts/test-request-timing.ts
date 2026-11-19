@@ -33,6 +33,8 @@ try {
  console.log('PASS timing: overlapping request isolation, concurrent spans, response-before-send, no query/payload identifiers, method restoration');
 }finally{globalThis.fetch=fetch;}
 await (await import('./test-request-timing-instance')).timingInstanceContracts();
+await (await import('./test-cold-start-probes')).coldProbeSafetyContracts();
+execFileSync(process.execPath, ['--test', 'scripts/test-perf-cold-start.mjs'], { stdio: 'inherit' });
 // What a fresh instance evaluates before it answers (#587): heavy modules
 // load behind dynamic import() in the ops that need them.
 await (await import('./cold-start-contracts')).coldStartContracts();
