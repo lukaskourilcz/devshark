@@ -56,7 +56,7 @@ The `sql` job runs separately: `npm run test:sql` on `supabase/postgres:17.6.1.1
 
 ```sh
 npm run ci:parity -- --list               # the plan, nothing runs
-npm run ci:parity -- --fast               # steps 1-29 and 50-51
+npm run ci:parity -- --fast               # steps 1-29 and 50-53
 npm run ci:parity                         # the whole verify job
 npm run ci:parity -- --only test:launch,build --log-dir artifacts/ci-parity-only
 npm run ci:parity -- --fast --bail        # stop at the first failure, as CI does
@@ -141,6 +141,6 @@ An entry for local, unmerged evidence (as "15 October — local structuredClone 
 
 `npm run ci:parity -- --list` exits 0 only while the plan matches `quality.yml`. `npm run ci:parity -- --fast` on a clean checkout installs, runs and reports each step.
 
-The `webkit` project also covers `first-load`, `navigation`, `coding-workbench` and `mobile-safari` at the configured iPhone profile. Run it with `npx playwright test --project=webkit tests/browser/first-load.spec.ts tests/browser/navigation.spec.ts tests/browser/coding-workbench.spec.ts tests/browser/mobile-safari.spec.ts` after installing WebKit. The Chromium CI commands select their project explicitly so a local WebKit project does not change CI engine coverage. Record the measured WebKit time and physical-device limits in release acceptance.
+The `webkit` project also covers `first-load`, `navigation`, `coding-workbench`, `mobile-safari` and `consent-reflow` at the configured iPhone profile. Run it with `npx playwright test --project=webkit tests/browser/first-load.spec.ts tests/browser/navigation.spec.ts tests/browser/coding-workbench.spec.ts tests/browser/mobile-safari.spec.ts tests/browser/consent-reflow.spec.ts` after installing WebKit. The Chromium CI commands select their project explicitly so a local WebKit project does not change CI engine coverage. Record the measured WebKit time and physical-device limits in release acceptance.
 
 The responsive command first runs its matrix, account-fixture and effective target contracts, then its existing browser cleanup tests. The light sweep measures 20 routes at nine widths; the dark sweep measures the same routes at 390, 820 and 1280. Account pages use invented local session/data fixtures. Two zoom sweeps verify reflow geometry, including 320 CSS pixels at 400 percent.
