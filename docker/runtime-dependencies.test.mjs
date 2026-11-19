@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
+import { createServer } from 'node:http';
+import { once } from 'node:events';
 import { createRequire } from 'node:module';
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -32,7 +34,7 @@ function depsCommands() {
   return commands.join('\n');
 }
 
-function fixture(t, { transitive = false, corruptIntegrity = false } = {}) {
+async function fixture(t, { transitive = false, corruptIntegrity = false } = {}) {
   const scratch = mkdtempSync(join(tmpdir(), 'devshark-runtime-deps-'));
   t.after(() => rmSync(scratch, { recursive: true, force: true }));
   const app = join(scratch, 'app');
@@ -41,6 +43,8 @@ function fixture(t, { transitive = false, corruptIntegrity = false } = {}) {
   for (const dir of [app, cache, temporary]) mkdirSync(dir, { recursive: true });
   const env = { ...process.env, npm_config_offline: 'true', npm_config_cache: cache, TMPDIR: temporary };
   for (const name of ['NODE_ENV', 'npm_config_omit', 'NPM_CONFIG_OMIT', 'npm_config_production', 'NPM_CONFIG_PRODUCTION']) delete env[name];
+  const tarballs = new Map();
+  const packages = new Map();
 
   const pack = (name, version, files, dependencies = undefined) => {
     const source = join(scratch, 'sources', name);
@@ -53,7 +57,10 @@ function fixture(t, { transitive = false, corruptIntegrity = false } = {}) {
     const packed = spawnSync('npm', ['pack', source, '--pack-destination', scratch, '--json', '--ignore-scripts', '--offline'], { cwd: scratch, env, encoding: 'utf8' });
     assert.equal(packed.status, 0, packed.stderr);
     const path = join(scratch, JSON.parse(packed.stdout)[0].filename);
-    return { version, resolved: `file:${path}`, integrity: `sha512-${createHash('sha512').update(readFileSync(path)).digest('base64')}`, ...(dependencies ? { dependencies } : {}) };
+    tarballs.set(name, path);
+    const entry = { version, integrity: `sha512-${createHash('sha512').update(readFileSync(path)).digest('base64')}`, ...(dependencies ? { dependencies } : {}) };
+    packages.set(name, entry);
+    return entry;
   };
   const prod = pack('fixture-prod', '1.0.0', { 'index.js': 'module.exports = "production";\n' });
   const extra = pack('fixture-extra-dev', '1.0.0', { 'index.js': 'module.exports = "unrelated development tool";\n' });
@@ -62,6 +69,36 @@ function fixture(t, { transitive = false, corruptIntegrity = false } = {}) {
     'lib/lib.fixture.d.ts': 'declare const preservedCompilerLibrary: unique symbol;\n',
     'LICENSE.txt': 'fixture license\n',
   }, transitive ? { 'fixture-extra-dev': '1.0.0' } : undefined);
+  const registry = createServer((req, res) => {
+    const name = req.url.split('/')[1];
+    const entry = packages.get(name);
+    if (!entry) { res.writeHead(404).end(); return; }
+    if (req.url.includes('/-/')) { res.end(readFileSync(tarballs.get(name))); return; }
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ name, 'dist-tags': { latest: entry.version }, versions: { [entry.version]: { name, version: entry.version, ...(entry.dependencies ? { dependencies: entry.dependencies } : {}), dist: { tarball: entry.resolved, integrity: entry.integrity } } } }));
+  });
+  registry.listen(0, '127.0.0.1');
+  await once(registry, 'listening');
+  const registryUrl = `http://127.0.0.1:${registry.address().port}`;
+  env.npm_config_registry = registryUrl;
+  for (const [name, entry] of packages) entry.resolved = `${registryUrl}/${name}/-/${name}-${entry.version}.tgz`;
+  const run = (command, args, options = {}) => new Promise((resolveRun, reject) => {
+    const child = spawn(command, args, { cwd: app, env, ...options });
+    let stdout = ''; let stderr = '';
+    child.stdout.on('data', data => { stdout += data; });
+    child.stderr.on('data', data => { stderr += data; });
+    const timeout = setTimeout(() => { child.kill(); reject(new Error('offline npm fixture timed out')); }, 30_000);
+    child.once('error', error => { clearTimeout(timeout); reject(error); });
+    child.once('close', status => { clearTimeout(timeout); resolveRun({ status, stdout, stderr }); });
+  });
+  // Warm npm's own metadata/content cache from the loopback-only registry,
+  // then close it. The actual Docker RUN commands have no network service.
+  try {
+    for (const [name, entry] of packages) {
+      const cached = await run('npm', ['cache', 'add', `${name}@${entry.version}`, '--ignore-scripts'], { env: { ...env, npm_config_offline: 'false' } });
+      assert.equal(cached.status, 0, cached.stderr);
+    }
+  } finally { await new Promise(resolveClose => registry.close(resolveClose)); }
   if (corruptIntegrity) compiler.integrity = `sha512-${Buffer.alloc(64).toString('base64')}`;
   const pkg = { name: 'runtime-contract-fixture', version: '1.0.0', private: true, dependencies: { 'fixture-prod': '1.0.0' }, devDependencies: { typescript: compilerVersion, 'fixture-extra-dev': '1.0.0' } };
   const lock = { name: pkg.name, version: pkg.version, lockfileVersion: 3, requires: true, packages: { '': pkg, 'node_modules/fixture-prod': prod, 'node_modules/typescript': { ...compiler, dev: true }, 'node_modules/fixture-extra-dev': { ...extra, dev: true } } };
@@ -73,12 +110,12 @@ function fixture(t, { transitive = false, corruptIntegrity = false } = {}) {
     mkdirSync(join(app, 'docker'), { recursive: true });
     copyFileSync(helper, join(app, 'docker/install-runtime-typescript.mjs'));
   }
-  const result = spawnSync('sh', ['-eu', '-c', depsCommands()], { cwd: app, env, encoding: 'utf8', timeout: 30_000 });
+  const result = await run('sh', ['-eu', '-c', depsCommands()]);
   return { app, temporary, before, result, output: result.stdout + result.stderr };
 }
 
-test('runtime installs the locked compiler and its libraries without unrelated devDependencies', (t) => {
-  const { app, temporary, before, result, output } = fixture(t);
+test('runtime installs the locked compiler and its libraries without unrelated devDependencies', async (t) => {
+  const { app, temporary, before, result, output } = await fixture(t);
   assert.equal(result.status, 0, output);
   const require = createRequire(join(app, 'package.json'));
   assert.equal(require('fixture-prod'), 'production');
@@ -90,16 +127,16 @@ test('runtime installs the locked compiler and its libraries without unrelated d
   assert.deepEqual(readdirSync(temporary), [], 'the installer cleans only its owned temporary prefix');
 });
 
-test('a future compiler dependency requires an explicit locked-closure design', (t) => {
-  const { app, before, result, output } = fixture(t, { transitive: true });
+test('a future compiler dependency requires an explicit locked-closure design', async (t) => {
+  const { app, before, result, output } = await fixture(t, { transitive: true });
   assert.notEqual(result.status, 0, 'unreviewed runtime dependencies must not be silently omitted or installed');
   assert.match(output, /TypeScript.*dependenc/i);
   assert.equal(existsSync(join(app, 'node_modules/typescript')), false);
   assert.equal(digest(readFileSync(join(app, 'package-lock.json'))), before);
 });
 
-test('compiler tarball integrity is enforced and a failed install leaves no copied compiler', (t) => {
-  const { app, temporary, before, result, output } = fixture(t, { corruptIntegrity: true });
+test('compiler tarball integrity is enforced and a failed install leaves no copied compiler', async (t) => {
+  const { app, temporary, before, result, output } = await fixture(t, { corruptIntegrity: true });
   assert.notEqual(result.status, 0);
   assert.match(output, /EINTEGRITY/);
   assert.equal(existsSync(join(app, 'node_modules/typescript')), false);
