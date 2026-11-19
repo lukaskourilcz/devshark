@@ -158,8 +158,8 @@ it.each([
   [true, false],
 ])('keeps the topic card fins still under reduced motion (%s)', (reduce, swims) => {
   server.use(settingsHandler, freeEntitlementHandler);
-  const original = window.matchMedia.bind(window);
-  const preference = vi.spyOn(window, 'matchMedia').mockImplementation((query) => ({ ...original(query), matches: query === '(prefers-reduced-motion: reduce)' && reduce }));
+  const template = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const preference = vi.spyOn(window, 'matchMedia').mockImplementation((query) => ({ ...template, media: query, matches: query === '(prefers-reduced-motion: reduce)' && reduce }));
   try {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
     render(<QueryClientProvider client={client}><MemoryRouter><LanguageProvider><Home /></LanguageProvider></MemoryRouter></QueryClientProvider>);
@@ -179,7 +179,7 @@ it.each([
 
 it('stops an already hovered topic card when reduced motion changes', () => {
   server.use(settingsHandler, freeEntitlementHandler);
-  const original = window.matchMedia.bind(window);
+  const template = window.matchMedia('(prefers-reduced-motion: reduce)');
   const media = Object.assign(new EventTarget(), {
     matches: false,
     media: '(prefers-reduced-motion: reduce)',
@@ -187,7 +187,7 @@ it('stops an already hovered topic card when reduced motion changes', () => {
     addListener(listener: EventListener) { this.addEventListener('change', listener); },
     removeListener(listener: EventListener) { this.removeEventListener('change', listener); },
   });
-  const preference = vi.spyOn(window, 'matchMedia').mockImplementation((query) => query === media.media ? media as unknown as MediaQueryList : original(query));
+  const preference = vi.spyOn(window, 'matchMedia').mockImplementation((query) => query === media.media ? media as unknown as MediaQueryList : { ...template, media: query });
   try {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
     render(<QueryClientProvider client={client}><MemoryRouter><LanguageProvider><Home /></LanguageProvider></MemoryRouter></QueryClientProvider>);

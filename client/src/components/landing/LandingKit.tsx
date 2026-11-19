@@ -9,7 +9,7 @@ import { forwardRef, useEffect, useRef, useState, type ComponentPropsWithoutRef,
 import { generateFinHover, finHoverStyle, type FinHoverAnimation } from '../../lib/finHover';
 import { useWaveVariant } from '../../lib/waveBank';
 import { useT } from '../../i18n/LanguageContext';
-import { useReducedMotion } from '../../lib/motion';
+import { useMediaQuery } from '../../lib/useMediaQuery';
 import { TrophyIcon } from '../ui/icons';
 
 // The fin glyph path, base at y=18 in a 24-unit box (see DESIGN_RULES §1).
@@ -89,7 +89,7 @@ export function FadeFinCta({
   label: string; primary?: boolean; onClick: () => void; finLeft: string; finSize: number; accent: string; disabled?: boolean; ariaLabel?: string;
 }) {
   const [hover, setHover] = useState(false);
-  const reduce = useReducedMotion();
+  const reduce = useMediaQuery('(prefers-reduced-motion: reduce)');
   return (
     <button
       type="button" className="ss-fin-button" onClick={onClick} disabled={disabled} aria-label={ariaLabel}
