@@ -15,7 +15,7 @@ import { jsonKind } from '../shared/coding-failure';
 import { buildSandboxWorker } from './build-sandbox-worker.mjs';
 import { runSandboxWatchdogControls } from './sandbox-watchdog-controls';
 import {
-  runInSandbox, sandboxPool, sandboxThreads, type SandboxInput,
+  runInSandbox, runChecks, sandboxPool, sandboxThreads, type SandboxInput,
   SANDBOX_DEADLINE_MS, SANDBOX_IDLE_THREADS, SANDBOX_MAX_THREADS, SANDBOX_MAX_TICKS, SANDBOX_MAX_WAITING,
   SANDBOX_MEMORY_BYTES, SANDBOX_SLOT_WAIT_MS, SANDBOX_STACK_BYTES, SANDBOX_WORKER_GRACE_MS,
 } from '../lib/coding/sandbox';
@@ -297,6 +297,98 @@ await limitCase('a return value wider than 10,000 entries', {
   assert.deepEqual(run.results[1], { pass: false, actual: null, error: 'Result size limit exceeded' }, 'an array of 10,001 fails that call');
   assert.deepEqual(run.results[2], { pass: false, actual: null, error: 'Result size limit exceeded' }, 'so does an object with 10,001 keys');
 }, 'kept');
+
+// F11-16: an output budget fails the individual call, including the JSON
+// packet/escaping overhead. Other calls and their full-value grades survive.
+const OUTPUT_SIZE_ERROR = 'Result size limit exceeded';
+const assertSmallSides = (run: EvaluateResult, length: number) => {
+  assert.equal(run.codeError, null, 'the run still loads and reports');
+  assert.equal(run.timedOut, false, 'output size is not a timeout');
+  assert.equal(run.results.length, length, 'every authored call still reports');
+  assert.deepEqual(run.results[0], { pass: true, actual: '1', error: null });
+  assert.deepEqual(run.results[length - 1], { pass: true, actual: '2', error: null });
+};
+for (const [name, expression] of [
+  ['huge string', '"x".repeat(2000000)'],
+  ['escaped string', 'String.fromCharCode(0).repeat(160000)'],
+  ['escaped key', '({[String.fromCharCode(0).repeat(160000)]:1})'],
+  ['lone surrogate', 'String.fromCharCode(0xd800).repeat(160000)'],
+  ['numeric packet arrays', 'Array.from({length:3},()=>Array.from({length:10000},()=>1.2345678901234567e308))'],
+] as const) {
+  await limitCase(`F11-16 ${name} fails only that call`, {
+    code: `const huge=()=>(${expression});`, calls: ['1', 'huge()', '2'], expectations: [1, null, 2],
+  }, (run) => {
+    assertSmallSides(run, 3);
+    assert.deepEqual(run.results[1], { pass: false, actual: null, error: OUTPUT_SIZE_ERROR });
+  }, 'kept');
+}
+await limitCase('F11-16 a huge thrown message is cut before the packet', {
+  code: 'String.prototype.slice=()=>"poisoned";const fail=()=>{throw new Error("e".repeat(2000000));};', calls: ['1', 'fail()', '2'], expectations: [1, null, 2],
+}, (run) => {
+  assertSmallSides(run, 3);
+  assert.deepEqual(run.results[1], { pass: false, actual: null, error: 'e'.repeat(MAX_LOG_LINE_CHARS) + LOG_LINE_CUT });
+}, 'kept');
+await limitCase('F11-16 a cut thrown message keeps the surrogate boundary', {
+  code: `const fail=()=>{throw new Error('x'.repeat(${MAX_LOG_LINE_CHARS - 1})+String.fromCodePoint(0x1f988)+'tail'.repeat(100000));};`, calls: ['1', 'fail()', '2'], expectations: [1, null, 2],
+}, (run) => {
+  assertSmallSides(run, 3);
+  assert.deepEqual(run.results[1], { pass: false, actual: null, error: 'x'.repeat(MAX_LOG_LINE_CHARS - 1) + LOG_LINE_CUT });
+}, 'kept');
+// UTF16, not UTF8: this value is over a million UTF8 bytes but under the
+// encoded-character budget. Compare the complete value before display cuts.
+const unicodeValue = String.fromCodePoint(0x1f988).repeat(350000);
+await limitCase('F11-16 valid surrogate pairs count as two UTF16 units', {
+  code: 'JSON.stringify=()=>"poisoned";String.prototype.charCodeAt=()=>0;const value=()=>String.fromCodePoint(0x1f988).repeat(350000);', calls: ['1', 'value()', '2'], expectations: [1, unicodeValue, 2],
+}, (run) => {
+  assertSmallSides(run, 3);assert.equal(run.results[1]?.pass, true);assert.equal(run.results[1]?.error, null);
+}, 'kept');
+for(const [name,expression,expected] of [
+  ['escaped value','String.fromCharCode(0).repeat(100000)',String.fromCharCode(0).repeat(100000)],
+  ['lone surrogate','String.fromCharCode(0xd800).repeat(100000)',String.fromCharCode(0xd800).repeat(100000)],
+  ['escaped key','({[String.fromCharCode(0).repeat(100000)]:1})',{[String.fromCharCode(0).repeat(100000)]:1}],
+] as const) {
+  await limitCase(`F11-16 a fitting ${name} keeps its full grade`, {
+    code:`const value=()=>(${expression});`,calls:['1','value()','2'],expectations:[1,expected,2],
+  },(run)=>{assertSmallSides(run,3);assert.equal(run.results[1]?.pass,true);},'kept');
+}
+const weirdKey = String.fromCharCode(0, 8, 9, 10, 11, 12, 13, 34, 92, 0xd800);
+const mixed = [undefined, -0, NaN, Infinity, -Infinity, true, false, null, String.fromCodePoint(0x1f988), String.fromCharCode(0xd800), String.fromCharCode(0xdc00)];
+await limitCase('F11-16 escaped keys and mixed packet types retain full grading', {
+  code: 'const value=()=>Object.fromEntries([[String.fromCharCode(0,8,9,10,11,12,13,34,92,0xd800),[undefined,-0,NaN,Infinity,-Infinity,true,false,null,String.fromCodePoint(0x1f988),String.fromCharCode(0xd800),String.fromCharCode(0xdc00)]]]);',
+  calls: ['1', 'value()', '2'], expectations: [1, { [weirdKey]: mixed }, 2],
+}, (run) => { assertSmallSides(run, 3);assert.equal(run.results[1]?.pass, true); }, 'kept');
+// One large successful value, 48 cut/escaped errors and two light calls:
+// value-only accounting would still let the error packets cross the backstop.
+// Both competitors settle after the same async turn; plain synchronous
+// throws would otherwise be caught before an earlier value's await resumes.
+for(const largeFirst of [true, false]) {
+  const errors = Array.from({length:48},()=> 'fail()');
+  const middle = largeFirst ? ['large()', ...errors] : [...errors, 'large()'];
+  const largeIndex = largeFirst ? 1 : 49;
+  const expected = largeFirst ? [1, 'a'.repeat(850000), ...errors.map(()=>null), 2] : [1, ...errors.map(()=>null), 'a'.repeat(850000), 2];
+  await limitCase(`F11-16 cumulative errors and value, large ${largeFirst ? 'first' : 'last'}`, {
+    code: 'const large=async()=>{await 0;return "a".repeat(850000);};const fail=async()=>{await 0;throw new Error(String.fromCharCode(0).repeat(50000));};',
+    calls: ['1', ...middle, '2'], expectations: expected,
+  }, (run) => {
+    assertSmallSides(run, 51);
+    assert.equal(run.results[largeIndex].pass, largeFirst, 'earlier committed output is retained');
+    if(!largeFirst) assert.equal(run.results[largeIndex].error, OUTPUT_SIZE_ERROR);
+    const throwResults=run.results.filter((_,index)=>index>0 && index<50 && index!==largeIndex);
+    assert.ok(throwResults.every(one=>one.pass===false && one.actual===null));
+    const cut=String.fromCharCode(0).repeat(MAX_LOG_LINE_CHARS)+LOG_LINE_CUT;
+    assert.ok(throwResults.every(one=>one.error===cut || one.error===OUTPUT_SIZE_ERROR));
+    assert.ok(throwResults.some(one=>one.error===cut), 'cut learner errors remain when their complete packets fit');
+    if(largeFirst) assert.ok(throwResults.some(one=>one.error===OUTPUT_SIZE_ERROR), 'later escaped errors use reserved size stubs');
+  }, 'kept');
+}
+for(const reverse of [false,true]) {
+  const a='a'.repeat(550000),b='b'.repeat(550000);
+  const run=await runChecks({code:'const value=ch=>ch.repeat(550000);',visible:[{call:'1',expected:1}],hidden:[{call:'value("a")',expected:a},{call:'value("b")',expected:b},{call:'2',expected:2}],shuffle:order=>reverse ? order.reverse() : order});
+  assert.equal(run.visible.results[0]?.pass,true);assert.equal(run.hidden?.codeError,null);
+  assert.deepEqual(run.hidden?.results.map(one=>one.pass),reverse ? [false,true,true] : [true,false,true], 'hidden results restore authored indices after cumulative settlement accounting');
+  assert.deepEqual(run.hidden?.logs,[]);
+}
+console.log('PASS sandbox output budget: cumulative hidden order restores authored indices');
 
 // ── concurrency: four threads, the rest wait for one ────────────────────
 // Six busy-waits at once. Four run, two wait for a thread and run after the
