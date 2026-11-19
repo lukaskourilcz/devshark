@@ -64,6 +64,11 @@ export function ToastMotion({ open, kind, onExited, style, children }: {
       return;
     }
     if (!present) return;
+    if (reduce) {
+      setPresent(false);
+      latest.current.onExited?.();
+      return;
+    }
     const element = card.current;
     const stop = element && animation && animateSafely(() => animation!.exit(element, kind, latest.current.reduce), element);
     // Keep the original exit gap even if loading or animation fails.
@@ -75,7 +80,7 @@ export function ToastMotion({ open, kind, onExited, style, children }: {
       window.clearTimeout(timer);
       stop?.();
     };
-  }, [open, present, kind]);
+  }, [open, present, kind, reduce]);
 
   if (!open && !present) return null;
   return <div ref={card} style={style}>{kind === 'xp' ? <div ref={pop}>{children}</div> : children}</div>;
