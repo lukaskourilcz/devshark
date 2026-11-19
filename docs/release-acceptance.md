@@ -8729,3 +8729,59 @@ original separate directories. No further diagnostic repetition occurred.
 This checkpoint does not establish full Coding/umbrella/parity, browser,
 provider/VM, CI, Preview or merge acceptance. F11-16 is not applied, and #640
 stays open until the remaining implementation and checked integration finish.
+
+## F11-16 encoded outcome budget — 19 November 2026, local checkpoint
+
+Refs #640 and #646. The surviving audit was posted before edits
+(comment 7019605220). Measurement zero remains the independent pre-fix artifact
+committed earlier: 586 eligible non-React tasks, 1,702 positive variants and
+3,404 visible/hidden runs, maximum raw UTF16/UTF8 20,455, maximum 51 calls/run.
+The canonical AI decision applies 900,000 UTF16 units, with 879,545 units of
+measured headroom; it is recorded in NEEDED.md with its rollback.
+
+Test commit `42bf1059` precedes fix `df784dd4`. The exact new-block real-worker
+reproduction failed because a two-million-character value returned the global
+invalid-result error and lost the surrounding calls. The fix reserves exact
+fallback-error slots and outer JSON framing, counts escaped values/keys/tags
+and errors, charges partial values locally, and commits only fitting complete
+packets. Failed partial encoding cannot consume another call's fallback room.
+Per-call thrown text is sliced to 2,001 units inside the VM before the existing
+host display cut. The VM output getter checks before host copying; the existing
+1M host backstop, depth 40, 10,000 entries, all deadlines/pool limits, server
+comparison and F11-17 presentation cut remain intact. This does not claim that
+every top-level thrown VM handle is bounded before its separate dump path.
+
+| Actual Node 24.22.3 check | Result |
+| --- | --- |
+| Test-only exact F11-16 block | RED, 0.349 s, global invalid-result refusal instead of surviving small calls |
+| Same block with the reviewed fix before committing it | PASS, 15 new groups plus the existing constants control, 4.964 s; includes 51-call accumulation and hidden order |
+| Actual-worker low-budget / transfer controls at clean df784dd4 | PASS, 0.592 s; normal packet 383 units, mutated 200-budget packet 90 with only the large call refused; guarded forced output copies null, disabled getter exposes 1,000,001 units and is rejected |
+| Full post-fix positive cohort under process-group supervisor | PASS, 82.510 s; 1,702 variants / 3,404 runs, all raw UTF16/UTF8/call/identity rows equal the original measurement |
+| Complete `npm run test:sandbox-limits` after the product change | PASS, 47 printed groups, 44.867 s; includes strict parent positive/marker-proven negative, all old resource/display controls and six runs sharing at most four live threads |
+| API / script types at clean df784dd4 | PASS, 7.282 s / 9.785 s |
+
+The full reference comparison preserves the exact cohort/exclusions, all
+135 normalized input identities with only the reviewed source/template deltas,
+compiler/library identities, raw maxima 20,455 and maximum 51 calls. Three
+rows' display-JSON lengths change under F11-17; raw packets and grades do not.
+Enabled tagged-packet, disabled-observer and six rejecting metadata comparison
+mutations pass; the display-only positive mutation is accepted. All three
+reference children emitted zero stderr; outer supervision is accepted and the
+owned process group is gone. Normal cleanup removed temporary bundles. Source,
+engine payload and external artifacts remained unchanged during the run.
+
+Only after the actual fix commit was clean did the external freeze replace its
+future-head placeholder with the exact tested head. The original measurement,
+its tool and its mandatory measurement-before-red-before-fix ordering were
+preserved. Repeated focused/full output groups overlap and are not added as
+unique coverage. No test was retried to obtain green and no cap was relaxed.
+
+Raw commands, red/green derivation hashes and logs remain under
+`/tmp/devshark-epic-f-handoff/f11-16-execution-68ed3727/`; the complete metric-only
+reference/provenance reports are in
+`/tmp/devshark-epic-f-handoff/f11-16-postfix-measured-df784dd4-20261119/` with its
+sibling supervision receipt. No raw learner values/calls/expectations are saved.
+This reference cohort is not all 814 Coding tasks, React suites, browser realms
+or every hidden permutation. Full grading umbrella/Coding/parity, provider/VM,
+exact-head CI/Preview/merge and remaining F11 findings are still required; #640
+and its completion boxes remain open pending checked integration.
