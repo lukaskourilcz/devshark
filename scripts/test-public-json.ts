@@ -59,6 +59,10 @@ globalThis.fetch = async (input, init) => {
       id: 'invented-score', name: `Fixture shark ${boardRevision}`, score: 7,
       created_at: '2026-11-19T00:00:00Z', selected_topics: ['html'], all_topics: false,
     }]);
+    if (rpc === 'subject_leaderboard') return Response.json([{
+      display_name: `Fixture shark ${boardRevision}`, picture: null,
+      total_correct: 8, total_questions: 10, accuracy_pct: 80,
+    }]);
     return Response.json([{
       user_id: '11111111-1111-4111-8111-111111111111',
       name: `Fixture shark ${boardRevision}`, rank: 1, correct: 8, answered: 10,

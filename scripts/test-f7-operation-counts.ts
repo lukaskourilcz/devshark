@@ -68,7 +68,7 @@ const beforeImport = String.raw`
       if (single) { status = 406; result = { code: 'PGRST116', message: 'No fixture row' }; }
     } else if (url.origin === 'https://operation-counts-supabase.test' && request.method === 'POST' && url.pathname === '/rest/v1/rpc/subject_leaderboard') {
       kind = 'rest'; label = 'rpc:subject_leaderboard';
-      result = [{ user_id: '11111111-1111-4111-8111-111111111111', name: 'Fixture shark', rank: 1, correct: 8, answered: 10, accuracy_pct: 80, xp: 100, photo_url: null }];
+      result = [{ display_name: 'Fixture shark', picture: null, total_correct: 8, total_questions: 10, accuracy_pct: 80 }];
     } else if (url.origin === 'https://operation-counts-supabase.test' && request.method === 'POST' && url.pathname === '/rest/v1/rpc/record_roadmap_answer_v2') {
       kind = 'rest'; label = 'rpc:record_roadmap_answer_v2';
       const args = await request.json();
