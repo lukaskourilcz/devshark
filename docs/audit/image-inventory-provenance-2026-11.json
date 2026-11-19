@@ -1,0 +1,50 @@
+{
+  "schema": "devshark-image-inventory-measurement-v1",
+  "startedAt": "2026-11-19T16:57:48.928145+00:00",
+  "finishedAt": "2026-11-19T16:58:03.064169+00:00",
+  "head": "d09ec769fe9d48c9ffe8fdec983e1463a0cb3ecc",
+  "command": "node scripts/audit-image-inventory.mjs --output=docs/audit/image-inventory-2026-11.json --dist-dir=client/dist",
+  "runs": [
+    {
+      "run": 1,
+      "exitCode": 0,
+      "stdout": "Image inventory: 11 source files; 269577 bytes. 0 metadata error(s). No reachability/rendered-size claim.\n",
+      "stderr": ""
+    },
+    {
+      "run": 2,
+      "exitCode": 0,
+      "stdout": "Image inventory: 11 source files; 269577 bytes. 0 metadata error(s). No reachability/rendered-size claim.\n",
+      "stderr": ""
+    }
+  ],
+  "identicalBytes": true,
+  "sha256": "8cfd19ee2d099182f103791e1b50fc62a3a17d8cdae1c18e01f7eaa3318165bc",
+  "reportBytes": 721270,
+  "independentRegularFileCount": 11,
+  "independentRegularFilePathsSha256": "dabd2228a830187b039c906e9a9732f690322e6fd573ecf6a5563fd144197fd0",
+  "buildExecution": {
+    "command": "npm run build",
+    "startedAt": "2026-11-19T16:56:42.422137+00:00",
+    "finishedAt": "2026-11-19T16:57:11.571820+00:00",
+    "exitCode": 0,
+    "head": "d09ec769fe9d48c9ffe8fdec983e1463a0cb3ecc",
+    "buildEnvironmentSource": "docs/quality/bundle-budget.json measuredBuild.env",
+    "ci": true,
+    "node": "v24.22.3",
+    "untrackedDocsNotRuntimeInputs": [
+      "docs/audit/repository-weight-2026-11.json",
+      "docs/audit/f1-bundle-2026-11.json"
+    ]
+  },
+  "builtInventory": {
+    "files": 2259,
+    "canonicalRowsSha256": "d2ae015ede0a5b4a601f8d3706db51bf56e131afdcf917c1d9c04e5df3f57e7e"
+  },
+  "limits": [
+    "Frozen-source filesystem measurement; lexical references are not served reachability or deletion authority.",
+    "Rendered sizes remain unknown; source-line hints are not browser geometry.",
+    "Explicit dist was freshly built with all measuredBuild public placeholders; built image package attribution remains unknown.",
+    "The first output was excluded from the second reference scan by the tool."
+  ]
+}

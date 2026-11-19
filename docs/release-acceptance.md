@@ -8009,3 +8009,46 @@ compiler/editor chunks do not count as initial requests. Treemap module sizes
 do not sum to whole-file gzip. This run measures no production HTTP transfer;
 F1-23 and production browser calibration F1-45 remain unmeasured. The original
 pre-fix timing and 4,314-byte historical growth are not reconstructed here.
+
+
+## Epic F1 remaining baseline: deterministic asset inventory (19 November 2026)
+
+Issue #630, F1-21/30. Two actual inventory executions at settled tool head
+`d09ec769` produce byte-identical JSON (SHA256
+`8cfd19ee2d099182f103791e1b50fc62a3a17d8cdae1c18e01f7eaa3318165bc`).
+The dated inventory and provenance are in `docs/audit/image-inventory-2026-11.json`
+and `docs/audit/image-inventory-provenance-2026-11.json`. An independent
+non-symlink regular-file walk matches all eleven source paths exactly.
+
+| Scope | Actual result |
+| --- | --- |
+| All source files | 11 files, 269,577 bytes |
+| Source PNG | 5 files, 249,274 bytes |
+| Source SVG | 4 files, 10,106 bytes |
+| Source ICO / text | 1 / 1 files, 1,271 / 8,926 bytes |
+| No code-literal-reference candidates | 1 file, 8,926 bytes; not an unused-file finding |
+| Source og-image.png | 243605 bytes; intrinsic metadata retained in JSON |
+| Built images, separate scope | 907 files, 14,602,295 bytes |
+| Generated built og/** | 895 PNG files, 14,328,014 bytes |
+| Invalid strict metadata | 0 source, 0 built |
+
+A fresh `CI=true npm run build` at the same head passed from 16:56:42 to
+16:57:11 UTC with every measuredBuild public placeholder, including telemetry
+keys. Explicit `--dist-dir=client/dist` supplies the separate built scope;
+provenance records the complete 2,259-file build-inventory digest. No package
+attribution is inferred from emitted filenames.
+
+The eight new feature tests first failed because the helper/generator were
+absent. After extraction, all 45 new inventory plus unchanged F4 cases pass.
+AST comparison finds 19 unchanged original function bodies, including all
+eleven moved helpers; the image wrapper alone delegates the same dispatch.
+The first proof attempt used the wrong expected wrapper name and stopped
+before writing evidence; inspection and corrected comparison are recorded.
+Scripts typing, the full 64-case performance-tool suite, existing performance
+integration and Knip pass. `check:bundle` independently preserves its original
+graph/build function bodies. Full branch parity and required CI remain pending.
+
+The old 95-file / 407,658-byte premise predates F4 and is not a current
+expectation. Source-line widths, basenames and dynamic-prefix matches remain
+lexical hints; rendered size and served reachability are not established.
+The release image checker and its caps remain independent and unchanged.
