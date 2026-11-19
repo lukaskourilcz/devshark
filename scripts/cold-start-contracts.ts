@@ -267,8 +267,11 @@ export async function coldStartContracts(): Promise<void> {
     const { readFileSync, readdirSync } = await import('node:fs');
     const functions = (JSON.parse(readFileSync(join(root, 'vercel.json'), 'utf8')) as { functions: Record<string, { includeFiles?: string; maxDuration?: number }> }).functions;
     const roadmap = functions['api/quiz/roadmap.ts'];
-    assert.ok(roadmap?.includeFiles?.includes('lib/coding/generated/*.cjs') && roadmap.includeFiles.includes('node_modules/typescript/lib/lib.*.d.ts'),
-      'the roadmap function ships the grader bundles and the compiler\'s lib files');
+    assert.ok(roadmap?.includeFiles?.includes('lib/coding/generated/*.cjs'),
+      'the roadmap function ships the grader bundles');
+    const { assertTypeScriptLibPackaging } = await import('./typescript-lib-packaging-contract.mjs');
+    const { isCheckerLibFile, LIB_FILE } = await import('../shared/coding-ts-check');
+    assertTypeScriptLibPackaging({ root, isCheckerLibFile, rootLib: LIB_FILE });
     assert.equal(functions['api/**/*.ts']?.includeFiles, undefined, 'the other functions ship neither the compiler\'s lib files nor React\'s development builds');
     // Why nothing else needs them. The lib files are read by the in-thread
     // type checker, which never runs on a deployment (the checker's worker,
