@@ -39,6 +39,23 @@ const PROFILES = [
 type Api = (route: Route, url: URL) => Promise<void> | void;
 const unavailable: Api = (route) => route.fulfill({ status: 503, json: { error: { code: 'offline', message: 'offline' } } });
 
+test('the system-font first visit downloads no unused font resources', async ({ page }) => {
+  const fonts: string[] = [];
+  const googleFonts: string[] = [];
+  page.on('request', request => {
+    const url = new URL(request.url());
+    if (request.resourceType() === 'font') fonts.push(url.pathname);
+    if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') googleFonts.push(url.href);
+  });
+  await page.route('**/api/**', route => unavailable(route, new URL(route.request().url())));
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.waitForLoadState('networkidle');
+  expect.soft(await page.locator('link[rel="preload"][as="font"]').count(), 'unused font preload links').toBe(0);
+  expect.soft(fonts, 'font requests on the system-font design').toEqual([]);
+  expect(googleFonts, 'external Google Fonts requests').toEqual([]);
+});
+
 async function coldLoad(page: Page, path = '/', api: Api = unavailable) {
   // The entry script and its preloads load at once; everything imported later
   // (the landing page, motion's features, before the fix the account widget)
