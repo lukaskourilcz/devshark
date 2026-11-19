@@ -2,9 +2,11 @@
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { createServer } from 'node:http';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { spawn } from 'node:child_process';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { PROBES, assertInventory, cacheAllowsMarker, main, options, originClassification, remoteSample, summaries, timingSpans } from './perf-cold-start.mjs';
 
@@ -143,4 +145,33 @@ test('summary median averages the middle pair for an even number of successful s
   const result = summaries(rows)[0];
   assert.deepEqual(result.clientFirstByteMs, { samples: 2, median: 2, min: 1, max: 3 });
   assert.deepEqual(result.classes[0].originAppMs, { samples: 2, median: 2, min: 1, max: 3 });
+});
+
+async function cli(args) {
+  const child = spawn(process.execPath, [fileURLToPath(new URL('./perf-cold-start.mjs', import.meta.url)), ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
+  let stdout = ''; let stderr = '';
+  child.stdout.setEncoding('utf8'); child.stderr.setEncoding('utf8');
+  child.stdout.on('data', value => { stdout += value; });
+  child.stderr.on('data', value => { stderr += value; });
+  const [code] = await once(child, 'close');
+  return { code, stdout, stderr };
+}
+
+test('direct CLI prints measured handler rows, writes its JSON and uses a distinct usage exit code', async t => {
+  const invalid = await cli([]);
+  assert.equal(invalid.code, 2);
+  assert.match(invalid.stderr, /choose exactly one/);
+  const dir = mkdtempSync(join(tmpdir(), 'cold-cli-')); t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const output = join(dir, 'report.json');
+  const origin = await server(t, (_req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'private,no-store', 'X-Vercel-Cache': 'MISS', 'Server-Timing': spans });
+    res.end(JSON.stringify({ ok: true, status: 'healthy' }));
+  });
+  const result = await cli([`--url=${origin}`, '--handlers=health', '--samples=1', '--interval-ms=0', `--output=${output}`]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.match(result.stdout, /^health read: observations=1 errors=0 skipped=0 client-first-byte=/m);
+  const report = JSON.parse(readFileSync(output, 'utf8'));
+  assert.equal(report.rows.length, 1);
+  assert.equal(report.rows[0].ok, true);
+  assert.deepEqual(report.totals, { planned: 1, attempted: 1, sent: 1, responses: 1, skipped: 0 });
 });
