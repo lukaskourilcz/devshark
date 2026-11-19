@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { test, expect, allowConsoleErrors, type Page } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
+import { installRouteFocusControl, armRouteFocus, pendingRouteFocus, flushRouteFocus, routeFocusLog } from './route-focus-control';
 
 // A navigation keeps the current page on screen until the next one can draw
 // whole. Before, every first visit to a section blanked the content area,
@@ -619,3 +620,68 @@ for (const menuState of ['loaded', 'held', 'failed'] as const) {
     }
   });
 }
+
+// A route focus delay must not mistake a control's round trip for inactivity.
+for (const theme of ['light', 'dark'] as const) test(`pending route focus preserves a newer completed drawer interaction in ${theme}`, async ({ page }, testInfo) => {
+  await prepare(page, 390, theme);
+  await installRouteFocusControl(page);
+  const manifest = JSON.parse(readFileSync(resolve('client/dist/.vite/manifest.json'), 'utf8'));
+  const quizPath = `/${manifest['src/components/Quiz.tsx'].file}`;
+  let release = () => {};
+  const waiting = new Promise<void>(resolve => { release = resolve; });
+  let requested = 0;
+  await page.route(url => url.pathname === quizPath, async route => {
+    requested += 1;
+    await waiting;
+    await route.continue();
+  });
+  try {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    const home = await page.locator('#main-content h1').first().innerText();
+    const opener = page.getByRole('button', { name: 'Open navigation menu', exact: true });
+    const menu = page.getByRole('dialog', { name: 'Navigation', exact: true });
+    await opener.click();
+    await menu.getByRole('link', { name: 'Quiz', exact: true }).click();
+    await expect(page).toHaveURL(/\/quiz$/);
+    await expect.poll(() => requested).toBeGreaterThan(0);
+    await expect(menu).toHaveCount(0);
+    await expect(opener).toBeFocused();
+    await armRouteFocus(page);
+    release();
+    await expect(page.locator('#main-content h1').first()).not.toHaveText(home);
+    await expect.poll(() => pendingRouteFocus(page)).toBe(1);
+    await opener.click();
+    await expect(menu.getByRole('link', { name: 'Quiz', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expectRichMenuContent(page, theme, true);
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+    await expect(opener).toBeFocused();
+    await flushRouteFocus(page);
+    await expect(opener).toBeFocused();
+  } finally {
+    release();
+    await testInfo.attach('route-focus-timeline', { body: JSON.stringify(await routeFocusLog(page), null, 2), contentType: 'application/json' });
+  }
+});
+
+test('ordinary menu navigation still focuses main without a newer interaction', async ({ page }, testInfo) => {
+  await prepare(page, 390);
+  await installRouteFocusControl(page);
+  try {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    await armRouteFocus(page);
+    await page.getByRole('button', { name: 'Open navigation menu', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Navigation' }).getByRole('link', { name: 'Quiz', exact: true }).click();
+    await expect(page).toHaveURL(/\/quiz$/);
+    await expect(page.getByRole('dialog', { name: 'Navigation' })).toHaveCount(0);
+    await expect.poll(() => pendingRouteFocus(page)).toBe(1);
+    await flushRouteFocus(page);
+    await expect(page.locator('#main-content')).toBeFocused();
+  } finally {
+    await testInfo.attach('route-focus-timeline', { body: JSON.stringify(await routeFocusLog(page), null, 2), contentType: 'application/json' });
+  }
+});
