@@ -85,7 +85,7 @@ function sourceBlob(commit, record) {
   return body;
 }
 
-function checkRequiredInputs(manifest) {
+function checkRequiredInputs(manifest, auditCurrentInputs) {
   let sourcePaths;
   try { sourcePaths = git(['ls-tree', '-r', '--name-only', '-z', manifest.sourceCommit, '--', 'docs']).toString('utf8').split('\0').filter(Boolean); }
   catch { throw new Error(`Archive source commit is unavailable: ${manifest.sourceCommit}. Fetch the published main history first.`); }
@@ -104,13 +104,14 @@ function checkRequiredInputs(manifest) {
   }
   for (const record of manifest.preservedInputs) {
     sourceBlob(manifest.sourceCommit, record);
+    if (!auditCurrentInputs) continue;
     if (!existsSync(record.path)) throw new Error(`Missing preserved input: ${record.path}`);
     const body = readFileSync(record.path);
     if (body.length !== record.bytes || hash(body) !== record.sha256) throw new Error(`Preserved input changed: ${record.path}`);
   }
   for (const path of manifest.requiredPaths) {
     if (!sourcePaths.includes(path)) throw new Error(`Required path is absent from the source commit: ${path}`);
-    if (!existsSync(path) || !lstatSync(path).isFile()) throw new Error(`Missing required path: ${path}`);
+    if (auditCurrentInputs && (!existsSync(path) || !lstatSync(path).isFile())) throw new Error(`Missing required path: ${path}`);
   }
 }
 
@@ -125,7 +126,7 @@ try {
     && (!lstatSync(config.output).isDirectory() || lstatSync(config.output).isSymbolicLink() || readdirSync(config.output).length)) {
     throw new Error(`Destination must be empty and cannot be a symlink: ${config.output}`);
   }
-  checkRequiredInputs(manifest);
+  checkRequiredInputs(manifest, config.verify);
   const bodies = manifest.archivedFiles.map((record) => sourceBlob(manifest.sourceCommit, record));
   const bytes = bodies.reduce((sum, body) => sum + body.length, 0);
   if (config.output) {
