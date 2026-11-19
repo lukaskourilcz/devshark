@@ -16,12 +16,8 @@
       and still win, this only stops the flash before them. Everything is inside
       a try/catch because localStorage throws outright in some privacy modes.
 
-      It sits above the font links on purpose, and this is not cosmetic
-      ordering. A pending stylesheet blocks every script after it, so with the
-      webfont link first the theme was not applied until fonts.googleapis.com
-      answered — measured in a browser with that host unreachable, the page sat
-      in the default light theme indefinitely. Nothing here reads styles, so it
-      belongs above anything that can block.
+      Nothing here reads styles. Keep it above blocking stylesheets so the
+      visitor's theme applies before the first paint.
     -->
     <script>
       (function () {
@@ -48,10 +44,6 @@
     <link rel="icon" type="image/svg+xml" href="/favicon-white.svg" media="(prefers-color-scheme: dark)" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <!-- Preload only the two Latin faces used in the first viewport; other
-         character subsets load from the shared stylesheet when needed. -->
-    <link rel="preload" as="font" type="font/woff2" crossorigin href="./node_modules/@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2" />
-    <link rel="preload" as="font" type="font/woff2" crossorigin href="./node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="__PRODUCT_DESCRIPTION__" />
     <meta name="theme-color" content="#2D7A2D" />
