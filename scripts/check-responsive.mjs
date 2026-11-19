@@ -237,6 +237,7 @@ export function apiFixture(method, url, authMode = 'signed-in') {
         'coding-progress': { tasks: {}, stagesWithSavedCode: [], due: [], javascriptLevelsCleared: 0, passedByTrack: { javascript: 0, typescript: 0, react: 0, 'system-design': 0, algorithms: 0 } },
         'github-connection': { available: true, status: 'not_connected', accountLogin: null, repoFullName: null, defaultBranch: null, lastCommitAt: null, queued: 0, lastError: null },
         wallet: ACCOUNT.wallet,
+        referral: { enabled: true, code: '0123abcd', coins: 100, cap: 20, credited: 2, pending: 1, invited: null },
         orders: { orders: [] },
       };
       if (op && Object.hasOwn(bodies, op)) return { status: 200, body: bodies[op] };
