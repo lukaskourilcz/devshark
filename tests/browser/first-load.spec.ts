@@ -26,6 +26,13 @@ import { localAuth, storeFakeSession } from './fake-session';
 // header when the account widget arrives, and a signed-in /collection with
 // its saved cards.
 
+// Deliberate local chunk failures must not emit telemetry or other requests
+// outside the preview used by this fixture.
+test.beforeEach(async ({ page }) => {
+  const origin = new URL(process.env.TEST_BASE_URL || 'http://localhost:4173').origin;
+  await page.route(url => /^https?:$/.test(url.protocol) && url.origin !== origin, route => route.abort('blockedbyclient'));
+});
+
 const HOLD_MS = 800;
 
 type Frame = { t: number; mainTop: number; header: number | null; route: boolean; footer: number | null; page: number | null; nav: number | null; text: string };
@@ -81,16 +88,18 @@ test('an untouched Home visit leaves heavy optional packages outside requested c
   expect(findings, 'optional packages reached by a first visit without interaction or consent').toEqual([]);
 });
 
-test('initial styles leave account, shop and lesson rules in their lazy chunks', async ({ request }) => {
+test('initial styles leave lazy component content rules outside the untouched shell', async ({ request }) => {
   const html = await (await request.get('/')).text();
   const styles = [...html.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*>/g)]
     .map(([link]) => link.match(/href="([^"]+)"/)?.[1])
     .filter((href): href is string => Boolean(href));
   expect(styles.length, 'initial stylesheets named in index.html').toBeGreaterThan(0);
   const css = (await Promise.all(styles.map(async (href) => (await request.get(href)).text()))).join('\n');
-  for (const selector of ['.ss-account-menu', '.ss-ledger', '.ss-orders', '.ss-term', '.ss-figure']) {
+  for (const selector of ['.ss-account-menu', '.ss-ledger', '.ss-orders', '.ss-term', '.ss-figure', '.ss-drawer-link', '.ss-drawer-group', '.ss-drawer-settings', '.ss-drawer-brand']) {
     expect.soft(css.includes(selector), `${selector} does not style the untouched shell or Home`).toBe(false);
   }
+  // Cold navigation keeps its complete frame before rich content arrives.
+  for (const selector of ['.ss-drawer-backdrop', '.ss-drawer-panel', '.ss-drawer-close']) expect(css).toContain(selector);
   // Public guides must remain styled in the static HTML when JavaScript is off.
   expect(css).toContain('.ss-topic-article');
 });
