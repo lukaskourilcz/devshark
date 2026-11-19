@@ -8785,3 +8785,27 @@ This reference cohort is not all 814 Coding tasks, React suites, browser realms
 or every hidden permutation. Full grading umbrella/Coding/parity, provider/VM,
 exact-head CI/Preview/merge and remaining F11 findings are still required; #640
 and its completion boxes remain open pending checked integration.
+
+
+### Epic F, F11-33 discarded console formatting (19 November 2026)
+
+Local follow-up on the F11 branch: test commit `9d6c62a4`, fix `8576448e`.
+The real evaluator regression failed two cap cases with serialization/getter
+counts `[4,4]` instead of `[0,0]` and `[1,1]`; its before-cap `[2,2]` control
+passed. The Node24 run took 1.540 s. The fix guards only Run's existing argument
+formatter after the line cap or character cut. Submit already had that guard.
+Console methods, clocks, markers, caps, encoded budgets and grades retain their
+existing behavior.
+
+After the fix, all 31 coding-runner client tests across three files passed in
+1.804 s. The exact added three-fixture server block also passed through the
+real normal worker and evaluator in 0.322 s after a 0.110 s native compilation;
+its body matches the registered integrity block byte for byte. Both runtimes
+retain the exact logs and the intended side-effect counts. Initial external
+launcher setup failures are preserved separately and are not product reds.
+
+Commands, hashes, source derivation and real outcomes are retained under
+`/tmp/devshark-epic-f-handoff/f11-remaining-execution-3fa8f8ed/33/`.
+Full umbrella, types, Coding/reference, launch/parity and remote integration
+remain for the final composed/rebased F11 source. This local result does not
+mark the package merged or complete.
