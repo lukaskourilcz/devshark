@@ -149,7 +149,7 @@ const AUTH_USER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
  * An id that is not a lowercase UUID names no account. supabase-js throws for
  * one before asking Auth, and a catch meant for an Auth that does not answer
  * read that as "exists": a mistyped id got a Premium grant nobody holds. */
-export async function lookupAccount(supabase: SupabaseClient, userId: string): Promise<'exists' | 'missing' | 'unknown'> {
+async function lookupAccount(supabase: SupabaseClient, userId: string): Promise<'exists' | 'missing' | 'unknown'> {
   if (!AUTH_USER_ID.test(userId)) return 'missing';
   try {
     const { data, error } = await withTimeout(supabase.auth.admin.getUserById(userId));

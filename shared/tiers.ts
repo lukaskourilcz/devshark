@@ -26,7 +26,6 @@ import type { LearningPathId, LearningPathManifest } from './learning-paths';
 import { partRanges } from './progression';
 
 export type Tier = 'free' | 'premium';
-export const isTier = (value: unknown): value is Tier => value === 'free' || value === 'premium';
 
 /** Learn topics open to every registered account, in full. */
 export const FREE_LEARN_TOPICS = ['html', 'css', 'javascript'] as const;
@@ -41,7 +40,7 @@ export const isBigOIntroduction = (topic: string, level: number): boolean => top
  * `…-1-start`, `…-1` and `…-2-start`, the whole first stage and the first step
  * of the second (owner decisions, 9 Oct 2026); until then a free account got
  * only the first checkpoint. */
-export const FREE_EVOLVING_STAGES = 1;
+const FREE_EVOLVING_STAGES = 1;
 /** Share of the issued coding catalogue that carries `free: true`; the launch
  * contract asserts it. It was 15 % (12–18 %) until the owner opened the whole
  * first stage of the ten-stage projects and fourteen more checkpoints on
@@ -209,7 +208,7 @@ export interface ContentIndex {
 }
 
 /** One-based stage number of an evolving stage task, or null for a standalone task. */
-export function evolvingStageNumber(
+function evolvingStageNumber(
   taskId: string,
   evolving: ContentIndex['evolving'] = EVOLVING_CHALLENGES,
 ): { challengeId: string; stage: number } | null {

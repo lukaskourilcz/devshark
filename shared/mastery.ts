@@ -8,12 +8,12 @@
  * the client i18n tables. */
 
 /** Distinct passing days needed to flip a level from cleared to mastered. */
-export const MASTERY_REQUIRED_DAYS = 3;
+const MASTERY_REQUIRED_DAYS = 3;
 
 /** Days to wait before a cleared-but-unmastered level is due again, indexed by
  * how many distinct days it has already been passed (1st pass -> +1 day, 2nd
  * pass -> +3 days). A mastered level is never scheduled. */
-export const REVIEW_INTERVALS_DAYS = [1, 3] as const;
+const REVIEW_INTERVALS_DAYS = [1, 3] as const;
 
 /** The per-level entry stored inside roadmap_progress.data[topic].levels[n]. The
  * mastery fields are optional so pre-migration-024 rows keep working. */
@@ -54,7 +54,7 @@ export function masteryState(entry: LevelMasteryEntry | undefined): MasteryState
 }
 
 /** Add whole days to a 'YYYY-MM-DD' key, returning the same shape. */
-export function addDays(dayKey: string, days: number): string {
+function addDays(dayKey: string, days: number): string {
   const parsed = Date.parse(`${dayKey}T00:00:00Z`);
   if (Number.isNaN(parsed)) return dayKey;
   return masteryDayKey(new Date(parsed + days * 86_400_000));
@@ -62,7 +62,7 @@ export function addDays(dayKey: string, days: number): string {
 
 /** The day a cleared-but-unmastered level should next be practised, or null when
  * the level is mastered or has never been passed. */
-export function nextReviewDayKey(entry: LevelMasteryEntry | undefined): string | null {
+function nextReviewDayKey(entry: LevelMasteryEntry | undefined): string | null {
   if (!entry || !entry.passed || isMastered(entry)) return null;
   const last = entry.lastPassDay
     ?? (Array.isArray(entry.passDays) ? entry.passDays[entry.passDays.length - 1] : undefined);

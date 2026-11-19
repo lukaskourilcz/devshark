@@ -42,7 +42,7 @@ const accuracy = (s: BadgeStatsSummary): number =>
   s.totalQuestions > 0 ? s.totalCorrect / s.totalQuestions : 0;
 
 /** The server-verifiable badges, in display order (easiest goal first). */
-export const SERVER_BADGES: readonly BadgeDef[] = [
+const SERVER_BADGES: readonly BadgeDef[] = [
   { id: 'first-quiz', tier: 'bronze', glyph: '◔', eligible: (s) => s.totalQuizzes >= 1 },
   { id: 'ten-quizzes', tier: 'bronze', glyph: '◑', eligible: (s) => s.totalQuizzes >= 10 },
   { id: 'fifty-quizzes', tier: 'silver', glyph: '●', eligible: (s) => s.totalQuizzes >= 50 },
@@ -55,10 +55,6 @@ export const SERVER_BADGES: readonly BadgeDef[] = [
   { id: 'avg-70', tier: 'silver', glyph: '◈', eligible: (s) => s.totalQuestions >= 20 && accuracy(s) >= 0.7 },
   { id: 'avg-90', tier: 'gold', glyph: '⬢', eligible: (s) => s.totalQuestions >= 100 && accuracy(s) >= 0.9 },
 ];
-
-const BY_ID = new Map(SERVER_BADGES.map((b) => [b.id, b]));
-export const serverBadgeById = (id: string): BadgeDef | undefined => BY_ID.get(id);
-export const isServerBadgeId = (id: string): boolean => BY_ID.has(id);
 
 /** The subset of server badges the learner currently qualifies for. */
 export function eligibleServerBadges(stats: BadgeStatsSummary): string[] {

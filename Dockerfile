@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # devShark in one container: the built client plus the twelve API handlers,
 # served by docker/server.mjs. Production runs on Vercel; this image is for
 # local demos and self-hosting. See docs/packages.md.
@@ -9,7 +10,8 @@ FROM node:24-bookworm-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY client/package.json client/package-lock.json ./client/
-RUN npm ci --no-audit --no-fund && npm ci --no-audit --no-fund --prefix client
+RUN --mount=type=cache,id=devshark-npm,target=/root/.npm,sharing=locked \
+    npm ci --no-audit --no-fund && npm ci --no-audit --no-fund --prefix client
 COPY . .
 ARG VITE_SUPABASE_URL=http://127.0.0.1:54321
 ARG VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
@@ -22,11 +24,13 @@ RUN npm run build && node docker/build-handlers.mjs
 FROM node:24-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
+COPY docker/install-runtime-typescript.mjs ./docker/install-runtime-typescript.mjs
 # typescript is a devDependency, but the grader's type checker loads it at run
-# time (Vercel ships it through includeFiles), so install the locked version.
-RUN npm ci --omit=dev --no-audit --no-fund \
- && npm install --no-save --no-package-lock --no-audit --no-fund \
-      "typescript@$(node -p "require('./package-lock.json').packages['node_modules/typescript'].version")"
+# time (Vercel ships it through includeFiles). Install its exact locked tarball
+# separately so npm cannot reify the root development dependency tree.
+RUN --mount=type=cache,id=devshark-npm,target=/root/.npm,sharing=locked \
+    npm ci --omit=dev --no-audit --no-fund \
+ && node docker/install-runtime-typescript.mjs
 
 FROM node:24-bookworm-slim
 ARG VITE_SUPABASE_URL=http://127.0.0.1:54321

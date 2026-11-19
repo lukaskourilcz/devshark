@@ -9,8 +9,9 @@ import { addSheet, declared, mediaRules } from './css';
 const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
 
 describe('the mobile drawer', () => {
-  const sheet = addSheet('appShell');
-  const top = [...sheet.cssRules].filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule);
+  const shell = addSheet('appShell');
+  const menu = addSheet('mobileNavigation');
+  const top = [...menu.cssRules].filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule);
 
   it('splits Practice from You in the desktop header’s order', () => {
     // You: Career, Shark Cards, Leaderboard, Coins, Premium, in that order.
@@ -25,6 +26,6 @@ describe('the mobile drawer', () => {
     expect(declared(top, '.ss-drawer-settings', 'margin-top')).toBe('auto');
     expect(declared(top, '.ss-drawer-link', 'min-height')).toBe('var(--ss-control-height)');
     // Scoped to the footer, so it outranks the footer's own display: flex below it.
-    expect(declared(mediaRules(sheet, 'max-width: 1023px'), '.ss-brand-footer .ss-footer-settings', 'display')).toBe('none');
+    expect(declared(mediaRules(shell, 'max-width: 1023px'), '.ss-brand-footer .ss-footer-settings', 'display')).toBe('none');
   });
 });

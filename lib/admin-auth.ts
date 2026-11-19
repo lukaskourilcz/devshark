@@ -49,7 +49,7 @@ function suppliedPassword(req: VercelRequest): string {
 }
 
 /** Legacy password check. New production deployments should not call it. */
-export function requireDevPassword(req: VercelRequest, res: VercelResponse): boolean {
+function requireDevPassword(req: VercelRequest, res: VercelResponse): boolean {
   if (ADMIN_DISABLED_IN_PROD) {
     jsonError(res, 503, 'admin_disabled', 'Admin API is disabled');
     return false;

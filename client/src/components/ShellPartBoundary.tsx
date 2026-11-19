@@ -4,6 +4,7 @@ import {
   RELOAD_GRACE_MS,
   browserRecovery,
   isChunkLoadError,
+  isStylesheetLoadError,
   reloadOnPress,
   renewFailedPages,
   type Recovery,
@@ -22,6 +23,7 @@ interface Props {
 
 interface State {
   failed: boolean;
+  error: unknown;
   /** The learner's retry is reloading the page. */
   busy: boolean;
 }
@@ -40,15 +42,15 @@ interface State {
  * only rendered again.
  */
 export class ShellPartBoundary extends Component<Props, State> {
-  state: State = { failed: false, busy: false };
+  state: State = { failed: false, error: null, busy: false };
   private retried = false;
   private restoreFocus = false;
   private disposed = false;
   private graceTimer = 0;
   private box = createRef<HTMLSpanElement>();
 
-  static getDerivedStateFromError(): Partial<State> {
-    return { failed: true, busy: false };
+  static getDerivedStateFromError(error: unknown): Partial<State> {
+    return { failed: true, error, busy: false };
   }
 
   componentDidMount() {
@@ -100,10 +102,15 @@ export class ShellPartBoundary extends Component<Props, State> {
 
   private retry = () => {
     if (this.state.busy) return;
+    // Vite retains failed CSS links. An in-place import could draw unstyled.
+    if (isStylesheetLoadError(this.state.error)) {
+      void this.reload();
+      return;
+    }
     renewFailedPages();
     this.retried = true;
     this.restoreFocus = Boolean(this.box.current?.contains(document.activeElement));
-    startTransition(() => this.setState({ failed: false }));
+    startTransition(() => this.setState({ failed: false, error: null }));
   };
 
   render() {

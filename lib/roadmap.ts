@@ -36,7 +36,7 @@ export const ROADMAP_TOPICS: RoadmapTopic[] = [
 
 // Pass thresholds (percent). Levels are gentle; checkpoints are the real gate.
 export const LEVEL_PASS = 75;
-export const CHECKPOINT_PASS = 85;
+const CHECKPOINT_PASS = 85;
 
 // A checkpoint sits after every Nth level.
 export const LEVELS_PER_CHECKPOINT = 5;
@@ -226,7 +226,7 @@ export function topicLevelCount(topic: RoadmapTopic): number {
 }
 
 /** How many checkpoints a topic has (one per 5 levels). */
-export function topicCheckpointCount(topic: RoadmapTopic): number {
+function topicCheckpointCount(topic: RoadmapTopic): number {
   return Math.floor(topicLevelCount(topic) / LEVELS_PER_CHECKPOINT);
 }
 
@@ -234,16 +234,6 @@ export function topicCheckpointCount(topic: RoadmapTopic): number {
 export function levelQuestionIds(topic: RoadmapTopic, level: number): string[] {
   const start = (level - 1) * QUESTIONS_PER_LEVEL + 1;
   return [...Array.from({ length: QUESTIONS_PER_LEVEL }, (_, i) => `${ID_PREFIX[topic]}-${start + i}`), ...restoredQuestionIds(topic, level)];
-}
-
-/** The 40 question ids for a checkpoint: every question in its 5 levels. */
-export function checkpointQuestionIds(topic: RoadmapTopic, checkpoint: number): string[] {
-  const firstLevel = (checkpoint - 1) * LEVELS_PER_CHECKPOINT + 1;
-  const ids: string[] = [];
-  for (let lvl = firstLevel; lvl < firstLevel + LEVELS_PER_CHECKPOINT; lvl++) {
-    ids.push(...levelQuestionIds(topic, lvl));
-  }
-  return ids;
 }
 
 /** The `lessonId` field of a level's metadata, or nothing. */
@@ -421,10 +411,6 @@ export function isValidLevel(topic: RoadmapTopic, level: number): boolean {
   return Number.isInteger(level) && level >= 1 && level <= topicLevelCount(topic);
 }
 
-export function isValidCheckpoint(topic: RoadmapTopic, checkpoint: number): boolean {
-  return Number.isInteger(checkpoint) && checkpoint >= 1 && checkpoint <= topicCheckpointCount(topic);
-}
-
 /* ──── parts ("learning paths" split) ──────────────────────────────────────
  * Each topic is presented to the learner as PARTS_PER_TOPIC shorter, sequential
  * "parts" instead of one long path — every part ends with its own test. The
@@ -433,6 +419,7 @@ export function isValidCheckpoint(topic: RoadmapTopic, checkpoint: number): bool
  * re-exports it for the API and adds the test size.
  * ─────────────────────────────────────────────────────────────────────────── */
 
+/** @public Compatibility facade for roadmap API/authoring imports; values remain owned by the shared/build modules. */
 export { PARTS_PER_TOPIC, partSizes, partRanges, type PartRange } from '../shared/progression';
 // A part's end-of-part test uses the same gate the old checkpoints did.
 export const PART_TEST_PASS = CHECKPOINT_PASS;
@@ -444,4 +431,5 @@ export function isValidPart(part: number): boolean {
   return Number.isInteger(part) && part >= 1 && part <= PARTS_PER_TOPIC;
 }
 
+/** @public Compatibility facade for roadmap API/authoring imports; values remain owned by the shared/build modules. */
 export { ROADMAP_LEVELS, QUESTIONS_PER_LEVEL };

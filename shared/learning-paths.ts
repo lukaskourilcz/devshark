@@ -61,7 +61,7 @@ export type ActivityPurpose = 'diagnostic' | 'exercise' | 'project';
  * check. Keeping the two apart is a product invariant, not a display choice. */
 export type VerificationKind = 'machine_verified' | 'self_reviewed';
 
-export const EVIDENCE_STATES = [
+const EVIDENCE_STATES = [
   'not_started',
   'in_progress',
   'verified_pass',
@@ -365,11 +365,11 @@ export interface ModuleProgress {
   activities: ActivityProgress[];
 }
 
-export const stateSatisfies = (required: EvidenceState, actual: EvidenceState): boolean =>
+const stateSatisfies = (required: EvidenceState, actual: EvidenceState): boolean =>
   SATISFYING_STATES[required].includes(actual);
 
 /** The activities of a quota that already reach its state. */
-export function quotaMet(
+function quotaMet(
   quota: ModuleRequirementQuota,
   states: ReadonlyMap<string, EvidenceState>,
 ): string[] {
@@ -563,7 +563,7 @@ export const LEARNER_PROFILE_META_KEY = 'devquiz_learner_profile_v2';
 
 /** The fields a learner must answer before practice is personalised. The base
  * track is not listed because a profile without one does not parse at all. */
-export const REQUIRED_PROFILE_FIELDS = ['goals', 'experience', 'studyTime'] as const;
+const REQUIRED_PROFILE_FIELDS = ['goals', 'experience', 'studyTime'] as const;
 export type RequiredProfileField = (typeof REQUIRED_PROFILE_FIELDS)[number];
 
 /**

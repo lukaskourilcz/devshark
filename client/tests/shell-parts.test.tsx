@@ -135,6 +135,54 @@ describe('a shell part whose code did not load', () => {
   });
 });
 
+describe('a shell part whose stylesheet did not load', () => {
+  const styledPart = (name: string) => {
+    let first = true;
+    return vi.fn(async () => {
+      if (first) {
+        first = false;
+        throw new Error(`Unable to preload CSS for /assets/${name}.css`);
+      }
+      // Vite remembers the failed CSS dependency and may resolve the next
+      // import without requesting it. Rendering this part would be unstyled.
+      return { default: () => <button type="button">{`${name} unstyled part`}</button> };
+    });
+  };
+
+  it('keeps its fallback until a pressed reload can fetch its stylesheet afresh', async () => {
+    const recovery = fakeRecovery();
+    const load = styledPart('StyledMenu');
+    await mountHeader(lazyShellPart(load), recovery);
+    await screen.findByRole('button', { name: 'Try again' });
+    expect(recovery.checkServedBuild).not.toHaveBeenCalled();
+    expect(recovery.reload).not.toHaveBeenCalled();
+    await retry();
+    await vi.waitFor(() => expect(recovery.reload).toHaveBeenCalledTimes(1));
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: 'StyledMenu unstyled part' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Try again' })).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByText('the nav')).toBeInTheDocument();
+    expect(screen.getByText('the page')).toBeInTheDocument();
+  });
+
+  it.each(['offline', 'unreachable'] as const)('keeps the fallback usable while %s, then allows another pressed recovery', async (condition) => {
+    const recovery = fakeRecovery();
+    if (condition === 'unreachable') recovery.checkServedBuild.mockResolvedValueOnce('unreachable');
+    const load = styledPart(`StyledMenu-${condition}`);
+    await mountHeader(lazyShellPart(load), recovery);
+    await screen.findByRole('button', { name: 'Try again' });
+    if (condition === 'offline') online = false;
+    await retry();
+    expect(recovery.reload).not.toHaveBeenCalled();
+    expect(load).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Try again' })).not.toHaveAttribute('aria-busy'));
+    online = true;
+    await retry();
+    await vi.waitFor(() => expect(recovery.reload).toHaveBeenCalledTimes(1));
+    expect(load).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('the upgrade sheet', () => {
   async function mountHost(recovery: Recovery = fakeRecovery()) {
     let unmount = () => undefined as void;

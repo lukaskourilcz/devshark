@@ -11,6 +11,7 @@
 //   npm run ci:parity -- --only test:launch,build
 //   npm run ci:parity -- --bail       stop at the first failure, as CI does
 //   npm run ci:parity -- --install    run `npm ci` even when node_modules exist
+//   npm run ci:parity -- --preview-port 4174  use this worktree's own preview
 //
 // Before running anything the script compares its plan with the `verify` job.
 // Every `npm` and `npx playwright` command there, in order and with its env
@@ -47,6 +48,20 @@ function usage(message) {
   console.error(message);
   process.exit(2);
 }
+
+function previewPort() {
+  const values = args.flatMap((arg, index) => arg === '--preview-port' ? [args[index + 1]]
+    : arg.startsWith('--preview-port=') ? [arg.slice('--preview-port='.length)] : []);
+  if (!values.length) return 4173;
+  const value = values[0];
+  if (values.length !== 1 || typeof value !== 'string' || !/^\d+$/.test(value)
+    || Number(value) < 1024 || Number(value) > 65535) {
+    usage('--preview-port must be one decimal integer from 1024 to 65535.');
+  }
+  return Number(value);
+}
+const PREVIEW_PORT = previewPort();
+const PREVIEW_URL = `http://localhost:${PREVIEW_PORT}`;
 
 if (!existsSync(WORKFLOW) || !existsSync('package.json')) usage('Run ci:parity from the repository root.');
 
@@ -115,7 +130,7 @@ const KNOWN_GLUE = [
   "exit 0",
   "fi",
   "fi",
-  "static:",
+  "client-build:",
   "runs-on: ubuntu-latest",
   "timeout-minutes: 30",
   "steps:",
@@ -132,6 +147,45 @@ const KNOWN_GLUE = [
   "VITE_SUPABASE_ANON_KEY=$(node -p \"require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_ANON_KEY\")",
   "export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY",
   "id: build",
+  "env:",
+  "VITE_PRODUCT: devshark",
+  "VITE_LOCK_SUBJECT: webdev",
+  "- uses: actions/upload-artifact@v4",
+  "with:",
+  "name: quality-client-${{ github.sha }}",
+  "path: artifacts/client-build.tar",
+  "if-no-files-found: error",
+  "compression-level: 0",
+  "retention-days: 1",
+  "static:",
+  "needs: client-build",
+  "runs-on: ubuntu-latest",
+  "timeout-minutes: 30",
+  "steps:",
+  "- uses: actions/checkout@v4",
+  "- uses: actions/setup-node@v4",
+  "with:",
+  "node-version: 24",
+  "cache: npm",
+  "cache-dependency-path: |",
+  "package-lock.json",
+  "client/package-lock.json",
+  "- name: Compare new binaries with the event base",
+  "env:",
+  "BINARY_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}",
+  "run: |",
+  "[[ \"$BINARY_BASE_SHA\" =~ ^[a-f0-9]{40}$ && \"$BINARY_BASE_SHA\" != \"0000000000000000000000000000000000000000\" ]] || exit 1",
+  "git fetch --no-tags --depth=1 origin \"$BINARY_BASE_SHA\"",
+  "- uses: actions/download-artifact@v4",
+  "with:",
+  "name: quality-client-${{ github.sha }}",
+  "path: artifacts",
+  "- run: node scripts/ci-build-artifact.mjs restore artifacts/client-build.tar",
+  "- run: |",
+  "VITE_SUPABASE_URL=$(node -p \"require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_URL\")",
+  "VITE_SUPABASE_ANON_KEY=$(node -p \"require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_ANON_KEY\")",
+  "export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY",
+  "id: check-build",
   "env:",
   "VITE_PRODUCT: devshark",
   "VITE_LOCK_SUBJECT: webdev",
@@ -160,6 +214,7 @@ const KNOWN_GLUE = [
   "package-lock.json",
   "client/package-lock.json",
   "browser:",
+  "needs: client-build",
   "runs-on: ubuntu-latest",
   "timeout-minutes: 30",
   "steps:",
@@ -171,14 +226,19 @@ const KNOWN_GLUE = [
   "cache-dependency-path: |",
   "package-lock.json",
   "client/package-lock.json",
-  "- run: |",
-  "VITE_SUPABASE_URL=$(node -p \"require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_URL\")",
-  "VITE_SUPABASE_ANON_KEY=$(node -p \"require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_ANON_KEY\")",
-  "export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY",
+  "- uses: actions/download-artifact@v4",
+  "with:",
+  "name: quality-client-${{ github.sha }}",
+  "path: artifacts",
+  "- run: node scripts/ci-build-artifact.mjs restore artifacts/client-build.tar",
   "id: build",
-  "env:",
-  "VITE_PRODUCT: devshark",
-  "VITE_LOCK_SUBJECT: webdev",
+  "- name: Read installed browser revision",
+  "id: playwright",
+  "run: echo \"revision=$(node -p \"require('node:crypto').createHash('sha256').update(require('node:fs').readFileSync('node_modules/playwright-core/browsers.json')).digest('hex')\")\" >> \"$GITHUB_OUTPUT\"",
+  "- uses: actions/cache@v4",
+  "with:",
+  "path: ~/.cache/ms-playwright",
+  "key: ${{ runner.os }}-${{ runner.arch }}-chromium-${{ steps.playwright.outputs.revision }}",
   "- name: Browser checks",
   "run: |",
   "node scripts/wait-for-preview.mjs",
@@ -198,18 +258,39 @@ const KNOWN_GLUE = [
   "test-results/",
   "client/storybook-static/",
   "retention-days: 14",
+  "container:",
+  "runs-on: ubuntu-latest",
+  "timeout-minutes: 30",
+  "env:",
+  "CONTAINER_BASE_SHA: 0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c",
+  "steps:",
+  "- uses: actions/checkout@v4",
+  "- uses: actions/setup-node@v4",
+  "with:",
+  "node-version: 24",
+  "cache: npm",
+  "cache-dependency-path: package-lock.json",
+  "- name: Fetch the published container baseline",
+  "run: git fetch --no-tags --depth=1 origin \"$CONTAINER_BASE_SHA\"",
+  "- uses: actions/upload-artifact@v4",
+  "if: always()",
+  "with:",
+  "name: container-measurement",
+  "path: artifacts/container/",
+  "if-no-files-found: warn",
+  "retention-days: 14",
   "verify:",
-  "needs: [quickjs, static, tests, coding, browser]",
+  "needs: [quickjs, client-build, static, tests, coding, browser, container]",
   "if: ${{ always() }}",
   "runs-on: ubuntu-latest",
   "timeout-minutes: 5",
   "steps:",
-  "- run: echo \"quickjs=${{ needs.quickjs.result }} static=${{ needs.static.result }} tests=${{ needs.tests.result }} coding=${{ needs.coding.result }} browser=${{ needs.browser.result }}\"",
+  "- run: echo \"quickjs=${{ needs.quickjs.result }} client-build=${{ needs.client-build.result }} static=${{ needs.static.result }} tests=${{ needs.tests.result }} coding=${{ needs.coding.result }} browser=${{ needs.browser.result }} container=${{ needs.container.result }}\"",
   "- if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}",
-  "run: exit 1",
+  "run: exit 1"
 ];
 
-const env = { ...process.env, CI: 'true' };
+const env = { ...process.env, CI: 'true', TEST_BASE_URL: PREVIEW_URL, RESPONSIVE_BASE_URL: PREVIEW_URL };
 let budget;
 try {
   budget = JSON.parse(readFileSync('docs/quality/bundle-budget.json', 'utf8')).measuredBuild.env;
@@ -238,22 +319,23 @@ const step = (id, command, more = {}) => ({ id, command, ci: [command], tier: 'f
 const RESPONSIVE_LIGHT = `-- --routes /,/quiz,/topics/${TOPIC},/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 360,390,430,768,820,1024,1280,1366,1440`;
 const RESPONSIVE_DARK = `-- --routes /,/quiz,/topics/${TOPIC},/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 390,820,1280`;
 const BROWSER_SPECS = [
-  'public images', 'guide-startup profile-leaderboard-preferences profile-path-picker admin', 'evolving', 'coding-pages', 'coding-workbench mobile-safari consent-reflow',
-  'coding-drafts', 'learning-release learn-sections',
-  'fde-hub fde-taster fde-positioning interview-shelf', 'path-content-shapes portfolio-export diagnostic-overview dsa-advanced', 'segmented', 'on-accent', 'navigation', 'lazy-auth', 'sign-in',
-  'route-errors', 'first-load', 'home-sample', 'routes-axe', 'daily', 'launch-offer',
-].map((names) => names.split(' ').map((name) => `tests/browser/${name}.spec.ts`).join(' '));
+  "tests/browser/public.spec.ts tests/browser/images.spec.ts tests/browser/guide-startup.spec.ts tests/browser/profile-leaderboard-preferences.spec.ts tests/browser/profile-path-picker.spec.ts tests/browser/admin.spec.ts tests/browser/evolving.spec.ts tests/browser/coding-pages.spec.ts tests/browser/coding-workbench.spec.ts tests/browser/mobile-safari.spec.ts tests/browser/consent-reflow.spec.ts tests/browser/coding-drafts.spec.ts tests/browser/learning-release.spec.ts tests/browser/learn-sections.spec.ts tests/browser/fde-hub.spec.ts tests/browser/fde-taster.spec.ts tests/browser/fde-positioning.spec.ts tests/browser/interview-shelf.spec.ts tests/browser/path-content-shapes.spec.ts tests/browser/portfolio-export.spec.ts tests/browser/diagnostic-overview.spec.ts tests/browser/dsa-advanced.spec.ts tests/browser/segmented.spec.ts tests/browser/on-accent.spec.ts tests/browser/navigation.spec.ts tests/browser/lazy-auth.spec.ts tests/browser/sign-in.spec.ts tests/browser/route-errors.spec.ts tests/browser/first-load.spec.ts tests/browser/home-sample.spec.ts tests/browser/routes-axe.spec.ts tests/browser/daily.spec.ts tests/browser/launch-offer.spec.ts tests/browser/triage-private.spec.ts",
+];
 
 const PLAN = [
   step('install', 'npm ci --no-audit && npm ci --no-audit --prefix client', { ci: ['npm ci --no-audit', 'npm ci --no-audit --prefix client'], kind: 'install' }),
   step('check:quickjs-build', npmRun('check:quickjs-build'), { kind: 'quickjs' }),
+  step('build', npmRun('build'), { env: BUILD_ENV }),
+  step('check:ci-build-artifact', npmRun('check:ci-build-artifact'), { needs: ['build'] }),
   step('typecheck:api', npmRun('typecheck:api')),
   step('typecheck:scripts', npmRun('typecheck:scripts')),
   step('typecheck:tooling', npmRun('typecheck:tooling', '--prefix client')),
   step('audit:native-reviews', npmRun('audit:native-reviews')),
   step('check:unused', npmRun('check:unused')),
   step('check:security', npmRun('check:security')),
-  step('build', npmRun('build'), { env: BUILD_ENV }),
+  step('check:docs-archive', npmRun('check:docs-archive')),
+  step('check:deploy-contexts', npmRun('check:deploy-contexts')),
+  step('check:binary-size', npmRun('check:binary-size')),
   step('check:images', npmRun('check:images'), { needs: ['build'] }),
   step('check:public', npmRun('check:public'), { env: BUILD_ENV, needs: ['build'] }),
   step('check:bundle', npmRun('check:bundle'), { env: BUILD_ENV, needs: ['build'] }),
@@ -263,29 +345,35 @@ const PLAN = [
     'test:react-authority', 'test:paths', 'test:billing', 'test:fallbacks', 'test:garden',
     'test:live-grading', 'test:client', 'test:coding'].map((script) => step(script, npmRun(script))),
   step('chromium', 'npx playwright install chromium', { ci: ['npx playwright install --with-deps chromium'], kind: 'chromium' }),
-  step('preview', 'npm run preview --prefix client -- --host 0.0.0.0 --port 4173',
-    { kind: 'server', url: 'http://localhost:4173', needs: ['build'] }),
-  ...BROWSER_SPECS.map((specs) => step(`browser:${specs.replace(/tests\/browser\/|\.spec\.ts/g, '').replace(/ /g, '+')}`,
-    npmRun('test:browser', `-- --project=chromium ${specs}`), { tier: 'full', needs: ['preview', 'chromium'] })),
-  step('check:responsive', npmRun('check:responsive', RESPONSIVE_LIGHT), { needs: ['preview', 'chromium'], chrome: true }),
+  step('preview', `npm run preview --prefix client -- --host 0.0.0.0 --port ${PREVIEW_PORT} --strictPort`,
+    { ci: ['npm run preview --prefix client -- --host 0.0.0.0 --port 4173'], kind: 'server', url: PREVIEW_URL, needs: ['build'] }),
+  ...BROWSER_SPECS.map((specs) => step('browser:chromium',
+    npmRun('test:browser', `-- --project=chromium --workers=2 --output=test-results/chromium ${specs}`), {
+      ci: [`PLAYWRIGHT_HTML_REPORT=playwright-report/chromium ${npmRun('test:browser', `-- --project=chromium --workers=2 --output=test-results/chromium ${specs}`)}`],
+      env: { PLAYWRIGHT_HTML_REPORT: 'playwright-report/chromium' }, tier: 'full', needs: ['preview', 'chromium'],
+    })),
+  step('check:responsive', npmRun('check:responsive', RESPONSIVE_LIGHT), { ci: [`RESPONSIVE_WORKERS=2 ${npmRun('check:responsive', RESPONSIVE_LIGHT)}`], env: { RESPONSIVE_WORKERS: '2' }, needs: ['preview', 'chromium'], chrome: true }),
   step('check:responsive:dark', npmRun('check:responsive', RESPONSIVE_DARK), {
-    ci: [`RESPONSIVE_THEME=dark ${npmRun('check:responsive', RESPONSIVE_DARK)}`],
-    needs: ['preview', 'chromium'], chrome: true, env: { RESPONSIVE_THEME: 'dark' },
+    ci: [`RESPONSIVE_THEME=dark RESPONSIVE_WORKERS=2 ${npmRun('check:responsive', RESPONSIVE_DARK)}`],
+    needs: ['preview', 'chromium'], chrome: true, env: { RESPONSIVE_THEME: 'dark', RESPONSIVE_WORKERS: '2' },
   }),
   ...[200, 400].map((zoom) => step(`check:responsive:zoom${zoom}`, npmRun('check:responsive', '-- --routes / --widths 1280'), {
-    ci: [`RESPONSIVE_ZOOM=${zoom} ${npmRun('check:responsive', '-- --routes / --widths 1280')}`],
-    needs: ['preview', 'chromium'], chrome: true, env: { RESPONSIVE_ZOOM: String(zoom) },
+    ci: [`RESPONSIVE_ZOOM=${zoom} RESPONSIVE_WORKERS=2 ${npmRun('check:responsive', '-- --routes / --widths 1280')}`],
+    needs: ['preview', 'chromium'], chrome: true, env: { RESPONSIVE_ZOOM: String(zoom), RESPONSIVE_WORKERS: '2' },
   })),
   step('test:harness', npmRun('test:harness'), { tier: 'full', needs: ['build', 'chromium'], chrome: true }),
-  step('audit:performance', npmRun('audit:performance'), { tier: 'full', needs: ['preview', 'chromium'], chrome: true }),
+  step('audit:performance', npmRun('audit:performance', PREVIEW_PORT === 4173 ? '' : `-- --url=${PREVIEW_URL}`), {
+    ci: [npmRun('audit:performance')], tier: 'full', needs: ['preview', 'chromium'], chrome: true,
+  }),
   step('build:storybook', npmRun('build:storybook'), { tier: 'full', needs: ['build'] }),
   step('storybook', npmRun('storybook', '--prefix client -- --ci'),
     { tier: 'full', kind: 'server', url: 'http://localhost:6006', needs: ['build:storybook'] }),
-  step('browser:storybook', npmRun('test:browser', '-- --project=chromium tests/browser/storybook.spec.ts'), {
-    ci: [`STORYBOOK_URL=http://localhost:6006 ${npmRun('test:browser', '-- --project=chromium tests/browser/storybook.spec.ts')}`],
-    tier: 'full', needs: ['storybook', 'chromium'], chrome: true, env: { STORYBOOK_URL: 'http://localhost:6006' },
+  step('browser:storybook', npmRun('test:browser', '-- --project=chromium --output=test-results/storybook tests/browser/storybook.spec.ts'), {
+    ci: [`STORYBOOK_URL=http://localhost:6006 PLAYWRIGHT_HTML_REPORT=playwright-report/storybook ${npmRun('test:browser', '-- --project=chromium --output=test-results/storybook tests/browser/storybook.spec.ts')}`],
+    tier: 'full', needs: ['storybook', 'chromium'], chrome: true, env: { STORYBOOK_URL: 'http://localhost:6006', PLAYWRIGHT_HTML_REPORT: 'playwright-report/storybook' },
   }),
 ];
+PLAN.push(step('test:container', npmRun('test:container'), { tier: 'full', kind: 'container' }));
 const SQL_STEP = step('test:sql', npmRun('test:sql'), { ci: [], kind: 'sql' });
 
 function firstDifference(expected, actual) {
@@ -322,6 +410,8 @@ const MODE = ONLY ? 'partial' : FAST ? 'fast' : 'full';
 const inMode = (one) => (ONLY ? ONLY.includes(one.id) : !(FAST && one.tier === 'full'));
 
 if (LIST) {
+  console.log(`Local preview ${PREVIEW_URL}`);
+  console.log(`Child targets: TEST_BASE_URL=${PREVIEW_URL} RESPONSIVE_BASE_URL=${PREVIEW_URL}`);
   for (const one of selected) console.log(`${one.id.padEnd(40)} ${(inMode(one) ? 'run' : 'skip').padEnd(5)} ${one.command}`);
   process.exit(0);
 }
@@ -341,8 +431,11 @@ let finished = false;
 const logFile = (one) => path.join(LOG_DIR, `${one.id.replace(/[^\w.-]+/g, '_')}.log`);
 const summaryFile = path.join(LOG_DIR, 'summary.json');
 
-async function answers(url) {
-  try { return (await fetch(url, { signal: AbortSignal.timeout(1000) })).ok; } catch { return false; }
+async function answers(url, requireOk = true) {
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(1000) });
+    return requireOk ? response.ok : true;
+  } catch { return false; }
 }
 async function waitFor(url, attempts = 120) {
   for (let attempt = 0; attempt < attempts; attempt++) {
@@ -354,7 +447,8 @@ async function waitFor(url, attempts = 120) {
 
 // A preview or Storybook left over from another run would serve another build.
 for (const server of selected.filter((one) => one.kind === 'server' && inMode(one))) {
-  if (await answers(server.url)) usage(`${server.url} already answers. Stop that server (or the other ci:parity run) first.`);
+  // Any HTTP response occupies the port; readiness below still requires 2xx.
+  if (await answers(server.url, false)) usage(`${server.url} already answers. Stop that server (or the other ci:parity run) first.`);
 }
 
 mkdirSync(LOG_DIR, { recursive: true });
@@ -365,6 +459,8 @@ function writeSummary(stopped) {
   const count = (result) => rows.filter((row) => row.result === result).length;
   const summary = {
     mode: MODE,
+    previewPort: PREVIEW_PORT,
+    previewUrl: PREVIEW_URL,
     only: ONLY ?? null,
     complete: finished && !stopped,
     stopped: stopped ?? null,
@@ -416,6 +512,9 @@ function playwrightChromium() {
 
 /** Why a step cannot run here, or null. */
 function precondition(one) {
+  if (one.kind === 'container' && spawnSync('docker', ['info'], { timeout: 10000, stdio: 'ignore' }).status !== 0) {
+    return 'Docker CLI/daemon unavailable; compare both images on the Linux/amd64 CI runner';
+  }
   if (one.kind === 'sql' && !env.DATABASE_URL) {
     return 'DATABASE_URL is not set; scripts/test-sql.mjs needs an empty Postgres';
   }

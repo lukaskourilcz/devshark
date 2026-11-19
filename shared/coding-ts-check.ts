@@ -97,9 +97,9 @@ declare function btoa(data: string): string;
 `;
 
 /** The newest lib the checker offers, so a modern method is never a false error. */
-export const LIB_FILE = 'lib.es2023.d.ts';
+const LIB_FILE = 'lib.es2023.d.ts';
 /** Errors past this many are noise. */
-export const MAX_REPORTED_ERRORS = 8;
+const MAX_REPORTED_ERRORS = 8;
 
 export interface TypeTestInput {
   code: string;

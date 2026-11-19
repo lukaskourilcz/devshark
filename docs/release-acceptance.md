@@ -7412,3 +7412,209 @@ The final sequential Home lab compares frozen main `0f35d67d` and F3 `cab4f4f0`,
 The lab made 273 to 280 total requests, including scripted interactions; it does not establish fewer requests over that full session. Origin network responses were 240 to 249, with 12 fixture API reads per phase and no API requests forwarded. All mutation attempts were blocked. INP is one scripted local press, not field INP. Earlier 45/49-case browser and older Home-lab records keep their own frozen builds; they are not final-head browser acceptance. The full F1 inventory baseline remains separate.
 
 QuickJS rebuild was not run locally because Python 3.9 has no configured emsdk; required CI must rebuild it. Installed dependencies/Chrome and full-only browser, harness, performance and Storybook work account for fast skips. SQL is separate required Supabase-image CI evidence, not production SQL. Physical-device behavior, full screen-reader QA, authenticated production behavior and field performance remain outside these checks. No owner configuration or grading decision is needed for this implementation.
+
+## Epic F3 production acceptance: checked merge and measurements (19 November 2026)
+
+[PR #666](https://github.com/lukaskourilcz/devshark/pull/666) merged at `7c008c9f1d2d9c050ee97e395869184098e6a95d` on 19 November at 06:05:21 UTC. Required [CI run 44466553771](https://github.com/lukaskourilcz/devshark/actions/runs/44466553771) passed at reviewed head `76379718`: `verify`, `sql` and every component job succeeded, including QuickJS, Coding and browser checks. F12-20 was checked in the canonical #646 inventory only after that verified merge. **#632 remains open until the F14 documentation correction and this addendum pass required CI and merge.**
+
+The complete local run used clean runtime `720b97e0`: **55 passed, 0 failed, 2 skipped, 1 not run**, in 38.98 minutes. Installed dependencies and Chrome explain the skips; the local QuickJS rebuild was unrun because Python 3.9 had no emsdk. Required CI subsequently supplied successful QuickJS and SQL evidence. Local client coverage passed 1,967 tests in 199 files; Coding checked 814 reference tasks, 769 issued. Chromium groups and Storybook passed 297 cases with 19 intentional FDE-hidden skips. Responsive checks cleared 180 light/60 dark probes and both zoom profiles.
+
+The final `76379718` change is navigation tests only; runtime assets remain `720b97e0`. Full WebKit acceptance passed 95/95 and Chromium navigation 16/16, with no failures, skips or flaky cases. Independent native HTML refuted an application-specific reverse-Tab defect. The portable test preserves each engine's closed-desktop traversal, visible restoration, drawer absence and late-chunk stability, with a deliberately stale interceptor as a negative control. The earlier WebKit 91-pass/3-fail result remains historical; all 55 local steps were not rerun at the test-only head.
+
+F3's comparable placeholder build falls from **235,485 to 218,675 initial gzip bytes**, against main `0f35d67d`; CSS falls from 25,843 to 24,779. The cap remains 218,675. F14 runtime `be426ec4` subsequently measures 218,580, including CSS 24,633 and main JavaScript 106,151; that separate integration result does not replace F3's checkpoint. Removing unused Manrope/Inter requests saves 73,092 resource bytes. Zero font preloads is the documented deviation from the original literal two-preload criterion; two useful modulepreloads remain.
+
+The final 24-row Home lab has no measurement errors. Cold median LCP changes from 2,076 to 1,600ms mobile and 388 to 308ms desktop. Both medians select the consent paragraph; one baseline mobile sample selects the hero. This does not establish a stable hero-paint gain, a font/Motion cause, field performance or reliable p95. The Home comparison does not complete F1's full inventory baseline. Raw samples and the desktop-repeat 76→80ms result remain recorded.
+
+Protected Preview `dpl_DgdTuM3C8rBP95MfErhHsE3JRWNP` passed nine security HTTP probes. The connector created an authorized temporary Preview share link; no long-lived credential, project settings or environment changed. Both owned access files were removed. The per-request toolbar header avoided injected Preview UI.
+
+Production `dpl_jCcKrMGXww13VsvmbLdgztN7syGk` is **READY** at merge `7c008c9f`; an independent [devshark.app](https://devshark.app/) alias lookup matched. At 06:11:16 UTC, **18 guest HTTP checks passed with zero issues**, covering documents, JavaScript/CSS, icons and the manifest. HTML has zero font preloads and two modulepreloads. The served inventory records 218,396 gzip bytes under actual deployment variables, separately from the placeholder budget. These GETs executed no JavaScript or API requests and establish neither rendered focus/layout nor authenticated, physical-device or field acceptance. Existing owner QA remains open; no production SQL, settings or business writes occurred.
+
+## Epic F14 docs, privacy and CI: local implementation checkpoint (19 November 2026)
+
+F14 at `be426ec4abc65cace8b75df70edcf8efe8f2bd85` implements lossless review archives, private admin triage, locked runtime compiler installation, stricter unused/binary/context gates and shared-build CI. F3 is merged; this checkpoint records the rebased implementation and completed local checks. Final package acceptance remains open pending the full gates and external evidence below.
+
+The archive preserves 757 historical paths totaling 90,894,546 bytes at published source `0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c`, with path/hash manifest, indexes and explicit restoration before historical tool reruns. Real restoration verified every archived file. The 11,730,061-byte ledger and all 84 native files remain byte-identical; current inputs, Markdown, tools and brand sources stay available. Post-removal physical `du` was 19,972 KiB; at this checkpoint tracked docs comprise 360 paths and 19,804,518 blob bytes. These are distinct measurements. Published history remains intact; unpublished preparation subjects were normalized without changing their trees. No Git-storage reduction is claimed.
+
+The 632,561-byte triage snapshot, containing 3,609 verdicts and 746 notes, moved byte-for-byte behind the existing fresh-auth, admin rate-limit and admin-authorization boundary. It loads lazily through the existing GET operation with private/no-store caching; twelve handlers remain. The client uses the admin-scoped query and AbortSignal, clears data on account/admin changes and retries both dependent reads. Canonical and encoded retired URLs return 404/no-store before copied assets or SPA fallback in local checks. Static tracing includes the private JSON, but does not prove deployed packaging or authorization.
+
+Docker installation now copies the complete locked TypeScript package from an isolated prefix rather than reifying unrelated root development packages. Dependency/install-hook changes fail closed. The real offline host smoke retained TypeScript 5.9.3, all 100 declaration libraries, license and transpilation, with the root lock unchanged. Authored JavaScript, TypeScript and React references ran on the host. Neither those references nor the 37 adapter contracts establish that a Docker image works or shrinks. The required container job must supply that evidence.
+
+The shared-build helper verifies source/lock/file hashes and refuses stale artifacts. Its earlier `80b259ca` roundtrip verified 2,244 files and 76,463,104 tar bytes, including the hidden Vite manifest and maps; those are artifact bytes, not upload/context/image size. CI shares one normal client build between static/browser jobs, restores its verified artifact, caches Chromium by OS, architecture and installed revision, and bounds browser concurrency at two. `verify` now requires seven non-SQL jobs, including `client-build` and `container`; SQL remains separately required. No new-workflow timing or billed-cost improvement is claimed.
+
+The strict unused gate rejects new findings and stale baselines. Reviewed declaration-body comparisons preserve runtime bodies and public readers; zero gated lib/shared value-export findings remain, while 125 value exports outside that scope stay advisory. A separate type-only inventory still reports 81 exports across 27 lib/shared files. Those types are outside this value-export gate, so F2-41 remains open for that remaining cleanup; this batch does not claim it complete. The diff-aware binary gate covers new/changed binaries over 500,000 bytes without retroactively rejecting unchanged historical files. Context rules exclude non-build material while preserving both required F4 SVG inputs. Estimated selections and ignore fixtures do not prove actual uploaded bytes.
+
+The CSS integration follow-up earned the unchanged F3 cap through real deferral. Only rich mobile-menu links, groups, settings and brand rules move; cold/loading/error/retry frame styles stay global. Prototype red evidence was 10 client passes/3 failures and five browser failures. A separate CSS-only stage then reproduced two real Retry failures, showing that Retry can resolve a module without restoring the failed stylesheet. The rebased committed branch independently reproduced those red stages before correction. Stylesheet errors now reuse the existing explicit pressed reload, with no new error UI or automatic reload; ordinary JS retry/focus behavior remains. Prototype green cases overlap the committed runs and are not additional coverage.
+
+| Evidence and source | Actual completed result |
+| --- | --- |
+| Committed `be426ec4` client recovery suites | 33/33 passed; scripts and client tooling typing passed |
+| Committed Chromium navigation | 20/20 passed in 43.096648 seconds |
+| Committed Chromium first-load guards | 3/3 passed in 2.395851 seconds |
+| Committed full five-spec WebKit | 99/99 passed in 140.819551 seconds |
+| Committed production-shaped bundle | 218,580/218,675 initial gzip; monitoring 46,800/60,000; zero font preloads |
+| Earlier archive/artifact/binary/context fixtures | 16/4/7/2 passed respectively; 757 real archive files restored |
+| Earlier `80b259ca` selected integration run | Explicitly partial: 18 passed, 0 failed, 26 skipped; client 1,958 tests/194 files passed |
+
+All 122 committed browser cases have zero failures, skips, flaky results, retries or global errors. They ran sequentially with one worker. Light/dark CSS cases verify held/failed loading, dismissible 44px controls, explicit recovery, restored computed styling, active colors and keyboard outlines. Entry JS rises 21 gzip bytes while initial CSS falls 146, saving 125 against the combined 218,705-byte baseline. The deferred stylesheet adds a 532-gzip-byte request on first menu use; lower total interaction transfer or field LCP is not claimed.
+
+The separate bank-filter measurement remains a proposal: five individual handlers exceed 10% savings, but the twelve-output aggregate is only 7.466%. Raw content/version/eligibility inputs stay equal. No bank deletion or runtime filter shipped.
+
+Final fast/full parity, complete client/static/auth/grading/coding/performance/matrix gates, SQL, actual same-architecture Docker images, real source-upload/Vercel preview proof, required F14 CI and production verification have not yet run for this checkpoint. Local Vite is not Vercel, host references are not containers, and no final image or deployment result is implied. Live PR/issue evidence and a later post-merge record will carry those results.
+
+Owner-only decisions remain open: apply production migrations 077-079, confirm their evidence, then consider held PR #657; retain the protected PR #660 grading decision; leave credentials, settings, domain, legal, production retention, field and physical-device actions to their recorded owners. None was executed here.
+
+Refs #643, #646 and #629.
+
+### F14 final-parity routing contract follow-up
+
+The first clean final fast run at `f3802023` stopped incomplete after 18 passing steps, one launch failure and one unavailable local QuickJS rebuild, in 2.87 minutes. Its build, type/static/image/public/bundle checks and both production audits passed. The launch contract still assumed that only old redirects and the retired guide could terminate before the filesystem; it rejected F14's deliberate private triage 404.
+
+Regression commit `306cf3a1` adds a valid-policy case and twelve rejected mutation controls. The correction pins the exact reviewed source and 404/no-store shape, preserves matching security-header order, verifies canonical/encoded aliases and rejects broad, missing, duplicate, late, rewritten or cacheable exceptions. It leaves serving routes and headers unchanged. The focused fixtures and complete launch command pass. Scripts typing initially caught the fixture's unsupported undefined assertion predicate; the final explicit AssertionError predicate and scripts typing pass. A fresh complete parity run remains required; the failed fast result is retained separately.
+
+### F14 full-client stylesheet reader follow-up
+
+The next clean fast run at `7eb7482b` stopped incomplete after 27 passing steps, one client failure, one installed-dependency skip and one unavailable local QuickJS rebuild, in 6.2 minutes. All backend/auth/grading/authority/launch checks passed. The client suite passed 1,975 tests but two existing drawer-group checks still read rich-menu declarations only from app-shell.css.
+
+Test-only commit `1995d26c` loads MobileNavigation.css through the existing explicit stylesheet helper for those declarations and retains the footer media check against app-shell.css. Every grouping, divider, bottom-pinning and 44px expectation is unchanged. The complete client rerun passes 1,977 tests in 200 files, in 40.74 seconds. Runtime files remain identical to the checked `be426ec4` checkpoint. The incomplete fast run remains recorded; a fresh full fast run is still required.
+
+### F14 complete local gates and CSP fixture follow-up
+
+The clean fast run at `ea34509407b51ee8ab7e0585af50fc81f4e64984` completed in 28.08 minutes: 34 passed, zero failed, nine skipped and one not run. Its clean full run then completed in 32.6 minutes: 40 passed, zero failed, two skipped and two not run. Both reused installed dependencies and Chrome; fast also skipped its seven full-only steps. The QuickJS rebuild needs Python 3.10+ or emsdk, unavailable here. Full mode additionally could not run the Docker image comparison because this Mac has no Docker CLI/daemon. SQL remains a separate CI job and did not run locally.
+
+The full run includes 1,977 client tests in 200 files, all 814 coding tasks with 769 issued, 298 passing Chromium cases and 19 intentional hidden-FDE skips. Its 180 light and 60 dark probes, both zoom profiles, sandbox harness, performance audit and Storybook checks passed. The combined browser command took 208 seconds, the light/dark matrices 214/92 seconds and Coding 979 seconds. These are local wall times, not a controlled CI speedup.
+
+A separate CSP run against the local header-serving adapter then passed its public-page and Run cases but failed the profile-photo case before navigation: it still read favicon-48.png, removed by F4. Test-only commit `455460a3` switches that mocked PNG input to the existing favicon-32.png. It preserves the Google image URL, image/png response, decoded-image checks and zero-violation assertions. The failed three-case run remains evidence; a clean rerun and fresh fast parity at the corrected committed head are required. Runtime application files remain identical to the complete `ea345094` full run.
+
+The exact selected-source copy contains 949 files and 21,118,508 bytes, including only the two required SVGs under docs. Its build passed with the same locked installed dependencies and isolated local build caches. All copied source hashes match the immutable stage after the build. This proves that those selected sources build with the existing dependencies; it is neither a clean dependency installation nor remote source/container proof. Initial Vercel file-upload receipts remain separate from creation or acceptance of a deployment. The excluded test correction requires a new frozen-head stage pin before deployment.
+
+Required intended-head CI, actual Preview/source/security evidence, Linux/amd64 image bytes/reference checks, and checked merge/production acceptance remain pending. No completion checkbox follows from the local runs alone.
+
+## Epic F11 production acceptance: approved console limit (19 November 2026)
+
+The owner approved the protected F11-15 decision in #660 on 19 November. The
+existing output limit now also bounds QuickJS console argument serialization.
+A correct program that floods the console can pass instead of timing out;
+the visible lines and cut marker stay the same. This approval does not cover
+new VM snapshots, concurrency budgets or other grading behavior.
+
+PR #660 merged at `bce4b9c48514a054cc4154095e01b567720ea8af` after exact head
+`2435e566eab9221293940ecbb5ace849b889a6db` passed explicit `verify` and `sql`
+in run 44408883217. QuickJS, static, tests, Coding and browser jobs also passed.
+F11-08, F11-13, F11-18 and F11-15 are merged; #640 remains open for its other
+implementation and owner/cross-package items.
+
+Production `dpl_3fXw2e66te3SkpeKzZGTPJWQrZK9` is READY at that merge SHA
+and its aliases include devshark.app. The guest HTTP smoke passes 18 GETs,
+zero issues, covering four documents, entry assets, manifest and icons;
+response bodies total 795,794 bytes. It executes no app JavaScript and calls
+no API. It does not prove production grading, authenticated behavior, field
+performance or physical-device acceptance. No production SQL, settings,
+accounts, scores, orders or messages changed.
+
+## Epic F14 browser recovery and deployment evidence (19 November 2026)
+
+PR #667's first run 44489104765 at `d2bf519e` failed browser and aggregate
+verify. SQL, QuickJS, client-build, static, tests, Coding and container passed.
+The browser result was 297 passed, one route-focus failure and 19 intentional
+hidden-FDE skips; later responsive/harness steps did not run after that
+failure. A failing run is not accepted as a CI speed measurement.
+
+Two actual defects were reproduced before their fixes. A Node-only two-run
+Playwright regression shows that the later Storybook command erased earlier
+browser reports and failure attachments. Chromium and Storybook now write to
+separate result/report directories in CI and local parity. The 44-step plan
+and workflow drift check remain aligned; the new fixture passes, as do all
+14 parity CLI cases. No assertion, retry, timeout or coverage was relaxed.
+
+The route callback compared the active element with the element captured
+230ms earlier. A learner could reopen and close navigation during that delay,
+return focus to the same opener, then lose focus to the callback. Committed
+controlled regressions reproduced four real failures in both themes while
+ordinary navigation passed. The fix tracks pointer/keyboard intent during
+the existing delay and removes both capture listeners on callback and route
+cleanup. Automatic menu-close restoration still allows destination focus.
+An added cancellation control checks that a later route cancels the prior
+pending callback. Browser-only timer types now match the helper's execution
+context without changing its timing behavior.
+
+| Additional local check | Actual result |
+|---|---|
+| Quiet sequential Chromium navigation | 24/24 passed, 51.725 seconds |
+| Quiet sequential five-spec WebKit acceptance | 103/103 passed, 153.512 seconds |
+| Both complete engine invocations | Zero skips, retries, flakes or global errors |
+| Matching normal placeholder build | 218,661/218,675 initial gzip bytes; unchanged cap |
+| Final focus-source review | Listener cleanup and ordinary route behavior reviewed |
+| Rebase on approved #660 | Conflict-free; tree delta is exactly its three reviewed files |
+
+Earlier broader local runs were interrupted at 21/24 Chromium and 22/103
+WebKit, without complete result JSON. Their traces contain the correct
+Premium/task headings and Reset control, with multi-second browser setup and
+actions. The same cases and full suites pass unchanged when run sequentially
+on a quiet host. This supports load/orchestration delay; the exact historical
+interfering process is unproved. No additional Premium, Reset or Big O defect
+was reproduced. The interrupted runs remain diagnostic evidence.
+
+The actual API-files Preview `dpl_5iYmZmrhGQCrKjppXWTKtLMNHzEo` reached READY
+from 949 unique uploaded source files totaling 21,118,508 bytes. The source
+listing exposes only 546 of 949 files, so absence is not inferred from that
+partial listing. Returned content UIDs match the submitted raw SHA-1s. Both
+required SVGs appear in source; capped content readback matches their first
+1,500 bytes and reported lengths, rather than independently proving whole
+file hashes. The actual Git PR Preview `dpl_ATFitbZN18u4SgsUZ3df6FGdHWMQ`
+also reached READY at `d2bf519e`. Each passed nine security HTTP probes and
+24 canonical/encoded retired-asset GET/HEAD checks. Temporary share access
+used no new secret or project setting. The separate local header-adapter CSP
+suite passed all three cases at that head. These older previews do not prove
+the later focus fix or its final CI head.
+
+CI compared both Docker images on one Linux/amd64 runner. `docker image ls`
+reports 958 MB before and 666 MB after. The separate `image inspect .Size`
+field reports 184,771,060 and 141,950,444 bytes, a 42,820,616-byte reduction.
+These accounting views differ; the inspect field is not labeled unpacked
+disk usage. Baseline source is published `0f35d67d`; the candidate is the
+CI merge-test tree for `d2bf519e`, so intervening changes are included.
+Authored JavaScript, TypeScript and React reference tasks pass in both images
+with network disabled. The candidate keeps locked TypeScript 5.9.3 and omits
+Knip/Playwright runtime packages. Host and adapter checks remain separate.
+
+The final focus fix was committed, then the owned F14 branch was rebased on
+#660. Final clean parity, new exact-head verify/sql, merge and production
+acceptance remain pending at this documentation checkpoint. Earlier local
+QuickJS and Docker limitations remain; successful CI supplies those external
+checks only for its stated head. #657 remains held: the read-only production
+catalog on 19 November at 10:29 UTC still shows the pre-077–079 objects. The
+owner confirmation needs clarification against that observed state; no
+production migration was applied by this agent.
+
+Refs #643, #640, #646 and #629.
+
+### F14 combined gate timeout investigation
+
+The clean combined fast run at `f12b396a` completed in 35.62 minutes with
+32 passing steps, two failures, nine skips and one unavailable local QuickJS
+rebuild. Coding passed all 814 reference tasks in 1,227 seconds. The complete
+client suite, unchanged 218,675-byte bundle ceiling, 180 light/60 dark probes
+and both zoom profiles passed. This is a failed run, not final acceptance.
+
+The performance failure was a Docker fixture's five-second child-readiness
+abort before its encoded-path HTTP assertion. The launch failure was the
+active Daily fixture mapping a marker-operation timeout to 503. Its 42.276s
+whole-call duration does not identify which marker phase stalled; the Docker
+test's 17.607s also includes setup before readiness. No DNS, socket leak,
+security-response defect or exact host-load cause was established. The
+investigated production and fixture sources are unchanged from `d2bf519e`.
+
+An isolated sequential rerun at the same clean `f12b396a` passes all 37 Docker
+adapter cases in 1.443 seconds, including both encoded traversal paths. The
+package-equivalent verified-caller compile passes in 0.145 seconds and its
+whole process passes in 62.748 seconds. Active, revoked, guest, stored-marker
+and unavailable-marker controls all complete, including intended 503 cases.
+Source hashes remain unchanged, with no retry, timeout, assertion or source
+change. Both former failures were not reproduced. Their original logs and
+failed summary remain separate from these successful focused reruns.
+
+A new complete fast run with `--bail` is required before pushing this
+checkpoint. The remaining full-only browser, harness, performance and
+Storybook gates then run on the same frozen source, alongside the earlier
+complete full evidence. Required CI must still supply QuickJS, Docker and
+SQL on the actual new head. No merge or production acceptance is implied.

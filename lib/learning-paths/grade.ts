@@ -69,10 +69,10 @@ export interface CheckGrade {
  * its own. With two questions a domain can score 0%, 50% or 100%, so an 80%
  * gate per domain meant every question had to be right: one miss anywhere
  * failed a check whose screen said 80%. */
-export const SMALL_DOMAIN_QUESTIONS = 5;
+const SMALL_DOMAIN_QUESTIONS = 5;
 /** What a small domain needs instead: at least half of its questions right,
  * so a domain with no right answer still fails however strong the others are. */
-export const SMALL_DOMAIN_THRESHOLD = 0.5;
+const SMALL_DOMAIN_THRESHOLD = 0.5;
 
 /** The share each domain of a domain-gated check has to reach on its own. A
  * domain with at least SMALL_DOMAIN_QUESTIONS questions keeps the check's own

@@ -24,6 +24,7 @@ export type LearnerConsole = Record<string, (...args: unknown[]) => void>;
 export type LearnerConsoleFactory = (emit: ConsoleEmit, format: ConsoleFormat, clock: ConsoleClock) => LearnerConsole;
 
 /** Rows past this many are summarised, so one table cannot flood the tab. */
+/** @public Published from packages/coding-evaluator/src/index.ts; preserve the package API. */
 export const CONSOLE_TABLE_ROWS = 50;
 
 /** Plain ES2019 on purpose: QuickJS evaluates it as written. */

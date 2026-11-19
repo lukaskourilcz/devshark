@@ -140,7 +140,7 @@ const BY_TAG = new Map<string, CodingDocLink>(
 export const CODING_DOC_LINKS: readonly CodingDocLink[] = [...BY_TAG.values()];
 
 /** The JavaScript reference, used when a task declares nothing we document. */
-export const CODING_DOCS_FALLBACK: CodingDocLink = {
+const CODING_DOCS_FALLBACK: CodingDocLink = {
   tag: 'javascript',
   url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript',
   title: 'JavaScript',

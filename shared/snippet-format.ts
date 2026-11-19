@@ -20,7 +20,7 @@
  * question rather than inside the coding contracts. */
 
 /** What kind of reading the snippet asks for. One per question. */
-export const SNIPPET_SUBTYPES = [
+const SNIPPET_SUBTYPES = [
   /** What does this produce, or what state does it end in? */
   'predict',
   /** Which line is wrong, or what is the smallest correct repair? */
@@ -36,14 +36,14 @@ export type SnippetSubtype = (typeof SNIPPET_SUBTYPES)[number];
 
 /** The notation the code is written in. `pseudocode` and `sql` are here because
  * not every readable snippet is a program in a language we run. */
-export const SNIPPET_LANGUAGES = [
+const SNIPPET_LANGUAGES = [
   'javascript', 'typescript', 'jsx', 'html', 'css', 'sql', 'bash', 'yaml', 'diff', 'pseudocode',
 ] as const;
 export type SnippetLanguage = (typeof SNIPPET_LANGUAGES)[number];
 
 /** Versioned so a later change to what the metadata means is a new version
  * rather than a silent reinterpretation of what authors already wrote. */
-export const SNIPPET_METADATA_VERSION = 1;
+const SNIPPET_METADATA_VERSION = 1;
 
 export interface SnippetMeta {
   version: typeof SNIPPET_METADATA_VERSION;

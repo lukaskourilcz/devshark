@@ -123,8 +123,9 @@ const FILE_PATHS = [...ASSET_PATHS, ...STATIC_MEDIA_PATHS];
 const DOCUMENTS = ['/', '/index.html', '/coding', '/coding/javascript/js-double-numbers', '/premium/index.html', '/topics/javascript-closures/index.html', '/sandbox/index.html'];
 const WORKER_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'; connect-src 'self'";
 
-export function vercelRoutingContracts(): void {
-  const config = readVercelConfig();
+const RETIRED_TRIAGE_SOURCE = "^/(?:t|%74)(?:r|%72)(?:i|%69)(?:a|%61)(?:g|%67)(?:e|%65)(?:-|%2[dD])(?:v|%76)(?:e|%65)(?:r|%72)(?:d|%64)(?:i|%69)(?:c|%63)(?:t|%74)(?:s|%73)(?:\\.|%2[eE])(?:j|%6[aA])(?:s|%73)(?:o|%6[fF])(?:n|%6[eE])$";
+
+export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()): void {
   assert.equal(config.headers, undefined, 'vercel.json keeps its header rules in `routes`: a `headers` property would be appended after the hit phase and reach existing files only');
   const handles = (config.routes ?? []).filter((route) => route.handle !== undefined).map((route) => route.handle);
   assert.deepEqual(handles, ['filesystem', 'hit'], 'vercel.json routes: header rules, then the filesystem phase, then the hit phase, each once');
@@ -141,11 +142,28 @@ export function vercelRoutingContracts(): void {
     assert.equal(phaseHeaders(path, 'main', phases)['x-robots-tag'], undefined, `${path} remains indexable`);
   }
 
-  // Every rule before the filesystem check only adds headers, so none of them
-  // ends the request early and every rule after it still runs. The one
-  // exception is a permanent redirect of a moved page, which ends the request
-  // on purpose and comes after every header rule, so the 308 still carries
-  // the app's security headers.
+  // Main-phase rules normally add headers. Reviewed terminal exceptions
+  // retire one private asset, serve the retired guide's 404 or redirect a
+  // moved page. Their exact shapes remain explicit instead of allowing
+  // arbitrary early responses before the filesystem/security rules.
+  const retiredTriage = phases.main.filter(route => route.src === RETIRED_TRIAGE_SOURCE);
+  assert.equal(retiredTriage.length, 1, 'one reviewed private triage retirement precedes the filesystem');
+  const [privateAsset] = retiredTriage;
+  assert.deepEqual(Object.keys(privateAsset).sort(), ['headers', 'src', 'status']);
+  assert.equal(privateAsset.status, 404, 'the retired private asset never answers success');
+  assert.deepEqual(privateAsset.headers, { 'Cache-Control': 'no-store' });
+  const filename = 'triage-verdicts.json';
+  const encoded = [...filename].map(char => `%${char.charCodeAt(0).toString(16)}`).join('');
+  const privatePaths = ['/triage-verdicts.json', '/%74riage-verdicts.json', '/triage-verdicts%2ejson', '/triage-verdicts%2Ejson', `/${encoded}`, `/${encoded.toUpperCase()}`];
+  for (const path of privatePaths) {
+    assert.ok(routeMatches(privateAsset, path), `${path} is retired before a copied file or fallback`);
+    const matchingHeaders = phases.main.filter(route => route.continue === true && routeMatches(route, path));
+    assert.ok(matchingHeaders.every(route => phases.main.indexOf(route) < phases.main.indexOf(privateAsset)), `${path} retains all matching security headers before ending`);
+    assert.ok(phaseHeaders(path, 'main', phases)['content-security-policy'], `${path} retains the app policy`);
+  }
+  for (const path of [...FILE_PATHS, ...DOCUMENTS, '/triage-verdicts.json.backup', '/triage-verdicts.json/extra', '/triage%252dverdicts.json', '/caf%C3%A9.json']) {
+    assert.ok(!routeMatches(privateAsset, path), `${path} is outside the private retirement exception`);
+  }
   const retiredGuides = phases.main.filter((route) => route.src === '^/cs/topics(?:/.*)?$');
   assert.equal(retiredGuides.length, 1, 'retired guide URLs answer the app shell with HTTP 404');
   const redirects = phases.main.filter((route) => route.status === 308);
@@ -157,7 +175,7 @@ export function vercelRoutingContracts(): void {
       assert.equal(route.headers?.['X-Robots-Tag'], 'noindex');
       continue;
     }
-    if (redirects.includes(route)) continue;
+    if (route === privateAsset || redirects.includes(route)) continue;
     assert.ok(route.continue === true && route.headers && !route.dest && route.status === undefined, `${route.src} runs before the filesystem check and must only add headers`);
   }
   // Public Learn previews must reach their own HTML before the SPA fallback.

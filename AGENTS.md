@@ -29,7 +29,7 @@ Authoritative references:
 - `docs/release-acceptance.md` — the acceptance matrix: every gate with its
   actual result, and every check that could not run
 
-Release commands are `npm run typecheck:api`, `npm run test:launch`, `npm run build`, `npm run check:responsive`, `npm audit --omit=dev`, `npm audit --omit=dev --prefix client`, and `git diff --check`. They are the inner loop. The required `verify` CI job passes only when the quickjs, static, tests, coding and browser jobs of `.github/workflows/quality.yml` pass; `npm run ci:parity` runs their 58 steps locally in the same order (`.claude/skills/ci-parity-and-pr/SKILL.md` says when `--fast` is enough). Merge only through a pull request with `verify` and `sql` green. Record actual outcomes. Stage only coherent intended files, leave unrelated work untouched, and commit incrementally.
+Release commands are `npm run typecheck:api`, `npm run test:launch`, `npm run build`, `npm run check:responsive`, `npm audit --omit=dev`, `npm audit --omit=dev --prefix client`, and `git diff --check`. They are the inner loop. The required `verify` CI job passes only when the quickjs, client-build, static, tests, coding, browser and container jobs of `.github/workflows/quality.yml` pass; `npm run ci:parity` runs their 44 steps locally in the same order (`.claude/skills/ci-parity-and-pr/SKILL.md` says when `--fast` is enough). Merge only through a pull request with `verify` and `sql` green. Record actual outcomes. Stage only coherent intended files, leave unrelated work untouched, and commit incrementally.
 
 ## Repository workflows
 

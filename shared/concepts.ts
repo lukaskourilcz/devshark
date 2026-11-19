@@ -64,7 +64,7 @@ const g = (
   })),
 });
 
-export const CONCEPT_GROUPS: readonly ConceptGroup[] = [
+const CONCEPT_GROUPS: readonly ConceptGroup[] = [
   g('js-array-transform', 'javascript',
     'Transforming an array',
     'Each of these walks the array once. What differs is what you get back.',

@@ -24,7 +24,7 @@ export const SUBJECT_SCOPE_CATALOG = {
 } as const;
 
 export type ScopeSubjectId = keyof typeof SUBJECT_SCOPE_CATALOG;
-export const SCOPE_SUBJECT_ORDER = Object.keys(SUBJECT_SCOPE_CATALOG) as ScopeSubjectId[];
+const SCOPE_SUBJECT_ORDER = Object.keys(SUBJECT_SCOPE_CATALOG) as ScopeSubjectId[];
 
 const CATEGORY_OWNER = new Map<string, ScopeSubjectId>();
 const TOPIC_OWNER = new Map<string, ScopeSubjectId>();

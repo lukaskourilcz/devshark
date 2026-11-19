@@ -23,7 +23,7 @@ export type CodingVerify = 'tests' | 'checklist' | 'guided' | 'drill';
  * axis from `CodingVerify` — a filter, a label and an authoring decision, not a
  * second grading path. Absent means `implement`, so every existing task keeps
  * its meaning without being edited. */
-export const CODING_FORMATS = ['implement', 'debug'] as const;
+const CODING_FORMATS = ['implement', 'debug'] as const;
 export type CodingFormat = (typeof CODING_FORMATS)[number];
 export const formatOf = (task: { format?: CodingFormat }): CodingFormat => task.format ?? 'implement';
 
@@ -339,6 +339,7 @@ export const CODING_TECHNIQUE_GROUPS = {
   design: ['estimation', 'tradeoff', 'bottleneck', 'sequence', 'scoping', 'data-model', 'request-flow', 'failure', 'scale', 'caching', 'queues', 'auth', 'networking'],
 } as const;
 export type CodingTechniqueGroup = keyof typeof CODING_TECHNIQUE_GROUPS;
+/** @public Authoring adapter: scripts/port-interview-prepper.mjs reads this from its generated module. */
 export const CODING_TECHNIQUES: readonly string[] = Object.values(CODING_TECHNIQUE_GROUPS).flat();
 const TECHNIQUE_GROUP = new Map<string, CodingTechniqueGroup>();
 for (const [group, tags] of Object.entries(CODING_TECHNIQUE_GROUPS)) {
@@ -348,8 +349,8 @@ export const techniqueGroup = (tag: string): CodingTechniqueGroup | undefined =>
 export const isCodingTechnique = (tag: string): boolean => TECHNIQUE_GROUP.has(tag);
 
 /** Loop and array-method tags the confidence badges count. */
-export const LOOP_TAGS: readonly string[] = CODING_TECHNIQUE_GROUPS.loops;
-export const METHOD_TAGS: readonly string[] = CODING_TECHNIQUE_GROUPS['array-methods'];
+const LOOP_TAGS: readonly string[] = CODING_TECHNIQUE_GROUPS.loops;
+const METHOD_TAGS: readonly string[] = CODING_TECHNIQUE_GROUPS['array-methods'];
 
 /** Base XP for a verified pass. Level XP in Learn is 50 × difficulty,
  * so a foundation task is worth half a level. */

@@ -25,7 +25,7 @@ const MAX_ATTEMPTS = 5;
 
 /** Every variable the garden needs. Without the OAuth client pair a connect
  * could not prove who owns the installation, so the garden stays off. */
-export const GITHUB_APP_ENV = [
+const GITHUB_APP_ENV = [
   'GITHUB_APP_ID',
   'GITHUB_APP_SLUG',
   'GITHUB_APP_PRIVATE_KEY',
@@ -49,7 +49,7 @@ const b64url = (input: Buffer | string): string => Buffer.from(input).toString('
 
 /** RS256 app JWT, valid for nine minutes, issued a minute in the past to
  * absorb clock skew (GitHub rejects tokens issued in the future). */
-export function appJwt(now = Date.now()): string {
+function appJwt(now = Date.now()): string {
   const iat = Math.floor(now / 1000) - 60;
   const header = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
   const payload = b64url(JSON.stringify({ iat, exp: iat + 9 * 60, iss: process.env.GITHUB_APP_ID }));
@@ -224,7 +224,7 @@ export async function listInstallationRepos(token: string): Promise<RepoInfo[]> 
   return repositories;
 }
 
-export async function getFile(token: string, repo: string, path: string, branch: string): Promise<{ sha: string; content: string } | null> {
+async function getFile(token: string, repo: string, path: string, branch: string): Promise<{ sha: string; content: string } | null> {
   try {
     const data = await gh<{ sha: string; content: string; encoding: string }>(`/repos/${repo}/contents/${encodeURI(path)}?ref=${encodeURIComponent(branch)}`, { token });
     const content = data.encoding === 'base64' ? Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf8') : data.content;
@@ -235,7 +235,7 @@ export async function getFile(token: string, repo: string, path: string, branch:
   }
 }
 
-export async function putFile(token: string, repo: string, path: string, input: {
+async function putFile(token: string, repo: string, path: string, input: {
   content: string;
   message: string;
   branch: string;
@@ -267,7 +267,7 @@ const TRACK_NAMES: Record<CodingTask['track'], string> = {
   algorithms: 'Algorithms',
 };
 
-export function commitMessageFor(task: CodingTask): string {
+function commitMessageFor(task: CodingTask): string {
   const track = TRACK_NAMES[task.track];
   return `Complete "${task.title}" (${track}${hasLearnLevel(task) ? `, ${task.topic === 'dsa' ? 'DSA level' : 'level'} ${task.level}` : ''})`;
 }
@@ -278,7 +278,7 @@ const LEVEL_TITLES: Record<string, string[]> = {
   react: ['JSX Basics', 'Components', 'Props', 'Rendering Lists', 'Conditional Rendering', 'useState: Basics', 'Event Handling', 'Updating State', 'State: Objects & Arrays', 'Derived State', 'useEffect: Basics', 'Effect Dependencies', 'Cleanup Functions', 'useRef', 'Forms & Inputs', 'Lifting State Up', 'useMemo', 'useCallback', 'useReducer', 'useContext', 'Custom Hooks', 'Keys & Reconciliation', 'Performance Patterns', 'Common Pitfalls', 'Mixed Mastery'],
 };
 
-export function buildTaskFile(task: CodingTask, code: string, verdict: { passed: number; total: number }, date = new Date()): string {
+function buildTaskFile(task: CodingTask, code: string, verdict: { passed: number; total: number }, date = new Date()): string {
   const day = date.toISOString().slice(0, 10);
   const trackName = TRACK_NAMES[task.track];
   const levelName = task.level > 0 ? LEVEL_TITLES[task.track]?.[task.level - 1] : undefined;
@@ -299,7 +299,7 @@ export function buildTaskFile(task: CodingTask, code: string, verdict: { passed:
   return `${header}${code.replace(/\s+$/, '')}\n`;
 }
 
-export function readmeFor(login: string): string {
+function readmeFor(login: string): string {
   return `# devShark garden\n\nEvery coding task passed on devShark lands here as one file, one folder per subject. Commits are written by the devShark garden app on behalf of ${login}.\n\nhttps://devshark.app/coding\n`;
 }
 

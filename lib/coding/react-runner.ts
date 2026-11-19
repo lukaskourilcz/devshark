@@ -20,7 +20,7 @@ import { UTC_TIME_SOURCE, type UtcTimeOptions } from '../../shared/coding-utc-ti
 import { createReactLearner, type ReactLearner } from './react-learner';
 
 /** How long one suite may take before it is called a timeout. */
-export const REACT_SUITE_TIMEOUT_MS = 5_000;
+const REACT_SUITE_TIMEOUT_MS = 5_000;
 
 type TestingLibrary = typeof import('@testing-library/react');
 

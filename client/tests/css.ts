@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 
 const SHEETS = {
   appShell: '../src/styles/app-shell.css',
+  mobileNavigation: '../src/components/MobileNavigation.css',
   roadmap: '../src/components/Roadmap.css',
   deepEnd: '../src/components/DeepEndScreens.css',
   terms: '../src/components/ui/Terms.css',

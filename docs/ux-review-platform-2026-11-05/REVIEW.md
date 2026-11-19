@@ -34,7 +34,7 @@ Primary guidance: [W3C breadcrumbs](https://www.w3.org/WAI/ARIA/apg/patterns/bre
 
 ## Deliverable and decisions
 
-Open [the standalone interactive review](index.html). It contains 27 independently commentable decisions, 33 matched screenshot pairs across 16 scenes, the inspected Uizze reference gallery and explicit coverage limits. Each decision has stable ID, evidence, proposed behavior, dependencies and an implementation check. Confirmed defects, owner requests, design proposals and verification conditions are labelled separately.
+Open [the standalone interactive review](https://github.com/lukaskourilcz/devshark/blob/0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c/docs/ux-review-platform-2026-11-05/index.html). It contains 27 independently commentable decisions, 33 matched screenshot pairs across 16 scenes, the inspected Uizze reference gallery and explicit coverage limits. Each decision has stable ID, evidence, proposed behavior, dependencies and an implementation check. Confirmed defects, owner requests, design proposals and verification conditions are labelled separately.
 
 The full-size editor concept uses `coding / fullstack / linkShortener1.js` with linked real parents, a common right tab strip and a stage row below the card. The following level's display-name rule is camelCase plus the stage number, for example `linkShortener2.js`; native TypeScript contexts retain their corresponding `.ts` label. These are display names, not changes to grading entrypoints. Classic JavaScript uses `digitSum.js`.
 

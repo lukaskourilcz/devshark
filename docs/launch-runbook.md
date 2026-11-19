@@ -70,7 +70,7 @@ Production runs `public.purge_expired_learning_data()` once a day through pg_cro
 
 ## Preflight
 
-Run the `verify` job locally before merging: `npm run ci:parity` (`--list` prints the plan, `--only` runs named steps, `--fast` skips the browser specs, the harness test and Storybook, and `--sql` adds the `sql` job against an empty Postgres in `DATABASE_URL`). CI's workflow `.github/workflows/quality.yml` runs the jobs `sql`, `quickjs`, `static`, `tests`, `coding` and `browser`; the aggregator `verify` passes only when the five non-SQL jobs pass, and branch protection requires `verify` and `sql`, for admins too.
+Run the `verify` job locally before merging: `npm run ci:parity` (`--list` prints the plan, `--only` runs named steps, `--fast` skips the combined browser run, harness, performance, Storybook and container checks, and `--sql` adds the `sql` job against an empty Postgres in `DATABASE_URL`). CI's workflow `.github/workflows/quality.yml` runs the jobs `sql`, `quickjs`, `client-build`, `static`, `tests`, `coding`, `browser` and `container`; the aggregator `verify` passes only when the seven non-SQL jobs pass, and branch protection requires `verify` and `sql`, for admins too.
 
 The checks that matter most for a release:
 

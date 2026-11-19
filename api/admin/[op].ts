@@ -97,6 +97,8 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
         return await logsOp(req, res);
       case 'settings':
         return await settingsOp(req, res);
+      case 'triage':
+        return await triageOp(req, res);
       case 'quality':
         return await qualityOp(req, res);
       case 'learning-paths':
@@ -155,6 +157,17 @@ async function learningPathsOp(req: VercelRequest, res: VercelResponse) {
   log({ op: 'learning-paths', status: 200, paths: paths.length });
   res.setHeader('Cache-Control', 'private, no-store');
   return res.json({ paths });
+}
+
+/** Called only after fresh Auth, RATE_LIMITS.admin and requireAdmin. */
+async function triageOp(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return jsonError(res, 405, 'method_not_allowed', 'Method not allowed');
+  }
+  res.setHeader('Cache-Control', 'private, no-store');
+  const { readAdminTriage } = await import('../../lib/admin-triage');
+  return res.json(readAdminTriage());
 }
 
 async function qualityOp(req: VercelRequest, res: VercelResponse) {

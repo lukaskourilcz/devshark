@@ -12,7 +12,7 @@
     "typecheck:api": "tsc --noEmit",
     "typecheck:scripts": "tsc -p tsconfig.scripts.json",
     "test:launch": "esbuild scripts/test-launch-contracts.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/launch-contracts.mjs --log-level=warning && node node_modules/.cache/shark/launch-contracts.mjs && esbuild scripts/test-play-rooms.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/play-rooms.mjs --log-level=warning && node node_modules/.cache/shark/play-rooms.mjs && esbuild scripts/test-verified-caller.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/verified-caller.mjs --log-level=warning && node node_modules/.cache/shark/verified-caller.mjs && npm run test:marketing",
-    "check:responsive": "node scripts/test-responsive-matrix.mjs && node scripts/test-responsive-fixtures.mjs && node scripts/test-responsive-targets.mjs && node scripts/test-responsive-clearance.mjs && node scripts/check-responsive.mjs",
+    "check:responsive": "node scripts/test-responsive-matrix.mjs && node scripts/test-responsive-workers.mjs && node scripts/test-responsive-fixtures.mjs && node scripts/test-responsive-targets.mjs && node scripts/test-responsive-clearance.mjs && node scripts/check-responsive.mjs",
     "preview": "vercel dev --listen 3000",
     "install:all": "npm install && cd client && npm install",
     "test:coding": "esbuild scripts/test-coding-content.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/coding-content.mjs --log-level=warning && node node_modules/.cache/shark/coding-content.mjs",
@@ -32,7 +32,7 @@
     "build:storybook": "npm run build:storybook --prefix client",
     "audit:unused": "knip --reporter json",
     "audit:upstream": "node scripts/audit-upstream-advisories.mjs",
-    "check:unused": "node scripts/check-unused.mjs && node scripts/check-dependency-placement.mjs",
+    "check:unused": "node scripts/test-unused.mjs && node scripts/check-unused.mjs && node scripts/check-dependency-placement.mjs",
     "check:public": "node scripts/check-public.mjs && npm run check:design",
     "check:images": "node scripts/test-images.mjs && node scripts/check-images.mjs",
     "check:design": "node scripts/test-design-contract.mjs && node scripts/check-design-contract.mjs",
@@ -60,7 +60,12 @@
     "test:performance": "esbuild scripts/test-settings-cache.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/settings-cache.mjs --log-level=warning && node node_modules/.cache/shark/settings-cache.mjs && esbuild scripts/test-request-timing.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/request-timing.mjs --log-level=warning && node node_modules/.cache/shark/request-timing.mjs",
     "perf:measure": "node scripts/measure-web-performance.mjs",
     "perf:fixture": "node scripts/performance-fixture-server.mjs",
-    "test:marketing": "esbuild scripts/test-marketing-source.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/marketing-source.mjs --log-level=warning && node node_modules/.cache/shark/marketing-source.mjs && esbuild scripts/test-marketing-export.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/marketing-export.mjs --log-level=warning && node node_modules/.cache/shark/marketing-export.mjs"
+    "test:marketing": "esbuild scripts/test-marketing-source.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/marketing-source.mjs --log-level=warning && node node_modules/.cache/shark/marketing-source.mjs && esbuild scripts/test-marketing-export.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/marketing-export.mjs --log-level=warning && node node_modules/.cache/shark/marketing-export.mjs",
+    "check:binary-size": "node scripts/test-binary-size.mjs && node scripts/check-binary-size.mjs",
+    "check:ci-build-artifact": "node scripts/test-ci-browser-artifacts.mjs && node scripts/test-ci-parity-cli.mjs && node scripts/test-ci-build-artifact.mjs && node scripts/ci-build-artifact.mjs pack artifacts/client-build.tar",
+    "check:docs-archive": "node scripts/test-docs-archive.mjs",
+    "check:deploy-contexts": "node scripts/test-deploy-contexts.mjs",
+    "test:container": "node docker/runtime-dependencies.test.mjs && node docker/server.test.mjs && node scripts/measure-container.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

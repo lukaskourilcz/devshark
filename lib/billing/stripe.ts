@@ -19,15 +19,19 @@ export type StripeApi = Pick<
  * ten-second function budget (vercel.json), and the handler still answers
  * instead of being cut off without a response. POSTs carry an idempotency key
  * on the retry, so a retried create is never made twice. */
+/** @public Fresh-module contract reader: scripts/test-billing.ts accesses this through its isolated loader. */
 export const STRIPE_TIMEOUT_MS = 4000;
+/** @public Fresh-module contract reader: scripts/test-billing.ts accesses this through its isolated loader. */
 export const STRIPE_NETWORK_RETRIES = 1;
 /** stripe-node's wait before its first retry. */
+/** @public Fresh-module contract reader: scripts/test-billing.ts accesses this through its isolated loader. */
 export const STRIPE_RETRY_DELAY_MS = 500;
 
 let testClient: StripeApi | null = null;
 let cached: { key: string; client: StripeApi } | null = null;
 
 /** Replace the Stripe client (tests only); null restores the real one. */
+/** @public Fresh-module contract reader: scripts/test-billing.ts accesses this through its isolated loader. */
 export function setStripeForTests(client: StripeApi | null): void {
   testClient = client;
 }
@@ -113,6 +117,7 @@ function readStream(req: VercelRequest, timeoutMs: number): Promise<string | nul
 }
 
 /** The strings the signature may cover, most faithful first. */
+/** @public Fresh-module contract reader: scripts/test-billing.ts accesses this through its isolated loader. */
 export async function rawBodyCandidates(req: VercelRequest, timeoutMs = 1500): Promise<string[]> {
   const out: string[] = [];
   const add = (value: string | null | undefined) => {

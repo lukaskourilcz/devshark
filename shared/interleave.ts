@@ -27,11 +27,11 @@ import { areContrastable, conceptOf } from './concepts';
 
 /** The minimum a learner must have done with a concept before it is mixed with
  * anything. One correct answer is a coincidence; a small block is a start. */
-export const FOCUSED_BLOCK_SIZE = 4;
+const FOCUSED_BLOCK_SIZE = 4;
 
 /** Never more than this many of one concept in a row. Two is deliberate: one
  * would force a strict alternation, which teaches the alternation. */
-export const MAX_RUN = 2;
+const MAX_RUN = 2;
 
 /** How many of one concept to take before moving on, cycled. A fixed short
  * cycle rather than a random one, so the same session always arranges the same

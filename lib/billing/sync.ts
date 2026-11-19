@@ -82,7 +82,7 @@ export function periodEnd(sub: Stripe.Subscription): string | null {
 
 /** When the current period began: for a past_due subscription, the renewal
  * that failed. */
-export function periodStart(sub: Stripe.Subscription): string | null {
+function periodStart(sub: Stripe.Subscription): string | null {
   const itemStarts = (sub.items?.data ?? [])
     .map((item) => item.current_period_start)
     .filter((value): value is number => typeof value === 'number');
@@ -106,12 +106,12 @@ function markedProduct(object: WithMetadata): string | null {
 }
 
 /** Marked by devShark's checkout itself. */
-export const markedDevshark = (object: WithMetadata): boolean => markedProduct(object) === DEVSHARK_PRODUCT;
+const markedDevshark = (object: WithMetadata): boolean => markedProduct(object) === DEVSHARK_PRODUCT;
 
 /** Made by devShark's checkout: its product marker, or, on a session or
  * subscription made before the marker, the account id it wrote. Another
  * product's marker wins over an account id. */
-export function fromDevsharkCheckout(object: WithMetadata): boolean {
+function fromDevsharkCheckout(object: WithMetadata): boolean {
   const product = markedProduct(object);
   if (product !== null) return product === DEVSHARK_PRODUCT;
   return typeof object.metadata?.supabase_user_id === 'string' && object.metadata.supabase_user_id.length > 0;
@@ -122,7 +122,7 @@ export function fromDevsharkCheckout(object: WithMetadata): boolean {
  * devShark created must not open Premium (finding integrity-7). Another
  * product's marker says no whatever the Price. With no Price configured at
  * all the question cannot be asked, and the checkout's metadata decides. */
-export function billsPremium(sub: Stripe.Subscription, config: BillingConfig = billingConfig()): boolean {
+function billsPremium(sub: Stripe.Subscription, config: BillingConfig = billingConfig()): boolean {
   if (markedProduct(sub) !== null && !markedDevshark(sub)) return false;
   const ours = premiumPriceIds(config);
   if (ours.size === 0) return fromDevsharkCheckout(sub);
@@ -138,10 +138,10 @@ export const isDevsharkSubscription = (sub: Stripe.Subscription, config: Billing
 export const endsInsteadOfRenewing = (sub: Stripe.Subscription): boolean =>
   sub.cancel_at_period_end === true || (typeof sub.cancel_at === 'number' && sub.status !== 'canceled');
 
-export const priceOf = (sub: Stripe.Subscription): string | null => idOf(sub.items?.data?.[0]?.price) ?? null;
+const priceOf = (sub: Stripe.Subscription): string | null => idOf(sub.items?.data?.[0]?.price) ?? null;
 
 /** The subscription an invoice bills, in this API version's shape or the older one. */
-export function subscriptionOfInvoice(invoice: Stripe.Invoice): string | null {
+function subscriptionOfInvoice(invoice: Stripe.Invoice): string | null {
   const parent = invoice.parent?.subscription_details?.subscription;
   return idOf(parent) ?? idOf((invoice as unknown as { subscription?: unknown }).subscription);
 }
@@ -342,7 +342,7 @@ function mirrorOf(sub: Stripe.Subscription, userId: string, revoke: string | nul
 }
 
 /** The subscription a payment paid for, found through its invoice. */
-export async function subscriptionForPayment(
+async function subscriptionForPayment(
   deps: BillingDeps,
   paymentIntentId: string | null,
   chargeId: string | null,
@@ -411,7 +411,7 @@ export async function revokeSubscription(
  * that time. It does nothing while another grant keeps the account Premium,
  * and a second call changes nothing. A failure is thrown, so the webhook
  * answers 500 and Stripe delivers the event again. */
-export async function takeBackPremiumBenefits(deps: BillingDeps, subscriptionId: string): Promise<void> {
+async function takeBackPremiumBenefits(deps: BillingDeps, subscriptionId: string): Promise<void> {
   const subject = deploymentSubjectIds()[0] ?? 'webdev';
   const { data, error } = await withTimeout(
     deps.supabase.rpc('revoke_premium_benefits', { p_subscription_id: subscriptionId, p_subject: subject }),
@@ -572,20 +572,6 @@ async function warnOnSecondSubscription(deps: BillingDeps, sync: SyncResult): Pr
 }
 
 /* ── Webhook events ─────────────────────────────────────────────────────── */
-
-/** The events the endpoint subscribes to. Anything else is recorded and
- * ignored. */
-export const HANDLED_EVENTS = [
-  'checkout.session.completed',
-  'customer.subscription.created',
-  'customer.subscription.updated',
-  'customer.subscription.deleted',
-  'invoice.paid',
-  'invoice.payment_failed',
-  'charge.refunded',
-  'charge.dispute.created',
-  'radar.early_fraud_warning.created',
-] as const;
 
 export interface EventOutcome {
   outcome: 'applied' | 'ignored';

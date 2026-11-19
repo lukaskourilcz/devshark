@@ -26,7 +26,7 @@ export function cumulativeLevels(id: string, boards: Boards, hidden: Hidden): [s
 /** A debugging path's starter, cut into its levels: the code under each
  * `// Level N` heading, without the headings, the file comment at the top or
  * the scratch pad at the bottom. */
-export function starterLevels(starter: string): string[] {
+function starterLevels(starter: string): string[] {
   const [, ...levels] = starter.split(/^\/\/ Level \d+\n/m);
   return levels.map((code) => code.split(/^\/\/ Scratch pad/m)[0].trim());
 }

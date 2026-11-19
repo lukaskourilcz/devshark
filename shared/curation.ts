@@ -51,7 +51,7 @@ export const RELEVANCE_MAX = RELEVANCE_MARKERS.length * MARKER_MAX; // 10
 export const RELEVANCE_MIN = 4;
 
 /** What the quality score is scored on. One point each. */
-export const QUALITY_CRITERIA = [
+const QUALITY_CRITERIA = [
   'correctness',
   'clarity',
   'answer-choices',
@@ -64,8 +64,8 @@ export const QUALITY_MAX = QUALITY_CRITERIA.length; // 5
 /** Below this an item leaves the active pool. */
 export const QUALITY_MIN = 3;
 
-export const passesRelevance = (score: number): boolean => score >= RELEVANCE_MIN;
-export const passesQuality = (score: number): boolean => score >= QUALITY_MIN;
+const passesRelevance = (score: number): boolean => score >= RELEVANCE_MIN;
+const passesQuality = (score: number): boolean => score >= QUALITY_MIN;
 /** Both gates, never one standing in for the other. */
 export const passesBothGates = (relevance: number, quality: number): boolean =>
   passesRelevance(relevance) && passesQuality(quality);
@@ -82,6 +82,7 @@ export const passesBothGates = (relevance: number, quality: number): boolean =>
  * the content audit script. For a coding task, `execution` is the solution
  * proven against the grader, which is evidence that the task is solvable as
  * specified and is not evidence that it has no defects. */
+/** @public Authoring API documented in .claude/skills/learn-question-authoring/references/ledger-row.md. */
 export const REVIEW_EVENT_KINDS = ['human', 'model', 'automated', 'execution'] as const;
 export type ReviewEventKind = (typeof REVIEW_EVENT_KINDS)[number];
 
@@ -114,6 +115,7 @@ export interface ReviewRecord {
  * keep an item live (a rewrite is re-scored on its corrected version before it
  * returns); `retire` and `quarantine` remove it from every active pool the
  * moment the decision is recorded. */
+/** @public Authoring API documented in .claude/skills/learn-question-authoring/references/ledger-row.md. */
 export const LEDGER_DECISIONS = ['retain', 'rewrite', 'retire', 'quarantine'] as const;
 export type LedgerDecision = (typeof LEDGER_DECISIONS)[number];
 export const isLedgerDecision = (value: unknown): value is LedgerDecision =>
@@ -127,6 +129,7 @@ export interface RelevanceMarkers {
   audienceFit: number;
   riskOutcome: number;
 }
+/** @public Authoring API documented in .claude/skills/learn-question-authoring/references/ledger-row.md. */
 export const RELEVANCE_MARKER_KEYS = ['presentDay', 'practicalUtility', 'transferable', 'audienceFit', 'riskOutcome'] as const;
 
 /** The seven quality dimensions, 1-5 each. The final quality score is their
@@ -140,10 +143,13 @@ export interface QualityDimensions {
   hint: number;
   explanation: number;
 }
+/** @public Authoring API documented in .claude/skills/learn-question-authoring/references/ledger-row.md. */
 export const QUALITY_DIMENSION_KEYS = ['topicRelevance', 'learningValue', 'technicalCorrectness', 'wording', 'answerOptions', 'hint', 'explanation'] as const;
 
+/** @public Authoring API documented in .claude/skills/learn-question-authoring/references/ledger-row.md. */
 export const relevanceTotal = (markers: RelevanceMarkers): number =>
   RELEVANCE_MARKER_KEYS.reduce((sum, key) => sum + markers[key], 0);
+/** @public Authoring API documented in .claude/skills/learn-question-authoring/references/ledger-row.md. */
 export const qualityFloor = (dimensions: QualityDimensions): number =>
   Math.min(...QUALITY_DIMENSION_KEYS.map((key) => dimensions[key]));
 
@@ -272,16 +278,16 @@ export function reviewStatusFor(
   return 'reviewed';
 }
 
-export const countEvents = (record: ReviewRecord | null | undefined, kind: ReviewEventKind): number =>
+const countEvents = (record: ReviewRecord | null | undefined, kind: ReviewEventKind): number =>
   record ? record.events.filter((event) => event.kind === kind).length : 0;
 
 /** The most recent human review date, or null. Used for "reviewed on", which
  * is a claim about a person having looked, not about a script having run. */
-export function lastHumanReviewAt(record: ReviewRecord | null | undefined): string | null {
+function lastHumanReviewAt(record: ReviewRecord | null | undefined): string | null {
   return lastReviewAt(record, 'human');
 }
 
-export function lastReviewAt(record: ReviewRecord | null | undefined, kind: ReviewEventKind): string | null {
+function lastReviewAt(record: ReviewRecord | null | undefined, kind: ReviewEventKind): string | null {
   const dates = (record?.events ?? []).filter((e) => e.kind === kind).map((e) => e.at).sort();
   return dates.length > 0 ? dates[dates.length - 1] : null;
 }

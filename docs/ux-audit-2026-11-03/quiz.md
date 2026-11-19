@@ -1,6 +1,6 @@
 # Quiz: senior UX audit, 3. listopadu 2026
 
-**Stav: návrh, žádná změna produkčního Quiz UI.** Podkladem je skutečný kód `/quiz` na větvi `fix/coding-description-workbench`. Report doplňuje [centrální inventář UX](../design/product-ux-audit.md); nenahrazuje jej. Interaktivní vizuální porovnání je v [quiz.html](quiz.html). Všechen navrhovaný produktový text zůstává anglicky.
+**Stav: návrh, žádná změna produkčního Quiz UI.** Podkladem je skutečný kód `/quiz` na větvi `fix/coding-description-workbench`. Report doplňuje [centrální inventář UX](../design/product-ux-audit.md); nenahrazuje jej. Interaktivní vizuální porovnání je v [quiz.html](https://github.com/lukaskourilcz/devshark/blob/0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c/docs/ux-audit-2026-11-03/quiz.html). Všechen navrhovaný produktový text zůstává anglicky.
 
 ## Rozsah a cíl uživatele
 

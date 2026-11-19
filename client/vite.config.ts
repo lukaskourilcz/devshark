@@ -191,6 +191,13 @@ function purgeAstryxCss(): Plugin {
   };
 }
 
+// Decode only this retired-file comparison. Other routes keep their original
+// URL, including the worker/sandbox paths and malformed-encoding handling.
+function isRetiredTriagePath(url: string | undefined): boolean {
+  try { return decodeURIComponent(url?.split('?')[0] ?? '') === '/triage-verdicts.json'; }
+  catch { return false; }
+}
+
 function productMetadata(env: Record<string, string>): Plugin {
   const id = resolveCatalogProductId({ lockSubject: env.VITE_LOCK_SUBJECT, product: env.VITE_PRODUCT });
   const product = PRODUCT_CATALOG[id];
@@ -228,6 +235,12 @@ function productMetadata(env: Record<string, string>): Plugin {
     },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
+        if (isRetiredTriagePath(req.url)) {
+          res.statusCode = 404;
+          res.setHeader('Cache-Control', 'no-store');
+          res.end();
+          return;
+        }
         if (req.url?.split('?')[0] !== '/manifest.webmanifest') return next();
         res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
         res.end(manifest);
@@ -237,8 +250,15 @@ function productMetadata(env: Record<string, string>): Plugin {
       // Vite's SPA fallback does not resolve clean topic URLs to nested index
       // files. Mirror the Vercel rewrites so no-JS and Lighthouse checks inspect
       // the same public HTML that production serves.
-      server.middlewares.use((req, _res, next) => {
+      server.middlewares.use((req, res, next) => {
         const [pathname, search] = (req.url || '').split('?');
+        if (isRetiredTriagePath(req.url)) {
+          res.statusCode = 404;
+          res.setHeader('Cache-Control', 'no-store');
+          res.end();
+          return;
+        }
+
         if (/^\/topics\/[a-z0-9-]+\/?$/.test(pathname) || [...PUBLIC_PAGES, ...PRERENDERED_APP_PAGES].some(page => page.path === pathname.replace(/\/$/, ''))) {
           req.url = `${pathname.replace(/\/$/, '')}/index.html${search ? `?${search}` : ''}`;
         } else if (pathname === HIDDEN_CODING_PATH || pathname.startsWith(`${HIDDEN_CODING_PATH}/`)) {

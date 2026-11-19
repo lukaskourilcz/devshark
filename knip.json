@@ -1,15 +1,18 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
+  "tags": ["-public"],
   "workspaces": {
     ".": {
       "entry": [
         "api/**/*.ts",
+        "docker/**/*.ts",
         "scripts/*.{ts,mjs}",
         "playwright.config.ts",
         "tests/**/*.spec.ts"
       ],
       "project": [
         "api/**/*.ts",
+        "docker/**/*.ts",
         "lib/**/*.ts",
         "shared/**/*.ts",
         "scripts/*.{ts,mjs}",

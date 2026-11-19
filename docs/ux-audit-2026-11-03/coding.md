@@ -142,4 +142,4 @@ P0 porucha nebo ztráta dat nebyla prokázána. C01–C04 jsou P1 workflow/stavo
 | Draft/auth/session | Existující `DraftNote`, refresh a account epoch zkontrolovány | Expired session, sign-out, account switch, conflicting draft, task_changed |
 | Design contract | PASS: 13 fixture testů; 26 allowlisted | Konkrétní 44px bounds, obě témata, reduced motion, routes-axe |
 
-Viz [HTML s ukázkami před/po](coding.html). Screenshot má pouze ilustrativní lokální stav; serverová pravidla přístupu, skóre, XP a freemium zůstávají nedotčena.
+Viz [HTML s ukázkami před/po](https://github.com/lukaskourilcz/devshark/blob/0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c/docs/ux-audit-2026-11-03/coding.html). Screenshot má pouze ilustrativní lokální stav; serverová pravidla přístupu, skóre, XP a freemium zůstávají nedotčena.

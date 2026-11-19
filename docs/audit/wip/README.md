@@ -1,5 +1,12 @@
 # Content audit (#176) — work in progress
 
+F14 #643 archived the completed non-native JSON/JSONL data, including 15
+historical candidate inventories under `tools/`. The tool code, briefs,
+current ledger and entire native subtree remain in this checkout. The paths
+below describe the historical workflow. Follow the [archive restoration
+instructions](../../archive/README.md) before a historical rerun; missing
+inputs do not authorize a new review result.
+
 Interim artifacts of the devShark content audit (#176). The question audit
 finished and merged on 2026-09-11; `docs/audit/devshark-content-audit.md` is
 the report and `docs/audit/devshark-content-ledger.json` the record. Nothing

@@ -1,7 +1,7 @@
 import { test, type Spec } from './evolving';
 
 /** New requirements are additive; IDs 1–3 and their contracts stay stable. */
-export const ADVANCED: Record<string, Partial<Spec>> = {
+const ADVANCED: Record<string, Partial<Spec>> = {
   'react-evolving-board': {
     prompts: ['Add "Complete all" and "Clear completed" operating on the entire board regardless of filter. Disable them when there are no active/completed tasks respectively. Each bulk action is one undoable mutation; no-op actions must not create history. Preserve IDs and the current filter.','Add buttons named "Move up TASK_TEXT" and "Move down TASK_TEXT" in each task row. Move one position in the complete underlying list, not the filtered list. Disable at full-list boundaries. Reordering is undoable and clears redo, while preserving completion and stable IDs. Duplicate names remain independent.'],
     hints: ['Apply bulk actions to the complete task list, including hidden rows. Preserve stable IDs and every earlier snapshot, and record the whole operation as one edit. Disable unavailable actions so a no-op cannot add history or clear Redo. Keep the filter and draft independent of task history.','Find the clicked stable ID in the complete list and swap exactly one full-list neighbor in a copy. Filters do not change boundaries or identity. Keep completion unchanged and use the same snapshot transition as other mutations, so Undo and Redo retain every earlier edit.'],

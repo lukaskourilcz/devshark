@@ -3,6 +3,7 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
 const dir = 'client/dist';
+assert(!existsSync(`${dir}/triage-verdicts.json`), 'reviewer triage data is not in the public build');
 const sitemap = new JSDOM(readFileSync(`${dir}/sitemap.xml`, 'utf8'), { contentType: 'application/xml' });
 const urls = [...sitemap.window.document.querySelectorAll('loc')].map(node => new URL(node.textContent));
 assert(!urls.some(url => url.pathname.startsWith('/cs/')), 'retired guide URLs stay out of the sitemap');

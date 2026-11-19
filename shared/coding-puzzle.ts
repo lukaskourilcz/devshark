@@ -29,7 +29,7 @@ export interface PuzzleLine {
 /** What a puzzle establishes. Deliberately narrower than "can implement this":
  * ordering shows the shape of a solution is understood, not that the learner
  * could produce the lines unaided. */
-export const PUZZLE_COMPETENCIES = ['sequence', 'control-flow', 'api-usage', 'edge-handling'] as const;
+const PUZZLE_COMPETENCIES = ['sequence', 'control-flow', 'api-usage', 'edge-handling'] as const;
 export type PuzzleCompetency = (typeof PUZZLE_COMPETENCIES)[number];
 
 /** The public view: the lines in the order the server shuffled them, and what

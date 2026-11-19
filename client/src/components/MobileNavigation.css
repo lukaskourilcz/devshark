@@ -1,0 +1,41 @@
+/* Content rendered only after the lazy mobile navigation is ready.
+   The shared cold/loading/error drawer frame stays in app-shell.css. */
+.ss-drawer-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family-body);
+  font-weight: 600;
+  font-size: var(--ss-type-compact);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  min-height: var(--ss-control-height);
+  padding: 11px 16px;
+  border-radius: var(--radius-element);
+}
+.ss-drawer-link:hover { background: var(--color-background-muted); }
+.ss-drawer-link[data-active='true'] { color: var(--brand-accent); background: var(--color-background-muted); }
+/* Two groups, as the desktop header splits them (UX audit shell-public-15),
+   each under a small label with a hairline between them, and the appearance
+   and sound toggles as two rows at the bottom; below the nav breakpoint the
+   footer's pair hides. */
+.ss-drawer-group, .ss-drawer-settings { display: flex; flex-direction: column; gap: 2px; padding: 8px; }
+.ss-drawer-group + .ss-drawer-group, .ss-drawer-settings { border-top: 1px solid var(--color-border); }
+.ss-drawer-settings { margin-top: auto; }
+.ss-drawer-group__label { margin: 4px 16px 2px; font: 700 var(--ss-type-label) var(--font-family-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-secondary); }
+.ss-drawer-link:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: -2px; }
+/* Drawer brand header. */
+/* The logo in the mobile menu: 20px tall with 16px of clear space. */
+.ss-drawer-brand {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  text-decoration: none;
+}
+@media (pointer: coarse) {
+  .ss-drawer-brand { min-height: 44px; min-width: 44px; }
+}
+:root[data-design='apple'] .ss-drawer-link { min-height: 44px; }

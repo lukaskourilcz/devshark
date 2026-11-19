@@ -40,11 +40,11 @@ import {
 import { stripeErrorCode } from './stripe';
 
 export type CancelAction = 'cancel' | 'withdraw';
-export const WITHDRAWAL_DAYS = 14;
+const WITHDRAWAL_DAYS = 14;
 /** The Stripe customer metadata key that remembers a voluntary refund, so an
  * account deleted and made again with the same address does not get a
  * second one. */
-export const REFUND_MARK = 'devshark_voluntary_refund';
+const REFUND_MARK = 'devshark_voluntary_refund';
 
 export interface CancelEffect {
   subscriptionId: string;
@@ -283,11 +283,13 @@ const fallback = ({ id, variables }: { id: EmailTemplateId; variables: Record<st
 };
 
 /** The receipt for one effect in the code's own wording (the template fallback). Exported for the tests. */
+/** @public Fresh-module contract reader: scripts/test-billing.ts checks the emitted billing messages. */
 export function cancellationEmail(effect: CancelEffect, receivedAt: string, origin: string): { subject: string; text: string } {
   return fallback(receipt(effect, receivedAt, origin));
 }
 
 /** The confirmation link email in the code's own wording. Exported for the tests. */
+/** @public Fresh-module contract reader: scripts/test-billing.ts checks the emitted billing messages. */
 export function cancellationLinkEmail(action: CancelAction, token: string, receivedAt: string, origin: string): { subject: string; text: string } {
   return fallback(confirmation(action, token, receivedAt, origin));
 }

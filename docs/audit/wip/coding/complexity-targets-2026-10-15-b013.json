@@ -1,7 +1,0 @@
-{
-  "js-binary-search": "O(log n)",
-  "js-digit-sum": "O(log n)",
-  "js-count-multiples": "O(n)",
-  "js-words-of-length": "O(n)",
-  "js-queue-with-shift": "O(n)"
-}

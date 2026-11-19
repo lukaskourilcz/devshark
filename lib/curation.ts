@@ -49,7 +49,7 @@ import {
  * item with no applicable record is withheld too. The audit lands in waves,
  * and a category still waiting for the rest of its wave serves its unreviewed
  * items as before rather than withholding them for want of a review. */
-export const AUDITED_SUBJECT: ScopeSubjectId = 'webdev';
+const AUDITED_SUBJECT: ScopeSubjectId = 'webdev';
 
 const logEvent = createLogger('curation');
 
@@ -185,8 +185,6 @@ const REGISTRY_BY_ID = new Map<string, RegistryEntry>(REVIEW_REGISTRY.map((entry
  * functions below; this is for the admin view and the ledger tooling. */
 export const registryEntryFor = (itemId: string): RegistryEntry | null => REGISTRY_BY_ID.get(itemId) ?? null;
 
-export const registrySize = (): number => REGISTRY_BY_ID.size;
-
 const isAudited = (q: Pick<Question, 'category'>): boolean =>
   subjectForCategory(q.category) === AUDITED_SUBJECT && AUDITED_CATEGORIES.has(q.category);
 
@@ -230,7 +228,7 @@ function recordFrom(entry: RegistryEntry, current: boolean, version: string): Re
 
 /** The review record that applies to this question's exact content, or null
  * when nothing was ever recorded for its id. */
-export function reviewRecordFor(q: Question): ReviewRecord | null {
+function reviewRecordFor(q: Question): ReviewRecord | null {
   const entry = REGISTRY_BY_ID.get(q.id);
   if (!entry) return null;
   return recordFrom(entry, entry.hash === contentHash(q), contentVersion(q));

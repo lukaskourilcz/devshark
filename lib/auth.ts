@@ -128,7 +128,7 @@ const tokenChecks = new WeakMap<VercelRequest, Map<string, Promise<AuthResult>>>
  *    most VERIFIED_TOKEN_LIMIT entries, the oldest dropped first.
  * Requests on one instance that present the same token at the same time
  * share one Auth call. */
-export const VERIFIED_TOKEN_TTL_MS = 60_000;
+const VERIFIED_TOKEN_TTL_MS = 60_000;
 const VERIFIED_TOKEN_LIMIT = 2_000;
 const acceptedTokens = new Map<string, { result: AuthResult; until: number }>();
 const sharedChecks = new Map<string, Promise<AuthResult>>();

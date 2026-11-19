@@ -15,7 +15,7 @@ import { LINKS_REACT_SCAFFOLD } from '../../../shared/coding-fullstack-support';
 import { runtimeSuite } from './fullstack';
 import { check, doc } from './path-helpers';
 
-export const LINKS_ID = 'fullstack-links';
+const LINKS_ID = 'fullstack-links';
 const ENDPOINT = '/api/links';
 export const LINKS_SEED = [
   { url: 'https://developer.mozilla.org', slug: 'mdn', visits: 3 },

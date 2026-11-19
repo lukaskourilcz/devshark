@@ -32,7 +32,7 @@ export interface SpreadshopConfig {
   headers: Record<string, string>;
 }
 
-export const SPREADSHOP_API_ORIGIN = 'https://api.spreadshirt.net';
+const SPREADSHOP_API_ORIGIN = 'https://api.spreadshirt.net';
 const FRESH_MS = 30 * 60 * 1000;
 const FAILED_MS = 5 * 60 * 1000;
 const TIMEOUT_MS = 1500;

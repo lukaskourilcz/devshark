@@ -14,8 +14,8 @@ export interface ComplexityReport {
   guidance: ComplexityGuidance;
 }
 
-export const CODING_PASS_XP = 25;
-export const CODING_ABOVE_TARGET_XP = 15;
+const CODING_PASS_XP = 25;
+const CODING_ABOVE_TARGET_XP = 15;
 
 export function codingPassXp(report: ComplexityReport | null | undefined): number {
   return report?.time && report.guidance.targetTime && report.assessment === 'above-target'

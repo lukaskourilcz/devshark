@@ -26,7 +26,7 @@ export const LAUNCH_COUPON_ENV = 'STRIPE_COUPON_LAUNCH';
 
 /** Stripe coupon ids: letters, digits, `_` and `-`. Anything else is treated
  * as unset rather than sent to Stripe. */
-export const LAUNCH_COUPON_ID = /^[A-Za-z0-9_-]{1,64}$/;
+const LAUNCH_COUPON_ID = /^[A-Za-z0-9_-]{1,64}$/;
 
 export const LAUNCH_OFFER = {
   id: 'launch-55',
@@ -88,7 +88,7 @@ export function annualSaving(monthly: string, annual: string): string {
 }
 
 /** A date in the offer's time zone: "30 Nov 2026" (short) or "30 November 2026". */
-export function launchDate(instant: number, month: 'short' | 'long' = 'short'): string {
+function launchDate(instant: number, month: 'short' | 'long' = 'short'): string {
   return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month, year: 'numeric', timeZone: LAUNCH_OFFER.timeZone }).format(instant);
 }
 

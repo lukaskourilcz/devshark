@@ -34,10 +34,11 @@ export const clearDevPassword = () => {
 
 export function adminFetch<T>(
   op: string,
-  init: { method?: string; body?: unknown; password?: string } = {},
+  init: { method?: string; body?: unknown; password?: string; signal?: AbortSignal } = {},
 ): Promise<T> {
   return apiFetch<T>(`/api/admin/${op}`, {
     method: init.method ?? 'GET',
+    signal: init.signal,
     headers: { 'x-dev-password': init.password ?? getDevPassword() },
     body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
   });
@@ -130,8 +131,8 @@ export async function verifyPassword(pw: string): Promise<boolean> {
   }
 }
 
-export const listQuestions = () =>
-  adminFetch<{ questions: AdminQuestion[]; categories: string[]; reportCounts: Record<string, number> }>('questions');
+export const listQuestions = (signal?: AbortSignal) =>
+  adminFetch<{ questions: AdminQuestion[]; categories: string[]; reportCounts: Record<string, number> }>('questions', { signal });
 
 export const saveQuestion = (payload: QuestionPayload) =>
   adminFetch<{ ok: true; id: string }>('save', { method: 'POST', body: payload });

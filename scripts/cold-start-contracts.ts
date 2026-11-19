@@ -100,6 +100,39 @@ const PATH_GRADING_MARKERS = [
 ];
 
 export async function coldStartContracts(): Promise<void> {
+  // F14-03: ordinary admin work and refused methods never evaluate the overlay.
+  {
+    const marker = 'lib/admin-triage.ts';
+    const probe = (op: string, method = 'GET', password = 'triage-cold-contract') => `(async () => {
+      const res = { statusCode: 200, headers: {}, body: null,
+        status(code) { this.statusCode = code; return this; },
+        setHeader(name, value) { this.headers[name.toLowerCase()] = value; return this; },
+        getHeader(name) { return this.headers[name.toLowerCase()]; },
+        json(body) { this.body = body; return this; }, end() { return this; } };
+      await mod.default({ method: ${JSON.stringify(method)}, url: '/api/admin/triage',
+        headers: { 'x-dev-password': ${JSON.stringify(password)}, 'x-forwarded-for': 'triage-cold' },
+        query: { op: ${JSON.stringify(op)} } }, res);
+      return { status: res.statusCode, total: res.body?.meta?.total ?? null,
+        cache: res.headers['cache-control'], loaded: globalThis.__evaluated ?? [] };
+    })()`;
+    for (const [op, method, password, expected] of [
+      ['settings', 'GET', 'triage-cold-contract', 200],
+      ['triage', 'POST', 'triage-cold-contract', 405],
+      ['triage', 'GET', '', 401],
+    ] as const) {
+      const fresh = await loadFresh('api/admin/[op].ts', probe(op, method, password), { DEV_PASSWORD: 'triage-cold-contract' }, [marker]);
+      const result = fresh.probe as { status: number; loaded: string[] };
+      assert.equal(result.status, expected);
+      assert.ok(!result.loaded.includes(marker), `${op} ${method} loads no triage data`);
+    }
+    const fresh = await loadFresh('api/admin/[op].ts', probe('triage'), { DEV_PASSWORD: 'triage-cold-contract' }, [marker]);
+    const result = fresh.probe as { status: number; total: number; cache: string; loaded: string[] };
+    assert.equal(result.status, 200);
+    assert.equal(result.total, 3609);
+    assert.equal(result.cache, 'private, no-store');
+    assert.ok(result.loaded.includes(marker));
+  }
+
   // ── server item 15: the coding source versions are hashed on first read ──
   {
     const fresh = await loadFresh('lib/coding/active.ts', 'mod.CODING_SOURCE_VERSIONS.built');

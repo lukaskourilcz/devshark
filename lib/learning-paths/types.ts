@@ -31,6 +31,7 @@ export type { SourceCallTest, SourceTypeTest };
 // The lesson shape lives in lib/learn-lessons/types.ts, because a Learn level
 // carries the same lessons (#492). Re-exported so path content keeps one import.
 export type { LessonSectionSource, LessonSource, MergedLesson, TraceSource } from '../learn-lessons/types';
+/** @public Authored path lesson facade documented above; keeps authoring imports on the shared lesson shape. */
 export { mergeLesson, mergeLessonSection } from '../learn-lessons/types';
 
 /* ── objective checks ─────────────────────────────────────────────────── */
@@ -294,7 +295,7 @@ export interface MergedActivity {
  * coding tasks: every assertion must pass. */
 export const DEFAULT_CRITERION = 'core';
 
-export function mergeCode(code: PathCodeSource): MergedCode {
+function mergeCode(code: PathCodeSource): MergedCode {
   const declared = code.criteria ?? [];
   const criteria: MergedCriterion[] = declared.map((criterion) => ({
     id: criterion.id,
@@ -339,7 +340,7 @@ export function mergeCode(code: PathCodeSource): MergedCode {
   };
 }
 
-export function mergeActivity(activity: ActivitySource): MergedActivity {
+function mergeActivity(activity: ActivitySource): MergedActivity {
   const merged: MergedActivity = {
     id: activity.id,
     kind: activity.kind,
@@ -405,7 +406,7 @@ export interface MergedModule {
   shelf?: ModuleShelf;
 }
 
-export function mergeModule(module: ModuleSource): MergedModule {
+function mergeModule(module: ModuleSource): MergedModule {
   return {
     id: module.id,
     title: module.title,

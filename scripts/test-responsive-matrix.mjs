@@ -9,10 +9,60 @@ const script = fileURLToPath(new URL('./check-responsive.mjs', import.meta.url))
 function run(flags = [], env = {}) {
   const result = spawnSync(process.execPath, [script, '--print-matrix', '--base-url=http://127.0.0.1:9', ...flags], {
     encoding: 'utf8', timeout: 15_000,
-    env: { ...process.env, CHROME_BIN: '/no-responsive-test-browser', RESPONSIVE_ZOOM: '', ...env },
+    env: { ...process.env, CHROME_BIN: '/no-responsive-test-browser', RESPONSIVE_ZOOM: '', RESPONSIVE_WORKERS: '', RESPONSIVE_DEBUG_PORT: '', ...env },
   });
   assert.equal(result.error, undefined, 'the matrix command finishes without a browser');
   return result;
+}
+
+test('F14: the default sweep uses one worker and covers every viewport once', () => {
+  const selected = matrix();
+  assert.equal(selected.workers, 1);
+  assert.deepEqual(selected.shards, [{ worker: 1, viewportLabels: selected.viewports.map(({ label }) => label), probes: selected.routes.length * selected.viewports.length }]);
+});
+
+test('F14: two workers shard complete viewport groups without changing geometry or routes', () => {
+  const ordinary = matrix(['--routes=/,/quiz,/shop', '--widths=390,768,1280', '--zoom=200']);
+  const parallel = matrix(['--routes=/,/quiz,/shop', '--widths=390,768,1280', '--zoom=200', '--workers=2']);
+  assert.equal(parallel.workers, 2);
+  assert.deepEqual(parallel.routes, ordinary.routes);
+  assert.deepEqual(parallel.viewports, ordinary.viewports);
+  assert.deepEqual(parallel.shards, [
+    { worker: 1, viewportLabels: ordinary.viewports.filter((_, index) => index % 2 === 0).map(({ label }) => label), probes: 6 },
+    { worker: 2, viewportLabels: [ordinary.viewports[1].label], probes: 3 },
+  ]);
+});
+
+test('F14: worker environment is supported and the CLI overrides it', () => {
+  assert.equal(matrix([], { RESPONSIVE_WORKERS: '2' }).workers, 2);
+  assert.equal(matrix(['--workers=1'], { RESPONSIVE_WORKERS: '2' }).workers, 1);
+  assert.equal(matrix(['--widths=390', '--workers=2']).shards.length, 1, 'one viewport needs one session');
+});
+
+for (const value of ['0', '3', '-1', '1.5', '2junk', 'abc']) {
+  test(`F14: invalid worker count ${value} fails before browser startup`, () => {
+    const result = run([], { RESPONSIVE_WORKERS: value });
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /workers/i);
+  });
+}
+
+test('F14: a missing worker option value cannot silently use the default', () => {
+  assert.equal(run(['--workers']).status, 2);
+});
+
+test('F14: an explicit fixed debug port is refused with concurrent sessions', () => {
+  const result = run(['--workers=2'], { RESPONSIVE_DEBUG_PORT: '9333' });
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /debug.port.*workers|workers.*debug.port/i);
+  assert.equal(matrix(['--workers=1'], { RESPONSIVE_DEBUG_PORT: '9333' }).workers, 1);
+  assert.equal(matrix(['--workers=2'], { RESPONSIVE_DEBUG_PORT: '0' }).workers, 2);
+});
+
+for (const value of ['abc', '9333junk', '-1', '65536']) {
+  test(`F14: invalid explicit debug port ${value} fails before browser startup`, () => {
+    assert.equal(run([], { RESPONSIVE_DEBUG_PORT: value }).status, 2);
+  });
 }
 function matrix(flags, env) {
   const result = run(flags, env);

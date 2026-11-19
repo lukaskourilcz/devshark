@@ -1,5 +1,8 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { test, expect, allowConsoleErrors, type Page } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
+import { installRouteFocusControl, armRouteFocus, pendingRouteFocus, flushRouteFocus, routeFocusLog } from './route-focus-control';
 
 // A navigation keeps the current page on screen until the next one can draw
 // whole. Before, every first visit to a section blanked the content area,
@@ -9,11 +12,152 @@ import AxeBuilder from '@axe-core/playwright';
 // that would flash has time to show, and every animation frame after the click
 // is recorded.
 
+// Deliberate local chunk failures must not emit telemetry or other requests
+// outside the preview used by this fixture.
+test.beforeEach(async ({ page }) => {
+  const origin = new URL(process.env.TEST_BASE_URL || 'http://localhost:4173').origin;
+  await page.route(url => /^https?:$/.test(url.protocol) && url.origin !== origin, route => route.abort('blockedbyclient'));
+});
+
 const HOLD_MS = 600;
 // The signed-out centre row (design audit P0.6); Today, Collection and Career
 // are not in it for a visitor without a session.
 const SECTIONS = ['/coding', '/quiz', '/learn', '/challenge', '/play', '/premium'];
 
+function mobileMenuStylePaths() {
+  const manifest = JSON.parse(readFileSync(resolve('client/dist/.vite/manifest.json'), 'utf8')) as Record<string, { css?: string[] }>;
+  const styles = manifest['src/components/MobileNavigation.tsx']?.css ?? [];
+  const richStyles = styles.filter(path => readFileSync(resolve('client/dist', path), 'utf8').includes('.ss-drawer-link'));
+  expect(richStyles.length, 'rich menu rules belong to the dynamic entry stylesheet').toBeGreaterThan(0);
+  return new Set(richStyles.map(path => `/${path}`));
+}
+
+async function expectRichMenuContent(page: Page, theme: 'light' | 'dark', active = false) {
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode', theme);
+  const menu = page.getByRole('dialog', { name: 'Navigation', exact: true });
+  const quiz = menu.getByRole('link', { name: 'Quiz', exact: true });
+  await expect(quiz).toBeVisible();
+  const style = await quiz.evaluate((element, active) => {
+    const probe = document.createElement('span');
+    probe.style.color = active ? 'var(--brand-accent)' : 'var(--color-text-primary)';
+    probe.style.backgroundColor = 'var(--color-background-muted)';
+    element.append(probe);
+    const expected = getComputedStyle(probe);
+    const actual = getComputedStyle(element);
+    const result = { display: actual.display, paddingTop: actual.paddingTop, fontWeight: actual.fontWeight, colorMatches: actual.color === expected.color, activeBackgroundMatches: !active || actual.backgroundColor === expected.backgroundColor };
+    probe.remove();
+    return result;
+  }, active);
+  expect(style).toEqual({ display: 'block', paddingTop: '11px', fontWeight: '600', colorMatches: true, activeBackgroundMatches: true });
+  expect((await quiz.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  for (const control of await menu.locator('.ss-drawer-settings button, .ss-drawer-brand').all()) {
+    const box = await control.boundingBox();
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+    expect(box!.width).toBeGreaterThanOrEqual(44);
+  }
+  // Keyboard modality plus explicit focus tests the painted rule without
+  // assuming Safari includes anchors in its native sequential Tab order.
+  await page.keyboard.press('Tab');
+  await quiz.focus();
+  await expect(quiz).toBeFocused();
+  expect(await quiz.evaluate(element => ({ width: getComputedStyle(element).outlineWidth, offset: getComputedStyle(element).outlineOffset }))).toEqual({ width: '2px', offset: '-2px' });
+}
+
+for (const theme of ['light', 'dark'] as const) test(`the mobile menu waits for its content styles inside a styled cold frame in ${theme}`, async ({ page }) => {
+  await prepare(page, 390, theme);
+  const paths = mobileMenuStylePaths();
+  let requested = 0;
+  let release = () => {};
+  const waiting = new Promise<void>((resolve) => { release = resolve; });
+  await page.route(url => paths.has(url.pathname), async route => {
+    requested += 1;
+    await waiting;
+    await route.continue();
+  });
+  try {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    expect(requested, 'menu content CSS is not requested by an untouched Home').toBe(0);
+    const opener = page.getByRole('button', { name: 'Open navigation menu', exact: true });
+    await opener.click();
+    await expect.poll(() => requested).toBeGreaterThan(0);
+    const menu = page.getByRole('dialog', { name: 'Navigation', exact: true });
+    await expect(menu.getByRole('status')).toHaveText('Loading…');
+    await expect(menu.getByRole('link', { name: 'Quiz', exact: true })).toHaveCount(0);
+    expect(await menu.evaluate(element => ({ position: getComputedStyle(element).position, overflowY: getComputedStyle(element).overflowY }))).toEqual({ position: 'fixed', overflowY: 'auto' });
+    const dismiss = menu.getByRole('button', { name: 'Dismiss', exact: true });
+    await expect(dismiss).toBeFocused();
+    const coldTarget = await dismiss.boundingBox();
+    expect(coldTarget!.width).toBeGreaterThanOrEqual(44);
+    expect(coldTarget!.height).toBeGreaterThanOrEqual(44);
+    release();
+    const quiz = menu.getByRole('link', { name: 'Quiz', exact: true });
+    await expect(quiz).toBeVisible();
+    await expectRichMenuContent(page, theme);
+    await quiz.click();
+    await expect(page).toHaveURL(/\/quiz$/);
+    await opener.click();
+    await expect(menu.getByRole('link', { name: 'Quiz', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expectRichMenuContent(page, theme, true);
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+    await expect(opener).toBeFocused();
+  } finally {
+    release();
+  }
+});
+for (const theme of ['light', 'dark'] as const) test(`a failed mobile-menu stylesheet keeps a styled retry and recovers styled links in ${theme}`, async ({ page }) => {
+  await prepare(page, 390, theme);
+  const paths = mobileMenuStylePaths();
+  const escaped = [...paths].map(path => path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  allowConsoleErrors(page, new RegExp(`^Error: Unable to preload CSS for (?:${escaped.join('|')})(?:\\s|$)`));
+  let failing = true;
+  let dropped = 0;
+  let served = 0;
+  await page.route(url => paths.has(url.pathname), route => {
+    if (failing) { dropped += 1; return route.abort('failed'); }
+    served += 1;
+    return route.continue();
+  });
+  const documents: string[] = [];
+  page.on('request', request => {
+    if (request.resourceType() === 'document' && request.frame() === page.mainFrame()) documents.push(request.url());
+  });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  const opener = page.getByRole('button', { name: 'Open navigation menu', exact: true });
+  await opener.click();
+  const menu = page.getByRole('dialog', { name: 'Navigation', exact: true });
+  await expect(menu.getByRole('alert')).toHaveText('Navigation did not load.');
+  expect(dropped).toBeGreaterThan(0);
+  expect(documents).toHaveLength(1);
+  expect(await menu.evaluate(element => ({ position: getComputedStyle(element).position, overflowY: getComputedStyle(element).overflowY }))).toEqual({ position: 'fixed', overflowY: 'auto' });
+  for (const name of ['Dismiss', 'Try again']) {
+    const box = await menu.getByRole('button', { name, exact: true }).boundingBox();
+    expect(box!.width).toBeGreaterThanOrEqual(44);
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+  }
+  await expect(menu.getByRole('button', { name: 'Dismiss', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(menu).toHaveCount(0);
+  await expect(opener).toBeFocused();
+  failing = false;
+  await opener.click();
+  await menu.getByRole('button', { name: 'Try again', exact: true }).click();
+  // Vite retains failed CSS dependencies in this document. Recovery reuses
+  // the existing pressed reload rather than resolving an unstyled module.
+  await expect.poll(() => documents.length).toBe(2);
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await opener.click();
+  const quiz = menu.getByRole('link', { name: 'Quiz', exact: true });
+  await expect(quiz).toBeVisible();
+  expect(served).toBeGreaterThan(0);
+  await expectRichMenuContent(page, theme);
+  await page.keyboard.press('Escape');
+  await expect(menu).toHaveCount(0);
+  await expect(opener).toBeFocused();
+});
 test('a mobile menu stays usable while its animation features are delayed', async ({ page }) => {
   await prepare(page, 390);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
@@ -165,11 +309,11 @@ test('standalone state cards stay vertically centred across viewports', async ({
 type Frame = { t: number; route: boolean; kids: number; busy: string | null; opacity: number; h1: string | null; root: number; active: string | null; scrollTop: number };
 type Recorder = { __nav: { frames: Frame[]; done: boolean }; __navArm: (ms: number) => void };
 
-async function prepare(page: Page, width: number) {
+async function prepare(page: Page, width: number, theme: 'light' | 'dark' = 'light') {
   await page.setViewportSize({ width, height: width < 760 ? 844 : 800 });
-  await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'light' });
-  await page.addInitScript(() => {
-    try { localStorage.setItem('devquiz:color-mode', 'light'); } catch { /* private mode */ }
+  await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: theme });
+  await page.addInitScript((theme) => {
+    try { localStorage.setItem('devquiz:color-mode', theme); } catch { /* private mode */ }
     const ids = new WeakMap<Element, number>();
     let next = 1;
     const idOf = (element: Element | null) => {
@@ -206,7 +350,7 @@ async function prepare(page: Page, width: number) {
         }, { capture: true, once: true });
       },
     });
-  });
+  }, theme);
   // The API answers at once and says little: this checks the frame, not the pages.
   await page.route('**/api/**', (route) => {
     const url = new URL(route.request().url());
@@ -476,3 +620,97 @@ for (const menuState of ['loaded', 'held', 'failed'] as const) {
     }
   });
 }
+
+// A route focus delay must not mistake a control's round trip for inactivity.
+for (const theme of ['light', 'dark'] as const) test(`pending route focus preserves a newer completed drawer interaction in ${theme}`, async ({ page }, testInfo) => {
+  await prepare(page, 390, theme);
+  await installRouteFocusControl(page);
+  const manifest = JSON.parse(readFileSync(resolve('client/dist/.vite/manifest.json'), 'utf8'));
+  const quizPath = `/${manifest['src/components/Quiz.tsx'].file}`;
+  let release = () => {};
+  const waiting = new Promise<void>(resolve => { release = resolve; });
+  let requested = 0;
+  await page.route(url => url.pathname === quizPath, async route => {
+    requested += 1;
+    await waiting;
+    await route.continue();
+  });
+  try {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    const home = await page.locator('#main-content h1').first().innerText();
+    const opener = page.getByRole('button', { name: 'Open navigation menu', exact: true });
+    const menu = page.getByRole('dialog', { name: 'Navigation', exact: true });
+    await opener.click();
+    await menu.getByRole('link', { name: 'Quiz', exact: true }).click();
+    await expect(page).toHaveURL(/\/quiz$/);
+    await expect.poll(() => requested).toBeGreaterThan(0);
+    await expect(menu).toHaveCount(0);
+    await expect(opener).toBeFocused();
+    await armRouteFocus(page);
+    release();
+    await expect(page.locator('#main-content h1').first()).not.toHaveText(home);
+    await expect.poll(() => pendingRouteFocus(page)).toBe(1);
+    await opener.click();
+    await expect(menu.getByRole('link', { name: 'Quiz', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expectRichMenuContent(page, theme, true);
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+    await expect(opener).toBeFocused();
+    await flushRouteFocus(page);
+    await expect(opener).toBeFocused();
+  } finally {
+    release();
+    await testInfo.attach('route-focus-timeline', { body: JSON.stringify(await routeFocusLog(page), null, 2), contentType: 'application/json' });
+  }
+});
+
+test('ordinary menu navigation still focuses main without a newer interaction', async ({ page }, testInfo) => {
+  await prepare(page, 390);
+  await installRouteFocusControl(page);
+  try {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    await armRouteFocus(page);
+    await page.getByRole('button', { name: 'Open navigation menu', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Navigation' }).getByRole('link', { name: 'Quiz', exact: true }).click();
+    await expect(page).toHaveURL(/\/quiz$/);
+    await expect(page.getByRole('dialog', { name: 'Navigation' })).toHaveCount(0);
+    await expect.poll(() => pendingRouteFocus(page)).toBe(1);
+    await flushRouteFocus(page);
+    await expect(page.locator('#main-content')).toBeFocused();
+  } finally {
+    await testInfo.attach('route-focus-timeline', { body: JSON.stringify(await routeFocusLog(page), null, 2), contentType: 'application/json' });
+  }
+});
+
+test('a later route cancels the pending focus callback of the previous route', async ({ page }, testInfo) => {
+  await prepare(page, 390);
+  await installRouteFocusControl(page);
+  try {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    await armRouteFocus(page);
+    const opener = page.getByRole('button', { name: 'Open navigation menu', exact: true });
+    const menu = page.getByRole('dialog', { name: 'Navigation' });
+    await opener.click();
+    await menu.getByRole('link', { name: 'Quiz', exact: true }).click();
+    await expect.poll(() => pendingRouteFocus(page)).toBe(1);
+    await opener.click();
+    await menu.getByRole('link', { name: 'Premium', exact: true }).click();
+    await expect(page).toHaveURL(/\/premium$/);
+    await expect.poll(async () => (await routeFocusLog(page)).some(entry => (entry as { kind: string }).kind === 'cancelled')).toBe(true);
+    await expect.poll(() => pendingRouteFocus(page)).toBe(1);
+    await flushRouteFocus(page);
+    await expect(page.locator('#main-content')).toBeFocused();
+    expect((await routeFocusLog(page)).filter(entry => {
+      const item = entry as { kind: string; path: string };
+      return item.kind === 'callback' && item.path === '/quiz';
+    })).toHaveLength(0);
+  } finally {
+    await testInfo.attach('route-focus-timeline', { body: JSON.stringify(await routeFocusLog(page), null, 2), contentType: 'application/json' });
+  }
+});
