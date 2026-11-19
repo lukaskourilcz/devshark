@@ -1,4 +1,4 @@
-import { test, expect, type Page } from './console-clean';
+import { test, expect, allowConsoleErrors, type Page } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
 
 // A navigation keeps the current page on screen until the next one can draw
@@ -319,3 +319,78 @@ test('phone: the drawer groups its links and keeps the toggles at its bottom', a
   await dark.click();
   await expect(drawer.getByRole('button', { name: 'Light mode', exact: true })).toBeVisible();
 });
+
+
+// F3 breakpoint contract: a CSS-hidden drawer must never keep its modal keys.
+for (const menuState of ['loaded', 'held', 'failed'] as const) {
+  test(`a ${menuState} mobile menu closes at the desktop breakpoint without trapping focus`, async ({ page }) => {
+    await prepare(page, 390);
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    let release = () => {};
+    const waiting = new Promise<void>((resolve) => { release = resolve; });
+    let requested = 0;
+    let served = 0;
+    if (menuState !== 'loaded') {
+      await page.route(/\/assets\/MobileNavigation-[\w-]+\.js$/, async (route) => {
+        requested += 1;
+        if (menuState === 'failed') return route.abort('failed');
+        await waiting;
+        await route.continue();
+        served += 1;
+      });
+    }
+    if (menuState === 'failed') {
+      // Same narrow expected failure as route-errors.spec.ts; no blanket ignore.
+      allowConsoleErrors(page, /^TypeError: Failed to fetch dynamically imported module: \S+\/assets\/MobileNavigation-[\w-]+\.js/);
+    }
+    try {
+      await page.goto('/');
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      const opener = page.getByRole('button', { name: 'Open navigation menu', exact: true });
+      await opener.click();
+      const menu = page.getByRole('dialog', { name: 'Navigation', exact: true });
+      if (menuState === 'loaded') await expect(menu.getByRole('link', { name: 'Quiz', exact: true })).toBeVisible();
+      else {
+        await expect.poll(() => requested).toBeGreaterThan(0);
+        if (menuState === 'held') await expect(menu.getByRole('status')).toHaveText('Loading…');
+        else await expect(menu.getByRole('alert')).toHaveText('Navigation did not load.');
+      }
+      await expect(menu.getByRole('button', { name: 'Dismiss', exact: true })).toBeFocused();
+      await page.setViewportSize({ width: 1023, height: 844 });
+      await expect(menu).toBeVisible();
+      await expect(opener).toBeVisible();
+      await page.setViewportSize({ width: 1024, height: 844 });
+      await expect(opener).toBeHidden();
+      await expect.soft(page.locator('.ss-drawer-panel')).toHaveCount(0);
+      // Home has no current primary nav link, so the visible brand is next.
+      const brand = page.locator('header.ss-header a.ss-header-brand');
+      await expect.soft(brand).toBeFocused();
+      // Establish a known visible origin too, so a missing restoration does
+      // not hide an independent document-level Tab interception failure.
+      await brand.focus();
+      await page.keyboard.press('Tab');
+      expect.soft(await page.evaluate(() => {
+        const node = document.activeElement;
+        return node instanceof HTMLElement && node !== document.body &&
+          node.getClientRects().length > 0 && !node.closest('.ss-drawer-panel') &&
+          !node.matches('.ss-header-brand');
+      })).toBe(true);
+      await page.keyboard.press('Shift+Tab');
+      await expect.soft(brand).toBeFocused();
+      await page.setViewportSize({ width: 1280, height: 844 });
+      await expect.soft(page.locator('.ss-drawer-panel')).toHaveCount(0);
+      if (menuState === 'held') {
+        release();
+        await expect.poll(() => served).toBeGreaterThan(0);
+        await page.waitForLoadState('networkidle');
+        await expect.soft(page.locator('.ss-drawer-panel')).toHaveCount(0);
+        await expect.soft(brand).toBeFocused();
+      }
+      // Shrinking back does not replay the old open request.
+      await page.setViewportSize({ width: 390, height: 844 });
+      await expect.soft(page.locator('.ss-drawer-panel')).toHaveCount(0);
+    } finally {
+      release();
+    }
+  });
+}
