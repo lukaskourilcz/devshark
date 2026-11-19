@@ -34,6 +34,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { build } from 'esbuild';
 import { bundleColdEntry } from './cold-start-bundle.mjs';
 
 const root = process.cwd();
