@@ -29,7 +29,7 @@ import { createMiniJest } from '../shared/coding-mini-jest';
 import { runReactSuite } from '../lib/coding/react-runner';
 import { withHiddenCases } from '../lib/coding/react-hidden';
 import { guestResultLine, readGuestResult, serializeGuestResult } from '../lib/coding/react-guest';
-import { allPassed, evaluateCalls, hiddenGlobalMessage, LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, TIMEOUT_MESSAGE } from '../shared/coding-evaluate';
+import { allPassed, evaluateCalls, hiddenGlobalMessage, LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, MAX_LOGS, TIMEOUT_MESSAGE } from '../shared/coding-evaluate';
 import { CHECKER_GLOBALS, CHECKER_MEMBERS } from '../shared/coding-checker-globals';
 import { nodeTypeScriptChecker } from '../lib/coding/ts-check-node';
 import { evaluateInRunRealm } from './run-realm-node';
@@ -1751,6 +1751,45 @@ export default function App() { return <p>{String(({}).x) + ' ' + [].push(1)}</p
   const after = await runReactSuite({ suite: withHiddenCases(reference.suite!, solutionFor(reference.id)!.hiddenSuite), appSource: solutionFor(reference.id)!.solution });
   assert.ok(after.compileError === null && after.failed === 0 && after.passed > 0, `the next reference run passes: ${JSON.stringify(after)}`);
   console.log('PASS integrity: prototype pollution leaves the run\'s own results, the hidden run, the next run and the host realm unchanged, in QuickJS and in the React engine');
+}
+
+// F11-33: output equality alone misses discarded serialization work. The
+// program counts actual toJSON/getter calls in Run and in the real grader.
+{
+  const counterSource = (body: string) => `function probe(){let serializations=0,reads=0;const value={toJSON(){serializations++;return {get value(){reads++;return 'kept';}};}};${body};return [serializations,reads];}`;
+  const beforeCap = `console.log(value);console.dir(value);`;
+  const afterLines = `for(let i=0;i<${MAX_LOGS};i++)console.log(i);console.log(value);console.dir(value);console.log(value,value);`;
+  const fullLines = Math.floor(MAX_LOG_CHARS / MAX_LOG_LINE_CHARS);
+  const tailChars = MAX_LOG_CHARS % MAX_LOG_LINE_CHARS;
+  const fillOutput = `for(let i=0;i<${fullLines};i++)console.log('x'.repeat(${MAX_LOG_LINE_CHARS}));${tailChars ? `console.log('x'.repeat(${tailChars}));` : ''}`;
+  const afterCharacters = `${fillOutput}console.log(value);console.dir(value);console.log(value,value);`;
+  const fullLogs = Array.from({length:fullLines},()=> 'x'.repeat(MAX_LOG_LINE_CHARS));
+  if(tailChars) fullLogs.push('x'.repeat(tailChars));
+  const fixtures = [
+    {name:'before the cap, ordinary arguments still serialize',body:beforeCap,counts:[2,2],logs:['{"value":"kept"}','{"value":"kept"}']},
+    {name:'after the line cap, formatting invokes no toJSON or getter',body:afterLines,counts:[0,0],logs:Array.from({length:MAX_LOGS},(_,i)=>String(i))},
+    {name:'after the character cut, only the first overflowing argument serializes',body:afterCharacters,counts:[1,1],logs:[...fullLogs,LOG_OUTPUT_CUT]},
+  ] as const;
+  const failures: Error[]=[];
+  for(const fixture of fixtures) {
+    const input={code:counterSource(fixture.body),calls:['probe()'],expectations:[[...fixture.counts]]};
+    const run=await evaluateCalls(input);
+    const submit=await runInSandbox(input);
+    try {
+      for(const [name,result] of [['Run',run],['Submit',submit]] as const) {
+        assert.equal(result.codeError,null,`${name}: ${fixture.name}`);
+        assert.notEqual(result.timedOut,true,`${name}: ${fixture.name}`);
+        assert.deepEqual(result.results,[{pass:true,actual:JSON.stringify(fixture.counts),error:null}],`${name}: ${fixture.name}`);
+        assert.deepEqual(result.logs,fixture.logs,`${name}: ${fixture.name}`);
+      }
+      assert.deepEqual(submit.logs,run.logs,`F11-33 both runners keep identical logs: ${fixture.name}`);
+      console.log(`PASS integrity F11-33: ${fixture.name}`);
+    } catch(error) {
+      console.error(`FAIL integrity F11-33: ${fixture.name}`,JSON.stringify({run,submit}));
+      failures.push(error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+  if(failures.length) throw new AggregateError(failures,'F11-33 console serialization-cap parity failed');
 }
 
 // ── console output is capped by size (CODE-13) ───────────────────────────
