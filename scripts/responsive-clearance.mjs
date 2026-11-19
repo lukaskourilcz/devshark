@@ -93,22 +93,44 @@ export const TOUCH_TARGETS = String.raw`(() => {
   const clip = (box, origin, includeSelf = false) => {
     const result = { ...box };
     let canScrollX = false, canScrollY = false;
+    let apertureX = null, apertureY = null, maxWidth = Infinity, maxHeight = Infinity;
     for (let parent = includeSelf ? origin : origin.parentElement; parent; parent = parent.parentElement) {
       const style = getComputedStyle(parent), bounds = parent.getBoundingClientRect();
       // A scrollport can expose its offscreen controls. A hidden/clip ancestor
       // cannot expose the clipped part and genuinely shrinks the hit area.
-      if (/^(auto|scroll)$/.test(style.overflowX) && parent.scrollWidth > parent.clientWidth) canScrollX = true;
-      if (/^(auto|scroll)$/.test(style.overflowY) && parent.scrollHeight > parent.clientHeight) canScrollY = true;
-      if (!canScrollX && /^(hidden|clip)$/.test(style.overflowX)) {
-        result.left = Math.max(result.left, bounds.left + parent.clientLeft);
-        result.right = Math.min(result.right, bounds.left + parent.clientLeft + parent.clientWidth);
+      const left = bounds.left + parent.clientLeft, top = bounds.top + parent.clientTop;
+      if (/^(auto|scroll)$/.test(style.overflowX) && parent.scrollWidth > parent.clientWidth) {
+        canScrollX = true;
+        apertureX = { left, right: left + parent.clientWidth };
+        maxWidth = Math.min(maxWidth, parent.clientWidth);
       }
-      if (!canScrollY && /^(hidden|clip)$/.test(style.overflowY)) {
-        result.top = Math.max(result.top, bounds.top + parent.clientTop);
-        result.bottom = Math.min(result.bottom, bounds.top + parent.clientTop + parent.clientHeight);
+      if (/^(auto|scroll)$/.test(style.overflowY) && parent.scrollHeight > parent.clientHeight) {
+        canScrollY = true;
+        apertureY = { top, bottom: top + parent.clientHeight };
+        maxHeight = Math.min(maxHeight, parent.clientHeight);
+      }
+      if (/^(hidden|clip)$/.test(style.overflowX)) {
+        if (canScrollX) {
+          apertureX.left = Math.max(apertureX.left, left);
+          apertureX.right = Math.min(apertureX.right, left + parent.clientWidth);
+          maxWidth = Math.min(maxWidth, Math.max(0, apertureX.right - apertureX.left));
+        } else {
+          result.left = Math.max(result.left, left);
+          result.right = Math.min(result.right, left + parent.clientWidth);
+        }
+      }
+      if (/^(hidden|clip)$/.test(style.overflowY)) {
+        if (canScrollY) {
+          apertureY.top = Math.max(apertureY.top, top);
+          apertureY.bottom = Math.min(apertureY.bottom, top + parent.clientHeight);
+          maxHeight = Math.min(maxHeight, Math.max(0, apertureY.bottom - apertureY.top));
+        } else {
+          result.top = Math.max(result.top, top);
+          result.bottom = Math.min(result.bottom, top + parent.clientHeight);
+        }
       }
     }
-    return { width: Math.max(0, result.right - result.left), height: Math.max(0, result.bottom - result.top) };
+    return { width: Math.min(maxWidth, Math.max(0, result.right - result.left)), height: Math.min(maxHeight, Math.max(0, result.bottom - result.top)) };
   };
   const pixels = (value) => /^-?(?:\d+\.?\d*|\.\d+)px$/.test(value) ? Number.parseFloat(value) : null;
   for (const el of document.querySelectorAll(selector)) {
