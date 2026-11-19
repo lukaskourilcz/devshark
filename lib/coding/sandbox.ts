@@ -58,7 +58,7 @@ export const SANDBOX_STACK_BYTES = 1024 * 1024;
 /** Rounds of jobs and timers a run may take before it counts as a timeout. */
 export const SANDBOX_MAX_TICKS = 10_000;
 /** Whole-run encoded outcome packets, in JSON UTF16 code units. */
-export const SANDBOX_ENCODED_OUTPUT_CHARS = 900_000;
+const SANDBOX_ENCODED_OUTPUT_CHARS = 900_000;
 /** What a learner sees when their call chain ran out of stack. Named rather
  * than inlined so the message reads the same wherever the overflow surfaces. */
 const STACK_MESSAGE = 'The call stack ran out of room: the recursion went too deep, or a base case is never reached.';
