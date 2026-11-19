@@ -7357,3 +7357,16 @@ not prove those behaviors. Full screen-reader QA, authenticated production
 behavior and deployment acceptance remain unverified here. No production
 SQL, settings, accounts, scores, orders or messages were changed. The PR must
 pass required verify/sql and merge before production acceptance is recorded.
+## Epic F4 production acceptance: image delivery (19 November 2026)
+
+PR #664 merged at `6c85886c03c22227fb4690ffaa298efe15d2dad0`. Frozen head
+`757352785b9bd5c8c62185b23c67d6032e2d7bdb` passed required run 44435812072:
+quickjs, static, tests, coding, browser, `verify` and `sql` all succeeded.
+READY production `dpl_AUnAVHHiLMoKkBciUcuR846me7gD` matches that merge SHA
+and serves devshark.app. Guest GET smoke passed for Home, the 243,605-byte
+1200 by 630 OG PNG, manifest and linked SVG/192px/512px icons. The archived
+`/brand/v9/recommended/devshark-fin-wave-green.svg` returns 404.
+No accounts, scores, orders or production data were changed. The preceding
+F4 section retains local failures, corrected reruns, image measurements and
+unrun checks. Issue #633 is closed; #646 now checks F15-59. Physical-device,
+field-performance and the other packages' acceptance remain separate work.
