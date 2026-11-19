@@ -1,0 +1,1216 @@
+{
+  "recorded": "2026-11-19",
+  "beforeRevision": "0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c",
+  "measuredAfterRevision": "cab4f4f05195207fdd4c6df2d21c9851e2b31800",
+  "sourceEquivalentAfterMessageNormalization": "052046bbc7b68c48376044405e375f82e9a26ddd",
+  "sourceTree": "5adf9c2b40f54eb4549b9ac9080aafd92c330374",
+  "messageNormalization": "Five unpublished commit subjects changed to the required scope/issue format. All 32 per-commit Git trees remain identical. Fast/lab measurements retain their original checkpoint identity.",
+  "buildEnvironment": {
+    "VITE_PRODUCT": "devshark",
+    "VITE_LOCK_SUBJECT": "webdev",
+    "VITE_SUPABASE_URL": "https://exampleprojectref123.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YW1wbGVwcm9qZWN0cmVmMTIzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.u4DHjqduHWQem12_AzJsMK_2_dK8eDTYOa8tmp8_DU0",
+    "VITE_SENTRY_DSN": "https://87a18de67be56414c8cd9a7c6594a215@o1283380.ingest.de.sentry.io/7446582",
+    "VITE_PUBLIC_POSTHOG_KEY": "phc_RTyhiAvO3XNWYzxvUxpP1ge7QVmibEFHmSarqOBcFbw"
+  },
+  "dependencyCacheIsolation": "Owned archive node_modules directories symlink individual packages and .bin, excluding .tmp/.cache/.vite*. Baseline artifact retained after its successful build. Final candidate was rebuilt after cache isolation.",
+  "tool": {
+    "file": "scripts/measure-web-performance.mjs",
+    "sha256": "07e4076a9c48893b5c19702a7d57ec9647bd1fc356ebf23f3458c6cfdc0f233e"
+  },
+  "fixture": {
+    "file": "tests/fixtures/api-settings.json",
+    "sha256": "e6f741bce3ed12ed90c34f2a225863c3e60a731a6f69ed1559af1efe73320c0b"
+  },
+  "limits": [
+    "Local sequential Home-only lab, three samples per profile/cache state; not field performance or a cold-server measurement.",
+    "Cold medians select consent paragraph, but baseline mobile raw sample0 selects hero h1. Do not claim a stable hero-paint improvement or isolated font/Motion cause.",
+    "INP represents one scripted press. All mutation attempts were blocked; no API requests were forwarded.",
+    "Full F1 inventory baseline is separate and remains open."
+  ],
+  "builds": {
+    "before": {
+      "revision": "0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c",
+      "fileCount": 2245,
+      "treeSha256": "f8c80541d83aa9ae9ec9743a8f2d08838124797af312a06a3b94945168f511ad",
+      "index": {
+        "file": "index.html",
+        "bytes": 5436,
+        "gzipBytes": 2036,
+        "sha256": "8628f7bcb530ecb07f20ac63f6e429024e5636e19ecb52f5342017ad1f97fb58"
+      },
+      "initialGzipBytes": 235485,
+      "initialFiles": [
+        {
+          "file": "assets/main-CoV_rv8U.js",
+          "bytes": 364096,
+          "gzipBytes": 121323,
+          "sha256": "8d0664eed2a20a051acde99631540e5e925b59a5899758af038f70d48d725872"
+        },
+        {
+          "file": "assets/router-CWOMc5in.js",
+          "bytes": 51170,
+          "gzipBytes": 18091,
+          "sha256": "8b2bd810114e11fd9afc2e22bddb1e5009116093b4dd8a27c952bdf330d4417b"
+        },
+        {
+          "file": "assets/tanstack-B-NlDO1V.js",
+          "bytes": 44239,
+          "gzipBytes": 13380,
+          "sha256": "edc79b54534a2266501b5f0762ca1ad1d0ecef0dd5066a293ef66367d80ffc56"
+        },
+        {
+          "file": "assets/react-DNiXoLEt.js",
+          "bytes": 180951,
+          "gzipBytes": 56848,
+          "sha256": "5df5b2f794073de9bb29c810b8d4fbd24de3730e2da3104e7eea34b71ea0099f"
+        },
+        {
+          "file": "assets/main-OWIKdl7s.css",
+          "bytes": 134682,
+          "gzipBytes": 25843,
+          "sha256": "4fa1bd3ad1a85df48ab561522eed04010615102a49d60369e689e2f2f39acc25"
+        }
+      ],
+      "mainCss": {
+        "file": "assets/main-OWIKdl7s.css",
+        "bytes": 134682,
+        "gzipBytes": 25843,
+        "sha256": "4fa1bd3ad1a85df48ab561522eed04010615102a49d60369e689e2f2f39acc25"
+      },
+      "mainJs": {
+        "file": "assets/main-CoV_rv8U.js",
+        "bytes": 364096,
+        "gzipBytes": 121323,
+        "sha256": "8d0664eed2a20a051acde99631540e5e925b59a5899758af038f70d48d725872"
+      },
+      "preloadedFonts": [
+        {
+          "file": "assets/manrope-latin-wght-normal-DHIcAJRg.woff2",
+          "bytes": 24836,
+          "gzipBytes": 24864,
+          "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972"
+        },
+        {
+          "file": "assets/inter-latin-wght-normal-Dx4kXJAl.woff2",
+          "bytes": 48256,
+          "gzipBytes": 48254,
+          "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62"
+        }
+      ]
+    },
+    "after": {
+      "revision": "cab4f4f05195207fdd4c6df2d21c9851e2b31800",
+      "fileCount": 2259,
+      "treeSha256": "6cb1f8d7b3c09303f08274349a5d089f4b52a1ecf8dbf3fa2ab805c9f30666ef",
+      "index": {
+        "file": "index.html",
+        "bytes": 4656,
+        "gzipBytes": 1748,
+        "sha256": "ec20b5b766effa18ca375f17b8207be0950212af673224a3dfee51b269c1cc7a"
+      },
+      "initialGzipBytes": 218675,
+      "initialFiles": [
+        {
+          "file": "assets/main-Cm92okOA.js",
+          "bytes": 320785,
+          "gzipBytes": 106100,
+          "sha256": "0af80e48d3ecbaf21fa64fc73c65008503b856e17096873d09daaca2a6380965"
+        },
+        {
+          "file": "assets/react-Cvu_Vp9I.js",
+          "bytes": 233608,
+          "gzipBytes": 74807,
+          "sha256": "a4fb0a01114ff12a7d8ada11598aae19f2af55c02d33d4c29969ee47e2a5ca4b"
+        },
+        {
+          "file": "assets/tanstack-BZh9zEA-.js",
+          "bytes": 43513,
+          "gzipBytes": 12989,
+          "sha256": "3b689716bfb341ff516863efa51a9087eab48ef4f176b28fa0a891a3fcab3a73"
+        },
+        {
+          "file": "assets/main-C0qcUGlJ.css",
+          "bytes": 127616,
+          "gzipBytes": 24779,
+          "sha256": "156a8f4a9f4e63e0f2a7e24d11cf6c88007f4b561e29d1975fe07c0cd6e88ced"
+        }
+      ],
+      "mainCss": {
+        "file": "assets/main-C0qcUGlJ.css",
+        "bytes": 127616,
+        "gzipBytes": 24779,
+        "sha256": "156a8f4a9f4e63e0f2a7e24d11cf6c88007f4b561e29d1975fe07c0cd6e88ced"
+      },
+      "mainJs": {
+        "file": "assets/main-Cm92okOA.js",
+        "bytes": 320785,
+        "gzipBytes": 106100,
+        "sha256": "0af80e48d3ecbaf21fa64fc73c65008503b856e17096873d09daaca2a6380965"
+      },
+      "preloadedFonts": []
+    }
+  },
+  "phases": {
+    "before": {
+      "environment": {
+        "origin": "http://127.0.0.1:4190",
+        "apiOrigin": null,
+        "apiDelayMs": null,
+        "time": "2026-11-19T04:23:55.054Z",
+        "platform": "darwin",
+        "arch": "arm64",
+        "chrome": "157.0.8103.80",
+        "network": "mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP",
+        "samples": 3,
+        "reducedMotion": "no-preference",
+        "consent": {
+          "cold-browser": "undecided",
+          "repeat-browser": "rejected"
+        },
+        "ttfbDefinition": "responseStart (web-vitals)",
+        "clsDefinition": "largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press",
+        "tbtDefinition": "long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)",
+        "summaryDefinition": "one row per profile, path and cache state: the median of each metric over the measured samples (the lower middle one for an even count, so each value is one a sample measured), the LCP element of the median-LCP sample, errors = samples a failure left without a measurement",
+        "requestsDefinition": "requests the page made per kind at the lab interception; sent = responses the origin returned over the network, without cache hits or answers the lab fulfilled",
+        "serverWaitDefinition": "responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)",
+        "scope": "anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP"
+      },
+      "requestTotals": {
+        "requests": 273,
+        "api": 12,
+        "sent": 240,
+        "sentApi": 0,
+        "forwarded": 0
+      },
+      "summary": [
+        {
+          "profile": "mobile",
+          "path": "/",
+          "cache": "cold-browser",
+          "samples": 3,
+          "errors": 0,
+          "ttfbMs": 153.39999999850988,
+          "fcpMs": 2076,
+          "lcpMs": 2076,
+          "lcpElement": "section.ss-consent p#_r_4_.ss-consent__body",
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 72,
+          "requests": 38
+        },
+        {
+          "profile": "mobile",
+          "path": "/",
+          "cache": "repeat-browser",
+          "samples": 3,
+          "errors": 0,
+          "ttfbMs": 151.60000000149012,
+          "fcpMs": 244,
+          "lcpMs": 244,
+          "lcpElement": "span.xb3r6kr.xlyipyv",
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 48,
+          "requests": 8
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "cache": "cold-browser",
+          "samples": 3,
+          "errors": 0,
+          "ttfbMs": 23.80000000447035,
+          "fcpMs": 388,
+          "lcpMs": 388,
+          "lcpElement": "section.ss-consent p#_r_4_.ss-consent__body",
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 64,
+          "requests": 38
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "cache": "repeat-browser",
+          "samples": 3,
+          "errors": 0,
+          "ttfbMs": 23,
+          "fcpMs": 76,
+          "lcpMs": 76,
+          "lcpElement": "a.ss-navlink",
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 32,
+          "requests": 7
+        }
+      ],
+      "rows": [
+        {
+          "profile": "mobile",
+          "path": "/",
+          "sample": 0,
+          "cache": "cold-browser",
+          "consent": "undecided",
+          "fcp": 2076,
+          "lcp": 2592,
+          "lcpElement": {
+            "tag": "h1",
+            "id": null,
+            "classes": [],
+            "container": "section.ss-hero-grid",
+            "size": 50196,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 80,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 28,
+            "stylesheet": 3,
+            "font": 2,
+            "image": 1,
+            "api": 1,
+            "other": 2,
+            "blocked": 0,
+            "sent": 37,
+            "sentApi": 0
+          },
+          "blockedWrites": 0
+        },
+        {
+          "profile": "mobile",
+          "path": "/",
+          "sample": 0,
+          "cache": "repeat-browser",
+          "consent": "rejected",
+          "fcp": 252,
+          "lcp": 252,
+          "lcpElement": {
+            "tag": "span",
+            "id": null,
+            "classes": [
+              "xb3r6kr",
+              "xlyipyv"
+            ],
+            "container": null,
+            "size": 1007,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 48,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 0,
+            "stylesheet": 0,
+            "font": 2,
+            "image": 0,
+            "api": 1,
+            "other": 2,
+            "blocked": 2,
+            "sent": 3,
+            "sentApi": 0
+          },
+          "blockedWrites": 2
+        },
+        {
+          "profile": "mobile",
+          "path": "/",
+          "sample": 1,
+          "cache": "cold-browser",
+          "consent": "undecided",
+          "fcp": 2076,
+          "lcp": 2076,
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 33578,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 64,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 28,
+            "stylesheet": 3,
+            "font": 2,
+            "image": 1,
+            "api": 1,
+            "other": 2,
+            "blocked": 1,
+            "sent": 37,
+            "sentApi": 0
+          },
+          "blockedWrites": 1
+        },
+        {
+          "profile": "mobile",
+          "path": "/",
+          "sample": 1,
+          "cache": "repeat-browser",
+          "consent": "rejected",
+          "fcp": 240,
+          "lcp": 240,
+          "lcpElement": {
+            "tag": "span",
+            "id": null,
+            "classes": [
+              "xb3r6kr",
+              "xlyipyv"
+            ],
+            "container": null,
+            "size": 1007,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 48,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 0,
+            "stylesheet": 0,
+            "font": 2,
+            "image": 0,
+            "api": 1,
+            "other": 2,
+            "blocked": 2,
+            "sent": 3,
+            "sentApi": 0
+          },
+          "blockedWrites": 2
+        },
+        {
+          "profile": "mobile",
+          "path": "/",
+          "sample": 2,
+          "cache": "cold-browser",
+          "consent": "undecided",
+          "fcp": 2072,
+          "lcp": 2072,
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 33578,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 72,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 28,
+            "stylesheet": 3,
+            "font": 2,
+            "image": 1,
+            "api": 1,
+            "other": 2,
+            "blocked": 0,
+            "sent": 37,
+            "sentApi": 0
+          },
+          "blockedWrites": 0
+        },
+        {
+          "profile": "mobile",
+          "path": "/",
+          "sample": 2,
+          "cache": "repeat-browser",
+          "consent": "rejected",
+          "fcp": 244,
+          "lcp": 244,
+          "lcpElement": {
+            "tag": "span",
+            "id": null,
+            "classes": [
+              "xb3r6kr",
+              "xlyipyv"
+            ],
+            "container": null,
+            "size": 1007,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 48,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 0,
+            "stylesheet": 0,
+            "font": 2,
+            "image": 0,
+            "api": 1,
+            "other": 2,
+            "blocked": 1,
+            "sent": 3,
+            "sentApi": 0
+          },
+          "blockedWrites": 1
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "sample": 0,
+          "cache": "cold-browser",
+          "consent": "undecided",
+          "fcp": 392,
+          "lcp": 392,
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 64,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 28,
+            "stylesheet": 3,
+            "font": 2,
+            "image": 1,
+            "api": 1,
+            "other": 2,
+            "blocked": 0,
+            "sent": 37,
+            "sentApi": 0
+          },
+          "blockedWrites": 0
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "sample": 0,
+          "cache": "repeat-browser",
+          "consent": "rejected",
+          "fcp": 92,
+          "lcp": 92,
+          "lcpElement": {
+            "tag": "a",
+            "id": null,
+            "classes": [
+              "ss-navlink"
+            ],
+            "container": null,
+            "size": 1173,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 32,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 0,
+            "stylesheet": 0,
+            "font": 2,
+            "image": 0,
+            "api": 1,
+            "other": 2,
+            "blocked": 1,
+            "sent": 3,
+            "sentApi": 0
+          },
+          "blockedWrites": 1
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "sample": 1,
+          "cache": "cold-browser",
+          "consent": "undecided",
+          "fcp": 384,
+          "lcp": 384,
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 56,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 28,
+            "stylesheet": 3,
+            "font": 2,
+            "image": 1,
+            "api": 1,
+            "other": 2,
+            "blocked": 0,
+            "sent": 37,
+            "sentApi": 0
+          },
+          "blockedWrites": 0
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "sample": 1,
+          "cache": "repeat-browser",
+          "consent": "rejected",
+          "fcp": 76,
+          "lcp": 76,
+          "lcpElement": {
+            "tag": "a",
+            "id": null,
+            "classes": [
+              "ss-navlink"
+            ],
+            "container": null,
+            "size": 1173,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 32,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 0,
+            "stylesheet": 0,
+            "font": 2,
+            "image": 0,
+            "api": 1,
+            "other": 2,
+            "blocked": 1,
+            "sent": 3,
+            "sentApi": 0
+          },
+          "blockedWrites": 1
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "sample": 2,
+          "cache": "cold-browser",
+          "consent": "undecided",
+          "fcp": 388,
+          "lcp": 388,
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 64,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 28,
+            "stylesheet": 3,
+            "font": 2,
+            "image": 1,
+            "api": 1,
+            "other": 2,
+            "blocked": 0,
+            "sent": 37,
+            "sentApi": 0
+          },
+          "blockedWrites": 0
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "sample": 2,
+          "cache": "repeat-browser",
+          "consent": "rejected",
+          "fcp": 76,
+          "lcp": 76,
+          "lcpElement": {
+            "tag": "a",
+            "id": null,
+            "classes": [
+              "ss-navlink"
+            ],
+            "container": null,
+            "size": 1173,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 32,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 0,
+            "stylesheet": 0,
+            "font": 2,
+            "image": 0,
+            "api": 1,
+            "other": 2,
+            "blocked": 1,
+            "sent": 3,
+            "sentApi": 0
+          },
+          "blockedWrites": 1
+        }
+      ]
+    },
+    "after": {
+      "environment": {
+        "origin": "http://127.0.0.1:4191",
+        "apiOrigin": null,
+        "apiDelayMs": null,
+        "time": "2026-11-19T04:24:45.010Z",
+        "platform": "darwin",
+        "arch": "arm64",
+        "chrome": "157.0.8103.80",
+        "network": "mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP",
+        "samples": 3,
+        "reducedMotion": "no-preference",
+        "consent": {
+          "cold-browser": "undecided",
+          "repeat-browser": "rejected"
+        },
+        "ttfbDefinition": "responseStart (web-vitals)",
+        "clsDefinition": "largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press",
+        "tbtDefinition": "long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)",
+        "summaryDefinition": "one row per profile, path and cache state: the median of each metric over the measured samples (the lower middle one for an even count, so each value is one a sample measured), the LCP element of the median-LCP sample, errors = samples a failure left without a measurement",
+        "requestsDefinition": "requests the page made per kind at the lab interception; sent = responses the origin returned over the network, without cache hits or answers the lab fulfilled",
+        "serverWaitDefinition": "responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)",
+        "scope": "anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP"
+      },
+      "requestTotals": {
+        "requests": 280,
+        "api": 12,
+        "sent": 249,
+        "sentApi": 0,
+        "forwarded": 0
+      },
+      "summary": [
+        {
+          "profile": "mobile",
+          "path": "/",
+          "cache": "cold-browser",
+          "samples": 3,
+          "errors": 0,
+          "ttfbMs": 153.30000000447035,
+          "fcpMs": 1600,
+          "lcpMs": 1600,
+          "lcpElement": "section.ss-consent p#_r_4_.ss-consent__body",
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 64,
+          "requests": 40
+        },
+        {
+          "profile": "mobile",
+          "path": "/",
+          "cache": "repeat-browser",
+          "samples": 3,
+          "errors": 0,
+          "ttfbMs": 151.39999999850988,
+          "fcpMs": 236,
+          "lcpMs": 236,
+          "lcpElement": "span.xb3r6kr.xlyipyv",
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 32,
+          "requests": 9
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "cache": "cold-browser",
+          "samples": 3,
+          "errors": 0,
+          "ttfbMs": 22.799999997019768,
+          "fcpMs": 308,
+          "lcpMs": 308,
+          "lcpElement": "section.ss-consent p#_r_4_.ss-consent__body",
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 64,
+          "requests": 39
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "cache": "repeat-browser",
+          "samples": 3,
+          "errors": 0,
+          "ttfbMs": 22.100000001490116,
+          "fcpMs": 80,
+          "lcpMs": 80,
+          "lcpElement": "a.ss-navlink",
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 32,
+          "requests": 5
+        }
+      ],
+      "rows": [
+        {
+          "profile": "mobile",
+          "path": "/",
+          "sample": 0,
+          "cache": "cold-browser",
+          "consent": "undecided",
+          "fcp": 1600,
+          "lcp": 1600,
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 33578,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 64,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 32,
+            "stylesheet": 3,
+            "font": 0,
+            "image": 1,
+            "api": 1,
+            "other": 2,
+            "blocked": 0,
+            "sent": 38,
+            "sentApi": 0
+          },
+          "blockedWrites": 0
+        },
+        {
+          "profile": "mobile",
+          "path": "/",
+          "sample": 0,
+          "cache": "repeat-browser",
+          "consent": "rejected",
+          "fcp": 256,
+          "lcp": 256,
+          "lcpElement": {
+            "tag": "span",
+            "id": null,
+            "classes": [
+              "xb3r6kr",
+              "xlyipyv"
+            ],
+            "container": null,
+            "size": 1007,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 32,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 4,
+            "stylesheet": 0,
+            "font": 0,
+            "image": 0,
+            "api": 1,
+            "other": 2,
+            "blocked": 1,
+            "sent": 4,
+            "sentApi": 0
+          },
+          "blockedWrites": 1
+        },
+        {
+          "profile": "mobile",
+          "path": "/",
+          "sample": 1,
+          "cache": "cold-browser",
+          "consent": "undecided",
+          "fcp": 1600,
+          "lcp": 1600,
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 33578,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 64,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 32,
+            "stylesheet": 3,
+            "font": 0,
+            "image": 1,
+            "api": 1,
+            "other": 2,
+            "blocked": 0,
+            "sent": 38,
+            "sentApi": 0
+          },
+          "blockedWrites": 0
+        },
+        {
+          "profile": "mobile",
+          "path": "/",
+          "sample": 1,
+          "cache": "repeat-browser",
+          "consent": "rejected",
+          "fcp": 236,
+          "lcp": 236,
+          "lcpElement": {
+            "tag": "span",
+            "id": null,
+            "classes": [
+              "xb3r6kr",
+              "xlyipyv"
+            ],
+            "container": null,
+            "size": 1007,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 32,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 4,
+            "stylesheet": 0,
+            "font": 0,
+            "image": 0,
+            "api": 1,
+            "other": 2,
+            "blocked": 2,
+            "sent": 4,
+            "sentApi": 0
+          },
+          "blockedWrites": 2
+        },
+        {
+          "profile": "mobile",
+          "path": "/",
+          "sample": 2,
+          "cache": "cold-browser",
+          "consent": "undecided",
+          "fcp": 1596,
+          "lcp": 1596,
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 33578,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 64,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 32,
+            "stylesheet": 3,
+            "font": 0,
+            "image": 1,
+            "api": 1,
+            "other": 2,
+            "blocked": 0,
+            "sent": 38,
+            "sentApi": 0
+          },
+          "blockedWrites": 0
+        },
+        {
+          "profile": "mobile",
+          "path": "/",
+          "sample": 2,
+          "cache": "repeat-browser",
+          "consent": "rejected",
+          "fcp": 236,
+          "lcp": 236,
+          "lcpElement": {
+            "tag": "span",
+            "id": null,
+            "classes": [
+              "xb3r6kr",
+              "xlyipyv"
+            ],
+            "container": null,
+            "size": 1007,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 32,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 4,
+            "stylesheet": 0,
+            "font": 0,
+            "image": 0,
+            "api": 1,
+            "other": 2,
+            "blocked": 1,
+            "sent": 4,
+            "sentApi": 0
+          },
+          "blockedWrites": 1
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "sample": 0,
+          "cache": "cold-browser",
+          "consent": "undecided",
+          "fcp": 308,
+          "lcp": 308,
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 64,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 31,
+            "stylesheet": 3,
+            "font": 0,
+            "image": 1,
+            "api": 1,
+            "other": 2,
+            "blocked": 0,
+            "sent": 38,
+            "sentApi": 0
+          },
+          "blockedWrites": 0
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "sample": 0,
+          "cache": "repeat-browser",
+          "consent": "rejected",
+          "fcp": 80,
+          "lcp": 80,
+          "lcpElement": {
+            "tag": "a",
+            "id": null,
+            "classes": [
+              "ss-navlink"
+            ],
+            "container": null,
+            "size": 1173,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 32,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 0,
+            "stylesheet": 0,
+            "font": 0,
+            "image": 0,
+            "api": 1,
+            "other": 2,
+            "blocked": 1,
+            "sent": 3,
+            "sentApi": 0
+          },
+          "blockedWrites": 1
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "sample": 1,
+          "cache": "cold-browser",
+          "consent": "undecided",
+          "fcp": 312,
+          "lcp": 312,
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 64,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 31,
+            "stylesheet": 3,
+            "font": 0,
+            "image": 1,
+            "api": 1,
+            "other": 2,
+            "blocked": 0,
+            "sent": 38,
+            "sentApi": 0
+          },
+          "blockedWrites": 0
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "sample": 1,
+          "cache": "repeat-browser",
+          "consent": "rejected",
+          "fcp": 76,
+          "lcp": 76,
+          "lcpElement": {
+            "tag": "a",
+            "id": null,
+            "classes": [
+              "ss-navlink"
+            ],
+            "container": null,
+            "size": 1173,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 32,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 0,
+            "stylesheet": 0,
+            "font": 0,
+            "image": 0,
+            "api": 1,
+            "other": 2,
+            "blocked": 1,
+            "sent": 3,
+            "sentApi": 0
+          },
+          "blockedWrites": 1
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "sample": 2,
+          "cache": "cold-browser",
+          "consent": "undecided",
+          "fcp": 308,
+          "lcp": 308,
+          "lcpElement": {
+            "tag": "p",
+            "id": "_r_4_",
+            "classes": [
+              "ss-consent__body"
+            ],
+            "container": "section.ss-consent",
+            "size": 28670,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 64,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 31,
+            "stylesheet": 3,
+            "font": 0,
+            "image": 1,
+            "api": 1,
+            "other": 2,
+            "blocked": 0,
+            "sent": 38,
+            "sentApi": 0
+          },
+          "blockedWrites": 0
+        },
+        {
+          "profile": "desktop",
+          "path": "/",
+          "sample": 2,
+          "cache": "repeat-browser",
+          "consent": "rejected",
+          "fcp": 80,
+          "lcp": 80,
+          "lcpElement": {
+            "tag": "a",
+            "id": null,
+            "classes": [
+              "ss-navlink"
+            ],
+            "container": null,
+            "size": 1173,
+            "url": null
+          },
+          "cls": 0,
+          "tbtMs": 0,
+          "inpMs": 32,
+          "interactionCount": 1,
+          "requests": {
+            "document": 1,
+            "script": 0,
+            "stylesheet": 0,
+            "font": 0,
+            "image": 0,
+            "api": 1,
+            "other": 2,
+            "blocked": 1,
+            "sent": 3,
+            "sentApi": 0
+          },
+          "blockedWrites": 1
+        }
+      ]
+    }
+  }
+}

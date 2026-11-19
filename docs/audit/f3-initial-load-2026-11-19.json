@@ -160,5 +160,35 @@
     "initialCSSGzipBytes": 24779,
     "monitoringGzipBytes": 46800,
     "note": "Fresh measured build after rebase onto F6. Its CSS/focus/readiness corrections remain in place. Previous code, bundle and lab checkpoints remain historical. This refresh follows the expected 60-byte over-budget measurement against the earlier pre-F6 218615 budget."
-  }
+  },
+  "checkedFastCheckpoint": {
+    "measuredHead": "cab4f4f05195207fdd4c6df2d21c9851e2b31800",
+    "sourceEquivalentHead": "052046bbc7b68c48376044405e375f82e9a26ddd",
+    "sourceTree": "5adf9c2b40f54eb4549b9ac9080aafd92c330374",
+    "complete": true,
+    "dirty": false,
+    "node": "24.22.3",
+    "minutes": 31.35,
+    "passed": 30,
+    "failed": 0,
+    "skipped": 27,
+    "notRun": 1,
+    "notRunReason": "QuickJS rebuild requires Python 3.10+/emsdk; required CI must rebuild.",
+    "client": {
+      "files": 199,
+      "tests": 1967
+    },
+    "codingTasks": 814,
+    "issuedCodingTasks": 769,
+    "responsive": {
+      "light": 180,
+      "dark": 60,
+      "zoom200": 1,
+      "zoom400": 1,
+      "issues": 0,
+      "unprobed": 0
+    },
+    "note": "Message-only normalization followed this run. Full parity on the documentation head is the next gate."
+  },
+  "finalHomeLab": "docs/audit/f3-home-lab-2026-11-19.json"
 }
