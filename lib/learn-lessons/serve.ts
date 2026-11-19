@@ -14,6 +14,7 @@ import type { VercelRequest, VercelResponse } from '../vercel-types.js';
 import type { LearnLessonResponse } from '../../shared/learning-path-api';
 import { jsonError } from '../http';
 import { enforceRateLimit, RATE_LIMITS } from '../rate-limit';
+import { matchesEntityTag } from '../public-json';
 import { publicLesson } from './index';
 
 /** Five minutes in a browser, a day at the CDN; a deployment clears the CDN,
@@ -21,17 +22,6 @@ import { publicLesson } from './index';
 export const LESSON_CACHE_CONTROL = 'public, max-age=300, s-maxage=86400';
 
 const LESSON_ID = /^[a-z0-9-]{1,80}$/;
-
-/** Whether an If-None-Match header names this ETag (or `*`). A CDN may weaken
- * the tag in transit, and a weak match is enough for a GET. */
-function matches(header: string | string[] | undefined, etag: string): boolean {
-  const value = Array.isArray(header) ? header.join(',') : header;
-  if (!value) return false;
-  return value.split(',').some((tag) => {
-    const one = tag.trim();
-    return one === '*' || one.replace(/^W\//, '') === etag;
-  });
-}
 
 export async function handleLessonRead(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
@@ -47,7 +37,7 @@ export async function handleLessonRead(req: VercelRequest, res: VercelResponse) 
   const etag = `"${entry.hash}"`;
   res.setHeader('Cache-Control', LESSON_CACHE_CONTROL);
   res.setHeader('ETag', etag);
-  if (matches(req.headers['if-none-match'], etag)) return res.status(304).end();
+  if (matchesEntityTag(req.headers['if-none-match'], etag)) return res.status(304).end();
   const body: LearnLessonResponse = { lesson: entry.lesson, hash: entry.hash };
   return res.json(body);
 }
