@@ -8079,3 +8079,12 @@ was projected offline on 19 November; this paragraph records its original
 observation scope, not new sampling.
 
 Actual merged-F7 production collection records 36 attempted, sent and completed expected read/refusal responses with zero errors: eight first, sixteen repeat and twelve unknown module markers. Separate READY/alias metadata corroborates cbdfa2aa in arn1; the collector deploymentRevision:null remains intact. Existing before/final import checkpoints each contain 36 successful fresh-process samples across all twelve handlers, using Node 24.22.3, Apple M3 and locked esbuild 0.25.12. Original f12b396a/3fb1a0d1 measurement sources and full mixed/slower rows remain; runtime trees, locks and import tools match merged cbdf. A local CJS proxy is not a provider Lambda, retained-memory result, business operation or platform-boot measurement. No duplicate probe/import run was made.
+
+
+## Epic F1 remaining baseline: F1-31: exact-lock production dependency audits (19 November 2026)
+
+Issue #630. Saved evidence in `docs/audit/f1-production-audits-2026-11-19.json`
+was projected offline on 19 November; this paragraph records its original
+observation scope, not new sampling.
+
+The final F7 fast run at fcfb13f5 records exit0 and zero vulnerabilities for both npm audit --omit=dev and npm audit --omit=dev --prefix client. Both lock hashes remain identical at merged cbdf. The saved logs retain their original run window and Node 24.22.3, while host npm version and per-command timestamps remain unknown in this selected evidence. Container npm cannot fill that gap. This is a historical production-only audit, not a development-dependency or timeless vulnerability guarantee. The required branch gates will supply their own current observations.
