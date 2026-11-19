@@ -8126,3 +8126,23 @@ business/write branches, and claim neither restored under-250 compliance nor
 known remaining historical headroom. Earlier dated no-probe records remain
 historical; this paragraph records the later deliberate scope correction.
 No new production measurement has run at this checkpoint.
+
+
+## Epic F1 raw production observation: incomplete deadline result (19 November 2026)
+
+The actual `npm run check:bundle -- --url=https://devshark.app` observation
+from 17:18:38 to 17:19:08 UTC exits1 at its 30-second total bound. It attempts
+and locally finishes three of five planned GETs. Document and main-script
+HTTP200 bodies complete; the React asset response and remaining graph are
+unknown/unattempted. Partial initial bytes are not a complete bundle total.
+`docs/audit/f1-production-bundle-partial-2026-11-19.json` preserves every
+actual row, source/hash, failure and separately corroborated READY cbdf alias.
+
+The first document takes29,443.5ms despite a15,000ms per-request claim. The
+source arms that timer after synchronous request construction and accepts a
+late successful finish without checking elapsed time. The exact synchronous
+cost is not observed; no TLS/DNS/origin cause is asserted. A real owned-local
+regression and minimal monotonic-deadline fix are required before another
+observation. No retry or cap relaxation occurred. The partial ledger now has
+149 declared request counts and156 known completed response observations;
+older incomplete/approximate history stays separate. F1-23 remains incomplete.

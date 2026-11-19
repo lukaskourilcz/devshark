@@ -89,10 +89,24 @@
       "countEvidence": "eight saved status/body observations; no explicit attempt/retry/redirect ledger",
       "declaredRequestCount": null,
       "instrumentedAttempts": null
+    },
+    {
+      "source": "f1-production-bundle-partial-2026-11-19.json",
+      "sha256": "940da07670e55b7ce06b64069bcf30e4f5253b4a3e73973727a1e36d314ddbc5",
+      "recordedAt": "2026-11-19T17:18:38.215Z",
+      "origin": "https://devshark.app",
+      "scope": "Explicitly authorized F1-23 anonymous document/assets observation, incomplete without retry",
+      "completedResponseRows": 2,
+      "declaredRequestCount": 3,
+      "instrumentedAttempts": 3,
+      "requestSentLocalFinish": 3,
+      "plannedRequests": 5,
+      "unknownResponses": 1,
+      "countEvidence": "Actual bounded raw collector counters and response rows; sent is local ClientRequest finish, not proof of upstream receipt."
     }
   ],
-  "explicitDeclaredRequestCounts": 146,
-  "knownCompletedResponseObservations": 154,
+  "explicitDeclaredRequestCounts": 149,
+  "knownCompletedResponseObservations": 156,
   "priorAuditNarrativeApproximateRequests": 290,
   "priorNarrativeSource": "F1-44 canonical issue646 comment;18November audit; no raw exact ledger supplied",
   "priorApproximateIsAddedToExactTotal": false,
@@ -104,15 +118,22 @@
     "Preview63, GitHub metadata, provider metadata and local loopback requests are separate targets/scopes, not production-origin rows here.",
     "No raw URLs/query strings/request identifiers or response bodies are copied into this ledger."
   ],
-  "explicitInstrumentedAttempts": 48,
+  "explicitInstrumentedAttempts": 51,
   "notes": [
     "declaredRequestCount in historical smoke files is the tool-call count, not a separately instrumented count of lower-level redirects.",
-    "Only the48 F7 attempts are explicitly instrumented as attempts in these selected artifacts; all146 declared counts are retained separately."
+    "The48 F7 attempts and3 later F1 raw-transfer attempts are explicitly instrumented; all149 selected declared counts remain a separate incomplete historical scope."
   ],
   "inputProvenance": {
     "f1-refresh-cbdfa2aa/request-ledger-reconciliation.json": {
       "sha256": "b7e6b89c47e2848922d60fea3f2fa823d59fe5c7f37870a96fc194e74e1a1f2c",
       "bytes": 5485
     }
+  },
+  "latestAdditionRecordedAt": "2026-11-19T18:26:17.772995+00:00",
+  "newExplicitAttemptObservation": {
+    "attempted": 3,
+    "locallyFinished": 3,
+    "completeHTTP200": 2,
+    "unknown": 1
   }
 }

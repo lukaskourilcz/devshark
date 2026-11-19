@@ -1,0 +1,144 @@
+{
+  "status": "INCOMPLETE_ACTUAL_OBSERVATION_NO_RETRY",
+  "command": "npm run check:bundle -- --url=https://devshark.app",
+  "exitCode": 1,
+  "rawReportSha256": "3e6d320057099c39c277651de255f80eaee020a6faa63bda3dbff9ca47693ce1",
+  "deploymentCorroboration": {
+    "observedAt": "2026-11-19 17:18:38 UTC",
+    "query": "get_deployment(idOrUrl=devshark.app, withGitRepoInfo=true)",
+    "id": "dpl_Efb7TFTrUEyYUqSebQWv3ccv6zve",
+    "url": "react-express-idzhrango-lukas-kourils-projects.vercel.app",
+    "state": "READY",
+    "target": "production",
+    "regions": [
+      "arn1"
+    ],
+    "alias": [
+      "devshark.app",
+      "react-express-app-five.vercel.app",
+      "react-express-app-lukas-kourils-projects.vercel.app",
+      "react-express-app-git-main-lukas-kourils-projects.vercel.app"
+    ],
+    "githubCommitSha": "cbdfa2aa995e7dd71c7d0197fee7f35df21ca205",
+    "source": "git"
+  },
+  "report": {
+    "mode": "live-transfer",
+    "complete": false,
+    "origin": "https://devshark.app",
+    "observedAt": "2026-11-19T17:18:38.215Z",
+    "node": "v24.22.3",
+    "scope": "Anonymous sequential GETs of document and HTML-linked public initial scripts/modulepreloads/styles/preloaded fonts only. Encoded HTTP body bytes exclude headers, chunk framing, TLS and browser-only dynamic/CSS discoveries. No redirects, retries, cookies or authorization.",
+    "scriptSha256": "15a07155e7b202cd6841b48ee1b28763ae93c415bcc0b7f0839c0574f28a578b",
+    "budgetSha256": "7b781a2bbd34f58b99649790da1117199ad40513782db1b92dd97243832015ca",
+    "localGzipBudgetReference": 218675,
+    "budgetApplied": false,
+    "limits": {
+      "assets": 32,
+      "encoded": 8388608,
+      "decoded": 8388608,
+      "totalEncoded": 33554432,
+      "totalDecoded": 67108864,
+      "html": 1048576,
+      "requestMs": 15000,
+      "totalMs": 30000
+    },
+    "deployment": {
+      "id": null,
+      "sha": null,
+      "source": "Not established by this transfer observation; only returned response/cache/request headers are retained."
+    },
+    "requestsPlanned": 5,
+    "requestsAttempted": 3,
+    "requestsSent": 3,
+    "rows": [
+      {
+        "path": "/",
+        "requestSent": true,
+        "status": 200,
+        "headers": {
+          "content-type": "text/html; charset=utf-8",
+          "content-encoding": "br",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "etag": "W/\"e6335a1dd246b061fc1d18be03e459ed\"",
+          "last-modified": "Thu, 19 Nov 2026 17:19:07 GMT",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "fra1::pbsbc-1795108747384-db043d0f234d",
+          "date": "Thu, 19 Nov 2026 17:19:07 GMT"
+        },
+        "receivedBodyBytes": 1811,
+        "elapsedMs": 29443.519334,
+        "error": null,
+        "kind": "document",
+        "transferredBytes": 1811,
+        "decodedBytes": 4656,
+        "decodedGzip6Bytes": 1751,
+        "encodedSha256": "2a933a24cd5eed3b3f271840084f8224602df0b433bd985637fe6fdc9ea2de67",
+        "decodedSha256": "a7ac182a0d55e800bf3109d25c0c1612dee26538591f31b415502bdd5c954b68",
+        "encoding": "br"
+      },
+      {
+        "path": "/assets/main-BI4UW2Ue.js",
+        "requestSent": true,
+        "status": 200,
+        "headers": {
+          "content-type": "application/javascript; charset=utf-8",
+          "content-encoding": "br",
+          "cache-control": "public, max-age=31536000, immutable",
+          "etag": "W/\"24b11c0038a110eeb38a85f3d7274aae\"",
+          "last-modified": "Thu, 19 Nov 2026 17:19:07 GMT",
+          "x-vercel-cache": "MISS",
+          "x-vercel-id": "fra1::xkjtl-1795108747757-6834a8dfdd23",
+          "date": "Thu, 19 Nov 2026 17:19:08 GMT"
+        },
+        "receivedBodyBytes": 107727,
+        "elapsedMs": 367.02687499999956,
+        "error": null,
+        "kind": "script",
+        "transferredBytes": 107727,
+        "decodedBytes": 321127,
+        "decodedGzip6Bytes": 106268,
+        "encodedSha256": "8d3b01a7394b7f17ab04efad7ff8752c84a32b2312f87e2b6692234934e3c6d7",
+        "decodedSha256": "cb68ff7afdbf3600293eded8199cecefcbb4684cf39bb4f397e1f00a026a446c",
+        "encoding": "br"
+      },
+      {
+        "path": "/assets/react-Cvu_Vp9I.js",
+        "requestSent": true,
+        "status": null,
+        "headers": {},
+        "receivedBodyBytes": 0,
+        "elapsedMs": 176.69262499999968,
+        "error": "request_timeout",
+        "kind": "script",
+        "transferredBytes": null,
+        "decodedBytes": null,
+        "decodedGzip6Bytes": null,
+        "encodedSha256": null,
+        "decodedSha256": null,
+        "encoding": null
+      }
+    ],
+    "excludedReferences": {},
+    "error": {
+      "code": "request_timeout"
+    },
+    "totals": {
+      "initialTransferredBytes": 107727,
+      "initialDecodedGzip6Bytes": 106268,
+      "preloadedFontTransferredBytes": 0,
+      "documentTransferredBytes": 1811,
+      "receivedBodyBytes": 109538,
+      "decodedBytes": 325783,
+      "completeBodiesOnly": true
+    },
+    "completedAt": "2026-11-19T17:19:08.217Z",
+    "elapsedMs": 30002.009040999998
+  },
+  "assessment": [
+    "First document elapsed29443.519334ms despite advertised15000ms per-request bound; exact synchronous cost is unobserved.",
+    "Source arms timer after transport.request construction and accepts a successful finish without an elapsed-deadline check. Real local regression and minimal fix are being prepared.",
+    "Two HTTP200 responses completed; third request was locally finished/sent but response/body remains unknown. No complete initial-byte total or F1-23 completion is claimed.",
+    "No retry, redirect, API, auth or cookie was selected."
+  ]
+}
