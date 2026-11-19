@@ -27,7 +27,7 @@ export type SourcePacket = {
   locale: 'en'; observedAt: string; expiresAt: string | null; eligible: boolean;
   eligibilityReason: string; content: SourceContent;
 };
-export const canonicalJson = (value: unknown): string => {
+const canonicalJson = (value: unknown): string => {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
   return `{${Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b))

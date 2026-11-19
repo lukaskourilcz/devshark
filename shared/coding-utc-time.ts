@@ -34,7 +34,7 @@
  * `toISOString` and `toJSON` are unchanged. Plain ES2019, so every browser the
  * app supports and QuickJS evaluate it as written. */
 
-export const LEARNER_TIME_ZONE = 'UTC';
+const LEARNER_TIME_ZONE = 'UTC';
 
 export interface UtcTimeOptions {
   inPlace?: boolean;

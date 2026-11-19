@@ -3,13 +3,13 @@
  * test evaluates the same string. Both suites and live previews use these
  * deterministic offline fixtures. Ported from interview-prepper. */
 
-export const FIXTURE_USERS = [
+const FIXTURE_USERS = [
   { id: 1, name: 'Leanne Graham', username: 'Bret', email: 'leanne@example.com', address: { city: 'Gwenborough' } },
   { id: 2, name: 'Ervin Howell', username: 'Antonette', email: 'ervin@example.com', address: { city: 'Wisokyburgh' } },
   { id: 3, name: 'Clementine Bauch', username: 'Samantha', email: 'clementine@example.com', address: { city: 'McKenziehaven' } },
 ];
 
-export const FIXTURE_POSTS = [
+const FIXTURE_POSTS = [
   { id: 1, userId: 1, title: 'Post one', body: 'Body one' },
   { id: 2, userId: 1, title: 'Post two', body: 'Body two' },
   { id: 3, userId: 1, title: 'Post three', body: 'Body three' },
@@ -19,19 +19,19 @@ export const FIXTURE_POSTS = [
   { id: 7, userId: 2, title: 'Post seven', body: 'Body seven' },
 ];
 
-export const FIXTURE_TODOS = [
+const FIXTURE_TODOS = [
   { id: 1, userId: 1, title: 'Todo one', completed: false },
   { id: 2, userId: 1, title: 'Todo two', completed: true },
   { id: 3, userId: 2, title: 'Todo three', completed: false },
 ];
 
-export const FIXTURE_COMMENTS = [
+const FIXTURE_COMMENTS = [
   { id: 1, postId: 1, name: 'Comment one', email: 'ana@example.com', body: 'First' },
   { id: 2, postId: 1, name: 'Comment two', email: 'bo@example.com', body: 'Second' },
   { id: 3, postId: 2, name: 'Comment three', email: 'ana@example.net', body: 'Third' },
 ];
 
-export const FIXTURE_PRODUCTS = [
+const FIXTURE_PRODUCTS = [
   { id: 1, title: 'Laptop', price: 900, category: 'tech' },
   { id: 2, title: 'Mug', price: 10, category: 'kitchen' },
   { id: 3, title: 'Desk', price: 200, category: 'furniture' },
@@ -39,7 +39,7 @@ export const FIXTURE_PRODUCTS = [
 
 /** Seven photos, served three to a page (`/api/photos?page=N`), so the preview
  * of the load-more challenge has two full pages and a short last one. */
-export const FIXTURE_PHOTOS = [
+const FIXTURE_PHOTOS = [
   { id: 1, title: 'Harbour at dawn' },
   { id: 2, title: 'Rain on the tram' },
   { id: 3, title: 'Market stalls' },
@@ -51,7 +51,7 @@ export const FIXTURE_PHOTOS = [
 
 /** A few days of notifications, so the notification-center preview has
  * something to group (`/api/notifications`). */
-export const FIXTURE_NOTIFICATIONS = [
+const FIXTURE_NOTIFICATIONS = [
   { id: 1, text: 'Ana replied to your comment', date: '2026-09-28', read: false },
   { id: 2, text: 'Your export is ready', date: '2026-09-28', read: true },
   { id: 3, text: 'Bo started following you', date: '2026-09-27', read: false },
@@ -60,7 +60,7 @@ export const FIXTURE_NOTIFICATIONS = [
 ];
 
 /** A week of product events for the analytics-panel preview (`/api/events`). */
-export const FIXTURE_EVENTS = [
+const FIXTURE_EVENTS = [
   { id: 1, type: 'visit', date: '2026-09-01' },
   { id: 2, type: 'signup', date: '2026-09-01' },
   { id: 3, type: 'visit', date: '2026-09-02' },
@@ -188,7 +188,7 @@ export interface FormSubmitTarget {
  * capture listener and never the bubbling one. Returns the function that stops
  * watching and names the problem, or null.
  */
-export function watchFormSubmits(page: FormSubmitTarget): () => string | null {
+function watchFormSubmits(page: FormSubmitTarget): () => string | null {
   const seen: SubmitEventLike[] = [];
   const reachedTop = new Set<SubmitEventLike>();
   let leftToBrowser = 0;

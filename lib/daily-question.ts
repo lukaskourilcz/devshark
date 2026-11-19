@@ -36,7 +36,7 @@ import {
  * and every order is equally likely. Each swap draws a 32-bit word from
  * SHA-256 of `${seed}:${block}`, eight words a block, and redraws a word past
  * the largest multiple of the range, so no index is favoured. */
-export function seededShuffle<T>(arr: T[], seed: string): T[] {
+function seededShuffle<T>(arr: T[], seed: string): T[] {
   const out = [...arr];
   let block = 0;
   let words = Buffer.alloc(0);

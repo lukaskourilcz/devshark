@@ -15,6 +15,7 @@ import { SOFTWARE_ENGINEER, isLearnSectionVisible, type LearnSection, type Learn
 // The ids, the section shape, Software Engineer and the opt-in list live in
 // `./learn-section-ids`, the slice the browser's initial bundle carries. This
 // module re-exports them, so the server and lazy code import one place.
+/** @public Canonical Learn section facade documented above; keep the same server/lazy-consumer import surface. */
 export { LEARN_SECTION_IDS, VISIBLE_LEARN_SECTION_IDS, FDE_SECTION_VISIBLE, OPT_IN_SECTIONS, SOFTWARE_ENGINEER, isLearnSectionId, isLearnSectionVisible } from './learn-section-ids';
 export type { LearnSection, LearnSectionId } from './learn-section-ids';
 

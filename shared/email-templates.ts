@@ -130,7 +130,7 @@ export function fallbackEmailTemplate(id: EmailTemplateId): EmailTemplate {
   return { subject: fallback.subject, document: textEmailDocument(fallback.body) };
 }
 
-export const EMAIL_SUBJECT_MAX = 200;
+const EMAIL_SUBJECT_MAX = 200;
 
 /** Why a template cannot be saved, or null. */
 export function emailTemplateProblem(id: EmailTemplateId, template: EmailTemplate): string | null {

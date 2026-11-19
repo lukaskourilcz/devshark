@@ -330,7 +330,7 @@ export interface CodingSkipResponse {
 }
 
 /** The session lengths offered. Estimates, and labelled as such. */
-export const PRACTICE_SESSION_MINUTES = [5, 10, 20] as const;
+const PRACTICE_SESSION_MINUTES = [5, 10, 20] as const;
 export type PracticeSessionMinutes = (typeof PRACTICE_SESSION_MINUTES)[number];
 export const isPracticeSessionMinutes = (value: unknown): value is PracticeSessionMinutes =>
   typeof value === 'number' && (PRACTICE_SESSION_MINUTES as readonly number[]).includes(value);
@@ -338,7 +338,7 @@ export const isPracticeSessionMinutes = (value: unknown): value is PracticeSessi
 /** How a run's queue is ordered: the catalogue's order, one challenge after
  * the next, or shuffled. Shuffling happens on the server when the run is
  * created, so the queue is fixed from then on. */
-export const PRACTICE_ORDERS = ['sequential', 'random'] as const;
+const PRACTICE_ORDERS = ['sequential', 'random'] as const;
 export type PracticeOrder = (typeof PRACTICE_ORDERS)[number];
 export const isPracticeOrder = (value: unknown): value is PracticeOrder =>
   typeof value === 'string' && (PRACTICE_ORDERS as readonly string[]).includes(value);

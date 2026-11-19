@@ -39,7 +39,7 @@ export const LEARN_ID_PREFIXES: Readonly<Record<string, string>> = {
 };
 
 /** Questions per Learn level, as `lib/roadmap-build.ts` builds them. */
-export const LEARN_QUESTIONS_PER_LEVEL = 8;
+const LEARN_QUESTIONS_PER_LEVEL = 8;
 
 const LEARN_TOPICS: readonly string[] = SUBJECT_SCOPE_CATALOG.webdev.topics;
 const QUIZ_CATEGORIES: readonly string[] = SUBJECT_SCOPE_CATALOG.webdev.categories;

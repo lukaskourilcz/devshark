@@ -120,6 +120,7 @@ export function classifyFailure(signals: FailureSignals): FailureCategory {
  * expected value. `tests` has no default on purpose — "some checks failed" adds
  * nothing the results panel has not already said, so the hint ladder takes over.
  */
+/** @public Published from packages/coding-evaluator/src/index.ts; preserve the package API. */
 export const DEFAULT_FAILURE_HINTS: Partial<Record<FailureCategory, string>> = {
   types: 'The types did not check out, so the code never ran. Read the first type error and fix that one — later errors are often knock-on effects of it.',
   runtime: 'Your code threw before it could answer. Check the values you index into or call methods on: something is not what you expect it to be at that point.',

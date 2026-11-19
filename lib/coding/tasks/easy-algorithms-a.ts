@@ -21,11 +21,11 @@
 import type { CodingTaskSource } from '../types';
 
 /** Test calls that build a binary tree of `{ value, left, right }` nodes. */
-export const TREE_NODE = 'const node = (value, left = null, right = null) => ({ value, left, right });';
+const TREE_NODE = 'const node = (value, left = null, right = null) => ({ value, left, right });';
 export const withTree = (body: string): string => `(() => { ${TREE_NODE} return ${body}; })()`;
 
 /** Test calls that build a linked list of `{ value, next }` nodes. */
-export const LIST_OF = 'const list = (...values) => values.reduceRight((next, value) => ({ value, next }), null);';
+const LIST_OF = 'const list = (...values) => values.reduceRight((next, value) => ({ value, next }), null);';
 export const withList = (body: string): string => `(() => { ${LIST_OF} ${body} })()`;
 
 /** Expected trees, written as the plain objects a solution returns. */

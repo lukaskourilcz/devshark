@@ -372,6 +372,7 @@ export async function getQuestionsForHistoryById(subject?: ScopeSubjectId): Prom
 
 /** Ids the gate withheld from the served set, with the reason each was
  * withheld. For the admin view and the audit report. */
+/** @public Fresh-module contract reader: scripts/test-verified-caller.ts checks withheld retired questions. */
 export async function getWithheldQuestions(subject?: ScopeSubjectId): Promise<Map<string, Eligibility['reason']>> {
   return (await effective(subject)).withheld;
 }

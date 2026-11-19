@@ -45,7 +45,7 @@ export type RetrievalKind = (typeof RETRIEVAL_KINDS)[number];
 
 
 /** Only one kind advances a concept. */
-export const advancesInterval = (kind: RetrievalKind): boolean => kind === 'independent';
+const advancesInterval = (kind: RetrievalKind): boolean => kind === 'independent';
 
 /* ── the interval ladder ───────────────────────────────────────────────── */
 
@@ -64,11 +64,9 @@ export const DEFAULT_INTERVAL_HOURS: readonly number[] = [8, 24, 72, 168, 336, 7
  * while the explanation is still fresh, long enough not to be the same sitting. */
 export const RELEARN_HOURS = 4;
 
-export const MAX_STAGE = DEFAULT_INTERVAL_HOURS.length - 1;
-
 export interface ReviewState {
   conceptId: string;
-  /** 0..MAX_STAGE. Higher means longer intervals. */
+  /** 0..(ladder.length - 1). Higher means longer intervals. */
   stage: number;
   /** ISO timestamp, or null for a concept that is not scheduled. */
   dueAt: string | null;

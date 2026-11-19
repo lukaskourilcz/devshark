@@ -43,7 +43,7 @@ export interface RetiredSection {
   decision: string;
 }
 
-export const RETIRED_TOPICS: Record<string, RetiredSection> = {
+const RETIRED_TOPICS: Record<string, RetiredSection> = {
   testing: {
     id: 'testing',
     reason: 'redistributed',

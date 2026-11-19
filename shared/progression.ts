@@ -43,7 +43,7 @@ export type VerifiedProgress = Record<string, TopicProgressLike | undefined>;
 const entryPassed = (entry: ProgressEntry | undefined): boolean => entry?.passed === true;
 
 /** True when that exact level is recorded as passed. */
-export const isLevelPassed = (progress: VerifiedProgress, topic: string, level: number): boolean =>
+const isLevelPassed = (progress: VerifiedProgress, topic: string, level: number): boolean =>
   entryPassed(progress[topic]?.levels?.[String(level)]);
 
 /** How many of a topic's levels are passed. This is the measure the unlock
@@ -141,9 +141,9 @@ export function isTopicUnlocked(
 }
 
 /** Checkpoints sit after every fifth level and gate the next segment. */
-export const LEVELS_PER_CHECKPOINT = 5;
+const LEVELS_PER_CHECKPOINT = 5;
 
-export const isCheckpointPassed = (progress: VerifiedProgress, topic: string, checkpoint: number): boolean =>
+const isCheckpointPassed = (progress: VerifiedProgress, topic: string, checkpoint: number): boolean =>
   entryPassed(progress[topic]?.checkpoints?.[String(checkpoint)]);
 
 /* ── learning XP ───────────────────────────────────────────────────────── */
@@ -152,8 +152,10 @@ export const isCheckpointPassed = (progress: VerifiedProgress, topic: string, ch
  * the tier is one per five levels (1 … 5). The browser derives the learner's
  * learning XP from verified progress with these; the server uses the same
  * numbers when a first pass credits coins. */
+/** @public Source contract reader: scripts/test-launch-contracts.ts verifies the authoritative XP export. */
 export const LEVEL_XP_PER_DIFFICULTY = 50;
 /** XP for passing a part test (checkpoint *n*) the first time: 300 × n. */
+/** @public Source contract reader: scripts/test-launch-contracts.ts verifies the authoritative XP export. */
 export const CHECKPOINT_XP_PER_PART = 300;
 
 /** Difficulty tier (1–5) of a 1-based Learn level: levels 1–5 → 1, 6–10 → 2, … */
@@ -240,7 +242,7 @@ export interface StepAvailability {
   /** Checkpoint (part test) numbers with no available level to examine. */
   unavailableCheckpoints?: ReadonlySet<number>;
 }
-export const EVERYTHING_AVAILABLE: StepAvailability = {};
+const EVERYTHING_AVAILABLE: StepAvailability = {};
 
 interface Segment {
   /** 1-based; the checkpoint or part test that closes it carries this number. */
@@ -502,8 +504,8 @@ export function planTopics(profile: LearnerProfile | null): string[] {
 
 /** The subject learner plans apply to. Any other subject value (an old row or
  * a stale token) keeps every topic it owns, so the plan filter checks first. */
-export const PLANNED_SUBJECT = 'webdev';
-export const subjectHasPlans = (subject: string): boolean => subject === PLANNED_SUBJECT;
+const PLANNED_SUBJECT = 'webdev';
+const subjectHasPlans = (subject: string): boolean => subject === PLANNED_SUBJECT;
 
 /**
  * Is this topic part of what the learner chose?

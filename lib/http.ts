@@ -229,16 +229,6 @@ export function createServiceClient(): SupabaseClient | null {
   return serviceClientOrNull();
 }
 
-/**
- * Client for endpoints that only touch public data (leaderboards, health) or
- * accept anonymous writes (question reports). Always uses the anon key.
- */
-export function createAnonClient(): SupabaseClient | null {
-  return SUPABASE_URL && ANON_KEY
-    ? createClient(SUPABASE_URL, ANON_KEY, SERVER_SIDE_AUTH)
-    : null;
-}
-
 /** Send the app's standard `{ error: { code, message } }` JSON error response.
  * `detail` adds fields a client acts on (a 409's stored time). */
 export function jsonError(res: VercelResponse, status: number, code: string, message: string, detail?: Record<string, unknown>) {

@@ -13,7 +13,7 @@ import { withTimeout } from './http';
 // with an email and password has none, and a board says "Learner" while a
 // room uses its sharkname.
 
-export const PUBLIC_NAME_MAX = 60;
+const PUBLIC_NAME_MAX = 60;
 const HIDDEN_NAME_CHARS = /[\p{Cc}‎‏‪-‮⁦-⁩]/gu;
 
 export function publicName(value: unknown): string | null {
@@ -25,7 +25,7 @@ export function publicName(value: unknown): string | null {
   return clean || null;
 }
 
-export function publicPicture(value: unknown): string | null {
+function publicPicture(value: unknown): string | null {
   if (typeof value !== 'string' || value.length > 2048) return null;
   try {
     const url = new URL(value);
@@ -62,7 +62,7 @@ export async function verifiedProfile(auth: AuthResult, db: SupabaseClient | nul
 
 /** "Player" and four digits taken from the account id: the same number in
  * every room, and nothing anyone typed or anything from the address. */
-export function playerNumberName(sub: string): string {
+function playerNumberName(sub: string): string {
   const hex = sub.replace(/[^0-9a-f]/gi, '').slice(0, 8);
   const number = 1000 + ((hex ? parseInt(hex, 16) : 0) % 9000);
   return `Player ${number}`;

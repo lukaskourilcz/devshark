@@ -27,7 +27,7 @@ export interface ChallengeLeaderboard {
   champion: ChallengeScore | null;
 }
 
-export class ChallengeStoreError extends Error {}
+class ChallengeStoreError extends Error {}
 
 /** save_completed_challenge_score (migration 064) refused the run: it was
  * already saved with another score, owner or topic set. Only a forged or

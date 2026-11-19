@@ -84,7 +84,7 @@ function hintFor(seed: Seed): string {
   return specific ? `${base} Focus on ${specific}.` : base;
 }
 
-export function levelForIndex(i: number): number {
+function levelForIndex(i: number): number {
   return Math.floor(i / QUESTIONS_PER_LEVEL) + 1;
 }
 

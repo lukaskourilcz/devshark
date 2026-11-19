@@ -83,17 +83,13 @@ export const isMerchSku = (value: unknown): value is MerchSku =>
   typeof value === 'string' && (MERCH_SKUS as readonly string[]).includes(value);
 
 /** The one purchasable avatar cosmetic. Not merchandise: nothing is shipped. */
-export const COSMETIC_IDS = ['crown'] as const;
+const COSMETIC_IDS = ['crown'] as const;
 export type CosmeticId = (typeof COSMETIC_IDS)[number];
-export const isCosmeticId = (value: unknown): value is CosmeticId =>
-  typeof value === 'string' && (COSMETIC_IDS as readonly string[]).includes(value);
 
 /** T-shirt and hoodie sizes. The only variant axis any item has, kept small on
  * purpose: every extra variant is a monthly cap somebody has to set. */
 export const SHIRT_SIZES = ['S', 'M', 'L', 'XL', 'XXL'] as const;
 export type ShirtSize = (typeof SHIRT_SIZES)[number];
-export const isShirtSize = (value: unknown): value is ShirtSize =>
-  typeof value === 'string' && (SHIRT_SIZES as readonly string[]).includes(value);
 
 export interface MerchItem {
   sku: MerchSku;
@@ -257,7 +253,7 @@ export const merchMarginMinor = (pricing: MerchPricing): number =>
 /** Why tokens moved. Every ledger entry carries one, and every entry is
  * attributable to something the server itself verified. `milestone` and
  * `social` arrived with migration 041, `referral` with 042. */
-export const TOKEN_REASONS = [
+const TOKEN_REASONS = [
   'signup',
   'verified-xp',
   'purchase',
@@ -268,14 +264,11 @@ export const TOKEN_REASONS = [
   'referral',
 ] as const;
 export type TokenReason = (typeof TOKEN_REASONS)[number];
-export const isTokenReason = (value: unknown): value is TokenReason =>
-  typeof value === 'string' && (TOKEN_REASONS as readonly string[]).includes(value);
 
 /** Tokens earned per unit of verified XP. The server applies this to XP it
  * awarded itself; a browser's claim about its own XP is never an input. */
-export const TOKENS_PER_XP = 0.1;
-export const SIGNUP_TOKEN_GRANT = 200;
-export const MAX_TOKEN_BALANCE = 100_000_000;
+const TOKENS_PER_XP = 0.1;
+const SIGNUP_TOKEN_GRANT = 200;
 
 export const tokensForVerifiedXp = (xp: number): number =>
   Number.isFinite(xp) && xp > 0 ? Math.floor(xp * TOKENS_PER_XP) : 0;
@@ -353,7 +346,7 @@ export const DEFAULT_COIN_SETTINGS: CoinSettings = {
 
 /** An invite code: eight letters of Crockford's base32 in lower case (no i,
  * l, o or u). Migration 042 draws it; the invite link is `/?ref=<code>`. */
-export const REFERRAL_CODE_RE = /^[0-9a-hjkmnp-tv-z]{8}$/;
+const REFERRAL_CODE_RE = /^[0-9a-hjkmnp-tv-z]{8}$/;
 export const isReferralCode = (value: unknown): value is string =>
   typeof value === 'string' && REFERRAL_CODE_RE.test(value);
 
@@ -381,7 +374,7 @@ export const coinsUnderDailyCap = (amount: number, earnedToday: number, settings
 /* ── orders ────────────────────────────────────────────────────────────── */
 
 /** How an order was paid for. */
-export const PAYMENT_KINDS = ['tokens', 'cash'] as const;
+const PAYMENT_KINDS = ['tokens', 'cash'] as const;
 export type PaymentKind = (typeof PAYMENT_KINDS)[number];
 
 /**
@@ -391,7 +384,7 @@ export type PaymentKind = (typeof PAYMENT_KINDS)[number];
  * atomically, or it does not exist. Payment is established by the provider's
  * signed webhook and by nothing else — not a redirect, not a client flag.
  */
-export const ORDER_STATES = [
+const ORDER_STATES = [
   'awaiting_payment',
   'paid',
   'submitted',
@@ -402,9 +395,6 @@ export const ORDER_STATES = [
 export type OrderState = (typeof ORDER_STATES)[number];
 export const isOrderState = (value: unknown): value is OrderState =>
   typeof value === 'string' && (ORDER_STATES as readonly string[]).includes(value);
-
-/** States from which an order may still be cancelled by its owner. */
-export const CANCELLABLE_STATES: readonly OrderState[] = ['awaiting_payment', 'paid'];
 
 /** The shipping details an order needs, and nothing beyond them. No phone
  * number, no date of birth, no account of what the learner studied. */

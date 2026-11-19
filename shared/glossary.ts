@@ -23,7 +23,7 @@
 
 /** Where a term means what the entry says it means. A term with more than one
  * sense carries one entry per domain, and the surrounding content decides. */
-export const GLOSSARY_DOMAINS = [
+const GLOSSARY_DOMAINS = [
   'web', 'javascript', 'typescript', 'react', 'nodejs', 'databases',
   'security', 'devops', 'ai', 'dsa', 'general',
 ] as const;
