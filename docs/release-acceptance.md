@@ -7464,3 +7464,9 @@ Final fast/full parity, complete client/static/auth/grading/coding/performance/m
 Owner-only decisions remain open: apply production migrations 077-079, confirm their evidence, then consider held PR #657; retain the protected PR #660 grading decision; leave credentials, settings, domain, legal, production retention, field and physical-device actions to their recorded owners. None was executed here.
 
 Refs #643, #646 and #629.
+
+### F14 final-parity routing contract follow-up
+
+The first clean final fast run at `f3802023` stopped incomplete after 18 passing steps, one launch failure and one unavailable local QuickJS rebuild, in 2.87 minutes. Its build, type/static/image/public/bundle checks and both production audits passed. The launch contract still assumed that only old redirects and the retired guide could terminate before the filesystem; it rejected F14's deliberate private triage 404.
+
+Regression commit `306cf3a1` adds a valid-policy case and twelve rejected mutation controls. The correction pins the exact reviewed source and 404/no-store shape, preserves matching security-header order, verifies canonical/encoded aliases and rejects broad, missing, duplicate, late, rewritten or cacheable exceptions. It leaves serving routes and headers unchanged. The focused fixtures and complete launch command pass. Scripts typing initially caught the fixture's unsupported undefined assertion predicate; the final explicit AssertionError predicate and scripts typing pass. A fresh complete parity run remains required; the failed fast result is retained separately.
