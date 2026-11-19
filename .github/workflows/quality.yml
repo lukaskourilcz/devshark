@@ -82,6 +82,13 @@ jobs:
       - run: npm run typecheck:api && npm run typecheck:scripts && npm run typecheck:tooling --prefix client
       - run: npm run audit:native-reviews
       - run: npm run check:unused && npm run check:security
+      - name: Compare new binaries with the event base
+        env:
+          BINARY_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          [[ "$BINARY_BASE_SHA" =~ ^[a-f0-9]{40}$ && "$BINARY_BASE_SHA" != "0000000000000000000000000000000000000000" ]] || exit 1
+          git fetch --no-tags --depth=1 origin "$BINARY_BASE_SHA"
+          npm run check:binary-size
       - run: |
           # The browser checks below run against this build, so it signs in the
           # way production does: with the placeholder Supabase project that
