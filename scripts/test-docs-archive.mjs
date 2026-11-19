@@ -82,6 +82,17 @@ test('verification reads the pinned Git blobs without recreating archived files'
   assert.equal(existsSync(f.output), false);
 });
 
+test('historical restoration leaves later reviewed ledger content untouched', (t) => {
+  const f = fixture(t);
+  const laterLedger = '{"items":["later approved review"]}\n';
+  writeFileSync(join(f.root, ledger), laterLedger);
+  const result = f.run('--output', f.output);
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(readFileSync(join(f.output, archived)), f.original.get(archived));
+  assert.equal(readFileSync(join(f.root, ledger), 'utf8'), laterLedger);
+  assert.equal(existsSync(join(f.output, ledger)), false);
+});
+
 test('a manifest hash mismatch fails before writing any restored bytes', (t) => {
   const f = fixture(t);
   f.manifest.archivedFiles[1].sha256 = '0'.repeat(64);
