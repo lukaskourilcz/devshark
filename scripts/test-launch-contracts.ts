@@ -67,6 +67,7 @@ import { AUDITED_CATEGORIES, CODING_TASKS_AUDITED, REVIEW_REGISTRY } from '../li
 import { readLedger, registryFromLedger, renderCurationRegistry, REGISTRY_PATH } from './build-curation-registry';
 import { webdevBankContracts } from './webdev-bank-contract';
 import { vercelRoutingContracts } from './vercel-routing-contract';
+import { vercelRoutingFixtureContracts } from './test-vercel-routing-fixtures';
 import { learnLessonContracts } from './learn-lesson-contract';
 import { codingBriefContracts } from './coding-brief-contract';
 import { learnCodeTopicsContracts } from './learn-code-topics-contract';
@@ -6357,6 +6358,7 @@ async function main() {
     // case and must stay revalidated, or a deploy would never reach anyone. A
     // URL with no file behind it is the third case: it answers 404 and no cache
     // keeps it (HARDEN).
+    vercelRoutingFixtureContracts();
     vercelRoutingContracts();
 
   // The app ships one dictionary, English, and it must not look truncated.
