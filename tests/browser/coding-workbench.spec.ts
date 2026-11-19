@@ -292,12 +292,16 @@ test('JavaScript: Ctrl+Enter runs without adding a line, Run keeps focus, Escape
   await expect(lines).toHaveCount(3);
 
   const run = page.getByRole('button', { name: 'Run', exact: true });
-  await run.click();
+  // This checks keyboard focus preservation. Native Safari pointer clicks
+  // need not focus buttons, so activate from a focused keyboard control.
+  await run.focus();
+  await run.press('Enter');
   await expect(announced(page)).toHaveText(/passing$/, { timeout: 30_000 });
   await expect(run).toBeFocused();
 
   const reset = page.getByRole('button', { name: 'Reset', exact: true });
-  await reset.click();
+  await reset.focus();
+  await reset.press('Enter');
   const dialog = page.getByRole('alertdialog', { name: 'Reset' });
   await expect(dialog.getByRole('button', { name: 'Keep my code' })).toBeFocused();
   await page.keyboard.press('Escape');
