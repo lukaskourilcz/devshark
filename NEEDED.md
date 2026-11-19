@@ -145,6 +145,11 @@ Agents took these reversible choices themselves, as you asked. Each line says ho
 
 ### F11 implementation decisions (19 November 2026)
 
+Runtime changes and runtime rollbacks require fresh Coding and native-path
+attempt tags. This release uses v3 for both; a rollback must not reuse v2.
+Open legacy sessions renew their brief/draft under the existing identity rules;
+accepted native replays remain read-only and award no repeated XP.
+
 - [x] **Bound displayed coding outcomes (F11-17, #640)** — Submit compares the complete returned value before cutting its displayed serialization with the existing 2,000-character line cap and cut marker. Run cuts only outgoing actual/error/codeError fields, preserving pass/null, logs, type-check verdicts and compile-only JavaScript. Already-cut bounded compiler errors stay byte-identical. Revert by removing these presentation-boundary cuts; keep grading and the existing line/error caps. [imp:2] [owner:ai] [time:done] [kind:decision]
 - [x] **Bound encoded grading outcomes (F11-16, #640)** — Limit the complete per-run JSON packets to 900,000 UTF16 code units, including wrappers, escaped values/keys and error packets. The measured positive maximum was 20,455, leaving 879,545 units of headroom. Reserve a fixed size-error slot per call; only complete fitting packets commit, so failed partial encoding consumes no budget. Cut thrown text in the VM to 2,001 units before the existing display cut. Concurrent calls commit in settlement order, and shuffled hidden order can change which oversized call fails; authored outputs stayed below the budget. Keep the 1,000,000-character VM/host backstop. Revert the encoded counter/reservations and VM message slice, retaining the backstop, depth/entry limits and independent display cuts. [imp:2] [owner:ai] [time:done] [kind:decision]
 - [x] **Skip formatting discarded Run console arguments (F11-33, #640)** — Run returns before serializing a console argument when the line cap is reached or the output cut has fired, matching Submit. The first overflowing line still formats before emit adds the existing cut marker. Caps, shared console methods, table formatting and the clock stay as they were. Revert by passing formatArg directly to learnerConsoleFactory again; keep the existing emit caps. [imp:2] [owner:ai] [time:done] [kind:decision]

@@ -471,6 +471,14 @@ nested compile keeps the existing learner error before any VM starts; busy or
 unavailable compiler capacity propagates the existing unrecorded 503/Retry-After. System-design answers
 are graded against a key sealed in the coding session.
 
+Runtime grading rules now use `coding-attempt:v3` and `path-code-attempt:v3`.
+Genuine encrypted v2 OPEN sessions answer 409 `task_changed` before grading or
+writes. Latest brief renewal preserves Coding-linked attempt/parent and saved
+draft; native path renewal intentionally opens a new attempt under the same
+enrollment/activity and preserves its draft. Previously accepted native results
+retain the existing read-only replay/idempotency contract and award no XP again.
+A runtime rollback also needs fresh version tags; do not reuse v2.
+
 A coding session seals the exact task and grader version (hidden checks,
 puzzle material and efficiency guidance). Submit refuses a stale or
 unversioned session before grading or writing progress or XP. Reading the

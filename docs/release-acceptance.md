@@ -8926,3 +8926,73 @@ Exact logs, source states, artifact hashes and the fixture failure are in
 `docs/quality/f11-lazy-engines-2026-11-19.md` and its adjacent JSON. Final
 clean-head fast plus one additional same-head Launch, CI and merge remain
 pending; no extra full Launch or Coding run is claimed here.
+
+### Epic F, F11 composed acceptance checkpoint (19 November 2026)
+
+The composed source implements the 22 agent-owned remaining findings: 09, 10, 11,
+12, 14, 16, 17, 19, 20, 22, 23, 24, 25, 26, 27, 30, 32, 33, 34, 35, 36 and 37. This is an
+implementation/evidence inventory, not a merged checkbox claim. The complete
+path/evidence map, source-number audit, actual receipts and limitations are in
+[`quality/f11-final-documentation-2026-11-19.json`](quality/f11-final-documentation-2026-11-19.json).
+F11-28 snapshot baking and F11-29 VM capacity/cost remain owner decisions;
+there is no new per-instance React VM semaphore. F11-31 remains unchecked:
+local file tracing, include rules and successful deployed TypeScript cannot
+substitute for a complete deployed Lambda file inventory.
+
+The preliminary clean-head fast at `dbfde6ad` was stopped with SIGINT after
+2.2 minutes: complete:false, 7 passed, 1 failed, 1 skipped, 1 not-run. Its unused
+export gate correctly rejected `SANDBOX_ENCODED_OUTPUT_CHARS`; it was not a
+passing final gate. Build 83 s, artifact 8 s and its type steps passed before the
+stop; no later broad result follows. The exact unused failure and incomplete
+summary remain under `/tmp/devshark-epic-f-handoff/f11-final-fast-dbfde6ad/`.
+Fix `8b01a136` makes only the 900,000 implementation constant private. The full
+VM program/value is unchanged, with no allowlist/baseline addition. Independent
+real-worker exact 900,000-unit fit, +1-unit overflow, full-value/display behavior
+and recovery pass 1.813 s; unused 6.924 s and scripts types 9.929 s pass.
+
+The existing runtime-version rule also applies to these deadline/outcome
+changes. Real test `9f25ae70` derives v2 digests independently from literal old
+tags plus authored material, then issues actual encrypted sessions. Coding's
+legacy request reached a forbidden recordVerdict RPC; native OPEN reached one
+grading message/one write and 500 instead of 409. Fix `8405243d` changes only
+`coding-attempt:v2` and `path-code-attempt:v2` to v3. Combined controls pass:
+legacy OPEN 409 `task_changed` before fresh grading/writes, ownership precedence,
+accepted native read-only replay/no repeated XP and different-work conflict.
+Latest Coding brief renewal retains its linked attempt/parent and saved draft;
+native renewal keeps its existing new-attempt identity and saved draft under
+the same enrollment/activity. Runtime rollbacks also need fresh tags, not v2.
+
+| Required command | Actual local result and remaining boundary |
+| --- | --- |
+| `typecheck:api` | 34 fix 7.366 s; v3 fix 7.726 s PASS. The latter briefly overlaps path-content and is functional evidence, not quiet timing. |
+| `typecheck:scripts` | Final v3 source/tests PASS 10.153 s, sequential. |
+| `check:unused` | Private-budget correction PASS 6.924 s; preliminary dbf failure retained above. |
+| `test:sandbox-limits` | 66 groups PASS 58.948 s at 36 fix, including real-worker disposal, exit quarantine, strict parent watchdog and six-run/four-live. Later exact-policy narrow controls PASS 1.813 s. New composed full run remains pending. |
+| `test:react-isolation` | Local guest PASS 33.157 s at 11/12/14 fix: 7 new, 9 prior local, 7 artifact groups. Snapshot explicitly blank; credentialed VM part SKIP. |
+| `test:grading-integrity` | New composed umbrella pending in final fast; focused constituent evidence is not relabeled as a full umbrella pass. |
+| `test:react-authority` | PASS 12.547 s at 11/12/14 fix. Two known upstream recursion-disposal diagnostics remain visible with healthy recovery; no clean-stderr claim. Final composed repeat pending in fast. |
+| `test:react-engine` | Standalone composed run not executed in this batch; outside fast/CI. No standalone or every-variant VM pass claimed. |
+| `test:coding` | Final composed 814-task reference gate pending in fast; prior-main 814 passes are not new-source evidence. |
+| `test:launch` | Two post-integration same-head full runs pending: first in fast, exactly one additional afterward. |
+| `test:harness` | Not executed against the composed source here; fast omits it, normal CI/full browser acceptance still pending. |
+| `test:coding-auth` | Full command PASS 1.946 s after v3 fix, including the extended encrypted-session contract. |
+| `test:path-authority` | PASS 1.343 s after v3 fix. |
+| `test:paths` | PASS 39.327 s after v3 fix: FDE 15 modules/28 lessons/120 checks/19 exercises/10 artifacts. APItypes overlap noted above; no quiet-cost claim. |
+| `test:performance` | Full PASS 77.457 s after 34/37: 36 printed groups and 9 Node cohorts, zero failures; includes exact F7 handler marker and new loader controls. |
+| `git diff --check` | PASS for this checkpoint; final clean-head validation remains required. |
+
+The normal composed dbf build uploads an 887,989-byte guest, locally gzip 346,774,
+versus the recorded 18 November 2,100,887/691,960 baseline. Current bytes match its
+complete build inventory; local gzip is not SDK tar/network transfer timing.
+The 67-byte passive SHA sidecar stays in the API; it checks same-build copy
+integrity before VM creation and does not authenticate a replaced pair or prove
+freshness. The trusted page's native Node fetch binding is removed; data APIs,
+fixture delegation and local XHR controls remain. No credentialed microVM test,
+new snapshot, cost load test, provider setting or database write was performed.
+
+The local QuickJS rebuild is not run: the available Python 3.9 lacks the required
+3.10+/emsdk environment. The required CI rebuild is still a gate. No complete
+final fast, two final Launch passes, remote verify/sql, PR merge or production
+acceptance is claimed. The next frozen head must run those composed gates;
+keep this historical failed/incomplete checkpoint rather than rewriting it as
+a later pass. Acceptance after merge belongs in the next issue's record.

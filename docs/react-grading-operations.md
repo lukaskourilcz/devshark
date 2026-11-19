@@ -75,6 +75,14 @@ change their rendered DOM, as any component under test can. The boundary prevent
 access to assertion/result authority; it is not a claim that every authored suite
 covers every possible incorrect solution or a platform penetration-test claim.
 
+Runtime grading rules now use `coding-attempt:v3` and `path-code-attempt:v3`.
+Genuine encrypted v2 OPEN sessions answer 409 `task_changed` before grading or
+writes. Latest brief renewal preserves Coding-linked attempt/parent and saved
+draft; native path renewal intentionally opens a new attempt under the same
+enrollment/activity and preserves its draft. Previously accepted native results
+retain the existing read-only replay/idempotency contract and award no XP again.
+A runtime rollback also needs fresh version tags; do not reuse v2.
+
 ## Resource bounds
 
 These values are checked against the current source, 19 November 2026.
