@@ -747,6 +747,8 @@ async function tierContracts() {
   const tierReaders = new Set([
     'lib/access.ts', 'lib/http.ts', 'lib/entitlements.ts', 'lib/coding/catalog.ts', 'lib/coding/handlers.ts',
     'lib/learning-paths/handlers.ts', 'api/quiz/roadmap.ts',
+    // F7 moves the router's existing Learn gates and completion settlement.
+    'lib/roadmap/session.ts', 'lib/roadmap/completion.ts',
     // Redeeming coins for shipped merchandise is Premium only (#227).
     'lib/rewards/handlers.ts',
     // A challenge run and a skip's next suggestion offer only what the plan
