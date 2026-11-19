@@ -1,10 +1,13 @@
-// Contracts of the read-only performance tools (#630). No case launches a
-// browser or sends a request: the CI tests job installs no Playwright browser,
-// so every run points CHROME_BIN at a file that does not exist and --url at a
-// port nothing listens on.
+// Contracts of the read-only performance tools (#630). No browser launches.
+// Argument checks use a closed port; HTTP cases use only owned loopback
+// servers with invented public bodies, never a live application or provider.
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { spawn, spawnSync } from 'node:child_process';
+import http from 'node:http';
+import https from 'node:https';
+import { createHash } from 'node:crypto';
+import { brotliCompressSync, gzipSync } from 'node:zlib';
+import { existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -556,3 +559,174 @@ for (const [name, flag, mention] of [
     assert.equal(run.stdout, '', 'nothing built, nothing measured');
   });
 }
+
+// F1-17: all HTTP is owned loopback fixture traffic; no browser/live service.
+async function ownPerfServer(t, respond) {
+  const calls = [];
+  const server = http.createServer((req, res) => { calls.push({ method: req.method, path: req.url, headers: req.headers }); respond(req, res); });
+  await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
+  t.after(async () => { server.closeAllConnections(); if (server.listening) await new Promise(resolve => server.close(resolve)); });
+  return { origin: 'http://127.0.0.1:' + server.address().port, server, calls };
+}
+function perfScratch(t, name) {
+  const scratch = mkdtempSync(join(tmpdir(), name));
+  t.after(() => rmSync(scratch, { recursive: true, force: true }));
+  return scratch;
+}
+async function runPerfChild(t, script, args, cwd) {
+  const child = spawn(process.execPath, [script, ...args], { cwd, env: { PATH: process.env.PATH }, stdio: ['ignore', 'pipe', 'pipe'] });
+  t.after(() => { if (child.exitCode === null) child.kill('SIGKILL'); });
+  let stdout = '', stderr = '';
+  child.stdout.on('data', data => { stdout += data; }); child.stderr.on('data', data => { stderr += data; });
+  const timer = setTimeout(() => child.kill('SIGKILL'), 15_000);
+  try { const status = await new Promise((resolve, reject) => { child.once('error', reject); child.once('close', resolve); }); return { status, stdout, stderr }; }
+  finally { clearTimeout(timer); }
+}
+
+for (const value of ['https://user:password@example.test', 'https://@example.test', 'https://example.test/path', 'https://example.test/..', 'https://example.test?', 'https://example.test#', 'https://example.test/?q=1', 'https://example.test/#x', 'http://example.test', 'ftp://example.test', 'https:\\example.test', 'https://example.test\\path']) {
+  test('check:bundle refuses unsafe live origin ' + JSON.stringify(value), () => {
+    assert.equal(typeof bundle.bundleOptions, 'function', 'the existing bundle tool parses the explicit mode');
+    assert.throws(() => bundle.bundleOptions(['--url=' + value]), /bare|origin/);
+  });
+}
+
+test('check:bundle live graph ignores inert strings/external origins and deduplicates actual references', () => {
+  assert.equal(typeof bundle.liveBundleRequests, 'function');
+  const origin = 'https://example.test';
+  const html = `<!-- <base href="https://ignored.invalid/"> -->
+    <div data-example='<link rel="modulepreload" href="/assets/also-not-requested.js">'></div>
+    <script>const example = '<script type="module" src="/assets/not-requested.js">';</script>
+    <style>.example { content: '<link rel="stylesheet" href="/assets/no.css">'; }</style>
+    <script type="module" src="/assets/main.js"></script>
+    <link rel='modulepreload' href='assets/main.js'>
+    <link rel="modulepreload" href="https://example.test/assets/shared.js">
+    <link rel="stylesheet" href="/assets/main.css">
+    <link as="font" rel="preload" href="/assets/one.woff2">
+    <link rel="stylesheet" href="https://external.invalid/not-requested.css">`;
+  assert.deepEqual(bundle.liveBundleRequests(html, origin), { files: [{ path: '/assets/main.js', kind: 'script' }, { path: '/assets/shared.js', kind: 'script' }, { path: '/assets/main.css', kind: 'style' }], fonts: [{ path: '/assets/one.woff2', kind: 'font' }], excluded: { externalOrigin: 1 } });
+  assert.deepEqual(bundle.liveBundleRequests('<link rel=modulepreload href=/assets/entry.js/>', origin).files, [{ path: '/assets/entry.js/', kind: 'script' }], 'an adjacent unquoted slash belongs to the HTML attribute value');
+  for (const bad of ['<base href="/">', '<template><script type="module" src="/assets/no.js"></script></template>', '<script>unterminated', '<script type="module" src="/api/settings"></script>', '<script type="module" src="/assets/entry.js?x=1"></script>', '<script type="module" src="/assets/entry.js#x"></script>', '<script type="module" src="https://u:p@example.test/assets/entry.js"></script>', '<script type="module" src="/assets/%2e%2e/private.js"></script>', '<script type="module" src="/assets/x.js"></script><link rel="preload" as="font" href="/assets/x.js">']) assert.throws(() => bundle.liveBundleRequests(bad, origin));
+  const tooMany = Array.from({ length: 33 }, (_, i) => `<link rel="modulepreload" href="/assets/${i}.js">`).join('');
+  assert.throws(() => bundle.liveBundleRequests(tooMany, origin), /too_many_initial_assets/);
+});
+
+test('check:bundle --url measures raw Brotli/gzip/identity bodies with exact anonymous request counts', async (t) => {
+  assert.equal(typeof bundle.measureLiveBundle, 'function');
+  const main = Buffer.from('export const text = "' + 'raw compressed bytes differ from gzip six;'.repeat(4000) + '";');
+  const shared = Buffer.from('export const shared = 1;'), style = Buffer.from('body{color:navy}'), font = Buffer.from('wOF2-invented-fixture-font');
+  const encodedMain = gzipSync(main, { level: 1 }), encodedShared = brotliCompressSync(shared);
+  let html;
+  const server = await ownPerfServer(t, (req, res) => {
+    const rows = { '/': ['text/html; charset=utf-8', 'br', brotliCompressSync(Buffer.from(html))], '/assets/main.js': ['text/javascript', 'gzip', encodedMain], '/assets/shared.js': ['application/javascript', 'br', encodedShared], '/assets/main.css': ['text/css', null, style], '/assets/one.woff2': ['font/woff2', null, font] };
+    const [type, encoding, body] = rows[req.url] ?? ['text/plain', null, Buffer.from('unexpected')];
+    res.setHeader('Content-Type', type); if (encoding) res.setHeader('Content-Encoding', encoding);
+    res.setHeader('X-Vercel-Cache', 'HIT'); res.setHeader('X-Vercel-Id', 'invented-request-id'); res.setHeader('Set-Cookie', 'ignored=invented; HttpOnly'); res.end(body);
+  });
+  html = `<script type="module" src="/assets/main.js"></script><link rel="modulepreload" href="${server.origin}/assets/shared.js"><link rel="modulepreload" href="/assets/main.js"><link rel="stylesheet" href="assets/main.css"><link rel="preload" as="font" href="/assets/one.woff2"><link rel="stylesheet" href="https://external.invalid/never.css">`;
+  t.mock.method(https, 'request', () => { throw new Error('External fixture transport forbidden'); });
+  const outputDirectory = perfScratch(t, 'devshark-bundle-live-');
+  const report = await bundle.measureLiveBundle({ origin: server.origin, outputDirectory });
+  assert.equal(report.complete, true, JSON.stringify(report.error));
+  assert.deepEqual(server.calls.map(call => call.path), ['/', '/assets/main.js', '/assets/shared.js', '/assets/main.css', '/assets/one.woff2']);
+  assert.equal(report.requestsPlanned, 5); assert.equal(report.requestsAttempted, 5); assert.equal(report.requestsSent, 5);
+  for (const call of server.calls) { assert.equal(call.method, 'GET'); assert.equal(call.headers['accept-encoding'], 'br, gzip'); assert.equal(call.headers.cookie, undefined); assert.equal(call.headers.authorization, undefined); }
+  const row = report.rows.find(item => item.path === '/assets/main.js');
+  assert.equal(row.transferredBytes, encodedMain.length); assert.equal(row.decodedBytes, main.length); assert.equal(row.decodedGzip6Bytes, gzipSync(main, { level: 6 }).length);
+  assert.notEqual(row.transferredBytes, row.decodedGzip6Bytes, 'wire compression is not reconstructed gzip6');
+  assert.equal(row.encodedSha256, createHash('sha256').update(encodedMain).digest('hex')); assert.equal(row.headers['x-vercel-cache'], 'HIT'); assert.equal(row.headers['set-cookie'], undefined);
+  assert.equal(report.totals.initialTransferredBytes, encodedMain.length + encodedShared.length + style.length); assert.equal(report.totals.preloadedFontTransferredBytes, font.length);
+  assert.equal(report.budgetApplied, false); assert.equal(report.localGzipBudgetReference, 218675); assert.match(report.scope, /exclude headers/);
+  assert.deepEqual(JSON.parse(readFileSync(join(outputDirectory, 'bundle-live.json'), 'utf8')), report);
+});
+
+test('check:bundle live failures preserve a fresh partial report without redirects or retries', async (t) => {
+  assert.equal(typeof bundle.measureLiveBundle, 'function');
+  let mode = 'redirect';
+  const server = await ownPerfServer(t, (req, res) => {
+    if (req.url === '/') { res.setHeader('Content-Type', 'text/html'); return res.end('<script type="module" src="/assets/a.js"></script>'); }
+    if (mode === 'redirect') { res.writeHead(302, { Location: '/must-not-be-followed' }); return res.end(); }
+    if (mode === 'missing') { res.writeHead(404); return res.end(); }
+    if (mode === 'wrong-type') { res.setHeader('Content-Type', 'text/html'); return res.end('<!doctype html>'); }
+    res.setHeader('Content-Type', 'text/javascript');
+    if (mode === 'stacked') { res.setHeader('Content-Encoding', 'br, gzip'); return res.end('x'); }
+    if (mode === 'corrupt') { res.setHeader('Content-Encoding', 'gzip'); return res.end('not gzip'); }
+    if (mode === 'oversize-header') { res.setHeader('Content-Length', 8 * 1024 * 1024 + 1); return res.end('x'); }
+    if (mode === 'decoded-bomb') { res.setHeader('Content-Encoding', 'gzip'); return res.end(gzipSync(Buffer.alloc(8 * 1024 * 1024 + 1, 97))); }
+    if (mode === 'truncated') { res.setHeader('Content-Length', 100); return res.end('short'); }
+    if (mode === 'timeout') return;
+  });
+  const outputDirectory = perfScratch(t, 'devshark-bundle-failures-');
+  for (const [next, error] of [['redirect', 'redirect_refused'], ['missing', 'unexpected_status'], ['wrong-type', 'unexpected_content_type'], ['stacked', 'unsupported_content_encoding'], ['corrupt', 'invalid_or_oversize_compressed_body'], ['oversize-header', 'encoded_body_too_large'], ['decoded-bomb', 'invalid_or_oversize_compressed_body'], ['truncated', 'truncated_body'], ['timeout', 'request_timeout']]) {
+    mode = next; server.calls.length = 0;
+    const report = await bundle.measureLiveBundle({ origin: server.origin, outputDirectory, timeoutMs: next === 'timeout' ? 100 : 1000, totalTimeoutMs: next === 'timeout' ? 1000 : 5000 });
+    assert.equal(report.complete, false, next); assert.equal(report.error.code, error, next);
+    assert.deepEqual(server.calls.map(call => call.path), ['/', '/assets/a.js'], next + ': exactly one attempt each');
+    assert.equal(report.requestsAttempted, 2); assert.equal(report.rows[1].error, error);
+    assert.equal(JSON.parse(readFileSync(join(outputDirectory, 'bundle-live.json'), 'utf8')).error.code, error, 'failure replaces only the tool’s own prior report');
+  }
+});
+
+test('check:bundle output aliases are refused before any request and late aliases are never followed', async (t) => {
+  assert.equal(typeof bundle.measureLiveBundle, 'function');
+  const scratch = perfScratch(t, 'devshark-bundle-alias-'), target = join(scratch, 'unrelated.txt'); writeFileSync(target, 'unchanged');
+  const directory = join(scratch, 'reports'); mkdirSync(directory);
+  let late = false;
+  const server = await ownPerfServer(t, (req, res) => {
+    if (late && req.url === '/assets/a.js') symlinkSync(target, join(directory, 'bundle-live.json'));
+    res.setHeader('Content-Type', req.url === '/' ? 'text/html' : 'text/javascript');
+    res.end(req.url === '/' ? '<script type="module" src="/assets/a.js"></script>' : 'export {};');
+  });
+  const aliasDirectory = join(scratch, 'directory-alias'); symlinkSync(directory, aliasDirectory);
+  await assert.rejects(bundle.measureLiveBundle({ origin: server.origin, outputDirectory: aliasDirectory }), /directory must not be a symlink/); assert.equal(server.calls.length, 0);
+  symlinkSync(target, join(directory, 'bundle-live.json'));
+  await assert.rejects(bundle.measureLiveBundle({ origin: server.origin, outputDirectory: directory }), /regular report/); assert.equal(server.calls.length, 0); assert.equal(readFileSync(target, 'utf8'), 'unchanged');
+  rmSync(join(directory, 'bundle-live.json')); linkSync(target, join(directory, 'bundle-live.json'));
+  await assert.rejects(bundle.measureLiveBundle({ origin: server.origin, outputDirectory: directory }), /regular report/); assert.equal(server.calls.length, 0);
+  rmSync(join(directory, 'bundle-live.json'));
+  writeFileSync(join(directory, 'bundle-live.json'), '{"unrelated":true}');
+  await assert.rejects(bundle.measureLiveBundle({ origin: server.origin, outputDirectory: directory }), /unrelated/); assert.equal(server.calls.length, 0);
+  rmSync(join(directory, 'bundle-live.json')); late = true;
+  await assert.rejects(bundle.measureLiveBundle({ origin: server.origin, outputDirectory: directory }), /regular report/);
+  assert.deepEqual(server.calls.map(call => call.path), ['/', '/assets/a.js']); assert.equal(readFileSync(target, 'utf8'), 'unchanged');
+});
+
+test('check:bundle --url CLI skips the build and writes only its explicit live artifact', async (t) => {
+  const server = await ownPerfServer(t, (req, res) => { res.setHeader('Content-Type', req.url === '/' ? 'text/html' : 'text/javascript'); res.end(req.url === '/' ? '<script type="module" src="/assets/entry.js"></script>' : 'export {};'); });
+  const scratch = perfScratch(t, 'devshark-bundle-cli-');
+  const run = await runPerfChild(t, join(root, 'scripts/check-bundle.mjs'), ['--url=' + server.origin], scratch);
+  assert.equal(run.status, 0, run.stderr); assert.match(run.stdout, /No local budget gate/);
+  assert.equal(existsSync(join(scratch, 'artifacts/bundle.json')), false); assert.equal(existsSync(join(scratch, 'client')), false);
+  assert.equal(JSON.parse(readFileSync(join(scratch, 'artifacts/bundle-live.json'), 'utf8')).requestsAttempted, 2);
+  assert.deepEqual(server.calls.map(call => call.path), ['/', '/assets/entry.js']);
+});
+
+
+test('check:bundle caps the actual HTML graph before asset requests and measures at most 33 GETs', async (t) => {
+  assert.equal(typeof bundle.measureLiveBundle, 'function');
+  let html;
+  const server = await ownPerfServer(t, (req, res) => { res.setHeader('Content-Type', req.url === '/' ? 'text/html' : 'text/javascript'); res.end(req.url === '/' ? html : 'export {};'); });
+  const outputDirectory = perfScratch(t, 'devshark-bundle-graph-');
+  html = Array.from({ length: 32 }, (_, i) => `<link rel="modulepreload" href="/assets/${i}.js">`).join('') + '<link rel="modulepreload" href="/assets/0.js">';
+  const full = await bundle.measureLiveBundle({ origin: server.origin, outputDirectory });
+  assert.equal(full.complete, true); assert.equal(full.requestsPlanned, 33); assert.equal(full.requestsAttempted, 33); assert.equal(server.calls.length, 33);
+  for (const [bad, code] of [
+    [html + '<link rel="modulepreload" href="/assets/over-limit.js">', 'too_many_initial_assets'],
+    ['<script type="module" src="/api/settings"></script>', 'asset_outside_public_graph'],
+    ['<script type="module" src="/assets/a.js?secret=never-sent"></script>', 'asset_query_or_fragment'],
+    ['<script type="module" src="https://u:p@' + new URL(server.origin).host + '/assets/a.js"></script>', 'credentialed_asset_reference'],
+  ]) {
+    html = bad; server.calls.length = 0;
+    const refused = await bundle.measureLiveBundle({ origin: server.origin, outputDirectory });
+    assert.equal(refused.complete, false); assert.equal(refused.error.code, code); assert.equal(refused.requestsAttempted, 1); assert.deepEqual(server.calls.map(call => call.path), ['/']);
+  }
+});
+
+
+test('check:bundle keeps its default shaped-build options and refuses mixed/repeated live flags', () => {
+  assert.equal(typeof bundle.bundleOptions, 'function');
+  assert.deepEqual(bundle.bundleOptions([]), { origin: null, largestCount: 10 });
+  assert.deepEqual(bundle.bundleOptions(['--largest=20']), { origin: null, largestCount: 20 });
+  assert.deepEqual(bundle.bundleOptions(['--url=https://example.test']), { origin: 'https://example.test', largestCount: 10 });
+  for (const args of [['--url=https://example.test', '--largest=20'], ['--url=https://example.test', '--url=https://other.test'], ['--url'], ['--largest=2', '--largest=3']]) assert.throws(() => bundle.bundleOptions(args));
+  assert.equal(JSON.parse(readFileSync(join(root, 'docs/quality/bundle-budget.json'), 'utf8')).initialGzipBytes, 218675);
+});
