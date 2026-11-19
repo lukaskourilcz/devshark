@@ -81,6 +81,20 @@ test('an untouched Home visit leaves heavy optional packages outside requested c
   expect(findings, 'optional packages reached by a first visit without interaction or consent').toEqual([]);
 });
 
+test('initial styles leave account, shop and lesson rules in their lazy chunks', async ({ request }) => {
+  const html = await (await request.get('/')).text();
+  const styles = [...html.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*>/g)]
+    .map(([link]) => link.match(/href="([^"]+)"/)?.[1])
+    .filter((href): href is string => Boolean(href));
+  expect(styles.length, 'initial stylesheets named in index.html').toBeGreaterThan(0);
+  const css = (await Promise.all(styles.map(async (href) => (await request.get(href)).text()))).join('\n');
+  for (const selector of ['.ss-account-menu', '.ss-ledger', '.ss-orders', '.ss-term', '.ss-figure']) {
+    expect.soft(css.includes(selector), `${selector} does not style the untouched shell or Home`).toBe(false);
+  }
+  // Public guides must remain styled in the static HTML when JavaScript is off.
+  expect(css).toContain('.ss-topic-article');
+});
+
 async function coldLoad(page: Page, path = '/', api: Api = unavailable) {
   // The entry script and its preloads load at once; everything imported later
   // (the landing page, motion's features, before the fix the account widget)
