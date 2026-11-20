@@ -188,17 +188,18 @@ export async function coldStartContracts(): Promise<void> {
     // An op served by a lazily loaded family loads it on its first call and
     // answers. The database address is a closed local port and the request
     // carries no token, so the op's own sign-in check answers 401 without
-    // any network call; QuickJS loading shows the coding handlers ran.
+    // any network call; an evaluated source marker shows the coding handlers ran.
     const called = await loadFresh('api/user/[op].ts', `(async () => {
       const res = { statusCode: 200, headers: {}, body: undefined, headersSent: false,
         setHeader(k, v) { this.headers[k.toLowerCase()] = v; return this; }, getHeader(k) { return this.headers[k.toLowerCase()]; },
         status(c) { this.statusCode = c; return this; }, json(b) { this.body = b; this.headersSent = true; return this; }, end() { this.headersSent = true; return this; } };
-      const loaded = () => Object.keys(require.cache).some((path) => path.includes('/node_modules/quickjs-emscripten/'));
+      const loaded = () => (globalThis.__evaluated ?? []).includes('lib/coding/handlers.ts');
+      const quickjsLoaded = () => Object.keys(require.cache).some((path) => path.includes('/node_modules/quickjs-emscripten/'));
       const before = loaded();
       await mod.default({ method: 'GET', headers: { 'x-forwarded-for': '198.51.100.7' }, query: { op: 'coding-progress' }, url: '/api/user/coding-progress', socket: {} }, res);
-      return { before, after: loaded(), status: res.statusCode, code: res.body && res.body.error && res.body.error.code };
-    })()`, { SUPABASE_URL: 'http://127.0.0.1:9', SUPABASE_ANON_KEY: 'cold-start-anon', SUPABASE_SERVICE_ROLE_KEY: 'cold-start-service' });
-    assert.deepEqual(called.probe, { before: false, after: true, status: 401, code: 'missing_token' }, 'a coding op loads its handlers on first call and answers');
+      return { before, after: loaded(), quickjs: quickjsLoaded(), status: res.statusCode, code: res.body && res.body.error && res.body.error.code };
+    })()`, { SUPABASE_URL: 'http://127.0.0.1:9', SUPABASE_ANON_KEY: 'cold-start-anon', SUPABASE_SERVICE_ROLE_KEY: 'cold-start-service' }, ['lib/coding/handlers.ts']);
+    assert.deepEqual(called.probe, { before: false, after: true, quickjs: false, status: 401, code: 'missing_token' }, 'a coding op loads its handlers on first call and answers without constructing QuickJS');
     // The wallet, read on every signed-in page, loads the rewards handlers
     // and the tier gate (lib/access.ts) but not the coding catalogue, which
     // the gate reads only for a coding task.
@@ -298,6 +299,7 @@ export async function coldStartContracts(): Promise<void> {
     }
     console.log('PASS cold start: only the roadmap rule explicitly includes grader bundles and compiler declarations');
   }
+  await (await import('./f11-lazy-runtime-contracts')).lazyCodingRuntimeContracts();
 }
 
 /** Bundle a test script as the npm scripts do and run it in its own process,

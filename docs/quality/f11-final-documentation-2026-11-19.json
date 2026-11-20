@@ -1,0 +1,616 @@
+{
+  "date": "2026-11-19",
+  "sourceFix": "8405243dffb29b5d8a745e7ccc903cdb58da7de2",
+  "status": "22 agent-owned findings have implementation/documentation and focused evidence; final composed validation and merge still pending",
+  "scopeAudit": [
+    {
+      "id": "F11-09",
+      "implementation": "React compiler pool/first-start deadline",
+      "paths": [
+        "lib/coding/react-compile-pool.ts",
+        "scripts/react-compile-pool-contracts.ts"
+      ],
+      "evidence": "09-35",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-10",
+      "implementation": "Quiet disposal and captured cache identity",
+      "paths": [
+        "lib/coding/react-learner.ts"
+      ],
+      "evidence": "docs/quality/f11-react-deadlines-2026-11-19.json",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-11",
+      "implementation": "Shared reentry clock",
+      "paths": [
+        "lib/coding/react-learner.ts"
+      ],
+      "evidence": "11-12-14",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-12",
+      "implementation": "Interrupt latch across retries",
+      "paths": [
+        "lib/coding/react-learner.ts"
+      ],
+      "evidence": "11-12-14",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-14",
+      "implementation": "Host event/canonical case-clock timeout classification",
+      "paths": [
+        "lib/coding/react-runner.ts"
+      ],
+      "evidence": "11-12-14",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-16",
+      "implementation": "Private900000 encoded packet budget",
+      "paths": [
+        "lib/coding/sandbox.ts",
+        "scripts/sandbox-output-policy-controls.ts"
+      ],
+      "evidence": "docs/quality/f11-encoded-output-2026-11-19.json",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-17",
+      "implementation": "Display cut after equality; Run outgoing fields",
+      "paths": [
+        "lib/coding/sandbox.ts",
+        "client/src/coding/runner/display-result.ts"
+      ],
+      "evidence": "docs/quality/f11-encoded-output-2026-11-19.json",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-19",
+      "implementation": "Passive guest pair integrity/cache and archive validation",
+      "paths": [
+        "lib/coding/react-isolated.ts",
+        "scripts/ci-build-artifact.mjs"
+      ],
+      "evidence": "docs/quality/f11-react-compiler-pool-2026-11-19.json",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-20",
+      "implementation": "Normal guest trim",
+      "paths": [
+        "scripts/quickjs-bundle.mjs",
+        "scripts/build-react-runner.mjs"
+      ],
+      "evidence": "20-32",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-22",
+      "implementation": "No trusted native Node fetch",
+      "paths": [
+        "lib/coding/react-runner.ts"
+      ],
+      "evidence": "docs/react-grading-operations.md",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-23",
+      "implementation": "Bounded actual frame error receipt",
+      "paths": [
+        "client/src/coding/useReactHarness.ts"
+      ],
+      "evidence": "docs/react-grading-operations.md",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-24",
+      "implementation": "All source-number tables",
+      "paths": [
+        "docs/react-grading-operations.md"
+      ],
+      "evidence": "source-number-audit",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-25",
+      "implementation": "Current architecture",
+      "paths": [
+        "docs/product-architecture.md"
+      ],
+      "evidence": "docs-source",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-26",
+      "implementation": "Three decisions/rollback and open owner actions",
+      "paths": [
+        "NEEDED.md"
+      ],
+      "evidence": "docs-source",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-27",
+      "implementation": "Stage-correct acceptance and unrun gates",
+      "paths": [
+        "docs/release-acceptance.md"
+      ],
+      "evidence": "this-record",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-30",
+      "implementation": "Normal local resource/isolation suite registration",
+      "paths": [
+        "package.json",
+        ".github/workflows/quality.yml"
+      ],
+      "evidence": "docs/react-grading-operations.md",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-32",
+      "implementation": "Normal worker trim",
+      "paths": [
+        "scripts/quickjs-bundle.mjs",
+        "scripts/build-sandbox-worker.mjs"
+      ],
+      "evidence": "20-32",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-33",
+      "implementation": "Run skips serialization after existing cap",
+      "paths": [
+        "shared/coding-evaluate.ts",
+        "client/tests/coding-runner-console-cap.test.ts"
+      ],
+      "evidence": "33",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-34",
+      "implementation": "Deferred shared QuickJS acquisition",
+      "paths": [
+        "lib/coding/sandbox.ts",
+        "scripts/cold-start-contracts.ts"
+      ],
+      "evidence": "34-37",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-35",
+      "implementation": "Existing busy503 propagates Coding/path",
+      "paths": [
+        "lib/coding/handlers.ts",
+        "lib/learning-paths/grade.ts"
+      ],
+      "evidence": "09-35",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-36",
+      "implementation": "Reported-limit/disposal retirement with exit-owned leases",
+      "paths": [
+        "lib/coding/sandbox.ts",
+        "scripts/sandbox-worker-entry.ts"
+      ],
+      "evidence": "36",
+      "readyForComposedGate": true
+    },
+    {
+      "id": "F11-37",
+      "implementation": "React/design skip unused TypeScript acquisition",
+      "paths": [
+        "lib/coding/complexity.ts"
+      ],
+      "evidence": "34-37",
+      "readyForComposedGate": true
+    }
+  ],
+  "ownerOrUnproved": [
+    {
+      "id": "F11-28",
+      "status": "OPEN owner snapshot baking choice; no snapshot changed"
+    },
+    {
+      "id": "F11-29",
+      "status": "OPEN per-instance VM cap/cost choice; no new VM semaphore or setting"
+    },
+    {
+      "id": "F11-31",
+      "status": "UNCHECKED: local trace/include and actual compiler execution are not complete deployed Lambda inventory"
+    }
+  ],
+  "preliminaryFast": {
+    "path": "/tmp/devshark-epic-f-handoff/f11-final-fast-dbfde6ad/summary.json",
+    "sha256": "1c9b15dbb83e011259c3c61614914b5cbb5ff786e21bc2a41b0be50fe89043b8",
+    "summary": {
+      "mode": "fast",
+      "previewPort": 4177,
+      "previewUrl": "http://localhost:4177",
+      "only": null,
+      "complete": false,
+      "stopped": "SIGINT",
+      "head": "dbfde6ad75e17c64ddc86465a1cd91f544d2a467",
+      "dirty": false,
+      "node": "24.22.3",
+      "startedAt": "2026-11-19T22:20:03.403Z",
+      "minutes": 2.2,
+      "passed": 7,
+      "failed": 1,
+      "skipped": 1,
+      "notRun": 1,
+      "steps": [
+        {
+          "id": "install",
+          "result": "skipped",
+          "detail": "node_modules present (pass --install to run npm ci)",
+          "seconds": 0,
+          "log": ""
+        },
+        {
+          "id": "check:quickjs-build",
+          "result": "not-run",
+          "detail": "the rebuild needs Python 3.10+ (set SHARK_PYTHON) or SHARK_EMSDK_DIR; python3 is older or missing",
+          "seconds": 0,
+          "log": ""
+        },
+        {
+          "id": "build",
+          "result": "pass",
+          "detail": "",
+          "seconds": 83,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-dbfde6ad/build.log"
+        },
+        {
+          "id": "check:ci-build-artifact",
+          "result": "pass",
+          "detail": "",
+          "seconds": 8,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-dbfde6ad/check_ci-build-artifact.log"
+        },
+        {
+          "id": "typecheck:api",
+          "result": "pass",
+          "detail": "",
+          "seconds": 7,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-dbfde6ad/typecheck_api.log"
+        },
+        {
+          "id": "typecheck:scripts",
+          "result": "pass",
+          "detail": "",
+          "seconds": 9,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-dbfde6ad/typecheck_scripts.log"
+        },
+        {
+          "id": "typecheck:tooling",
+          "result": "pass",
+          "detail": "",
+          "seconds": 15,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-dbfde6ad/typecheck_tooling.log"
+        },
+        {
+          "id": "audit:native-reviews",
+          "result": "pass",
+          "detail": "",
+          "seconds": 1,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-dbfde6ad/audit_native-reviews.log"
+        },
+        {
+          "id": "check:unused",
+          "result": "fail",
+          "detail": "exit 1",
+          "seconds": 6,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-dbfde6ad/check_unused.log"
+        },
+        {
+          "id": "check:security",
+          "result": "pass",
+          "detail": "",
+          "seconds": 0,
+          "log": "../../../tmp/devshark-epic-f-handoff/f11-final-fast-dbfde6ad/check_security.log"
+        }
+      ]
+    },
+    "claim": "Incomplete SIGINT run with a real unused export failure, not a passing final gate"
+  },
+  "unusedCorrection": {
+    "testCommit": "22e3d52371f7f9cac630f821a0c392f0823aab93",
+    "fixCommit": "8b01a136",
+    "proof": {
+      "head": "22e3d52371f7f9cac630f821a0c392f0823aab93",
+      "beforeSha256": "236f12089f71b55ce7feb39347cf0c7fae55b8ca3ce8ba73ab7df3481a26b2b6",
+      "afterSha256": "d3d28d97601fdcabdea2e81a8a283998dd9f39cf3754de8dd1414ab5597796ca",
+      "onlyChange": {
+        "from": "export const SANDBOX_ENCODED_OUTPUT_CHARS = 900_000;",
+        "to": "const SANDBOX_ENCODED_OUTPUT_CHARS = 900_000;"
+      },
+      "wholeSourceRestoredByReversal": true,
+      "budgetValueUnchanged": true,
+      "templateProgramBodyUnchanged": true
+    },
+    "policy": "Independent900000 literal test exercises exact complete-packet fit,+1unit error, comparison/display and recovery; no export allowance/baseline"
+  },
+  "runtimeVersion": {
+    "testCommit": "9f25ae708caeb8181694ed4be8133b5c8447d94b",
+    "fixCommit": "8405243dffb29b5d8a745e7ccc903cdb58da7de2",
+    "sourceProof": {
+      "lib/coding/session.ts": {
+        "beforeSha256": "1664f1c3377d040081d8dd72d08566ef5ce5b1e745674a9df19707783c72403a",
+        "afterSha256": "740bddd7831ab220e61f71eb81ee139b786bbd4bf41d3e35f4b022350ec03c83",
+        "onlyTagLiteralChanged": true
+      },
+      "lib/learning-paths/session.ts": {
+        "beforeSha256": "5fcdfbc567ed6f4edef09b564238649fc97d8ead0436b3f078fcfa2defb8ff38",
+        "afterSha256": "95d217166b578b502b3bf07c4982148f4900c0ea8e1e82afdfd302bae34a9faa",
+        "onlyTagLiteralChanged": true
+      }
+    },
+    "legacy": "Literal v2 digest recipes over authored material, raw encrypted session issuers; no current-version function used to construct legacy digest",
+    "actualCodingRed": "Stale v2 reached recordVerdict forbidden RPC",
+    "actualNativeRed": "OPEN v2 caused500 instead409; actual grading messages1/writes1",
+    "green": "Genuine legacy OPEN409 task_changed with zero stale grading messages/writes; ownership, accepted native replay/no repeated XP and different-work conflict remain",
+    "renewal": "Coding-linked same attempt/parent and saved code/time; native replacement new attempt under same enrollment/activity/user and preserved draft",
+    "rollback": "Any later runtime rollback requires fresh version tags; do not reuse v2"
+  },
+  "runs": [
+    {
+      "label": "output-policy",
+      "command": [
+        "node",
+        "node_modules/.cache/shark/f11-final-policy.mjs",
+        "--output-budget-policy"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "22e3d52371f7f9cac630f821a0c392f0823aab93",
+      "dirty": " M lib/coding/sandbox.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:26:08.223312+00:00",
+      "outerWatchdogSeconds": 60,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 1.813,
+      "logSha256": "038bb976e2f0bc0193d45548f1d844cd8631586650d41ac4cb70dcd351c30c0f"
+    },
+    {
+      "label": "check-unused",
+      "command": [
+        "npm",
+        "run",
+        "check:unused"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "22e3d52371f7f9cac630f821a0c392f0823aab93",
+      "dirty": " M lib/coding/sandbox.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:26:30.230503+00:00",
+      "outerWatchdogSeconds": 180,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 6.924,
+      "logSha256": "dfef3e254df3137c227f0528fd0bb29ee3118d1bbaf51412350f3aa00d9d4776"
+    },
+    {
+      "label": "types-scripts",
+      "command": [
+        "npm",
+        "run",
+        "typecheck:scripts"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "22e3d52371f7f9cac630f821a0c392f0823aab93",
+      "dirty": " M lib/coding/sandbox.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:26:52.694958+00:00",
+      "outerWatchdogSeconds": 120,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 9.929,
+      "logSha256": "4145f557fbc398434351bacb2814399d2f9c9daf45ff864ee082a0b228027cd5"
+    },
+    {
+      "label": "red-coding-v2",
+      "command": [
+        "env",
+        "PRODUCT_ID=devshark",
+        "node",
+        "node_modules/.cache/shark/attempt-versions.mjs",
+        "--coding-only"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "4a0db41dd75736e335408afe6b116cc97273d06b",
+      "dirty": " M scripts/test-attempt-versions.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:35:53.497561+00:00",
+      "outerWatchdogSeconds": 60,
+      "exitCode": 1,
+      "watchdogFired": false,
+      "wallSeconds": 3.226,
+      "logSha256": "49e03bf60635bcab67313b12b87bf85f26cf614eeb0829f6a5900bb169c219c6"
+    },
+    {
+      "label": "red-native-v2",
+      "command": [
+        "env",
+        "PRODUCT_ID=devshark",
+        "node",
+        "node_modules/.cache/shark/attempt-versions.mjs",
+        "--native-only"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "4a0db41dd75736e335408afe6b116cc97273d06b",
+      "dirty": " M scripts/test-attempt-versions.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:36:12.338179+00:00",
+      "outerWatchdogSeconds": 60,
+      "exitCode": 1,
+      "watchdogFired": false,
+      "wallSeconds": 3.226,
+      "logSha256": "adb3b8e6866dce938e5cd5f511ee0dbfac82ca74efc2578a8531a4130bfa1daa"
+    },
+    {
+      "label": "green-attempt-v3",
+      "command": [
+        "env",
+        "PRODUCT_ID=devshark",
+        "node",
+        "node_modules/.cache/shark/attempt-versions.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "9f25ae708caeb8181694ed4be8133b5c8447d94b",
+      "dirty": " M lib/coding/session.ts\n M lib/learning-paths/session.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:36:44.788593+00:00",
+      "outerWatchdogSeconds": 60,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 0.772,
+      "logSha256": "b4c50925ef22202a716cf141b1c2c0fff1105ff2f463e079f886a7eadff69533"
+    },
+    {
+      "label": "green-coding-auth",
+      "command": [
+        "npm",
+        "run",
+        "test:coding-auth"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "9f25ae708caeb8181694ed4be8133b5c8447d94b",
+      "dirty": " M lib/coding/session.ts\n M lib/learning-paths/session.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:37:02.954209+00:00",
+      "outerWatchdogSeconds": 180,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 1.946,
+      "logSha256": "5234926333cf25439a8f9dde32944a3559b0ad0eafa1d41d329a87e9e8dc7681"
+    },
+    {
+      "label": "green-path-authority",
+      "command": [
+        "npm",
+        "run",
+        "test:path-authority"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "9f25ae708caeb8181694ed4be8133b5c8447d94b",
+      "dirty": " M lib/coding/session.ts\n M lib/learning-paths/session.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:37:40.932113+00:00",
+      "outerWatchdogSeconds": 180,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 1.343,
+      "logSha256": "ecfe471f178828490a012b2db4344e3738742164ce52bb2cb16b9efdac91d076"
+    },
+    {
+      "label": "green-paths",
+      "command": [
+        "npm",
+        "run",
+        "test:paths"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "9f25ae708caeb8181694ed4be8133b5c8447d94b",
+      "dirty": " M lib/coding/session.ts\n M lib/learning-paths/session.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:37:57.178349+00:00",
+      "outerWatchdogSeconds": 180,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 39.327,
+      "logSha256": "0fd063f5ff41c7318e41d43741ba8a19378bb129f7dce87a12ca4ccbe8e510ab"
+    },
+    {
+      "label": "v3-types-api",
+      "command": [
+        "npm",
+        "run",
+        "typecheck:api"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "9f25ae708caeb8181694ed4be8133b5c8447d94b",
+      "dirty": " M lib/coding/session.ts\n M lib/learning-paths/session.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:38:22.506455+00:00",
+      "outerWatchdogSeconds": 120,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 7.726,
+      "logSha256": "b2f2bb20a49983e78ddf144f0bbe98be9ec32e434aa99fc8a362f9f23a270d62"
+    },
+    {
+      "label": "v3-types-scripts",
+      "command": [
+        "npm",
+        "run",
+        "typecheck:scripts"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "9f25ae708caeb8181694ed4be8133b5c8447d94b",
+      "dirty": " M lib/coding/session.ts\n M lib/learning-paths/session.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:39:00.857917+00:00",
+      "outerWatchdogSeconds": 120,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 10.153,
+      "logSha256": "4145f557fbc398434351bacb2814399d2f9c9daf45ff864ee082a0b228027cd5"
+    }
+  ],
+  "timingCaveat": "v3 APItypes overlapped the final8seconds of path-content; both functional checks pass, not quiet performance evidence. Other listed narrow steps were sequential. No broad retry was made for overlap.",
+  "currentUpload": {
+    "capturedAt": "2026-11-19T22:27:40.350944+00:00",
+    "actualBuildHead": "dbfde6ad75e17c64ddc86465a1cd91f544d2a467",
+    "actualBuildReceipt": "/tmp/devshark-epic-f-handoff/f11-final-fast-dbfde6ad/build.log",
+    "sharedBuildManifestSha256": "f5a68f95b25b47df19e4f7670313b617109e3376231b4a00806d5d2e2ab04b20",
+    "gzipTool": "Python gzip level9 mtime0",
+    "rows": {
+      "lib/coding/generated/react-sandbox.cjs": {
+        "rawBytes": 887989,
+        "gzipLevel9Mtime0Bytes": 346774,
+        "sha256": "e8fbce059948a41c72c5ca6cb0c591d8c0ff03be495e3fa1a799cb1332a4bae1",
+        "matchesActualDbfSharedBuildInventory": true
+      },
+      "lib/coding/generated/react-sandbox.sha256.cjs": {
+        "rawBytes": 67,
+        "gzipLevel9Mtime0Bytes": 75,
+        "sha256": "59e99d1c40eb96c1f396dbf611ea1e1ee1d5030d4ac8d77f7f57566e53bcb805",
+        "matchesActualDbfSharedBuildInventory": true
+      },
+      "lib/coding/generated/react-compile-worker.cjs": {
+        "rawBytes": 10395,
+        "gzipLevel9Mtime0Bytes": 3692,
+        "sha256": "696c91750494b94a2d692040a01bb869d59b0aa0f7645c342058777185d4f801",
+        "matchesActualDbfSharedBuildInventory": true
+      },
+      "lib/coding/generated/vercel-sandbox.cjs": {
+        "rawBytes": 2340572,
+        "gzipLevel9Mtime0Bytes": 417512,
+        "sha256": "bf8512c655f4d0d5ad450d7648cd1fe0a2463480e5c1a07ec2054f2356bcd9d4",
+        "matchesActualDbfSharedBuildInventory": true
+      }
+    },
+    "limit": "File size/local gzip of actual build outputs, not SDK tar stream bytes, upload duration, platform size or input.json measurement"
+  },
+  "sourceNumberAudit": {
+    "md": "/tmp/devshark-epic-f-handoff/f11-source-limit-audit-dbfde6ad/audit.md",
+    "mdSha256": "eac8dfe2a8fad512ad6f9151a33c47d6d33eda51245763d45cc19a3de1138b47",
+    "jsonSha256": "2463e2996f08eb27031c1bd9baabfdf3262084defe80858a2d762deacc26cb45"
+  },
+  "pending": [
+    "New clean-head ci:parity --fast, including full grading/Coding/first Launch",
+    "One additional same-head full Launch after fast",
+    "Standalone React engine/harness results must remain explicitly unrun unless separately executed",
+    "Local QuickJS rebuild needs Python>=3.10/emsdk; dbf run not-run, required CI remains gate",
+    "Credentialed VM and complete deployed function inventory not established",
+    "Remote verify/sql/PR merge and exact-production acceptance"
+  ]
+}

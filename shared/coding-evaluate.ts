@@ -161,7 +161,10 @@ export async function evaluateCalls(input: { code: string; calls: string[]; expe
     logs.push(text);
   };
   // The same console the grading sandbox gives the code, on the real clock.
-  const sink = learnerConsoleFactory()(emit, formatArg, () => (typeof performance === 'undefined' ? Date.now() : performance.now()));
+  const sink = learnerConsoleFactory()(emit, (value) => {
+    if (logsCut || logs.length >= MAX_LOGS) return '';
+    return formatArg(value);
+  }, () => (typeof performance === 'undefined' ? Date.now() : performance.now()));
   const grading = Array.isArray(input.expectations);
 
   let evaluate: (console: typeof sink, probe: typeof PROBE) => (() => unknown)[];

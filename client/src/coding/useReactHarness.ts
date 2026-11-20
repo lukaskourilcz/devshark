@@ -4,6 +4,7 @@
 // is reported as timed out and the frame is reloaded.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MiniJestCase } from '../../../shared/coding-mini-jest';
+import { cutErrorText } from '../../../shared/coding-error-text';
 
 export const HARNESS_URL = '/sandbox/index.html';
 const RUN_TIMEOUT_MS = 20_000;
@@ -43,6 +44,13 @@ export interface HarnessHandle {
 }
 
 const newToken = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+
+// Frame messages are structured data, including objects with an unusable
+// own toString. Keep errors displayable and use the grader's existing cut.
+const frameErrorText = (value: unknown, fallback: string): string => {
+  try { return cutErrorText(String(value ?? fallback)); }
+  catch { return fallback; }
+};
 
 export function useReactHarness(): HarnessHandle {
   const frame = useRef<HTMLIFrameElement | null>(null);
@@ -114,12 +122,12 @@ export function useReactHarness(): HarnessHandle {
         case 'compiled':
           return;
         case 'compile-error':
-          settle({ ...active, status: 'compile-error', compileError: String(data.message ?? 'Compile error') });
+          settle({ ...active, status: 'compile-error', compileError: frameErrorText(data.message, 'Compile error') });
           return;
         case 'test':
           settle({
             ...active,
-            cases: [...active.cases, { name: String(data.name), status: data.status === 'pass' ? 'pass' : 'fail', error: (data.error as string | null) ?? null, durationMs: Number(data.durationMs ?? 0) }],
+            cases: [...active.cases, { name: String(data.name), status: data.status === 'pass' ? 'pass' : 'fail', error: data.error == null ? null : frameErrorText(data.error, 'Error'), durationMs: Number(data.durationMs ?? 0) }],
           });
           return;
         case 'console':
@@ -129,7 +137,7 @@ export function useReactHarness(): HarnessHandle {
           if (logFlush.current === undefined) logFlush.current = window.setTimeout(flushLogs, LOG_FLUSH_MS);
           return;
         case 'preview-error':
-          settle({ ...active, previewError: String(data.message ?? 'Render error') });
+          settle({ ...active, previewError: frameErrorText(data.message, 'Render error') });
           return;
         case 'done':
           // The frame closes a build error with an empty `done`; the error is

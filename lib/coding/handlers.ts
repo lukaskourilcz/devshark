@@ -597,6 +597,7 @@ async function gradeReact(task: CodingTask, code: string): Promise<Graded> {
     loaded = true;
     run = await runIsolatedReactSuite({ suite: withHiddenCases(task.suite, solutionFor(task.id)?.hiddenSuite), appSource: code });
   } catch (error) {
+    if (error instanceof GraderBusyError) throw error;
     // The runtime itself could not start; that is ours, not the learner's.
     const code = (error as { code?: unknown } | undefined)?.code;
     const missingModule = !loaded && error instanceof Error

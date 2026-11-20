@@ -29,18 +29,24 @@ import { createMiniJest } from '../shared/coding-mini-jest';
 import { runReactSuite } from '../lib/coding/react-runner';
 import { withHiddenCases } from '../lib/coding/react-hidden';
 import { guestResultLine, readGuestResult, serializeGuestResult } from '../lib/coding/react-guest';
-import { allPassed, evaluateCalls, hiddenGlobalMessage, LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, TIMEOUT_MESSAGE } from '../shared/coding-evaluate';
+import { allPassed, evaluateCalls, hiddenGlobalMessage, LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, MAX_LOGS, TIMEOUT_MESSAGE, type EvaluateResult } from '../shared/coding-evaluate';
 import { CHECKER_GLOBALS, CHECKER_MEMBERS } from '../shared/coding-checker-globals';
 import { nodeTypeScriptChecker } from '../lib/coding/ts-check-node';
 import { evaluateInRunRealm } from './run-realm-node';
 import { checkStructuredCloneOwnKeys } from './structured-clone-contracts';
 import { UTC_REACT_APP, UTC_REACT_SUITE } from './fixtures/utc-react';
 import { buildSandboxWorker } from './build-sandbox-worker.mjs';
+import { buildReactCompileWorker } from './build-react-compile-worker.mjs';
+import { checkReactBusyContracts } from './react-busy-contracts';
+import { checkReactCompilePoolContracts } from './react-compile-pool-contracts';
 
 // Every run below goes through the grader's worker thread, built fresh from
 // the sources under test, exactly as the deployment runs it.
 checkQuickjsProvenance();
 await buildSandboxWorker();
+await buildReactCompileWorker();
+await checkReactCompilePoolContracts();
+await checkReactBusyContracts();
 
 // ── a task page loads a grader thread ahead of its first Submit (#587) ───
 // Server item 30: the first Submit on an instance waited for a new thread to
@@ -1528,9 +1534,7 @@ const fillDays = (readings: readonly Reading[]): Reading[] => {
 {
   // The grader's realm is what shared/coding-checker-globals.ts lists, which
   // is what the Run worker keeps.
-  const listing = await runInSandbox({
-    code: '',
-    calls: [`(() => {
+  const inventoryCall = `(() => {
       void Date; void URL; (1).toLocaleString();
       const own = (o) => Object.getOwnPropertyNames(o).sort().join(' ');
       const members = {};
@@ -1545,12 +1549,35 @@ const fillDays = (readings: readonly Reading[]): Reading[] => {
       members['%TypedArray%'] = own(typed);
       members['%TypedArray%.prototype'] = own(typed.prototype);
       return [Object.getOwnPropertyNames(globalThis).sort(), members];
-    })()`],
-    expectations: null,
-  });
-  const [globals, members] = JSON.parse(listing.results[0].actual!) as [string[], Record<string, string>];
-  assert.deepEqual(globals, [...CHECKER_GLOBALS].sort(), 'CHECKER_GLOBALS lists the grader\'s globals');
-  assert.deepEqual(members, CHECKER_MEMBERS, 'CHECKER_MEMBERS lists the grader\'s built-in members');
+    })()`;
+  const pinnedInventory = [[...CHECKER_GLOBALS].sort(), CHECKER_MEMBERS];
+  assert.ok(JSON.stringify(pinnedInventory).length > MAX_LOG_LINE_CHARS, 'the full inventory exceeds the display boundary');
+  const inventory = (code = '') => runInSandbox({ code, calls: [inventoryCall], expectations: [pinnedInventory] });
+  const assertInventoryShape = (run: EvaluateResult, label: string) => {
+    assert.equal(run.codeError, null, label);
+    assert.equal(run.timedOut, false, label);
+    assert.equal(run.results.length, 1, label);
+    assert.equal(run.results[0].error, null, `${label}: setup errors cannot serve as an inventory mismatch`);
+    assert.equal(typeof run.results[0].actual, 'string', label);
+  };
+  const listing = await inventory();
+  assertInventoryShape(listing, 'complete live inventory');
+  assert.equal(listing.results[0].pass, true, 'complete global names and own built-in/prototype members match the pinned inventory before display cutting');
+  assert.equal(listing.results[0].actual?.endsWith(LOG_LINE_CUT), true, 'only the displayed copy is cut');
+  for (const [label, code, sameDisplay] of [
+    ['added global function', 'Object.defineProperty(globalThis,"__f11UnlistedGlobal",{value:()=>1,configurable:true});', false],
+    ['added late prototype member', 'Object.defineProperty(Uint8ClampedArray.prototype,"__f11UnlistedMember",{value:()=>1,configurable:true});', true],
+    ['missing late builtin member', 'if(!Reflect.deleteProperty(Math,"hypot"))throw new Error("inventory mutation did not apply");', true],
+  ] as const) {
+    const changed = await inventory(code);
+    assertInventoryShape(changed, label);
+    assert.equal(changed.results[0].pass, false, `${label}: the same complete-value inventory oracle rejects any drift`);
+    if (sameDisplay) assert.equal(changed.results[0].actual, listing.results[0].actual, `${label}: a change beyond identical capped text is still detected`);
+  }
+  const recovered = await inventory();
+  assertInventoryShape(recovered, 'fresh inventory after mutations');
+  assert.equal(recovered.results[0].pass, true, 'inventory mutations stay inside their own run');
+  console.log('PASS integrity: complete global/member inventory compares before display cutting and rejects added globals plus late added/missing members');
   // Using what the grader lacks fails on Run too, and says why.
   const missing = ['Intl.NumberFormat', 'crypto.randomUUID()', 'fetch("/x")', 'new BroadcastChannel("x")', 'Array.fromAsync([1])'];
   const lacking = await evaluateInRunRealm({ code: '', calls: missing, expectations: null });
@@ -1753,6 +1780,45 @@ export default function App() { return <p>{String(({}).x) + ' ' + [].push(1)}</p
   console.log('PASS integrity: prototype pollution leaves the run\'s own results, the hidden run, the next run and the host realm unchanged, in QuickJS and in the React engine');
 }
 
+// F11-33: output equality alone misses discarded serialization work. The
+// program counts actual toJSON/getter calls in Run and in the real grader.
+{
+  const counterSource = (body: string) => `function probe(){let serializations=0,reads=0;const value={toJSON(){serializations++;return {get value(){reads++;return 'kept';}};}};${body};return [serializations,reads];}`;
+  const beforeCap = `console.log(value);console.dir(value);`;
+  const afterLines = `for(let i=0;i<${MAX_LOGS};i++)console.log(i);console.log(value);console.dir(value);console.log(value,value);`;
+  const fullLines = Math.floor(MAX_LOG_CHARS / MAX_LOG_LINE_CHARS);
+  const tailChars = MAX_LOG_CHARS % MAX_LOG_LINE_CHARS;
+  const fillOutput = `for(let i=0;i<${fullLines};i++)console.log('x'.repeat(${MAX_LOG_LINE_CHARS}));${tailChars ? `console.log('x'.repeat(${tailChars}));` : ''}`;
+  const afterCharacters = `${fillOutput}console.log(value);console.dir(value);console.log(value,value);`;
+  const fullLogs = Array.from({length:fullLines},()=> 'x'.repeat(MAX_LOG_LINE_CHARS));
+  if(tailChars) fullLogs.push('x'.repeat(tailChars));
+  const fixtures = [
+    {name:'before the cap, ordinary arguments still serialize',body:beforeCap,counts:[2,2],logs:['{"value":"kept"}','{"value":"kept"}']},
+    {name:'after the line cap, formatting invokes no toJSON or getter',body:afterLines,counts:[0,0],logs:Array.from({length:MAX_LOGS},(_,i)=>String(i))},
+    {name:'after the character cut, only the first overflowing argument serializes',body:afterCharacters,counts:[1,1],logs:[...fullLogs,LOG_OUTPUT_CUT]},
+  ] as const;
+  const failures: Error[]=[];
+  for(const fixture of fixtures) {
+    const input={code:counterSource(fixture.body),calls:['probe()'],expectations:[[...fixture.counts]]};
+    const run=await evaluateCalls(input);
+    const submit=await runInSandbox(input);
+    try {
+      for(const [name,result] of [['Run',run],['Submit',submit]] as const) {
+        assert.equal(result.codeError,null,`${name}: ${fixture.name}`);
+        assert.notEqual(result.timedOut,true,`${name}: ${fixture.name}`);
+        assert.deepEqual(result.results,[{pass:true,actual:JSON.stringify(fixture.counts),error:null}],`${name}: ${fixture.name}`);
+        assert.deepEqual(result.logs,fixture.logs,`${name}: ${fixture.name}`);
+      }
+      assert.deepEqual(submit.logs,run.logs,`F11-33 both runners keep identical logs: ${fixture.name}`);
+      console.log(`PASS integrity F11-33: ${fixture.name}`);
+    } catch(error) {
+      console.error(`FAIL integrity F11-33: ${fixture.name}`,JSON.stringify({run,submit}));
+      failures.push(error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+  if(failures.length) throw new AggregateError(failures,'F11-33 console serialization-cap parity failed');
+}
+
 // ── console output is capped by size (CODE-13) ───────────────────────────
 // A hundred megabyte-long lines made a 20 MB Submit response, past what the
 // platform sends, after the verdict was already recorded.
@@ -1861,6 +1927,34 @@ export default function App() { return <p>{String(({}).x) + ' ' + [].push(1)}</p
   const after = await runInSandbox({ code: 'const f = () => 1;', calls: ['f()'], expectations: [1] });
   assert.equal(after.results[0]?.pass, true, 'the next run gets a working thread');
   console.log(`PASS integrity: a runaway run is stopped in ${took} ms without blocking the request thread`);
+}
+
+// React syntax conversion runs off the request thread (F11-09).
+// This red baseline imports no future pool or build helper.
+{
+  const task = CODING_TASKS.find(one => one.track === 'react' && one.verify === 'tests' && one.suite && isFreeCodingTask(one.id) && !evolvingStage(one.id))!;
+  assert.ok(task, 'a free non-evolving React task is required');
+  const code = `export default function App(){ const a=1; return ${Array(9000).fill('a').join('+')}; }`;
+  assert.ok(Buffer.byteLength(code) < 20_000, 'the quadratic compiler probe fits the actual code cap');
+  const out = { statusCode: 200, body: null as null | { verdict?: string; codeError?: string | null; graderUnavailable?: boolean }, setHeader() {}, status(status: number) { this.statusCode = status; return this; }, json(body: never) { this.body = body; return this; } };
+  let worstLag = 0, last = Date.now(), ticks = 0;
+  const beat = setInterval(() => { const now = Date.now(); worstLag = Math.max(worstLag, now - last - 20); last = now; ticks++; }, 20);
+  const started = Date.now();
+  try {
+    await handleCodingSubmit({ method: 'POST', headers: { 'x-forwarded-for': '203.0.113.76' }, body: {
+      session: encodeCodingSession({ taskId: task.id, track: 'react', userId: null }), code,
+    } } as never, out as never, null);
+    // Let a timer observe the delay even if a synchronous baseline resolved
+    // Submit through microtasks before the first interval could run.
+    await new Promise(resolve => setTimeout(resolve, 25));
+  } finally { clearInterval(beat); }
+  assert.ok(ticks > 0, 'the heartbeat must actually run');
+  assert.equal(out.statusCode, 200);
+  assert.equal(out.body?.verdict, 'error');
+  assert.equal(out.body?.graderUnavailable, undefined, 'a stopped/nested compile is the existing learner error');
+  assert.match(out.body?.codeError ?? '', /nests too deeply/);
+  assert.ok(worstLag < 500, `React Submit kept the request thread answering (worst lag ${worstLag} ms)`);
+  console.log(`PASS integrity: React syntax conversion keeps the request thread answering (${Date.now() - started} ms, worst lag ${worstLag} ms)`);
 }
 
 // ── type checking runs off the request thread (CODE-2) ───────────────────

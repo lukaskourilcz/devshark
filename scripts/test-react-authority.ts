@@ -10,6 +10,56 @@ import { reactRecordContracts } from './react-record-contract';
 await reactSpreadContracts();
 await reactRecordContracts();
 
+// F11-14: ordinary component/assertion/Testing Library errors may contain
+// timeout words. Only a learner interrupt or mini-jest's case clock marks it.
+{
+  const failures: Error[] = [];
+  const check = async (name: string, run: () => Promise<void>) => {
+    try { await run(); console.log(`PASS React timeout classification: ${name}`); }
+    catch (error) { console.error(`FAIL React timeout classification: ${name}`, error); failures.push(error instanceof Error ? error : new Error(String(error))); }
+  };
+  const wrongText = `import React from 'react';import {render} from '@testing-library/react';import App from './App';test('shows Done',()=>{const {container}=render(<App/>);expect(container.textContent).toBe('Done');});`;
+  for (const text of ['Upload interrupted', 'Request timed out']) {
+    await check(`F11-14 rendered ${text}`, async () => {
+      const result = await runReactSuite({suite: wrongText, appSource: `export default function App(){return <p>${text}</p>;}`});
+      assert.equal(result.compileError, null, JSON.stringify(result));
+      assert.equal(result.failed, 1, JSON.stringify(result));
+      assert.equal(result.timedOut, false, JSON.stringify(result));
+      assert.match(result.cases[0]?.error ?? '', new RegExp(text), JSON.stringify(result));
+    });
+  }
+  await check('F11-14 ordinary module error says interrupted', async () => {
+    const result = await runReactSuite({
+      appSource: `throw new Error('Upload interrupted');export default function App(){return null;}`,
+      suite: `test('the authored case still reports',()=>{expect(1).toBe(1);});`,
+    });
+    assert.match(result.compileError ?? '', /Upload interrupted/, JSON.stringify(result));
+    assert.equal(result.timedOut, false, JSON.stringify(result));
+    assert.deepEqual(result.cases.map((one) => one.status), ['pass'], JSON.stringify(result));
+  });
+  await check('F11-14 Testing Library waitFor is an ordinary failure', async () => {
+    const result = await runReactSuite({
+      appSource: `export default function App(){return null;}`,
+      suite: `import {waitFor} from '@testing-library/react';test('waitFor has no matching state',async()=>{await waitFor(()=>{throw new Error('Timed out in waitFor: not ready');},{timeout:30,interval:5});});`,
+    });
+    assert.equal(result.compileError, null, JSON.stringify(result));
+    assert.equal(result.failed, 1, JSON.stringify(result));
+    assert.match(result.cases[0]?.error ?? '', /Timed out in waitFor/, JSON.stringify(result));
+    assert.equal(result.timedOut, false, JSON.stringify(result));
+  });
+  await check('F11-14 the real mini-jest case clock still marks a timeout', async () => {
+    const result = await runReactSuite({
+      appSource: `export default function App(){return null;}`,
+      suite: `test('never settles',()=>new Promise(()=>{}));test('later authored case',()=>{expect(1).toBe(1);});`,
+    });
+    assert.equal(result.compileError, null, JSON.stringify(result));
+    assert.equal(result.timedOut, true, JSON.stringify(result));
+    assert.deepEqual(result.cases.map((one) => one.status), ['fail', 'pass'], JSON.stringify(result));
+    assert.ok(result.cases[0].error?.startsWith('timed out after '), JSON.stringify(result));
+  });
+  if (failures.length) throw new AggregateError(failures, 'F11-14 timeout classification controls failed');
+}
+
 const suite=`import React from 'react';
 import {render} from '@testing-library/react';
 import App from './App';
@@ -92,6 +142,55 @@ for(const appSource of [
 }
 
 console.log('PASS React authority: DOM, intrinsics, modules, elements, synchronous/async assertions, detached rejections and long error text');
+
+// F11-10: a disposal abort must not replace a real recursion verdict or poison
+// the cached wasm used by the next learner. These tests use the actual engine.
+{
+  const renders = `import React from 'react';import {render} from '@testing-library/react';import App from './App';
+test('renders the learner',()=>{render(<App/>);});
+test('later trusted case still reports',()=>{expect(2+2).toBe(4);});`;
+  const recurse = `function recurse(){return recurse()+1;}`;
+  const cleanRun = async (after: string) => {
+    const result = await runReactSuite({
+      appSource: 'export default function App(){return <p>ready after recursion</p>;}',
+      suite: `import React from 'react';import {render} from '@testing-library/react';import App from './App';test('new learner works',()=>{const view=render(<App/>);expect(view.container.textContent).toBe('ready after recursion');});`,
+    });
+    assert.equal(result.compileError, null, after);
+    assert.equal(result.failed, 0, JSON.stringify(result));
+    assert.equal(result.passed, 1, after);
+  };
+  for (const [name, appSource] of [
+    ['render recursion', `${recurse}export default function App(){recurse();return null;}`],
+    ['module recursion', `${recurse}recurse();export default function App(){return null;}`],
+  ]) {
+    const result = await runReactSuite({ appSource, suite: renders });
+    const text = JSON.stringify(result);
+    assert.doesNotMatch(text, /Aborted|gc_obj_list|Lifetime not alive/, `${name}: engine disposal internals do not replace the original failure`);
+    assert.equal(result.timedOut, false, `${name}: stack exhaustion is not an interrupt`);
+    if (name === 'render recursion') {
+      assert.equal(result.compileError, null);
+      assert.deepEqual(result.cases.map((one) => one.status), ['fail', 'pass'], text);
+      assert.match(result.cases[0].error ?? '', /stack overflow/i);
+    } else {
+      assert.match(result.compileError ?? '', /stack overflow|maximum call stack size exceeded/i);
+    }
+    await cleanRun(name);
+  }
+  // Ordinary learner text with engine-looking words is still ordinary text.
+  // This change must not add another message-based error classifier.
+  const forged = 'learner Aborted gc_obj_list stack overflow marker';
+  const top = await runReactSuite({ appSource: `throw new Error(${JSON.stringify(forged)});export default function App(){return null;}`, suite: renders });
+  assert.equal(top.compileError, `compiling App: ${forged}`);
+  assert.equal(top.timedOut, false);
+  const rendered = await runReactSuite({ appSource: `export default function App(){throw new Error(${JSON.stringify(forged)});}`, suite: renders });
+  assert.equal(rendered.compileError, null);
+  assert.deepEqual(rendered.cases.map((one) => one.status), ['fail', 'pass']);
+  assert.match(rendered.cases[0].error ?? '', /learner Aborted gc_obj_list stack overflow marker/);
+  assert.equal(rendered.timedOut, false);
+  await cleanRun('ordinary engine-looking error text');
+}
+console.log('PASS React authority: quiet disposal preserves recursion failures and the next learner grades');
+
 
 // What the learner's code throws reaches the verdict through the sandbox's
 // guarded dump (lib/coding/sandbox.ts): a thrown string reads as itself, not

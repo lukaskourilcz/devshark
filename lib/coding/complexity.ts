@@ -512,7 +512,7 @@ function inspectComplexity(task: Pick<CodingTask, 'track' | 'prompt' | 'tests'>,
 export function assessComplexity(task: Pick<CodingTask, 'track' | 'prompt' | 'tests'>, code: string): ComplexityReport {
   // Outside the catch: a compiler that cannot load is a broken deployment,
   // which fails as loudly as the import it replaces, never an "unknown".
-  loadTypeScript();
+  if (task.track !== 'react' && task.track !== 'system-design') loadTypeScript();
   try {
     return inspectComplexity(task, code);
   } catch {

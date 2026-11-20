@@ -8470,3 +8470,552 @@ changes no source bytes. No application/provider/production request, dependency
 update, root/F11 install, extra managed worktree or historical-date claim was
 part of this retake. The compact [historical-source artifact](audit/f1-historical-bundle-retake-2026-11-19.json)
 links exact inputs, raw hashes, the original five-file graph and failure chronology.
+
+## F11-30 required local grader checks: implementation checkpoint — 19 November 2026
+
+At main `15f350a8`, both `test:sandbox-limits` and `test:react-isolation` existed
+as standalone commands but neither ran through the required workflow or local
+parity. Fix `f9fa07aa` composes both sequentially into `test:grading-integrity`,
+which those existing gates already invoke. Their real child output will be
+required evidence; a green umbrella label alone is not sufficient.
+
+Only the isolation child receives an empty `REACT_RUNNER_SNAPSHOT_ID`, so its
+local guest checks run and its existing remote-VM branch explicitly skips. The
+standalone isolation command retains its optional configured VM probes. This
+does not establish a snapshot, VM network policy or live grading acceptance.
+The real-VM owner task remains open. All 44 parity step IDs and their order,
+installed-tool handling, QuickJS guard and container behavior remain unchanged.
+
+JSON structure and `git diff --check` pass. Sandbox/isolation, the complete
+umbrella, parity, build, Coding, browser and new CI checks have not run for this
+checkpoint: root is profiling F7 and controls the quiet runtime slot. Earlier
+green F14 run `44523908461` did not invoke these suites. Fresh execution, checked
+CI and merge remain required before F11-30 is checked; #640 stays open.
+
+F11-31 declaration packaging is implemented on the separate unmerged F7 branch
+and retains its own acceptance requirements. This change does not repeat that
+work or mark it complete. No grading outcome, resource bound or handler changed.
+
+Refs #640, #646 and #629.
+
+### F11-30 focused local execution
+
+At clean `23a2ae3c80b603ff7172567b1a36bdffc3d9226a`, Node 24.22.3, the
+coordinated sequential slot completed all three authorized commands:
+
+| Command | Actual result | Seconds |
+| --- | --- | ---: |
+| `npm run test:sandbox-limits` | 25 sandbox PASS groups, exit 0 | 29.898 |
+| `REACT_RUNNER_SNAPSHOT_ID= npm run test:react-isolation` | 5 local guest PASS groups and explicit VM SKIP, exit 0 | 5.801 |
+| `npm run test:grading-integrity` | Both child npm headings, 25 sandbox and 5 local guest PASS groups, explicit VM SKIP, exit 0 | 94.167 |
+
+The umbrella repeats the same two standalone suites. Its log shows the actual
+child executions and their successful output. The snapshot was blank for these
+checks; no credential value was inspected or remote VM provisioned. Source
+hashes match before and after, and Git remains clean. The worktree uses matching
+locked installed packages with separate writable caches and generated outputs;
+this is dependency reuse, not a fresh installation.
+
+F7 held runtime while these short-deadline checks ran and resumed only after
+their actual completion. No application build, Coding, browser, fast/full parity
+or new CI ran in this slot. Required exact-head CI and checked merge remain
+pending, so F11-30 and #640 stay open. The real-VM owner task and F7 declaration
+packaging acceptance remain separate.
+
+## Epic F11 local follow-up: guest copy integrity and frame errors — 19 November 2026
+
+F11-19 and F11-23 are implemented on `codex/640-grader-limits` after the
+F11-30 local checkpoint above. Test-only commits reproduce the real failures
+before their separate fixes: `4d5719a1` → `e61e055c` for guest copy integrity,
+and `22859eb7` → `4e4a8da6` for frame error receipt. This records local evidence;
+no CI, Preview, merge or completed issue checkbox is claimed.
+
+The build writes `react-sandbox.sha256.cjs` as passive JSON string data. The API
+checks the exact guest copy before VM creation, retries after a failed
+read/check, and caches verified bytes. Shared-build pack/restore require the
+pair before writing an archive or replacing destination trees. The existing
+generated `*.cjs` inclusion covers the sidecar; actual native-glob selection is
+checked. Docker still copies the generated tree, with a new candidate-only
+integrity check that leaves the historical baseline/reference harness intact.
+The record detects a copy mismatch, not stale-but-consistent builds or an
+adversarial replacement of both files.
+
+The frame bridge coerces and cuts compile, preview and case error strings at
+receipt using the existing shared cut, including safe fallback for structured
+data that cannot become a string. Null case errors, source/token/generation
+controls, case status and numeric limits stay unchanged.
+
+| Actual check on Node 24.22.3 | Result |
+| --- | --- |
+| F11-19 test-only artifact reproduction | RED: five failed groups, two passing controls; emitted sidecar absent and invalid copies accepted |
+| F11-19 test-only shared archive reproduction | RED: four passed, four failed; missing/stale pairs accepted even with recomputed generic inventory |
+| Focused artifact checks after fix | PASS: seven groups, including pre-create rejection, repaired cache retries, verified Buffer reuse, actual emitted record and inclusion |
+| `node scripts/test-ci-build-artifact.mjs` after fix | PASS: eight tests, including intact byte round-trip and refusal before destination replacement |
+| `REACT_RUNNER_SNAPSHOT_ID= npm run test:react-isolation` | PASS: five original real local-guest groups plus the seven artifact groups; one explicit real-VM SKIP |
+| `npm run typecheck:api`, `npm run typecheck:scripts` | PASS |
+| F11-23 test-only hook reproduction | RED: nine failed, four passed; whole messages, object case errors and unsafe coercion reproduced |
+| Focused new/existing hook suites after fix | PASS: 21 tests in two files (13 new, eight existing), including null/fallback/surrogate and stale frame/token/readiness controls |
+| Client `tsc -b` | PASS |
+| Client `typecheck:tooling` | Initially failed TS2550 for `Array.at` in the new test helper; length-index lookup fixed that test-only ES compatibility issue; tooling and the 21 hook tests then passed |
+
+Focused artifact checks overlap the standalone isolation run, and the hook
+recheck repeats the same 21 cases; these repeats are not additional coverage.
+The raw failed and successful runs are preserved in
+`/tmp/devshark-epic-f-handoff/f11-19-23-execution-7495d9a8/` on the audit machine.
+Dependency directories reuse the previously recorded matching installed trees;
+this is not a fresh installation or independent package-byte attestation.
+
+The real Sandbox VM, actual deployed tracing/readback, Docker execution,
+application build/bundle gates, browser checks and broader parity were not run
+in this bounded slot. Required exact-head integration/CI and merge remain
+pending. The real-VM owner task, F11-28/29 decisions and remaining F11 findings
+stay open. F7 owns declaration-packaging changes; this follow-up does not
+replace them. F11-10/22/36 remain separate external drafts at this checkpoint.
+
+## Epic F11 local follow-up: quiet disposal and trusted fetch — 19 November 2026
+
+After the separately committed F11-16 measurement record (`476f17e5`),
+F11-10 and F11-22 gained real failing regressions before their separate fixes:
+`6b73d9b6` → `dce659df` for disposal and `4f6b8f94` → `f3b46b3e` for the trusted
+page binding. The measurement's encoder/runtime baseline remains its recorded
+clean `1e3dd005` source; these later changes do not rewrite that evidence.
+
+Quiet disposal attempts cleanup and resets only a failed captured wasm cache.
+Real recursion no longer escapes through `runtime.dispose()` as an uncaught
+`gc_obj_list` abort. Original overflow errors, later cases and subsequent
+learners remain available. The first fixed run exposed a test-only wording
+assumption: a module error retained "Maximum call stack size exceeded" while
+the draft required "stack overflow". The test accepts those two genuine
+spellings without normalizing production text or changing classification.
+Two upstream caught abort diagnostics still print during these recursion
+controls; they no longer replace the verdict.
+
+The trusted page drops only native Node fetch. Existing learner refusal,
+fixture delegation and web data APIs remain. Local XHR success/socket refusal
+and an authored withFetch reference/incomplete starter provide positive and
+negative controls. All committed F11-19 artifact helper bytes, private modes
+and normal invocation were preserved through the isolation-test composition.
+
+| Actual bounded Node 24.22.3 check | Result |
+| --- | --- |
+| F11-10 test-only authority reproduction | RED, 1.846s: existing promise/bridge/base controls pass, then real render recursion escapes through disposal |
+| F11-10 first fixed authority run | Failed the over-specific module-overflow wording assertion; preserved as evidence before the test-only correction |
+| `npm run test:react-authority` after correction | PASS, eight groups, 6.866s; includes two real recursion sites, later-case/subsequent-learner and forged-text controls |
+| F11-10 API/script types | PASS, 5.942s / 7.758s |
+| F11-22 test-only local isolation reproduction | RED, 6.240s: original credentials/page controls pass; native fetch remains a function while data APIs pass |
+| `REACT_RUNNER_SNAPSHOT_ID= npm run test:react-isolation` after binding removal | PASS, 10.853s: nine real local-guest groups, seven preserved artifact groups and one explicit VM SKIP |
+| F11-22 API/script types | PASS, 5.850s / 7.508s |
+| Combined quiet-disposal/fetch-removal authority recheck | PASS, the same eight groups, 6.849s; retained 85 learner globals and capability controls pass |
+
+Repeated authority/artifact checks overlap earlier checks and are not additional
+unique coverage. Raw red, failed-first-green and successful logs/source receipts
+remain under `/tmp/devshark-epic-f-handoff/f11-10-22-execution-476f17e5/` on the
+audit machine. No deadline, memory/stack/output cap, queue/thread count, public
+result shape, grading classifier, VM policy or snapshot setting changed here.
+
+The credentialed VM probe remains UNRUN. Its cross-origin XHR refusal alone
+cannot distinguish deny-all from CORS or another transport failure; effective
+policy acceptance still needs its real control/evidence. Full React-engine,
+Coding, launch, application/bundle, browser, broad parity and exact-head CI/
+Preview/merge gates were not run in this bounded phase. Remaining F11 findings
+and the real-VM owner task stay open; no completion checkbox is earned by this
+local checkpoint.
+
+## F11-17 displayed outcome boundary — 19 November 2026, local checkpoint
+
+Refs #640 and #646. After rebasing the retained F11 work onto F7 merge
+`cbdfa2aa995e7dd71c7d0197fee7f35df21ca205`, the clean starting head was
+`24f34959f31ebb81462e618555ce3464f886caba`. The surviving audit was posted on
+#640 before source edits. Test-only commit `ed5b2063` records the regressions;
+`7714a131` applies the reviewed presentation fix and its NEEDED decision.
+
+Submit still compares complete decoded values before cutting the displayed
+serialization with the shared 2,000-code-unit line/error cut and existing marker.
+Run bounds outgoing actual/error/codeError fields. Pass/null, string/array/object
+hint prefixes, logs, compiler verdicts and compile-only JavaScript remain intact.
+Already-cut compiler text retains its surrogate-safe prefix byte-for-byte. The
+shared evaluator/error helper, compiler and original coding-runner test file
+remain byte-identical to the starting head. No encoded budget, deadline,
+concurrency, grading/reward, snapshot or VM policy changes are included.
+
+| Actual Node 24.22.3 check | Result |
+| --- | --- |
+| Client display test-only reproduction | RED, eight failures / one compile-only preservation pass, 1.358s |
+| Complete server test-only reproduction | FAIL before the new cases, 22.065s: eight prior PASS groups, then unchanged promise-allocation host-grace lower-bound assertion (3,261ms versus at least 3,980ms) |
+| Exact new server block, test-only | RED, 0.189s: full pass/fail comparison succeeds, then the displayed-actual length assertion fails |
+| New plus original coding-runner tests after fix | PASS, 28 tests in two files, 1.509s |
+| Exact new server block after fix | PASS, five actual QuickJS-worker cases plus the existing constants control, 0.228s |
+| Complete server suite after fix | FAIL at the same prior assertion, 21.795s: 3,178ms versus at least 3,980ms; no further full retry |
+| API / script types | PASS, 4.970s / 6.383s |
+| Client build-mode / client tooling types | PASS, 9.376s / 9.915s |
+
+The focused server runner is an external exact slice of the suite's unchanged
+imports/constants/limitCase helper and the five new cases. It rebuilds and runs
+the actual deployed-style QuickJS worker under VERCEL=1. No assertion or time
+limit was relaxed. Client tests invoke the real worker message handler and
+shared evaluator, with realm hardening and compiler loading stood in; they prove
+the display boundary, not realm security or compiler correctness. The new cases
+cover a mismatch after the display cut, ungraded null, a surrogate at the cut,
+call/top-level errors and the existing error-cut controls.
+
+Both complete-suite failures emitted the existing upstream disposal assertion
+and passed the timeout/result checks before failing only the host-grace lower
+bound. Their exact cause is not established by the focused display pass. The
+server can poll its own interrupt before the host timer; the old fixture's
+assumption that this allocation pattern always needs host termination remains
+an unresolved integration failure. It is not claimed fixed or green here.
+
+Raw commands, source pins, the focused-slice derivation, failures and passing
+receipts are retained in
+`/tmp/devshark-epic-f-handoff/f11-17-execution-24f34959/` on the audit machine.
+Repeated focused/full executions overlap and are not added as distinct coverage.
+No full grading umbrella, Coding, launch, application/bundle, browser, parity,
+provider or credentialed VM checks were run in this bounded phase. Exact-head
+CI/Preview/merge and the remaining F11 work are still required; no F11 checkbox
+is earned by this local checkpoint.
+
+## F11 parent-watchdog contract correction — 19 November 2026, local checkpoint
+
+Refs #640 and #646. The surviving audit was posted on #640 before edits
+(comment 7018368268). The old natural-workload test required exclusive parent
+termination even though the unchanged evaluator can validly interrupt or reach
+its post-jobs deadline after 2.5 s. Its earlier 3,261/3,178 ms failures remain retained;
+their exact return path was not causally captured. Six fresh causal samples and
+one exact-prefix sample later took the real parent grace near 4 s. Those samples
+are separate observations, not a repair or a diagnosis of the earlier path.
+The preserved prefix includes 22 prior actual grades/runs before target 23 on
+worker 3/ordinal 3; original recovery 24 passed. Its target was 4,003 ms, followed by
+actual worker exit 15.011 ms after grace. The one idle worker observed afterward
+was that original recovery worker. Process RSS alone establishes neither a VM
+heap-limit breach nor retained memory.
+
+`19ea58eb` separates strict mechanism coverage from natural resource workloads.
+An owned Node protocol spinner posts start and cannot reach QuickJS polling;
+the actual production parent must return the fixed timeout after its unchanged
+2.5 s deadline + 1.5 s grace, at least 3,980 ms and within the original 5,000 ms upper
+bound. The test requires physical exit within 1 s, then copies only an owned real
+worker bundle and checks an actual QuickJS grade. Its negative virtually
+disables the actual parent grace timer and must be killed by the bounded
+fixture guard. `c1cab7bb` strengthens that negative with an exact marker emitted
+after the actual start branch clears boot timing and disables grace, excluding
+a silent startup stall. Normal product code never receives that marker/mutation.
+
+All three natural string/allocation/Promise workloads remain. They require the
+existing engine-deadline lower bound, fixed timeout/result, original upper
+margin, only settled idle/ended threads and the next actual grade. Either an
+engine deadline or parent stop is valid there. No production file, numeric
+cap/timer, pool/queue count, verdict, public result or 44-step parity graph changed.
+F11-36 retirement and F11-16 encoded accounting remain separate work.
+
+| Actual Node 24.22.3 check | Result |
+| --- | --- |
+| Complete `npm run test:sandbox-limits` at clean 68e5fecf | PASS, 32 printed groups, 40.347 s; includes original controls, five F11-17 cases, strict parent positive/negative and unchanged six-run/four-live control; no abort diagnostic |
+| Strict parent positive in that run | PASS, 4,024 ms, actual exit and real QuickJS recovery |
+| Stronger exact-start-marker controls at clean c1cab7bb | PASS, the same two strict groups, 10.413 s; positive 4,024 ms, actual disabled-timer start marker then bounded negative kill |
+| API / script types at clean c1cab7bb | PASS, 7.043 s / 8.918 s |
+
+The original full-run commit 68e5fecf was amended only for the required subject
+`test(f11): Separate parent watchdog from engine deadlines (#640)` and readable
+why text. Its successor 19ea58eb has exactly the same Git tree
+`9bfa34a1d54e27915b91273b656fe4436ddb6775`; metadata-amend.json records both.
+After the real marker-only test improvement, only its focused controls were
+rerun, followed by types. Repeated strict groups are overlapping coverage, not
+additional unique cases. The full 40 s suite was not retried.
+
+Commands, actual logs, source hashes, metadata equivalence and audit receipt
+remain under `/tmp/devshark-epic-f-handoff/f11-watchdog-test-correction-5ae79944/`.
+Earlier failures, six fresh samples and the one prefix sample remain in their
+original separate directories. No further diagnostic repetition occurred.
+This checkpoint does not establish full Coding/umbrella/parity, browser,
+provider/VM, CI, Preview or merge acceptance. F11-16 is not applied, and #640
+stays open until the remaining implementation and checked integration finish.
+
+## F11-16 encoded outcome budget — 19 November 2026, local checkpoint
+
+Refs #640 and #646. The surviving audit was posted before edits
+(comment 7019605220). Measurement zero remains the independent pre-fix artifact
+committed earlier: 586 eligible non-React tasks, 1,702 positive variants and
+3,404 visible/hidden runs, maximum raw UTF16/UTF8 20,455, maximum 51 calls/run.
+The canonical AI decision applies 900,000 UTF16 units, with 879,545 units of
+measured headroom; it is recorded in NEEDED.md with its rollback.
+
+Test commit `42bf1059` precedes fix `df784dd4`. The exact new-block real-worker
+reproduction failed because a two-million-character value returned the global
+invalid-result error and lost the surrounding calls. The fix reserves exact
+fallback-error slots and outer JSON framing, counts escaped values/keys/tags
+and errors, charges partial values locally, and commits only fitting complete
+packets. Failed partial encoding cannot consume another call's fallback room.
+Per-call thrown text is sliced to 2,001 units inside the VM before the existing
+host display cut. The VM output getter checks before host copying; the existing
+1M host backstop, depth 40, 10,000 entries, all deadlines/pool limits, server
+comparison and F11-17 presentation cut remain intact. This does not claim that
+every top-level thrown VM handle is bounded before its separate dump path.
+
+| Actual Node 24.22.3 check | Result |
+| --- | --- |
+| Test-only exact F11-16 block | RED, 0.349 s, global invalid-result refusal instead of surviving small calls |
+| Same block with the reviewed fix before committing it | PASS, 15 new groups plus the existing constants control, 4.964 s; includes 51-call accumulation and hidden order |
+| Actual-worker low-budget / transfer controls at clean df784dd4 | PASS, 0.592 s; normal packet 383 units, mutated 200-budget packet 90 with only the large call refused; guarded forced output copies null, disabled getter exposes 1,000,001 units and is rejected |
+| Full post-fix positive cohort under process-group supervisor | PASS, 82.510 s; 1,702 variants / 3,404 runs, all raw UTF16/UTF8/call/identity rows equal the original measurement |
+| Complete `npm run test:sandbox-limits` after the product change | PASS, 47 printed groups, 44.867 s; includes strict parent positive/marker-proven negative, all old resource/display controls and six runs sharing at most four live threads |
+| API / script types at clean df784dd4 | PASS, 7.282 s / 9.785 s |
+
+The full reference comparison preserves the exact cohort/exclusions, all
+135 normalized input identities with only the reviewed source/template deltas,
+compiler/library identities, raw maxima 20,455 and maximum 51 calls. Three
+rows' display-JSON lengths change under F11-17; raw packets and grades do not.
+Enabled tagged-packet, disabled-observer and six rejecting metadata comparison
+mutations pass; the display-only positive mutation is accepted. All three
+reference children emitted zero stderr; outer supervision is accepted and the
+owned process group is gone. Normal cleanup removed temporary bundles. Source,
+engine payload and external artifacts remained unchanged during the run.
+
+Only after the actual fix commit was clean did the external freeze replace its
+future-head placeholder with the exact tested head. The original measurement,
+its tool and its mandatory measurement-before-red-before-fix ordering were
+preserved. Repeated focused/full output groups overlap and are not added as
+unique coverage. No test was retried to obtain green and no cap was relaxed.
+
+Raw commands, red/green derivation hashes and logs remain under
+`/tmp/devshark-epic-f-handoff/f11-16-execution-68ed3727/`; the complete metric-only
+reference/provenance reports are in
+`/tmp/devshark-epic-f-handoff/f11-16-postfix-measured-df784dd4-20261119/` with its
+sibling supervision receipt. No raw learner values/calls/expectations are saved.
+This reference cohort is not all 814 Coding tasks, React suites, browser realms
+or every hidden permutation. Full grading umbrella/Coding/parity, provider/VM,
+exact-head CI/Preview/merge and remaining F11 findings are still required; #640
+and its completion boxes remain open pending checked integration.
+
+
+### Epic F, F11-33 discarded console formatting (19 November 2026)
+
+Local follow-up on the F11 branch: test commit `9d6c62a4`, fix `8576448e`.
+The real evaluator regression failed two cap cases with serialization/getter
+counts `[4,4]` instead of `[0,0]` and `[1,1]`; its before-cap `[2,2]` control
+passed. The Node24 run took 1.540 s. The fix guards only Run's existing argument
+formatter after the line cap or character cut. Submit already had that guard.
+Console methods, clocks, markers, caps, encoded budgets and grades retain their
+existing behavior.
+
+After the fix, all 31 coding-runner client tests across three files passed in
+1.804 s. The exact added three-fixture server block also passed through the
+real normal worker and evaluator in 0.322 s after a 0.110 s native compilation;
+its body matches the registered integrity block byte for byte. Both runtimes
+retain the exact logs and the intended side-effect counts. Initial external
+launcher setup failures are preserved separately and are not product reds.
+
+Commands, hashes, source derivation and real outcomes are retained under
+`/tmp/devshark-epic-f-handoff/f11-remaining-execution-3fa8f8ed/33/`.
+Full umbrella, types, Coding/reference, launch/parity and remote integration
+remain for the final composed/rebased F11 source. This local result does not
+mark the package merged or complete.
+
+
+### Epic F, F11-20/32 normal bundle trim (19 November 2026)
+
+Local red commit `b95ef7f8`, fix `c55ba3c4`. The first actual output probe
+refuted a worker-registry assumption: that worker already removed the default
+registry. A separate full hash-pinned fallback check then produced three real
+failures and three positive controls. The correction removes the inactive
+upstream payload through one shared normal-builder helper, preserving the
+custom runtime/ABI, strict guest mode, TS worker and final passive digest.
+
+Actual raw/gzip guest bytes: 2,057,914/674,932 before, 887,329/346,595 after.
+Worker: 1,680,590/603,988 before, 876,631/344,641 after. Five fresh-process
+correct worker samples per stage have cold medians 71.170→58.677 ms and warm
+medians 8.305→8.801 ms. Fixed order/OS caches and host-import exclusions limit
+that local timing comparison; it is not VM/provider latency or memory proof.
+
+Focused checks pass: six output cases, 27 graph/source/bypass/real-hook cases,
+37 real normal-worker sort cases/provenance, nine local guest groups with
+seven artifact/cache/inclusion groups, and eight shared artifact pack/restore
+controls. The local guest run explicitly cleared the snapshot and printed VM
+SKIP. No existing cap, vendor/lock/runtime source or service setting changed.
+Full composed gates and remote integration remain pending.
+
+The durable measurement and all raw sample values are in
+`docs/quality/f11-quickjs-bundles-2026-11-19.md` and its adjacent JSON. They
+record current generated files, rather than historical prototype sizes, and
+keep the earlier untrimmed16 virtual-reference receipt distinct from pending
+normal trimmed-builder integration.
+
+
+### Epic F, F11-36 reported-limit retirement (19 November 2026)
+
+Local test `d71ac4e1`, fix `cbf4bdc5`. Actual red disposal command failed
+physical retirement after a normal positive (1.589 s); the actual limits entry
+passed seven groups then retained one thread instead of zero for an exact
+reported call limit (10.606 s). Product fixes followed that committed red.
+The affected resource entry then passed 66 groups in 58.948 s, retaining all
+16/17 boundaries, actual-parent positive/negative, six-run/four-live controls,
+three real-worker disposal controls and warm/run rejected/throwing termination
+quarantine, existing queue deadline and physical-exit recovery.
+
+A 36-row, three-sample local cost comparison preserves public-result hashes.
+Correct/wrong/neutral outcomes add no recovery worker. Reported forged/stack/
+allocation outcomes add one; next-grade medians rise from 7.651–10.401 ms to
+53.843–54.394 ms after confirmed retirement. Exit observation uses 20 ms
+polling. No latency distribution, provider memory, native-cause detection or
+learner-caught-success guarantee follows. Grading results and numeric limits
+are unchanged. Full composed gates/remote integration remain pending.
+
+Complete commands, stage/source provenance and every sample are recorded in
+`docs/quality/f11-worker-retirement-2026-11-19.md` and its adjacent JSON, with
+raw receipts under the 36 external execution folder. The baseline host is a
+pinned source projection paired with an archived actual normal worker; it is
+not a checkout rollback or an invented before measurement.
+
+
+### Epic F, F11-11/12/14 React deadline ownership (19 November 2026)
+
+Local test `609002e7`, fix `e18dcf8f`. Authority real red failed four false
+timeout cases; the local guest failed six deadline/reentry cases while finite
+callbacks passed. Reviewed fixes preserve the outer deadline across nested
+callbacks and latch actual interrupts across retries, using the canonical
+case-clock prefix rather than broad learner-text matching. No existing
+resource/command limit or grading shape changed.
+
+Authority passed in 12.547 s and local guest in 33.157 s, including all seven
+new probes, nine prior local and seven artifact groups. Busy/later learner
+durations changed from 7,517/2,501 ms to 2,513/0 ms; the subsequent authored
+case still passed. Credentialed VM was explicitly skipped. Two visible
+upstream disposal diagnostics remain inside the existing intentional recursion
+block with healthy recovery, also present in prior F11-10 green logs. Saved
+output merges streams and cannot separately map those lines to each recursion;
+this record makes no clean-stderr or native-cause claim.
+
+Exact red/green provenance, log hashes and scope limits are retained in
+`docs/quality/f11-react-deadlines-2026-11-19.md` and its adjacent JSON. Final
+composed types, Coding/reference, launch/parity and merge acceptance remain.
+
+
+### Epic F, F11-09/35 isolated React compilation (19 November 2026)
+
+Real test `ad5603ea`, fix `847cd14c`. Actual handler heartbeat lag changed
+from 1,872 to 53 ms with the existing nesting verdict. Coding/path capacity
+regressions and two required-compiler artifact omissions failed before fix.
+Focused greens pass 18 lifecycle controls, 684 actual normal-worker output
+comparisons/non-evaluation, handler/path positive plus two swallowed-catch
+negatives, and 10 shared artifact controls. Original guest digest checks and
+trimmed builders remain. API 7.224 s/scripts 9.870 s pass after separate 11
+guarded-handle typing correction `af002b2a`; the original failure is preserved.
+
+Three fresh-process pairs record compiler startup/messaging cost: inline vs
+worker first-conversion medians 37.702/223.822 ms, warm 3.033/4.890 ms; all 18
+outputs agree. No provider/VM or distribution claim follows. Source states,
+raw samples, commands and packaging limits are in
+`docs/quality/f11-react-compiler-pool-2026-11-19.md` and its adjacent JSON.
+Full composed build/grading/Coding/launch/parity and merge remain pending.
+
+
+### Epic F, F11-34/37 deferred grading engines (19 November 2026)
+
+Test `bc7af72d`, fixture correction `eca6edd6`, product fix `9bd237dc`.
+Actual red: four positive controls pass, five import/route/unused-compiler
+assertions fail. First postfix 8/9 exposed a metadata-counting fixture marker;
+canonical engine-entry observation corrects it, retaining the unmocked import
+and real CJS/ESM/fault/negative controls. Corrected focused 9/9 pass 1.170 s.
+
+Normal runner build 0.522 s, full performance 77.457 s, API 7.366 s and scripts 9.958 s
+pass. Whole-source preservation confines sandbox changes to imports/getModule;
+36 leases/health, 16/17 output, 20/32 trim, 19 digest and 09/11 behavior remain.
+F7 now observes its actual coding-handler evaluation and independently rejects
+eager QuickJS. No platform latency/memory or provider inventory claim follows.
+
+Exact logs, source states, artifact hashes and the fixture failure are in
+`docs/quality/f11-lazy-engines-2026-11-19.md` and its adjacent JSON. Final
+clean-head fast plus one additional same-head Launch, CI and merge remain
+pending; no extra full Launch or Coding run is claimed here.
+
+### Epic F, F11 composed acceptance checkpoint (19 November 2026)
+
+The composed source implements the 22 agent-owned remaining findings: 09, 10, 11,
+12, 14, 16, 17, 19, 20, 22, 23, 24, 25, 26, 27, 30, 32, 33, 34, 35, 36 and 37. This is an
+implementation/evidence inventory, not a merged checkbox claim. The complete
+path/evidence map, source-number audit, actual receipts and limitations are in
+[`quality/f11-final-documentation-2026-11-19.json`](quality/f11-final-documentation-2026-11-19.json).
+F11-28 snapshot baking and F11-29 VM capacity/cost remain owner decisions;
+there is no new per-instance React VM semaphore. F11-31 remains unchecked:
+local file tracing, include rules and successful deployed TypeScript cannot
+substitute for a complete deployed Lambda file inventory.
+
+The preliminary clean-head fast at `dbfde6ad` was stopped with SIGINT after
+2.2 minutes: complete:false, 7 passed, 1 failed, 1 skipped, 1 not-run. Its unused
+export gate correctly rejected `SANDBOX_ENCODED_OUTPUT_CHARS`; it was not a
+passing final gate. Build 83 s, artifact 8 s and its type steps passed before the
+stop; no later broad result follows. The exact unused failure and incomplete
+summary remain under `/tmp/devshark-epic-f-handoff/f11-final-fast-dbfde6ad/`.
+Fix `8b01a136` makes only the 900,000 implementation constant private. The full
+VM program/value is unchanged, with no allowlist/baseline addition. Independent
+real-worker exact 900,000-unit fit, +1-unit overflow, full-value/display behavior
+and recovery pass 1.813 s; unused 6.924 s and scripts types 9.929 s pass.
+
+The existing runtime-version rule also applies to these deadline/outcome
+changes. Real test `9f25ae70` derives v2 digests independently from literal old
+tags plus authored material, then issues actual encrypted sessions. Coding's
+legacy request reached a forbidden recordVerdict RPC; native OPEN reached one
+grading message/one write and 500 instead of 409. Fix `8405243d` changes only
+`coding-attempt:v2` and `path-code-attempt:v2` to v3. Combined controls pass:
+legacy OPEN 409 `task_changed` before fresh grading/writes, ownership precedence,
+accepted native read-only replay/no repeated XP and different-work conflict.
+Latest Coding brief renewal retains its linked attempt/parent and saved draft;
+native renewal keeps its existing new-attempt identity and saved draft under
+the same enrollment/activity. Runtime rollbacks also need fresh tags, not v2.
+
+| Required command | Actual local result and remaining boundary |
+| --- | --- |
+| `typecheck:api` | 34 fix 7.366 s; v3 fix 7.726 s PASS. The latter briefly overlaps path-content and is functional evidence, not quiet timing. |
+| `typecheck:scripts` | Final v3 source/tests PASS 10.153 s, sequential. |
+| `check:unused` | Private-budget correction PASS 6.924 s; preliminary dbf failure retained above. |
+| `test:sandbox-limits` | 66 groups PASS 58.948 s at 36 fix, including real-worker disposal, exit quarantine, strict parent watchdog and six-run/four-live. Later exact-policy narrow controls PASS 1.813 s. New composed full run remains pending. |
+| `test:react-isolation` | Local guest PASS 33.157 s at 11/12/14 fix: 7 new, 9 prior local, 7 artifact groups. Snapshot explicitly blank; credentialed VM part SKIP. |
+| `test:grading-integrity` | New composed umbrella pending in final fast; focused constituent evidence is not relabeled as a full umbrella pass. |
+| `test:react-authority` | PASS 12.547 s at 11/12/14 fix. Two known upstream recursion-disposal diagnostics remain visible with healthy recovery; no clean-stderr claim. Final composed repeat pending in fast. |
+| `test:react-engine` | Standalone composed run not executed in this batch; outside fast/CI. No standalone or every-variant VM pass claimed. |
+| `test:coding` | Final composed 814-task reference gate pending in fast; prior-main 814 passes are not new-source evidence. |
+| `test:launch` | Two post-integration same-head full runs pending: first in fast, exactly one additional afterward. |
+| `test:harness` | Not executed against the composed source here; fast omits it, normal CI/full browser acceptance still pending. |
+| `test:coding-auth` | Full command PASS 1.946 s after v3 fix, including the extended encrypted-session contract. |
+| `test:path-authority` | PASS 1.343 s after v3 fix. |
+| `test:paths` | PASS 39.327 s after v3 fix: FDE 15 modules/28 lessons/120 checks/19 exercises/10 artifacts. APItypes overlap noted above; no quiet-cost claim. |
+| `test:performance` | Full PASS 77.457 s after 34/37: 36 printed groups and 9 Node cohorts, zero failures; includes exact F7 handler marker and new loader controls. |
+| `git diff --check` | PASS for this checkpoint; final clean-head validation remains required. |
+
+The normal composed dbf build uploads an 887,989-byte guest, locally gzip 346,774,
+versus the recorded 18 November 2,100,887/691,960 baseline. Current bytes match its
+complete build inventory; local gzip is not SDK tar/network transfer timing.
+The 67-byte passive SHA sidecar stays in the API; it checks same-build copy
+integrity before VM creation and does not authenticate a replaced pair or prove
+freshness. The trusted page's native Node fetch binding is removed; data APIs,
+fixture delegation and local XHR controls remain. No credentialed microVM test,
+new snapshot, cost load test, provider setting or database write was performed.
+
+The local QuickJS rebuild is not run: the available Python 3.9 lacks the required
+3.10+/emsdk environment. The required CI rebuild is still a gate. No complete
+final fast, two final Launch passes, remote verify/sql, PR merge or production
+acceptance is claimed. The next frozen head must run those composed gates;
+keep this historical failed/incomplete checkpoint rather than rewriting it as
+a later pass. Acceptance after merge belongs in the next issue's record.
+
+
+### Epic F, F11 binding-inventory integration correction (20 November 2026)
+
+The second final-fast attempt at clean 23a874f2 stopped with SIGINT after 6 min:
+complete:false, 21 pass/1 fail/1 skip/1 not-run. Launch 117 s (80 result lines),
+path authority and React authority passed; grading-integrity failed 17 s when
+it JSON.parsed the intentionally 2000-cut displayed inventory. No complete
+fast or new-source two-Launch acceptance follows from that checkpoint.
+
+Observed-red record `b1c5d95b` precedes test fix `9d5660a0`. The unchanged
+complete global/member tuple now uses actual production full-value comparison.
+Three genuine VM drift negatives include two with identical cut display but
+failed full comparison, with setup/error guards and fresh recovery. Pinned
+names, properties, host bindings/module denial and 20 wasm imports/75 exports
+remain exact; production display/budget/session/pool code is unchanged.
+
+Focused 0.378 s, full grading-integrity 163.631 s (183 printed groups+27 transform
+cases, zero failures; credentialed VM explicitly SKIP) and scripts types 9.578 s
+pass. Original stage/head/dirty receipts and both earlier fast failures remain
+in `docs/quality/f11-binding-inventory-2026-11-19.md` and adjacent JSON.
+A new clean-head fast plus exactly one additional same-head Launch, then
+required CI/SQL/merge/deployment acceptance, remain pending.

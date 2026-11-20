@@ -13,6 +13,7 @@ import type { TaskRuntimePolicy } from '../../../../shared/coding-task-runtime';
 // TypeScript compiler loaded across Runs and never runs the learner's code,
 // so its realm stays the browser's (run-tests.ts, perf baseline #587 C01).
 import { evaluateCalls, TYPE_CHECK_STOPPED_MESSAGE } from '../../../../shared/coding-evaluate';
+import { cutRunDisplay } from './display-result';
 import { prepareRunRealm } from '../../../../shared/coding-run-realm';
 import type { TypeTestInput } from '../../../../shared/coding-ts-check';
 
@@ -67,7 +68,7 @@ self.onmessage = async (event: MessageEvent<RunnerRequest>) => {
       }
       // Nothing to run, but the types were checked: keep them on screen.
       if (compiled.js === null) {
-        post({ phase: 'done', results: [], logs: [], codeError: compiled.transpileError, check: compiled.check });
+        post({ phase: 'done', ...cutRunDisplay({ results: [], logs: [], codeError: compiled.transpileError }), check: compiled.check });
         return;
       }
       // The caller runs the JavaScript in a fresh worker of its own.
@@ -78,14 +79,14 @@ self.onmessage = async (event: MessageEvent<RunnerRequest>) => {
       self.postMessage({ phase: 'running' });
       const hidden = prepareRunRealm(self, request.runtimePolicy);
       const run = await evaluateCalls({ code: compiled.js, calls: request.calls, expectations: request.expectations, hidden });
-      post({ phase: 'done', ...run, check: compiled.check });
+      post({ phase: 'done', ...cutRunDisplay(run), check: compiled.check });
       return;
     }
     self.postMessage({ phase: 'running' });
     const hidden = prepareRunRealm(self, request.runtimePolicy);
     const run = await evaluateCalls({ code: request.code, calls: request.calls, expectations: request.expectations, hidden });
-    post({ phase: 'done', ...run, check: null });
+    post({ phase: 'done', ...cutRunDisplay(run), check: null });
   } catch (error) {
-    post({ phase: 'done', results: [], logs: [], codeError: String((error as Error)?.message ?? error), check: null });
+    post({ phase: 'done', ...cutRunDisplay({ results: [], logs: [], codeError: String((error as Error)?.message ?? error) }), check: null });
   }
 };

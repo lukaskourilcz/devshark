@@ -11,8 +11,9 @@ if (!port) throw new Error('sandbox-worker-entry runs as a worker thread');
 port.on('message', (message: { type?: unknown; input?: SandboxInput }) => {
   if (message?.type !== 'run' || !message.input) return;
   port.postMessage({ type: 'start' });
-  runInQuickJS(message.input).then(
-    (result) => port.postMessage({ type: 'done', result }),
+  let healthy = true;
+  runInQuickJS(message.input, () => { healthy = false; }).then(
+    (result) => port.postMessage({ type: 'done', result, healthy }),
     (error: unknown) => port.postMessage({ type: 'fail', message: String((error as Error)?.message ?? error) }),
   );
 });

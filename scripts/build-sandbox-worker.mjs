@@ -8,16 +8,19 @@
 // (scripts/ts-check-worker-entry.ts, lib/coding/ts-check-pool.ts). The
 // compiler stays in node_modules, where the roadmap function already has it.
 import { build } from 'esbuild';
+import { pinnedQuickJSBundle } from './quickjs-bundle.mjs';
 
 export async function buildSandboxWorker() {
-  await build({
+  const quickjsBundle = await build({
     entryPoints: ['scripts/sandbox-worker-entry.ts'],
     outfile: 'lib/coding/generated/quickjs-sandbox.cjs',
     bundle: true, platform: 'node', format: 'cjs', target: 'node22', logLevel: 'warning',
+    metafile: true, plugins: [pinnedQuickJSBundle()],
   });
   await build({
     entryPoints: ['scripts/ts-check-worker-entry.ts'],
     outfile: 'lib/coding/generated/ts-check-worker.cjs',
     bundle: true, platform: 'node', format: 'cjs', target: 'node22', logLevel: 'warning', packages: 'external',
   });
+  return quickjsBundle;
 }

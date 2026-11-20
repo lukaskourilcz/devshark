@@ -12,10 +12,10 @@
 // needs REACT_RUNNER_SNAPSHOT_ID and Sandbox credentials; without the
 // snapshot id it prints SKIP and the reason.
 import assert from 'node:assert/strict';
-import { execFileSync, spawn } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { createHash, randomBytes } from 'node:crypto';
 import { once } from 'node:events';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { globSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { constants as osConstants, tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -68,10 +68,97 @@ async function runGuest(appSource: string, suite: string): Promise<ReactSuiteOut
   }
 }
 
+// These probes run in the existing bounded guest child. A broken re-entry
+// deadline can hang or exhaust that child, so it must not run in this process.
+async function learnerDeadlineContracts() {
+  const failures: Error[] = [];
+  const probe = async (name: string, check: () => Promise<void>) => {
+    try { await check(); console.log(`PASS local guest ${name}`); }
+    catch (error) { console.error(`FAIL local guest ${name}`, error); failures.push(error instanceof Error ? error : new Error(String(error))); }
+  };
+  const renders = `import React from 'react';import {render} from '@testing-library/react';import App from './App';test('render completes or reports its learner interrupt',()=>{const {container}=render(<App/>);expect(container.textContent).toBe('Done');});`;
+  const loops = [
+    ['React.Children callback', `for(;;) React.Children.forEach([1],()=>{});`],
+    ['click listener', `const button=document.createElement('button');button.addEventListener('click',()=>{});for(;;) button.click();`],
+  ] as const;
+
+  await probe('F11-11 finite module and render callbacks remain usable', async () => {
+    const result = await runGuest(
+      `import React from 'react';let count=0;const button=document.createElement('button');button.addEventListener('click',()=>{count++;});button.click();React.Children.forEach([1,2],()=>{count++;});export const read=()=>count;export default function App(){React.Children.forEach([1],()=>{});return <p>Done</p>;}`,
+      `import React from 'react';import {render} from '@testing-library/react';import App,{read} from './App';test('finite nested callbacks',()=>{const {container}=render(<App/>);expect(container.textContent).toBe('Done');expect(read()).toBe(3);});test('a later ordinary entry still works',()=>{expect(read()).toBe(3);});`,
+    );
+    assert.equal(result.compileError, null, JSON.stringify(result));
+    assert.equal(result.timedOut, false, JSON.stringify(result));
+    assert.deepEqual(result.cases.map((one) => one.status), ['pass', 'pass'], JSON.stringify(result));
+  });
+
+  for (const [name, loop] of loops) {
+    await probe(`F11-11 render re-entry: ${name}`, async () => {
+      const result = await runGuest(`import React from 'react';export default function App(){${loop}return null;}`, renders);
+      console.log(`OBS F11-11 render re-entry ${name}`, JSON.stringify(result));
+      assert.equal(result.compileError, null, JSON.stringify(result));
+      assert.equal(result.timedOut, true, JSON.stringify(result));
+      assert.equal(result.total, 1, JSON.stringify(result));
+      assert.equal(result.cases[0]?.status, 'fail', JSON.stringify(result));
+      assert.match(result.cases[0]?.error ?? '', /interrupted/, JSON.stringify(result));
+      assert.ok(result.cases[0].durationMs < 4000, `${name}: ${JSON.stringify(result)}`);
+    });
+    await probe(`F11-11 module re-entry: ${name}`, async () => {
+      const started = Date.now();
+      const result = await runGuest(
+        `import React from 'react';${loop}\nexport default function App(){return null;}`,
+        `test('the authored suite still reports after the module fails',()=>{expect(1).toBe(1);});`,
+      );
+      const elapsed = Date.now() - started;
+      console.log(`OBS F11-11 module re-entry ${name}`, JSON.stringify({elapsedMs: elapsed, result}));
+      assert.equal(result.timedOut, true, JSON.stringify(result));
+      assert.match(result.compileError ?? '', /interrupted/, JSON.stringify(result));
+      assert.deepEqual(result.cases.map((one) => one.status), ['pass'], JSON.stringify(result));
+      // Module loading has no case duration; this includes guest startup and
+      // compilation, in addition to the unchanged 2.5 s learner budget.
+      assert.ok(elapsed < 5000, `${name}: ${elapsed} ms including guest startup: ${JSON.stringify(result)}`);
+    });
+  }
+
+  await probe('F11-14 module interrupt survives an authored suite setup error', async () => {
+    const result = await runGuest(
+      `while(true){};export default function App(){return null;}`,
+      `throw new Error('authored suite setup failed');`,
+    );
+    console.log('OBS F11-14 module interrupt and suite setup error', JSON.stringify(result));
+    assert.match(result.compileError ?? '', /compiling suite: authored suite setup failed/, JSON.stringify(result));
+    assert.equal(result.timedOut, true, JSON.stringify(result));
+    assert.deepEqual(result.cases, [], JSON.stringify(result));
+    assert.equal(result.failed, 1, JSON.stringify(result));
+  });
+
+  await probe('F11-12/F11-14 one real interrupt stops retries and later entries', async () => {
+    const result = await runGuest(
+      `import React from 'react';export function spin(){while(true){}}export default function App(){spin();return null;}`,
+      `import React from 'react';import {render} from '@testing-library/react';import App,{spin} from './App';test('busy render',()=>{render(<App/>);});test('later learner call',()=>{spin();});test('later authored case',()=>{expect(2+2).toBe(4);});`,
+    );
+    console.log('OBS F11-12/F11-14 busy render and later entries', JSON.stringify(result));
+    assert.equal(result.compileError, null, JSON.stringify(result));
+    assert.equal(result.timedOut, true, JSON.stringify(result));
+    assert.deepEqual(result.cases.map((one) => one.name), ['busy render', 'later learner call', 'later authored case'], JSON.stringify(result));
+    assert.deepEqual(result.cases.map((one) => one.status), ['fail', 'fail', 'pass'], JSON.stringify(result));
+    for (const one of result.cases.slice(0, 2)) assert.match(one.error ?? '', /interrupted/, JSON.stringify(result));
+    assert.ok(result.cases[0].durationMs < 4000, JSON.stringify(result));
+    assert.ok(result.cases[1].durationMs < 500, JSON.stringify(result));
+  });
+  if (failures.length) throw new AggregateError(failures, 'F11-11/12/14 learner deadline controls failed');
+}
+
 async function localGuest() {
   execFileSync(process.execPath, ['scripts/build-react-runner.mjs'], { stdio: ['ignore', 'ignore', 'inherit'] });
+  await learnerDeadlineContracts();
   const hits: string[] = [];
-  const server = createServer((request, response) => { hits.push(request.url ?? ''); response.end('loaded'); });
+  const server = createServer((request, response) => {
+    hits.push(request.url ?? '');
+    if (request.url === '/trusted-xhr-negative') { request.socket.destroy(); return; }
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.end('loaded');
+  });
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
   const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
@@ -83,6 +170,15 @@ async function localGuest() {
       assert.equal(result.passed, 1, `${name}: ${JSON.stringify(result)}`);
       console.log(`PASS local guest ${name}`);
     }
+
+    const trustedPage = await runGuest(
+      'export default function App(){return null;}',
+      `test('trusted page has no native fetch',()=>{expect(typeof globalThis.fetch).toBe('undefined');expect(typeof window.fetch).toBe('undefined');});
+test('web data APIs remain available',()=>{for(const name of ['Headers','Request','Response','FormData','Blob'])expect(typeof globalThis[name]).toBe('function');});`,
+    );
+    assert.equal(trustedPage.compileError, null);
+    assert.deepEqual(trustedPage.cases.map((one) => one.status), ['pass', 'pass'], JSON.stringify(trustedPage));
+    console.log('PASS local guest: no trusted Node fetch; web data APIs remain');
 
     // Neither the network nor Node, bare or on the window capability. jsdom's
     // window has XMLHttpRequest and WebSocket; the capability shows neither.
@@ -136,6 +232,61 @@ test('nothing loads and nothing runs', async () => { render(<App />); await new 
     assert.equal(resources.passed, 1, JSON.stringify(resources));
     assert.deepEqual(hits, [], 'no resource the markup named was requested');
     console.log('PASS local guest: jsdom loads no resource the markup names and runs no inline script or handler');
+
+    const fixture = await runGuest(
+      `export const load = url => fetch(url).then(response=>response.json());export default function App(){return null;}`,
+      `import {load} from './App';
+test('the authored fetch fixture and suite overrides still delegate',async()=>{
+  const before=globalThis.fetch;expect(typeof before).toBe('undefined');
+  require('./fetchStub');const fixture=globalThis.fetch;expect(typeof fixture).toBe('function');
+  try{
+    expect((await load('/api/users/1')).name).toBe('Leanne Graham');
+    globalThis.fetch=()=>Promise.resolve({json:()=>Promise.resolve({name:'suite override'})});
+    expect((await load('/api/users/1')).name).toBe('suite override');
+    globalThis.fetch=fixture;expect((await load('/api/users/1')).name).toBe('Leanne Graham');
+  }finally{globalThis.fetch=before;}
+  expect(typeof globalThis.fetch).toBe('undefined');
+});`,
+    );
+    assert.equal(fixture.compileError, null);
+    assert.equal(fixture.failed, 0, JSON.stringify(fixture));
+    assert.equal(fixture.passed, 1);
+    assert.deepEqual(hits, [], 'trusted deterministic fixtures made no network request');
+    console.log('PASS local guest: authored fixture delegation, override and restoration remain');
+
+    // A real local success and socket refusal prove this probe uses jsdom's
+    // actual XHR transport rather than passing because fetch disappeared.
+    const xhr = await runGuest(
+      'export default function App(){return null;}',
+      `const request=url=>new Promise((resolve,reject)=>{
+  const xhr=new window.XMLHttpRequest();xhr.open('GET',url);xhr.timeout=700;
+  xhr.onload=()=>resolve({event:'load',status:xhr.status,text:xhr.responseText});
+  xhr.onerror=()=>resolve({event:'error',status:xhr.status});
+  xhr.ontimeout=()=>reject(new Error('local XHR control timed out'));xhr.send();
+});
+test('actual XHR reaches a CORS-enabled local server',async()=>{expect(typeof fetch).toBe('undefined');const result=await request('${base}/trusted-xhr-positive');expect(result.event).toBe('load');expect(result.status).toBe(200);expect(result.text).toBe('loaded');});
+test('actual XHR reports a server socket refusal',async()=>{const result=await request('${base}/trusted-xhr-negative');expect(result.event).toBe('error');expect(result.status).toBe(0);});`,
+    );
+    assert.equal(xhr.compileError, null);
+    assert.deepEqual(xhr.cases.map((one) => one.status), ['pass', 'pass'], JSON.stringify(xhr));
+    await settle();
+    assert.deepEqual(hits, ['/trusted-xhr-positive', '/trusted-xhr-negative'], 'both real XHR controls reached the local transport');
+    console.log('PASS local guest: jsdom XHR positive and transport-refusal controls exercise actual requests');
+
+    // This authored suite saves/calls/restores its current withFetch fixture.
+    // Keep its real reference and incomplete starter as opposite controls.
+    const task = CODING_TASKS.find((one) => one.id === 'react-mh-wait-for-export');
+    const reference = task && solutionFor(task.id)?.solution;
+    assert.ok(task?.suite && reference, 'the authored fetch control exists');
+    const authored = await runGuest(reference, task.suite);
+    assert.equal(authored.compileError, null);
+    assert.equal(authored.failed, 0, JSON.stringify(authored));
+    assert.ok(authored.passed > 0);
+    const incomplete = await runGuest(task.starter, task.suite);
+    assert.equal(incomplete.compileError, null);
+    assert.ok(incomplete.failed > 0, 'removing native fetch does not make the authored suite pass an incomplete starter');
+    console.log('PASS local guest: authored withFetch reference passes and incomplete starter fails');
+
   } finally {
     server.close();
   }
@@ -151,10 +302,20 @@ async function sandboxVM() {
   const probes: [name: string, appSource: string, suite: string][] = [
     ...SHARED_PROBES,
     [
-      // The suite's own fetch: only the VM's deny-all policy stops it.
+      // Credentialed VM-only acceptance: make a real jsdom XHR send with
+      // deny-all unchanged. A cross-origin failure alone can also be CORS;
+      // record this as a bounded refusal probe, not a complete policy proof.
+      // The local positive/negative transport controls above are separate.
       'network',
       'function App(){ return null; }',
-      `test('network denied',async()=>{let connected=false;try{await fetch('https://example.com',{signal:AbortSignal.timeout(700)});connected=true;}catch{}expect(connected).toBe(false);});`,
+      `test('network denied',async()=>{
+expect(typeof fetch).toBe('undefined');expect(typeof window.XMLHttpRequest).toBe('function');
+let sent=false;const result=await new Promise(resolve=>{
+ const xhr=new window.XMLHttpRequest();xhr.open('GET','https://example.com/');xhr.timeout=700;
+ xhr.onload=()=>resolve({event:'load',status:xhr.status});xhr.onerror=()=>resolve({event:'error',status:xhr.status});xhr.ontimeout=()=>resolve({event:'timeout',status:xhr.status});
+ xhr.send();sent=true;
+});expect(sent).toBe(true);expect(['error','timeout']).toContain(result.event);expect(result.status).toBe(0);
+});`,
     ],
   ];
   for (const [name, appSource, suite] of probes) {
@@ -197,8 +358,111 @@ async function sandboxVM() {
   );
 }
 
+
+// F11-19: fresh processes keep these controls independent of the instance's
+// verified-artifact cache. Each cwd contains its own fake Sandbox SDK; none
+// of these cases can call the real SDK or start a VM.
+const ARTIFACT_FIXTURE = Buffer.from('local runner copy-integrity fixture\n');
+const artifactDigest = (bytes: Buffer) => JSON.stringify(createHash('sha256').update(bytes).digest('hex')) + '\n';
+const artifactPath = () => join(process.cwd(), 'lib/coding/generated/react-sandbox.cjs');
+const sidecarPath = () => join(process.cwd(), 'lib/coding/generated/react-sandbox.sha256.cjs');
+
+type ArtifactFixtureState = { creates: number; uploads: Buffer[] };
+async function artifactProbe(name: string) {
+  const { runIsolatedReactSuite } = await import('../lib/coding/react-isolated');
+  const state = (globalThis as unknown as { __reactArtifactFixture: ArtifactFixtureState }).__reactArtifactFixture;
+  assert.ok(state, 'the fresh process loaded only the fabricated local SDK');
+  const input = { appSource: 'export default function App(){ return null; }', suite: "test('fixture',()=>{});" };
+  if (name !== 'verified-cache') {
+    await assert.rejects(runIsolatedReactSuite(input), (error: unknown) => {
+      assert.ok(error instanceof Error);
+      assert.equal(error.message, 'React grading infrastructure is unavailable');
+      if (name === 'missing-runner' || name === 'missing-sidecar') assert.match(error.name, /^ReactRunnerArtifact/);
+      else assert.equal(error.name, 'ReactRunnerArtifactIntegrity');
+      return true;
+    });
+    assert.equal(state.creates, 0, 'invalid bytes never reach Sandbox.create');
+    assert.deepEqual(state.uploads, [], 'invalid bytes are never uploaded');
+    // The repaired files must be read by the same module after its failure.
+    writeFileSync(artifactPath(), ARTIFACT_FIXTURE);
+    writeFileSync(sidecarPath(), artifactDigest(ARTIFACT_FIXTURE));
+  }
+  assert.equal((await runIsolatedReactSuite(input)).timedOut, true, 'the local SDK fixture returned its fixed exit code');
+  assert.equal(state.creates, 1);
+  assert.equal(state.uploads.length, 1);
+  assert.deepEqual(state.uploads[0], ARTIFACT_FIXTURE);
+  // A successfully checked deployment artifact is cached per instance. This
+  // preserves the existing contract instead of adding a per-Submit disk read.
+  writeFileSync(artifactPath(), 'changed only after the verified read');
+  writeFileSync(sidecarPath(), 'changed only after the verified read');
+  await runIsolatedReactSuite(input);
+  assert.equal(state.creates, 2);
+  assert.equal(state.uploads.length, 2);
+  assert.equal(state.uploads[0], state.uploads[1], 'the same verified Buffer is reused');
+}
+
+async function artifactIntegrity() {
+  const failures: Error[] = [];
+  try {
+    const runner = readFileSync(GUEST_BUNDLE);
+    const sidecar = 'lib/coding/generated/react-sandbox.sha256.cjs';
+    const digest: unknown = JSON.parse(readFileSync(sidecar, 'utf8'));
+    assert.equal(typeof digest, 'string', 'the sidecar is passive JSON string data, never evaluated');
+    assert.match(digest as string, /^[a-f0-9]{64}$/);
+    assert.equal(digest, createHash('sha256').update(runner).digest('hex'), 'the real builder writes a digest of the exact emitted guest');
+    const config = JSON.parse(readFileSync('vercel.json', 'utf8')) as { functions: Record<string, { includeFiles: string }> };
+    const included = globSync(config.functions['api/quiz/roadmap.ts'].includeFiles);
+    assert.ok(included.includes(sidecar), 'the actual Vercel include pattern selects the produced sidecar');
+    assert.ok(included.includes('lib/coding/generated/react-sandbox.cjs'), 'the actual Vercel include pattern selects its runner');
+    console.log('PASS artifact integrity: the real emitted guest and passive sidecar agree and both match Vercel inclusion');
+  } catch (error) { failures.push(error as Error); }
+  for (const name of ['tampered-runner', 'missing-sidecar', 'malformed-sidecar', 'wrong-digest-type', 'missing-runner', 'verified-cache']) {
+    const dir = mkdtempSync(join(tmpdir(), 'react-artifact-'));
+    try {
+      const generated = join(dir, 'lib/coding/generated');
+      mkdirSync(generated, { recursive: true });
+      writeFileSync(join(dir, 'package.json'), '{"type":"commonjs"}\n');
+      writeFileSync(join(generated, 'react-sandbox.cjs'), ARTIFACT_FIXTURE);
+      writeFileSync(join(generated, 'react-sandbox.sha256.cjs'), artifactDigest(ARTIFACT_FIXTURE));
+      // The SDK is intentionally fabricated here, rather than patching a real
+      // provider module and accidentally falling through to its create method.
+      writeFileSync(join(generated, 'vercel-sandbox.cjs'), `
+const state = globalThis.__reactArtifactFixture = { creates: 0, uploads: [] };
+exports.Sandbox = { create: async () => {
+  state.creates++;
+  return {
+    writeFiles: async files => state.uploads.push(files.find(file => file.path.endsWith('/runner.cjs')).content),
+    runCommand: async () => ({exitCode:124,stdout:async()=>''}),
+    stop: async () => undefined,
+  };
+}};
+`);
+      if (name === 'tampered-runner') writeFileSync(join(generated, 'react-sandbox.cjs'), 'tampered fixture');
+      if (name === 'missing-sidecar') rmSync(join(generated, 'react-sandbox.sha256.cjs'));
+      if (name === 'malformed-sidecar') writeFileSync(join(generated, 'react-sandbox.sha256.cjs'), 'not JSON digest data');
+      if (name === 'wrong-digest-type') writeFileSync(join(generated, 'react-sandbox.sha256.cjs'), '{}\n');
+      if (name === 'missing-runner') rmSync(join(generated, 'react-sandbox.cjs'));
+      const child = spawnSync(process.execPath, [process.argv[1], '--artifact-probe', name], {
+        cwd: dir, env: { ...GUEST_ENV, REACT_RUNNER_SNAPSHOT_ID: 'local-artifact-fixture' },
+        encoding: 'utf8', timeout: 30_000,
+      });
+      assert.equal(child.status, 0, `${name}: ${child.error?.message ?? child.stderr}`);
+      console.log(`PASS artifact integrity: ${name}; verified-byte reuse and failed-cache repair`);
+    } catch (error) { failures.push(error as Error); }
+    finally { rmSync(dir, { recursive: true, force: true }); }
+  }
+  if (failures.length) throw new AggregateError(failures, 'React artifact copy-integrity controls failed');
+}
+
 async function main() {
+  if (process.argv[2] === '--artifact-probe') { await artifactProbe(process.argv[3]); return; }
+  if (process.argv[2] === '--artifact-integrity') {
+    execFileSync(process.execPath, ['scripts/build-react-runner.mjs'], { stdio: ['ignore', 'ignore', 'inherit'] });
+    await artifactIntegrity();
+    return;
+  }
   await localGuest();
+  await artifactIntegrity();
   await sandboxVM();
 }
 main().catch((error) => {

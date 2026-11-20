@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
@@ -10,6 +10,7 @@ const { Sandbox } = createRequire(join(process.cwd(), 'package.json'))(
 import type { ReactSuiteOutcome } from './react-runner';
 import { GUEST_ENV, GUEST_NODE_FLAGS, readGuestRun, type GuestInput } from './react-guest';
 import { compileReactLearner } from './react-transpile';
+import { compileReactOnWorker } from './react-compile-pool';
 import { FETCH_STUB_SOURCE } from '../../shared/coding-react-support';
 import { LOCAL_FETCH_SOURCE } from '../../shared/coding-fullstack-support';
 import { afterResponse } from './after-response';
@@ -52,16 +53,28 @@ const fixtures = () => compiledFixtureModules ??= {
   './localFetch': compileReactLearner(LOCAL_FETCH_SOURCE, false),
 };
 
-/** The grader bundle the VM runs, 2 MB, read from the deployment once per
- * instance and reused (#587, server item 14): it is built with the
- * deployment and cannot change under a running instance, and every Submit
- * read it from disk again. Every run still uploads it, byte for byte. A
- * failed read is not kept, so the next run reads again. */
+/** The exact guest bytes and passive same-build SHA-256 record are read once
+ * per instance. Check copy integrity before starting any VM, then reuse the
+ * verified Buffer. A failed read or check is not cached, so a repair retries.
+ * This detects a copy mismatch; it does not prove build freshness or
+ * authenticate an attacker who could replace both files. */
 let runnerBytes: Promise<Buffer> | null = null;
 const runnerArtifact = (): Promise<Buffer> =>
-  runnerBytes ??= readFile(join(process.cwd(), 'lib/coding/generated/react-sandbox.cjs')).catch((error) => {
+  runnerBytes ??= (async () => {
+    const [runner, record] = await Promise.all([
+      readFile(join(process.cwd(), 'lib/coding/generated/react-sandbox.cjs')),
+      readFile(join(process.cwd(), 'lib/coding/generated/react-sandbox.sha256.cjs'), 'utf8'),
+    ]).catch((error) => { throw runnerFailure('Artifact', error); });
+    let expected: unknown;
+    try { expected = JSON.parse(record); } catch { throw runnerFailure('ArtifactIntegrity'); }
+    if (typeof expected !== 'string' || !/^[a-f0-9]{64}$/.test(expected) ||
+        createHash('sha256').update(runner).digest('hex') !== expected) {
+      throw runnerFailure('ArtifactIntegrity');
+    }
+    return runner;
+  })().catch((error) => {
     runnerBytes = null;
-    throw runnerFailure('Artifact', error);
+    throw error;
   });
 
 /** No code, environment secrets, or writable state are shared between runs.
@@ -74,16 +87,11 @@ export async function runIsolatedReactSuite(input: {
   suite: string;
   appSource: string;
 }): Promise<ReactSuiteOutcome> {
-  // The learner's code is converted here, before any VM is asked for. Code
-  // nested past what the compiler's recursion can follow is the learner's
-  // error, as in the TypeScript grader, not an outage to retry.
-  let compiledApp: string;
-  try {
-    compiledApp = compileReactLearner(input.appSource);
-  } catch (error) {
-    if (error instanceof RangeError) return { cases: [], passed: 0, failed: 1, total: 1, compileError: NESTED_TOO_DEEPLY, timedOut: false };
-    throw runnerFailure('Compile', error);
-  }
+  // Learner syntax conversion has a worker deadline before any VM starts.
+  // Constant fixtures below retain their once-per-instance conversion.
+  const compiled = await compileReactOnWorker(input.appSource);
+  if ('nested' in compiled) return { cases: [], passed: 0, failed: 1, total: 1, compileError: NESTED_TOO_DEEPLY, timedOut: false };
+  const compiledApp = compiled.js;
   const snapshotId = process.env.REACT_RUNNER_SNAPSHOT_ID;
   if (!snapshotId) throw runnerFailure('Configuration');
   const runner = await runnerArtifact();

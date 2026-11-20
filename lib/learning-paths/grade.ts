@@ -1,5 +1,6 @@
 import { runtimePolicyForTask } from '../../shared/coding-task-runtime';
 import type { ReactSuiteOutcome } from '../coding/react-runner';
+import { GraderBusyError } from '../coding/grader-capacity';
 /** Grading for learning-path activities.
  *
  * Nothing new executes here. Code runs in the same QuickJS sandbox, through
@@ -416,7 +417,8 @@ async function gradeReactActivity(code: MergedCode, submitted: string, runner?: 
   try {
     const runReactSuite = runner ?? (await import('../coding/react-isolated')).runIsolatedReactSuite;
     run = await runReactSuite({ suite: code.suite ?? '', appSource: submitted });
-  } catch {
+  } catch (error) {
+    if (error instanceof GraderBusyError) throw error;
     // The runtime itself could not start. That is infrastructure, not the
     // learner: it is a retryable error, never a recorded failure.
     const folded = foldCriteria(code, [], false);

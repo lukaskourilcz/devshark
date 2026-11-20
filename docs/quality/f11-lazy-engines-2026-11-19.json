@@ -1,0 +1,264 @@
+{
+  "date": "2026-11-19",
+  "scope": [
+    "F11-34",
+    "F11-37"
+  ],
+  "status": "Focused and performance/type checks pass locally; final composed fast and same-head extra Launch remain pending",
+  "testCommit": "bc7af72d3eb90a7eaf7844c9c88b5c12c85b5e95",
+  "fixtureCorrectionCommit": "eca6edd66cfbcb65aa160947912744d6882bc9d1",
+  "fixCommit": "9bd237dc95099862f896d12dc787cd11b2d56ef5",
+  "auditComment": "https://github.com/lukaskourilcz/devshark/issues/640#issuecomment-7023648110",
+  "runs": [
+    {
+      "label": "red-lazy-runtime",
+      "command": [
+        "node",
+        "node_modules/.cache/shark/f11-lazy-runtime.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "11c869bdaff94ac8a430ce9e856753574dee9d95",
+      "dirty": " M scripts/cold-start-contracts.ts\n?? scripts/f11-lazy-runtime-contracts.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:12:23.085815+00:00",
+      "outerWatchdogSeconds": 180,
+      "exitCode": 1,
+      "watchdogFired": false,
+      "wallSeconds": 1.201,
+      "logSha256": "92f7f8f72827ce9f2a9c499a6da14e486d86d4d5f3a897d0ef87fedee0741b40"
+    },
+    {
+      "label": "green-lazy-runtime",
+      "command": [
+        "node",
+        "node_modules/.cache/shark/f11-lazy-runtime.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "bc7af72d3eb90a7eaf7844c9c88b5c12c85b5e95",
+      "dirty": " M NEEDED.md\n M lib/coding/complexity.ts\n M lib/coding/sandbox.ts\n M scripts/cold-start-contracts.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:13:37.695706+00:00",
+      "outerWatchdogSeconds": 180,
+      "exitCode": 1,
+      "watchdogFired": false,
+      "wallSeconds": 1.18,
+      "logSha256": "c61d9cef63f3695c28a1ab863fea81f1fa7d6e6b34ce45a9b62d20ebe325abbe"
+    },
+    {
+      "label": "normal-build-react-runner",
+      "command": [
+        "npm",
+        "run",
+        "build:react-runner"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "bc7af72d3eb90a7eaf7844c9c88b5c12c85b5e95",
+      "dirty": " M NEEDED.md\n M lib/coding/complexity.ts\n M lib/coding/sandbox.ts\n M scripts/cold-start-contracts.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:13:22.754666+00:00",
+      "outerWatchdogSeconds": 90,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 0.522,
+      "logSha256": "649a45a78e1756a076a073f7279a5ab23c9183787920dd5fd635c448f4f9c488"
+    },
+    {
+      "label": "green-lazy-runtime-entry-marker",
+      "command": [
+        "node",
+        "node_modules/.cache/shark/f11-lazy-runtime.mjs"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "eca6edd66cfbcb65aa160947912744d6882bc9d1",
+      "dirty": " M NEEDED.md\n M lib/coding/complexity.ts\n M lib/coding/sandbox.ts\n M scripts/cold-start-contracts.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:14:38.454996+00:00",
+      "outerWatchdogSeconds": 180,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 1.17,
+      "logSha256": "9c30e0299a9c9246f55dc29e9cd3ddb3a24370b5b6208d4eb79a9b3def443e8d"
+    },
+    {
+      "label": "green-performance",
+      "command": [
+        "npm",
+        "run",
+        "test:performance"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "eca6edd66cfbcb65aa160947912744d6882bc9d1",
+      "dirty": " M NEEDED.md\n M lib/coding/complexity.ts\n M lib/coding/sandbox.ts\n M scripts/cold-start-contracts.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:14:52.199298+00:00",
+      "outerWatchdogSeconds": 180,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 77.457,
+      "logSha256": "0844111f259185ac80ae611d478e7e45b1c9cffeafcbd565f8ca1d0023cac648"
+    },
+    {
+      "label": "types-api",
+      "command": [
+        "npm",
+        "run",
+        "typecheck:api"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "eca6edd66cfbcb65aa160947912744d6882bc9d1",
+      "dirty": " M NEEDED.md\n M lib/coding/complexity.ts\n M lib/coding/sandbox.ts\n M scripts/cold-start-contracts.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:16:24.529938+00:00",
+      "outerWatchdogSeconds": 120,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 7.366,
+      "logSha256": "b2f2bb20a49983e78ddf144f0bbe98be9ec32e434aa99fc8a362f9f23a270d62"
+    },
+    {
+      "label": "types-scripts",
+      "command": [
+        "npm",
+        "run",
+        "typecheck:scripts"
+      ],
+      "cwd": "/private/tmp/devshark-epic-f11-30",
+      "head": "eca6edd66cfbcb65aa160947912744d6882bc9d1",
+      "dirty": " M NEEDED.md\n M lib/coding/complexity.ts\n M lib/coding/sandbox.ts\n M scripts/cold-start-contracts.ts\n",
+      "node": "v24.22.3",
+      "startedAt": "2026-11-19T22:16:41.370892+00:00",
+      "outerWatchdogSeconds": 120,
+      "exitCode": 0,
+      "watchdogFired": false,
+      "wallSeconds": 9.958,
+      "logSha256": "4145f557fbc398434351bacb2814399d2f9c9daf45ff864ee082a0b228027cd5"
+    }
+  ],
+  "red": {
+    "passes": 4,
+    "failures": 5,
+    "primaryImportFailure": "Unmocked sandbox import already loads quickjs-emscripten/variant",
+    "unusedCompilerFailure": "React/system-design attempt TypeScript twice and throw under the denial control",
+    "otherFailures": "First-operation already-loaded marker plus two CJS-to-ESM route assertions. Cached failure/disposal public behavior is not reported as newly broken."
+  },
+  "firstPostfix": {
+    "passes": 8,
+    "failures": 1,
+    "cause": "Fixture prelude reads SDK package.json; broad cache test counts that metadata as evaluated engine body.",
+    "correction": "Observe actual canonical CJS index.js cache identity or actual ESM load counter; retain independent unmocked import/factory/fault/negative controls."
+  },
+  "green": {
+    "focusedPasses": 9,
+    "performancePrintedGroups": 36,
+    "performanceNodeTestCohorts": [
+      {
+        "tests": 28,
+        "suites": 0,
+        "passed": 28,
+        "failed": 0
+      },
+      {
+        "tests": 8,
+        "suites": 0,
+        "passed": 8,
+        "failed": 0
+      },
+      {
+        "tests": 42,
+        "suites": 0,
+        "passed": 42,
+        "failed": 0
+      },
+      {
+        "tests": 5,
+        "suites": 0,
+        "passed": 5,
+        "failed": 0
+      },
+      {
+        "tests": 15,
+        "suites": 0,
+        "passed": 15,
+        "failed": 0
+      },
+      {
+        "tests": 4,
+        "suites": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      {
+        "tests": 37,
+        "suites": 0,
+        "passed": 37,
+        "failed": 0
+      },
+      {
+        "tests": 72,
+        "suites": 0,
+        "passed": 72,
+        "failed": 0
+      },
+      {
+        "tests": 8,
+        "suites": 0,
+        "passed": 8,
+        "failed": 0
+      }
+    ],
+    "normalBuildSeconds": 0.522,
+    "performanceSeconds": 77.457,
+    "apiTypesSeconds": 7.366,
+    "scriptsTypesSeconds": 9.958
+  },
+  "preservation": {
+    "base": "bc7af72d3eb90a7eaf7844c9c88b5c12c85b5e95",
+    "sandboxBeforeSha256": "8acf1ac06e376188ed08cdb4932921648f42a2f989b682d80936009233c32f67",
+    "sandboxAfterSha256": "236f12089f71b55ce7feb39347cf0c7fae55b8ca3ce8ba73ab7df3481a26b2b6",
+    "reversingOnlyImportsAndGetModuleRestoresWholeActualBefore": true,
+    "wholeUnchangedFiles": {
+      "lib/coding/react-compile-pool.ts": "836af85396f80e673f12d7adaf8548c3ede6b97adeb5e6502f9f961ff3885287",
+      "lib/coding/react-isolated.ts": "95ec1f5f05110dfce075d5124a875534e795bb50efa5946f1c4f3bc95094ab3d",
+      "lib/coding/react-learner.ts": "5cefa37d885a7058cba297a89d4374d19079dd597c86019eb6748845190a810c",
+      "lib/coding/react-runner.ts": "897f0f5edc8d03657b7c77b2ec403a3cc615e2d9192ace59d44a938263118245",
+      "scripts/quickjs-bundle.mjs": "b243a3350ffc5899100ee33304a6b574e99900ef2b47033d763c7c048fff65c0",
+      "scripts/build-react-runner.mjs": "bad6e8f71aa285171beafcb8b016ab05be293f41bdfeeccb636724232f4742f0",
+      "scripts/sandbox-watchdog-controls.ts": "0adc85410849470f7ec1a3b5e27165fbc2226a09bce011f7d7342b3a3094ca20",
+      "scripts/sandbox-disposal-controls.ts": "05ea1038352e5a08472dc6f60e2202adc1d4c22225ea9b9570c8b0f7d23ca5cb",
+      "scripts/ci-build-artifact.mjs": "e73fb9b01ad7ce5c910fa0459ac5137c9c558607a78988acbfdca41550c0e894"
+    }
+  },
+  "actualGenerated": {
+    "lib/coding/generated/quickjs-sandbox.cjs": {
+      "bytes": 877589,
+      "sha256": "d3958e9a9a62b878a1920e7ae79555a0eed6821e130680aead30fd760d46f6f8"
+    },
+    "lib/coding/generated/react-sandbox.cjs": {
+      "bytes": 887989,
+      "sha256": "e8fbce059948a41c72c5ca6cb0c591d8c0ff03be495e3fa1a799cb1332a4bae1"
+    },
+    "lib/coding/generated/react-sandbox.sha256.cjs": {
+      "bytes": 67,
+      "sha256": "59e99d1c40eb96c1f396dbf611ea1e1ee1d5030d4ac8d77f7f57566e53bcb805"
+    },
+    "lib/coding/generated/react-compile-worker.cjs": {
+      "bytes": 10395,
+      "sha256": "696c91750494b94a2d692040a01bb869d59b0aa0f7645c342058777185d4f801"
+    }
+  },
+  "sourceHashes": {
+    "lib/coding/sandbox.ts": "236f12089f71b55ce7feb39347cf0c7fae55b8ca3ce8ba73ab7df3481a26b2b6",
+    "lib/coding/complexity.ts": "e2b7c8cc643bd92dea18e79b185a35b1a3d31ee6efff110bc2eded59157165c0",
+    "scripts/cold-start-contracts.ts": "9f029c9b4df0ff8df60d71997ada30779e8ed84afc07342f4da9313c255aca4c",
+    "scripts/f11-lazy-runtime-contracts.ts": "e83d497045eecc237bea9f355a5d1d0f3088fe87e95638a08ef6f4aa7947e922",
+    "NEEDED.md": "fda2df4a99970001f68b128b08a88c87d5ec44e0c721371675db4a51cbf26a2d"
+  },
+  "limits": [
+    "Focused disposer fault here is in-thread; earlier36 actual-worker health producer controls remain separate evidence",
+    "Boot rejection remains cached; no new retry policy",
+    "Lazy loading marker does not measure retained memory, platform cold latency or provider bundle size",
+    "Host TypeScript remains needed by trusted fixtures/local fallback and other graders",
+    "No provider, credentialed VM, Docker engine, database or service-setting change",
+    "Final same-head fast plus one additional Launch and remote CI/merge remain pending"
+  ]
+}

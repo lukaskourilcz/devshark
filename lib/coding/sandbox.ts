@@ -15,8 +15,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { Worker } from 'node:worker_threads';
-import { newQuickJSWASMModuleFromVariant, type QuickJSWASMModule, type QuickJSHandle } from 'quickjs-emscripten';
-import variant from './quickjs-variant';
+import type { QuickJSWASMModule, QuickJSHandle } from 'quickjs-emscripten';
 import type { EvaluateResult } from '../../shared/coding-evaluate';
 import { LOG_LINE_CUT, LOG_OUTPUT_CUT, MAX_LOG_CHARS, MAX_LOG_LINE_CHARS, MAX_LOGS, PROBE_IS_INDEX_SOURCE, PROBE_LINE, TIMEOUT_MESSAGE, deepEqual, displayValue } from '../../shared/coding-evaluate';
 import { cutErrorText } from '../../shared/coding-error-text';
@@ -29,7 +28,12 @@ import { hostURL, MAX_URL_TEXT, WEB_APIS_SOURCE } from './sandbox-web-apis';
 import { bootBackoff, GraderBusyError, inThreadGradingAllowed, threadSlots } from './grader-capacity';
 
 let modulePromise: Promise<QuickJSWASMModule> | null = null;
-const getModule = () => (modulePromise ??= newQuickJSWASMModuleFromVariant(variant));
+const getModule = () => (modulePromise ??= (async () => {
+  const [{ newQuickJSWASMModuleFromVariant }, { default: variant }] = await Promise.all([
+    import('quickjs-emscripten'), import('./quickjs-variant'),
+  ]);
+  return newQuickJSWASMModuleFromVariant(variant);
+})());
 
 export interface SandboxInput {
   runtimePolicy?: TaskRuntimePolicy;
@@ -53,6 +57,8 @@ export const SANDBOX_MEMORY_BYTES = 64 * 1024 * 1024;
 export const SANDBOX_STACK_BYTES = 1024 * 1024;
 /** Rounds of jobs and timers a run may take before it counts as a timeout. */
 export const SANDBOX_MAX_TICKS = 10_000;
+/** Whole-run encoded outcome packets, in JSON UTF16 code units. */
+const SANDBOX_ENCODED_OUTPUT_CHARS = 900_000;
 /** What a learner sees when their call chain ran out of stack. Named rather
  * than inlined so the message reads the same wherever the overflow surfaces. */
 const STACK_MESSAGE = 'The call stack ran out of room: the recursion went too deep, or a base case is never reached.';
@@ -99,12 +105,44 @@ const makeArray = () => setPrototype([], null);
 const packet = (...values) => setPrototype(values, null);
 let now = 0, nextId = 1, timers = makeArray(), logs = makeArray();
 let done = false, output = null, shownLogs = -1;
-const encode = (value, depth = 0, seen = makeArray()) => {
+// Each pending call owns a fixed error slot. A rejected partial value
+// cannot spend another call's reserved size-error space.
+const ResultError = Error, charCodeText = String.prototype.charCodeAt;
+const sizeError = packet('error', 'Result size limit exceeded');
+const sizeErrorChars = stringify(sizeError).length;
+const valueFrameChars = stringify(packet('value', null)).length - 4;
+const stringFrameChars = stringify(packet('string', '')).length - 2;
+let encodedChars = 2 + ${calls.length > 0 ? calls.length - 1 : 0} + ${calls.length} * sizeErrorChars;
+const storeOutcome = outcome => {
+  const next = encodedChars - sizeErrorChars + stringify(outcome).length;
+  if (next > ${SANDBOX_ENCODED_OUTPUT_CHARS}) return sizeError;
+  encodedChars = next;
+  return outcome;
+};
+// JSON length, including escapes and well-formed lone-surrogate quoting.
+// Count before building the full packet; these methods were captured before
+// learner code could replace String.prototype or JSON.stringify.
+const quoteChars = (text, charge) => {
+  charge(2);
+  for (let i = 0; i < text.length; i++) {
+    const one = apply(charCodeText, text, [i]);
+    if (one === 34 || one === 92 || one === 8 || one === 9 || one === 10 || one === 12 || one === 13) charge(2);
+    else if (one < 32) charge(6);
+    else if (one >= 0xd800 && one <= 0xdbff) {
+      const next = i + 1 < text.length ? apply(charCodeText, text, [i + 1]) : 0;
+      if (next >= 0xdc00 && next <= 0xdfff) { charge(2); i++; }
+      else charge(6);
+    } else charge(one >= 0xdc00 && one <= 0xdfff ? 6 : 1);
+  }
+};
+const smallPacket = (value, charge) => { charge(stringify(value).length); return value; };
+const encode = (value, charge, depth = 0, seen = makeArray()) => {
   if (depth > 40) throw new Error('Result nesting limit exceeded');
-  if (value === undefined) return packet('undefined');
-  if (value === null) return packet('null');
-  if (typeof value === 'number') return packet('number', is(value, -0) ? '-0' : string(value));
-  if (typeof value === 'string' || typeof value === 'boolean') return packet(typeof value, value);
+  if (value === undefined) return smallPacket(packet('undefined'), charge);
+  if (value === null) return smallPacket(packet('null'), charge);
+  if (typeof value === 'number') return smallPacket(packet('number', is(value, -0) ? '-0' : string(value)), charge);
+  if (typeof value === 'boolean') return smallPacket(packet('boolean', value), charge);
+  if (typeof value === 'string') { charge(stringFrameChars); quoteChars(value, charge); return packet('string', value); }
   if (typeof value !== 'object') throw new Error('Result is not cloneable');
   for (let i = 0; i < seen.length; i++) if (seen[i] === value) throw new Error('Circular result');
   seen[seen.length] = value;
@@ -112,13 +150,21 @@ const encode = (value, depth = 0, seen = makeArray()) => {
   const names = isArray(value) ? null : keys(value);
   const length = names ? names.length : value.length;
   if (length > 10000) throw new Error('Result size limit exceeded');
+  charge(stringify(packet(names ? 'object' : 'array', makeArray())).length);
   for (let i = 0; i < length; i++) {
-    entries[entries.length] = names ? packet(names[i], encode(value[names[i]], depth + 1, seen)) : encode(value[i], depth + 1, seen);
+    if (i) charge(1);
+    if (names) { charge(3); quoteChars(names[i], charge); }
+    entries[entries.length] = names ? packet(names[i], encode(value[names[i]], charge, depth + 1, seen)) : encode(value[i], charge, depth + 1, seen);
   }
   seen.length--;
   return packet(names ? 'object' : 'array', entries);
 };
-const message = error => { try { return string(error && error.message || error); } catch { return 'Evaluation failed'; } };
+const message = error => {
+  try {
+    const text = string(error && error.message || error);
+    return text.length > ${MAX_LOG_LINE_CHARS + 1} ? apply(sliceText, text, [0, ${MAX_LOG_LINE_CHARS + 1}]) : text;
+  } catch { return 'Evaluation failed'; }
+};
 const sliceText = String.prototype.slice;
 let logChars = 0, logsCut = false;
 const emit = line => {
@@ -258,8 +304,16 @@ const launch = (from, to, next) => {
   const settled = () => { remaining--; if (!remaining) next(); };
   for (let i = from; i < to; i++) {
     const invoke = async () => {
-      try { outcomes[i] = packet('value', encode(await evaluate[i]())); }
-      catch (error) { outcomes[i] = packet('error', message(error)); }
+      try {
+        const actual = await evaluate[i]();
+        // Encoding is synchronous after the await. A rejected partial value
+        // spends only this local counter; it never consumes another slot.
+        const remaining = ${SANDBOX_ENCODED_OUTPUT_CHARS} - encodedChars + sizeErrorChars;
+        let spent = 0;
+        const charge = chars => { spent += chars; if (spent > remaining) throw new ResultError('Result size limit exceeded'); };
+        charge(valueFrameChars);
+        outcomes[i] = storeOutcome(packet('value', encode(actual, charge)));
+      } catch (error) { outcomes[i] = storeOutcome(packet('error', message(error))); }
       settled();
     };
     invoke();
@@ -269,11 +323,15 @@ const launch = (from, to, next) => {
 // every line printed before that point belongs to learner-visible work.
 launch(0, ${shownCalls}, () => {
   shownLogs = logs.length;
-  launch(${shownCalls}, ${calls.length}, () => { output = stringify(outcomes); done = true; });
+  launch(${shownCalls}, ${calls.length}, () => {
+    const raw = stringify(outcomes);
+    output = raw.length <= ${SANDBOX_ENCODED_OUTPUT_CHARS} ? raw : null;
+    done = true;
+  });
 });
 return {
   done: () => done,
-  output: () => output,
+  output: () => typeof output === 'string' && output.length <= 1000000 ? output : null,
   logs: () => {
     if (shownLogs < 0) return stringify(logs);
     const shown = makeArray();
@@ -340,6 +398,33 @@ export const SANDBOX_SLOT_WAIT_MS = 5_000;
 export const SANDBOX_IDLE_THREADS = 2;
 
 const idleWorkers: Worker[] = [];
+const exitedWorkers = new WeakSet<Worker>();
+
+/** A retired worker owns its acquired reservation until actual exit. A
+ * rejected/throwing terminate must not free capacity for a fifth live worker,
+ * or leave the completed learner response waiting forever. */
+function workerSlotLease() {
+  let heldForExit = false, released = false;
+  const releaseOnce = () => {
+    if (released) return;
+    released = true;
+    slots.release();
+  };
+  return {
+    holdUntilExit(worker: Worker) {
+      if (heldForExit) return;
+      heldForExit = true;
+      if (exitedWorkers.has(worker)) releaseOnce();
+      else worker.once('exit', releaseOnce);
+    },
+    release() { if (!heldForExit) releaseOnce(); },
+  };
+}
+
+const REPORTED_LIMIT_ERRORS: ReadonlySet<string> = new Set([TIMEOUT_MESSAGE, STACK_MESSAGE, OUT_OF_MEMORY_MESSAGE]);
+const reportsLimit = (result: EvaluateResult): boolean => result.timedOut === true ||
+  (result.codeError !== null && REPORTED_LIMIT_ERRORS.has(result.codeError)) ||
+  result.results.some((one) => one.error === 'out of memory' || one.error === 'stack overflow');
 /** Threads started and not yet exited: busy, idle or being stopped. */
 let liveThreads = 0;
 const slots = threadSlots({ threads: SANDBOX_MAX_THREADS, waiting: SANDBOX_MAX_WAITING, waitMs: SANDBOX_SLOT_WAIT_MS, name: 'sandbox' });
@@ -359,7 +444,7 @@ const sandboxWorkerFile = (): string | null => {
   return workerFile;
 };
 
-type WorkerReply = { type: 'start' } | { type: 'done'; result: EvaluateResult } | { type: 'fail'; message: string };
+type WorkerReply = { type: 'start' } | { type: 'done'; result: EvaluateResult; healthy: boolean } | { type: 'fail'; message: string };
 
 /** The thread could not be started or never picked the run up: a fault of
  * the host, not of the learner's program. */
@@ -380,11 +465,11 @@ function newWorker(file: string): Worker {
   worker.on('error', forget);
   worker.on('exit', forget);
   // A thread emits 'exit' once, after an 'error' too.
-  worker.once('exit', () => { liveThreads--; });
+  worker.once('exit', () => { exitedWorkers.add(worker); liveThreads--; });
   return worker;
 }
 
-function runOnWorker(file: string, input: SandboxInput): Promise<EvaluateResult> {
+function runOnWorker(file: string, input: SandboxInput, holdUntilExit: (worker: Worker) => void): Promise<EvaluateResult> {
   const idle = idleWorkers.pop();
   const worker = idle ?? newWorker(file);
   return new Promise<EvaluateResult>((resolve, reject) => {
@@ -398,7 +483,13 @@ function runOnWorker(file: string, input: SandboxInput): Promise<EvaluateResult>
       worker.off('error', onFailure);
       worker.off('exit', onFailure);
       if (keep && idleWorkers.length < SANDBOX_IDLE_THREADS) idleWorkers.push(worker);
-      else void worker.terminate();
+      else {
+        // Register before terminate: already-exited and synchronous-rejection
+        // paths must also retain exactly one reservation until actual exit.
+        holdUntilExit(worker);
+        const failed = () => console.warn(JSON.stringify({ level: 'warn', msg: 'sandbox_worker_retirement_failed' }));
+        try { void worker.terminate().catch(failed); } catch { failed(); }
+      }
     };
     const finish = (result: EvaluateResult) => {
       if (settled) return;
@@ -422,7 +513,7 @@ function runOnWorker(file: string, input: SandboxInput): Promise<EvaluateResult>
         timer = setTimeout(() => finish(stopped(TIMEOUT_MESSAGE, true)), (input.deadlineMs ?? SANDBOX_DEADLINE_MS) + SANDBOX_WORKER_GRACE_MS);
         return;
       }
-      settle(reply.type === 'done');
+      settle(reply.type === 'done' && reply.healthy === true && !reportsLimit(reply.result));
       if (reply.type === 'done') { resolve(reply.result); return; }
       // The thread could not run the program at all: QuickJS would not load
       // or would not give it a runtime, before any learner code ran. That is
@@ -462,6 +553,7 @@ export async function runInSandbox(input: SandboxInput): Promise<EvaluateResult>
     throw new GraderBusyError('sandbox_worker_missing', 30);
   }
   await slots.acquire();
+  const lease = workerSlotLease();
   running++;
   try {
     const pause = idleWorkers.length === 0 ? boot.pause() : 0;
@@ -469,7 +561,7 @@ export async function runInSandbox(input: SandboxInput): Promise<EvaluateResult>
       if (inThreadGradingAllowed()) return runInQuickJS(input);
       throw new GraderBusyError('sandbox_worker_backoff', pause / 1000);
     }
-    return await runOnWorker(file, input);
+    return await runOnWorker(file, input, lease.holdUntilExit);
   } catch (error) {
     if (!(error instanceof WorkerUnavailableError)) throw error;
     boot.failed();
@@ -478,7 +570,7 @@ export async function runInSandbox(input: SandboxInput): Promise<EvaluateResult>
     throw new GraderBusyError(error.message, boot.pause() / 1000);
   } finally {
     running--;
-    slots.release();
+    lease.release();
   }
 }
 
@@ -510,10 +602,11 @@ export function warmSandbox(): void {
   if (!file) return;
   warming = (async () => {
     await slots.acquire();
+    const lease = workerSlotLease();
     try {
-      if (running === 0 && idleWorkers.length === 0) await runOnWorker(file, WARM_INPUT);
+      if (running === 0 && idleWorkers.length === 0) await runOnWorker(file, WARM_INPUT, lease.holdUntilExit);
     } finally {
-      slots.release();
+      lease.release();
     }
   })().then(() => undefined, () => undefined).finally(() => { warming = null; });
 }
@@ -528,7 +621,7 @@ export const sandboxThreads = (): number => liveThreads;
 
 /** Runs one program in this thread. The worker entry calls this; everything
  * else goes through `runInSandbox`. */
-export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult> {
+export async function runInQuickJS(input: SandboxInput, onDisposalFailure?: () => void): Promise<EvaluateResult> {
   const QuickJS = await getModule();
   const runtime = QuickJS.newRuntime();
   const deadline = Date.now() + (input.deadlineMs ?? SANDBOX_DEADLINE_MS);
@@ -637,7 +730,7 @@ export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult>
       if (outcome[0] === 'error' && typeof outcome[1] === 'string') return { pass: false, actual: null, error: cutErrorText(outcome[1]) };
       if (outcome[0] !== 'value') throw new Error('Malformed result');
       const actual = decode(outcome[1]);
-      return { pass: input.expectations ? deepEqual(actual, input.expectations[index]) : null, actual: displayValue(actual), error: null };
+      return { pass: input.expectations ? deepEqual(actual, input.expectations[index]) : null, actual: cutErrorText(displayValue(actual)), error: null };
     });
     return { results, logs, codeError: null, timedOut: false };
   } catch (error) {
@@ -656,7 +749,12 @@ export async function runInQuickJS(input: SandboxInput): Promise<EvaluateResult>
     try { driver?.dispose(); } catch { disposalFailed = true; }
     try { vm.dispose(); } catch { disposalFailed = true; }
     try { runtime.dispose(); } catch { disposalFailed = true; }
-    if (disposalFailed) modulePromise = null;
+    if (disposalFailed) {
+      modulePromise = null;
+      // Worker-only host observer; no binding or metadata enters the VM or
+      // public result. Keep disposal diagnostics from replacing the verdict.
+      try { onDisposalFailure?.(); } catch { /* an observer cannot alter grading */ }
+    }
   }
 }
 
