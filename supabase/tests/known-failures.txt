@@ -5,3 +5,22 @@
 # file: it is an expected failure only while it fails with that text. Failing
 # any other way, or passing, fails the suite until the line is removed, so this
 # list only shrinks. Never add a line to make a new failure go away: fix the SQL.
+
+# The browser policies in public break the RLS invariants (#637): 39 own-row
+# policies wrap auth.uid() in a cast instead of a bare subselect, ten sit on
+# tables anon and authenticated cannot read, and 18 apply to public.
+# Migrations that drop the dead ten and recreate the rest TO authenticated in
+# the (SELECT auth.uid())::text form remove this line.
+251-rls-every-table.test.sql: RLS invariants:
+
+# The browser roles hold USAGE, SELECT and UPDATE on the one sequence in
+# public, learning_path_evidence_evidence_id_seq, and the migration role's
+# default privileges in public grant them every new table, sequence and
+# routine (#637). Migrations that revoke both remove this line.
+252-browser-grants.test.sql: grant invariants:
+
+# Five plain indexes in public repeat another index on the same table (#637):
+# idx_user_stats_user_id, idx_matches_code, idx_question_reports_question_id,
+# user_badges_user_subject_idx and user_cards_user_subject_idx. The migrations
+# that drop them remove this line.
+253-index-hygiene.test.sql: redundant indexes:
