@@ -8,7 +8,7 @@ The owner set **RPO 24 hours** (maximum lost data) and **RTO 1 hour** (from decl
 
 Production takes daily physical backups (WAL-G); point-in-time recovery is off. `supabase backups list` for the project is the check: before migration 066 on 22 October 2026 it showed a completed backup from that morning and one for each of the seven days before (`docs/release-acceptance.md`, "Migration 066 in production"). A listed backup shows availability, not that it restores.
 
-A recovery project, `devshark-recovery-20260915` (`fgalpbaebgnybmqpitom`), was created for drills; confirm it still exists before using it. It holds personal data copied on 15 September 2026, so delete or refresh it once the drill no longer needs it (`NEEDED.md`). No timed restore, application validation or cutover has been run, so **the RTO is unmeasured** (`NEEDED.md`).
+The recovery project used for drills, `devshark-recovery-20260915` (`fgalpbaebgnybmqpitom`), was deleted on 20 November 2026 together with the personal data copied into it on 15 September 2026. A drill creates a new recovery project and deletes it afterwards. No timed restore, application validation or cutover has been run, so **the RTO is unmeasured** (`NEEDED.md`).
 
 Supabase's [clone documentation](https://supabase.com/docs/guides/platform/clone-project) separates database and auth records from configuration and storage objects. Restoring rows does not restore Auth settings, redirect URLs, Realtime settings, Edge Functions or object storage, so inventory those separately. Disable copied scheduled or external jobs in a recovery copy to avoid duplicate side effects.
 
