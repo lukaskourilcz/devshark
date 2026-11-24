@@ -21,7 +21,7 @@
 import { createHash } from 'node:crypto';
 import { createLogger } from './http';
 import { stableAttemptId } from './quiz-tokens';
-import { getEffectiveQuestions, overridesAvailable } from './questions-store';
+import { getCountableQuestions } from './questions-store';
 import type { Question } from './quiz-data';
 import { subjectForCategory, type ScopeSubjectId } from '../shared/subject-catalog';
 import type { CodingTask } from '../shared/coding-catalog';
@@ -273,15 +273,14 @@ export function codingTaskReview(task: CodingTask, solution?: CodingSolution): P
 export async function curationCoverage(subject?: ScopeSubjectId): Promise<CoverageReport> {
   const sources: CoverageSource[] = [];
   try {
-    const questions = await getEffectiveQuestions(subject);
-    const complete = overridesAvailable();
-    const reviewed = complete ? questions.reduce(
+    const questions = await getCountableQuestions(subject);
+    const reviewed = questions?.reduce(
       (total, q) => total + (itemReview(q).status === 'reviewed' ? 1 : 0),
       0,
-    ) : null;
+    ) ?? null;
     sources.push({
       id: 'question-bank',
-      items: complete ? questions.length : null,
+      items: questions?.length ?? null,
       reviewed,
     });
   } catch (err) {
