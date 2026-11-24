@@ -8,3 +8,6 @@
 }
 
 .lb-photo input[role='switch'] { top: -10px !important; left: -2px !important; width: 44px !important; height: 44px !important; }
+
+/* The group caption still explains the setting while its inputs are disabled. */
+.lb-visibility .astryx-field-label { --color-text-disabled: var(--color-text-secondary); }

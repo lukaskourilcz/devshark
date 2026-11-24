@@ -166,3 +166,22 @@ describe('practice verdict text and the outline around its tinted panel', () => 
     });
   }
 });
+
+describe('wallet entries and leaderboard visibility captions', () => {
+  const theme = readFileSync(new URL('../src/styles/astryx-theme.css', import.meta.url), 'utf8');
+  const wallet = readFileSync(new URL('../src/components/Rewards.css', import.meta.url), 'utf8');
+  const settings = readFileSync(new URL('../src/components/LeaderboardVisibilitySwitch.css', import.meta.url), 'utf8');
+  const colours = (token: string) => {
+    const match = new RegExp('--' + token + ': light-dark\\((#[0-9a-f]{6}), (#[0-9a-f]{6})\\)').exec(theme);
+    if (!match) throw new Error('Missing theme colours for ' + token);
+    return [match[1], match[2]];
+  };
+  it('uses a readable gain on the wallet surface in both themes', () => {
+    expect(wallet).toMatch(/\.ss-ledger__in\s*\{\s*color:\s*var\(--ss-success-strong\)/);
+    for (const mode of [0, 1]) expect(contrastRatio(colours('ss-success-strong')[mode], colours('color-background-muted')[mode])).toBeGreaterThanOrEqual(4.5);
+  });
+  it('keeps the group caption readable while the preferences are loading or unavailable', () => {
+    expect(settings).toMatch(/\.lb-visibility \.astryx-field-label\s*\{\s*--color-text-disabled:\s*var\(--color-text-secondary\)/);
+    for (const mode of [0, 1]) expect(contrastRatio(colours('color-text-secondary')[mode], colours('color-background-surface')[mode])).toBeGreaterThanOrEqual(4.5);
+  });
+});
