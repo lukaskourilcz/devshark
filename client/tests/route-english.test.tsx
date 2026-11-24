@@ -20,8 +20,9 @@ it('renders every route label on direct entry and after switching features, with
     }
     direct.unmount();
   }
-  const { result, rerender } = renderHook(({ words }: { words: Words }) => useT(words), {
-    initialProps: { words: playEn }, wrapper: ShellLanguageProvider,
+  const initialProps: { words: Words } = { words: playEn };
+  const { result, rerender } = renderHook(({ words }) => useT(words), {
+    initialProps, wrapper: ShellLanguageProvider,
   });
   for (const words of [playEn, checkoutEn, operationsEn, codingEn]) {
     rerender({ words });
