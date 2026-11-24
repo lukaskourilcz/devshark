@@ -184,6 +184,29 @@ async function assertVercelAnswer(origin, pathname, vercelConfig = config) {
   return { response, body };
 }
 
+test('app document headers support provider popups and keep exercise asset sharing scoped', async (t) => {
+  const origin = await startAdapter(t, { files: SITE });
+  for (const path of ['/', '/coding/javascript/js-double-numbers', '/premium/index.html']) {
+    const { headers } = await fetch(origin + path);
+    assert.match(headers.get('content-security-policy'), /(?:^|; )object-src 'none'(?:;|$)/);
+    assert.equal(headers.get('cross-origin-opener-policy'), 'same-origin-allow-popups');
+    assert.equal(headers.get('cross-origin-resource-policy'), 'same-origin');
+  }
+  for (const [path, cors] of [
+    ['/assets/main-x.js', 'https://devshark.app'],
+    ['/assets/coding-worker/worker-x.js', 'https://devshark.app'],
+    ['/sandbox/index.html', '*'],
+    ['/sandbox/assets/index-x.js', '*'],
+    ['/brand/x.svg', null],
+    ['/api/probe', null],
+  ]) {
+    const { headers } = await fetch(origin + path);
+    assert.equal(headers.get('access-control-allow-origin'), cors, path);
+    assert.equal(headers.get('cross-origin-opener-policy'), null, path);
+    assert.equal(headers.get('cross-origin-resource-policy'), path.includes('coding-worker') ? 'same-origin' : null, path);
+  }
+});
+
 test('Docker answers each path with the headers vercel.json gives it on Vercel', async (t) => {
   const origin = await startAdapter(t, { files: SITE });
   const paths = [

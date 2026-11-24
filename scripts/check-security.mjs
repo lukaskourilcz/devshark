@@ -160,6 +160,7 @@ function bundleHosts(js) {
 const STRIPE_FRAMES = ["'self'", 'https://js.stripe.com', 'https://*.js.stripe.com', 'https://hooks.stripe.com', 'https://checkout.stripe.com', 'https://link.com', 'https://*.link.com'];
 const APP_POLICY = {
   'default-src': ["'self'"],
+  'object-src': ["'none'"],
   // Stripe.js for checkout (client/src/lib/stripeCheckoutForm.ts), and each
   // inline script of client/index.html by its hash.
   'script-src': ["'self'", 'https://js.stripe.com', 'https://*.js.stripe.com', 'https://checkout.stripe.com', ...bootstrapHashes],
@@ -230,6 +231,10 @@ for (const route of headerRoutes) {
 }
 assert.deepEqual(ruleBreaks, [], `A policy in vercel.json breaks a rule in scripts/check-security.mjs:\n  ${ruleBreaks.join('\n  ')}`);
 assert.equal(header(app, 'X-Content-Type-Options'), 'nosniff');
+const documentHeaders = headerRoutes.find(route => header(route, 'Cross-Origin-Opener-Policy'));
+assert(documentHeaders, 'app document opener policy is required');
+assert.equal(header(documentHeaders, 'Cross-Origin-Opener-Policy'), 'same-origin-allow-popups', 'provider popups can return to their opener');
+assert.equal(header(documentHeaders, 'Cross-Origin-Resource-Policy'), 'same-origin');
 assert.equal(header(app, 'X-Frame-Options'), 'DENY');
 assert.match(header(app, 'Strict-Transport-Security'), /max-age=63072000/);
 const sandbox = headerRoutes.find(route => route.src === '^/sandbox/.*$');

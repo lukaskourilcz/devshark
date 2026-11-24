@@ -303,9 +303,11 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
   assert.equal(worker['content-security-policy'], WORKER_CSP, 'the coding worker keeps its own policy');
   assert.equal(worker['x-content-type-options'], 'nosniff');
   assert.equal(worker['cross-origin-resource-policy'], 'same-origin');
-  // App assets and the sandbox frame's assets stay loadable across origins
-  // (the frame has an opaque origin, so its module script is a CORS load).
-  assert.equal(phaseHeaders(APP_CHUNK, 'main', phases)['access-control-allow-origin'], '*', 'app assets keep Access-Control-Allow-Origin');
+  // Vercel supplies wildcard CORS by default on static files. Ordinary app
+  // assets advertise only the canonical site. The opaque exercise frame
+  // loads its entire bundle separately from /sandbox/assets/.
+  assert.equal(phaseHeaders(APP_CHUNK, 'main', phases)['access-control-allow-origin'], 'https://devshark.app');
+  assert.equal(worker['access-control-allow-origin'], 'https://devshark.app');
   const sandbox = phaseHeaders(SANDBOX_CHUNK, 'main', phases);
   assert.equal(sandbox['access-control-allow-origin'], '*', 'the sandbox frame needs Access-Control-Allow-Origin on /sandbox/');
   assert.match(sandbox['content-security-policy'] ?? '', /script-src [^;]*'unsafe-eval'/, 'the sandbox compiles and runs code with new Function');

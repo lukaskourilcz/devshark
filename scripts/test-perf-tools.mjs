@@ -867,16 +867,20 @@ test('perf:fixture never replaces missing assets, reserved paths or non-HTML req
   assert.match((await fixtureRead(missingRoot.origin, '/real')).body.toString(), /real route index/);
 });
 
-test('perf:fixture keeps method/traversal/containment refusals and the narrow asset CORS policy', async (t) => {
+test('perf:fixture keeps method, traversal and containment refusals', async (t) => {
   const server = await fixtureLab(t);
   assert.equal((await fixtureRead(server.origin, '/learn', { method: 'POST' })).status, 405);
   assert.equal((await fixtureRead(server.origin, '/bad%ZZ')).status, 400);
   for (const path of ['/%2e%2e/outside-secret', '/..%2f..%2foutside-secret', '/assets/escape.js']) {
     const response = await fixtureRead(server.origin, path); assert.equal(response.status, 403, path); assert.doesNotMatch(response.body.toString(), /outside must never/);
   }
-  const worker = await fixtureRead(server.origin, '/assets/coding-worker/worker.js'); assert.equal(worker.status, 200); assert.equal(worker.headers['access-control-allow-origin'], '*');
+});
+
+test('perf:fixture matches the app and exercise asset CORS policies', async (t) => {
+  const server = await fixtureLab(t);
+  const worker = await fixtureRead(server.origin, '/assets/coding-worker/worker.js'); assert.equal(worker.status, 200); assert.equal(worker.headers['access-control-allow-origin'], 'https://devshark.app');
   const sandbox = await fixtureRead(server.origin, '/sandbox/'); assert.equal(sandbox.status, 200); assert.equal(sandbox.headers['access-control-allow-origin'], '*');
-  const ordinary = await fixtureRead(server.origin, '/assets/main.js'); assert.equal(ordinary.status, 200); assert.equal(ordinary.headers['access-control-allow-origin'], undefined); assert.match(ordinary.headers['cache-control'], /immutable/);
+  const ordinary = await fixtureRead(server.origin, '/assets/main.js'); assert.equal(ordinary.status, 200); assert.equal(ordinary.headers['access-control-allow-origin'], 'https://devshark.app'); assert.match(ordinary.headers['cache-control'], /immutable/);
 });
 
 test('perf:fixture retains synthetic 400ms API-only settings and provider refusal responses', async (t) => {
