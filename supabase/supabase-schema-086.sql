@@ -10,7 +10,7 @@ DECLARE
   job_name CONSTANT TEXT := 'purge_expired_learning_data_daily';
   cmd CONSTANT TEXT := 'SELECT public.purge_expired_learning_data();';
 BEGIN
-  IF to_regprocedure('public.purge_expired_learning_data()') IS NULL THEN
+  IF to_regprocedure('public.purge_expired_learning_data(timestamptz)') IS NULL THEN
     RAISE EXCEPTION '086 requires public.purge_expired_learning_data()';
   END IF;
   IF to_regprocedure('cron.schedule(text,text,text)') IS NULL THEN
