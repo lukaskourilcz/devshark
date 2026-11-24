@@ -4,7 +4,7 @@ import { Routes, Route, Link, Navigate, useLocation, useNavigate, useNavigationT
 import { Button } from '@astryxdesign/core/Button';
 import { IconButton as AxIconButton } from '@astryxdesign/core/IconButton';
 import { AppToast } from './components/ui/AppToast';
-import { useIsMobile, useMediaQuery } from './lib/useMediaQuery';
+import { CODING_PHONE_QUERY, useIsMobile, useMediaQuery } from './lib/useMediaQuery';
 import './styles/app-shell.css';
 import './styles/route-transition.css';
 import { openQotdDate } from '../../shared/daily-question';
@@ -321,7 +321,7 @@ function App() {
   const mobile = useIsMobile();
   // A narrow desktop window or browser zoom keeps the keyboard workbench.
   // On a touch phone, use the shorter viewport side in either orientation.
-  const codingPhone = useMediaQuery('(pointer: coarse) and (hover: none) and (max-width: 599.95px), (pointer: coarse) and (hover: none) and (orientation: landscape) and (max-width: 1023.95px) and (max-height: 599.95px)');
+  const codingPhone = useMediaQuery(CODING_PHONE_QUERY);
   const codingNotice = (
     <section>
       <h1>{t('nav.coding')}</h1>

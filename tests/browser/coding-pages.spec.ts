@@ -305,7 +305,9 @@ test.describe('phone Coding routes', () => {
     await page.addInitScript(() => sessionStorage.setItem('devshark:coding:narrow-editor:v1', '1'));
     const heavy: string[] = [];
     page.on('request', req => {
-      if (/CodingWorkbench|codemirror|\/sandbox\/|typescript-worker/i.test(new URL(req.url()).pathname)) heavy.push(req.url());
+      const url = new URL(req.url());
+      if (/CodingSection|CodingWorkbench|codemirror|\/sandbox\/|typescript-worker/i.test(url.pathname)
+        || ['coding-task', 'coding-brief', 'coding-state'].includes(url.searchParams.get('resource') ?? '')) heavy.push(req.url());
     });
     await answer(page);
     for (const viewport of [{width: 390, height: 844}, {width: 844, height: 390}]) {

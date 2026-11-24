@@ -16,6 +16,7 @@ import { codingKeys, codingProgressQuery, useCodingProgress, useCodingTask } fro
 import { releaseCodingTaskRead, startCodingTaskRead } from '../../coding/earlyTaskRead';
 import { splitsTaskRead } from '../../coding/taskRead';
 import { queryClient as appQueryClient } from '../../lib/queryClient';
+import { isCodingPhone } from '../../lib/useMediaQuery';
 import { freshStoredAccessToken, storedSessionUserId } from '../../lib/supabaseClient';
 import { autosaveDraft, deviceDraft, draftStoredBySubmit, flushAutosave, forgetDeviceDraft, keepDeviceDraft, openingDraft, saveDraft } from '../../coding/drafts';
 import { rememberCodingTask, useRecentCodingTasks } from '../../coding/recentTasks';
@@ -95,8 +96,9 @@ function learnSessionAt(taskId: string | undefined): string | undefined {
 // The first page of a visit (perf baseline #587 C16): a task address asks for
 // its task, and fetches its workbench and editor, as this chunk evaluates,
 // before the screen renders. The screen's own read then takes the answer
-// (coding/earlyTaskRead.ts); a hidden track asks for nothing.
-{
+// (coding/earlyTaskRead.ts). Recheck the viewport because it can rotate
+// while the section is downloading. A phone notice never consumes this read.
+if (!isCodingPhone()) {
   const first = /^\/coding\/([^/]+)\/([^/]+)\/?$/.exec(window.location.pathname);
   let taskId: string | null = null;
   try { taskId = first ? decodeURIComponent(first[2]) : null; } catch { taskId = null; }

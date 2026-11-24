@@ -10,6 +10,7 @@
 // preload never downloads anything twice.
 
 import { startTransition, useEffect, useState } from 'react';
+import { isCodingPhone } from './useMediaQuery';
 
 type Loader = () => Promise<unknown>;
 
@@ -61,6 +62,9 @@ export function routeChunk<T>(matches: (pathname: string) => boolean, load: () =
  * nothing, and a failure stays quiet: the navigation itself reports it. The
  * promise settles when every matching load has. */
 export function preloadPath(pathname: string): Promise<void> {
+  // The shell already has the phone notice. On a hard visit (main.tsx), or
+  // focus/touch intent, the unused section would immediately fetch a task.
+  if (/^\/coding(?:\/[^/]+){0,2}\/?$/i.test(pathname) && isCodingPhone()) return Promise.resolve();
   const loads = loaders.filter((entry) => entry.matches(pathname)).map((entry) => entry.load().catch(() => undefined));
   return Promise.all(loads).then(() => undefined);
 }
