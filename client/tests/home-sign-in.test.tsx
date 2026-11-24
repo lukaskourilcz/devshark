@@ -45,6 +45,16 @@ it('opens the sign-in dialog from the hero link', () => {
   expect(link).toBeEnabled();
 });
 
+it('waits for a stored session before presenting a Sign in action', () => {
+  server.use(settingsHandler, freeEntitlementHandler);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  auth.value.isLoading = true;
+  try {
+    render(<QueryClientProvider client={client}><MemoryRouter><LanguageProvider><Home /></LanguageProvider></MemoryRouter></QueryClientProvider>);
+    expect(screen.queryByRole('button', { name: 'Sign in' })).toBeNull();
+  } finally { auth.value.isLoading = false; }
+});
+
 // The tile says "Daily challenge": one question set for everyone a day, which
 // is the quiz's daily mode, not the survival Challenge it used to open.
 it('opens the daily challenge from the Daily challenge tile', async () => {
