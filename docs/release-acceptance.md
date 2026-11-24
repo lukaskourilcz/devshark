@@ -9201,3 +9201,23 @@ Each cell gives the F1 median, the 24 November intake median at `4db80e061`, and
 | desktop | `/leaderboard` | repeat | 208 / 72 / 220 (+205.6%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
 
 F1 source tables retain the individual observer samples. [Mobile](audit/f1-mobile-cdp-2026-11.json) · [Desktop](audit/f1-desktop-cdp-2026-11.json)
+
+### Dependency updates opened after the application merge
+
+Dependabot opened six PRs after `7536a2478`. The two React proposals were reviewed together. Upgrading React alone measured 226,376 initial gzip bytes and exceeded the 217,717-byte application budget. The combined build loads 594 feature-only English strings with their Play, Premium, Coding or administration screens. All 2,264 key/value pairs are preserved. Chrome 158 rendered localized labels on a direct Play visit, after navigating to Premium and back, and on a direct cancellation visit.
+
+| Initial file | Original F1 bytes | Application merge | Dependency follow-up | Change from F1 |
+| --- | ---: | ---: | ---: | ---: |
+| Entry script | 106,232 | 105,282 | 94,968 | -10.60% |
+| React and router | 74,807 | 74,807 | 83,479 | +11.59% |
+| TanStack | 12,989 | 12,989 | 12,889 | -0.77% |
+| Entry CSS | 24,633 | 24,639 | 24,639 | +0.02% |
+| Total | 218,661 | 217,717 | 215,975 | -1.23% |
+
+The independent maintainer scan initially found ten advisories in two development-only transitive packages used by the TanStack query inspector. Updating `seroval` to 1.8.2 and `seroval-plugins` to 1.8.0 cleared all ten. The scan checked 766 installed package versions across 415 upstream repositories. Chrome 158 opened and closed the real developer inspector with one launcher before and after. Both npm projects also reported zero production and development advisories.
+
+The 28-package client update originally produced 24 TypeScript errors and 96 failing tests. Its proposed Astryx 0.7.16 changes native disabled behavior and removes form and avatar interfaces in use by the application. The combined update keeps the supported 0.1.6 pair and accepts the other 26 packages. Type checking and all 609 cases in the affected test files passed. Stripe 23.1.0 keeps the API version explicitly supplied by the application.
+
+A local application parity run recorded two long starter times while macOS slept for 224 and 901 seconds. Every board verdict agreed with the successful Linux run on the same commit. Both affected tasks passed after switching the case-duration clock to monotonic time. The runner also releases each settled case deadline. The package smoke suite verified this for both published module formats.
+
+Before production, build the managed grading snapshot from the reviewed root production lockfile. Verify that its React version matches the client and exercise a real Preview submission. The database PRs and the changes in this section have separate rollout conditions.
