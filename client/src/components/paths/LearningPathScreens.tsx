@@ -1050,26 +1050,29 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
       levels: dimension.levels as unknown as Record<string, string>,
     }));
   const shown = activity ?? open?.activity;
-  // The module's one primary (UX audit learn-13): the first activity that is
-  // neither passed nor self-reviewed, 'Start module' while nothing is recorded
-  // and 'Continue: <title>' after. It shows while the list is the screen; an
-  // open activity carries its own primary.
-  // It waits for the recorded progress: before it arrives, a learner part-way
-  // through would read 'Start module' aimed at the first row. Until then the
-  // row keeps its 44px, so the list does not move when the primary arrives.
   const started = Boolean(moduleProgress?.activities.some((one) => one.state !== 'not_started'));
+  const unfinished = module.activities.filter(one => {
+    const state = states.get(one.id) ?? 'not_started';
+    return state !== 'verified_pass' && state !== 'self_reviewed';
+  });
+  // Progress supplies the path-wide recommendation. A learner inspecting a
+  // different or optional module still opens an unfinished activity here.
   const target = reachable && progress.data
-    ? module.activities.find((one) => {
-        const state = states.get(one.id) ?? 'not_started';
-        return state !== 'verified_pass' && state !== 'self_reviewed';
-      })
+    ? unfinished.find(one => one.id === progress.data?.nextActivityId) ?? unfinished[0]
     : undefined;
   const targetLocked = target ? activityLock(target.id, states.get(target.id) ?? 'not_started') : false;
-  const targetTitle = target ? titleWithoutKind(target.title, t(`paths.kind.${target.kind}` as never)) : '';
-  const targetCut = targetTitle.length > 32;
-  const ctaLabel = started
-    ? pathCopy['paths.action.continueTo'].replace('{title}', targetCut ? `${targetTitle.slice(0, 31).trimEnd()}…` : targetTitle)
-    : pathCopy['paths.action.startModule'];
+  const activityCount = module.activities.length;
+  const countLabel = t(activityCount === 1 ? 'paths.module.oneActivity' : 'paths.module.activityCount', { count: activityCount });
+  const totalMinutes = activityCount > 0 && module.activities.every(one => Number.isFinite(one.estimatedMinutes) && one.estimatedMinutes > 0)
+    ? module.activities.reduce((sum, one) => sum + one.estimatedMinutes, 0)
+    : null;
+  const hours = totalMinutes ? Math.floor(totalMinutes / 60) : 0;
+  const minutes = totalMinutes ? totalMinutes % 60 : 0;
+  const duration = [hours ? t('paths.module.hoursShort', { hours }) : '', minutes ? t('paths.minutes', { minutes }) : ''].filter(Boolean).join(' ');
+  const ctaLabel = target ? [
+    t(`paths.module.start.${target.kind}`),
+    target.estimatedMinutes > 0 && Number.isFinite(target.estimatedMinutes) ? t('paths.minutes', { minutes: target.estimatedMinutes }) : '',
+  ].filter(Boolean).join(' · ') : '';
   const ctaPending = !target && isAuthenticated && !enrollments.error && !progress.error
     && (enrollments.isPending || (reachable && !progress.data));
 
@@ -1137,6 +1140,9 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
             </span>
           </div>
           <h1>{module.title}</h1>
+          {!activityId && <p className="lp-activity__minutes">{duration
+            ? t('paths.module.estimatedTotal', { duration, count: countLabel })
+            : countLabel}</p>}
           {module.outcomes[0] && <p className="lp-lead">{module.outcomes[0]}</p>}
           {module.outcomes.length > 1 && <details className="lp-objectives"><summary>{t('paths.outcomes')}</summary>
           <ul className="lp-module__outcomes">
@@ -1150,8 +1156,7 @@ export function ModuleWorkspace({ pathId }: { pathId: LearningPathId }) {
           <div className="lp-head__actions" aria-busy={!target || undefined}>
             {target && <SwimCta
               label={ctaLabel}
-              // A title cut at 32 characters is read whole from the marked row.
-              describedBy={targetCut ? NEXT_TITLE_ID : undefined}
+              describedBy={NEXT_TITLE_ID}
               onClick={() => (targetLocked
                 ? openUpgradeSheet({ kind: 'learning-path-activity', ref: `${pathId}:${target.id}` })
                 : navigate(activityHref(pathId, module.id, target.id)))}

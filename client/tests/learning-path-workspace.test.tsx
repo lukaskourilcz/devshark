@@ -789,8 +789,9 @@ describe('the module page primary', () => {
     await mount(null);
     await waitFor(() => expect(cta()).not.toBeNull());
     expect(document.querySelector('.lp-head__actions')).not.toHaveAttribute('aria-busy');
-    expect(cta()).not.toHaveAttribute('aria-describedby');
-    expect(cta()).toHaveAccessibleName('Start module');
+    expect(cta()).toHaveAccessibleDescription('The check');
+    expect(cta()).toHaveAccessibleName('Start check · 5 min');
+    expect(screen.getByText('Estimated total: 15 min · 3 activities')).toBeInTheDocument();
     expect(document.querySelectorAll('.lp-page .ss-swim-cta')).toHaveLength(1);
     const next = document.querySelector('.lp-activity--next') as HTMLElement;
     expect(next).toHaveTextContent('The check');
@@ -804,7 +805,7 @@ describe('the module page primary', () => {
   it('continues at the first activity not yet passed or self-reviewed', async () => {
     recorded({ [C]: 'verified_pass', [A]: 'needs_revision' });
     await mount(null);
-    await waitFor(() => expect(cta()).toHaveAccessibleName('Continue: Activity A'));
+    await waitFor(() => expect(cta()).toHaveAccessibleName('Start coding · 5 min'));
     expect(document.querySelector('.lp-activity--next')).toHaveTextContent('Activity A');
     expect(document.querySelector('.lp-head__status')).toHaveTextContent('In progress');
   });
@@ -817,10 +818,7 @@ describe('the module page primary', () => {
       recorded({ [C]: 'verified_pass', [A]: 'self_reviewed' });
       await mount(null);
       await waitFor(() => expect(cta()).not.toBeNull());
-      const label = cta()!.textContent!.replace(/^Continue: /, '');
-      expect(label).toBe('Write the incident handoff for…');
-      expect(label.length).toBeLessThanOrEqual(32);
-      // The whole title is read from the marked row it describes.
+      expect(cta()).toHaveAccessibleName('Start coding · 5 min');
       expect(cta()).toHaveAccessibleDescription('Write the incident handoff for the on-call engineer');
     } finally {
       activity.title = title;
