@@ -12,6 +12,7 @@ import { TopicArticle, topicPath } from './src/components/topics/TopicArticle';
 import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, PRERENDERED_APP_PAGES, PUBLIC_ORIGIN, PUBLIC_PAGES, codingShareDescription, isPrivacyCopyKey, metaDescription, premiumSchema, topicSchema } from './src/lib/publicMetadata';
 import { TOPIC_LANDINGS } from './src/lib/topicCatalog';
 import { PremiumCancelStaticArticle, PremiumStaticArticle, type Translate } from './src/components/PremiumFacts';
+import { codingListEn } from './src/i18n/translations.codingLists';
 import { en, type TranslationKey } from './src/i18n/translations';
 import { MERCH_SKUS } from '../shared/rewards';
 import { DailyStaticArticle } from './src/components/DailyStaticArticle';
@@ -277,13 +278,22 @@ function productMetadata(env: Record<string, string>): Plugin {
       const asset = bundle['manifest.webmanifest'];
       if (asset?.type === 'asset') asset.source = manifest;
     },
-    async writeBundle() {
+    async writeBundle(_options, bundle) {
       await writeFile(path.join(outDir, 'manifest.webmanifest'), manifest);
 
       const topics = TOPIC_LANDINGS;
       const origin = PUBLIC_ORIGIN;
       const indexHtml = await readFile(path.join(outDir, 'index.html'), 'utf8');
       const escape = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
+      // Daily has visible HTML before React starts. Style its header and ancestry
+      // from the same emitted chunks that the running page loads.
+      const dailyCss = new Set<string>();
+      for (const chunk of Object.values(bundle)) {
+        if (chunk.type !== 'chunk' || !['DailyQuestionPage', 'Breadcrumb'].includes(chunk.name)) continue;
+        for (const file of chunk.viteMetadata?.importedCss ?? []) dailyCss.add(file);
+      }
+      const dailyStyles = Array.from(dailyCss, file => `<link rel="stylesheet" crossorigin href="/${escape(file)}" />`).join('');
+      const dailyHtml = indexHtml.replace('</head>', dailyStyles + '</head>');
       /** The sitemap: each address, with the day it last changed where the
        * build knows it (YYYY-MM-DD). */
       const urls: { loc: string; lastmod?: string }[] = [{ loc: `${origin}/` }];
@@ -341,7 +351,7 @@ function productMetadata(env: Record<string, string>): Plugin {
         const body = renderToStaticMarkup(createElement(STATIC_PAGE_BODIES[page.path] as (props: { t: Translate }) => ReturnType<typeof PremiumStaticArticle>, { t: translate }));
         const image = STATIC_PAGE_IMAGES[page.path];
         if (image) await writeOgCard(path.join(outDir, image), { kind: 'daily-home' });
-        const html = withImage(indexHtml, image ? origin + image : null, pageTitle)
+        const html = withImage(page.path === '/daily' ? dailyHtml : indexHtml, image ? origin + image : null, pageTitle)
           .replace(/<title>[^<]*<\/title>/, `<title>${escape(pageTitle)}</title>`)
           .replace(/(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(description) + end)
           .replace(/(<meta (?:name|property)="(?:og:title|twitter:title)" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(pageTitle) + end)
@@ -415,8 +425,9 @@ function productMetadata(env: Record<string, string>): Plugin {
         ...sectionTracks.map((page) => ({ ...page, title: `${page.name} coding challenges · ${product.brand}`, canonical: page.path })),
       ];
       for (const page of sectionPages) {
+        const heading = page.path === '/coding/fullstack' ? codingListEn['coding.fullstack.title'] : page.name;
         await writePage(page.path, pageHead(indexHtml, { title: page.title, description: page.description, url: origin + page.canonical, image: null, imageAlt: page.title })
-          .replace('<div id="root"></div>', `<div id="root"><noscript><main class="ss-public-fallback ss-info-page"><h1>${escape(page.name)}</h1><p>${escape(page.description)}</p>${sectionLinks}</main></noscript></div>`));
+          .replace('<div id="root"></div>', `<div id="root"><noscript><main class="ss-public-fallback ss-info-page"><h1>${escape(heading)}</h1><p>${escape(page.description)}</p>${sectionLinks}</main></noscript></div>`));
         if (page.path === page.canonical) urls.push({ loc: origin + page.path });
       }
       // System design is hidden (owner decision, 9 Oct 2026): /coding/system-design
@@ -443,13 +454,13 @@ function productMetadata(env: Record<string, string>): Plugin {
         const image = qotdImagePath(date);
         if ((await writeOgCard(path.join(outDir, image), { kind: 'daily', track, dateLabel })) === 'drawn') drawn++;
         const body = renderToStaticMarkup(createElement(DailyStaticArticle, { t: translate, track, dateLabel, date }));
-        await writePage(pagePath, pageHead(indexHtml, { title: pageTitle, description, url: origin + pagePath, image: origin + image, imageAlt: `${track} question of the day, ${dateLabel}` })
+        await writePage(pagePath, pageHead(dailyHtml, { title: pageTitle, description, url: origin + pagePath, image: origin + image, imageAlt: `${track} question of the day, ${dateLabel}` })
           .replace('<div id="root"></div>', `<div id="root"><main class="ss-public-fallback">${body}</main></div>`));
         days++;
       }
       this.info(`share pages: ${CODING_INDEX.length} coding tasks, ${sectionPages.length} Coding section pages and the hidden system design page, ${days} days of the question of the day, ${drawn} images drawn (the rest from cache)`);
 
-      const fallback = `<main class="ss-public-fallback ss-info-page"><h1>${escape(title)}</h1><p>${escape(description)}</p><ul class="ss-topic-links">${topics.map(topic => `<li><a href="${topicPath(topic.slug)}">${escape(topic.title)}</a></li>`).join('')}</ul></main>`;
+      const fallback = `<main class="ss-public-fallback ss-info-page"><h1>${escape(en['home.title'])}</h1><p>${escape(description)}</p><ul class="ss-topic-links">${topics.map(topic => `<li><a href="${topicPath(topic.slug)}">${escape(topic.title)}</a></li>`).join('')}</ul></main>`;
       // F15-10: no canonical and no og:url here. vercel.json's catch-all
       // rewrite serves this file for every app route and every missing page,
       // and a home canonical in it made each of them claim to be a copy of the

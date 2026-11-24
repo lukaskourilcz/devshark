@@ -335,6 +335,11 @@ for (const url of urls) {
       assert.match(text, /Withdraw from the contract/, `${url}: both options are named without JavaScript`);
     } else if (url.pathname === '/daily') {
       assert.equal(doc.querySelector('meta[property="og:image"]').getAttribute('content'), 'https://devshark.app/og/daily.png');
+      assert.equal(doc.querySelector('.ss-breadcrumb a')?.getAttribute('href'), '/today');
+      for (const chunk of ['Breadcrumb', 'DailyQuestionPage']) {
+        const link = doc.querySelector(`link[rel="stylesheet"][href*="/${chunk}-"]`);
+        assert(link && existsSync(path.join(dir, link.getAttribute('href'))), `Daily styles ${chunk} before hydration`);
+      }
       assert(existsSync(`${dir}/og/daily.png`), '/daily has its share image');
       assert(!doc.querySelector('[role="radio"], .ss-radio-card'), '/daily holds no question in its HTML');
     }
@@ -365,10 +370,12 @@ for (const { id, track } of tasks) {
 // the home page's: /coding/review opens /coding and names it. The home and the
 // track pages are in the sitemap; /coding/review is not.
 const home = new JSDOM(readFileSync(`${dir}/index.html`, 'utf8')).window.document;
+assert.equal(home.querySelector('#root h1')?.textContent, 'Lessons, quizzes and coding tasks for web developers.');
 const homeDescription = home.querySelector('meta[name="description"]').getAttribute('content');
 const SECTION_PAGES = ['/coding', '/coding/review', ...CODING_TRACK_PAGES];
 for (const pagePath of SECTION_PAGES) {
   const doc = new JSDOM(readFileSync(path.join(dir, pagePath, 'index.html'), 'utf8')).window.document;
+  if (pagePath === '/coding/fullstack') assert.equal(doc.querySelector('#root h1')?.textContent, 'FullStack projects');
   assert.notEqual(doc.title, home.title, `${pagePath}: its own title`);
   assert.notEqual(doc.querySelector('meta[name="description"]').getAttribute('content'), homeDescription, `${pagePath}: its own description`);
 }

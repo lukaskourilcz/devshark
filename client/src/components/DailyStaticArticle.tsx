@@ -5,6 +5,8 @@
 import type { ReactNode } from 'react';
 import type { TranslationKey } from '../i18n/translations';
 
+import { BreadcrumbList } from './ui/BreadcrumbList';
+
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
 /**
@@ -29,6 +31,11 @@ export function DailyHeader({ t, track, dateLabel, date, context }: { t: Transla
 export function DailyStaticArticle({ t, track, dateLabel, date }: { t: Translate; track?: string; dateLabel?: string; date?: string }) {
   return (
     <article className="ss-info-page ss-daily">
+      <BreadcrumbList
+        label={t('nav.breadcrumb')}
+        items={[{ label: t('nav.today'), href: '/today' }, { label: t('daily.titlePlain') }]}
+        renderLink={(href, text) => <a href={href}>{text}</a>}
+      />
       <DailyHeader t={t} track={track} dateLabel={dateLabel} date={date} />
       {/* The app replaces this page when it starts; until then, or without
           JavaScript, this line says where the question is. */}

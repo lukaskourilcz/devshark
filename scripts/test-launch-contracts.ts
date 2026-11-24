@@ -216,7 +216,6 @@ import { DEFAULT_PUBLIC_ORIGIN, publicBillingSettings } from '../lib/billing/con
 import { WAIVER_TEXT } from '../lib/billing/sync';
 import { en as shellEnglish } from '../client/src/i18n/translations';
 import { termsEn } from '../client/src/i18n/translations.terms';
-const ENGLISH = { ...shellEnglish, ...termsEn };
 import { privacyEn as PRIVACY_ENGLISH } from '../client/src/i18n/translations.privacy';
 import { learnEn as LEARN_ENGLISH } from '../client/src/i18n/translations.learn';
 import { pickerEn as PICKER_ENGLISH } from '../client/src/i18n/translations.picker';
@@ -237,6 +236,8 @@ import { generateVoucherCode, handleAdminVouchers, handleVoucherRedeem, parseVou
 import { VOUCHER_ALPHABET, formatVoucherCode, normalizeVoucherCode, voucherHint, voucherState } from '../shared/vouchers';
 import adminHandler from '../api/admin/[op]';
 import { productCleanupContracts } from './product-cleanup-contracts';
+
+const ENGLISH = { ...shellEnglish, ...termsEn };
 
 function apiFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
