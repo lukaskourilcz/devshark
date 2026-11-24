@@ -96,7 +96,7 @@ export async function handleReferral(req: VercelRequest, res: VercelResponse, su
     // The owner turned invitations off: the screen shows no invite link.
     if (coins.referralGrant <= 0) return res.json({ enabled: false });
     const summary = await withTimeout(supabase.rpc('referral_summary', { p_user_id: userId })).catch(() => null);
-    if (!summary) return jsonError(res, 504, 'upstream_timeout', 'Your invite link could not load');
+    if (!summary) return jsonError(res, 503, 'upstream_timeout', 'Your invite link could not load');
     if (summary.error) {
       if (routineMissing(summary.error)) return res.json({ enabled: false });
       return jsonError(res, 500, 'db_error', 'Your invite link could not load');
@@ -131,7 +131,7 @@ export async function handleReferral(req: VercelRequest, res: VercelResponse, su
         p_window_hours: REFERRAL_SIGNUP_WINDOW_HOURS,
       }),
     ).catch(() => null);
-    if (!recorded) return jsonError(res, 504, 'upstream_timeout', 'The invitation could not be saved');
+    if (!recorded) return jsonError(res, 503, 'upstream_timeout', 'The invitation could not be saved');
     if (recorded.error) {
       if (routineMissing(recorded.error)) {
         return jsonError(res, 503, 'migration_required', 'Invitations are not installed yet');

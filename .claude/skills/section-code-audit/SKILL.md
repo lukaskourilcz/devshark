@@ -54,7 +54,7 @@ Read `CLAUDE.md`, the area's tests (`client/tests/*`, `scripts/*contracts*.ts`, 
 - Auth outages: supabase-js reports a dropped connection as `AuthRetryableFetchError` with status 0, and Auth's own 429 or an unreadable answer as other errors. Answer them 503 `auth_unavailable`, never 401 (it tells a signed-in learner their session ended) and never 403 at the admin gate. Verify a token at most once per request (`tryAuthOnce`, memoised in `lib/auth.ts`).
 - Entitlement and cleared-content reads fail closed and say so: a failed read answers 503 `entitlement_unavailable`, never 402 (a lapsed learner is shown the upgrade sheet for work they passed) and never "not Premium" on an admin screen. A "cleared" callback that cannot read throws; `assertOpen` turns the throw into 503.
 - Routine errors: never answer with Postgres's raw message. Map each named raise (`unknown_order` 404, `order_not_cancellable` 409) and answer anything else 500 with the generic body, logging the message.
-- Admin writes log the admin account that made them (`by`: the admin id, or `legacy-password`).
+- Admin writes log the admin account that made them (`by`: the verified admin id; the shared admin password was retired on 24 November 2026).
 
 **Server: untrusted input**
 - Postgres text and JSONB refuse U+0000, so a draft, Shark Card or report holding it answered 500. Walk the values (not the JSON text, which would also catch code that spells `\u0000` out) and answer 400. Cut user text by code points (`Array.from`), not UTF-16 units, so an emoji is not split.

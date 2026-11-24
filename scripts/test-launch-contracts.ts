@@ -3912,7 +3912,7 @@ async function quizStepQueryContracts() {
  * its input without a database: a list where one value belongs (a query
  * parameter repeated), a calendar date Postgres cannot store, U+0000, an
  * unknown resource, a lookup by `constructor` or `__proto__`, a number that
- * is no integer, an id or a list past its cap. Each answers 400, 404 or 413
+ * is no integer, an id or a list past its cap. Each answers 400, 404, 405 or 413
  * with the generic `{ error: { code, message } }` body. No database is
  * configured here, so nothing can reach one; the verified-caller and play
  * suites hold the handlers that need one before they parse. */
@@ -3976,6 +3976,12 @@ async function inputClassContracts() {
     ['lesson: __proto__ as the topic', roadmapHandler, 'GET', { resource: 'lesson', topic: '__proto__', level: '1' }, undefined, 400, 'bad_request'],
     ['lesson: a repeated topic', roadmapHandler, 'GET', { resource: 'lesson', topic: ['javascript'], level: '1' }, undefined, 400, 'bad_request'],
     ['lesson: a level that is no number', roadmapHandler, 'GET', { resource: 'lesson', topic: 'javascript', level: 'NaN' }, undefined, 400, 'bad_request'],
+    // settings reads no input but its one write, the CSP collector, and
+    // health reads none: an unknown or repeated op and a write are refused.
+    ['settings: an unknown op', settingsHandler, 'POST', { op: 'no-such-op' }, {}, 405, 'method_not_allowed'],
+    ['settings: constructor as the op', settingsHandler, 'POST', { op: 'constructor' }, {}, 405, 'method_not_allowed'],
+    ['settings: a repeated op', settingsHandler, 'POST', { op: ['csp-report', 'csp-report'] }, {}, 405, 'method_not_allowed'],
+    ['health: a write', healthHandler, 'POST', {}, {}, 405, 'method_not_allowed'],
   ];
   let caller = 0;
   for (const [label, handler, method, query, body, status, code] of cases) {
@@ -3992,7 +3998,7 @@ async function inputClassContracts() {
     assert.deepEqual(Object.keys(error ?? {}).filter((key) => !['code', 'message', 'requestId'].includes(key)), [],
       `${label} answers the generic error body`);
   }
-  console.log(`PASS input classes: ${cases.length} malformed requests to questions, daily, submit and Learn answer 400, 404 or 413 with the generic body`);
+  console.log(`PASS input classes: ${cases.length} malformed requests to questions, daily, submit, Learn, settings and health answer 400, 404, 405 or 413 with the generic body`);
 }
 
 /* ── the request envelope (#638) ───────────────────────────────────────────

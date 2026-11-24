@@ -67,7 +67,9 @@ async function withAuthDeadline<T>(run: () => Promise<T>): Promise<T> {
       authSignals.run(controller.signal, run),
       new Promise<never>((_, reject) => {
         timer = setTimeout(() => {
-          reject(new AuthError(504, 'auth_timeout', 'Authentication service timed out'));
+          // A hang decided nothing about the token: an outage, 503 like the
+          // others (#638), never 504.
+          reject(new AuthError(503, 'auth_unavailable', 'Authentication service timed out'));
           controller.abort();
         }, 3000);
       }),
@@ -106,8 +108,8 @@ const tokenChecks = new WeakMap<VercelRequest, Map<string, Promise<AuthResult>>>
  * VERIFIED_TOKEN_TTL_MS, and never past the token's own `exp`.
  *
  * The bounds, for the owner (docs/product-architecture.md, "Token checks"):
- *  - Only an acceptance is kept. A refusal (401), an outage (503) or a
- *    timeout (504) is asked again on the next request, so a session never
+ *  - Only an acceptance is kept. A refusal (401) or an outage (503, a
+ *    timeout included) is asked again on the next request, so a session never
  *    ends, or stays ended, because of a cached answer.
  *  - Revocation. A session ended elsewhere (sign out everywhere, a password
  *    change, a ban, an admin role taken away) keeps working on an instance

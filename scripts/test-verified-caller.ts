@@ -1714,8 +1714,8 @@ async function main() {
       call(questions as Handler, { account: A, query: { resource: 'due' } }),
     ]);
     assert.equal(normalAuth.statusCode, 200, 'another learner can verify while Auth stalls for one request');
-    assert.equal(stalledAuth.statusCode, 504);
-    assert.equal(errorCode(stalledAuth), 'auth_timeout');
+    assert.equal(stalledAuth.statusCode, 503, 'an Auth hang is an outage, 503, never 504');
+    assert.equal(errorCode(stalledAuth), 'auth_unavailable');
     for (let wait = 0; wait < 20 && closedAuthReads === 0; wait++) {
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
@@ -2241,9 +2241,6 @@ async function main() {
       // lib/github-handlers.ts: GitHub may have spent the one-time code by
       // then, and the callback page sends the same code again after a 503.
       'user POST github-connect-finish': 'answers 500 on purpose',
-      // lib/rewards/referral.ts answers 504; left for F16 (not an F9 file).
-      'user GET referral': 'F16',
-      'user POST referral': 'F16',
     };
     dbMode = 'hung';
     let hungSweep: [string, Response][];
@@ -2260,6 +2257,7 @@ async function main() {
     for (const label of [
       'leaderboard global', 'Shark Cards GET', 'Learn level', 'play GET state', 'admin GET reports', 'user GET stats',
       'user POST friends-request', 'Learn plan', 'coding task', 'coding state', 'coding reveal', 'user GET coding-progress', 'user POST voucher',
+      'user GET referral',
     ]) {
       const res = hungSweep.find(([one]) => one === label)![1];
       assert.equal(outcome(res), '503 upstream_timeout', `${label} answers a hung database 503 upstream_timeout`);
