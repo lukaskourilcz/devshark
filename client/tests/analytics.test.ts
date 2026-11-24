@@ -261,6 +261,7 @@ it('keeps the campaign labels on the first pageview only and drops every other p
       $session_entry_referring_domain: 'devshark.app',
     },
     $set_once: {
+      $initial_pathname: '/play/K7Q2AB',
       $initial_current_url: `${origin}/?ref=abc123&utm_campaign=you%40mail.cz`,
       $initial_referrer: '$direct',
       $initial_session_entry_url: `${origin}/play/K7Q2AB?code=oauth-code#access_token=secret`,
@@ -274,7 +275,9 @@ it('keeps the campaign labels on the first pageview only and drops every other p
   expect(scrubbed.properties.$session_entry_referring_domain).toBe('devshark.app');
   expect(scrubbed.$set_once.$initial_current_url).toBe(`${origin}/`);
   expect(scrubbed.$set_once.$initial_referrer).toBe('$direct');
-  expect(scrubbed.$set_once.$initial_session_entry_url).toBe(`${origin}/play/K7Q2AB`);
+  expect(scrubbed.$set_once.$initial_session_entry_url).toBe(`${origin}/play/:code`);
+  expect(scrubbed.$set_once.$initial_pathname).toBe('/play/:code');
+  expect(JSON.stringify(scrubbed)).not.toContain('K7Q2AB');
   expect(scrubbed.$set_once.$initial_person_info).toEqual({ u: `${origin}/`, r: '$direct' });
   const withReferrer = beforeSend({
     event: '$pageview',

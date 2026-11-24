@@ -3,6 +3,7 @@
 // and the URL scrubber travel in one lazy chunk and never in the shell.
 
 import posthog, { type PostHog, type PostHogConfig } from 'posthog-js';
+import { redactRoomCode } from './telemetryPath';
 import { CAMPAIGN_KEYS, campaignLabel, scrubUrl } from './analytics';
 
 /** A URL or referrer property as analytics may see it. PostHog's `$direct`
@@ -35,6 +36,7 @@ function scrubEvent<T extends { properties?: Record<string, unknown>; $set?: Rec
         delete bag[key];
       }
       if (/(_url|referrer)$/.test(key) && typeof value === 'string') bag[key] = scrubUrlValue(value);
+      if (/(?:^|_)pathname$/.test(field) && typeof value === 'string') bag[key] = redactRoomCode(value.split(/[?#]/, 1)[0]);
       if (key === '$initial_person_info' && value && typeof value === 'object') {
         const info = value as { u?: unknown; r?: unknown };
         if (typeof info.u === 'string') info.u = scrubUrlValue(info.u);

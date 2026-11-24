@@ -21,6 +21,7 @@
 // Control.
 
 import type { PostHog } from 'posthog-js';
+import { redactRoomCode } from './telemetryPath';
 import { readJSON, removeStored, writeJSON } from './storage';
 import { hasConsent, subscribeConsent } from './consent';
 
@@ -73,7 +74,7 @@ const campaignQuery = (campaign: Campaign): string => {
 export function scrubUrl(href: string, keepCampaign = false): string {
   try {
     const url = new URL(href);
-    return `${url.origin}${url.pathname}${keepCampaign ? campaignQuery(campaignFrom(url.search)) : ''}`;
+    return `${url.origin}${redactRoomCode(url.pathname)}${keepCampaign ? campaignQuery(campaignFrom(url.search)) : ''}`;
   } catch {
     return '';
   }

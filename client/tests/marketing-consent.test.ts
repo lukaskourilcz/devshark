@@ -174,6 +174,21 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
     spans: [{ data: { 'http.url': 'https://devshark.app/api/user?op=github-connect-finish', 'http.query': '?op=github-connect-finish', 'http.fragment': '#x', 'http.method': 'POST' } }],
   });
   expect(JSON.stringify(trace)).not.toContain('gh-code');
+  const invitation = options.beforeSendTransaction!({
+    transaction: '/play/K7Q2AB',
+    request: { url: window.location.origin + '/play/K7Q2AB?source=friend' },
+    breadcrumbs: [{ message: 'open /play/K7Q2AB', data: { to: '/play/K7Q2AB' } }],
+    spans: [
+      { description: 'GET ' + window.location.origin + '/play/K7Q2AB?source=friend' },
+      { description: 'GET https://avatars.example.test/user/unique-avatar?size=24' },
+    ],
+  });
+  expect(invitation.transaction).toBe('/play/:code');
+  expect(invitation.spans).toEqual([
+    { description: 'GET ' + window.location.origin + '/play/:code' },
+    { description: 'GET https://avatars.example.test' },
+  ]);
+  expect(JSON.stringify(invitation)).not.toMatch(/K7Q2AB|unique-avatar|source=friend/);
   expect((trace.spans as { data: Record<string, unknown> }[])[0].data).toEqual({ 'http.url': 'https://devshark.app/api/user', 'http.method': 'POST' });
   vi.unstubAllEnvs();
 });

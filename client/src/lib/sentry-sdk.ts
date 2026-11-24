@@ -7,6 +7,7 @@
 import type { Breadcrumb, Event } from '@sentry/react';
 import { init, browserTracingIntegration, captureException } from '@sentry/react';
 import type { EarlyError } from './sentry';
+import { redactRoomCode } from './telemetryPath';
 
 export { captureException } from '@sentry/react';
 
@@ -58,7 +59,7 @@ const URL_USERINFO = /(\b[a-z][a-z0-9+.-]*:\/\/)[^\s\/@?#"'<>]+@/gi;
 /** An address without its query string or fragment; absolute or relative. */
 export function scrubAddress(value: string): string {
   const cut = value.search(/[?#]/);
-  return (cut === -1 ? value : value.slice(0, cut)).replace(URL_USERINFO, '$1');
+  return redactRoomCode((cut === -1 ? value : value.slice(0, cut)).replace(URL_USERINFO, '$1'));
 }
 
 const ABSOLUTE_URL_TAIL = /(\b[a-z][a-z0-9+.-]*:\/\/[^\s?#"'<>`]*)[?#][^\s"'<>`]*/gi;
@@ -70,7 +71,7 @@ const BEARER = /\bBearer\s+[\w.~+/-]{8,}=*/gi;
 /** Free text (a message, an error's value, a breadcrumb) without the parts
  * that could identify a person or open their account. */
 export function scrubText(value: string): string {
-  return value
+  return redactRoomCode(value)
     .replace(URL_USERINFO, '$1')
     .replace(ABSOLUTE_URL_TAIL, '$1')
     .replace(RELATIVE_URL_TAIL, '$1$2')
@@ -131,6 +132,20 @@ export function scrubEvent<T extends Event>(event: T): T {
   for (const crumb of event.breadcrumbs ?? []) scrubBreadcrumb(crumb);
   scrubBag(event.extra);
   scrubBag(event.contexts?.trace?.data as Record<string, unknown> | undefined);
-  for (const span of event.spans ?? []) scrubBag(span.data as Record<string, unknown> | undefined);
+  for (const span of event.spans ?? []) {
+    scrubBag(span.data as Record<string, unknown> | undefined);
+    if (typeof span.description === 'string') {
+      // Resource spans put the complete URL in the name as well as in data.
+      // External resource paths can identify a learner, e.g. an avatar.
+      span.description = scrubText(span.description.replace(/https?:\/\/[^\s"'<>`)]+/gi, (address) => {
+        try {
+          const url = new URL(address);
+          return url.origin === globalThis.location?.origin ? url.origin + url.pathname : url.origin;
+        } catch {
+          return '[url]';
+        }
+      }));
+    }
+  }
   return event;
 }
