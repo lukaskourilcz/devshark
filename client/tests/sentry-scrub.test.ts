@@ -19,11 +19,11 @@ it('drops a recoverable chunk report only when the server confirms a newer build
   const beforeSend = options.beforeSend!;
   for (const version of ['same', 'unreachable', 'newer'] as const) {
     checkServedBuild.mockResolvedValueOnce(version);
-    const result = await beforeSend({ message: 'Asset error for owner@example.test', extra: { chunkLoad: true } }, {});
+    const result = await beforeSend({ type: undefined, message: 'Asset error for owner@example.test', extra: { chunkLoad: true } }, {});
     if (version === 'newer') expect(result).toBeNull();
     else expect(result?.message).toBe('Asset error for [email]');
   }
-  const ordinary = await beforeSend({ message: 'Profile error for user@example.test' }, {});
+  const ordinary = await beforeSend({ type: undefined, message: 'Profile error for user@example.test' }, {});
   expect(ordinary?.message).toBe('Profile error for [email]');
   expect(checkServedBuild).toHaveBeenCalledTimes(3);
   expect(options.sendDefaultPii).toBe(false);

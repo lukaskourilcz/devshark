@@ -37,7 +37,7 @@ export function sentryIdleDeadline(tracingConfigured: boolean): Plugin {
     enforce: 'pre',
     buildStart() { applied = false; },
     transform(code, id) {
-      if (!id.replaceAll('\\', '/').endsWith(MODULE)) return;
+      if (!id.split('\\').join('/').endsWith(MODULE)) return;
       const updated = patchSentryDeadline(code, id);
       applied = true;
       return { code: updated.toString(), map: updated.generateMap({ hires: true, source: id, includeContent: true }).toString() };

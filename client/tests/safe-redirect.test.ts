@@ -81,7 +81,7 @@ it('inventories full-page navigation and every reader of a return address in cli
       ts.forEachChild(node, inspect);
     }
     inspect(ast);
-    const path = file.replaceAll('\\', '/');
+    const path = file.split('\\').join('/');
     if (leaves) {
       for (let i = 0; i < leaves; i++) seenDestinations.push(path);
       expect(calls.has(destinations[path]), `${path} must use its reviewed destination validator`).toBe(true);

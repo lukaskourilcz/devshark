@@ -5629,9 +5629,9 @@ async function main() {
       const child = load(userBundle, production(key));
       assert.notEqual(child.status, 0, `api/user/[op].ts must not load in production with ${label}`);
       assert.ok(child.stderr.includes(MISSING), `and the error names the variable (${child.stderr.slice(0, 400)})`);
-      const lines = child.stdout.split('\n').filter(Boolean).map((line) => JSON.parse(line) as Record<string, unknown>);
+      const lines = child.stderr.split('\n').filter(line => line.startsWith('{')).map(line => JSON.parse(line) as Record<string, unknown>);
       assert.deepEqual(lines.map(({ level, reason }) => ({ level, reason })), [{ level: 'error', reason: 'service_role_key_missing' }], 'and one structured error line says why');
-      assert.ok(!child.stdout.includes('anon-production-check'), 'the line carries no key');
+      assert.ok(!child.stderr.includes('anon-production-check') && !child.stdout.includes('anon-production-check'), 'logs carry no key');
     }
     const loaded = load(userBundle, production('service-production-check'));
     assert.equal(loaded.status, 0, `with its key it loads (${loaded.stderr.slice(0, 400)})`);

@@ -41,7 +41,7 @@ export function start(dsn: string, environment: string, early: EarlyError[] = []
     denyUrls: [/^(?:chrome-extension|moz-extension|safari-extension|safari-web-extension|webkit-masked-url):/i],
     ignoreErrors: [/^ResizeObserver loop limit exceeded$/],
     beforeSend: (event, hint) => {
-      if (event.extra?.chunkLoad === true || isChunkLoadError(hint.originalException)) {
+      if (event.extra?.chunkLoad === true || isChunkLoadError(hint?.originalException)) {
         return checkServedBuild().then(build => build === 'newer' ? null : scrubEvent(event));
       }
       return scrubEvent(event);

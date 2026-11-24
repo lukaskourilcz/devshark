@@ -381,7 +381,7 @@ for (const pagePath of SECTION_PAGES) {
 // explicit policy. A new literal route must have a corresponding built page,
 // an HTTP noindex rule, or a reviewed redirect.
 const deployment = JSON.parse(readFileSync('vercel.json', 'utf8'));
-const runtimeNoindex = deployment.routes.filter(route => route.continue && route.headers?.['X-Robots-Tag'] === 'noindex').map(route => new RegExp(route.src));
+const runtimeNoindex = deployment.routes.filter(route => route.continue && !route.has && route.headers?.['X-Robots-Tag'] === 'noindex').map(route => new RegExp(route.src));
 const redirects = deployment.routes.filter(route => route.status === 308);
 const routeFamilies = new Map([
   ['/learn/:section?', 'listed Learn sections; the root and invalid sections redirect to the open section'],
