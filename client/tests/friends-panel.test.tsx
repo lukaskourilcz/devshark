@@ -205,9 +205,16 @@ describe('removing a friend', () => {
     fireEvent.click(opener);
     const dialog = await screen.findByRole('alertdialog', { name: 'Remove Fin Example?' });
     expect(dialog).toHaveTextContent('You leave each other’s friends lists.');
+    const dismiss = within(dialog).getByRole('button', { name: 'Cancel' });
+    await waitFor(() => expect(dismiss).toHaveFocus());
+    fireEvent.keyDown(dismiss, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    expect(opener).toHaveFocus();
+    expect(removed).toEqual([]);
+    fireEvent.click(opener);
     expect(removed).toEqual([]);
 
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancel' }));
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
     expect(removed).toEqual([]);
     expect(opener).toHaveFocus();

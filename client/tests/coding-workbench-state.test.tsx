@@ -1,5 +1,6 @@
 // What the workbench says after Run and Submit, checked against the coding
 // audit of 8 October 2026 (C3, C4, C5). Each case names its finding.
+import { checkEscapeReturn } from './dialog-escape';
 import { readFileSync } from 'node:fs';
 import { beforeAll, afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
@@ -347,6 +348,7 @@ it('leaves Ctrl+Enter in the report dialog and the skip note to them', async () 
   const note = screen.getByLabelText(/Anything you want to add/);
   fireEvent.keyDown(note, { key: 'Enter', ctrlKey: true });
   fireEvent.keyDown(note, { key: 'Enter', ctrlKey: true, shiftKey: true });
+  await checkEscapeReturn(screen.getByRole('button', { name: 'Report a problem with this task' }), 'dialog');
   fireEvent.click(screen.getByRole('button', { name: 'Report a problem with this task' }));
   const detail = await screen.findByRole('textbox', { name: /Additional details/ });
   fireEvent.keyDown(detail, { key: 'Enter', metaKey: true });
@@ -401,7 +403,13 @@ it('tells a signed-out visitor what a reveal really does after Submit, and Keep 
   const dialog = screen.getByRole('alertdialog', { name: 'Solution' });
   expect(dialog).toHaveTextContent('Showing the solution ends this attempt, and Submit stays off until you open the task again. Show it?');
   expect(dialog).not.toHaveTextContent(/comes back later/);
-  fireEvent.click(within(dialog).getByRole('button', { name: 'Keep trying' }));
+  const keep = within(dialog).getByRole('button', { name: 'Keep trying' });
+  expect(keep).toHaveFocus();
+  fireEvent.keyDown(keep, { key: 'Escape' });
+  expect(screen.queryByRole('alertdialog')).toBeNull();
+  expect(solution).toHaveFocus();
+  fireEvent.click(solution);
+  fireEvent.click(screen.getByRole('button', { name: 'Keep trying' }));
   expect(screen.queryByRole('alertdialog')).toBeNull();
   expect(document.activeElement).toBe(solution);
 });

@@ -535,3 +535,19 @@ for (const theme of ['light', 'dark'] as const) {
     expect(structureReads).toBe(1);
   });
 }
+
+test('Quiz and Challenge restore focus after Escape without leaving either session', async ({ page }) => {
+  await prepare(page, 'light');
+  await quizAuditFixture(page);
+  await page.goto('/quiz');
+  await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
+  await checkDialogEscape(page, page.getByRole('button', { name: 'Show hint' }), page.getByRole('dialog'));
+  await checkDialogEscape(page, page.getByRole('button', { name: 'Report this question' }), page.getByRole('dialog'));
+  await checkDialogEscape(page, page.getByRole('button', { name: 'Exit quiz' }), page.getByRole('alertdialog'));
+  await challenge(page);
+  await page.goto('/challenge');
+  await page.getByRole('button', { name: 'Start', exact: true }).click();
+  await checkDialogEscape(page, page.getByRole('button', { name: 'Report this question' }), page.getByRole('dialog'));
+  await checkDialogEscape(page, page.getByRole('button', { name: 'Exit run' }), page.getByRole('alertdialog'));
+  await expect(page.getByRole('timer')).toBeVisible();
+});

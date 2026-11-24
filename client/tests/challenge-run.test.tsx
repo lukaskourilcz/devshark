@@ -1,3 +1,4 @@
+import { checkEscapeReturn, installNativeDialog } from './dialog-escape';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -294,6 +295,16 @@ describe('the question buffer', () => {
     await settle();
     expect(api.completions).toEqual([]);
   });
+});
+
+
+it('returns to the report and leave controls after Escape in a running challenge', async () => {
+  installNativeDialog();
+  await mount();
+  await start();
+  await checkEscapeReturn(screen.getByRole('button', { name: 'Report this question' }), 'dialog');
+  await checkEscapeReturn(screen.getByRole('button', { name: 'Exit run' }), 'alertdialog');
+  expect(screen.getByRole('timer')).toBeInTheDocument();
 });
 
 describe('the timeout strike', () => {
