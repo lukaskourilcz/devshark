@@ -9249,7 +9249,19 @@ Each entry lists **LCP ms / CLS / TBT ms / observed interaction ms** as intake �
 Across the 96 candidate visits, maximum LCP was 1,692 ms mobile and 564 ms desktop. Every CLS was zero. Fifteen dedicated learner interactions passed. Median observed latency was 80 ms for Quiz start, 64 ms for an answer, 80 ms for Learn, 64 ms for a coding keystroke and 64 ms for the mobile drawer. The maximum was 96 ms. The fixture observed local interactions. Production field INP requires the live consented telemetry cohort.
 
 
-## Production F8 database rollout, 24 November 2026
+## Epic F8 database hardening (18 November 2026)
+
+The final hosted PostgreSQL 17.6.1.171 suite built a fresh database from 89 files, reapplied 077–089 with an unchanged schema and row-count fingerprint, and passed all 82 SQL fixtures, including pg_cron. Native PostgreSQL 17.11 (Postgres.app) passed 81 with one pg_cron skip. Its separate scheduling fixture applied 086 twice, confirmed the one active job, and verified rejection of a disabled job. The hosted application checks passed API type checking, launch, migration fallback and billing contracts. The integrated source passed `git diff --check`. The hosted SQL job supplied the provider image and its Realtime catalog. [SQL output](https://github.com/lukaskourilcz/devshark/actions/runs/45315542819/job/138181532238) · [Static checks](https://github.com/lukaskourilcz/devshark/actions/runs/45315542819/job/138181532205) · [Application contracts](https://github.com/lukaskourilcz/devshark/actions/runs/45315542819/job/138181532236).
+
+| Local or CI database | Advisor errors | Warnings | Informational |
+|---|---:|---:|---:|
+| Native, through 089 | 0 | 0 | 50 |
+| Hosted CI, through 088 | 0 | 0 | 50 |
+| Hosted CI, through 089 | 0 | 0 | 50 |
+
+The [annotated advisor export](audit/database-advisors-2026-11-after.json) explains every individual finding and identifies its environment. The [17-read comparison and list of dropped indexes](../supabase/bench/results-2026-11.md) cover seven baseline and seven final samples on the same 20,000-learner fixture. The name lookup median fell from 10.2 to 0.006 ms and its buffers from 3,131 to three. Production plans and the production advisor export are described below.
+
+### Production F8 database rollout, 24 November 2026
 
 The operator verified the encrypted pre-maintenance backup and applied the reviewed SQL one file at a time. The production migration ledger previously ended at 076. Each row below has a matching migration ledger entry and a successful post-application catalog check. The source SHA for 077–080 is `4f0ba1fd2` ([#657](https://github.com/lukaskourilcz/devshark/pull/657)); 081 is `8df1b53ee` ([#675](https://github.com/lukaskourilcz/devshark/pull/675)).
 
