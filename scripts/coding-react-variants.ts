@@ -157,7 +157,7 @@ export const REACT_VARIANTS: ReactVariant[] = [
     id: 'react-weather-style-dashboard',
     note: 'puts Retry inside the alert and the unknown name in a <strong>',
     edits: [
-      ['<p role="alert">{error}</p>\n          <button type="button" onClick={() => loadWeather(lastCity)}>Retry</button>', '<p role="alert">{error}<button type="button" onClick={() => loadWeather(lastCity)}>Retry</button></p>'],
+      ['<p role="alert">Could not load the weather</p>\n          <button type="button" onClick={() => loadWeather(failedCity)}>Retry</button>', '<p role="alert">Could not load the weather<button type="button" onClick={() => loadWeather(failedCity)}>Retry</button></p>'],
       ['<p>Unknown city: {unknown}</p>', '<p>Unknown city: <strong>{unknown}</strong></p>'],
     ],
     correct: true,

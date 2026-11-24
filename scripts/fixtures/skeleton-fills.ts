@@ -933,13 +933,15 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [title, setTitle] = useState('');
+  const nextCreatedKey = React.useRef(1);
 
   useEffect(() => {
     const load = async () => {
       try {
         const response = await fetch(TODOS_URL + '?_limit=5');
         if (!response.ok) throw new Error('Could not load the todos');
-        setTodos(await response.json());
+        const rows = await response.json();
+        setTodos(rows.map(todo => ({ ...todo, rowKey: 'loaded-' + todo.id })));
       } catch (loadError) {
         setError(loadError.message);
       } finally {
@@ -961,15 +963,16 @@ const App = () => {
       });
       if (!response.ok) throw new Error('Could not add the todo');
       const created = await response.json();
-      setTodos(current => [...current, created]);
+      const row = { ...created, rowKey: 'created-' + nextCreatedKey.current++ };
+      setTodos(current => [...current, row]);
       setTitle('');
     } catch (requestError) {
       setError(requestError.message);
     }
   };
 
-  const toggle = id => setTodos(current => current.map(todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo));
-  const remove = id => setTodos(current => current.filter(todo => todo.id !== id));
+  const toggle = id => setTodos(current => current.map(todo => todo.rowKey === id ? { ...todo, completed: !todo.completed } : todo));
+  const remove = id => setTodos(current => current.filter(todo => todo.rowKey !== id));
   const done = todos.filter(todo => todo.completed).length;
 
   if (loading) return <p>Loading todos…</p>;
@@ -985,9 +988,9 @@ const App = () => {
       </form>
       <ul>
         {todos.map(todo => (
-          <li key={todo.id}>
-            <input type="checkbox" checked={todo.completed} onChange={() => toggle(todo.id)} /> {todo.title}
-            <button type="button" onClick={() => remove(todo.id)}>Delete</button>
+          <li key={todo.rowKey}>
+            <input type="checkbox" checked={todo.completed} onChange={() => toggle(todo.rowKey)} /> {todo.title}
+            <button type="button" onClick={() => remove(todo.rowKey)}>Delete</button>
           </li>
         ))}
       </ul>
