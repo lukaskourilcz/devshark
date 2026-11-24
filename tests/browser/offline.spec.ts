@@ -25,7 +25,8 @@ const grade = {
 
 /** The quiz API, and every POST /api/user/stats. The first write takes the
  * browser offline and fails as a dropped connection would. */
-async function quizServer(page: Page) {
+async function quizServer(page: Page, dropFirstReceipt = true) {
+  const grades: unknown[] = [];
   const attempts: unknown[] = [];
   const delivered: unknown[] = [];
   await page.route('**/api/**', async (route) => {
@@ -33,10 +34,13 @@ async function quizServer(page: Page) {
     if (url.pathname === '/api/quiz/questions') {
       return route.fulfill({ json: { sessionId: 'offline-spec-session-unique-attempt-key', expiresAt: Date.now() + 3_600_000, questions } });
     }
-    if (url.pathname === '/api/quiz/submit') return route.fulfill({ json: grade });
+    if (url.pathname === '/api/quiz/submit') {
+      grades.push(route.request().postDataJSON());
+      return route.fulfill({ json: grade });
+    }
     if (url.pathname === '/api/user/stats' && route.request().method() === 'POST') {
       attempts.push(route.request().postDataJSON());
-      if (attempts.length === 1) {
+      if (dropFirstReceipt && attempts.length === 1) {
         await page.context().setOffline(true);
         return route.abort('internetdisconnected');
       }
@@ -46,10 +50,10 @@ async function quizServer(page: Page) {
     if (url.pathname === '/api/user/xp') return route.fulfill({ json: { data: { quest_xp: 0, by_subject: {} } } });
     return route.fulfill({ status: 503, json: { error: { code: 'offline', message: 'local offline fixture' } } });
   });
-  return { attempts, delivered };
+  return { attempts, delivered, grades };
 }
 
-test('a quiz result saved while offline goes to the account once when the connection returns', async ({ page, context }) => {
+async function prepareQuiz(page: Page) {
   await page.setViewportSize({ width: 390, height: 1000 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.addInitScript(() => {
@@ -58,6 +62,10 @@ test('a quiz result saved while offline goes to the account once when the connec
   });
   await storeFakeSession(page);
   await localAuth(page);
+}
+
+test('a quiz result saved while offline goes to the account once when the connection returns', async ({ page, context }) => {
+  await prepareQuiz(page);
   const server = await quizServer(page);
 
   await page.goto('/quiz');
@@ -92,4 +100,28 @@ test('a quiz result saved while offline goes to the account once when the connec
   expect(server.attempts).toHaveLength(2);
   expect(server.delivered).toHaveLength(1);
   await expect(status).toHaveText('Saved to your account');
+});
+
+test('Submit made offline replays the same answers once on reconnect', async ({ page, context }) => {
+  await prepareQuiz(page);
+  const server = await quizServer(page, false);
+  await page.goto('/quiz');
+  await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
+  await page.getByRole('radio', { name: '"object"', exact: true }).click();
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await page.getByRole('radio', { name: 'null', exact: true }).click();
+
+  await context.setOffline(true);
+  await page.getByRole('button', { name: 'Submit quiz', exact: true }).click();
+  await expect(page.getByText('Answers saved in this tab. We’ll submit them when you reconnect.')).toBeVisible();
+  expect(server.grades).toHaveLength(0);
+  expect(server.delivered).toHaveLength(0);
+  await context.setOffline(false);
+  await expect(page.locator('.quiz-save-status')).toHaveText('Saved to your account');
+  await page.evaluate(() => window.dispatchEvent(new Event('online')));
+  expect(server.grades).toEqual([expect.objectContaining({
+    answers: { 'offline-typeof': 0, 'offline-number': 2 },
+    sessionId: 'offline-spec-session-unique-attempt-key',
+  })]);
+  expect(server.delivered).toHaveLength(1);
 });

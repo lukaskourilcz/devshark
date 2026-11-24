@@ -49,6 +49,7 @@ import { useSettings, playCorrect, playComplete } from '../lib/settings';
 import { recordPerfectQuiz } from '../lib/achievements';
 import { announceVerifiedQuestXp, announceXpHeld, awardQuestXp, syncXpWithServer } from '../lib/xp';
 import { useGameConfig } from '../lib/gameConfig';
+import { useOnline } from './learn/useOnline';
 import { ReportDialog } from './ReportDialog';
 import { capture } from '../lib/analytics';
 import { reportError } from '../lib/sentry';
@@ -114,6 +115,8 @@ interface PersistedProgress {
   hinted?: string[];
   /** A submit was sent: the answers can no longer change. */
   locked?: boolean;
+  /** Explicit offline Submit, bound to the original account (null for a guest). */
+  retryFor?: string | null;
   start?: StartSpec;
 }
 
@@ -167,6 +170,7 @@ function restoredProgress(raw: unknown): RestoredProgress | null {
     expiresAt: mode !== 'standard' && typeof raw.expiresAt === 'number' && Number.isFinite(raw.expiresAt) ? raw.expiresAt : null,
     hinted: Array.isArray(raw.hinted) ? raw.hinted.filter((id): id is string => typeof id === 'string') : [],
     locked: raw.locked === true,
+    ...(raw.locked === true && (raw.retryFor === null || typeof raw.retryFor === 'string') ? { retryFor: raw.retryFor } : {}),
     start: savedStart(raw.start),
   };
 }
@@ -201,6 +205,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   // grade, so an answer changed after that could never be graded: a retry
   // after a lost response must send the same answers.
   const [answersLocked, setAnswersLocked] = useState(false);
+  const [retryFor, setRetryFor] = useState<string | null | undefined>(undefined);
+  const online = useOnline();
   // Setup preferences persist across visits, so a returning learner's
   // categories/count/difficulty are one tap from "Start quiz".
   const [questionCount, setQuestionCount] = useState<number>(() => {
@@ -353,6 +359,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       setHintedIds(saved.hinted ?? []);
       setExpiresAt(saved.expiresAt);
       setAnswersLocked(saved.locked === true);
+      setRetryFor(saved.retryFor);
       setLastStart(saved.start);
       setCurrentIndex(saved.currentIndex);
       // A quiz saved before practice mode was removed still says 'practice'
@@ -377,13 +384,14 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         ...(expiresAt !== null ? { expiresAt } : {}),
         hinted: hintedIds,
         ...(answersLocked ? { locked: true } : {}),
+        ...(retryFor !== undefined ? { retryFor } : {}),
         ...(lastStart ? { start: lastStart } : {}),
       };
       sessionStorage.setItem(PROGRESS_KEY, JSON.stringify(payload));
     } catch {
       // quota or private mode — ignore
     }
-  }, [state, sessionId, questions, answers, currentIndex, mode, expiresAt, hintedIds, answersLocked, lastStart]);
+  }, [state, sessionId, questions, answers, currentIndex, mode, expiresAt, hintedIds, answersLocked, lastStart, retryFor]);
 
   // Persist the setup preferences so the next visit starts pre-configured.
   useEffect(() => {
@@ -450,6 +458,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         setHintedIds([]);
         setExpiresAt(null);
         setAnswersLocked(false);
+        setRetryFor(undefined);
         setReviewPlan([]);
         setHardestAvailable(data.hardestAvailable === true);
         setCurrentIndex(0);
@@ -500,6 +509,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       setHintedIds([]);
       setExpiresAt(data.expiresAt ?? null);
       setAnswersLocked(false);
+      setRetryFor(undefined);
       setCurrentIndex(0);
       setMode('daily');
       setState('in-progress');
@@ -548,6 +558,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       setHintedIds([]);
       setExpiresAt(data.expiresAt ?? null);
       setAnswersLocked(false);
+      setRetryFor(undefined);
       setReviewPlan(data.reviewPlan ?? []);
       setInterleaved(Boolean(data.interleaved));
       setCurrentIndex(0);
@@ -679,12 +690,27 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (submittingRef.current) return;
-    if (accountEpoch() !== progressEpochRef.current) {
+    if (submittingRef.current || authLoading) return;
+    const actor = user?.id ?? null;
+    if (accountEpoch() !== progressEpochRef.current || (retryFor !== undefined && retryFor !== actor)) {
       clearProgress(sessionId);
       stopForAccountChange();
       return;
     }
+    if (expiresAt !== null && Date.now() >= expiresAt) {
+      clearProgress(sessionId);
+      setRetryFor(undefined);
+      setStop('expired');
+      setState('error');
+      return;
+    }
+    if (navigator.onLine === false) {
+      setAnswersLocked(true);
+      setRetryFor(actor);
+      setError(null);
+      return;
+    }
+    setRetryFor(undefined);
     submittingRef.current = true;
     const screen = screenRef.current;
     // The account the quiz was submitted under. Signed out elsewhere while
@@ -796,7 +822,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       if (screen !== screenRef.current) return;
       // An unavailable session or an answer set already graded with other
       // picks cannot be recovered by submitting again.
-      if (err instanceof ApiError && (err.code === 'invalid_session' || err.code === 'attempt_already_graded')) {
+      if (navigator.onLine === false && accountEpoch() === epoch && !(err instanceof ApiError && err.status > 0)) {
+        setRetryFor(actor);
+      } else if (err instanceof ApiError && (err.code === 'invalid_session' || err.code === 'attempt_already_graded')) {
         clearProgress(sessionId);
         setStop(err.code === 'invalid_session' ? 'expired' : mode === 'daily' ? 'daily-done' : 'graded');
         setState('error');
@@ -809,7 +837,11 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         setSubmitting(false);
       }
     }
-  }, [answers, clearProgress, isAuthenticated, sessionId, stopForAccountChange, user, t, questions, mode, hintedIds]);
+  }, [answers, clearProgress, isAuthenticated, sessionId, stopForAccountChange, user, t, questions, mode, hintedIds, authLoading, retryFor, expiresAt]);
+
+  useEffect(() => {
+    if (state === 'in-progress' && online && !authLoading && retryFor !== undefined) void handleSubmit();
+  }, [state, online, authLoading, retryFor, handleSubmit]);
 
   const handleRestart = () => {
     fetchAbortRef.current?.abort();
@@ -823,6 +855,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     setAnswers({});
     setHintedIds([]);
     setAnswersLocked(false);
+    setRetryFor(undefined);
     setExpiresAt(null);
     setStop(null);
     setCurrentIndex(0);
@@ -1407,6 +1440,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         questionId={questionId}
         notice={
           <>
+            {retryFor !== undefined && <p role="status">{t('quiz.gradeQueued')}</p>}
             {error && (
               <Banner
                 status="error"

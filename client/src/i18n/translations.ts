@@ -780,6 +780,7 @@ export const en = {
   'quiz.resultNotSaved': 'This result could not be saved to your account.',
   'quiz.saveSaving': 'Saving to your account…',
   'quiz.saveSaved': 'Saved to your account',
+  'quiz.gradeQueued': 'Answers saved in this tab. We’ll submit them when you reconnect.',
   'quiz.savePending': 'Waiting to sync. We’ll retry when you reconnect or reopen devShark.',
   'quiz.dailyPractice': 'You started this daily challenge signed out, so it counted as practice and was not saved.',
   'quiz.pendingResultLost': 'An earlier quiz result could not be saved to your account: a result has to be saved within an hour.',
