@@ -273,11 +273,11 @@ function TraderDetails() {
 }
 
 function WithdrawalForm() {
-  const { t } = useLanguage();
+  const t = useCopy();
   const headingId = useId();
   const set = traderRows().filter((row) => row.field !== 'companyId').map((row) => row.value);
   const to = set.length > 0 ? set.join(', ') : t('legal.terms.form.toFallback');
-  const lines: TranslationKey[] = [
+  const lines: TermsKey[] = [
     'legal.terms.form.notice',
     'legal.terms.form.ordered',
     'legal.terms.form.name',
