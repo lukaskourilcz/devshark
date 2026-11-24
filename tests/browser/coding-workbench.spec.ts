@@ -1,4 +1,4 @@
-import { test, expect, type Page } from './console-clean';
+import { test, expect, allowConsoleErrors, type Page } from './console-clean';
 import { CODING_TASKS, playable } from '../../lib/coding/catalog';
 import { solutionFor } from '../../lib/coding/solutions';
 import { suiteCaseCount } from '../../lib/coding/react-hidden';
@@ -14,6 +14,9 @@ import { fulfilTaskRead, isTaskRead } from './coding-task-read';
 // test:coding and test:grading-integrity. Each test names the finding of the
 // coding audit of 8 October 2026 it guards.
 
+// Narrow layouts here model keyboard workstations. mobile-safari.spec covers the touch phone gate and tablet editor.
+test.use({ isMobile: false, hasTouch: false });
+
 interface Seen { submits: number[]; practiceStarts: unknown[]; documents: string[] }
 
 async function prepare(page: Page, { signedIn = false, verdict = {} as Record<string, unknown> } = {}): Promise<Seen> {
@@ -27,7 +30,7 @@ async function prepare(page: Page, { signedIn = false, verdict = {} as Record<st
   await page.addInitScript(() => {
     try {
       localStorage.setItem('devquiz:color-mode', 'light');
-      localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+      localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
     } catch { /* private mode */ }
   });
   if (signedIn) {
@@ -411,7 +414,7 @@ test('TypeScript: Submit leaves at once, and a runaway type is named as one (C5-
   await expect(page.getByText(/infinite loop|loop whose condition/)).toHaveCount(0);
 });
 
-test('a phone waiting for a bigger screen loads no TypeScript compiler until the editor is chosen (V3-4)', async ({ page }) => {
+test('a narrow keyboard viewport loads no TypeScript compiler until the editor is chosen (V3-4)', async ({ page }) => {
   await prepare(page);
   await page.setViewportSize({ width: 390, height: 844 });
   const runner: string[] = [];
@@ -593,7 +596,7 @@ for (const width of [360, 1440]) {
       refreshed = true;
       await reload.focus();
       await page.keyboard.press('Enter');
-      await expect(page.getByRole('heading', { name: 'Updated double task' })).toBeVisible();
+      await expect(page.getByRole('tabpanel', { name: 'Description' }).getByRole('heading', { name: 'Updated double task', level: 2 })).toBeVisible();
       await expect(reload).toHaveCount(0);
       await expect(page.locator('.cm-content')).toContainText(source);
       await expect(page.getByRole('button', { name: 'Submit', exact: true })).toBeEnabled();
@@ -637,4 +640,68 @@ test('the former deferred DSA task names its now-issued foundations level', asyn
   await openTask(page, '/coding/algorithms/alg-dsa-repair-level-order');
   await expect(page.locator('.cd-brief__meta')).toHaveText(/DSA Foundations · Level 14$/);
   for (const text of await page.locator('.cd-result__call').allInnerTexts()) expect(text).not.toContain('__probe');
+});
+
+test('the first failed public case opens with separate Input, Expected and Received fields', async ({page}) => {
+  const receipt = JSON.stringify({ value: 2, details: 'More detail from that same case. '.repeat(12), last: 'Last line.' }, null, 2);
+  const verdict = {verdict:'failed', results:[{pass:false, actual:'null', error:null}, {pass:true, actual:receipt, error:null}]};
+  await prepare(page, {signedIn:true, verdict});
+  await openTask(page, '/coding/javascript/js-digit-sum');
+  await fillEditor(page, 'const digitSum = n => null;');
+  await page.getByRole('button', {name:'Submit', exact:true}).click();
+  const details = page.locator('.cd-result__case');
+  await expect(details).toHaveCount(2);
+  await expect(details.first()).toHaveAttribute('open', '');
+  await expect(details.first().locator('dt')).toHaveText(['Input','Expected','Received']);
+  await expect(details.first().locator('dd').last()).toHaveText('null');
+  await details.nth(1).locator('summary').focus();
+  await page.keyboard.press('Enter');
+  expect(await details.nth(1).locator('dd pre').last().textContent()).toBe(receipt);
+  expect(await details.first().locator('dd').first().textContent()).not.toBe(await details.nth(1).locator('dd').first().textContent());
+});
+
+test('a timed-out local React loop reports to the workbench and a fresh Run recovers', async ({ page }, info) => {
+  await prepare(page);
+  // Six finite iterations advance a controllable elapsed-time source in the
+  // frame. Exercise the real guard without hanging a tab or relying on CPU
+  // speed. The parent's response time uses the untouched browser clock.
+  await page.addInitScript(() => {
+    if (location.pathname !== '/sandbox/index.html') return;
+    const realNow = performance.now.bind(performance);
+    let offset = 0;
+    window.addEventListener('fixture-render-slice', () => { offset += 450; });
+    Object.defineProperty(performance, 'now', { value: () => realNow() + offset });
+  });
+  allowConsoleErrors(page, /A loop ran for two seconds without yielding/);
+  const id = 'react-easy2-focus-the-search';
+  await openTask(page, '/coding/react/' + id);
+  await fillEditor(page, `export default function App() {
+    for (let n=0; n<6; n++) window.dispatchEvent(new Event('fixture-render-slice'));
+    return <p>Six slices completed</p>;
+  }`);
+  const run = page.getByRole('button', { name: 'Run', exact: true });
+  await expect(run).not.toHaveAttribute('aria-disabled', 'true');
+  await page.evaluate(() => {
+    const started = performance.now();
+    const onMessage = (event: MessageEvent) => {
+      if (event.source !== document.querySelector<HTMLIFrameElement>('iframe.cd-frame')?.contentWindow || event.data?.type !== 'preview-error') return;
+      if (!String(event.data.message).startsWith('PreviewLoopTimeoutError:')) return;
+      document.documentElement.dataset.loopReportMs = String(performance.now() - started);
+      window.removeEventListener('message', onMessage);
+    };
+    window.addEventListener('message', onMessage);
+  });
+  await run.press('Enter');
+  await expect.poll(() => page.locator('html').getAttribute('data-loop-report-ms'), { timeout: 3_000 }).not.toBeNull();
+  const responseMs = Number(await page.locator('html').getAttribute('data-loop-report-ms'));
+  expect(responseMs).toBeLessThan(3_000);
+  const preview = page.getByRole('tab', { name: 'Preview' });
+  await preview.click();
+  await expect(page.getByText(/The preview could not render:.*loop ran for two seconds/i)).toBeVisible();
+  await info.attach('preview-loop-timing.json', { contentType: 'application/json', body: JSON.stringify({
+    browser: info.project.name, fixtureSlices: 6, simulatedMillisecondsPerSlice: 450, parentResponseMs: responseMs,
+  }) });
+  await fillEditor(page, solutionFor(id)!.solution);
+  await run.press('Enter');
+  await expect(announced(page)).toHaveText('4 of 4 passing', { timeout: 30_000 });
 });

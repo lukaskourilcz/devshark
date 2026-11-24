@@ -16,6 +16,7 @@ import { codingKeys, codingProgressQuery, useCodingProgress, useCodingTask } fro
 import { releaseCodingTaskRead, startCodingTaskRead } from '../../coding/earlyTaskRead';
 import { splitsTaskRead } from '../../coding/taskRead';
 import { queryClient as appQueryClient } from '../../lib/queryClient';
+import { isCodingPhone } from '../../lib/useMediaQuery';
 import { freshStoredAccessToken, storedSessionUserId } from '../../lib/supabaseClient';
 import { autosaveDraft, deviceDraft, draftStoredBySubmit, flushAutosave, forgetDeviceDraft, keepDeviceDraft, openingDraft, saveDraft } from '../../coding/drafts';
 import { rememberCodingTask, useRecentCodingTasks } from '../../coding/recentTasks';
@@ -95,8 +96,9 @@ function learnSessionAt(taskId: string | undefined): string | undefined {
 // The first page of a visit (perf baseline #587 C16): a task address asks for
 // its task, and fetches its workbench and editor, as this chunk evaluates,
 // before the screen renders. The screen's own read then takes the answer
-// (coding/earlyTaskRead.ts); a hidden track asks for nothing.
-{
+// (coding/earlyTaskRead.ts). Recheck the viewport because it can rotate
+// while the section is downloading. A phone notice never consumes this read.
+if (!isCodingPhone()) {
   const first = /^\/coding\/([^/]+)\/([^/]+)\/?$/.exec(window.location.pathname);
   let taskId: string | null = null;
   try { taskId = first ? decodeURIComponent(first[2]) : null; } catch { taskId = null; }
@@ -244,6 +246,8 @@ const TaskRow = memo(function TaskRow({ task, status, premium = 'open', saved, o
       <span className="cd-row__main">
         <span className="cd-row__title">{task.title}</span>
         {level && <span className="cd-row__meta"><span aria-hidden>·</span>{level}</span>}
+        {task.difficulty && <span className="cd-row__meta">{t(`coding.difficulty.${task.difficulty}`)}</span>}
+        {task.estimatedMinutes > 0 && <span className="cd-row__meta">{t('coding.estimatedMinutes', { n: task.estimatedMinutes })}</span>}
         {formatOf(task) === 'debug' && <span className="cd-tag cd-tag--format">{t('coding.format.debug')}</span>}
         {isBarred(premium) && status !== 'premium' && <Badge variant="neutral" label={t('premium.badge')} />}
       </span>
@@ -370,7 +374,7 @@ function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = t
     <div ref={listRef} id={listId} className="cd-project-list">{(showAll ? challenges : challenges.slice(0, LIST_FOLD)).map((challenge, index) => {
       const completed = challenge.stages.filter(id => evolvingPassed(id, passed)).length;
       const resumeId = evolvingResume(challenge, passed);
-      const laterLocked = laterLockedIn(challenge);
+      const resumeLocked = isBarred(premiumOf(resumeId));
       // The verb says where the learner stands: nothing done, part done, all done.
       const action = !progressKnown ? codingListCopy('coding.project.open') : completed === challenge.stages.length ? codingListCopy('coding.evolving.review') : completed > 0 ? t('coding.continue') : codingListCopy('coding.evolving.start');
       return <article key={challenge.id} className="cd-project" tabIndex={index >= LIST_FOLD ? -1 : undefined} aria-labelledby={`${challenge.id}-name`}>
@@ -382,10 +386,10 @@ function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = t
         </div>
         <div className="cd-project__progress">
           {progressKnown && <div className="cd-stage-meter" aria-hidden>{challenge.stages.map(id => <span key={id} data-complete={evolvingPassed(id, passed)} />)}</div>}
-          <p>{progressKnown ? t(challenge.short ? 'coding.evolving.levelsProgress' : 'coding.evolving.progress', { n: completed, total: challenge.stages.length }) : codingListCopy('coding.progress.unavailable')}{laterLocked && <> <Badge variant="neutral" label={t('premium.badge')} /></>}</p>
+          <p>{progressKnown ? t(challenge.short ? 'coding.evolving.levelsProgress' : 'coding.evolving.progress', { n: completed, total: challenge.stages.length }) : codingListCopy('coding.progress.unavailable')}{resumeLocked && <> <Badge variant="neutral" label={t('premium.badge')} /></>}</p>
         </div>
         {/* The quieter fin: the page's one SwimCta is its next challenge. */}
-        <FadeFinCta label={action} ariaLabel={codingListCopy('coding.project.action', { action, title: challenge.title })} finLeft="62%" finSize={26} accent="var(--brand-accent)" onClick={() => { if (isBarred(premiumOf(resumeId))) askForPremium(resumeId); else navigate(`/coding/${evolvingTaskTrack(resumeId)}/${resumeId}`, { state: { codingReturnTo: location.pathname + location.search } }); }} />
+        <FadeFinCta label={action} ariaLabel={codingListCopy('coding.project.action', { action, title: challenge.title })} finLeft="62%" finSize={26} accent="var(--brand-accent)" onClick={() => { if (resumeLocked) askForPremium(resumeId); else navigate(`/coding/${evolvingTaskTrack(resumeId)}/${resumeId}`, { state: { codingReturnTo: location.pathname + location.search } }); }} />
       </article>;
     })}</div>
     {foldable && (

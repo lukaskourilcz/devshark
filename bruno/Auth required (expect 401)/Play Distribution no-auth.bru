@@ -1,0 +1,15 @@
+meta {
+  name: Play Distribution no-auth
+  type: http
+  seq: 66
+}
+
+get {
+  url: {{baseUrl}}/api/play/distribution
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

@@ -28,8 +28,8 @@
 /* Under 15 seconds: the error colour. The digits say the time, and a polite
    live region says the threshold once. */
 .challenge-run__clock[data-low] {
-  color: var(--ss-error);
-  background: color-mix(in srgb, var(--ss-error) 15%, transparent);
+  color: var(--ss-error-text);
+  background: color-mix(in srgb, var(--ss-error) 12%, transparent);
 }
 /* The h1, score, clock and fins share one row while they fit; on a narrow
    phone the status takes a row of its own under the h1 instead of squeezing

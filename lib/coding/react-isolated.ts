@@ -8,12 +8,13 @@ const { Sandbox } = createRequire(join(process.cwd(), 'package.json'))(
   './lib/coding/generated/vercel-sandbox.cjs',
 ) as typeof import('@vercel/sandbox');
 import type { ReactSuiteOutcome } from './react-runner';
-import { GUEST_ENV, GUEST_NODE_FLAGS, readGuestRun, type GuestInput } from './react-guest';
+import { GUEST_ENV, GUEST_NODE_FLAGS, readGuestRun, snapshotVersionDrift, type GuestInput } from './react-guest';
 import { compileReactLearner } from './react-transpile';
 import { compileReactOnWorker } from './react-compile-pool';
 import { FETCH_STUB_SOURCE } from '../../shared/coding-react-support';
 import { LOCAL_FETCH_SOURCE } from '../../shared/coding-fullstack-support';
 import { afterResponse } from './after-response';
+import { logEvent } from '../http';
 
 // Keep operational diagnostics useful without logging learner code, SDK request
 // bodies, credentials, or arbitrary error messages.
@@ -148,7 +149,10 @@ export async function runIsolatedReactSuite(input: {
     // The verdict is the stdout line marked with this run's nonce, and a
     // guest that crashed after it started the learner's code was crashed by
     // that code (react-guest.ts). Nothing is read from the VM's filesystem.
-    return readGuestRun(command.exitCode, await command.stdout({ signal }), nonce, input.suite);
+    const stdout = await command.stdout({ signal });
+    const drift = snapshotVersionDrift(stdout, nonce);
+    if (drift) logEvent('coding/react', { level: 'warn', kind: 'snapshot_version_drift', versions: drift });
+    return readGuestRun(command.exitCode, stdout, nonce, input.suite);
   } catch (error) {
     if (signal.aborted && commandBudgetEnds !== null && Date.now() >= commandBudgetEnds) return deadline();
     throw runnerFailure(signal.aborted ? 'Deadline' : 'Execution', error);

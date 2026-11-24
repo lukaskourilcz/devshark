@@ -9,8 +9,9 @@
 // 2025, so the page names the Czech out-of-court body and no ODR link.
 import { useCallback, useEffect, useId, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useLanguage } from '../i18n/LanguageContext';
+import { interpolate, useLanguage } from '../i18n/LanguageContext';
 import type { TranslationKey } from '../i18n/translations';
+import { termsEn, type TermsKey } from '../i18n/translations.terms';
 import { privacyEn, type PrivacyKey } from '../i18n/translations.privacy';
 import { useBilling } from '../lib/billing';
 import { useMediaQuery } from '../lib/useMediaQuery';
@@ -31,18 +32,17 @@ const LINK_PRIVACY_URL = 'https://link.com/privacy';
 
 type Seller = 'link' | 'trader' | null;
 
-/** A key of either dictionary: the app's (translations.ts) or the privacy
- * policy's own (translations.privacy.ts), which only this chunk loads. */
-type CopyKey = TranslationKey | PrivacyKey;
+type CopyKey = TranslationKey | PrivacyKey | TermsKey;
 const isPrivacyKey = (key: CopyKey): key is PrivacyKey => Object.prototype.hasOwnProperty.call(privacyEn, key);
+const isTermsKey = (key: CopyKey): key is TermsKey => Object.prototype.hasOwnProperty.call(termsEn, key);
 
-/** `t` for the legal pages: the privacy dictionary first, then the app's. */
 function useCopy() {
   const { t } = useLanguage();
-  return useCallback(
-    (key: CopyKey, vars?: Parameters<typeof t>[1]): string => (isPrivacyKey(key) ? privacyEn[key] : t(key, vars)),
-    [t],
-  );
+  return useCallback((key: CopyKey, vars?: Parameters<typeof t>[1]): string => {
+    if (isPrivacyKey(key)) return privacyEn[key];
+    if (isTermsKey(key)) return interpolate(termsEn[key], vars);
+    return t(key, vars);
+  }, [t]);
 }
 interface LinkSpec { to: string; label: CopyKey; external?: boolean; when?: (seller: Seller) => boolean }
 type Block =
@@ -273,11 +273,11 @@ function TraderDetails() {
 }
 
 function WithdrawalForm() {
-  const { t } = useLanguage();
+  const t = useCopy();
   const headingId = useId();
   const set = traderRows().filter((row) => row.field !== 'companyId').map((row) => row.value);
   const to = set.length > 0 ? set.join(', ') : t('legal.terms.form.toFallback');
-  const lines: TranslationKey[] = [
+  const lines: TermsKey[] = [
     'legal.terms.form.notice',
     'legal.terms.form.ordered',
     'legal.terms.form.name',

@@ -222,7 +222,12 @@ it('moves focus to the verdict when it arrives', async () => {
   vi.mocked(submitCoding).mockReset();
   vi.mocked(submitCoding).mockResolvedValue(verdict({ design: [{ correct: true, given: 0 }, { correct: false, given: 1 }, { correct: false, given: 0 }] }));
   mount();
+  const liveRegion = () => document.querySelector('.cd-pane__head [role="status"]');
+  const announcement = liveRegion();
+  expect(announcement).toBeEmptyDOMElement();
   const heading = await answerAndSubmit();
+  expect(liveRegion()).toBe(announcement);
+  expect(announcement).toHaveTextContent('Failed');
   expect(document.activeElement).toBe(heading.closest('.cd-verdict'));
 });
 
@@ -235,13 +240,17 @@ it('keeps focus with a sequence step as it moves', () => {
   };
   render(<MemoryRouter><LanguageProvider><DesignRunner task={drill} session="drill-session" locked={null} signedIn mode="section" /></LanguageProvider></MemoryRouter>);
   const down = screen.getByRole('button', { name: 'Move down: Build' });
+  const liveRegion = () => document.querySelector('.cd-pane__head [role="status"]');
+  const announcement = liveRegion();
+  expect(announcement).toBeEmptyDOMElement();
   down.focus();
   fireEvent.click(down);
   expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Move down: Build' }));
   fireEvent.click(screen.getByRole('button', { name: 'Move down: Build' }));
   expect(screen.getByRole('button', { name: 'Move down: Build' })).toBeDisabled();
   expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Move up: Build' }));
-  expect(screen.getByText('Build moved to position 3 of 3')).toBeInTheDocument();
+  expect(liveRegion()).toBe(announcement);
+  expect(announcement).toHaveTextContent('Build moved to position 3 of 3');
 });
 
 // UX audit coding-10: signed out, the walkthrough opens with no sign-in note;

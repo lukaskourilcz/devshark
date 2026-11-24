@@ -243,6 +243,26 @@ describe('the Play page (social-account-12)', () => {
 });
 
 describe('joining a live room', () => {
+  it('retries a failed code on the landing page, then enters with only the successful join', async () => {
+    const lobby = running({ status: 'lobby', questions: [] });
+    api.joinMatch.mockRejectedValueOnce(new ApiError('Failed to fetch', 0, 'network')).mockResolvedValue(lobby);
+    api.fetchMatchState.mockResolvedValue(stateOf(running()));
+    await mount('/play');
+    fireEvent.change(screen.getByRole('textbox', { name: 'Match code' }), { target: { value: 'abc123' } });
+    fireEvent.click(screen.getByRole('button', { name: /^Join/ }));
+    await waitFor(() => expect(screen.getByRole('button', { name: /^Join/ })).toBeEnabled());
+    expect(api.fetchMatchState).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /^Join/ }));
+    await screen.findByText('Pick one?');
+    expect(api.joinMatch).toHaveBeenCalledTimes(2); // one rejected, one successful
+    expect(api.fetchMatchState).toHaveBeenCalledTimes(1);
+
+    cleanup();
+    await mount('/play/ABC123');
+    await screen.findByText('Pick one?');
+    expect(api.joinMatch).toHaveBeenCalledTimes(3); // direct entry joins again
+  });
+
   it('opens on the state read after joining when the host has already started', async () => {
     api.joinMatch.mockResolvedValue(running({ status: 'lobby', questions: [], question_started_at: null }));
     api.fetchMatchState.mockResolvedValue(stateOf(running()));
@@ -630,6 +650,20 @@ describe('a classroom pupil', () => {
     return match;
   };
 
+  it('announces ten seconds remaining in the pupil’s existing region', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    pupilIn({ question_started_at: new Date().toISOString(), question_duration_s: 12 });
+    await mount();
+    await screen.findByText('Pick one?');
+    const region = document.querySelector('span[style][aria-live="polite"]');
+    expect(region).toBeEmptyDOMElement();
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
+    expect(screen.getByText('10 seconds remaining')).toBe(region);
+    await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+    expect(region).toBeInTheDocument();
+    expect(region).toBeEmptyDOMElement();
+  });
+
   it('closes the options and says so when the teacher reveals the answer', async () => {
     const match = pupilIn({ question_duration_s: 30 });
     await mount();
@@ -747,7 +781,8 @@ describe('what a room broadcasts', () => {
 
     api.fetchMatchState.mockResolvedValue(stateOf({ ...match, status: 'finished', current_index: 1 }));
     fireEvent.click(screen.getByRole('radio', { name: 'delta' }));
-    expect(await screen.findByRole('heading', { name: 'Match complete' })).toBeInTheDocument();
+    const result = await screen.findByRole('heading', { name: 'Match complete' });
+    await waitFor(() => expect(result.closest('[tabindex="-1"]')).toHaveFocus());
     expect(roomEvents()[1]).toEqual({ event: 'match_updated', payload: { status: 'finished', current_index: 1 } });
   });
 

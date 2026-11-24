@@ -163,7 +163,7 @@ const FRESH_AUTH_OPS: ReadonlySet<string> = new Set([
  * the 429, or a closed bucket's 503.
  */
 export async function limitUserWrite(req: VercelRequest, res: VercelResponse, op: string): Promise<boolean> {
-  if (req.method === 'GET' || op === 'billing-webhook' || op === 'learning-path-draft') return true;
+  if (req.method === 'GET' || op === 'billing-webhook' || op === 'payment-webhook' || op === 'learning-path-draft') return true;
   // The token is checked while the address bucket answers (lib/rate-limit.ts).
   if (op === 'delete-account') return enforceClassRateLimit(req, res, RATE_LIMITS.accountDeleteAddress, RATE_LIMITS.accountDelete);
   // A sign-in report's buckets close while Upstash fails; the other writes'
@@ -176,7 +176,7 @@ export async function limitUserWrite(req: VercelRequest, res: VercelResponse, op
  * milestones and invitations as it reads, badges are worked out from the
  * stats, and a friend lookup searches by handle. They take the two-tier read
  * limit (`limitRead`). Returns false after sending the 429. */
-const LIMITED_READS: ReadonlySet<string> = new Set(['wallet', 'badges', 'friends-lookup', 'friends-handle', 'leaderboard-name']);
+const LIMITED_READS: ReadonlySet<string> = new Set(['wallet', 'badges', 'friends-lookup', 'friends-handle', 'leaderboard-name', 'learning-path-progress', 'learning-preference']);
 async function limitUserRead(req: VercelRequest, res: VercelResponse, op: string): Promise<boolean> {
   if (req.method !== 'GET' || !LIMITED_READS.has(op)) return true;
   return limitRead(req, res);

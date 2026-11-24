@@ -12,4 +12,6 @@ get {
 
 assert {
   res.status: eq 200
+  res.body.dependencies.rateLimiter: neq memory-fallback
+  res.body.dependencies.grading: eq ok
 }

@@ -1,0 +1,15 @@
+meta {
+  name: User Learning Preference no-auth
+  type: http
+  seq: 40
+}
+
+get {
+  url: {{baseUrl}}/api/user/learning-preference
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

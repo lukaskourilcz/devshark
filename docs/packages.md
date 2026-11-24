@@ -11,6 +11,23 @@ them. Production is not affected: devShark still deploys from `main` to Vercel.
 
 Either job can also be started from the `main` branch in Actions → Packages → Run workflow.
 
+## Runtime dependencies
+
+The React grading snapshot installs the root lockfile with `npm ci --omit=dev --ignore-scripts`. The container also installs production dependencies. When an update changes the grader’s runtime packages, prepare a snapshot from the new lockfile and verify a real Sandbox run and a Preview submission before production. Retain the previous snapshot ID for rollback. [React grading operations](./react-grading-operations.md)
+
+| Package | Manifest section | Runtime consumer |
+| --- | --- | --- |
+| `jsdom`, `react`, `react-dom`, `@testing-library/react`, `@testing-library/dom`, `sucrase` | Root dependencies | The React grading guest creates a DOM, renders learner components and runs the authored assertions. Sucrase transforms the suite. Testing Library React requires Testing Library DOM as a peer. [Grader](../lib/coding/react-runner.ts) |
+| `quickjs-emscripten`, `@jitl/quickjs-singlefile-cjs-release-sync` | Root dependencies | The grader loads the vendored WebAssembly with this SDK and variant. Both versions must match `build.abiSdk` in the provenance manifest. An upgrade requires rebuilding and verifying the vendored module with `npm run check:quickjs-build`. [Variant](../lib/coding/quickjs-variant.ts) · [Provenance](../lib/coding/vendor/provenance.json) |
+| `@vercel/sandbox` | Root dependency | The React grading host loads a CommonJS bundle of the SDK to run the guest in a Sandbox. [Build](../scripts/build-react-runner.mjs) |
+| `@supabase/supabase-js`, `@upstash/redis`, `@upstash/ratelimit`, `stripe` | Root dependencies | API handlers use the Supabase client, Redis-backed rate limits and Stripe billing. The container bundles the handlers with external npm packages. [API client](../lib/http.ts) · [Rate limits](../lib/rate-limit.ts) · [Billing](../lib/billing/stripe.ts) · [Handler build](../docker/build-handlers.mjs) |
+| `typescript` | Root devDependency, client dependency | The server grader also needs the compiler at runtime. Vercel includes its files in the roadmap function and Docker installs the exact locked compiler separately. The browser compiler loads TypeScript and its standard library declarations. [Vercel configuration](../vercel.json) · [Docker install](../docker/install-runtime-typescript.mjs) · [Browser compiler](../client/src/coding/runner/ts-compiler.ts) |
+| `react`, `react-dom`, `@testing-library/react`, `@testing-library/dom`, `sucrase` | Client dependencies | The browser sandbox renders components and exposes Testing Library for exercises. It transforms code before running it. Testing Library DOM is the required peer. [Sandbox entry](../client/sandbox/main.tsx) |
+| `prettier`, `react-syntax-highlighter`, `qrcode`, `@supabase/supabase-js` | Client dependencies | The formatter loads Prettier’s standalone build with Babel and ESTree. The code block, Play QR and Supabase client also load their packages on demand. [Format](../client/src/coding/runner/format.ts) · [Code block](../client/src/components/CodeBlock.tsx) · [Play](../client/src/components/Play.tsx) · [Supabase client](../client/src/lib/supabaseClient.ts) |
+| `@tanstack/react-query-devtools` | Client devDependency | The app imports the panel inside Vite’s development-only branch. [Client entry](../client/src/main.tsx) |
+
+`npm run check:unused` checks the client’s runtime imports, server externals, required peers and advisory explanations. The client’s `//overrides` entries record the scoped fixes for Satori’s `fflate` and Storybook’s TypeScript docgen plugin. Each entry states the parent dependency change that permits its removal. [Placement check](../scripts/check-dependency-placement.mjs) · [Client manifest](../client/package.json)
+
 ## The npm package
 
 `packages/coding-evaluator` re-exports the Run-button evaluator from `shared/`
@@ -84,3 +101,12 @@ the container's health check says `unhealthy`), and signed-in features answer
 
 To release a version, tag `main` with `docker-v<version>`. The job pushes
 `<version>`, `latest` and `sha-<commit>` for `linux/amd64` and `linux/arm64`.
+
+
+## Dependency updates
+
+Dependabot checks the root, client and GitHub Actions each Monday at 05:00 Europe/Prague. Each npm directory permits three open update PRs and waits seven days for version updates. Minor and patch updates to the React grader are grouped. Review the root and client versions together because Submit and the browser Results view use the same React and Testing Library behavior. A change to the runtime inside the grading VM needs a reviewed snapshot and a real Preview submission before production. [Grading operations](react-grading-operations.md)
+
+The remaining minor and patch updates are grouped by directory. Satori is reviewed separately because it generates share images with a pinned override. TypeScript and the Node declaration packages stay on their supported major lines. QuickJS requires an explicit compiler and WASM rebuild. Actions pin the full release commit and keep the vendor's version in a comment. Dependabot branches run GitHub quality checks while Vercel skips their Preview deployments.
+
+Node 24 is selected in `.nvmrc`. Knip reads Storybook's own configuration and the nested scripts and Docker sources. The Vite plugin stays disabled in Knip because the client configuration also performs the product's build-time content generation.

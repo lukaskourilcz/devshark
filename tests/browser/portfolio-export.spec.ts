@@ -16,7 +16,7 @@ for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
     await page.addInitScript(mode => {
       localStorage.setItem('devquiz:color-mode', mode);
-      localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+      localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
     }, theme);
     const writes: string[] = [];const errors: string[] = [];const reads: string[] = [];
     page.on('pageerror', error => errors.push(error.message));

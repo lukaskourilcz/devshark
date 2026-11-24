@@ -1,3 +1,4 @@
+import { checkEscapeReturn } from './dialog-escape';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -68,6 +69,7 @@ describe('deleting an account', () => {
     renderCard(<AccountDeletionCard />);
     expect(await screen.findByText(PREMIUM_LINE, { exact: false })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Open the cancellation page' })).toHaveAttribute('href', '/premium/cancel?action=withdraw');
+    await checkEscapeReturn(screen.getByRole('button', { name: 'Delete my account' }), 'alertdialog', /^Cancel$/);
     fireEvent.click(screen.getByRole('button', { name: 'Delete my account' }));
     expect(await screen.findByText(new RegExp(`multiplayer records\\. This action cannot be undone\\. ${PREMIUM_LINE.replace(/[.]/g, '\\.')}`))).toBeInTheDocument();
   });

@@ -1,0 +1,15 @@
+meta {
+  name: Admin Entitlements no-auth
+  type: http
+  seq: 61
+}
+
+get {
+  url: {{baseUrl}}/api/admin/entitlements
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 403
+}

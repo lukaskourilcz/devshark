@@ -2,6 +2,7 @@
 // deployment has the GitHub App configured: github-connection answers
 // `available: false` until then, and the card renders nothing rather than a
 // "not enabled on this deployment" notice on every learner's profile.
+import { checkEscapeReturn, installNativeDialog } from './dialog-escape';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { delay, http, HttpResponse } from 'msw';
@@ -56,6 +57,15 @@ function posts(answer: (op: string) => Promise<Response> | Response) {
 }
 
 describe('GitHub garden card', () => {
+  it('returns focus to Disconnect after an Escape without changing the connection', async () => {
+    installNativeDialog();
+    answer(() => HttpResponse.json(ACTIVE));
+    const sent = posts(() => HttpResponse.json({}));
+    mount();
+    await checkEscapeReturn(await screen.findByRole('button', { name: en['github.disconnect'] }), 'alertdialog', /^Cancel$/);
+    expect(sent).toEqual([]);
+  });
+
   it('renders nothing on a deployment without the GitHub App', async () => {
     answer(() => HttpResponse.json(UNAVAILABLE));
     const { client, container } = mount();

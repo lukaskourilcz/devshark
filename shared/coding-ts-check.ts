@@ -138,17 +138,15 @@ export function createTypeScript({ ts: compiler, libs }: { ts: TypeScriptModule;
     allowUnusedLabels: true,
   };
 
-  // The learner's code and each type test are separate root files of one
-  // program. With the module system off they are global scripts, so a test
-  // sees every declaration in the code; but each file is parsed on its own, so
-  // code that ends inside an unterminated template literal, comment or string
-  // can no longer swallow the assertions after it and pass them.
+  // The learner and the checker globals remain scripts. Each assertion is a
+  // separate module: it can read the learner's declarations while its own
+  // helper names stay local. Append the marker so authored line numbers hold.
   const diagnose = (code: string, tests: readonly string[]) => {
     const testNames = tests.map((_, index) => `type-test-${index + 1}.ts`);
     const files = new Map<string, ts.SourceFile>([
       [GLOBALS_FILE, compiler.createSourceFile(GLOBALS_FILE, GLOBALS, target, true)],
       [ANSWER_FILE, compiler.createSourceFile(ANSWER_FILE, code, target, true)],
-      ...testNames.map((name, index): [string, ts.SourceFile] => [name, compiler.createSourceFile(name, tests[index], target, true)]),
+      ...testNames.map((name, index): [string, ts.SourceFile] => [name, compiler.createSourceFile(name, `${tests[index]}\nexport {};\n`, target, true)]),
     ]);
     const host: ts.CompilerHost = {
       getSourceFile: (name: string) => files.get(name) ?? libSource(name),

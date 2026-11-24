@@ -5,17 +5,17 @@
     ".": {
       "entry": [
         "api/**/*.ts",
-        "docker/**/*.ts",
+        "docker/**/*.{mjs,ts}",
         "scripts/*.{ts,mjs}",
-        "playwright.config.ts",
+        "scripts/fixtures/react-busy-control.ts",
         "tests/**/*.spec.ts"
       ],
       "project": [
         "api/**/*.ts",
-        "docker/**/*.ts",
+        "docker/**/*.{mjs,ts}",
         "lib/**/*.ts",
         "shared/**/*.ts",
-        "scripts/*.{ts,mjs}",
+        "scripts/**/*.{ts,mjs}",
         "tests/**/*.ts"
       ],
       "ignoreDependencies": [
@@ -24,16 +24,15 @@
     },
     "client": {
       "entry": [
-        "src/main.tsx",
         "sandbox/**/*.{ts,tsx}",
         "stories/**/*.stories.tsx",
         ".storybook/*.{ts,tsx}",
         "tests/**/*.test.{ts,tsx}",
-        "vite*.config.ts",
-        "vitest.config.ts"
+        "vite*.config.ts"
       ],
       "project": [
         "src/**/*.{ts,tsx}",
+        "build/**/*.ts",
         "sandbox/**/*.{ts,tsx}",
         "tests/**/*.{ts,tsx}",
         "stories/**/*.tsx",
@@ -41,12 +40,8 @@
         "*.ts"
       ],
       "vite": false,
-      "storybook": false,
       "ignoreDependencies": [
-        "@astryxdesign/theme-neutral",
-        "@astryxdesign/cli",
-        "@babel/core",
-        "@storybook/addon-a11y"
+        "@astryxdesign/theme-neutral"
       ]
     }
   },
@@ -54,6 +49,7 @@
     "client/.storybook/public/mockServiceWorker.js"
   ],
   "ignoreBinaries": [
-    "vercel"
+    "vercel",
+    "psql"
   ]
 }

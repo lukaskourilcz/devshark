@@ -29,6 +29,7 @@ const room = vi.hoisted(() => ({
   revealed_idx: null as number | null,
   question_started_at: null as string | null,
   answers: new Map<number, Map<string, number>>(),
+  pendingDistributions: null as Map<number, () => void> | null,
   reads: [] as Array<{ at: number; question: number }>,
   auth: null as null | Context<{ id: string; user_metadata: Record<string, never> }>,
 }));
@@ -88,7 +89,13 @@ vi.mock('../src/lib/play', async (importOriginal) => ({
     room.question_started_at = new Date().toISOString();
     return later(READ_LATENCY_MS, () => ({ ok: true, status: room.status, current_index: room.current_index }));
   },
-  fetchDistribution: (_code: string, questionIdx: number) => {
+  fetchDistribution: (_code: string, questionIdx: number, _host: string, signal?: AbortSignal) => {
+    const pending = room.pendingDistributions;
+    if (pending) return new Promise<{ buckets: [] }>((resolve) => {
+      const done = () => { pending.delete(questionIdx); resolve({ buckets: [] }); };
+      pending.set(questionIdx, done);
+      signal?.addEventListener('abort', done, { once: true });
+    });
     const buckets = new Map<number, number>();
     for (const selected of room.answers.get(questionIdx)?.values() ?? []) buckets.set(selected, (buckets.get(selected) ?? 0) + 1);
     return later(READ_LATENCY_MS, () => ({ buckets: [...buckets].map(([selected_idx, count]) => ({ selected_idx, count, correct: selected_idx === 1 })) }));
@@ -225,4 +232,39 @@ describe('a classroom of thirty behind one address', () => {
     expect(bus.sent.get('match_updated')).toBe(2 * QUESTION_COUNT + 1);
     expect(bus.sent.get('answered')).toBeUndefined();
   }, 60_000); // thirty-one screens in one page
+});
+
+
+it('releases pending distribution reads when the presenter advances and leaves', async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  room.status = 'running';
+  room.current_index = 0;
+  room.revealed_idx = null;
+  room.question_started_at = new Date().toISOString();
+  const pending = new Map<number, () => void>();
+  room.pendingDistributions = pending;
+  try {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, enabled: false } } });
+    client.setQueryData(GAME_CONFIG_KEY, { ...DEFAULT_CONFIG, features: { ...DEFAULT_CONFIG.features, multiplayer: true } });
+    const Auth = room.auth!;
+    const view = render(<QueryClientProvider client={client}><MemoryRouter initialEntries={['/play/CLASS1']}>
+      <LanguageProvider><Auth.Provider value={TEACHER}><Routes>
+        <Route path="/play/:code" element={<PlayMatch />} />
+      </Routes></Auth.Provider></LanguageProvider>
+    </MemoryRouter></QueryClientProvider>);
+    await tick(READ_LATENCY_MS);
+    await tick(2_000);
+    expect([...pending.keys()]).toEqual([0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Next question →' }));
+    await tick(2_000);
+    expect(screen.getByText('Question number 2?')).toBeVisible();
+    const afterAdvance = [...pending.keys()];
+    view.unmount();
+    expect({ afterAdvance, afterExit: [...pending.keys()] }).toEqual({ afterAdvance: [1], afterExit: [] });
+  } finally {
+    for (const finish of pending.values()) finish();
+    room.pendingDistributions = null;
+    room.status = 'lobby';
+    room.current_index = 0;
+  }
 });

@@ -38,8 +38,9 @@
  * fetch. Nothing leaves the machine. */
 
 import assert from 'node:assert/strict';
+import { gradingReadinessContracts } from './grading-readiness-contracts';
 import { createHash, generateKeyPairSync } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
@@ -155,6 +156,7 @@ let untimedQuizAttempt: string | undefined;
 let reviewRows: Row[] | undefined;
 let reviewStorageDown = false;
 let healthReadFails = false;
+let allocationFails = false;
 let healthReadHangs = false;
 let closedHealthReads = 0;
 const dailyMarkers = new Map<string, { grade_key: string; created_at: string }>();
@@ -419,6 +421,7 @@ async function startStandIns() {
         dailyMarkers.set(gradeKey, { grade_key: gradeKey, created_at: new Date(Date.now() - 10_000).toISOString() });
         return send(200, 'replay');
       }
+      if (rpc === 'allocate_shark_name' && allocationFails) return send(500, { code: '08006', message: 'stand-in allocation problem' });
       if (rpc === 'allocate_shark_name') return send(200, { handle: 'sleepySharkie17', ordinal: '17', base: 'sleepySharkie' });
       if (rpc === 'referral_summary') return send(200, { code: 'ab234567' });
       if (rpc === 'request_friend' && (body as Row | undefined)?.p_handle === 'locked-friend') {
@@ -736,6 +739,29 @@ async function main() {
     assert.ok(!reads('/rest/v1/user_stats').some((one) => one.method === 'POST'), 'no photo switch is written when the setting cannot be read');
     console.log('PASS verified caller: leaderboard names use the verified profile or confirmed email prefix, independently of friends');
 
+    {
+      const errors: Row[] = [];
+      const writeError = console.error;
+      allocationFails = true;
+      console.error = (line: string) => errors.push(JSON.parse(line) as Row);
+      let unavailable: Response;
+      try {
+        unavailable = await user('leaderboard-name', { account: A });
+      } finally {
+        allocationFails = false;
+        console.error = writeError;
+      }
+      assert.equal(unavailable.statusCode, 503);
+      assert.equal(errorCode(unavailable), 'leaderboard_name_unavailable');
+      const matching = errors.filter(event => event.kind === 'leaderboard_name_failed');
+      assert.equal(matching.length, 1);
+      assert.equal(matching[0].level, 'error');
+      assert.equal(matching[0].category, 'Error');
+      assert.ok(unavailable.headers['x-request-id']);
+      assert.equal(matching[0].request_id, unavailable.headers['x-request-id']);
+      assert.ok(!JSON.stringify(matching[0]).includes('stand-in allocation problem'));
+    }
+
     // A signed-in Challenge batch verifies its token once, for the rate limit
     // and the run alike.
     authChecks = 0;
@@ -984,14 +1010,15 @@ async function main() {
 
     // Every write the console makes leaves an audit line naming the admin.
     const realLog = console.log;
+    const savedChannels = { warn: console.warn, error: console.error };
     const audit: string[] = [];
-    console.log = (line: unknown) => { audit.push(String(line)); };
+    console.warn = console.error = console.log = (line: unknown) => { audit.push(String(line)); };
     try {
       assert.equal((await admin('delete', { method: 'POST', body: { id: 'rm-js-1' } })).statusCode, 200);
       assert.equal((await admin('reset', { method: 'POST', body: { id: 'rm-js-1' } })).statusCode, 200);
       assert.equal((await admin('bulkhide', { method: 'POST', body: { maxImportance: 1 } })).statusCode, 200);
     } finally {
-      console.log = realLog;
+      console.log = realLog; Object.assign(console, savedChannels);
     }
     for (const op of ['delete', 'reset', 'bulkhide']) {
       const line = audit.map((one) => JSON.parse(one) as Row).find((one) => one.route === 'admin' && one.op === op);
@@ -1119,16 +1146,16 @@ async function main() {
     // the owner to guess which dependency failed.
     {
       const lines: Row[] = [];
-      const original = console.log;
+      const original = console.error;
       healthReadFails = true;
-      console.log = (line: unknown) => {
+      console.error = (line: unknown) => {
         try { lines.push(JSON.parse(String(line)) as Row); } catch { original(line); }
       };
       let down: Response;
       try {
         down = await call(health as Handler, {});
       } finally {
-        console.log = original;
+        console.error = original;
         healthReadFails = false;
       }
       assert.equal(down.statusCode, 503, `a failing service-role read is degraded (${JSON.stringify(down.body)})`);
@@ -1153,6 +1180,42 @@ async function main() {
       assert.equal(reads('/rest/v1/user_stats').length - before.database, 2, 'a later probe checks again');
     }
     console.log('PASS verified caller: health probes that arrive together share one check');
+
+    await gradingReadinessContracts();
+    assert.equal((await call(health as Handler, {})).body.dependencies.grading, 'ok');
+    const savedSnapshot = process.env.REACT_RUNNER_SNAPSHOT_ID;
+    const savedEnvironment = process.env.VERCEL_ENV;
+    try {
+      process.env.VERCEL_ENV = 'production';
+      delete process.env.REACT_RUNNER_SNAPSHOT_ID;
+      const unconfigured = await call(health as Handler, {});
+      assert.equal(unconfigured.statusCode, 200);
+      assert.equal(unconfigured.body.dependencies.grading, 'unconfigured');
+      assert.equal(unconfigured.headers['cache-control'], 'no-store');
+      process.env.REACT_RUNNER_SNAPSHOT_ID = 'fixture-presence-only';
+      assert.equal((await call(health as Handler, {})).body.dependencies.grading, 'ok');
+      for (const operation of ['compile', 'instantiate'] as const) {
+        const original = WebAssembly[operation];
+        clockSkew += 300_001;
+        try {
+          WebAssembly[operation] = async () => { throw new Error('stand-in: WASM initialization failed'); };
+          const broken = await call(health as Handler, {});
+          assert.equal(broken.statusCode, 200);
+          assert.equal(broken.body.dependencies.grading, 'unavailable', operation);
+        } finally {
+          Object.assign(WebAssembly, { [operation]: original });
+        }
+        clockSkew += 300_001;
+        const recovered = await call(health as Handler, {});
+        assert.equal(recovered.body.dependencies.grading, 'ok', operation + ' recovers on the same instance');
+      }
+    } finally {
+      if (savedSnapshot === undefined) delete process.env.REACT_RUNNER_SNAPSHOT_ID;
+      else process.env.REACT_RUNNER_SNAPSHOT_ID = savedSnapshot;
+      if (savedEnvironment === undefined) delete process.env.VERCEL_ENV;
+      else process.env.VERCEL_ENV = savedEnvironment;
+    }
+    console.log('PASS verified caller: fixed grading self-test, timeout, cache and configuration recovery');
 
     healthReadHangs = true;
     try {
@@ -1427,14 +1490,15 @@ async function main() {
       seen.length = 0;
       const lines: Row[] = [];
       const original = console.log;
-      console.log = (line: unknown) => {
+      const savedChannels = { warn: console.warn, error: console.error };
+      console.warn = console.error = console.log = (line: unknown) => {
         try { lines.push(JSON.parse(String(line)) as Row); } catch { original(line); }
       };
       let down: Awaited<ReturnType<typeof routes>>;
       try {
         down = await routes();
       } finally {
-        console.log = original;
+        console.log = original; Object.assign(console, savedChannels);
       }
       const limiterLines = lines.filter((line) => line.route === 'rate-limit');
       const fallbacks = limiterLines.filter((line) => line.reason === 'distributed_fallback');
@@ -1540,11 +1604,11 @@ async function main() {
       assert.equal(child.status, 0, child.stderr.slice(0, 600));
       const out = child.stdout.split('\n').filter(Boolean);
       assert.equal(out.find((line) => line.startsWith('STATUSES ')), 'STATUSES [503,200,503]', 'a closed bucket refuses and an open one keeps to memory');
-      const logged = out.filter((line) => line.startsWith('{')).map((line) => JSON.parse(line) as Row);
+      const logged = child.stderr.split('\n').filter((line) => line.startsWith('{')).map((line) => JSON.parse(line) as Row);
       assert.deepEqual(
         logged.filter((line) => line.reason === 'limiter_init_failed').map((line) => [line.level, line.error]),
         [['error', 'TypeError']],
-        `a failed start is logged once, with the error's name (${child.stdout.slice(0, 600)})`,
+        `a failed start is logged once, with the error's name (${child.stderr.slice(0, 600)})`,
       );
       assert.deepEqual(
         logged.filter((line) => line.reason === 'distributed_fallback').map((line) => [line.bucket, line.policy]),
@@ -1559,7 +1623,8 @@ async function main() {
     const escapedLogs = async (thrown: Error) => {
       const lines: Row[] = [];
       const original = console.log;
-      console.log = (line: unknown) => {
+      const savedChannels = { warn: console.warn, error: console.error };
+      console.warn = console.error = console.log = (line: unknown) => {
         try { lines.push(JSON.parse(String(line)) as Row); } catch { original(line); }
       };
       const res = mockResponse();
@@ -1570,7 +1635,7 @@ async function main() {
           () => { throw thrown; },
         );
       } finally {
-        console.log = original;
+        console.log = original; Object.assign(console, savedChannels);
       }
       return { res, failure: lines.find((line) => line.route === 'request' && 'level' in line) };
     };
@@ -2141,12 +2206,6 @@ async function main() {
       // lib/github-handlers.ts: GitHub may have spent the one-time code by
       // then, and the callback page sends the same code again after a 503.
       'user POST github-connect-finish': 'answers 500 on purpose',
-      'Learn plan': 'F9-21',
-      'coding task': 'F9-20',
-      'coding state': 'F9-20',
-      'coding reveal': 'F9-20',
-      'user GET coding-progress': 'F9-20',
-      'user POST voucher': 'F9-22',
       // lib/rewards/referral.ts answers 504; left for F16 (not an F9 file).
       'user GET referral': 'F16',
       'user POST referral': 'F16',
@@ -2163,7 +2222,10 @@ async function main() {
       if (label in TIMEOUT_EXCEPTIONS) continue;
       assert.ok(res.statusCode !== 500 && res.statusCode !== 504, `${label} answers a hung database with ${outcome(res)}, not 503`);
     }
-    for (const label of ['leaderboard global', 'Shark Cards GET', 'Learn level', 'play GET state', 'admin GET reports', 'user GET stats', 'user POST friends-request']) {
+    for (const label of [
+      'leaderboard global', 'Shark Cards GET', 'Learn level', 'play GET state', 'admin GET reports', 'user GET stats',
+      'user POST friends-request', 'Learn plan', 'coding task', 'coding state', 'coding reveal', 'user GET coding-progress', 'user POST voucher',
+    ]) {
       const res = hungSweep.find(([one]) => one === label)![1];
       assert.equal(outcome(res), '503 upstream_timeout', `${label} answers a hung database 503 upstream_timeout`);
     }
@@ -2209,6 +2271,59 @@ async function main() {
       assert.notEqual(inserted[0], inserted[1], 'with a new code the second time');
     }
     console.log('PASS verified caller: a duplicate insert answers 409 installation_taken or retries with a new room code');
+
+    // Exercise the committed Bruno requests through the local, configured handler fixtures.
+    upstashMode('healthy');
+    const collection = 'bruno/Auth required (expect 401)';
+    const covered = new Set<string>();
+    for (const file of readdirSync(collection).filter(name => name.endsWith('.bru'))) {
+      const request = readFileSync(join(collection, file), 'utf8');
+      const method = /^(get|post|put|delete) \{/m.exec(request)?.[1].toUpperCase();
+      const target = /url: \{\{baseUrl\}\}(\S+)/.exec(request)?.[1];
+      const expected = /res\.status: eq (\d+)/.exec(request)?.[1];
+      assert.ok(method && target && expected && request.includes('auth: none'), file);
+      const url = new URL(target, 'http://localhost');
+      const [, , area, op] = url.pathname.split('/');
+      const routes = { user: userOps, admin: adminOps, play, quiz: roadmap, flashcards };
+      const handler = routes[area as keyof typeof routes];
+      assert.ok(handler, target);
+      const query = Object.fromEntries(url.searchParams);
+      if (area === 'user' || area === 'admin') query.op = op;
+      if (area === 'play') query.action = op;
+      let payload = /body:json \{\s*\n([^]*?)\n\}/.exec(request)?.[1];
+      if (payload?.includes('{{codingSession}}')) {
+        const guest = await call(roadmap as Handler, { query: { resource: 'coding-task', id: 'js-double-numbers' } });
+        const session = (guest.body as { session: string }).session;
+        assert.ok(session, 'a fresh guest coding session is required');
+        payload = payload.replace('{{codingSession}}', session);
+      }
+      const response = await call(handler as Handler, { method, query, body: payload ? JSON.parse(payload) : undefined });
+      assert.equal(response.statusCode, Number(expected), `${file}: ${JSON.stringify(response.body)}`);
+      covered.add(url.pathname);
+    }
+    const exceptions = new Set(['cards', 'shop', 'billing-cancel', 'billing-webhook', 'payment-webhook']);
+    for (const file of ['api/user/[op].ts', 'lib/github-handlers.ts', 'lib/friends-handlers.ts']) {
+      const dispatch = readFileSync(file, 'utf8');
+      for (const [, op] of dispatch.matchAll(/\bop === '([\w-]+)'/g)) {
+        if (!exceptions.has(op)) assert.ok(covered.has(`/api/user/${op}`), `Add a Bruno guest request for ${op}`);
+      }
+    }
+    for (const [area, path] of [['admin', 'api/admin/[op].ts'], ['play', 'api/play/[action].ts']]) {
+      const dispatch = readFileSync(path, 'utf8').split(area === 'admin' ? 'switch (op)' : 'switch (action)')[1]?.split('default:')[0];
+      assert.ok(dispatch, path);
+      for (const [, op] of dispatch.matchAll(/case '([\w-]+)'/g)) {
+        if (area !== 'play' || op !== 'state') assert.ok(covered.has(`/api/${area}/${op}`), `Add a Bruno guest request for ${area}/${op}`);
+      }
+    }
+    const healthContract = readFileSync('bruno/Public/Health.bru', 'utf8');
+    const healthy = await call(health as Handler, {});
+    assert.equal(healthy.statusCode, 200);
+    for (const [, field, operator, expected] of healthContract.matchAll(/res\.body\.dependencies\.(\w+): (eq|neq) ([\w-]+)/g)) {
+      const value = (healthy.body as { dependencies: Record<string, string> }).dependencies[field];
+      assert.equal(typeof value, 'string', field);
+      if (operator === 'eq') assert.equal(value, expected, field);
+      else assert.notEqual(value, expected, field);
+    }
 
     console.log('Verified-caller contracts passed: a token acts for its own account whatever user_id says, admin by confirmed address or role, private caching by default, read limits, and one-time claims that fail closed.');
   } finally {

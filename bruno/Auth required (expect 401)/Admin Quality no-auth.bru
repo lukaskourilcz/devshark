@@ -1,0 +1,15 @@
+meta {
+  name: Admin Quality no-auth
+  type: http
+  seq: 59
+}
+
+get {
+  url: {{baseUrl}}/api/admin/quality
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 403
+}

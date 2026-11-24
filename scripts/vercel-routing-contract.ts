@@ -21,6 +21,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { FDE_SECTION_VISIBLE } from '../shared/learn-section-ids';
 import { NOINDEX_PATHS } from '../client/src/lib/publicMetadata';
 
 interface Route {
@@ -31,6 +32,7 @@ interface Route {
   check?: boolean;
   headers?: Record<string, string>;
   handle?: string;
+  has?: Array<{ type: 'host'; value: string }>;
 }
 
 interface VercelConfig {
@@ -70,10 +72,10 @@ export function routePhases(config: VercelConfig = readVercelConfig()): Record<P
 const routeMatches = (route: Route, path: string) => route.src !== undefined && new RegExp(route.src).test(path);
 
 /** The headers the routes of one phase give a path, later routes winning, keys lower-cased. */
-export function phaseHeaders(path: string, phase: Phase, phases = routePhases()): Record<string, string> {
+export function phaseHeaders(path: string, phase: Phase, phases = routePhases(), host = 'devshark.app'): Record<string, string> {
   const headers: Record<string, string> = {};
   for (const route of phases[phase]) {
-    if (!routeMatches(route, path)) continue;
+    if (!routeMatches(route, path) || route.has?.some(condition => condition.type !== 'host' || condition.value !== host)) continue;
     for (const [key, value] of Object.entries(route.headers ?? {})) headers[key.toLowerCase()] = value;
   }
   return headers;
@@ -117,11 +119,11 @@ const APP_CHUNK = '/assets/CodingSection-DVDpGXcJ.js';
 const APP_STYLES = '/assets/main-BmQx2Zrs.css';
 const WORKER_CHUNK = '/assets/coding-worker/worker-duXtWM9V.js';
 const SANDBOX_CHUNK = '/sandbox/assets/index-DKkK9iSG.js';
-const ASSET_PATHS = [APP_CHUNK, APP_STYLES, `${APP_CHUNK}.map`, WORKER_CHUNK, SANDBOX_CHUNK, '/assets/', '/sandbox/assets/'];
+const ASSET_PATHS = [APP_CHUNK, APP_STYLES, WORKER_CHUNK, SANDBOX_CHUNK, '/assets/', '/sandbox/assets/'];
 const STATIC_MEDIA_PATHS = ['/og/', '/og/coding/stale.png', '/brand/', '/brand/v9/recommended/stale.svg'];
 const FILE_PATHS = [...ASSET_PATHS, ...STATIC_MEDIA_PATHS];
 const DOCUMENTS = ['/', '/index.html', '/coding', '/coding/javascript/js-double-numbers', '/premium/index.html', '/topics/javascript-closures/index.html', '/sandbox/index.html'];
-const WORKER_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'; connect-src 'self'";
+const WORKER_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'";
 
 const RETIRED_TRIAGE_SOURCE = "^/(?:t|%74)(?:r|%72)(?:i|%69)(?:a|%61)(?:g|%67)(?:e|%65)(?:-|%2[dD])(?:v|%76)(?:e|%65)(?:r|%72)(?:d|%64)(?:i|%69)(?:c|%63)(?:t|%74)(?:s|%73)(?:\\.|%2[eE])(?:j|%6[aA])(?:s|%73)(?:o|%6[fF])(?:n|%6[eE])$";
 
@@ -133,13 +135,18 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
 
   // The browser adds robots metadata on navigation, but an email or payment
   // return must also stay out of search when a crawler never executes JS.
-  for (const pathname of NOINDEX_PATHS) {
+  for (const pathname of [...NOINDEX_PATHS, '/play/ABCD', '/admin/new-section']) {
     for (const path of [pathname, `${pathname}/`]) {
       assert.equal(phaseHeaders(path, 'main', phases)['x-robots-tag'], 'noindex', `${path} is excluded before the app renders`);
     }
   }
   for (const path of ['/', '/premium', '/premium/cancel', '/daily', '/topics/javascript-closures']) {
     assert.equal(phaseHeaders(path, 'main', phases)['x-robots-tag'], undefined, `${path} remains indexable`);
+  }
+
+  for (const path of ['/', '/premium', '/daily']) {
+    assert.equal(phaseHeaders(path, 'main', phases, 'react-express-app-five.vercel.app')['x-robots-tag'], 'noindex');
+    assert.equal(phaseHeaders(path, 'main', phases, 'another.vercel.app')['x-robots-tag'], undefined);
   }
 
   // Main-phase rules normally add headers. Reviewed terminal exceptions
@@ -167,15 +174,24 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
   const retiredGuides = phases.main.filter((route) => route.src === '^/cs/topics(?:/.*)?$');
   assert.equal(retiredGuides.length, 1, 'retired guide URLs answer the app shell with HTTP 404');
   const redirects = phases.main.filter((route) => route.status === 308);
+  const sourceMaps = phases.main.find(route => route.src === '^/(?:sandbox/)?assets/.+\\.map$');
+  assert.ok(sourceMaps);
+  assert.equal(sourceMaps.status, 404);
+  assert.deepEqual(sourceMaps.headers, { 'Cache-Control': 'no-store' });
+  for (const asset of [APP_CHUNK, WORKER_CHUNK, SANDBOX_CHUNK]) {
+    assert.ok(routeMatches(sourceMaps, `${asset}.map`));
+    assert.ok(!routeMatches(sourceMaps, asset));
+  }
+
   for (const route of phases.main) {
     if (route.src === '^/cs/topics(?:/.*)?$') {
-      assert.equal(route.dest, '/index.html');
+      assert.equal(route.dest, '/app.html');
       assert.equal(route.status, 404);
       assert.equal(route.continue, undefined);
       assert.equal(route.headers?.['X-Robots-Tag'], 'noindex');
       continue;
     }
-    if (route === privateAsset || redirects.includes(route)) continue;
+    if (route === privateAsset || route === sourceMaps || redirects.includes(route)) continue;
     assert.ok(route.continue === true && route.headers && !route.dest && route.status === undefined, `${route.src} runs before the filesystem check and must only add headers`);
   }
   // Public Learn previews must reach their own HTML before the SPA fallback.
@@ -183,7 +199,7 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
     const source = `/learn/${id}`;
     const rewrite = (config.rewrites ?? []).find(one => one.source === source);
     assert.equal(rewrite?.destination, `${source}/index.html`, `${source} serves its public preview`);
-    const fallback = (config.rewrites ?? []).findIndex(one => one.destination === '/index.html');
+    const fallback = (config.rewrites ?? []).findIndex(one => one.destination === '/app.html');
     assert.ok((config.rewrites ?? []).indexOf(rewrite!) < fallback, `${source} precedes the SPA fallback`);
   }
   for (const route of redirects) {
@@ -194,7 +210,7 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
     for (const path of [...FILE_PATHS, ...DOCUMENTS]) assert.ok(!routeMatches(route, path), `${route.src} would redirect ${path}`);
   }
   // The FDE path moved into its Learn section (#489, plan decision D4). Its
-  // old addresses answer a crawler with a 308 to the new one, the module kept.
+  // old addresses go directly to the open section; reopened modules keep their id.
   // These routes sit before the filesystem check, as Vercel compiles a
   // `redirects` entry; a `redirects` property itself would land after
   // `handle: hit` here, where a page that is no file never reaches it.
@@ -205,12 +221,15 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
     const match = new RegExp(route.src!).exec(path)!;
     return route.headers!.Location.replace(/\$(\d)/g, (_, index: string) => match[Number(index)] ?? '');
   };
+  const fdeTarget = (suffix = '') => FDE_SECTION_VISIBLE ? '/learn/forward-deployed-engineer/path' + suffix : '/learn/web-developer';
   const MOVED: [string, string][] = [
-    ['/roadmap/specializations/fde', '/learn/forward-deployed-engineer/path'],
-    ['/roadmap/specializations/fde/', '/learn/forward-deployed-engineer/path'],
-    ['/roadmap/specializations/fde/fde-v1-m03', '/learn/forward-deployed-engineer/path/fde-v1-m03'],
-    ['/roadmap/specializations/fde/fde-v1-m03/', '/learn/forward-deployed-engineer/path/fde-v1-m03'],
-    ['/roadmap/specializations/fde/fde-v1-m03/extra', '/learn/forward-deployed-engineer/path/fde-v1-m03'],
+    ['/support', '/premium'],
+    ['/support/', '/premium'],
+    ['/roadmap/specializations/fde', fdeTarget()],
+    ['/roadmap/specializations/fde/', fdeTarget()],
+    ['/roadmap/specializations/fde/fde-v1-m03', fdeTarget('/fde-v1-m03')],
+    ['/roadmap/specializations/fde/fde-v1-m03/', fdeTarget('/fde-v1-m03')],
+    ['/roadmap/specializations/fde/fde-v1-m03/extra', fdeTarget('/fde-v1-m03')],
     // E5 (#496) retired the DSA Foundations path. Its overview and every
     // module answer 308 to the DSA topic of the Software Engineer section,
     // where its readings and Coding tasks now live.
@@ -264,7 +283,7 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
       assert.ok(!pattern.test(path), `the rewrite ${rewrite.source} → ${rewrite.destination} catches ${path}`);
     }
   }
-  const fallback = rewrites.find((rewrite) => rewrite.destination === '/index.html');
+  const fallback = rewrites.find((rewrite) => rewrite.destination === '/app.html');
   assert.ok(fallback, 'the SPA fallback rewrite exists');
   for (const path of ['/', '/coding', '/coding/javascript/js-double-numbers', '/assets', '/profile']) {
     assert.ok(rewriteSourcePattern(fallback.source).test(path), `the SPA fallback still serves ${path}`);
@@ -281,8 +300,10 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
   // System design is hidden (owner decision, 9 Oct 2026): its track page and
   // every address under it, old task pages included, get the one noindex
   // not-found page the build writes, before the general coding rewrites or the
-  // fallback (whose shell names the home page as canonical) can answer them.
+  // fallback can answer them.
   const firstMatch = (path: string) => rewrites.find((rewrite) => rewriteSourcePattern(rewrite.source).test(path));
+  assert.equal(firstMatch('/')?.destination, '/index.html', 'the homepage serves the document with its own canonical');
+  assert.equal(firstMatch('/today')?.destination, '/app.html', 'a private page serves the generic shell');
   for (const path of ['/coding/system-design', '/coding/system-design/', '/coding/system-design/sd-url-shortener', '/coding/system-design/dd-requests-per-second/extra']) {
     assert.equal(firstMatch(path)?.destination, '/coding/system-design/index.html', `${path} is answered by the hidden-track page`);
   }
@@ -303,9 +324,11 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
   assert.equal(worker['content-security-policy'], WORKER_CSP, 'the coding worker keeps its own policy');
   assert.equal(worker['x-content-type-options'], 'nosniff');
   assert.equal(worker['cross-origin-resource-policy'], 'same-origin');
-  // App assets and the sandbox frame's assets stay loadable across origins
-  // (the frame has an opaque origin, so its module script is a CORS load).
-  assert.equal(phaseHeaders(APP_CHUNK, 'main', phases)['access-control-allow-origin'], '*', 'app assets keep Access-Control-Allow-Origin');
+  // Vercel supplies wildcard CORS by default on static files. Ordinary app
+  // assets advertise only the canonical site. The opaque exercise frame
+  // loads its entire bundle separately from /sandbox/assets/.
+  assert.equal(phaseHeaders(APP_CHUNK, 'main', phases)['access-control-allow-origin'], 'https://devshark.app');
+  assert.equal(worker['access-control-allow-origin'], 'https://devshark.app');
   const sandbox = phaseHeaders(SANDBOX_CHUNK, 'main', phases);
   assert.equal(sandbox['access-control-allow-origin'], '*', 'the sandbox frame needs Access-Control-Allow-Origin on /sandbox/');
   assert.match(sandbox['content-security-policy'] ?? '', /script-src [^;]*'unsafe-eval'/, 'the sandbox compiles and runs code with new Function');

@@ -23,7 +23,7 @@ for (const theme of ['light', 'dark'] as const) {
   test(`${theme}: optional shelf and original case-bank links remain usable`, async ({ page }) => {
     await storeFakeSession(page);await localAuth(page);
     await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
-    await page.addInitScript(mode => {localStorage.setItem('devquiz:color-mode',mode);localStorage.setItem('devshark:consent',JSON.stringify({version:1,analytics:false,marketing:false,decidedAt:Date.now()}));},theme);
+    await page.addInitScript(mode => {localStorage.setItem('devquiz:color-mode',mode);localStorage.setItem('devshark:consent',JSON.stringify({version:2,analytics:false,marketing:false,decidedAt:Date.now()}));},theme);
     const writes: string[]=[];const starts: string[]=[];const errors: string[]=[];
     page.on('pageerror',error=>errors.push(error.message));
     await page.route('**/api/**',route=>{

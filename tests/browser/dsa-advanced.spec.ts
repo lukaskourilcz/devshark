@@ -12,7 +12,7 @@ for(const theme of ['light','dark'] as const){
   test(`${theme}: Advanced belongs to Software Engineer, reads before an attempt and keeps the Premium boundary`,async({page},info)=>{
     const user=userWith({devquiz_learner_profile_v2:profile});await storeFakeSession(page,user);await localAuth(page,{user:()=>user});
     await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});
-    await page.addInitScript(mode=>{localStorage.setItem('devquiz:color-mode',mode);localStorage.setItem('devshark:consent',JSON.stringify({version:1,analytics:false,marketing:false,decidedAt:Date.now()}));},theme);
+    await page.addInitScript(mode=>{localStorage.setItem('devquiz:color-mode',mode);localStorage.setItem('devshark:consent',JSON.stringify({version:2,analytics:false,marketing:false,decidedAt:Date.now()}));},theme);
     let premium=true;let attempts=0;const writes:string[]=[];const errors:string[]=[];
     page.on('pageerror',error=>errors.push(error.message));
     await page.route('**/api/**',route=>{

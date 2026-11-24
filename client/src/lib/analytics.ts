@@ -21,8 +21,9 @@
 // Control.
 
 import type { PostHog } from 'posthog-js';
+import { redactRoomCode } from './telemetryPath';
 import { readJSON, removeStored, writeJSON } from './storage';
-import { hasConsent, subscribeConsent } from './consent';
+import { getConsent, hasConsent, subscribeConsent } from './consent';
 
 /* ── campaign attribution (#239) ───────────────────────────────────────── *
  * Social posts link to devShark with `utm_source`, `utm_medium` and
@@ -73,7 +74,7 @@ const campaignQuery = (campaign: Campaign): string => {
 export function scrubUrl(href: string, keepCampaign = false): string {
   try {
     const url = new URL(href);
-    return `${url.origin}${url.pathname}${keepCampaign ? campaignQuery(campaignFrom(url.search)) : ''}`;
+    return `${url.origin}${redactRoomCode(url.pathname)}${keepCampaign ? campaignQuery(campaignFrom(url.search)) : ''}`;
   } catch {
     return '';
   }
@@ -130,7 +131,8 @@ let started = false;
 let active = false;
 // A later yes cannot revive work queued under a withdrawn choice.
 let consentGeneration = 0;
-let sdk: Promise<{ startPostHog: (key: string, apiHost: string) => PostHog } | null> | null = null;
+let vitalsConsentSince = Infinity;
+let sdk: Promise<typeof import('./posthogClient') | null> | null = null;
 /** The client, once `init` has run. posthog-js is a singleton: it is
  * initialised once per page and opted in and out after that. */
 let client: PostHog | null = null;
@@ -210,6 +212,7 @@ function ready(): Promise<PostHog | null> {
     if (!optedIn) {
       ph.opt_in_capturing({ captureEventName: false });
       optedIn = true;
+      module.startWebVitals(() => vitalsConsentSince, capture);
     }
     return ph;
   });
@@ -239,9 +242,10 @@ function sendIdentity(id: string, properties?: Record<string, unknown>): void {
 
 /** A yes: load PostHog, then send the pageview of the page the visitor is on
  * and the signed-in identity, which waited in memory. */
-function start(): void {
+function start(allowedSince: number): void {
   if (active) return;
   active = true;
+  vitalsConsentSince = allowedSince;
   keepFirstTouch(Date.now());
   if (!posthogKey()) return;
   void ready();
@@ -256,6 +260,7 @@ function stop(): void {
   const wasRunning = client !== null && optedIn;
   consentGeneration += 1;
   active = false;
+  vitalsConsentSince = Infinity;
   optedIn = false;
   viewSent = false;
   identifiedId = null;
@@ -274,10 +279,11 @@ export function initAnalytics(): void {
   if (started) return;
   started = true;
   captureCampaignFromUrl();
-  if (hasConsent('analytics')) start();
+  const existingChoice = getConsent();
+  if (existingChoice?.analytics) start(Math.max(0, existingChoice.decidedAt - performance.timeOrigin));
   else stop();
   subscribeConsent((record) => {
-    if (record?.analytics === true) start();
+    if (record?.analytics === true) start(performance.now());
     else stop();
   });
 }

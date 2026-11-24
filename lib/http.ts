@@ -193,6 +193,9 @@ function serviceKeyMissingInProduction(): boolean {
 
 const SERVICE_KEY_MISSING = 'SUPABASE_SERVICE_ROLE_KEY is not set (or is the anon key) in production: every handler that writes is disabled';
 let reportedMissingServiceKey = false;
+// The service client has fixed server credentials and no persisted session.
+// Query builders and request timing remain scoped to each operation.
+let serviceClient: SupabaseClient | undefined;
 
 /**
  * The service-role client, or null where the deploy has no Supabase or, in
@@ -201,10 +204,8 @@ let reportedMissingServiceKey = false;
  * instead of failing to load.
  */
 export function serviceClientOrNull(): SupabaseClient | null {
-  if (serviceKeyMissingInProduction()) return null;
-  return SUPABASE_URL && SERVICE_KEY
-    ? createClient(SUPABASE_URL, SERVICE_KEY, SERVER_SIDE_AUTH)
-    : null;
+  if (!SUPABASE_URL || !SERVICE_KEY || serviceKeyMissingInProduction()) return null;
+  return serviceClient ??= createClient(SUPABASE_URL, SERVICE_KEY, SERVER_SIDE_AUTH);
 }
 
 /**
@@ -375,7 +376,8 @@ export function lazyExport<M, K extends AsyncExport<M>>(load: () => Promise<M>, 
 
 /** Emit one structured single-line JSON log entry (Vercel ingests this natively). */
 export function logEvent(route: string, event: Record<string, unknown>) {
-  console.log(JSON.stringify({
+  const write = event.level === 'error' ? console.error : event.level === 'warn' ? console.warn : console.log;
+  write(JSON.stringify({
     ts: new Date().toISOString(),
     route,
     ...(requestContext.getStore()?.requestId ? { request_id: requestContext.getStore()!.requestId } : {}),

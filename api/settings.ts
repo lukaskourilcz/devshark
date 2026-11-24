@@ -12,6 +12,10 @@ import { sendPublicJson } from '../lib/public-json';
 // server-only fields (e.g. ownerEmail), unused tips and retired cosmetic prices.
 // The authenticated editor keeps the complete stored settings. DB failures use defaults.
 async function routeHandler(req: VercelRequest, res: VercelResponse) {
+  if (req.method === 'POST' && req.query.op === 'csp-report') {
+    const { handleCspReport } = await import('../lib/csp-reports');
+    return handleCspReport(req, res);
+  }
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
     return jsonError(res, 405, 'method_not_allowed', 'Method not allowed');

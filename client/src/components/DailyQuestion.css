@@ -3,6 +3,9 @@
    the shared QuestionShell (components/question/, UX audit U2), so the page is
    the --ss-width-task column that shell draws in, and the header, the
    question and the states share both edges. */
+/* The question and its loading card have different heights. Keep the breadcrumb
+   at the same top edge as they replace each other, even on a tall viewport. */
+#main-content .ss-route:has(> .ss-daily) { margin-block: 0 auto; }
 .ss-daily { max-width: var(--ss-width-question); }
 .ss-daily__card { display: flex; flex-direction: column; gap: 1rem; }
 .ss-daily__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
@@ -31,6 +34,11 @@
 
 .ss-daily > .ss-info-page__header h1 { font-size: var(--ss-type-page-title); line-height: 1.25; }
 .ss-daily > .ss-info-page__header { margin-bottom: 16px; }
-.ss-daily__context { max-width: 72ch; font-size: var(--ss-type-compact); line-height: 1.6; color: var(--color-text-secondary); }
-.ss-daily__context p { margin: 0 0 8px; font-size: inherit; }
-.ss-daily__context > div { white-space: pre-wrap; }
+.ss-daily .ss-daily__context { max-width: 72ch; font-size: var(--ss-type-compact); line-height: 1.4; }
+.ss-daily__introduction { white-space: pre-wrap; margin-bottom: 0.5rem; }
+@media (min-width: 900px) and (max-height: 760px) {
+  .ss-daily { gap: 8px; }
+  .ss-daily > .ss-info-page__header { padding-block: 0; gap: 4px; margin-bottom: 0; }
+  .ss-daily .ss-question__panel { gap: 8px; padding-block: 12px; }
+  .ss-daily .ss-question { --ss-answer-row-min: 44px; --ss-answer-gap: 4px; gap: 8px; }
+}

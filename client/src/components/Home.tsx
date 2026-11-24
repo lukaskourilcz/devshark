@@ -53,6 +53,7 @@ function TopicCard({
   // swimming 140px across the card (the CTAs in LandingKit do the same).
   const reduce = useMediaQuery('(prefers-reduced-motion: reduce)');
   const swim = hover && !reduce;
+  const border = `1px solid ${selected ? 'var(--brand-accent)' : 'var(--ss-card-line)'}`;
   return (
     <button
       type="button"
@@ -65,7 +66,7 @@ function TopicCard({
       style={{
         position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left',
         background: selected ? 'var(--brand-accent-soft)' : 'var(--ss-card-bg)',
-        border: `1px solid ${selected ? 'var(--brand-accent)' : 'var(--ss-card-line)'}`,
+        borderTop: border, borderLeft: border, borderRight: border,
         borderBottom: '2px solid var(--ss-card-edge)',
         boxShadow: hover
           ? `var(--shadow-med)${selected ? ', inset 0 0 0 1px var(--brand-accent)' : ''}`
@@ -171,7 +172,7 @@ export default function Home() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const subject = useActiveSubject();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const topicsRef = useRef<HTMLElement>(null);
   const topicsHeadingRef = useRef<HTMLHeadingElement>(null);
 
@@ -224,7 +225,7 @@ export default function Home() {
           <div style={{ display: 'flex', gap: '8px 20px', flexWrap: 'wrap', alignItems: 'center' }}>
             <FadeFinCta label={t('home.chooseTopic')} primary onClick={scrollToTopics} finLeft="-2px" finSize={58} accent={subject.accent} />
             <span className="ss-text-links" style={{ margin: 0 }}>
-              {isAuthenticated ? (
+              {isLoading ? null : isAuthenticated ? (
                 <Link to={learnTopicHref(selected?.id ?? '')}>{t('home.ctaLearn')}</Link>
               ) : (
                 <button type="button" aria-haspopup="dialog" onClick={() => openSignIn()}>

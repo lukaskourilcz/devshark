@@ -170,7 +170,9 @@ The twelve physical handlers multiplex related operations to stay within the dep
 | `/api/user/[op]` | Stats, category stats, XP, streaks, badges, streak freezes, the retired card packs (410), study advisor, auth events, deletion; the plan (`entitlement`), voucher redemption (`voucher`), Stripe checkout, portal, webhook and public cancellation; the coin wallet, shop, orders, invitations and merchandise fulfilment; coding progress and drafts; learning preference, path enrollment, progress and drafts; GitHub garden connection, repository, sync, disconnect |
 | `/api/admin/[op]` | Role-gated control-room operations, including manual Premium grants (`entitlements`) and Premium vouchers (`vouchers`) |
 | `/api/settings` | Public safe configuration |
-| `/api/health` | Database, service-role migration, and limiter readiness |
+| `/api/health` | Database, service-role migration, limiter and grading readiness |
+
+Health reports `dependencies.grading` as `ok` when this function runs a fixed QuickJS expression and the production React runner snapshot ID is present. A missing production ID gives `unconfigured`. A failed or late expression gives `unavailable`. HTTP 200/503 still follows the database checks. The scheduled live grading probe verifies actual submissions, the roadmap worker artifact and the React runner end to end.
 
 ## Database and operations
 

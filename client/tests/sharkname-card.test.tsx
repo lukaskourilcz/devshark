@@ -1,3 +1,4 @@
+import { trackAnnouncement } from './announcement';
 import { readFileSync } from 'node:fs';
 import { StrictMode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -117,11 +118,13 @@ describe('your sharkname', () => {
     const { handlePuts } = serve();
     renderCard();
     const input = await field();
+    const verifyAnnouncement = trackAnnouncement('p.ss-sr-only[aria-live]');
     fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
     const rolled = (input as HTMLInputElement).value;
     expect(rolled).not.toBe('thirsty-sharkie');
     expect(isValidHandle(rolled) && hasSharkWord(rolled)).toBe(true);
     expect(screen.getByText(`New sharkname: ${rolled}. Save to keep it.`)).toBeInTheDocument();
+    verifyAnnouncement(`New sharkname: ${rolled}. Save to keep it.`);
     expect(handlePuts).toEqual([]);
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));

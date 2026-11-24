@@ -10,6 +10,7 @@ import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Banner } from '@astryxdesign/core/Banner';
 import { Popover } from '@astryxdesign/core/Popover';
+import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
 import { AlertDialog } from '@astryxdesign/core/AlertDialog';
 import { SegmentedControl, SegmentedControlItem } from '@astryxdesign/core/SegmentedControl';
 import { AppToast } from './ui/AppToast';
@@ -48,6 +49,8 @@ import { useSettings, playCorrect, playComplete } from '../lib/settings';
 import { recordPerfectQuiz } from '../lib/achievements';
 import { announceVerifiedQuestXp, announceXpHeld, awardQuestXp, syncXpWithServer } from '../lib/xp';
 import { useGameConfig } from '../lib/gameConfig';
+import { useOnline } from './learn/useOnline';
+import { isOnline } from '../lib/routeRecovery';
 import { ReportDialog } from './ReportDialog';
 import { capture } from '../lib/analytics';
 import { reportError } from '../lib/sentry';
@@ -113,6 +116,8 @@ interface PersistedProgress {
   hinted?: string[];
   /** A submit was sent: the answers can no longer change. */
   locked?: boolean;
+  /** Explicit offline Submit, bound to the original account (null for a guest). */
+  retryFor?: string | null;
   start?: StartSpec;
 }
 
@@ -166,6 +171,7 @@ function restoredProgress(raw: unknown): RestoredProgress | null {
     expiresAt: mode !== 'standard' && typeof raw.expiresAt === 'number' && Number.isFinite(raw.expiresAt) ? raw.expiresAt : null,
     hinted: Array.isArray(raw.hinted) ? raw.hinted.filter((id): id is string => typeof id === 'string') : [],
     locked: raw.locked === true,
+    ...(raw.locked === true && (raw.retryFor === null || typeof raw.retryFor === 'string') ? { retryFor: raw.retryFor } : {}),
     start: savedStart(raw.start),
   };
 }
@@ -190,6 +196,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const [reviewFocusRequest, setReviewFocusRequest] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [navigatorOpen, setNavigatorOpen] = useState(false);
   const [stop, setStop] = useState<StopReason | null>(null);
   const [lastStart, setLastStart] = useState<StartSpec | null>(null);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
@@ -199,6 +206,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   // grade, so an answer changed after that could never be graded: a retry
   // after a lost response must send the same answers.
   const [answersLocked, setAnswersLocked] = useState(false);
+  const [retryFor, setRetryFor] = useState<string | null | undefined>(undefined);
+  const online = useOnline();
   // Setup preferences persist across visits, so a returning learner's
   // categories/count/difficulty are one tap from "Start quiz".
   const [questionCount, setQuestionCount] = useState<number>(() => {
@@ -351,6 +360,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       setHintedIds(saved.hinted ?? []);
       setExpiresAt(saved.expiresAt);
       setAnswersLocked(saved.locked === true);
+      setRetryFor(saved.retryFor);
       setLastStart(saved.start);
       setCurrentIndex(saved.currentIndex);
       // A quiz saved before practice mode was removed still says 'practice'
@@ -375,13 +385,14 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         ...(expiresAt !== null ? { expiresAt } : {}),
         hinted: hintedIds,
         ...(answersLocked ? { locked: true } : {}),
+        ...(retryFor !== undefined ? { retryFor } : {}),
         ...(lastStart ? { start: lastStart } : {}),
       };
       sessionStorage.setItem(PROGRESS_KEY, JSON.stringify(payload));
     } catch {
       // quota or private mode — ignore
     }
-  }, [state, sessionId, questions, answers, currentIndex, mode, expiresAt, hintedIds, answersLocked, lastStart]);
+  }, [state, sessionId, questions, answers, currentIndex, mode, expiresAt, hintedIds, answersLocked, lastStart, retryFor]);
 
   // Persist the setup preferences so the next visit starts pre-configured.
   useEffect(() => {
@@ -448,6 +459,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         setHintedIds([]);
         setExpiresAt(null);
         setAnswersLocked(false);
+        setRetryFor(undefined);
         setReviewPlan([]);
         setHardestAvailable(data.hardestAvailable === true);
         setCurrentIndex(0);
@@ -498,6 +510,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       setHintedIds([]);
       setExpiresAt(data.expiresAt ?? null);
       setAnswersLocked(false);
+      setRetryFor(undefined);
       setCurrentIndex(0);
       setMode('daily');
       setState('in-progress');
@@ -546,6 +559,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       setHintedIds([]);
       setExpiresAt(data.expiresAt ?? null);
       setAnswersLocked(false);
+      setRetryFor(undefined);
       setReviewPlan(data.reviewPlan ?? []);
       setInterleaved(Boolean(data.interleaved));
       setCurrentIndex(0);
@@ -677,12 +691,29 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (submittingRef.current) return;
-    if (accountEpoch() !== progressEpochRef.current) {
+    if (submittingRef.current || authLoading) return;
+    const actor = user?.id ?? null;
+    if (accountEpoch() !== progressEpochRef.current || (retryFor !== undefined && retryFor !== actor)) {
       clearProgress(sessionId);
       stopForAccountChange();
       return;
     }
+    // Ordinary online submissions let the grading server decide its deadline.
+    // An expired queued attempt must never be sent in the background.
+    if ((retryFor !== undefined || !isOnline()) && expiresAt !== null && Date.now() >= expiresAt) {
+      clearProgress(sessionId);
+      setRetryFor(undefined);
+      setStop('expired');
+      setState('error');
+      return;
+    }
+    if (!isOnline()) {
+      setAnswersLocked(true);
+      setRetryFor(actor);
+      setError(null);
+      return;
+    }
+    setRetryFor(undefined);
     submittingRef.current = true;
     const screen = screenRef.current;
     // The account the quiz was submitted under. Signed out elsewhere while
@@ -794,7 +825,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       if (screen !== screenRef.current) return;
       // An unavailable session or an answer set already graded with other
       // picks cannot be recovered by submitting again.
-      if (err instanceof ApiError && (err.code === 'invalid_session' || err.code === 'attempt_already_graded')) {
+      if (!isOnline() && accountEpoch() === epoch && !(err instanceof ApiError && err.status > 0)) {
+        setRetryFor(actor);
+      } else if (err instanceof ApiError && (err.code === 'invalid_session' || err.code === 'attempt_already_graded')) {
         clearProgress(sessionId);
         setStop(err.code === 'invalid_session' ? 'expired' : mode === 'daily' ? 'daily-done' : 'graded');
         setState('error');
@@ -807,7 +840,11 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         setSubmitting(false);
       }
     }
-  }, [answers, clearProgress, isAuthenticated, sessionId, stopForAccountChange, user, t, questions, mode, hintedIds]);
+  }, [answers, clearProgress, isAuthenticated, sessionId, stopForAccountChange, user, t, questions, mode, hintedIds, authLoading, retryFor, expiresAt]);
+
+  useEffect(() => {
+    if (state === 'in-progress' && online && !authLoading && retryFor !== undefined) void handleSubmit();
+  }, [state, online, authLoading, retryFor, handleSubmit]);
 
   const handleRestart = () => {
     fetchAbortRef.current?.abort();
@@ -821,6 +858,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     setAnswers({});
     setHintedIds([]);
     setAnswersLocked(false);
+    setRetryFor(undefined);
     setExpiresAt(null);
     setStop(null);
     setCurrentIndex(0);
@@ -832,6 +870,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   // In-app confirm dialog (window.confirm is blocked in many mobile WebViews
   // and bypasses i18n).
   const handleAbandon = () => setLeaveConfirmOpen(true);
+  useEffect(() => {
+    if (state !== 'in-progress' || submitting || answersLocked || (expiresAt !== null && sessionNow >= expiresAt)) setNavigatorOpen(false);
+  }, [state, submitting, answersLocked, expiresAt, sessionNow]);
   const confirmAbandon = () => {
     setLeaveConfirmOpen(false);
     handleRestart();
@@ -984,11 +1025,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     return (
       <div className="quiz-stop quiz-loading">
         <QuoteLoader quote={t('quiz.loadingQuote')} label={t('common.loading')} />
-        {slowLoad && (
-          <StatePanel inline body={t('quiz.loadingSlow')} live>
-            <Button variant="secondary" label={t('quiz.cancelLoading')} onClick={handleRestart} />
-          </StatePanel>
-        )}
+        <StatePanel inline className={slowLoad ? undefined : 'ss-sr-only'} body={slowLoad ? t('quiz.loadingSlow') : ''} live>
+          {slowLoad && <Button variant="secondary" label={t('quiz.cancelLoading')} onClick={handleRestart} />}
+        </StatePanel>
       </div>
     );
   }
@@ -1402,6 +1441,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         questionId={questionId}
         notice={
           <>
+            {retryFor !== undefined && <p role="status">{t('quiz.gradeQueued')}</p>}
             {error && (
               <Banner
                 status="error"
@@ -1451,7 +1491,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         actions={
           <>
             <QuestionActions
-              counter={counter}
+              counter={<button type="button" className="quiz-question-nav__trigger" aria-haspopup="dialog" aria-expanded={navigatorOpen}
+                disabled={submitting || answersLocked || expired} onClick={() => setNavigatorOpen(true)}>{counter}</button>}
               secondary={
                 <>
                   <QuestionIconButton
@@ -1517,6 +1558,24 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         onClose={() => setReportTarget(null)}
         onSubmit={handleReport}
       />
+      <Dialog isOpen={navigatorOpen && !expired && !answersLocked && !submitting}
+        onOpenChange={setNavigatorOpen} width="min(30rem, 94vw)" aria-label={t('quiz.questionNavigator')}>
+        <DialogHeader title={t('quiz.questionNavigator')} onOpenChange={setNavigatorOpen} />
+        <div className="quiz-question-nav">
+          {questions.map((one, index) => {
+            const answered = answers[one.id] !== undefined;
+            const current = index === currentIndex;
+            return <button key={one.id} type="button" aria-current={current ? 'step' : undefined}
+              aria-label={t(answered ? 'quiz.jumpAnswered' : 'quiz.jumpUnanswered', { n: index + 1 })}
+              onClick={() => {
+                setNavigatorOpen(false);
+                if (submittingRef.current || answersLocked || (expiresAt !== null && Date.now() >= expiresAt)) return;
+                setCurrentIndex(index);
+                setQuestionFocusRequest(request => request + 1);
+              }}>{index + 1}<span aria-hidden="true">{answered ? '✓' : '○'}</span></button>;
+          })}
+        </div>
+      </Dialog>
       <AlertDialog
         className="ss-alert-dialog"
         isOpen={leaveConfirmOpen}

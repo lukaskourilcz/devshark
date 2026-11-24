@@ -4,9 +4,10 @@ import { Routes, Route, Link, Navigate, useLocation, useNavigate, useNavigationT
 import { Button } from '@astryxdesign/core/Button';
 import { IconButton as AxIconButton } from '@astryxdesign/core/IconButton';
 import { AppToast } from './components/ui/AppToast';
-import { useIsMobile, useMediaQuery } from './lib/useMediaQuery';
+import { CODING_PHONE_QUERY, useIsMobile, useMediaQuery } from './lib/useMediaQuery';
 import './styles/app-shell.css';
 import './styles/route-transition.css';
+import { openQotdDate } from '../../shared/daily-question';
 import { MobileNavigationStatus } from './components/MobileNavigationStatus';
 import LoadingScreen from './components/LoadingScreen';
 import { SwimmingFin, Waterline } from './components/SharkFin';
@@ -145,6 +146,7 @@ const FdeModule = lazyPage(() => loadPaths().then((m) => ({ default: m.FdeModule
 function OldFdePathRedirect() {
   const { '*': rest = '' } = useParams();
   const { search, hash } = useLocation();
+  if (!FDE_SECTION_VISIBLE) return <Navigate to={'/learn/web-developer' + search + hash} replace />;
   const moduleId = rest.split('/')[0];
   return <Navigate to={`${FDE_PATH}${moduleId ? `/${encodeURIComponent(moduleId)}` : ''}${search}${hash}`} replace />;
 }
@@ -317,6 +319,15 @@ function App() {
   }, [signInResumeFailed]);
   const closeResumeFailed = useCallback(() => setResumeFailedOpen(false), []);
   const mobile = useIsMobile();
+  // A narrow desktop window or browser zoom keeps the keyboard workbench.
+  // On a touch phone, use the shorter viewport side in either orientation.
+  const codingPhone = useMediaQuery(CODING_PHONE_QUERY);
+  const codingNotice = (
+    <section>
+      <h1>{t('nav.coding')}</h1>
+      <p className="ss-info-card">{t('coding.phoneNotice')}</p>
+    </section>
+  );
   const analyticsIdentified = useRef(false);
 
   // Remember the learner's current rank on load so we don't re-celebrate a
@@ -511,6 +522,9 @@ function App() {
   // Learn or FDE coding phase, coding-03) carries the class ss-wide-page, and
   // the route box widens through CSS (.ss-route:has(.ss-wide-page)).
   const pageWidth = pageMaxWidth(location.pathname);
+  // The open daily question owns navigation as soon as its controls arrive.
+  // Keep the same space while its route chunk and anonymous read are pending.
+  const dailyLoadingActivity = openQotdDate(location.pathname) ? 'active' : undefined;
 
   // 1–5 shark fins on the footer ocean line, at random (non-overlapping) spots
   // each page load, each independently facing left or right so the school
@@ -817,8 +831,8 @@ function App() {
               fold: a move longer than the viewport, which scored 0.05 of CLS on
               a desktop and 0.15 on a phone, and 0.98 when the header settled in
               the same frame. */}
-          <Suspense fallback={<div style={ROUTE_BOX_STYLE}><RouteLoader /></div>}>
-            {!booted ? <div style={ROUTE_BOX_STYLE}><RouteLoader /></div> : <>
+          <Suspense fallback={<div style={ROUTE_BOX_STYLE} data-activity={dailyLoadingActivity}><RouteLoader /></div>}>
+            {!booted ? <div style={ROUTE_BOX_STYLE} data-activity={dailyLoadingActivity}><RouteLoader /></div> : <>
             <div
               key={boxKey}
               className="ss-route"
@@ -838,11 +852,11 @@ function App() {
                   <Route path="/collection" element={<Collection />} />
                   <Route path="/typing" element={<TypingRacer />} />
                   <Route path="/roadmap" element={<CareerRoadmap />} />
-                  <Route path="/coding" element={<CodingHome />} />
-                  <Route path="/coding/review" element={<CodingReviewScreen />} />
-                  <Route path="/coding/fullstack" element={<FullStackScreen />} />
-                  <Route path="/coding/:track" element={<CodingTrackScreen />} />
-                  <Route path="/coding/:track/:taskId" element={<CodingTaskScreen />} />
+                  <Route path="/coding" element={codingPhone ? codingNotice : <CodingHome />} />
+                  <Route path="/coding/review" element={codingPhone ? codingNotice : <CodingReviewScreen />} />
+                  <Route path="/coding/fullstack" element={codingPhone ? codingNotice : <FullStackScreen />} />
+                  <Route path="/coding/:track" element={codingPhone ? codingNotice : <CodingTrackScreen />} />
+                  <Route path="/coding/:track/:taskId" element={codingPhone ? codingNotice : <CodingTaskScreen />} />
                   {/* Learning paths are devShark-only, like /coding and /roadmap.
                       The FDE path lives in its Learn section (#489); its old
                       addresses redirect. E5 (#496) retired the DSA Foundations

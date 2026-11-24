@@ -1,0 +1,15 @@
+meta {
+  name: User Learning Path Reward no-auth
+  type: http
+  seq: 39
+}
+
+get {
+  url: {{baseUrl}}/api/user/learning-path-reward
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

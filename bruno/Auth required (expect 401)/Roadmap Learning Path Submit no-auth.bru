@@ -1,0 +1,19 @@
+meta {
+  name: Roadmap Learning Path Submit no-auth
+  type: http
+  seq: 72
+}
+
+post {
+  url: {{baseUrl}}/api/quiz/roadmap?resource=learning-path-submit
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

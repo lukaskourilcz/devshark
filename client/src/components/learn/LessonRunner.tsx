@@ -102,7 +102,7 @@ const HEART_PATH =
 
 const HeartShape = ({ color, style }: { color: string; style?: CSSProperties }) => (
   <svg width="30" height="30" viewBox="0 0 24 24" style={style} aria-hidden>
-    <path fill={color} d={HEART_PATH} />
+    <path fill={color} stroke={HEART_COLOR} strokeWidth="1.25" d={HEART_PATH} />
   </svg>
 );
 
@@ -118,7 +118,7 @@ function HeartMeter({ mistakes, max, hit, t }: { mistakes: number; max: number; 
       aria-label={t('roadmap.heartsLeft', { n: remaining, max })}
       style={{ position: 'relative', width: 30, height: 30, flexShrink: 0 }}
     >
-      <HeartShape color={`${HEART_COLOR}2e`} style={{ position: 'absolute', inset: 0 }} />
+      <HeartShape color="none" style={{ position: 'absolute', inset: 0 }} />
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: `${frac * 100}%`, overflow: 'hidden', transition: 'height 0.45s cubic-bezier(0.34, 1.3, 0.5, 1)' }}>
         <HeartShape color={HEART_COLOR} style={{ position: 'absolute', bottom: 0, left: 0 }} />
       </div>

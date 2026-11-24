@@ -1,0 +1,15 @@
+meta {
+  name: User Learning Path Enrollment no-auth
+  type: http
+  seq: 37
+}
+
+get {
+  url: {{baseUrl}}/api/user/learning-path-enrollment
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

@@ -21,7 +21,7 @@ export interface QuestionActionsProps {
    */
   secondary?: ReactNode;
   /** The current position, centred between the secondary and primary actions. */
-  counter?: string;
+  counter?: ReactNode;
   /**
    * When this turns true, focus moves to the primary: after grading, so the
    * next Tab or Enter continues (the Learn runner's Continue). The page

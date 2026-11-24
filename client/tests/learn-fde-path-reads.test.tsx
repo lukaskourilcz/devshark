@@ -20,6 +20,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import Roadmap from '../src/components/Roadmap';
+import { useFdeOpenInSettings } from '../src/components/learn/useFdePathSteps';
 import { DEFAULT_CONFIG, GAME_CONFIG_KEY, useGameConfig } from '../src/lib/gameConfig';
 import { server } from './mocks/server';
 
@@ -91,6 +92,16 @@ async function renderSection(client: QueryClient, section = 'web-developer') {
 const newClient = () => new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
 
 describe('the FDE path reads on a Learn section', () => {
+  it('observes missing settings without a query configuration error or a settings fetch', () => {
+    const client = newClient();
+    const errors = vi.spyOn(console, 'error');
+    function Observer() { return <span>{useFdeOpenInSettings()}</span>; }
+    render(<QueryClientProvider client={client}><Observer /></QueryClientProvider>);
+    expect(screen.getByText('unknown')).toBeVisible();
+    expect(client.getQueryState(GAME_CONFIG_KEY)?.fetchStatus).toBe('idle');
+    expect(errors.mock.calls.filter(args => String(args[0]).includes('No queryFn'))).toHaveLength(0);
+  });
+
   it('asks for no catalogue and no enrollments while the settings say the path is closed', async () => {
     const asked = answer();
     const client = newClient();

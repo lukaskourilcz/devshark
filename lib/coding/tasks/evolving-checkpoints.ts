@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util';
 import type {
   CodingTask,
   CallTest,
@@ -509,7 +510,7 @@ function fullstackCheckpoints(slug: string): Record<string, Checkpoint> {
     ),
     '6': ui(
       `Add a form with controlled 'Name' and '${amount}' inputs and a 'Create' button. Wire input changes and prevent navigation on submit; sending POST is the next step.`,
-      `render(<App/>);await settle();fireEvent.change(screen.getByLabelText('Name'),{target:{value:'New'}});fireEvent.change(screen.getByLabelText('${amount}',{exact:true}),{target:{value:'3'}});expect(screen.getByLabelText('Name').value).toBe('New');expect(screen.getByLabelText('${amount}',{exact:true}).value).toBe('3');fireEvent.click(screen.getByRole('button',{name:'Create',exact:true}));`,
+      `render(<App/>);await settle();fireEvent.change(screen.getByLabelText('Name'),{target:{value:'New'}});fireEvent.change(screen.getByLabelText('${amount}',{exact:true}),{target:{value:'3'}});expect(screen.getByLabelText('Name').value).toBe('New');expect(screen.getByLabelText('${amount}',{exact:true}).value).toBe('3');await require('@testing-library/react').act(async()=>{fireEvent.click(screen.getByRole('button',{name:'Create',exact:true}));});`,
     ),
     '8': ui(
       `Add client-side 'Search' and 'Available only' filters. Search uses trimmed case-insensitive name substrings; available means ${amount}>0. Combine filters without changing API records.`,
@@ -670,11 +671,27 @@ function orderStageChecks(out: CodingTask[], stages: readonly string[], header: 
     const next: CodingTask = { ...task };
     if (task.tests && samePrefix(original?.tests, task.tests)) {
       const fresh = task.tests.slice(original?.tests?.length ?? 0);
-      next.tests = [...fresh, ...(ordered?.tests ?? [])];
+      const earlier = ordered?.tests ?? [];
+      const introduced = fresh.filter((check, index) => {
+        // Different labels, display calls, edge flags, or expected values stay distinct.
+        const same = (other: CallTest) => other.call === check.call && isDeepStrictEqual(other, check);
+        if (!earlier.some(same)) return true;
+        // An explicit repeat in the same stage may exercise state in the submission.
+        return fresh.some((other, at) => at !== index && same(other));
+      });
+      next.tests = [...introduced, ...earlier];
     }
-    if (task.typeTests && samePrefix(original?.typeTests, task.typeTests)) {
-      const fresh = task.typeTests.slice(original?.typeTests?.length ?? 0);
-      next.typeTests = [...fresh, ...(ordered?.typeTests ?? [])];
+    if (task.typeTests && ordered?.typeTests && task.track === 'typescript' && ordered.track === 'typescript') {
+      const earlier = ordered.typeTests;
+      // Milestones are built from their own specification and can omit type
+      // guarantees introduced by their checkpoint. The Result, Store, Schema
+      // and fullstack TypeScript stages keep these earlier public signatures.
+      // A switch of language starts a different set of type contracts.
+      const introduced = task.typeTests.filter(check => !earlier.some(prior =>
+        check.label === prior.label && Boolean(check.rejects) === Boolean(prior.rejects)
+        && (check.code === prior.code || check.code === `{ ${prior.code} }` || prior.code === `{ ${check.code} }`),
+      ));
+      next.typeTests = [...introduced, ...earlier];
     }
     if (task.suite && task.suite.startsWith(header) && original?.suite && task.suite.startsWith(original.suite)) {
       const fresh = task.suite.slice(original.suite.length);

@@ -2,6 +2,16 @@ import type { KnownAnswer } from '../coding-known-answers';
 /** Authored faults, each must fail the actual grader. */
 export const DSA_ADVANCED_WRONG: readonly KnownAnswer[] = [
   {
+    id: 'alg-dsaa-heap-drain',
+    label: 'returns immutable results',
+    replace: [['return out;', 'return Object.freeze(out);']],
+  },
+  {
+    id: 'alg-dsaa-stable-record-sort',
+    label: 'freezes nontrivial sorted results',
+    replace: [['return out.concat(left.slice(i),right.slice(j));', 'return Object.freeze(out.concat(left.slice(i),right.slice(j)));']],
+  },
+  {
     "id": "alg-dsaa-heap-drain",
     "label": "ignores the smaller right child",
     "replace": [

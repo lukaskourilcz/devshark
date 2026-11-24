@@ -12,7 +12,7 @@
 import { randomBytes } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { VercelRequest, VercelResponse } from '../vercel-types.js';
-import { isRpcMissing, jsonError, createLogger, requireAuthSub, withTimeout } from '../http';
+import { isRpcMissing, jsonError, createLogger, requireAuthSub, withTimeout, unstorableText, UNSTORABLE_TEXT_MESSAGE } from '../http';
 import { deploymentSubjectIds } from '../product-scope';
 import { secureShuffle } from '../quiz-runtime';
 import { resolveTier, serverContentIndex, refuseLocked } from '../access';
@@ -53,6 +53,8 @@ const migrationRequired = (res: VercelResponse, migration = '027') =>
  * plan, as it does everywhere else. */
 const planOpens = (tier: Tier, passed: ReadonlySet<string>, taskId: string): boolean =>
   passed.has(taskId) || isOpenTo(tier, codingContent(taskId), serverContentIndex());
+
+const isPracticeId = (id: unknown): id is string => typeof id === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(id);
 
 /** Ids are opaque and generated here: a client never names a row. */
 const newId = (): string => randomBytes(24).toString('base64url').slice(0, 32);
@@ -164,9 +166,9 @@ export async function handleCodingBookmarks(req: VercelRequest, res: VercelRespo
       if (name.length === 0 || name.length > 60) {
         return jsonError(res, 400, 'bad_request', 'A collection needs a name of 1 to 60 characters');
       }
-      const collectionId = typeof body.collectionId === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(body.collectionId)
-        ? body.collectionId
-        : newId();
+      if (unstorableText(name)) return jsonError(res, 400, 'bad_request', UNSTORABLE_TEXT_MESSAGE);
+      if (body.collectionId !== undefined && !isPracticeId(body.collectionId)) return jsonError(res, 400, 'bad_request', 'A collection is required');
+      const collectionId = body.collectionId ?? newId();
       const position = Number.isInteger(body.position) ? Math.max(0, Math.min(999, Number(body.position))) : 0;
       const saved = await withTimeout(
         supabase.rpc('upsert_coding_collection', {
@@ -187,7 +189,7 @@ export async function handleCodingBookmarks(req: VercelRequest, res: VercelRespo
         return jsonError(res, 500, 'db_error', 'Could not save the collection');
       }
     } else if (body.op === 'collection-delete') {
-      if (typeof body.collectionId !== 'string') return jsonError(res, 400, 'bad_request', 'A collection is required');
+      if (!isPracticeId(body.collectionId)) return jsonError(res, 400, 'bad_request', 'A collection is required');
       const removed = await withTimeout(
         supabase.rpc('delete_coding_collection', { p_collection_id: body.collectionId, p_user_id: userId }),
       );
@@ -197,7 +199,7 @@ export async function handleCodingBookmarks(req: VercelRequest, res: VercelRespo
       }
     } else if (body.op === 'collection-item') {
       const taskId = body.taskId;
-      if (typeof body.collectionId !== 'string' || !isCodingTaskId(taskId)) {
+      if (!isPracticeId(body.collectionId) || !isCodingTaskId(taskId)) {
         return jsonError(res, 400, 'bad_request', 'A collection and a challenge are required');
       }
       if (body.present === true && await refuseSavedLock(res, supabase, userId, taskId)) return;
@@ -263,6 +265,7 @@ export async function handleCodingSkip(req: VercelRequest, res: VercelResponse, 
   if (!task) return jsonError(res, 400, 'bad_request', 'Unknown challenge');
   // coding_skips holds 280 characters (code points): cut by UTF-16 unit, an
   // emoji at the edge kept half of itself.
+  if (unstorableText(body.note)) return jsonError(res, 400, 'bad_request', UNSTORABLE_TEXT_MESSAGE);
   const note = typeof body.note === 'string' ? Array.from(body.note.trim()).slice(0, 280).join('') : '';
 
   const recorded = await withTimeout(
@@ -533,7 +536,7 @@ export async function handlePracticeSession(req: VercelRequest, res: VercelRespo
 
   if (req.method === 'PUT') {
     const body = (req.body || {}) as Partial<PracticeSessionAdvanceRequest>;
-    if (typeof body.sessionId !== 'string') return jsonError(res, 400, 'bad_request', 'A session is required');
+    if (!isPracticeId(body.sessionId)) return jsonError(res, 400, 'bad_request', 'A session is required');
     if (body.status !== undefined && body.status !== 'finished' && body.status !== 'abandoned' && body.status !== 'active') {
       return jsonError(res, 400, 'bad_request', 'A run starts as active, or ends as finished or abandoned');
     }

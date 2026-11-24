@@ -1,0 +1,15 @@
+meta {
+  name: Roadmap Coding Approaches no-auth
+  type: http
+  seq: 73
+}
+
+get {
+  url: {{baseUrl}}/api/quiz/roadmap?resource=coding-approaches&id=js-double-numbers
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Play Control no-auth
+  type: http
+  seq: 64
+}
+
+post {
+  url: {{baseUrl}}/api/play/control
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

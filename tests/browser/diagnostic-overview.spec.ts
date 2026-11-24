@@ -13,7 +13,7 @@ const competencies=path.competencies.map(one=>({competencyId:one.id,state:one.id
 for(const theme of ['light','dark'] as const) test(`${theme}: diagnostic report reflows, distinguishes unknown evidence and offers a keyboard link`,async({page},info)=>{
   await storeFakeSession(page);await localAuth(page);
   await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});
-  await page.addInitScript(theme=>{localStorage.setItem('devquiz:color-mode',theme);localStorage.setItem('devshark:consent',JSON.stringify({version:1,analytics:false,marketing:false,decidedAt:Date.now()}));},theme);
+  await page.addInitScript(theme=>{localStorage.setItem('devquiz:color-mode',theme);localStorage.setItem('devshark:consent',JSON.stringify({version:2,analytics:false,marketing:false,decidedAt:Date.now()}));},theme);
   await page.route('**/api/**',route=>{
     const url=new URL(route.request().url()),op=url.searchParams.get('op')??url.pathname.split('/').pop();
     if(url.searchParams.get('resource')==='learning-path-catalog')return route.fulfill({json:{versions:{fde:path.version},paths:[{manifest,availability:'available',inventory:inventoryFor('fde')}]}});

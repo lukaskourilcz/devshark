@@ -25,6 +25,7 @@ import type { AddressInfo } from 'node:net';
 type Row = Record<string, unknown>;
 let rows: Row[] = [];
 let failing = false;
+let readFailure = { status: 503, body: { code: 'PGRST000', message: 'synthetic outage' } };
 let held = false;
 const releases: (() => void)[] = [];
 const selects: string[] = [];
@@ -34,7 +35,7 @@ const server = createServer(async (req, res) => {
   assert.equal(url.pathname, '/rest/v1/question_edits', `only the override rows are read (${url.pathname})`);
   selects.push(url.searchParams.get('select') ?? '');
   const answer = failing
-    ? { status: 503, body: { code: 'PGRST000', message: 'synthetic outage' } }
+    ? readFailure
     : { status: 200, body: rows.map((row) => ({ ...row })) };
   if (held) await new Promise<void>((resolve) => releases.push(resolve));
   res.writeHead(answer.status, { 'content-type': 'application/json' });
@@ -50,11 +51,16 @@ const realNow = Date.now;
 let offset = 0;
 Date.now = () => realNow() + offset;
 const settle = () => new Promise((resolve) => setTimeout(resolve, 30));
+async function waitForHeldRead() {
+  for (let attempt = 0; !releases.length && attempt < 40; attempt++) await settle();
+  assert.equal(releases.length, 1, 'one question-edits read is waiting for its response');
+}
 /** Whether a promise settles within a short wait. */
 const settlesSoon = async (promise: Promise<unknown>) => Promise.race([promise.then(() => true), settle().then(() => false)]);
 
 try {
   const store = await import('../lib/questions-store');
+  const { curationCoverage } = await import('../lib/curation');
   const bank = await store.getEffectiveQuestionsById('webdev');
   const [hidden, edited] = [...bank.keys()];
   assert.ok(hidden && edited, 'the bank serves questions');
@@ -105,7 +111,7 @@ try {
   served = await store.getEffectiveQuestionsById('webdev');
   assert.equal(served.has(hidden), false, 'a failed read keeps the hidden question hidden');
   assert.equal(served.get(edited)?.explanation, 'Edited in the console.', 'and the edit served');
-  assert.equal(store.overridesAvailable(), true, 'the good set is still the one served');
+  assert.equal((await curationCoverage('webdev')).countable, true, 'the good set is still the one served');
 
   // Past the minute the request waits, and an outage serves the bank alone.
   offset += 60_000;
@@ -116,7 +122,7 @@ try {
   releases.splice(0).forEach((release) => release());
   served = await late;
   assert.equal(served.has(hidden), true, 'an outage past the minute serves the bank alone, as before');
-  assert.equal(store.overridesAvailable(), false, 'and says the override layer could not be read');
+  assert.equal((await curationCoverage('webdev')).countable, false, 'and says the override layer could not be read');
   failing = false;
   console.log('PASS questions cache: a failed read keeps a good set for up to a minute, then waits as before');
 
@@ -163,6 +169,38 @@ try {
   assert.equal(served.get(edited)?.explanation, 'Edited in the console.', 'nor replace the set read after it');
   assert.equal(selects.length, stuck + 1, 'and nothing else is read');
   console.log('PASS questions cache: a read cut off by a frozen instance is left behind, not waited for or cached');
+  // A second request can recover after an admin invalidation while the first
+  // one's override response is in flight. Its good cache cannot certify the
+  // first request's fallback bank.
+  readFailure = { status: 400, body: { code: 'PGRST204', message: 'synthetic override column unavailable' } };
+  store.invalidateQuestionsCache();
+  failing = true;
+  held = true;
+  const oldCoverage = curationCoverage('webdev');
+  await waitForHeldRead();
+  store.invalidateQuestionsCache();
+  failing = false;
+  held = false;
+  rows = [hide];
+  const freshCoverage = await curationCoverage('webdev');
+  assert.equal(freshCoverage.countable, true, 'the refreshed, complete bank can be counted');
+  releases.shift()!();
+  const fallbackCoverage = await oldCoverage;
+  assert.deepEqual(fallbackCoverage.sources[0], { id: 'question-bank', items: null, reviewed: null },
+    'a later successful read cannot certify a response that failed to read its overrides');
+  store.invalidateQuestionsCache();
+  held = true;
+  const olderGood = curationCoverage('webdev');
+  await waitForHeldRead();
+  store.invalidateQuestionsCache();
+  held = false;
+  failing = true;
+  const latestFailed = await curationCoverage('webdev');
+  assert.equal(latestFailed.countable, false, 'the newest outage leaves its own report unknown');
+  releases.shift()!();
+  assert.deepEqual(await olderGood, freshCoverage, 'the older complete response retains its own verified counts');
+  console.log('PASS curation coverage: availability follows the same override snapshot as the questions');
+
 } finally {
   releases.splice(0).forEach((release) => release());
   Date.now = realNow;

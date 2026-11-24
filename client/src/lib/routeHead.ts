@@ -3,7 +3,7 @@
 // every navigation.
 import type { TranslationKey } from '../i18n/translations';
 import { CURRENT_PRODUCT } from './products';
-import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, NOINDEX_PATHS, PUBLIC_ORIGIN, isPrivacyCopyKey, metaDescription, premiumSchema, prerenderedAppPage, publicPage, topicFromPath, topicSchema } from './publicMetadata';
+import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, isNoindexPath, publicAppTitle, siteSchema, PUBLIC_ORIGIN, isPrivacyCopyKey, metaDescription, premiumSchema, prerenderedAppPage, publicPage, topicFromPath, topicSchema } from './publicMetadata';
 
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
@@ -32,8 +32,6 @@ const ROUTE_TITLE_KEYS: Record<string, TranslationKey> = {
   '/today': 'title.today',
   '/collection': 'title.collection',
   '/typing': 'title.typing',
-  '/coding': 'title.coding',
-  '/coding/review': 'title.coding',
   '/settings/github': 'title.github',
   '/shop': 'title.shop',
   '/play': 'title.play',
@@ -66,15 +64,18 @@ const UNKNOWN_TOPIC_PATH = /^\/topics\/[^/]+$/;
  * /quiz/ as /quiz, so the head must read it the same way. */
 const trimSlash = (pathname: string) => pathname.replace(/(.)\/$/, '$1');
 
+const codingCanonical = (path: string) => path === '/coding/review' ? '/coding' : path;
+
 export function routeTitle(rawPath: string, t: Translate): string {
   const pathname = trimSlash(rawPath);
   const publicTopic = topicFromPath(pathname);
   if (publicTopic) return `${publicTopic.topic.title} · ${CURRENT_PRODUCT.brand}`;
   if (pathname === '/') return CURRENT_PRODUCT.title;
+  if (codingCanonical(pathname) === '/coding') return t('coding.title') + ' · ' + CURRENT_PRODUCT.brand;
   const sectionPage = publicPage(pathname);
   if (sectionPage) return t(sectionPage.titleKey);
   const titleKey = ROUTE_TITLE_KEYS[pathname];
-  if (titleKey) return t(titleKey);
+  if (titleKey) return publicAppTitle(pathname, t(titleKey), CURRENT_PRODUCT.brand);
   // A Learn section (/learn/web-developer, …) carries the Learn title.
   if (/^\/learn\/[^/]+\/?$/.test(pathname)) return t('title.learn');
   const path = PATH_TITLE_NAMES.find(([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`));
@@ -103,6 +104,7 @@ const SHARED_META = [
   'meta[name="twitter:title"]',
   'meta[name="twitter:description"]',
   'meta[name="twitter:image"]',
+  'meta[name="twitter:image:alt"]',
 ] as const;
 
 export interface ShareHead {
@@ -121,7 +123,7 @@ export function readShareHead(): ShareHead | null {
   const path = trimSlash(window.location.pathname);
   if (!SHARE_PAGE_PATH.test(path)) return null;
   const url = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
-  if (url !== PUBLIC_ORIGIN + path) return null;
+  if (url !== PUBLIC_ORIGIN + codingCanonical(path)) return null;
   const content = SHARED_META.map((selector) => document.querySelector(selector)?.getAttribute('content') ?? '');
   return { path, title: document.title, content, url };
 }
@@ -147,7 +149,7 @@ export function applyRouteHead(rawPath: string, t: Translate, shareHead: ShareHe
     setMeta('meta[name="twitter:description"]', value);
   };
   const clear = () => document
-    .querySelectorAll('link[rel="canonical"], link[hreflang], #public-schema, meta[property="og:url"], meta[name="robots"]:not([data-not-found])')
+    .querySelectorAll('link[rel="canonical"], link[hreflang], #public-schema, #site-schema, meta[property="og:url"], meta[name="robots"]:not([data-not-found])')
     .forEach((node) => node.remove());
 
   if (shareHead && shareHead.path === pathname) {
@@ -172,7 +174,7 @@ export function applyRouteHead(rawPath: string, t: Translate, shareHead: ShareHe
     ? publicTopic.topic.description
     : page ? t(page.descriptionKey)
     : appPage && !privacyCopy ? appPage.descriptionKeys.map((key) => t(key as TranslationKey)).join(' ')
-    : CURRENT_PRODUCT.description);
+    : codingCanonical(pathname) === '/coding' ? t('coding.subtitle') : CURRENT_PRODUCT.description);
   const image = pathname === '/daily' ? PUBLIC_ORIGIN + DAILY_SHARE_IMAGE_PATH : BRAND_SHARE_IMAGE;
   const imageAlt = pathname === '/daily' ? document.title : BRAND_SHARE_IMAGE_ALT;
   setDescription(description);
@@ -181,6 +183,7 @@ export function applyRouteHead(rawPath: string, t: Translate, shareHead: ShareHe
   setMeta('meta[property="og:image:alt"]', imageAlt);
   setMeta('meta[name="twitter:title"]', document.title);
   setMeta('meta[name="twitter:image"]', image);
+  setMeta('meta[name="twitter:image:alt"]', imageAlt);
   if (appPage && privacyCopy) {
     // The privacy policy's words ship with the legal pages' chunk, not with
     // the shell (translations.privacy.ts). The page loads them anyway; the
@@ -192,9 +195,9 @@ export function applyRouteHead(rawPath: string, t: Translate, shareHead: ShareHe
     }, () => undefined);
   }
   clear();
-  const canonical = publicTopic
-    ? PUBLIC_ORIGIN + pathname
-    : pathname === '/' ? PUBLIC_ORIGIN + '/' : page ? PUBLIC_ORIGIN + page.path : appPage ? PUBLIC_ORIGIN + appPage.path : null;
+  const canonicalPath = (publicTopic || pathname === '/' || codingCanonical(pathname) === '/coding')
+    ? codingCanonical(pathname) : page?.path ?? appPage?.path;
+  const canonical = canonicalPath ? PUBLIC_ORIGIN + canonicalPath : null;
   // The build writes og:url beside every canonical it writes (vite.config.ts),
   // so the head a page arrived with and the one the app writes agree.
   if (canonical) {
@@ -202,13 +205,19 @@ export function applyRouteHead(rawPath: string, t: Translate, shareHead: ShareHe
     const ogUrl = document.createElement('meta'); ogUrl.setAttribute('property', 'og:url'); ogUrl.content = canonical;
     document.head.append(link, ogUrl);
   }
-  if (publicTopic && canonical) {
+  if (pathname === '/') {
+    const schema = document.createElement('script');
+    schema.id = 'site-schema';
+    schema.type = 'application/ld+json';
+    schema.textContent = JSON.stringify(siteSchema(CURRENT_PRODUCT.brand));
+    document.head.append(schema);
+  } else if (publicTopic && canonical) {
     const schema = document.createElement('script'); schema.id = 'public-schema'; schema.type = 'application/ld+json';
     schema.textContent = JSON.stringify(topicSchema(document.title, description, canonical)); document.head.append(schema);
   } else if (page?.schema === 'premium' && canonical) {
     const schema = document.createElement('script'); schema.id = 'public-schema'; schema.type = 'application/ld+json';
     schema.textContent = JSON.stringify(premiumSchema(document.title, description, canonical)); document.head.append(schema);
-  } else if (UNKNOWN_TOPIC_PATH.test(pathname) || NOINDEX_PATHS.includes(pathname)) {
+  } else if (UNKNOWN_TOPIC_PATH.test(pathname) || isNoindexPath(pathname)) {
     const robots = document.createElement('meta'); robots.name = 'robots'; robots.content = 'noindex'; document.head.append(robots);
   }
 }

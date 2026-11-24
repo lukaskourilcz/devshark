@@ -1,3 +1,4 @@
+import { trackAnnouncement } from './announcement';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -168,8 +169,10 @@ describe('Invite a friend', () => {
     Object.defineProperty(navigator, 'clipboard', { value: { writeText: vi.fn().mockResolvedValue(undefined) }, configurable: true });
     render(<ReferralInvite signedIn />, { wrapper });
     await screen.findByLabelText('Your invite link');
+    const verifyAnnouncement = trackAnnouncement('.rw-invite__status');
     fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
     const line = await screen.findByText('Link copied.');
+    verifyAnnouncement('Link copied.');
     const heard: string[] = [];
     const watch = new MutationObserver(() => heard.push(line.textContent ?? ''));
     watch.observe(line, { childList: true, characterData: true, subtree: true });

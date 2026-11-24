@@ -3,10 +3,10 @@
 // the question, holds the answer sealed in the session and grades it. The
 // check is practice: `api/quiz/submit.ts` records nothing for a `qotd`
 // session, signed in or not.
-import { queryOptions } from '@tanstack/react-query';
+import { queryOptions, type QueryClient } from '@tanstack/react-query';
 import { apiFetch, ApiError } from './api';
 import type { QuizResult } from '../types/quiz';
-import { QOTD_BEFORE_START, QOTD_NOT_YET, type QotdResponse } from '../../../shared/daily-question';
+import { QOTD_BEFORE_START, QOTD_NOT_YET, openQotdDate, type QotdResponse } from '../../../shared/daily-question';
 
 export const dailyQuestionQuery = (date: string | 'today') =>
   queryOptions({
@@ -18,8 +18,20 @@ export const dailyQuestionQuery = (date: string | 'today') =>
     // The session inside expires after an hour; a stale question is fetched
     // again rather than graded with a dead session.
     staleTime: 10 * 60_000,
+    // A new sealed session remounts the active question and discards its pick or
+    // verdict. Retry a missing question on reconnect; an expired check already
+    // offers an explicit reload, and a date change has its own query key.
+    refetchOnReconnect: (query) => query.state.data === undefined,
     retry: (count, error) => !(error instanceof ApiError && error.status >= 400 && error.status < 500) && count < 1,
   });
+
+/** Start the same sealed read as the page while its UI chunks are in flight. */
+export async function prefetchDailyLanding(client: QueryClient, date: string): Promise<void> {
+  // The location or UTC day may have changed while this module was loading.
+  if (navigator.onLine && openQotdDate(window.location.pathname) === date) {
+    await client.prefetchQuery(dailyQuestionQuery(date));
+  }
+}
 
 export type QotdResult = QuizResult['results'][number];
 

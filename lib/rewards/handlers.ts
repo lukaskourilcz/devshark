@@ -16,13 +16,14 @@
  * calls the balance coins; the code keeps the `token` spelling. What earns
  * coins lives in `./coins.ts` (step D8, migration 041). */
 
-import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { VercelRequest, VercelResponse } from '../vercel-types.js';
-import { isRpcMissing, jsonError, createLogger, requireAuthResult, requireAuthSub, withTimeout } from '../http';
+import { isRpcMissing, jsonError, createLogger, requireAuthResult, requireAuthSub, withTimeout, unstorableText } from '../http';
+import { rawBodyCandidates } from '../raw-body';
 import { getGameSettings } from '../settings-store';
 import { adminSubject, requireAdmin } from '../admin-auth';
-import { enforceRateLimit, RATE_LIMITS } from '../rate-limit';
+import { claimPaymentDelivery, enforceRateLimit, RATE_LIMITS } from '../rate-limit';
 import { deploymentSubjectIds } from '../product-scope';
 import { refuseLocked } from '../access';
 import { isScopeSubject } from '../../shared/subject-catalog';
@@ -755,15 +756,13 @@ export async function handlePaymentWebhook(req: VercelRequest, res: VercelRespon
   if (!supabase) return jsonError(res, 503, 'not_configured', 'Account storage is not configured');
 
   const signature = req.headers['x-payment-signature'];
-  const raw = typeof req.body === 'string' ? req.body : JSON.stringify(req.body ?? {});
-  const expected = createHmac('sha256', secret).update(raw).digest('hex');
-  // Compared as bytes: a header of 64 non-ASCII characters has the length of
-  // the hex digest in characters but not in bytes, and timingSafeEqual throws
-  // on buffers of different lengths, which answered 500.
   const given = Buffer.from(typeof signature === 'string' ? signature : '', 'utf8');
-  const wanted = Buffer.from(expected, 'utf8');
-  const ok = given.length === wanted.length && timingSafeEqual(given, wanted);
-  if (!ok) {
+  const candidates = given.length === 64 ? await rawBodyCandidates(req) : [];
+  const raw = candidates.find((candidate) => {
+    const expected = createHmac('sha256', secret).update(candidate).digest('hex');
+    return timingSafeEqual(given, Buffer.from(expected, 'ascii'));
+  });
+  if (raw === undefined) {
     logEvent({ status: 401, kind: 'webhook_rejected' });
     return jsonError(res, 401, 'bad_signature', 'Signature did not verify');
   }
@@ -771,13 +770,11 @@ export async function handlePaymentWebhook(req: VercelRequest, res: VercelRespon
   // A signed body that is not a JSON object (text, `null`, an array) is a
   // malformed event: 400, never the TypeError or SyntaxError a 500 would
   // send back for the provider to retry forever.
-  let parsed: unknown = req.body ?? {};
-  if (typeof parsed === 'string') {
-    try {
-      parsed = JSON.parse(parsed || '{}');
-    } catch {
-      parsed = null;
-    }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    parsed = null;
   }
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     return jsonError(res, 400, 'bad_request', 'The event is not a JSON object');
@@ -787,10 +784,32 @@ export async function handlePaymentWebhook(req: VercelRequest, res: VercelRespon
   // Cut by code points so an emoji is not split, and refuse U+0000, which a
   // Postgres text column cannot hold.
   const providerRef = typeof event.providerRef === 'string' ? Array.from(event.providerRef).slice(0, 200).join('') : '';
-  if (!/^[A-Za-z0-9_-]{16,64}$/.test(orderId) || providerRef.length === 0 || providerRef.includes('\u0000')) {
+  if (!/^[A-Za-z0-9_-]{16,64}$/.test(orderId) || providerRef.length === 0 || unstorableText(providerRef)) {
     return jsonError(res, 400, 'bad_request', 'The event names no order');
   }
 
+  const finish = await claimPaymentDelivery(createHash('sha256').update(raw).digest('hex'));
+  if (!finish) return res.json({ applied: false, duplicate: true });
+  let completed = false;
+  async function accepted(applied: boolean) {
+    await finish!(true);
+    completed = true;
+    return res.json({ applied });
+  }
+  try {
+    return await applyPaymentDelivery(res, supabase, provider, event, orderId, providerRef, accepted);
+  } finally {
+    if (!completed) {
+      // A failed request remains retryable when the short lease expires even if Redis is down.
+      await finish(false).catch(() => logEvent({ level: 'warn', kind: 'payment_claim_release_failed' }));
+    }
+  }
+}
+
+async function applyPaymentDelivery(
+  res: VercelResponse, supabase: SupabaseClient, provider: string, event: Record<string, unknown>,
+  orderId: string, providerRef: string, accepted: (applied: boolean) => Promise<unknown>,
+) {
   // The order's own row decides what the event may do. The event is signed,
   // so it is genuine; it is not, on its own, right about the amount or about
   // which checkout it describes.
@@ -832,28 +851,29 @@ export async function handlePaymentWebhook(req: VercelRequest, res: VercelRespon
       return jsonError(res, 500, 'db_error', 'Could not record the payment');
     }
     logEvent({ status: 200, kind: 'webhook_paid', applied: paid.data === true });
-    return res.json({ applied: paid.data === true });
+    return accepted(paid.data === true);
   }
 
   if (decision.action === 'cancel') {
     const cancelled = await withTimeout(
       supabase.rpc('cancel_merch_order', { p_order_id: orderId, p_user_id: null, p_subject: deploymentSubjectIds()[0] }),
     );
-    if (cancelled.error && !isRpcMissing(cancelled.error)) {
+    if (cancelled.error) {
+      if (isRpcMissing(cancelled.error)) return migrationRequired(res);
       const message = cancelled.error.message ?? '';
       if (!/order_not_cancellable|unknown_order/i.test(message)) {
         return jsonError(res, 500, 'db_error', 'Could not reconcile the payment');
       }
     }
     logEvent({ status: 200, kind: 'webhook_reconciled', type: String(event.type) });
-    return res.json({ applied: true });
+    return accepted(true);
   }
 
   // An event we do not act on is still a delivered event: 200 so the provider
   // stops retrying, and a log line so it is visible. A stale negative event
   // about an order that has since been paid lands here too.
   logEvent({ status: 200, kind: 'webhook_ignored', type: String(event.type ?? 'unknown'), reason: decision.reason });
-  return res.json({ applied: false });
+  return accepted(false);
 }
 
 /* ── GET/POST ?op=fulfilment (admin) ───────────────────────────────────── */
@@ -976,12 +996,12 @@ export async function handleFulfilment(req: VercelRequest, res: VercelResponse, 
     if (body.op === 'stock') {
       const item = isMerchSku(body.sku) ? merchItem(body.sku) : undefined;
       const variant = typeof body.variant === 'string' ? body.variant : '';
-      const onHand = Number(body.onHand);
+      const onHand = body.onHand;
       if (!item) return jsonError(res, 400, 'bad_request', 'Unknown item');
       if (item.variants.length > 0 ? !item.variants.includes(variant) : variant !== '') {
         return jsonError(res, 400, 'bad_request', 'Unknown size for that item');
       }
-      if (!Number.isInteger(onHand) || onHand < 0 || onHand > 100_000) {
+      if (typeof onHand !== 'number' || !Number.isInteger(onHand) || onHand < 0 || onHand > 100_000) {
         return jsonError(res, 400, 'bad_request', 'The cap must be a whole number from 0 to 100000');
       }
       const set = await withTimeout(
@@ -1028,7 +1048,7 @@ export async function handleFulfilment(req: VercelRequest, res: VercelResponse, 
     const carrier = fulfilmentText(body.carrier, 60);
     const tracking = fulfilmentText(body.trackingRef, 120);
     // Postgres text cannot hold U+0000: refused here rather than raised there.
-    if (carrier?.includes('\u0000') || tracking?.includes('\u0000')) {
+    if (unstorableText(carrier) || unstorableText(tracking)) {
       return jsonError(res, 400, 'bad_request', 'The carrier and tracking reference cannot contain a null character');
     }
     const advanced = await withTimeout(

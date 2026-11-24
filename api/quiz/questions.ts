@@ -9,7 +9,7 @@ import {
 } from '../../lib/quiz-runtime';
 import { encodeSession, quizSessionExpiresAt } from '../../lib/quiz-tokens';
 import { AuthError, confirmedEmail } from '../../lib/auth';
-import { createServiceClient, jsonError, createLogger, withTimeout, withRequestContext, tryAuthOnce } from '../../lib/http';
+import { createServiceClient, jsonError, createLogger, queryInt, withTimeout, withRequestContext, tryAuthOnce } from '../../lib/http';
 import { getEffectiveQuestions } from '../../lib/questions-store';
 import { getGameSettings } from '../../lib/settings-store';
 import { enforceClassRateLimit, RATE_LIMITS } from '../../lib/rate-limit';
@@ -66,13 +66,13 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     return sendPublicJson(req, res, { coverage, claim: coverageClaim(coverage) });
   }
 
+  const countParam = queryInt(req, 'count', { min: 0, max: Number.MAX_SAFE_INTEGER });
+  if (countParam === null) return jsonError(res, 400, 'bad_request', 'Invalid count');
   const settings = await getGameSettings();
   const ownerEmail = settings.ownerEmail;
-
-  const countParam = parseInt(req.query.count as string, 10);
-  const count = Number.isFinite(countParam)
-    ? Math.min(Math.max(countParam, 1), settings.quiz.maxCount)
-    : settings.quiz.defaultCount;
+  const count = countParam === undefined
+    ? settings.quiz.defaultCount
+    : Math.min(Math.max(countParam, 1), settings.quiz.maxCount);
 
   const difficultyRaw = (req.query.difficulty as string) || settings.quiz.defaultDifficulty;
   if (!ALL_DIFFICULTIES.includes(difficultyRaw as DifficultyMode)) {

@@ -1,0 +1,15 @@
+meta {
+  name: User Coding Draft no-auth
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{baseUrl}}/api/user/coding-draft
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

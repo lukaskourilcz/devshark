@@ -1,3 +1,4 @@
+import { checkDialogEscape } from './dialog-keyboard';
 import { test, expect, type Page } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
 import { publicLesson } from '../../lib/learn-lessons';
@@ -12,7 +13,7 @@ async function prepare(page: Page, theme: 'light' | 'dark') {
   await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
   await page.addInitScript(theme => {
     localStorage.setItem('devquiz:color-mode', theme);
-    localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+    localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
   }, theme);
 }
 
@@ -235,6 +236,7 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(next).toBeFocused();
     const counter = card.getByText('Question 1 of 2', { exact: true });
     const report = card.getByRole('button', { name: 'Flag this question as wrong or misleading' });
+    await checkDialogEscape(page, report, page.getByRole('dialog'));
     await expect(card.locator('.ss-question-header__row').first().getByRole('button', { name: 'Exit lesson' })).toBeVisible();
     const [cardBox, reportBox, counterBox, nextBox] = await Promise.all([
       card.boundingBox(), report.boundingBox(), counter.boundingBox(), next.boundingBox(),
@@ -268,14 +270,14 @@ const quizAuditGrade = {
   ],
 };
 
-async function quizAuditFixture(page: Page, signedIn = false) {
+async function quizAuditFixture(page: Page, signedIn = false, questions = quizAuditQuestions) {
   let grades = 0;
   let writes = 0;
   await page.addInitScript(() => localStorage.setItem('devquiz:quiz-setup:v1', JSON.stringify({ count: 10, difficulty: 'mixed', categories: ['javascript'] })));
   await page.route('**/api/**', route => {
     const url = new URL(route.request().url());
     if (url.pathname === '/api/quiz/questions' || url.pathname === '/api/quiz/daily') {
-      return route.fulfill({ json: { sessionId: 'quiz-audit-session-unique-attempt-key', expiresAt: Date.now() + 3_600_000, questions: quizAuditQuestions } });
+      return route.fulfill({ json: { sessionId: 'quiz-audit-session-unique-attempt-key', expiresAt: Date.now() + 3_600_000, questions } });
     }
     if (url.pathname === '/api/quiz/submit') {
       grades++;
@@ -291,6 +293,52 @@ async function quizAuditFixture(page: Page, signedIn = false) {
     return route.fulfill({ status: 503, json: { error: { code: 'offline', message: 'local Quiz fixture' } } });
   });
   return { grades: () => grades, writes: () => writes };
+}
+
+for (const count of [1, 6, 50]) {
+  test(`Quiz navigator preserves answers and moves keyboard focus across ${count} questions`, async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await prepare(page, count === 50 ? 'dark' : 'light');
+    const questions = Array.from({ length: count }, (_, index) => ({
+      ...quizAuditQuestions[0], id: `navigator-${index + 1}`, question: `Navigator question ${index + 1}? ${'Keep the full question visible. '.repeat(count === 50 ? 10 : 1)}`,
+    }));
+    const activity = await quizAuditFixture(page, false, questions);
+    await page.goto('/quiz');
+    await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
+    await page.getByRole('button', { name: 'Show hint', exact: true }).click();
+    await page.getByRole('button', { name: 'Close hint', exact: true }).click();
+    await page.getByRole('radio', { name: 'object', exact: true }).click();
+    const counter = (number: number) => page.getByRole('button', { name: `Question ${number} of ${count}`, exact: true });
+    const overview = page.getByRole('dialog', { name: 'Choose a question' });
+    await counter(1).focus();
+    await page.keyboard.press('Enter');
+    const first = overview.getByRole('button', { name: 'Question 1, answered', exact: true });
+    await expect(first).toHaveAttribute('aria-current', 'step');
+    const positions = overview.locator('.quiz-question-nav button');
+    await expect(positions).toHaveCount(count);
+    // The dialog scales during its entrance. Measure the targets when it settles.
+    await expect.poll(() => positions.evaluateAll(buttons => buttons.flatMap(button => {
+      const { width, height, left, right } = button.getBoundingClientRect();
+      return width >= 44 && height >= 44 && left >= 0 && right <= innerWidth
+        ? [] : [{ label: button.getAttribute('aria-label'), width, height, left, right }];
+    }))).toEqual([]);
+    if (count > 1) await expect(overview.getByRole('button', { name: `Question ${count}, unanswered` })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(overview).toHaveCount(0);
+    await expect(counter(1)).toBeFocused();
+    await counter(1).click();
+    await overview.getByRole('button', { name: `Question ${count}, ${count === 1 ? 'answered' : 'unanswered'}`, exact: true }).click();
+    await expect(page.locator(`#question-text-navigator-${count}`)).toBeFocused();
+    await expect(overview).toHaveCount(0);
+    if (count > 1) {
+      await counter(count).click();
+      await first.click();
+    }
+    await expect(page.getByRole('radio', { name: 'object', exact: true })).toBeChecked();
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('devquiz:in-progress')!).hinted)).toEqual(['navigator-1']);
+    expect(activity.grades()).toBe(0);
+    expect(activity.writes()).toBe(0);
+  });
 }
 
 async function finishQuizAudit(page: Page) {
@@ -449,4 +497,57 @@ test('Quiz can cancel a slow question load and gives focus back to settings', as
   release!();
   await expect(page.getByRole('button', { name: 'Start quiz', exact: true })).toBeVisible();
   await expect(page.getByText('What does typeof null return?', { exact: true })).toHaveCount(0);
+});
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`Today renders a long authored lesson title once per card and shares its roadmap read in ${theme}`, async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await prepare(page, theme);
+    const title = 'Structure and semantics for accessible navigation across the entire document';
+    let structureReads = 0;
+    await page.route('**/api/**', route => {
+      const url = new URL(route.request().url());
+      const resource = url.searchParams.get('resource');
+      if (url.pathname === '/api/quiz/roadmap' && !resource) {
+        structureReads++;
+        return route.fulfill({ json: { topics: ['html'], structure: { html: { levels: [{ level: 1, title, difficulty: 1, questionCount: 8 }], checkpoints: [] } } } });
+      }
+      if (resource === 'progress') return route.fulfill({ json: { data: {}, extra: { unlocked: [] } } });
+      if (resource === 'learning-path-catalog') return route.fulfill({ json: { versions: {}, paths: [] } });
+      return route.fulfill({ status: 404, json: { error: { code: 'not_found', message: 'No fixture for this guest read' } } });
+    });
+    await page.goto('/today');
+    const card = page.locator('a.today-card[href="/learn?topic=html&level=1"]');
+    await expect(card.locator('.today-card__meta')).toHaveText(title);
+    await expect(card.locator('.today-card__context')).toHaveText('HTML · Level 1');
+    await card.focus();
+    await expect(card).toBeFocused();
+    const bounds = await card.evaluate(el => {
+      const title = el.querySelector('.today-card__meta')!;
+      const parent = el.getBoundingClientRect();
+      const text = title.getBoundingClientRect();
+      return { overflow: document.documentElement.scrollWidth - innerWidth, height: parent.height,
+        contains: text.left >= parent.left && text.right <= parent.right + 1 && text.bottom <= parent.bottom + 1 };
+    });
+    expect(bounds.overflow).toBeLessThanOrEqual(1);
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    expect(bounds.contains).toBe(true);
+    expect(structureReads).toBe(1);
+  });
+}
+
+test('Quiz and Challenge restore focus after Escape without leaving either session', async ({ page }) => {
+  await prepare(page, 'light');
+  await quizAuditFixture(page);
+  await page.goto('/quiz');
+  await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
+  await checkDialogEscape(page, page.getByRole('button', { name: 'Show hint' }), page.getByRole('dialog'));
+  await checkDialogEscape(page, page.getByRole('button', { name: 'Report this question' }), page.getByRole('dialog'));
+  await checkDialogEscape(page, page.getByRole('button', { name: 'Exit quiz' }), page.getByRole('alertdialog'));
+  await challenge(page);
+  await page.goto('/challenge');
+  await page.getByRole('button', { name: 'Start', exact: true }).click();
+  await checkDialogEscape(page, page.getByRole('button', { name: 'Report this question' }), page.getByRole('dialog'));
+  await checkDialogEscape(page, page.getByRole('button', { name: 'Exit run' }), page.getByRole('alertdialog'));
+  await expect(page.getByRole('timer')).toBeVisible();
 });

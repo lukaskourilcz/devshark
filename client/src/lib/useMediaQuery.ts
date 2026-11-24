@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
 
+/** The shell notice and the optional route preloads use the same phone gate. */
+export const CODING_PHONE_QUERY = '(pointer: coarse) and (hover: none) and (max-width: 599.95px), (pointer: coarse) and (hover: none) and (orientation: landscape) and (max-width: 1023.95px) and (max-height: 599.95px)';
+export const isCodingPhone = (): boolean =>
+  typeof window !== 'undefined' && Boolean(window.matchMedia?.(CODING_PHONE_QUERY).matches);
+
 /**
  * Tiny matchMedia hook — drop-in replacement for MUI's useMediaQuery so we can
  * drop the MUI dependency. Pass a media query string, e.g. '(max-width: 599px)'.

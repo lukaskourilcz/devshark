@@ -1,26 +1,14 @@
 import { test, expect, type Page } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
+import { resolve } from 'node:path';
+import { localAuth, storeFakeSession } from './fake-session';
 
-// Whole-page axe over the signed-out app routes. The other browser specs scope
-// axe to one container (`article.ss-topic-article`, `.cd-workbench`), so a
-// defect in the app shell or on a landing surface cannot fail them. This spec
-// scopes nothing and uses the full WCAG 2.2 AA tag set, so an accent chip
-// below 4.5:1 or a sideways scroller a keyboard cannot reach fails a gate
-// instead of waiting for a manual audit.
-//
-// The app ships English only (#485), so there is one locale to scan.
-
-// A signed-out /profile sends the visitor home, so the home page is scanned
-// under its own name rather than as "/profile".
-const ROUTES = ['/', '/today', '/leaderboard', '/challenge'];
-const WIDTHS = [
-  { width: 390, height: 844 },
-  { width: 1280, height: 800 },
-];
+// Use the same route list, local account and API response shapes as the F6
+// responsive check. Optional integrations keep their configured disabled or
+// redirected state. An unidentified route or unanswered API is a failed check.
+const fixturePath = resolve('scripts/check-responsive.mjs');
+const WIDTHS = [{ width: 390, height: 844 }, { width: 1280, height: 800 }];
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
-// Dark mode also covers the surfaces the pre-launch design audit reworked
-// (P1.9): the homepage, Coins, Coding and the quiz setup.
-const DARK_ROUTES = ['/', '/today', '/leaderboard', '/shop', '/coding', '/quiz', '/challenge'];
 
 /**
  * axe reads the colours a pixel has, so scanning during an entry fade measures
@@ -36,28 +24,54 @@ async function settled(page: Page): Promise<void> {
   }), undefined, { timeout: 15_000 });
 }
 
-for (const theme of ['light', 'dark']) {
-  const routes = theme === 'dark' ? DARK_ROUTES : ROUTES;
-  test(`${theme}: signed-out routes pass WCAG 2.2 AA`, async ({ page }, info) => {
-    test.setTimeout(180_000);
-    await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: theme as 'light' | 'dark' });
-    await page.addInitScript((theme) => {
-      try { localStorage.setItem('devquiz:color-mode', theme); } catch {}
+for (const theme of ['light', 'dark'] as const) for (const viewport of WIDTHS) {
+  test(`${theme}: every F6 route passes WCAG 2.2 AA at ${viewport.width}px`, async ({ page, baseURL }, info) => {
+    test.setTimeout(360_000);
+    const { DEFAULT_ROUTES, ROUTE_READY_MARKERS, apiFixture, fixtureSession, prepareResponsiveFixtures, readRenderedRoute, renderProblems } = await import(fixturePath);
+    await prepareResponsiveFixtures();
+    const user = fixtureSession().user;
+    await storeFakeSession(page, user);
+    await localAuth(page, { user: () => user });
+    const origin = new URL(baseURL!).origin;
+    const requests: { request: string; answered: boolean }[] = [];
+    await page.route('**/*', async route => {
+      const request = route.request();
+      const url = new URL(request.url());
+      if (url.pathname.startsWith('/auth/v1/')) return route.fallback();
+      if (url.origin !== origin) return route.abort('blockedbyclient');
+      if (!url.pathname.startsWith('/api/')) return route.continue();
+      const response = apiFixture(request.method(), url, 'signed-in');
+      requests.push({ request: request.method() + ' ' + url.pathname + url.search, answered: Boolean(response) });
+      return response
+        ? route.fulfill({ status: response.status, json: response.body })
+        : route.fulfill({ status: 503, json: { error: { code: 'missing_fixture' } } });
+    });
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: theme });
+    await page.addInitScript(theme => {
+      localStorage.setItem('devquiz:color-mode', theme);
+      localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
+      sessionStorage.setItem('devquiz:auth-reported', '1');
     }, theme);
 
-    for (const route of routes) for (const viewport of WIDTHS) {
-      await page.setViewportSize(viewport);
-      await page.goto(route);
+    for (const path of DEFAULT_ROUTES as string[]) await test.step(path, async () => {
+      requests.length = 0;
+      await page.goto(path);
       await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
       await settled(page);
-      const findings = await new AxeBuilder({ page }).withTags(TAGS).analyze();
-      expect(
-        findings.violations.map((v) => `${v.id} [${v.impact}] ${v.nodes.map((n) => n.target.join(' ')).join(' | ')}`),
-        `${route} at ${viewport.width}px, ${theme}`,
-      ).toEqual([]);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    }
+      const marker = ROUTE_READY_MARKERS[path]?.[1];
+      if (marker) await expect(page.locator(marker).first()).toBeVisible();
+      if (path === '/daily') await expect(page.getByRole('button', { name: 'Check answer' })).toBeVisible();
+      if (path === '/leaderboard?tab=month') await expect(page.getByText('Night owl', { exact: true }).first()).toBeVisible();
+      if (path === '/coding/javascript/js-double-numbers') await expect(page.locator('.cd-workbench')).toBeVisible();
+      if (path === '/coding/system-design') await expect(page.getByRole('heading', { name: 'That track does not exist.' })).toBeVisible();
+      const rendered = await page.evaluate(readRenderedRoute, ROUTE_READY_MARKERS);
+      expect(renderProblems(path, rendered, requests, 'That page is out of the water.', 'signed-in'), path).toEqual([]);
+      const result = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+      expect.soft(result.violations.map(v => `${v.id} [${v.impact}] ${v.nodes.map(n => n.target.join(' ')).join(' | ')}`), path).toEqual([]);
+      expect.soft(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), path).toBe(true);
+    });
     await page.screenshot({ path: info.outputPath('last-route.png'), fullPage: true });
   });
 }

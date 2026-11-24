@@ -72,12 +72,20 @@ it('starts a connected tag at once for a visitor who said yes on an earlier visi
 });
 
 it('runs error monitoring without cookies, storage, replay or personal data', async () => {
+  vi.stubEnv('VITE_DEPLOY_ENV', 'preview');
+  vi.stubEnv('VITE_DEPLOY_SHA', 'a'.repeat(40));
   vi.stubEnv('VITE_SENTRY_DSN', 'https://public@o1.ingest.de.sentry.io/1');
   vi.resetModules();
   const { initSentry } = await import('../src/lib/sentry');
   initSentry();
   await vi.waitFor(() => expect(sentry.init).toHaveBeenCalledTimes(1));
   const options = sentry.init.mock.calls[0][0] as Record<string, unknown>;
+  const integrations = (options.integrations as (defaults: { name: string }[]) => { name: string }[])([
+    { name: 'BrowserSession' }, { name: 'GlobalHandlers' },
+  ]);
+  expect(integrations.map(({ name }) => name)).toEqual(['GlobalHandlers', 'BrowserTracing']);
+  expect(options.environment).toBe('preview');
+  expect(options.release).toBe('a'.repeat(40));
   expect(options.sendDefaultPii).toBe(false);
   expect(sentry.replayIntegration).not.toHaveBeenCalled();
   // The previous trace stays in memory, not in sessionStorage.
@@ -94,7 +102,7 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
   initSentry();
   await vi.waitFor(() => expect(sentry.init).toHaveBeenCalledTimes(1));
   const options = sentry.init.mock.calls[0][0] as {
-    beforeSend?: (event: Record<string, unknown>) => Record<string, unknown>;
+    beforeSend?: (event: Record<string, unknown>, hint: Record<string, unknown>) => Record<string, unknown>;
     beforeSendTransaction?: (event: Record<string, unknown>) => Record<string, unknown>;
     beforeBreadcrumb?: (crumb: Record<string, unknown>) => Record<string, unknown>;
   };
@@ -118,7 +126,7 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
       { category: 'fetch', data: { url: 'https://x.supabase.co/rest/v1/profiles?user_id=eq.user-1', method: 'GET', status_code: 200 } },
     ],
     extra: { componentStack: 'at Quiz' },
-  });
+  }, {});
   const text = JSON.stringify(sent);
   for (const secret of ['ada@example.com', 'oauth-code-123', 'cs_live_1', 'eyJhbGciOiJIUzI1NiJ9', 'gh-code', 'sealed', 'user-1', 'abcdefghijklmnop', 'Referer', 'cookies']) {
     expect(text).not.toContain(secret);
@@ -149,7 +157,7 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
       details: { email: 'ada@example.com' },
       componentStack: 'at Quiz',
     },
-  });
+  }, {});
   expect(thrown.extra).toEqual({ componentStack: 'at Quiz' });
   expect(JSON.stringify(thrown)).not.toContain('ada@example.com');
   expect(JSON.stringify(thrown)).not.toContain('oauth-code-123');
@@ -159,7 +167,7 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
     request: { url: 'https://alice:fixture-password@devshark.app/auth/callback?code=oauth-code-123' },
     extra: { componentStack: 'at Page', response: { token: 'fixture-response-token' }, password: 'fixture-form-password' },
     breadcrumbs: [{ data: { headers: { Authorization: 'fixture-header-token' }, method: 'GET' } }],
-  });
+  }, {});
   const serialized = JSON.stringify(privateDetails);
   for (const secret of ['fixture-password', 'fixture-response-token', 'fixture-form-password', 'fixture-header-token']) {
     expect(serialized).not.toContain(secret);
@@ -171,9 +179,24 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
     transaction: '/settings/github',
     request: { url: 'https://devshark.app/settings/github?code=gh-code' },
     contexts: { trace: { data: { 'url.full': 'https://devshark.app/settings/github?code=gh-code' } } },
-    spans: [{ data: { 'http.url': 'https://devshark.app/api/user?op=github-connect-finish', 'http.query': '?op=github-connect-finish', 'http.fragment': '#x', 'http.method': 'POST' } }],
+    spans: [{ data: { 'http.url': window.location.origin + '/api/user?op=github-connect-finish', 'http.query': '?op=github-connect-finish', 'http.fragment': '#x', 'http.method': 'POST' } }],
   });
   expect(JSON.stringify(trace)).not.toContain('gh-code');
-  expect((trace.spans as { data: Record<string, unknown> }[])[0].data).toEqual({ 'http.url': 'https://devshark.app/api/user', 'http.method': 'POST' });
+  const invitation = options.beforeSendTransaction!({
+    transaction: '/play/K7Q2AB',
+    request: { url: window.location.origin + '/play/K7Q2AB?source=friend' },
+    breadcrumbs: [{ message: 'open /play/K7Q2AB', data: { to: '/play/K7Q2AB' } }],
+    spans: [
+      { description: 'GET ' + window.location.origin + '/play/K7Q2AB?source=friend' },
+      { description: 'GET https://avatars.example.test/user/unique-avatar?size=24', data: { 'url.full': '//avatars.example.test/user/unique-avatar' } },
+    ],
+  });
+  expect(invitation.transaction).toBe('/play/:code');
+  expect(invitation.spans).toEqual([
+    { description: 'GET ' + window.location.origin + '/play/:code' },
+    { description: 'GET https://avatars.example.test', data: { 'url.full': window.location.protocol + '//avatars.example.test' } },
+  ]);
+  expect(JSON.stringify(invitation)).not.toMatch(/K7Q2AB|unique-avatar|source=friend/);
+  expect((trace.spans as { data: Record<string, unknown> }[])[0].data).toEqual({ 'http.url': window.location.origin + '/api/user', 'http.method': 'POST' });
   vi.unstubAllEnvs();
 });

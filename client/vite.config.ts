@@ -3,15 +3,17 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { sentryIdleDeadline } from './build/sentry-idle-deadline';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { PurgeCSS } from 'purgecss';
 import { PRODUCT_CATALOG, resolveCatalogProductId } from './product-catalog';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { TopicArticle, topicPath } from './src/components/topics/TopicArticle';
-import { BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, PRERENDERED_APP_PAGES, PUBLIC_ORIGIN, PUBLIC_PAGES, codingShareDescription, isPrivacyCopyKey, metaDescription, premiumSchema, topicSchema } from './src/lib/publicMetadata';
+import { ARTICLE_PAGES, publicAppTitle, siteSchema, BRAND_SHARE_IMAGE, BRAND_SHARE_IMAGE_ALT, DAILY_SHARE_IMAGE_PATH, PRERENDERED_APP_PAGES, PUBLIC_ORIGIN, PUBLIC_PAGES, codingShareDescription, isPrivacyCopyKey, metaDescription, premiumSchema, topicSchema } from './src/lib/publicMetadata';
 import { TOPIC_LANDINGS } from './src/lib/topicCatalog';
 import { PremiumCancelStaticArticle, PremiumStaticArticle, type Translate } from './src/components/PremiumFacts';
+import { codingListEn } from './src/i18n/translations.codingLists';
 import { en, type TranslationKey } from './src/i18n/translations';
 import { MERCH_SKUS } from '../shared/rewards';
 import { DailyStaticArticle } from './src/components/DailyStaticArticle';
@@ -31,7 +33,7 @@ import { SectionPreviewStatic } from './src/components/learn/SectionPreviewStati
 const translate: Translate = (key, vars) => en[key].replace(/\{(\w+)\}/g, (slot, name: string) => (vars && name in vars ? String(vars[name]) : slot));
 const sectionBody = (id: string) => ({ t }: { t: Translate }) => {
   const section = LEARN_SECTIONS.find(one => one.id === id)!;
-  const page = PUBLIC_PAGES.find(one => one.path === `/learn/${id}`)!;
+  const page = ARTICLE_PAGES.find(one => one.path === `/learn/${id}`)!;
   return createElement(SectionPreviewStatic, {
     name: t(page.titleKey).replace(' · devShark', ''), description: t(page.descriptionKey),
     topics: section.topics.map(topic => ({ name: t(`category.${topic}` as TranslationKey), href: `/learn/${id}?topic=${encodeURIComponent(topic)}` })),
@@ -210,7 +212,6 @@ function productMetadata(env: Record<string, string>): Plugin {
     start_url: '/',
     scope: '/',
     display: 'standalone',
-    orientation: 'portrait',
     background_color: '#F3F6F1',
     theme_color: '#2D7A2D',
     icons: [
@@ -259,16 +260,18 @@ function productMetadata(env: Record<string, string>): Plugin {
           return;
         }
 
-        if (/^\/topics\/[a-z0-9-]+\/?$/.test(pathname) || [...PUBLIC_PAGES, ...PRERENDERED_APP_PAGES].some(page => page.path === pathname.replace(/\/$/, ''))) {
-          req.url = `${pathname.replace(/\/$/, '')}/index.html${search ? `?${search}` : ''}`;
-        } else if (pathname === HIDDEN_CODING_PATH || pathname.startsWith(`${HIDDEN_CODING_PATH}/`)) {
-          // vercel.json: the hidden track and everything under it.
-          req.url = `${HIDDEN_CODING_PATH}/index.html${search ? `?${search}` : ''}`;
-        } else if (/^\/(?:daily(?:\/\d{4}-\d{2}-\d{2})?|coding(?:\/[a-z-]+(?:\/[a-z0-9-]+)?)?)\/?$/.test(pathname)) {
-          // #239: only when the build wrote that page, as on Vercel; any
-          // other path falls through to the app.
-          const file = `${pathname.replace(/\/$/, '')}/index.html`;
-          if (existsSync(path.join(outDir, file))) req.url = `${file}${search ? `?${search}` : ''}`;
+        const clean = pathname.replace(/\/$/, '');
+        // Mirror the document rewrites. Unknown routes must get the generic
+        // shell even when a coding task, guide or date has no static file.
+        const hiddenTrack = clean === HIDDEN_CODING_PATH || clean.startsWith(HIDDEN_CODING_PATH + '/');
+        const knownPage = PUBLIC_PAGES.some(page => page.path === clean)
+          || /^\/(?:topics|daily|coding)(?:\/[a-z0-9-]+){0,2}$/.test(clean);
+        const publicFile = hiddenTrack ? HIDDEN_CODING_PATH + '/index.html' : knownPage ? clean + '/index.html' : null;
+        const documentRoute = clean && !clean.includes('.') && !/^\/(?:api|ingest|assets|sandbox|brand|og)(?:\/|$)/.test(clean);
+        if (publicFile && existsSync(path.join(outDir, publicFile))) {
+          req.url = publicFile + (search ? '?' + search : '');
+        } else if (documentRoute && (req.method === 'GET' || req.method === 'HEAD')) {
+          req.url = '/app.html' + (search ? '?' + search : '');
         }
         next();
       });
@@ -277,21 +280,31 @@ function productMetadata(env: Record<string, string>): Plugin {
       const asset = bundle['manifest.webmanifest'];
       if (asset?.type === 'asset') asset.source = manifest;
     },
-    async writeBundle() {
+    async writeBundle(_options, bundle) {
       await writeFile(path.join(outDir, 'manifest.webmanifest'), manifest);
 
       const topics = TOPIC_LANDINGS;
       const origin = PUBLIC_ORIGIN;
       const indexHtml = await readFile(path.join(outDir, 'index.html'), 'utf8');
       const escape = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
+      // Daily has visible HTML before React starts. Style its header and ancestry
+      // from the same emitted chunks that the running page loads.
+      const dailyCss = new Set<string>();
+      for (const chunk of Object.values(bundle)) {
+        if (chunk.type !== 'chunk' || !['DailyQuestionPage', 'Breadcrumb'].includes(chunk.name)) continue;
+        for (const file of chunk.viteMetadata?.importedCss ?? []) dailyCss.add(file);
+      }
+      const dailyStyles = Array.from(dailyCss, file => `<link rel="stylesheet" crossorigin href="/${escape(file)}" />`).join('');
+      const dailyHtml = indexHtml.replace('</head>', dailyStyles + '</head>');
       /** The sitemap: each address, with the day it last changed where the
        * build knows it (YYYY-MM-DD). */
+      const today = utcToday();
       const urls: { loc: string; lastmod?: string }[] = [{ loc: `${origin}/` }];
       /** The shell with one page's og:image (absolute) and its size and alt. */
       const withImage = (html: string, image: string | null, alt: string) => image
         ? html
           .replace(/(<meta (?:property|name)="(?:og:image|twitter:image)" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(image) + end)
-          .replace(/(<meta property="og:image:alt" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(alt) + end)
+          .replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(alt) + end)
         : html;
       /** The shell with a page's own title, description, canonical URL and
        * image. No URL writes no canonical; no image keeps the shell's. The
@@ -330,7 +343,7 @@ function productMetadata(env: Record<string, string>): Plugin {
       // Same shell, their own title, description, canonical and body, so the
       // price with VAT, the renewal terms and the cancellation route read the
       // same without JavaScript.
-      for (const page of PUBLIC_PAGES) {
+      for (const page of ARTICLE_PAGES) {
         const url = origin + page.path;
         const pageTitle = en[page.titleKey];
         // The body below shows the page copy whole; the head carries the cut.
@@ -341,7 +354,7 @@ function productMetadata(env: Record<string, string>): Plugin {
         const body = renderToStaticMarkup(createElement(STATIC_PAGE_BODIES[page.path] as (props: { t: Translate }) => ReturnType<typeof PremiumStaticArticle>, { t: translate }));
         const image = STATIC_PAGE_IMAGES[page.path];
         if (image) await writeOgCard(path.join(outDir, image), { kind: 'daily-home' });
-        const html = withImage(indexHtml, image ? origin + image : null, pageTitle)
+        const html = withImage(page.path === '/daily' ? dailyHtml : indexHtml, image ? origin + image : null, pageTitle)
           .replace(/<title>[^<]*<\/title>/, `<title>${escape(pageTitle)}</title>`)
           .replace(/(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(description) + end)
           .replace(/(<meta (?:name|property)="(?:og:title|twitter:title)" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(pageTitle) + end)
@@ -350,7 +363,7 @@ function productMetadata(env: Record<string, string>): Plugin {
         const pageDir = path.join(outDir, page.path);
         await mkdir(pageDir, { recursive: true });
         await writeFile(path.join(pageDir, 'index.html'), html);
-        urls.push({ loc: url });
+        urls.push(page.path === '/daily' ? { loc: url, lastmod: today } : { loc: url });
       }
       // F15-11: app routes with public content get a head of their own: a
       // crawler that runs no JavaScript stops reading them as the home page.
@@ -364,7 +377,7 @@ function productMetadata(env: Record<string, string>): Plugin {
         : en[key as TranslationKey];
       for (const page of PRERENDERED_APP_PAGES) {
         const url = origin + page.path;
-        const pageTitle = en[page.titleKey];
+        const pageTitle = publicAppTitle(page.path, en[page.titleKey], product.brand);
         const description = page.descriptionKeys.map(pageCopy).join(' ');
         await writePage(page.path, pageHead(indexHtml, { title: pageTitle, description, url, image: null, imageAlt: pageTitle })
           .replace('<div id="root"></div>', `<div id="root"><noscript><main class="ss-public-fallback ss-info-page"><h1>${escape(pageCopy(page.headingKey))}</h1><p>${escape(pageCopy(page.leadKey))}</p></main></noscript></div>`));
@@ -415,8 +428,9 @@ function productMetadata(env: Record<string, string>): Plugin {
         ...sectionTracks.map((page) => ({ ...page, title: `${page.name} coding challenges · ${product.brand}`, canonical: page.path })),
       ];
       for (const page of sectionPages) {
+        const heading = page.path === '/coding/fullstack' ? codingListEn['coding.fullstack.title'] : page.name;
         await writePage(page.path, pageHead(indexHtml, { title: page.title, description: page.description, url: origin + page.canonical, image: null, imageAlt: page.title })
-          .replace('<div id="root"></div>', `<div id="root"><noscript><main class="ss-public-fallback ss-info-page"><h1>${escape(page.name)}</h1><p>${escape(page.description)}</p>${sectionLinks}</main></noscript></div>`));
+          .replace('<div id="root"></div>', `<div id="root"><noscript><main class="ss-public-fallback ss-info-page"><h1>${escape(heading)}</h1><p>${escape(page.description)}</p>${sectionLinks}</main></noscript></div>`));
         if (page.path === page.canonical) urls.push({ loc: origin + page.path });
       }
       // System design is hidden (owner decision, 9 Oct 2026): /coding/system-design
@@ -431,7 +445,6 @@ function productMetadata(env: Record<string, string>): Plugin {
       // #239: the question of the day, one page head and image per day. The
       // head names the day and its track; the question itself comes from
       // the server when the page runs, so no question or answer is here.
-      const today = utcToday();
       const first = [addDays(today, -QOTD_PAST_DAYS), QOTD_EPOCH].sort()[1];
       let days = 0;
       for (let date = first; date <= addDays(today, QOTD_FUTURE_DAYS); date = addDays(date, 1)) {
@@ -443,19 +456,20 @@ function productMetadata(env: Record<string, string>): Plugin {
         const image = qotdImagePath(date);
         if ((await writeOgCard(path.join(outDir, image), { kind: 'daily', track, dateLabel })) === 'drawn') drawn++;
         const body = renderToStaticMarkup(createElement(DailyStaticArticle, { t: translate, track, dateLabel, date }));
-        await writePage(pagePath, pageHead(indexHtml, { title: pageTitle, description, url: origin + pagePath, image: origin + image, imageAlt: `${track} question of the day, ${dateLabel}` })
+        await writePage(pagePath, pageHead(dailyHtml, { title: pageTitle, description, url: origin + pagePath, image: origin + image, imageAlt: `${track} question of the day, ${dateLabel}` })
           .replace('<div id="root"></div>', `<div id="root"><main class="ss-public-fallback">${body}</main></div>`));
+        if (date <= today) urls.push({ loc: origin + pagePath, lastmod: date });
         days++;
       }
       this.info(`share pages: ${CODING_INDEX.length} coding tasks, ${sectionPages.length} Coding section pages and the hidden system design page, ${days} days of the question of the day, ${drawn} images drawn (the rest from cache)`);
 
-      const fallback = `<main class="ss-public-fallback ss-info-page"><h1>${escape(title)}</h1><p>${escape(description)}</p><ul class="ss-topic-links">${topics.map(topic => `<li><a href="${topicPath(topic.slug)}">${escape(topic.title)}</a></li>`).join('')}</ul></main>`;
-      // F15-10: no canonical and no og:url here. vercel.json's catch-all
-      // rewrite serves this file for every app route and every missing page,
-      // and a home canonical in it made each of them claim to be a copy of the
-      // home page. The app writes the home page's canonical when it starts
-      // (routeHead.ts).
-      await writeFile(path.join(outDir, 'index.html'), indexHtml.replace('<div id="root"></div>', `<div id="root"><noscript>${fallback}</noscript></div>`));
+      const fallback = `<main class="ss-public-fallback ss-info-page"><h1>${escape(en['home.title'])}</h1><p>${escape(description)}</p><ul class="ss-topic-links">${topics.map(topic => `<li><a href="${topicPath(topic.slug)}">${escape(topic.title)}</a></li>`).join('')}</ul></main>`;
+      const shell = indexHtml.replace('<div id="root"></div>', `<div id="root"><noscript>${fallback}</noscript></div>`);
+      await writeFile(path.join(outDir, 'app.html'), indexHtml);
+      const homeUrl = origin + '/';
+      const schema = JSON.stringify(siteSchema(product.brand)).replace(/</g, '\\u003c');
+      const home = shell.replace('</head>', `<link rel="canonical" href="${homeUrl}" /><meta property="og:url" content="${homeUrl}" /><script id="site-schema" type="application/ld+json">${schema}</script></head>`);
+      await writeFile(path.join(outDir, 'index.html'), home);
       await writeFile(path.join(outDir, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(({ loc, lastmod }) => `<url><loc>${loc}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}</url>`).join('')}</urlset>`);
       // Crawlers stay out of the API, the React sandbox, /dev, the admin
       // workspace and the PostHog proxy. /admin keeps its X-Robots-Tag
@@ -490,6 +504,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
   define: {
+    'import.meta.env.VITE_DEPLOY_SHA': JSON.stringify(/^[a-f0-9]{40}$/i.test(env.VERCEL_GIT_COMMIT_SHA ?? '') ? env.VERCEL_GIT_COMMIT_SHA : ''),
+    'import.meta.env.VITE_DEPLOY_ENV': JSON.stringify(['development', 'preview', 'production'].includes(env.VERCEL_ENV) ? env.VERCEL_ENV : ''),
     __MERCH_IMAGES__: JSON.stringify(merchImages(path.resolve(__dirname, 'public/merch'))),
     // Remove SDK diagnostic branches from the lazy production chunk. Tracing
     // stays enabled and keeps sentry-sdk.ts's existing 0.1 sampling policy.
@@ -497,6 +513,7 @@ export default defineConfig(({ mode }) => {
   },
   plugins: [
     productMetadata(env),
+    sentryIdleDeadline(Boolean(env.VITE_SENTRY_DSN)),
     react(),
     purgeAstryxCss(),
     ...(analyze

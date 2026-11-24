@@ -397,7 +397,7 @@ a.lp-activity:focus-visible { outline: 3px solid var(--ss-focus); outline-offset
 .lp-trace__cell--active { border-color: var(--brand-accent); border-width: 2px; }
 .lp-trace__cell--compare { border-color: var(--ss-info); border-style: dashed; }
 .lp-trace__cell--settled { border-color: var(--ss-success); background: var(--ss-success-soft); }
-.lp-trace__cell--excluded { opacity: 0.5; text-decoration: line-through; }
+.lp-trace__cell--excluded { color: var(--color-text-secondary); text-decoration: line-through; }
 .lp-trace__role { display: block; font-size: 0.66rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-text-secondary); }
 .lp-trace__note { margin: 0; line-height: 1.6; min-height: 3.2em; }
 .lp-trace__counter { font-variant-numeric: tabular-nums; font-weight: 600; }
@@ -528,7 +528,7 @@ a.lp-activity:focus-visible { outline: 3px solid var(--ss-focus); outline-offset
   padding: 10px 12px;
   min-height: 44px;
   border-radius: var(--radius-element);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   background: var(--color-background-surface);
   color: var(--color-text-primary);
   width: 100%;
@@ -683,7 +683,7 @@ a.lp-activity:focus-visible { outline: 3px solid var(--ss-focus); outline-offset
   width: 100%;
   min-height: 90px;
   padding: 10px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: 10px;
   background: var(--color-background-surface);
   color: var(--color-text-primary);
@@ -712,7 +712,7 @@ a.lp-activity:focus-visible { outline: 3px solid var(--ss-focus); outline-offset
 .lp-reward__note { margin: 0; font-size: .82rem; color: var(--color-text-secondary); }
 .lp-reward__form { display: flex; flex-direction: column; gap: 10px; }
 .lp-reward__actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.lp-input { min-height: 44px; padding: 8px 12px; border-radius: var(--radius-element); border: 1px solid var(--color-border-strong); background: var(--color-background); color: var(--color-text-primary); font: inherit; width: 100%; }
+.lp-input { min-height: 44px; padding: 8px 12px; border-radius: var(--radius-element); border: 1px solid var(--color-border-strong); background: var(--color-background-surface); color: var(--color-text-primary); font: inherit; width: 100%; }
 .lp-input:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 2px; }
 
 .lp-brief-refresh { min-height: 44px; flex-shrink: 0; }

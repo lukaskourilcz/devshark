@@ -1,6 +1,7 @@
 // The solo quiz (Quiz.tsx) and the results that wait to be saved
 // (PendingQuizResults). Invented question fixtures; the wire shapes are the
 // real ones from api/quiz/questions, daily, submit and api/user/stats.
+import { checkEscapeReturn, installNativeDialog } from './dialog-escape';
 import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -518,6 +519,7 @@ describe('Shark Cards from the review (owner decision 12)', () => {
     pressDigit('1');
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
     const save = await screen.findByRole('button', { name: 'Save as a Shark Card' });
+    await checkEscapeReturn(screen.getByRole('button', { name: 'Report this question' }), 'dialog');
     expect(save).toHaveAttribute('aria-pressed', 'false');
     // Before anything is saved, the card asks the server for nothing but the deck.
     expect(saved).toEqual([]);
@@ -848,6 +850,16 @@ describe('submitting', () => {
   });
 });
 
+
+it('restores keyboard focus after hints, reporting and the leave confirmation in a quiz', async () => {
+  installNativeDialog();
+  await startQuiz([Q('a', { introduction: 'Try the simplest option.' }), Q('b')]);
+  await checkEscapeReturn(screen.getByRole('button', { name: 'Show hint' }), 'dialog');
+  await checkEscapeReturn(screen.getByRole('button', { name: 'Report this question' }), 'dialog');
+  await checkEscapeReturn(screen.getByRole('button', { name: 'Exit quiz' }), 'alertdialog');
+  expect(screen.getByText('Question a?')).toBeInTheDocument();
+});
+
 describe('slow loading and recovery', () => {
   it('can cancel a delayed request and ignores its late response without losing setup preferences', async () => {
     let respond: (() => void) | undefined;
@@ -861,8 +873,13 @@ describe('slow loading and recovery', () => {
     renderQuiz();
     fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
     await waitFor(() => expect(respond).toBeDefined());
+    const statusLine = () => document.querySelector('.quiz-loading .ss-state-panel__body[role="status"]');
+    const status = statusLine();
+    expect(status).toBeEmptyDOMElement();
     expect(screen.queryByRole('button', { name: 'Back to quiz settings' })).not.toBeInTheDocument();
     const cancel = await screen.findByRole('button', { name: 'Back to quiz settings' }, { timeout: 7_000 });
+    expect(statusLine()).toBe(status);
+    expect(status).toHaveTextContent('This is taking longer than usual.');
     cancel.focus();
     fireEvent.click(cancel);
     expect(screen.getByRole('heading', { level: 1, name: 'Build your quiz.' })).toHaveFocus();
@@ -1225,6 +1242,27 @@ describe('saving a result to the account', () => {
       sessionId: sessionFor('next-account'),
       answers: { 'next-account': 0 },
     });
+  });
+
+  it('checks the restored account before automatically replaying an offline Submit', async () => {
+    let submissions = 0;
+    server.use(http.post('*/api/quiz/submit', () => {
+      submissions++;
+      return HttpResponse.json(graded([Q('a')]));
+    }));
+    sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({
+      sessionId: sessionFor('offline-previous-user'), questions: [Q('a')], answers: { a: 0 },
+      currentIndex: 0, mode: 'standard', locked: true, retryFor: 'previous-account',
+    }));
+    auth.value = { user: null, isAuthenticated: false, isLoading: true };
+    const view = renderQuiz();
+    await questionOnScreen();
+    expect(submissions).toBe(0);
+    act(() => { signIn(); });
+    view.rerender(quizTree());
+    expect(await screen.findByRole('heading', { name: 'Sign-in changed' })).toHaveFocus();
+    expect(submissions).toBe(0);
+    expect(sessionStorage.getItem(PROGRESS_KEY)).toBeNull();
   });
 
   it('does not submit a quiz dealt before the account changed', async () => {

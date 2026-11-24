@@ -14,7 +14,7 @@ interface LanguageContextValue {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-function interpolate(template: string, vars?: Vars): string {
+export function interpolate(template: string, vars?: Vars): string {
   if (!vars) return template;
   return template.replace(/\{(\w+)\}/g, (_, name: string) =>
     name in vars ? String(vars[name]) : `{${name}}`,

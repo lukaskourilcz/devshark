@@ -1437,7 +1437,7 @@ test('Refresh renders the actual new response title',()=>withPhasedRequests(asyn
     api: {
       method: "GET",
       url: "https://jsonplaceholder.typicode.com/todos/1",
-      note: "Change the final id from 1 to 200 to practise loading different todos.",
+      note: "Choose a todo ID from 1 to 20 for each refresh. Reusing an ID is allowed.",
     },
   },
   {
@@ -3724,7 +3724,7 @@ test('an answer that is not ok shows an alert and no users', () => withServer(as
     tier: 5,
     focus: ["fetch", "useState", "useEffect"],
     title: "Todo client",
-    prompt: "A todo list on the training API. On mount, fetch `https://jsonplaceholder.typicode.com/todos?_limit=5` once, showing a line with the word “Loading” until it answers; a failure, a network error or an answer that is not `ok`, shows a message in an element with `role=\"alert\"`. Show each todo as an `li` with a checkbox, ticked when the todo is `completed`, its title and a “Delete” button. Above the list, a line reads “Completed: <done> of <total>”, worked out from the list during render rather than kept in state of its own. A form with a text input and an “Add” button creates a todo: `POST` to `https://jsonplaceholder.typicode.com/todos` with a `Content-Type: application/json` header and the body `{ \"title\": <the text, trimmed>, \"completed\": false, \"userId\": 1 }`; once the server answers, append the todo it sends back and empty the input. Blank text sends nothing. A failed POST adds nothing and shows a message with `role=\"alert\"`. Ticking a checkbox flips that todo’s `completed` and Delete removes it, both at once and in local state only. In code comments, explain how you would handle two tabs editing the same todo.",
+    prompt: "A todo list on the training API. On mount, fetch `https://jsonplaceholder.typicode.com/todos?_limit=5` once, showing a line with the word “Loading” until it answers; a failure, a network error or an answer that is not `ok`, shows a message in an element with `role=\"alert\"`. Show each todo as an `li` with a checkbox, ticked when the todo is `completed`, its title and a “Delete” button. Above the list, a line reads “Completed: <done> of <total>”, worked out from the list during render rather than kept in state of its own. A form with a text input and an “Add” button creates a todo: `POST` to `https://jsonplaceholder.typicode.com/todos` with a `Content-Type: application/json` header and the body `{ \"title\": <the text, trimmed>, \"completed\": false, \"userId\": 1 }`; once the server answers, append the todo it sends back and empty the input. Blank text sends nothing. A failed POST adds nothing and shows a message with `role=\"alert\"`. Ticking a checkbox flips that todo’s `completed` and Delete removes it, both at once and in local state only. The practice API returns the same id for each creation. Give each appended row a stable local key so toggling or deleting it leaves the other rows alone. In code comments, explain how you would handle two tabs editing the same todo.",
     starter: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
@@ -3747,7 +3747,7 @@ const [error, setError] = useState('');
 const [title, setTitle] = useState('');
 
 useEffect(() => {
-  // GET TODOS_URL + '?_limit=5' inside try/catch: check response.ok and store the array,
+  // GET TODOS_URL + '?_limit=5' inside try/catch: check response.ok and give each loaded row a stable key and store the array,
   // put any failure in error, and stop loading in finally
 }, []);
 
@@ -3767,7 +3767,7 @@ const addTodo = async event => {
   }
 };
 
-const toggle = id => setTodos(current => current.map(todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo));
+const toggle = id => setTodos(current => current.map(todo => todo.rowKey === id ? { ...todo, completed: !todo.completed } : todo));
 const done = todos.filter(todo => todo.completed).length;`,
     hints: [
       "Keep the todos in one array, with separate loading, error and input states. Derive the completed count during render. Adding waits for the server and appends its returned record; toggling and deleting update local state immediately. Explain version conflicts between tabs in comments.",
@@ -3775,7 +3775,7 @@ const done = todos.filter(todo => todo.completed).length;`,
     approach: [
       "Fetch the todos into one array state with loading and error handling before adding any interaction.",
       "Add a controlled input whose submit handler POSTs the trimmed title as JSON, checks `response.ok`, and appends the created record the server returns.",
-      "Toggle by mapping to a spread copy with the completion flag inverted, and delete by filtering on the id.",
+      "Give each appended row a unique local key. Toggle by mapping to a copy with the completion flag inverted, and delete by filtering on that key.",
       "Derive the completion stats from that array during render, then explain conflict handling in comments: last write wins versus version numbers.",
     ],
     verify: "tests",
@@ -4270,7 +4270,7 @@ test('all returned comments and literal dictionary-like domains are counted with
     tier: 5,
     focus: ["fetch", "useState", "useEffect"],
     title: "Weather-style dashboard",
-    prompt: "A dashboard shows the current temperature in a few cities, read from Open-Meteo. `CITIES` in the starter gives each city’s latitude and longitude. To load a city, fetch `https://api.open-meteo.com/v1/forecast?latitude=<latitude>&longitude=<longitude>&current=temperature_2m`; the answer holds the reading in °C at `current.temperature_2m`. Load Prague on mount. A form with an input labelled “City” and a “Search” button loads another city: match the name against `CITIES`, ignoring case and the spaces around it. A name that is not in `CITIES` shows “Unknown city: <name>”, with the name trimmed, and asks nothing; the next search removes that message. Every reading that arrives goes to the front of a `ul` whose `aria-label` is “Recent searches”, one `li` per city such as “Brno: 8 °C”. A city searched again moves to the front with its new reading, and the list keeps three cities at most. Once the list holds a reading, show “Lowest: <n> °C” and “Highest: <n> °C” in a paragraph each, worked out from the list while rendering, so a city that drops off the list stops counting. While a request is on its way, show “Loading…”. A failed request, rejected or answered with a status that is not ok, shows “Could not load the weather” in an element with `role=\"alert\"` and a “Retry” button that asks for the same city again. The alert goes as soon as the next request starts. The notes at the top are for your explanation of how a dashboard stays usable when an external API is slow or down; the checks do not read them.",
+    prompt: "A dashboard shows the current temperature in a few cities, read from Open-Meteo. `CITIES` in the starter gives each city’s latitude and longitude. To load a city, fetch `https://api.open-meteo.com/v1/forecast?latitude=<latitude>&longitude=<longitude>&current=temperature_2m`; the answer holds the reading in °C at `current.temperature_2m`. Load Prague on mount. A form with an input labelled “City” and a “Search” button loads another city: match the name against `CITIES`, ignoring case and the spaces around it. A name that is not in `CITIES` shows “Unknown city: <name>”, with the name trimmed, and asks nothing; the next search removes that message. Every reading that arrives goes to the front of a `ul` whose `aria-label` is “Recent searches”, one `li` per city such as “Brno: 8 °C”. A city searched again moves to the front with its new reading, and the list keeps three cities at most. Once the list holds a reading, show “Lowest: <n> °C” and “Highest: <n> °C” in a paragraph each, worked out from the list while rendering, so a city that drops off the list stops counting. While a request is on its way, show “Loading…”. A failed request, rejected or answered with a status that is not ok, shows “Could not load the weather” in an element with `role=\"alert\"` and a “Retry” button that asks for the same city again. The alert goes as soon as the next request starts. Searches can overlap. Keep the loading message visible until every pending request settles, and add successful readings in arrival order even if a newer search has started. Retry repeats the city whose failure is shown. The notes at the top are for your explanation of how a dashboard stays usable when an external API is slow or down; the checks do not read them.",
     starter: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
@@ -4327,10 +4327,10 @@ useEffect(() => {
 const temperatures = readings.map(reading => reading.temperature);
 // Math.min(...temperatures) and Math.max(...temperatures) while rendering`,
     hints: [
-      "Keep one readings array and derive its minimum and maximum during render. Store the last requested city so Retry repeats the failed request. Distinguish no unknown-city message from an unknown empty string, so blank names still show Unknown city: without sending a request.",
+      "Keep one readings array and derive its minimum and maximum during render. Track how many requests are still pending and keep the failed city for Retry. Distinguish no unknown-city message from an unknown empty string, so blank names still show Unknown city: without sending a request.",
     ],
     approach: [
-      "Write `loadWeather(city)` as one async function: clear the error, set loading, fetch the city’s URL, check `response.ok`, and save the reading. The mount effect calls it for Prague and Retry calls it for the city asked for last.",
+      "Write `loadWeather(city)` as one async function: clear the previous failure, increment the pending count, fetch the city’s URL, check `response.ok`, and save the reading. Remember the failed city on error and decrement the count after every completion. The mount effect starts Prague and Retry uses the failed city.",
       "On submit, look the trimmed name up in `CITIES` with both sides lower-cased. A miss sets the unknown-city message and returns before any request.",
       "Save a reading with the updater form: the new `{ name, temperature }` first, the older reading of that city filtered out, then `slice(0, 3)`.",
       "Lowest and highest are `Math.min` and `Math.max` over the temperatures in that list. Then write the notes: timeouts, retries with back-off, the last good readings kept on screen, and a server-side cache in front of the API.",
@@ -5071,7 +5071,7 @@ test('all and dictionary-like names are real event types, not control values or 
     tier: 5,
     focus: ["fetch", "useState", "useEffect"],
     title: "Interview mini project",
-    prompt: "Build a small posts app that reads and creates, the way an interview project would ask. On mount, fetch `https://jsonplaceholder.typicode.com/posts`; each post is `{ id, userId, title, body }`. While it loads, show “Loading posts…”. A failed request, rejected or answered with a status that is not ok, shows “Could not load posts” in an element with `role=\"alert\"`. List the posts in a `ul`, one `li` per post holding just its title. Two filters narrow the list: an input labelled “Search” keeps the posts whose title contains its text, ignoring case, and a `select` labelled “Author”, whose first option “All authors” keeps everyone, offers one option “User <userId>” per author in the posts, in ascending order of `userId`. Two lines of stats follow: “Showing <n> of <m> posts”, where m counts every post in state, and “Authors: <k>”, the number of different authors among the posts shown. A form adds a post: an input labelled “Title” and an “Add post” button. A blank title sends nothing. Otherwise send `POST https://jsonplaceholder.typicode.com/posts` with the JSON body `{ title, body: \"\", userId: 1 }`, the title trimmed; while it is on its way the button reads “Adding…” and is disabled. The answer is the new post with its id: add it to the end of the list and empty the Title box. A failed POST shows “Could not add the post” in an alert and keeps the title in the box; the next attempt clears the alert. Work the filtered list and the stats out of the posts in state while rendering. The notes at the top are for your explanation of the whole trip from the browser to the database and back; the checks do not read them.",
+    prompt: "Build a small posts app that reads and creates, the way an interview project would ask. On mount, fetch `https://jsonplaceholder.typicode.com/posts`; each post is `{ id, userId, title, body }`. While it loads, show “Loading posts…”. A failed request, rejected or answered with a status that is not ok, shows “Could not load posts” in an element with `role=\"alert\"`. List the posts in a `ul`, one `li` per post holding just its title. Two filters narrow the list: an input labelled “Search” keeps the posts whose title contains its text, ignoring case, and a `select` labelled “Author”, whose first option “All authors” keeps everyone, offers one option “User <userId>” per author in the posts, in ascending order of `userId`. Two lines of stats follow: “Showing <n> of <m> posts”, where m counts every post in state, and “Authors: <k>”, the number of different authors among the posts shown. A form adds a post: an input labelled “Title” and an “Add post” button. A blank title sends nothing. Otherwise send `POST https://jsonplaceholder.typicode.com/posts` with the JSON body `{ title, body: \"\", userId: 1 }`, the title trimmed; while it is on its way the button reads “Adding…” and is disabled. The answer is the new post with its id: add it to the end of the list and empty the Title box. A failed POST shows “Could not add the post” in an alert and keeps the title in the box; the next attempt clears the alert. Work the filtered list and the stats out of the posts in state while rendering. Practice writes can return the same post id. Keep every appended post separately identifiable when either filter changes. The notes at the top are for your explanation of the whole trip from the browser to the database and back; the checks do not read them.",
     starter: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES

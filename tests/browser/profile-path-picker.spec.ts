@@ -1,3 +1,4 @@
+import { checkDialogEscape } from './dialog-keyboard';
 import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
 // The Profile path picker (#490): the Sections step in a real browser, light
 // on a 360px touch screen and dark at desktop width with a mouse. Arrow keys
@@ -78,9 +79,14 @@ for (const [theme, width, touch] of [['light', 360, true], ['dark', 1280, false]
     });
 
     await page.goto('/profile');
+    if (!touch) {
+      await checkDialogEscape(page, page.getByRole('button', { name: /Account menu for/i }), page.getByRole('dialog'));
+    }
     await expect(page.getByText('Sections: Web Developer · Software Engineer', { exact: true })).toBeVisible();
-    await page.getByRole('button', { name: 'Choose your path' }).click();
+    const pathOpener = page.getByRole('button', { name: 'Choose your path' });
     const dialog = page.getByRole('dialog');
+    await checkDialogEscape(page, pathOpener, dialog);
+    await pathOpener.press('Enter');
     await expect(dialog.getByRole('heading', { name: 'Choose your learning path' })).toBeVisible();
 
     // Step 1: arrow keys move the choice and nothing else.

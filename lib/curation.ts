@@ -21,7 +21,7 @@
 import { createHash } from 'node:crypto';
 import { createLogger } from './http';
 import { stableAttemptId } from './quiz-tokens';
-import { getEffectiveQuestions, overridesAvailable } from './questions-store';
+import { getCountableQuestions } from './questions-store';
 import type { Question } from './quiz-data';
 import { subjectForCategory, type ScopeSubjectId } from '../shared/subject-catalog';
 import type { CodingTask } from '../shared/coding-catalog';
@@ -226,17 +226,12 @@ function recordFrom(entry: RegistryEntry, current: boolean, version: string): Re
   };
 }
 
-/** The review record that applies to this question's exact content, or null
- * when nothing was ever recorded for its id. */
-function reviewRecordFor(q: Question): ReviewRecord | null {
-  const entry = REGISTRY_BY_ID.get(q.id);
-  if (!entry) return null;
-  return recordFrom(entry, entry.hash === contentHash(q), contentVersion(q));
-}
-
 /** The review metadata for one item, safe to send to any client. */
 export function itemReview(q: Question): PublicItemReview {
-  return publicItemReview(reviewRecordFor(q), contentVersion(q));
+  const version = contentVersion(q);
+  const entry = REGISTRY_BY_ID.get(q.id);
+  const record = entry ? recordFrom(entry, entry.hash === contentHash(q), version) : null;
+  return publicItemReview(record, version);
 }
 
 /** The day the coding content contract last ran in CI is not knowable from
@@ -256,12 +251,10 @@ const CODING_CONTRACT_DATE = '2026-09-08';
  * read the brief for clarity or judged whether it is worth doing.
  */
 export function codingTaskReview(task: CodingTask, solution?: CodingSolution): PublicItemReview {
-  const version = stableAttemptId(
-    'coding-content-version:v2',
-    taskHash(task, solution),
-  ).slice(0, 12);
+  const hash = taskHash(task, solution);
+  const version = stableAttemptId('coding-content-version:v2', hash).slice(0, 12);
   const entry = REGISTRY_BY_ID.get(task.id);
-  const record = entry ? recordFrom(entry, entry.hash === taskHash(task, solution), version) : null;
+  const record = entry ? recordFrom(entry, entry.hash === hash, version) : null;
   return publicItemReview(record, version, [
     { kind: 'execution', at: CODING_CONTRACT_DATE, check: 'reference solution vs. grader' },
   ]);
@@ -280,16 +273,15 @@ export function codingTaskReview(task: CodingTask, solution?: CodingSolution): P
 export async function curationCoverage(subject?: ScopeSubjectId): Promise<CoverageReport> {
   const sources: CoverageSource[] = [];
   try {
-    const questions = await getEffectiveQuestions(subject);
-    const complete = overridesAvailable();
-    const reviewed = questions.reduce(
+    const questions = await getCountableQuestions(subject);
+    const reviewed = questions?.reduce(
       (total, q) => total + (itemReview(q).status === 'reviewed' ? 1 : 0),
       0,
-    );
+    ) ?? null;
     sources.push({
       id: 'question-bank',
-      items: complete ? questions.length : null,
-      reviewed: complete ? reviewed : null,
+      items: questions?.length ?? null,
+      reviewed,
     });
   } catch (err) {
     logEvent({

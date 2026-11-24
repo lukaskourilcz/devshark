@@ -116,7 +116,6 @@ for (const [name, query, signedIn] of [
   ['public catalogue', { resource: 'learning-path-catalog' }, false],
   ['free brief', { resource: 'coding-brief', id: 'js-double-numbers' }, false],
   ['authenticated progress', { resource: 'progress' }, true],
-  ['legacy unknown GET map fallback', { resource: 'unrecognized-resource' }, false],
 ] as [string, Record<string, string>, boolean][]) {
   test(`${name} answers without evaluating the full lesson reader/catalogue`, async () => {
     const fresh = await loadFresh('api/quiz/roadmap.ts', `(async () => {
@@ -145,13 +144,23 @@ for (const [name, query, signedIn] of [
         assert.ok(value.body.pathIds.length > 0);
         assert.deepEqual([...value.body.pathIds].sort(), Object.keys(value.body.versions).sort());
       }
-      if (!query.resource || query.resource === 'unrecognized-resource') {
+      if (!query.resource) {
         assert.ok(value.body.topics.includes('dsa'));
         assert.equal(value.body.structure.dsa.levels[0].lessonId, 'dsa-v1-d01-l1', 'Map lesson IDs remain available without full lesson text');
       }
     }
   });
 }
+
+test('an unknown resource returns its own 404 without loading the lesson catalogue', async () => {
+  const fresh = await loadFresh('api/quiz/roadmap.ts', `(async () => {
+    ${responseFixture}
+    const res = await read({ resource: 'unrecognized-resource' });
+    return { status: res.statusCode, code: res.body?.error?.code, etag: res.headers.etag,
+      evaluated: evaluated(), unexpected, calls };
+  })()`, ENV, LESSON_MARKERS, beforeImport);
+  assert.deepEqual(fresh.probe, { status: 404, code: 'unknown_resource', evaluated: [], unexpected: [], calls: [] });
+});
 
 test('the first lesson loads its deferred source and preserves strong ETag/bodyless 304 and timing', async () => {
   const fresh = await loadFresh('api/quiz/roadmap.ts', `(async () => {

@@ -1,3 +1,4 @@
+import { checkEscapeReturn, installNativeDialog } from './dialog-escape';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -296,7 +297,30 @@ describe('the question buffer', () => {
   });
 });
 
+
+it('returns to the report and leave controls after Escape in a running challenge', async () => {
+  installNativeDialog();
+  await mount();
+  await start();
+  await checkEscapeReturn(screen.getByRole('button', { name: 'Report this question' }), 'dialog');
+  await checkEscapeReturn(screen.getByRole('button', { name: 'Exit run' }), 'alertdialog');
+  expect(screen.getByRole('timer')).toBeInTheDocument();
+});
+
 describe('the timeout strike', () => {
+  it('announces the 15-second warning once in the existing region', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    await mount();
+    await start();
+    const region = document.querySelector('span[style][aria-live="polite"]');
+    expect(region).toBeEmptyDOMElement();
+    for (let second = 0; clockSeconds() > 15 && second < 90; second++) await tick(1000);
+    expect(screen.getByText('15 seconds remaining')).toBe(region);
+    await tick(1000);
+    expect(region).toBeInTheDocument();
+    expect(region).toBeEmptyDOMElement();
+  });
+
   it('is sent once when the clock runs out, and again only after a growing pause', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     let refuse = true;
@@ -578,6 +602,27 @@ async function strikeOutNow() {
   await screen.findByText('Run ended');
   await settle();
 }
+
+describe('the account that started a Challenge', () => {
+  it.each(['sign-out', 'different account', 'same account after sign-out'])('keeps an old run out of a new session after %s', async (change) => {
+    api.auth = SIGNED_IN;
+    const gains: number[] = [];
+    const stop = onXpToast((toast) => { if (toast.kind === 'gain') gains.push(toast.amount); });
+    try {
+      await mount();
+      await start();
+      await answer('right');
+      await next();
+      act(() => { clearAccountData(); });
+      if (change === 'sign-out') api.auth = { user: null, isAuthenticated: false, isLoading: false };
+      if (change === 'different account') api.auth = { ...SIGNED_IN, user: { id: 'learner-2' } };
+      await strikeOutNow();
+      expect({ gains, completions: api.completions.length, queued: localStorage.getItem(PENDING) }).toEqual({
+        gains: [], completions: 0, queued: null,
+      });
+    } finally { stop(); }
+  });
+});
 
 describe('a refill that fails when the queue runs dry', () => {
   it('keeps the run, and Retry asks for the batch again under the same run', async () => {

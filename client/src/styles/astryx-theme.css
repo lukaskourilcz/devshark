@@ -90,7 +90,7 @@
   --color-background-elevated: light-dark(#ffffff, #14232c);
   --color-background-muted: light-dark(#edf2f1, #16242d);
   --color-border: light-dark(rgba(var(--ss-ink-rgb), 0.12), rgba(232, 238, 240, 0.1));
-  --color-border-strong: light-dark(rgba(var(--ss-ink-rgb), 0.3), rgba(232, 238, 240, 0.28));
+  --color-border-strong: light-dark(rgba(var(--ss-ink-rgb), 0.51), rgba(232, 238, 240, 0.44));
   --ss-card-line: light-dark(rgba(var(--ss-ink-rgb), 0.1), rgba(232, 238, 240, 0.08));
   --ss-card-edge: light-dark(rgba(var(--ss-ink-rgb), 0.16), rgba(0, 0, 0, 0.55));
 
@@ -109,6 +109,8 @@
      theme's --brand-on-accent ink gives 6.69:1, and light mode keeps white
      at 5.34:1. */
   --color-on-accent: var(--brand-on-accent);
+  /* The dark error fill is a brighter red on badges and destructive buttons. */
+  --color-on-error: light-dark(#ffffff, #0b141b);
   --ss-focus: color-mix(in srgb, var(--brand-accent) 72%, var(--ss-ink));
   --ss-selected: var(--brand-accent-soft, rgba(45, 122, 45, 0.12));
   --ss-select-arrow-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23132019' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 6 5 5 5-5'/%3E%3C/svg%3E");
@@ -135,19 +137,19 @@
 
   /* — Semantic feedback colours: the ONE green/red pair for correct/incorrect
        everywhere (quiz review, lesson feedback, toasts). — */
-  --ss-success: light-dark(#16803c, #4ade80);
+  --ss-success: light-dark(#157b39, #4ade80);
   --ss-success-strong: light-dark(#166534, #22c55e);
   /* Text on a --ss-success-strong fill (the XP toast): white on the light
      theme's #166534 is 7.13:1, but on the dark theme's bright #22c55e only
      2.28:1, so the dark theme uses the ocean ink (8.16:1). */
   --ss-on-success-strong: light-dark(#ffffff, #0b141b);
-  --ss-success-soft: light-dark(rgba(22, 128, 60, 0.08), rgba(74, 222, 128, 0.12));
-  --ss-error: light-dark(#dc2626, #f87171);
+  --ss-success-soft: light-dark(rgba(21, 123, 57, 0.08), rgba(74, 222, 128, 0.12));
+  --ss-error: light-dark(#cb2323, #f87171);
   --ss-error-text: light-dark(#b91c1c, #fca5a5);
   /* Text on a --ss-error-text fill (a wrong pick's number chip): white on
      #b91c1c is 6.47:1, the ocean ink on the dark theme's #fca5a5 about 11:1. */
   --ss-on-error-text: light-dark(#ffffff, #0b141b);
-  --ss-error-soft: light-dark(rgba(220, 38, 38, 0.07), rgba(248, 113, 113, 0.12));
+  --ss-error-soft: light-dark(rgba(203, 35, 35, 0.07), rgba(248, 113, 113, 0.12));
   --ss-warning: light-dark(#8a5700, #fbbf24);
   --ss-warning-soft: light-dark(rgba(138, 87, 0, 0.09), rgba(251, 191, 36, 0.12));
   --ss-info: light-dark(#0e7490, #67e8f9);
@@ -197,6 +199,9 @@
   --ss-header-bg: rgba(255, 255, 255, 0.8);
   --ss-header-border: rgba(var(--ss-ink-rgb), 0.08);
 }
+
+/* Error banners put small descriptive text over a red tint. */
+.astryx-banner[data-status='error'] { --color-text-secondary: var(--color-text-primary); }
 
 :root[data-theme='dark'] {
   --brand-on-accent: #0b141b;

@@ -7,6 +7,17 @@ export const DSA_ADVANCED_SOLUTIONS: Record<string, CodingSolution> = {
     "senior": "const drainHeap = heap => heap.toSorted((a,b)=>a-b);",
     "hiddenTests": [
       {
+        "label": "each call returns a separately writable result",
+        "call": `(() => {
+  const input = Object.freeze([1, 4, 2]);
+  const first = drainHeap(input);
+  const second = drainHeap(input);
+  first.push(9);
+  return first !== second && first.length === 4 && second.length === 3 && input.length === 3;
+})()`,
+        "expected": true
+      },
+      {
         "call": "drainHeap([0,10,1,20,11,2,3])",
         "expected": [
           0,
@@ -482,6 +493,20 @@ export const DSA_ADVANCED_SOLUTIONS: Record<string, CodingSolution> = {
     "junior": "const stableRecords=records=>{const result=[];for(const record of records){let at=result.length;while(at>0&&result[at-1].key>record.key)at--;result.splice(at,0,record);}return result;};",
     "senior": "const stableRecords=records=>records.toSorted((a,b)=>a.key-b.key);",
     "hiddenTests": [
+      {
+        "label": "nonempty result arrays are independently writable and retain their record references",
+        "call": `(() => {
+  const a = Object.freeze({ id: 'a', key: 1 });
+  const b = Object.freeze({ id: 'b', key: 0 });
+  const input = Object.freeze([a, b]);
+  const first = stableRecords(input);
+  const second = stableRecords(input);
+  first.pop();
+  return first !== second && first.length === 1 && first[0] === b &&
+    second.length === 2 && second[0] === b && second[1] === a && input[0] === a;
+})()`,
+        "expected": true
+      },
       {
         "call": "stableRecords([{id:\"z\",key:1},{id:\"y\",key:0},{id:\"x\",key:1},{id:\"w\",key:0}]).map(x=>x.id)",
         "expected": [

@@ -2,7 +2,7 @@
 
 devShark sends product analytics to PostHog EU Cloud, and only after the visitor allows analytics in the cookie banner (`client/src/lib/consent.ts`). Before that the SDK is not downloaded and nothing is stored or sent; a withdrawal resets PostHog and removes its cookies and the stored campaign. Without `VITE_PUBLIC_POSTHOG_KEY` every call is a no-op. Requests go through the same-origin `/ingest` proxy.
 
-`client/src/lib/posthogClient.ts` turns off autocapture, dead-click capture and session recording, honours Do Not Track, creates person profiles only for signed-in accounts, and leaves URL fragments out. Its `before_send` hook strips every URL and referrer property down to origin and path plus the campaign labels.
+`client/src/lib/posthogClient.ts` turns off autocapture, dead-click capture and session recording, honours Do Not Track, creates person profiles only for signed-in accounts, and leaves URL fragments out. Its `before_send` hook strips every URL and referrer property down to origin and path plus the campaign labels. Room invitations are masked as `/play/:code` in address and text properties. Feature-flag requests are disabled because their initial properties bypass the event scrubber.
 
 ## Events
 
@@ -22,6 +22,8 @@ devShark sends product analytics to PostHog EU Cloud, and only after the visitor
 `share_initiated` carries a `kind` (`referral`, `challenge_result`, `learn_topic_result`, `daily_question`, `learning_path_result`), a `source` (`learn_level`, `learn_topic`, `challenge`, `daily`, `learning_path`) and a `method` (`share`, `copy`, `download`), never the link, a code, a score or a name.
 
 Analytics never receives an email, display name, access, session or answer token, room code, free text, question text or selected answer. PostHog identifies a signed-in account by its user id.
+
+PostHog captures the events the application sends. Session replay, heatmaps, automatic errors and performance capture, surveys, product tours, conversations, experiments and external script loading are disabled in the client. Browser monitoring uses the separate Sentry privacy rules. Both URL and path properties replace a Play room code before transmission.
 
 ## Campaign labels
 

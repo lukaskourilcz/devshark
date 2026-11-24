@@ -620,9 +620,14 @@ export const sandboxPool = (): { idle: number; warming: boolean } => ({ idle: id
 export const sandboxThreads = (): number => liveThreads;
 
 /** Runs one program in this thread. The worker entry calls this; everything
- * else goes through `runInSandbox`. */
-export async function runInQuickJS(input: SandboxInput, onDisposalFailure?: () => void): Promise<EvaluateResult> {
-  const QuickJS = await getModule();
+ * else grading submissions goes through `runInSandbox`. Health supplies its
+ * own engine so its five-minute recheck can retry a failed initialization. */
+export async function runInQuickJS(
+  input: SandboxInput,
+  onDisposalFailure?: () => void,
+  healthEngine?: QuickJSWASMModule,
+): Promise<EvaluateResult> {
+  const QuickJS = healthEngine ?? await getModule();
   const runtime = QuickJS.newRuntime();
   const deadline = Date.now() + (input.deadlineMs ?? SANDBOX_DEADLINE_MS);
   runtime.setMemoryLimit(input.memoryBytes ?? SANDBOX_MEMORY_BYTES);
@@ -750,7 +755,7 @@ export async function runInQuickJS(input: SandboxInput, onDisposalFailure?: () =
     try { vm.dispose(); } catch { disposalFailed = true; }
     try { runtime.dispose(); } catch { disposalFailed = true; }
     if (disposalFailed) {
-      modulePromise = null;
+      if (!healthEngine) modulePromise = null;
       // Worker-only host observer; no binding or metadata enters the VM or
       // public result. Keep disposal diagnostics from replacing the verdict.
       try { onDisposalFailure?.(); } catch { /* an observer cannot alter grading */ }

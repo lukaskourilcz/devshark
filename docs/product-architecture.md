@@ -123,7 +123,10 @@ categories in rotation from `QOTD_EPOCH`), so the build writes each day's page
 head and share image (`client/src/og/ogImages.ts`) ahead of the day, as it does
 for every coding task. `client/src/lib/routeHead.ts` reads such a prerendered
 head before the first route writes one, so a dated page or a task page keeps
-its own title, description and canonical URL. The Coding home and its track
+its own title, description and canonical URL. The Daily landing lists the UTC
+build day as its sitemap lastmod. Published dates within the build's 120-day
+lookback enter the sitemap with their own date as lastmod. The 45 future
+dates have share heads prepared in advance. The Coding home and its track
 pages (`/coding`, `/coding/<track>`, `/coding/fullstack`) get a head the same
 way and are in the sitemap; the task pages are not. `/coding/review` names
 `/coding` as canonical and stays out. `/coding/system-design` and every
@@ -1845,6 +1848,20 @@ Do not rename the schema. The browser keeps no coin balance of its own; old
 
 ## Sign-in, caching and limits
 
+The common HTTP request wrapper limits ordinary bodies to 256 KiB and signed
+webhook bodies to 1 MiB. Oversized bodies receive 413. Billing verifies the
+provider signature against the original bytes before processing an event.
+Retries use its provider event ID so a duplicate success cannot grant a
+second entitlement.
+
+The health response distinguishes the database check, the service-role check,
+the rate limiter's current operating mode and grading readiness. The grading
+probe checks the local engine and required snapshot configuration. The
+separate grading monitor submits an exercise to measure actual execution.
+The scheduled health check rejects unhealthy or stale responses. After the
+first production release containing the grading field, set
+`REQUIRE_GRADING_HEALTH=true` to reject missing fields as well.
+
 Browser sign-in redirects use PKCE. Supabase exchanges an authorization code
 with the verifier saved by the browser that started the request. Stored
 sessions keep their existing storage key. The default confirmation and
@@ -1957,6 +1974,22 @@ opening the email on a different device.
   (`beforeAccountChange`), then moves an account epoch (`accountEpoch`), and
   work that started before it (a progress sync, an XP sync, a level
   completion, a Challenge reward) writes and announces nothing.
+- **Caller data in React Query.** Include the authenticated account id in a
+  new caller-specific query key, or register the shared key among the ones
+  `clearAccountData` clears before another account renders. Add every new
+  prefix and its factory to `client/tests/account-switch-cache.test.tsx`.
+  A late mutation that could write a cache entry, navigate or announce a
+  reward must compare its starting `accountEpoch()` with the current one.
+  A pending Quiz Submit also keeps the identity that locked its answers. A
+  restored tab waits for auth before sending the saved answers to the grader.
+  Once graded, the server receipt uses its own account-scoped delivery queue.
+- **Browser console checks.** Browser specs import `test` and `expect` from
+  `tests/browser/console-clean.ts`. The fixture observes each page opened in
+  the test context for application console errors and unhandled errors.
+  A test that intentionally breaks a chunk names the expected message with
+  `allowConsoleErrors`. The report retains browser-generated HTTP failure
+  lines separately. `playwright.config.ts` rejects direct Playwright value
+  imports in spec files.
 - **Progress is read, never sent.** The server writes Learn progress itself on
   each completion. The browser pulls it at sign-in and when Today or a map
   asks (`GET /api/quiz/roadmap?resource=progress`, `syncProgressWithServer`,
@@ -2265,7 +2298,7 @@ seeds a row in every such table.
   Pixel, not connected). The choice is stored in localStorage
   (`devshark:consent`: version, the two booleans, the time) and copied into
   the first-party cookie `devshark_consent`
-  (`v=1&analytics=0|1&marketing=0|1&at=<epoch s>`, `SameSite=Lax`, 12
+  (`v=2&analytics=0|1&marketing=0|1&at=<epoch s>`, `SameSite=Lax`, 12
   months) for a later server or edge read; nothing reads the cookie today.
   Until the visitor decides, both optional categories are off. Raising
   `CONSENT_VERSION` asks every browser again, and so does a choice older than
@@ -2304,6 +2337,12 @@ seeds a row in every such table.
   removes every `ph_` / `__ph_` cookie and storage key and the campaign,
   whenever they were written. Sign-out calls `reset()` and opts back in.
   `before_send` scrubs URLs before anything leaves the browser.
+  Consent wording version 2 includes load, responsiveness and layout measurements.
+  The same lazy client starts the attributed LCP, INP and CLS observers. Each
+  event carries its numeric measurement and one standard HTML tag or `unknown`.
+  The final property filter permits only these fields and PostHog’s project
+  token and distinct ID. Buffered observations predating permission are dropped.
+  Withdrawing permission also suppresses any pending report.
 - **Marketing readiness** (`client/src/lib/marketing.ts`). `MARKETING_LOADERS`
   (`lib/marketingTags.ts`) is empty, so `main.tsx` never loads `marketing.ts`
   and nothing runs: no `dataLayer`, no script, no CSP change. A loader added
@@ -2324,6 +2363,10 @@ seeds a row in every such table.
   an error reported or thrown before that waits in memory (at most 20) and is
   sent through the same scrub hooks when the SDK starts. The pageload trace
   still reads its timings from the browser's buffered performance entries.
+  Vercel supplies the commit and deployment environment used for Sentry's
+  release and environment fields. The SDK excludes the BrowserSession
+  integration. Extension errors and obsolete lazy chunks have dedicated
+  filters, and request and span data go through the scrubber.
   PostHog sends each event as it is captured, so
   nothing batched before a withdrawal leaves after it.
 - **The privacy policy** (`PRIVACY` in `client/src/components/LegalPages.tsx`,
@@ -2569,3 +2612,11 @@ The existing `api/admin/[op].ts` handler routes `users` and `emails` after `requ
 Vouchers reuse the existing creation, one-time code display and revocation screens. A new `action: 'limit'` changes only `max_redemptions` through a single row update. Validation bounds it to 1–10,000, and the existing database constraint and redemption row lock prevent lowering it below completed redemptions. It never resets usage or changes a grant already issued.
 
 Emails edits every template (`docs/email-delivery.md`): delivery state on one line, a rich-text editor, a live preview with sample values, and one test send to a typed address.
+
+### Browser deployment policies
+
+App documents load scripts and workers from the same origin; Stripe and Link supply the hosted payment UI. Fonts ship with the client. The production connection policy names the devShark Supabase HTTP and Realtime origins and its Sentry ingest host. Google profile images and images used in hosted checkout have separate image permissions. Add any future merchandise image host when sales resume. The Docker adapter accepts explicit local service origins through `CSP_CONNECT_EXTRA`.
+
+The exercise iframe has an opaque origin and can run scripts and handle forms. Its page and response policies block outgoing connections and form navigation. Its own assets allow cross-origin module loading. App documents use `same-origin-allow-popups` for payment and identity returns, and app documents and API responses carry a same-origin resource policy. Production source-map requests under either asset directory return 404 with `no-store`.
+
+Browser CSP reports go to the same-origin settings handler. It forwards the directive name and a fixed site origin to the configured Sentry project under a dedicated rate limit. Sampling text, original URLs, referrers, cookies and client IP addresses are omitted.

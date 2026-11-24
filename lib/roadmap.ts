@@ -15,7 +15,7 @@
 
 import { QUESTIONS_PER_LEVEL, ROADMAP_LEVELS, difficultyForLevel } from './roadmap-build';
 import { restoredQuestionIds } from './roadmap-questions-restored';
-import { PARTS_PER_TOPIC, partRanges, type StepAvailability } from '../shared/progression';
+import { partRanges, type StepAvailability } from '../shared/progression';
 import { levelLessonId } from './learn-lessons/levels';
 
 export type RoadmapTopic =
@@ -426,10 +426,6 @@ export const PART_TEST_PASS = CHECKPOINT_PASS;
 // Max questions sampled into a part test. A part spans 2–9 levels (× 8), so the
 // test is a focused exam over the part rather than its whole question pool.
 export const PART_TEST_SIZE = 20;
-
-export function isValidPart(part: number): boolean {
-  return Number.isInteger(part) && part >= 1 && part <= PARTS_PER_TOPIC;
-}
 
 /** @public Compatibility facade for roadmap API/authoring imports; values remain owned by the shared/build modules. */
 export { ROADMAP_LEVELS, QUESTIONS_PER_LEVEL };

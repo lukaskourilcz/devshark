@@ -7205,6 +7205,17 @@ Branch `claude/f15b-seo-observability`, stacked on `claude/f15-seo-observability
 
 Every other F15 finding, F15-09 and F15-12 through F15-57 included, stays in #646 for the next agent.
 
+### Public caching observed on 18 November 2026 (F15-54)
+
+The production GETs recorded on #644 covered `/daily/2026-11-18`, `/daily`,
+`/og/daily/2026-11-18.png`, a coding task page, `/sitemap.xml` and `/robots.txt`.
+Each returned `Cache-Control: public, max-age=0, must-revalidate` and
+`x-vercel-cache: HIT`. The dated Daily HTML reported `Age: 3263`. Browsers
+revalidate the HTML so a release can replace a page immediately. Keep those
+HTML headers. A one-day browser lifetime for `/og/daily/*.png` and
+`/og/coding/*.png` remains optional if crawler request counts justify it.
+These observations describe the 18 November deployment.
+
 ## Epic F4 images: public assets and invitation codes (19 November 2026)
 
 Issue #633, with cross-package F15-59 from #646. I archived 80 build-only brand
@@ -9019,3 +9030,166 @@ pass. Original stage/head/dirty receipts and both earlier fast failures remain
 in `docs/quality/f11-binding-inventory-2026-11-19.md` and adjacent JSON.
 A new clean-head fast plus exactly one additional same-head Launch, then
 required CI/SQL/merge/deployment acceptance, remain pending.
+
+
+## Epic F12 client correctness (24 November 2026)
+
+On Chromium 158, the matched production builds `4db80e061` and `dfb93f8dc`
+each kept 513 listeners and zero intervals through five laps of ten routes in
+one guest document. The pending timeouts with a requested delay of at least
+one second measured 21, 26, 31, 36 and 35. This exceeded the 10% limit.
+Allocation traces on the latter build showed 20 outstanding Sentry navigation
+deadlines in lap five. After 35 seconds there were 15 remaining timeouts,
+of which 13 were query-cache evictions. After 305 seconds only the two clock
+timers for mounted Home components remained. Holding and releasing 12
+listeners, one timeout and one interval verified all three counters.
+
+| Finding | Implementation and verification |
+| --- | --- |
+| F12-04 | The production Vite transform checks the pinned Sentry 10.59.0 module and cancels its final timeout at the SDK's existing finished transition. The active span retains its 30-second deadline and its sampling policy. The client Vitest exercises the pinned SDK. `tests/browser/memory.spec.ts` checks the raw lap-five and +35 s counts. `MEMORY_FULL_EXPIRY=1` also records and checks +305 s. |
+| F12-06 | The earlier browser test drops the stats request after grading. A second offline case presses Submit before grading, observes zero requests, reconnects and checks one grade for the locked answers and one account receipt. Restoring a different account discards the queued Submit. |
+| F12-18 | The account-change contract and the console fixture are documented under “Caller data in React Query” and “Browser console checks” in `product-architecture.md`. |
+| F12-21 and F12-22 | The public page specs use the shared console fixture. The Playwright config checks every spec import. The Chromium job and local parity both select the offline and memory specs. |
+
+F12-11 through F12-15 and F12-17 received focused verification on #674.
+The Challenge stopped sending rewards after a sign-in change. The classroom
+presenter cancelled its old answer-distribution request on the next question
+and on exit. Earlier sections retain the original F12-01 through F12-10,
+F12-16, F12-20 and F12-23 observations and release scope.
+
+The integrated build, full browser console check, account-switch inventory
+and amended raw timer counts are queued for the final combined run. For
+the traced memory measurement, prepare the production build with a disposable
+local `VITE_SENTRY_DSN` and run Chromium with `MEMORY_EXPECT_TRACING=1`
+and `MEMORY_FULL_EXPIRY=1`. The test blocks external HTTP; its
+`route-memory.json` attachment holds the per-lap, control and expiry readings.
+
+## 24 November 2026 · challenge catalogue and application audit
+
+The audit started from `4db80e0615d20c75ca4061c135821cb169690708`. Reviewers examined 316 JavaScript, 183 React, 156 TypeScript, 114 Algorithms and 45 System Design tasks twice. Of the 769 published tasks, 110 have new content hashes (40 JavaScript, 24 React, 37 TypeScript, 9 Algorithms) and 659 retain their previous hashes. The 40 System Design drills and 5 walkthroughs remain hidden under the previous publication decision. The versioned content ledger records the two source reviews separately from executable grading.
+
+On Node 24.22.3 the three authored Promise boards passed both rejection orders and ordinary fulfillment under strict native rejection handling. Six breadth-first traversal boards produced the expected ordering with zero array shifts. In Chrome 158.0.8127.37 the Daily exercise on application build `0540b0583` reached the real local API, PostgREST 16.6 and native PostgreSQL 17. Correct and incorrect answers displayed their respective explanations. Both retries returned the original verdict. Four acknowledged claims produced two distinct guest receipts and zero XP or account-attempt writes.
+
+The combined application PR includes the earlier dependency and application PR heads. Its ordinary coding job emits the case counts and actual verdict for each authored board and starter. The immutable result of that job and the other required gates belong in the PR closeout. Database migrations 077 onward have their own review and rollout sequence. Before deploying the changed React grader, promote the reviewed provider snapshot and verify a real Preview Submit.
+
+
+### Dependency, API and operational evidence from 24 November
+
+| Area | Measured result on the reviewed source | Release dependency |
+| --- | --- | --- |
+| F2 dependencies | Root lock entries fell from 316 to 314, including 122 to 120 outside dev dependencies. The client fell from 701 to 648, with 213 outside dev dependencies on both revisions. Full and production-only npm audits returned zero findings in both projects. The independent upstream scan found two newer advisories. Updating the locked trace packages to 2.12.1 and DOMPurify to 3.5.0 cleared both without a manifest override. | GitHub reports Dependabot alerts, automatic security fixes, secret scanning and push protection enabled. Observe a scheduled update on main. Before production, refresh the React snapshot and verify a real Preview submission. |
+| F8 database | On the complete stacked schema, hosted PostgreSQL applied 89 files, reapplied 077–089, and passed all 82 SQL files including the scheduled purge. Splinter reported 50 informational results. Native PostgreSQL 17.11 completed 81 files with the cron extension unavailable. The same 20,000-learner dataset and seven samples per query put the Hall of Fame lookup at 10.2 ms before and 0.006 ms after. Buffers fell from 3,131 to three. The all-time subject leaderboard measured 287.7 ms before and 299.5 ms after with the same 15,266 buffers. | Production's recorded sequence ends at 076. Apply the reviewed migrations in order under the database rollout process. [SQL and advisor log](https://github.com/lukaskourilcz/devshark/actions/runs/45315542819/job/138181532238) · [All 17 query comparisons](https://github.com/lukaskourilcz/devshark/blob/85007c01a/supabase/bench/results-2026-11.md) |
+| F9 API | The local API contract exercised the committed Bruno collection against healthy service stand-ins. Separate outage checks covered unavailable upstreams, private account reads and single-use claims. A native PostgreSQL and PostgREST Daily flow through Chrome returned the original result on both retries, produced two distinct anonymous claims and awarded zero XP. | The staged health field, private Play events and signed-provider delivery each have separate rollout checks. |
+| F10 browser boundaries | Built-page and redirect checks passed against the production-shaped local build. Public name caching remains bounded at 60 seconds under the later privacy requirement in #668. | A separate sandbox origin and Sentry source-map uploads require owner decisions. Verify the configured report destination after deployment. |
+| F15 production observations | Six ordinary GETs to devshark.app returned HTTP 200 and `public, max-age=0, must-revalidate` for dated Daily, undated Daily, the dated PNG, a Coding task, the sitemap and robots.txt. The first four were CDN misses; the latter two were hits. HTML and its dated image revalidate across releases. | The four earlier reporting windows returned 8, 87, 142 and 56 instances of Vercel's Node DEP0169 warning. The newest seven-day window returned no grouped errors. #477 and vercel/vercel#16109 track the launcher warning. The grouping combines handlers, so it supplies neither exact per-handler counts nor a complete historic record of application errors previously written to stdout. Inspect ten fresh Sentry events on an approved release. |
+
+Knip's reviewed baseline is empty. The full advisory report found zero unused value exports under `lib/` and `shared/`. It reported 29 and 52 type-only exports respectively, plus one duplicate in `shared/`. The configured server value-export gate passed. Workspace-wide the advisory report counted 125 exports, 125 types and 18 duplicates.
+
+The upstream scan considered 730 installed package versions across 394 GitHub repositories. It reported 24 lock entries without a GitHub repository and 196 entries absent on this platform. The challenge validator's first combined run recorded 2,945 expected reference, alternate and starter verdicts. Two auxiliary React fixtures needed correction. Their filtered rerun passed for both affected tasks. The combined PR records the outcome of the subsequent full run. [Combined application PR](https://github.com/lukaskourilcz/devshark/pull/679)
+
+On the intermediate candidate, the unfiltered hosted grader passed all 814 tasks and recorded 2,945 board outcomes. The 769 published starters all received rejection, and the 45 unpublished design tasks retained their publication status. An inherited React form test still finished before the Create interaction settled. Awaiting the update removed all seven React warnings on a representative 31-case junior board. This changed 15 of the 110 reviewed versions. The final CI on the pull request identifies the tested versions and board outcomes. [Intermediate grading run](https://github.com/lukaskourilcz/devshark/actions/runs/45320387092/job/138197238544)
+
+The hosted mobile Lighthouse Home score reached 93 against F1's 92. Desktop scored 100. In the separate mobile CDP comparison, the cold LCP medians for Home, Learn, Coding, Quiz and Daily were 1,636, 1,636, 1,636, 1,644 and 852 ms. Every cold and repeat route median for CLS was zero. The slowest of 15 measured interactions took 112 ms. On five laps through ten routes with Sentry loaded, listeners stayed at 504, active intervals at zero and outstanding long timeouts at 15. Two long timeouts remained after 305 seconds. [Hosted quality run](https://github.com/lukaskourilcz/devshark/actions/runs/45320387092)
+
+### Request-path measurements
+
+Across the twelve independently bundled API entry points, a configured fresh process created 31 service-role clients in total before the change and 12 after it. Each handler kept its own separate anonymous authenticator. Three interleaved before/after trials per handler used disposable credentials and sent zero requests. The Challenge median moved from 55.93 ms to 52.91 ms and the admin median from 63.33 ms to 60.92 ms. Some timings increased, including the user handler from 73.19 ms to 74.36 ms. These times measure local process imports.
+
+Computing review metadata for all 2,583 authored quiz questions took 17.50 ms before the change and 12.80 ms after it. For all 814 coding challenges, it took 42.05 ms and 22.81 ms respectively. Measurements are medians of eight warm passes after a warm-up, on Node 24.22.3. The SHA-256 digest of the complete serialized response matched across both versions for each catalogue.
+
+## Epic F closeout (24 November 2026)
+
+The F1 column uses the archived 19 November measurements. The application column identifies the observed build or environment. Rollout is still pending for the database and the reviewed React grading environment.
+
+| §5 measurement | F1 | Application evidence | Change and scope |
+| --- | --- | --- | --- |
+| 1. Initial gzip | 218,661 bytes | 217,717 bytes at `04ee69969` | -0.43%. The four requests are the main script, React, TanStack and CSS. The final column below accounts for every initial byte. |
+| 2. Treemap | 233 emitted chunks | 236 emitted chunks, measured with `ANALYZE=true npm run check:bundle` | +1.29% by count. The ten largest chunks appear below. |
+| 3. Browser performance | Home mobile Lighthouse 92. See the F1 mobile and desktop Lighthouse and CDP route tables. | Hosted run `45325797806` scored 92 mobile and 100 desktop. Five cold mobile LCP medians ranged from 852 to 1,648 ms and 15 scripted inputs peaked at 96 ms. CLS was zero on four routes at both widths. | Mobile Home score 0.00%. Eight-route matched local measurements use three visits per route, profile and cache state. Field INP requires real visitors. |
+| 4. Twelve handler cold starts | F1 recorded fresh-process import timings and separate production response headers. | In the paired local imports, four of twelve handler medians improved. With disposable provider configuration, the twelve handlers constructed 12 service clients, down from 31. | Client constructions −61.29%. Local imports cannot establish provider cold-start time. A deployment with comparable Server-Timing headers is required. |
+| 5. Images | 11 source assets, 269,577 bytes | 11 source assets, 269,577 bytes. Asset references and dimensions were inventoried. | 0.00% by count and bytes. The [F4 record](audit/f4-image-delivery-2026-11-18.json) identifies rendered dimensions and the routes observed. |
+| 6. npm production advisories | Root 0, client 0 | Root 0, client 0. Including development dependencies also returned 0 in both projects. | Absolute change 0. A percentage from a zero baseline is undefined. The separate upstream review led to two dependency fixes. |
+| 7. Database advisors | Hosted production had 33 security findings (all informational) and 57 performance findings (39 warnings). | The reviewed migration stack in CI returned 50 informational results and zero warnings or errors. | These are different databases. A production percentage needs the approved rollout and a new advisor export from the same project. |
+| 8. Repository, Linux image and CI | F1 allocated KiB: Git 132,988, docs 20,172, media 1,512, public 284. Linux/amd64 image 141,951,324 bytes. Ten completed workflows recorded 14,200 wall seconds and 33,831 total job seconds. | Allocated KiB: shared audit Git 232,040, docs 22,320, media 1,512, public 284. Linux/amd64 image 141,812,464 bytes. Ten completed workflows through run `45325797806` recorded 11,705 wall seconds and 29,151 job seconds. | Image -0.10%. Directory changes in the same order: +74.48%, +10.65%, +0.00%, +0.00%. The shared audit store includes additional refs. CI wall -17.57%, jobs -13.83% across different mixes of completed jobs. These durations are not billing records. |
+
+| File group (gzip bytes) | F1 | `04ee69969` | Change |
+| --- | ---: | ---: | ---: |
+| Initial main JS | 106,232 | 105,282 | -0.89% |
+| Initial React | 74,807 | 74,807 | +0.00% |
+| Initial TanStack | 12,989 | 12,989 | +0.00% |
+| Initial CSS | 24,633 | 24,639 | +0.02% |
+
+| Ten largest chunks (gzip bytes) | F1 | `04ee69969` | Change |
+| --- | ---: | ---: | ---: |
+| `ts-compiler` | 1,092,837 | 1,092,846 | +0.00% |
+| `Editor` | 173,083 | 173,083 | +0.00% |
+| `EmailRichTextEditor` | 130,655 | 130,678 | +0.02% |
+| `main` | 106,232 | 105,282 | -0.89% |
+| `posthogClient` | 93,472 | 99,173 | +6.10% |
+| `babel` | 83,128 | 83,128 | +0.00% |
+| `react` | 74,807 | 74,807 | +0.00% |
+| `estree` | 62,245 | 62,245 | +0.00% |
+| `supabase` | 55,304 | 55,304 | +0.00% |
+| `sentry-sdk` | 46,800 | 47,130 | +0.71% |
+
+The [F1 bundle](audit/f1-bundle-2026-11.json), [F1 API observations](audit/f1-handler-baseline-2026-11-19.json), [F1 CI cohort](audit/f1-ci-quality-snapshot-2026-11-19.json) and [F1 production advisors](audit/database-advisors-2026-11.json) preserve the original samples. The [Linux image job](https://github.com/lukaskourilcz/devshark/actions/runs/45325797806/job/138214970375) measured the current review tree with the same Docker harness.
+
+### Handler import timings
+
+F1 archived its fresh-process import proxy and independently observed first-byte latency on its production deployment. The matched 24 November trials measured three local Node 24.22.3 imports per handler on intake `4db80e061` and application checkpoint `ff08d461b`. The last two columns show a later paired experiment with disposable provider configuration and zero network requests, measured before and after client reuse (`2f7699880`). Each percentage compares observations from the same experiment.
+
+| Handler | F1 import ms | F1 production first byte ms | Intake → checkpoint ms | Change | Configured, before → after ms | Change |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| health | 18.99 | 331.58 | 13.43 → 16.41 | +22.2% | 29.20 → 28.96 | -0.8% |
+| settings | 34.33 | 147.43 | 22.95 → 24.12 | +5.1% | 36.54 → 36.52 | -0.1% |
+| leaderboard | 19.37 | 377.08 | 12.91 → 14.47 | +12.1% | 26.70 → 26.72 | +0.0% |
+| questions | 105.00 | 429.64 | 69.33 → 69.68 | +0.5% | 83.66 → 83.10 | -0.7% |
+| roadmap | 131.08 | 191.38 | 82.94 → 83.20 | +0.3% | 96.60 → 96.40 | -0.2% |
+| challenge | 83.44 | 145.81 | 40.06 → 40.18 | +0.3% | 55.93 → 52.91 | -5.4% |
+| daily | 65.48 | 253.48 | 41.61 → 39.24 | -5.7% | 53.69 → 52.32 | -2.5% |
+| submit | 59.96 | 145.81 | 39.69 → 39.51 | -0.5% | 52.20 → 52.34 | +0.3% |
+| flashcards | 57.37 | 144.67 | 38.82 → 38.96 | +0.4% | 51.28 → 51.34 | +0.1% |
+| user | 90.45 | 141.17 | 60.13 → 59.96 | -0.3% | 73.19 → 74.36 | +1.6% |
+| play | 58.58 | 150.08 | 39.55 → 39.61 | +0.2% | 52.37 → 52.06 | -0.6% |
+| admin | 78.79 | 205.57 | 49.87 → 48.72 | -2.3% | 63.33 → 60.92 | -3.8% |
+
+### Eight routes in Chrome
+
+Each cell gives the F1 median, the 24 November intake median at `4db80e061`, and the reviewed median at `04ee69969`, in that order. Percentages compare the two 24 November builds under matched conditions. F1 used its archived browser and route readiness rules. Each November 24 build received 96 visits. All 192 scripted interactions registered. The cold visitor had no consent choice. The repeat visitor had rejected analytics. Daily and the leaderboard received disposable API fixtures. The input column records trusted button or answer interactions in the lab.
+
+| Profile | Route | Visit | LCP ms | CLS | TBT ms | Input ms |
+| --- | --- | --- | ---: | ---: | ---: | ---: |
+| mobile | `/` | cold | 1688 / 1656 / 1660 (+0.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 104 / 96 / 96 (+0.0%) |
+| mobile | `/` | repeat | 284 / 260 / 276 (+6.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 48 / 48 (+0.0%) |
+| mobile | `/learn` | cold | 1696 / 1644 / 1664 (+1.2%) | 0 / 0 / 0 (same) | 25 / 4 / 9 (+125.0%) | 120 / 88 / 112 (+27.3%) |
+| mobile | `/learn` | repeat | 896 / 836 / 824 (-1.4%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 80 / 48 / 48 (+0.0%) |
+| mobile | `/coding` | cold | 1696 / 1628 / 1620 (-0.5%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 104 / 88 / 64 (-27.3%) |
+| mobile | `/coding` | repeat | 292 / 268 / 272 (+1.5%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 48 / 24 (-50.0%) |
+| mobile | `/quiz` | cold | 1704 / 1656 / 1636 (-1.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 88 / 80 / 72 (-10.0%) |
+| mobile | `/quiz` | repeat | 308 / 268 / 260 (-3.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| mobile | `/daily` | cold | 1676 / 1616 / 836 (-48.3%) | 0.071 / 0.071 / 0 (-100.0%) | 64 / 16 / 11 (-31.2%) | 64 / 64 / 48 (-25.0%) |
+| mobile | `/daily` | repeat | 456 / 436 / 400 (-8.3%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 16 / 24 (+50.0%) |
+| mobile | `/premium` | cold | 872 / 852 / 840 (-1.4%) | 0 / 0 / 0 (same) | 60 / 13 / 14 (+7.7%) | 104 / 72 / 72 (+0.0%) |
+| mobile | `/premium` | repeat | 456 / 280 / 268 (-4.3%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 48 / 32 (-33.3%) |
+| mobile | `/topics/javascript-closures` | cold | 892 / 868 / 852 (-1.8%) | 0 / 0 / 0 (same) | 56 / 20 / 17 (-15.0%) | 88 / 88 / 72 (-18.2%) |
+| mobile | `/topics/javascript-closures` | repeat | 292 / 284 / 260 (-8.5%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 48 / 24 (-50.0%) |
+| mobile | `/leaderboard` | cold | 1688 / 1644 / 1632 (-0.7%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 88 / 72 / 72 (+0.0%) |
+| mobile | `/leaderboard` | repeat | 472 / 264 / 428 (+62.1%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 32 / 32 (+0.0%) |
+| desktop | `/` | cold | 344 / 312 / 312 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 80 / 64 / 64 (+0.0%) |
+| desktop | `/` | repeat | 76 / 80 / 80 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/learn` | cold | 356 / 332 / 328 (-1.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 112 / 80 / 72 (-10.0%) |
+| desktop | `/learn` | repeat | 556 / 80 / 560 (+600.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/coding` | cold | 356 / 316 / 324 (+2.5%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 80 / 64 / 64 (+0.0%) |
+| desktop | `/coding` | repeat | 224 / 80 / 80 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 48 / 48 (+0.0%) |
+| desktop | `/quiz` | cold | 356 / 328 / 324 (-1.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 80 / 64 / 64 (+0.0%) |
+| desktop | `/quiz` | repeat | 108 / 80 / 108 (+35.0%) | 0.0002 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/daily` | cold | 340 / 308 / 156 (-49.4%) | 0.0528 / 0.0528 / 0 (-100.0%) | 0 / 0 / 0 (same) | 64 / 64 / 64 (+0.0%) |
+| desktop | `/daily` | repeat | 212 / 76 / 216 (+184.2%) | 0.0528 / 0.0528 / 0 (-100.0%) | 0 / 0 / 0 (same) | 32 / 16 / 32 (+100.0%) |
+| desktop | `/premium` | cold | 180 / 168 / 160 (-4.8%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 88 / 64 / 64 (+0.0%) |
+| desktop | `/premium` | repeat | 204 / 80 / 72 (-10.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/topics/javascript-closures` | cold | 188 / 156 / 160 (+2.6%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 72 / 64 / 64 (+0.0%) |
+| desktop | `/topics/javascript-closures` | repeat | 72 / 76 / 76 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/leaderboard` | cold | 344 / 320 / 316 (-1.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 72 / 64 / 64 (+0.0%) |
+| desktop | `/leaderboard` | repeat | 208 / 72 / 220 (+205.6%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+
+F1 source tables retain the individual observer samples. [Mobile](audit/f1-mobile-cdp-2026-11.json) · [Desktop](audit/f1-desktop-cdp-2026-11.json)

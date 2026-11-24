@@ -6,14 +6,15 @@ test.skip(!process.env.STORYBOOK_URL, 'Run with STORYBOOK_URL after starting the
 async function analyze(page: Page) {
   for (let attempt = 0; ; attempt++) {
     try {
-      return await new AxeBuilder({ page }).include('#storybook-root').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
+      return await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
     } catch (error) {
       if (attempt >= 8 || !String(error).includes('Axe is already running')) throw error;
       await page.waitForTimeout(250);
     }
   }
 }
-for (const story of ['populated', 'pinned', 'empty', 'server-error', 'offline']) {
+const leaderboardStates = ['populated', 'pinned', 'empty', 'server-error', 'offline'];
+for (const story of leaderboardStates) {
   test(`workshop leaderboard ${story}`, async ({ page }) => {
     await page.goto(`${process.env.STORYBOOK_URL}/iframe.html?id=screens-leaderboard--${story}&viewMode=story`);
     // The kicker says "Leaderboard"; the page heading says what the board ranks.
@@ -30,7 +31,52 @@ test('confirmation restores focus after Escape', async ({ page }) => {
   const trigger = page.getByRole('button', { name: 'Delete account', exact: true });
   await trigger.click();
   await expect(page.getByRole('alertdialog')).toBeVisible();
+  expect((await analyze(page)).violations).toEqual([]);
   await page.keyboard.press('Escape');
   await expect(page.getByRole('alertdialog')).toHaveCount(0);
   await expect(trigger).toBeFocused();
+});
+
+
+test('every published component story passes the accessibility checks', async ({ context, request }) => {
+  test.setTimeout(240_000);
+  const address = process.env.STORYBOOK_URL!;
+  const response = await request.get(address + '/index.json');
+  expect(response.ok()).toBe(true);
+  const index = await response.json() as { entries: Record<string, { type: string; id: string }> };
+  const stories = Object.values(index.entries).filter(entry => entry.type === 'story');
+  expect(stories.length).toBeGreaterThan(leaderboardStates.length);
+  let previousPreview: Page | undefined;
+  for (const { id } of stories) for (const theme of ['light', 'dark']) {
+    if (theme === 'light' && leaderboardStates.some(state => id === 'screens-leaderboard--' + state)) continue;
+    await test.step(id + ' ' + theme, async () => {
+      const url = new URL('/iframe.html', address);
+      url.searchParams.set('id', id);
+      url.searchParams.set('viewMode', 'story');
+      url.searchParams.set('globals', 'theme:' + theme);
+      // MSW unregisters when its last preview unloads. Keep that client alive
+      // until the next story has rendered with its own registered mock handlers.
+      const page = await context.newPage();
+      await page.goto(url.href);
+      await expect(page.locator('#storybook-root > *').first()).toBeVisible();
+      await expect(page.locator('body')).not.toHaveClass(/sb-show-(?:errordisplay|nopreview)/);
+      await previousPreview?.close();
+      previousPreview = page;
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      // The segmented controls transition their ink when the toolbar switches themes.
+      await page.evaluate(async () => {
+        const transitions = document.getAnimations().filter(animation => animation instanceof CSSTransition);
+        await Promise.allSettled(transitions.map(transition => transition.finished));
+      });
+      if (id === 'astryx-practice-sample--unanswered') {
+        const feedback = page.getByRole('status');
+        await expect(feedback).toBeEmpty();
+        await page.getByRole('button', { name: /^C\s*4$/ }).click();
+        await expect(feedback).toBeFocused();
+        await expect(feedback).toContainText('Incorrect.');
+      }
+      const checks = await analyze(page);
+      expect.soft(checks.violations.map(v => ({ id: v.id, nodes: v.nodes.map(n => n.target) })), id + ' ' + theme).toEqual([]);
+    });
+  }
 });

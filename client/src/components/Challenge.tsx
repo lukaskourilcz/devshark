@@ -20,7 +20,7 @@ import { readOnce, settled, useFirstData } from '../lib/routeData';
 import type { Question, QuizResult } from '../types/quiz';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../lib/auth';
-import { useActiveSubject, useSubject, deliveryCategoriesForSubject } from '../lib/subjects';
+import { useSubject, deliveryCategoriesForSubject } from '../lib/subjects';
 import { visuallyHidden } from '../theme/MuiTheme';
 import { MotionPop, MotionProvider } from '../lib/motion';
 import { SharkFin } from './SharkFin';
@@ -211,7 +211,7 @@ function Challenge({ onActiveChange }: { onActiveChange?: (active: boolean) => v
   useBoardFirstData();
   const { t } = useLanguage();
   const { user } = useAuth();
-  const accent = useActiveSubject().accent;
+  const userId = user?.id ?? null;
 
   const [phase, setPhase] = useState<Phase>('intro');
   const [error, setError] = useState<string | null>(null);
@@ -290,6 +290,7 @@ function Challenge({ onActiveChange }: { onActiveChange?: (active: boolean) => v
   const sentPicks = useRef<{ questionId: string; picks: number[] }>({ questionId: '', picks: [] });
   // Guards the once-per-run XP/token payout on game over.
   const awardedRef = useRef(false);
+  const runAccount = useRef<{ userId: string | null; epoch: number } | null>(null);
   // The timeout strike goes out once per question. A refusal worth retrying
   // is sent again after a growing pause, never on every render.
   const strikeSentFor = useRef<string | null>(null);
@@ -502,6 +503,7 @@ function Challenge({ onActiveChange }: { onActiveChange?: (active: boolean) => v
   const startRun = useCallback(async () => {
     if (topics.length === 0) return;
     runTopics.current = [...topics];
+    runAccount.current = { userId, epoch: accountEpoch() };
     // Any pending request still belongs to the run that ended.
     cancelRunRequests();
     const generation = runGeneration.current;
@@ -535,7 +537,7 @@ function Challenge({ onActiveChange }: { onActiveChange?: (active: boolean) => v
     showQuestion(next);
     setSeenIds([next.question.id]);
     setPhase('playing');
-  }, [cancelRunRequests, ensureBufferTopUp, popNext, showQuestion, t, topics]);
+  }, [cancelRunRequests, ensureBufferTopUp, popNext, showQuestion, t, topics, userId]);
 
   const advance = useCallback(
     async (becameGameOver: boolean) => {
@@ -763,16 +765,17 @@ function Challenge({ onActiveChange }: { onActiveChange?: (active: boolean) => v
   useEffect(() => {
     if (phase === 'gameover' && !awardedRef.current) {
       awardedRef.current = true;
+      if (runAccount.current?.epoch !== accountEpoch() || runAccount.current.userId !== userId) return;
       if (score > 0 && runTokenRef.current) {
         writePendingRewards([
           ...readPendingRewards().filter(run => run.runToken !== runTokenRef.current),
-          { userId: user?.id ?? null, runToken: runTokenRef.current, proofs: [...scoreProofsRef.current] },
+          { userId, runToken: runTokenRef.current, proofs: [...scoreProofsRef.current] },
         ]);
-        void syncRewards(user?.id ?? null);
+        void syncRewards(userId);
       }
-      if (!user) awardQuestXp(challengeRunXp(score), 'quiz');
+      if (!userId) awardQuestXp(challengeRunXp(score), 'quiz');
     }
-  }, [phase, score, user, syncRewards]);
+  }, [phase, score, userId, syncRewards]);
   // Announce the run's end to AT by moving focus to the game-over heading,
   // once per game over. In the effect above it ran again on every new user
   // object (a token refresh, a return to the tab) and took the focus back
@@ -936,7 +939,7 @@ function Challenge({ onActiveChange }: { onActiveChange?: (active: boolean) => v
               </Text>
               {/* The big number IS the score — no repeated caption underneath. */}
               <MotionPop>
-                <div style={{ fontSize: 'clamp(3rem, 12vw, 4.5rem)', fontWeight: 800, lineHeight: 1, color: accent }}>
+                <div style={{ fontSize: 'clamp(3rem, 12vw, 4.5rem)', fontWeight: 800, lineHeight: 1, color: 'var(--brand-accent)' }}>
                   {score}
                 </div>
               </MotionPop>

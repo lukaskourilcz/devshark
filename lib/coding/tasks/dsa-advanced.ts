@@ -153,7 +153,7 @@ export const DSA_ADVANCED_TASKS: CodingTaskSource[] = [
       "while"
     ],
     "title": "Find unweighted hop distances",
-    "prompt": "Return an array of shortest hop counts from source in a directed unweighted graph. Unreachable vertices have -1 and source has 0. n is 1..100, source is valid, and edges has at most 500 valid vertex pairs; duplicates, cycles and self-loops are allowed. Leave inputs unchanged, including frozen edge pairs. A FIFO BFS gives the target O(n+m) time and O(n+m) working space, where m is edges.length; equivalent valid results are accepted.",
+    "prompt": "Return an array of shortest hop counts from source in a directed unweighted graph. Unreachable vertices have -1 and source has 0. n is 1..100, source is valid, and edges has at most 500 valid vertex pairs; duplicates, cycles and self-loops are allowed. Leave inputs unchanged, including frozen edge pairs. Target: O(n+m) time and O(n+m) extra space with FIFO breadth-first search, where m is edges.length. Equivalent correct results are accepted.",
     "starter": "const hopDistances = (n, edges, source) => {\n\n};\n",
     "skeleton": "const hopDistances = (n, edges, source) => {\n  // Define the state that preserves the stated invariant.\n  // Handle the empty boundary before processing the remaining input.\n};",
     "hints": [
@@ -287,7 +287,7 @@ export const DSA_ADVANCED_TASKS: CodingTaskSource[] = [
       "map-set"
     ],
     "title": "Count undirected components",
-    "prompt": "Return the number of connected components in an undirected graph with n vertices numbered 0..n-1. Include isolated vertices. n is 0..100 and edges has at most 300 valid pairs; repeated edges and self-loops do not create components or merge one twice. Preserve possibly frozen edges and pairs. A union-find or graph traversal is valid. Target: O(n+m) traversal time and O(n+m) space, where m is edges.length; union-find has its usual near-linear amortized bound.",
+    "prompt": "Return the number of connected components in an undirected graph with n vertices numbered 0..n-1. Include isolated vertices. n is 0..100 and edges has at most 300 valid pairs; repeated edges and self-loops do not create components or merge one twice. Preserve possibly frozen edges and pairs. A union-find or graph traversal is valid. Target: O(n+m) time and O(n+m) space for graph traversal, where m is edges.length. Union-find has its usual near-linear amortized bound.",
     "starter": "const componentCount = (n, edges) => {\n\n};\n",
     "skeleton": "const componentCount = (n, edges) => {\n  // Define the state that preserves the stated invariant.\n  // Handle the empty boundary before processing the remaining input.\n};",
     "hints": [
@@ -402,7 +402,7 @@ export const DSA_ADVANCED_TASKS: CodingTaskSource[] = [
       "for"
     ],
     "title": "Enumerate fixed-size combinations",
-    "prompt": "Return every size-k increasing combination chosen from integers 1..n, in lexicographic order. n is 0..10 and k is 0..n. Each result row is a fresh array; no result may share a mutable row. The size-zero choice is [[]], including n=0. Return no state from earlier calls. Target: O(K*k+n) output-sensitive work and O(n) auxiliary search space, where K is the number of returned combinations; the output itself may be exponential in n.",
+    "prompt": "Return every size-k increasing combination chosen from integers 1..n, in lexicographic order. n is 0..10 and k is 0..n. Each result row is a fresh array; no result may share a mutable row. The size-zero choice is [[]], including n=0. Return no state from earlier calls. Target: O(K*k+n) time and O(n) extra space for the search, where K is the number of returned combinations. The time bound includes writing the result and is output-sensitive. The output itself may be exponential in n.",
     "starter": "const combinations = (n, k) => {\n\n};\n",
     "skeleton": "const combinations = (n, k) => {\n  // Define the state that preserves the stated invariant.\n  // Handle the empty boundary before processing the remaining input.\n};",
     "hints": [
@@ -603,7 +603,7 @@ export const DSA_ADVANCED_TASKS: CodingTaskSource[] = [
       "for"
     ],
     "title": "Find a window with at most k values",
-    "prompt": "Return the length of the longest contiguous subarray containing at most k distinct integer values. values is a dense array of at most 200 integers in [-1000,1000]; k is an integer 0..200. Empty input or k=0 returns 0. Preserve the possibly frozen input. Target: O(n) expected time and O(min(n,k)+1) map space under expected constant-time Map operations, where n is values.length; equivalent correct results are accepted.",
+    "prompt": "Return the length of the longest contiguous subarray containing at most k distinct integer values. values is a dense array of at most 200 integers in [-1000,1000]; k is an integer 0..200. Empty input or k=0 returns 0. Preserve the possibly frozen input. Target: O(n) time and O(s+1) extra space under expected constant-time Map operations, where n is values.length and s is the smaller of n and k. The map can temporarily hold one extra distinct value. Equivalent correct results are accepted.",
     "starter": "const longestAtMostK = (values, k) => {\n\n};\n",
     "skeleton": "const longestAtMostK = (values, k) => {\n  // Define the state that preserves the stated invariant.\n  // Handle the empty boundary before processing the remaining input.\n};",
     "hints": [
@@ -750,7 +750,7 @@ export const DSA_ADVANCED_TASKS: CodingTaskSource[] = [
       "for"
     ],
     "title": "Count set bits in an unsigned word",
-    "prompt": "Return the number of 1 bits in value’s unsigned 32-bit representation. value is an integer in 0..4294967295. Zero returns 0 and 4294967295 returns 32. Number bitwise operators use 32-bit words; avoid a signed-positive loop that stops when the high bit is set. Target: O(b) bit work and O(1) extra space, where b=32; fixed 32-step and bit-clearing solutions are both valid.",
+    "prompt": "Return the number of 1 bits in value’s unsigned 32-bit representation. value is an integer in 0..4294967295. Zero returns 0 and 4294967295 returns 32. Number bitwise operators use 32-bit words; avoid a signed-positive loop that stops when the high bit is set. Target: O(b) time and O(1) extra space, counting bit operations on a 32-bit word (b=32). Fixed 32-step and bit-clearing solutions are both valid.",
     "starter": "const popcount32 = (value) => {\n\n};\n",
     "skeleton": "const popcount32 = (value) => {\n  // Define the state that preserves the stated invariant.\n  // Handle the empty boundary before processing the remaining input.\n};",
     "hints": [

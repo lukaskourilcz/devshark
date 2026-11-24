@@ -204,7 +204,7 @@ export const captionStyle: React.CSSProperties = {
 const selectStyle: React.CSSProperties = {
   height: 40,
   borderRadius: 'var(--radius-element)',
-  border: '1px solid var(--color-border)',
+  border: '1px solid var(--color-border-strong)',
   background: 'var(--color-background-surface)',
   color: 'var(--color-text-primary)',
   padding: '0 12px',

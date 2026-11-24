@@ -1,6 +1,8 @@
-import { adminDirectoryContracts } from './test-admin-directory';
-// First: clears the environment the handlers below read when imported.
+// Clear local service credentials before any handler dependency is evaluated.
 import './launch-test-env';
+import { transformSync } from 'esbuild';
+import { privateCspReport } from '../lib/csp-reports';
+import { adminDirectoryContracts } from './test-admin-directory';
 import { createCodingSession as encodeCodingSession } from '../lib/coding/session';
 import assert from 'node:assert/strict';
 import { complexityContracts } from './coding-complexity-contract';
@@ -214,7 +216,8 @@ import { isValidHandle } from '../shared/handles';
 import { accountExists, handleAdminEntitlements, handleEntitlement, parseValidUntil, toEntitlementResponse } from '../lib/entitlements';
 import { DEFAULT_PUBLIC_ORIGIN, publicBillingSettings } from '../lib/billing/config';
 import { WAIVER_TEXT } from '../lib/billing/sync';
-import { en as ENGLISH } from '../client/src/i18n/translations';
+import { en as shellEnglish } from '../client/src/i18n/translations';
+import { termsEn } from '../client/src/i18n/translations.terms';
 import { privacyEn as PRIVACY_ENGLISH } from '../client/src/i18n/translations.privacy';
 import { learnEn as LEARN_ENGLISH } from '../client/src/i18n/translations.learn';
 import { pickerEn as PICKER_ENGLISH } from '../client/src/i18n/translations.picker';
@@ -235,6 +238,8 @@ import { generateVoucherCode, handleAdminVouchers, handleVoucherRedeem, parseVou
 import { VOUCHER_ALPHABET, formatVoucherCode, normalizeVoucherCode, voucherHint, voucherState } from '../shared/vouchers';
 import adminHandler from '../api/admin/[op]';
 import { productCleanupContracts } from './product-cleanup-contracts';
+
+const ENGLISH = { ...shellEnglish, ...termsEn };
 
 function apiFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
@@ -1239,10 +1244,10 @@ function publicCopyContracts() {
   for (const page of PUBLIC_PAGES) {
     assert.ok(rewrites.some((rule) => rule.source === page.path && rule.destination === `${page.path}/index.html`), `${page.path} serves its static HTML`);
   }
-  assert.deepEqual([...NOINDEX_PATHS], ['/admin', '/admin/users', '/admin/vouchers', '/admin/emails', '/admin/questions', '/admin/triage', '/admin/quality', '/admin/paths', '/admin/flags', '/admin/settings', '/admin/logs', '/admin/merch', '/premium/success', '/premium/checkout', '/auth/confirmed', '/reset-password']);
+  assert.deepEqual([...NOINDEX_PATHS], ['/admin', '/admin/users', '/admin/vouchers', '/admin/emails', '/admin/questions', '/admin/triage', '/admin/quality', '/admin/paths', '/admin/flags', '/admin/settings', '/admin/logs', '/admin/merch', '/premium/success', '/premium/checkout', '/auth/confirmed', '/reset-password', '/profile', '/cards', '/collection', '/shop', '/today', '/settings/github', '/play', '/dev']);
   // The pages the confirmation and reset emails open are client routes (no
   // handler of their own), and the catch-all rewrite serves them the app.
-  const catchAll = rewrites.find((rule) => rule.destination === '/index.html');
+  const catchAll = rewrites.find((rule) => rule.destination === '/app.html');
   for (const path of ['/auth/confirmed', '/reset-password']) {
     assert.match(app, new RegExp(`<Route path="${path}" element=`), `${path} is a route`);
     assert.ok(catchAll && new RegExp(`^${catchAll.source}$`).test(path), `${path} opens the app on Vercel`);
@@ -1932,7 +1937,8 @@ async function voucherContracts() {
   // prove that no code, hash or hint is ever written to them.
   const logged: string[] = [];
   const realLog = console.log;
-  console.log = (...args: unknown[]) => { logged.push(args.map(String).join(' ')); };
+  const savedChannels = { warn: console.warn, error: console.error };
+  console.warn = console.error = console.log = (...args: unknown[]) => { logged.push(args.map(String).join(' ')); };
   try {
     const calls: { fn: string; args: Record<string, unknown> }[] = [];
     const answers = new Map<string, unknown>([
@@ -2112,7 +2118,7 @@ async function voucherContracts() {
       assert.doesNotMatch(line, /"(hint|code|codeHash)"/, `a log line names a code field: ${line}`);
     }
   } finally {
-    console.log = realLog;
+    console.log = realLog; Object.assign(console, savedChannels);
   }
 }
 
@@ -3013,6 +3019,7 @@ function englishOnlyContracts() {
     'client/product-catalog.ts': 'the trader ID (IČO) and registered address',
     'client/src/components/LegalPages.tsx': 'the Czech out-of-court dispute body',
     'client/src/i18n/translations.privacy.ts': 'the Czech data protection office',
+    'client/src/i18n/translations.terms.ts': 'the Czech Trade Inspection Authority named in consumer dispute resolution',
     'client/src/i18n/translations.ts': 'Czech law and the Czech Trade Inspection Authority',
     'client/tests/merch.test.tsx': 'Czechia as a shipping region',
     'client/tests/premium-page.test.tsx': 'the trader address',
@@ -3867,6 +3874,38 @@ function strictQueryContracts() {
   console.log(`PASS strict query: ${strings.length + 2} string and ${ints.length} integer cases, arrays, fractions, exponents, signs and junk refused`);
 }
 
+async function quizStepQueryContracts() {
+  let caller = 0;
+  const get = async (handler: typeof roadmapHandler | typeof questionsHandler, query: Record<string, unknown>) => {
+    const res = mockResponse();
+    await handler({ method: 'GET', headers: { 'x-forwarded-for': `192.0.2.${++caller}` }, query } as never, res as never);
+    return res;
+  };
+  const invalid = [];
+  for (const key of ['level', 'test', 'checkpoint', 'count']) {
+    for (const value of ['1.9', '1abc', 'abc', ['1', '2']]) {
+      const res = key === 'count'
+        ? await get(questionsHandler, { categories: 'javascript', count: value })
+        : await get(roadmapHandler, { topic: 'javascript', [key]: value });
+      const code = (res.body as { error?: { code: string } }).error?.code;
+      if (res.statusCode !== 400 || code !== 'bad_request') invalid.push({ key, value, status: res.statusCode, code });
+    }
+  }
+  assert.deepEqual(invalid, [], 'malformed quiz counts and roadmap steps must each return 400 bad_request');
+  for (const [query, kind] of [[{ level: '1' }, 'level'], [{ checkpoint: '1' }, 'checkpoint'], [{ test: '1', level: '2' }, 'checkpoint']] as const) {
+    const res = await get(roadmapHandler, { topic: 'javascript', ...query });
+    assert.equal(res.statusCode, 200);
+    const step = res.body as { kind: string; ref: number };
+    assert.equal(step.kind, kind);
+    assert.equal(step.ref, 1);
+  }
+  for (const [count, expected] of [[undefined, DEFAULT_SETTINGS.quiz.defaultCount], ['0', 1], ['2', 2], ['999', DEFAULT_SETTINGS.quiz.maxCount]] as const) {
+    const res = await get(questionsHandler, { difficulty: 'mixed', categories: 'javascript', ...(count === undefined ? {} : { count }) });
+    assert.equal(res.statusCode, 200);
+    assert.equal((res.body as { questions: unknown[] }).questions.length, expected, `quiz count ${count ?? 'omitted'}`);
+  }
+}
+
 /* ── input classes the handlers already refuse (#638) ─────────────────────
  *
  * The section-code-audit list of untrusted input, per handler that parses
@@ -3881,6 +3920,9 @@ async function inputClassContracts() {
   type Case = [label: string, handler: (req: never, res: never) => unknown, method: 'GET' | 'POST', query: Record<string, unknown>, body: unknown, status: number, code: string];
   const answers = (count: number) => Object.fromEntries(Array.from({ length: count }, (_, i) => [`q-${i}`, 0]));
   const cases: Case[] = [
+    ['roadmap: an unknown resource', roadmapHandler, 'GET', { resource: 'missing-resource' }, undefined, 404, 'unknown_resource'],
+    ['roadmap: a read using a write method', roadmapHandler, 'POST', { resource: 'progress' }, undefined, 405, 'method_not_allowed'],
+    ['roadmap: a write using a read method', roadmapHandler, 'GET', { resource: 'answer' }, undefined, 405, 'method_not_allowed'],
     ['questions: a repeated difficulty', questionsHandler, 'GET', { difficulty: ['easy', 'mixed'] }, undefined, 400, 'bad_request'],
     ['questions: constructor as the difficulty', questionsHandler, 'GET', { difficulty: 'constructor' }, undefined, 400, 'bad_request'],
     ['questions: constructor as a category', questionsHandler, 'GET', { categories: 'constructor' }, undefined, 400, 'bad_request'],
@@ -3929,7 +3971,7 @@ async function inputClassContracts() {
     ['coding brief: a repeated id', roadmapHandler, 'GET', { resource: 'coding-brief', id: ['a', 'b'] }, undefined, 400, 'bad_request'],
     ['coding state: constructor as the id', roadmapHandler, 'GET', { resource: 'coding-state', id: 'constructor' }, undefined, 404, 'not_found'],
     ['coding approaches: constructor as the id', roadmapHandler, 'GET', { resource: 'coding-approaches', id: 'constructor' }, undefined, 404, 'not_found'],
-    ['learning paths: an unknown resource', roadmapHandler, 'GET', { resource: 'learning-path-no-such-resource' }, undefined, 404, 'not_found'],
+    ['learning paths: an unknown resource', roadmapHandler, 'GET', { resource: 'learning-path-no-such-resource' }, undefined, 404, 'unknown_resource'],
     ['lesson: constructor as the topic', roadmapHandler, 'GET', { resource: 'lesson', topic: 'constructor', level: '1' }, undefined, 400, 'bad_request'],
     ['lesson: __proto__ as the topic', roadmapHandler, 'GET', { resource: 'lesson', topic: '__proto__', level: '1' }, undefined, 400, 'bad_request'],
     ['lesson: a repeated topic', roadmapHandler, 'GET', { resource: 'lesson', topic: ['javascript'], level: '1' }, undefined, 400, 'bad_request'],
@@ -3989,16 +4031,26 @@ async function capturedCall(handler: (req: never, res: never) => unknown, req: u
   const res = mockResponse();
   const lines: Record<string, unknown>[] = [];
   const realLog = console.log;
-  console.log = (line?: unknown) => {
+  const savedChannels = { warn: console.warn, error: console.error };
+  console.warn = console.error = console.log = (line?: unknown) => {
     try { lines.push(JSON.parse(String(line))); } catch { /* not a structured line */ }
   };
   try {
     await handler(req as never, res as never);
   } finally {
-    console.log = realLog;
+    console.log = realLog; Object.assign(console, savedChannels);
   }
   return { res, lines, error: (res.body as { error?: Record<string, unknown> } | undefined)?.error };
 }
+
+const sanitizedReport = privateCspReport({ 'csp-report': {
+  'effective-directive': 'img-src', 'blocked-uri': 'https://images.example/photo?access=private',
+  'document-uri': 'https://devshark.app/auth/confirmed?code=private', referrer: 'https://example.org/private',
+  'script-sample': 'private text',
+} });
+assert.deepEqual(sanitizedReport, { 'csp-report': { 'document-uri': 'https://devshark.app/',
+  'effective-directive': 'img-src', 'violated-directive': 'img-src', 'blocked-uri': 'redacted' } });
+assert.equal(privateCspReport({ 'csp-report': { 'effective-directive': 'private text' } }), null);
 
 function assertGenericError(label: string, error: Record<string, unknown> | undefined) {
   assert.deepEqual(Object.keys(error ?? {}).filter((key) => !['code', 'message', 'requestId'].includes(key)), [],
@@ -5508,10 +5560,11 @@ async function main() {
     assert.equal(await write('stats', `pupil-${stamp}-1`), 200, 'and that spends nobody else\'s budget');
     // A caller without an account keeps the per-address rate it had.
     const lone = `lone-${stamp}`;
-    for (let n = 0; n < RATE_LIMITS.userMutation.capacity; n += 1) assert.equal(await write('payment-webhook', null, lone), 200);
-    assert.equal(await write('payment-webhook', null, lone), 429, 'a caller without an account keeps the per-address rate');
+    for (let n = 0; n < RATE_LIMITS.userMutation.capacity; n += 1) assert.equal(await write('stats', null, lone), 200);
+    assert.equal(await write('stats', null, lone), 429, 'a caller without an account keeps the per-address rate');
     // The signed webhook and a path draft autosave are not charged here.
     assert.equal(await write('billing-webhook', null, lone), 200);
+    assert.equal(await write('payment-webhook', null, lone), 200);
     assert.equal(await write('learning-path-draft', null, lone), 200);
     // The address backstop holds a class at the per-account rate.
     assert.ok(RATE_LIMITS.userMutationAddress.capacity >= SHARED_NETWORK_SEATS * RATE_LIMITS.userMutation.capacity);
@@ -5577,9 +5630,9 @@ async function main() {
       const child = load(userBundle, production(key));
       assert.notEqual(child.status, 0, `api/user/[op].ts must not load in production with ${label}`);
       assert.ok(child.stderr.includes(MISSING), `and the error names the variable (${child.stderr.slice(0, 400)})`);
-      const lines = child.stdout.split('\n').filter(Boolean).map((line) => JSON.parse(line) as Record<string, unknown>);
+      const lines = child.stderr.split('\n').filter(line => line.startsWith('{')).map(line => JSON.parse(line) as Record<string, unknown>);
       assert.deepEqual(lines.map(({ level, reason }) => ({ level, reason })), [{ level: 'error', reason: 'service_role_key_missing' }], 'and one structured error line says why');
-      assert.ok(!child.stdout.includes('anon-production-check'), 'the line carries no key');
+      assert.ok(!child.stderr.includes('anon-production-check') && !child.stdout.includes('anon-production-check'), 'logs carry no key');
     }
     const loaded = load(userBundle, production('service-production-check'));
     assert.equal(loaded.status, 0, `with its key it loads (${loaded.stderr.slice(0, 400)})`);
@@ -6746,6 +6799,17 @@ async function main() {
       paidAnswer = { data: true, error: null };
       const paidNow = await deliver(reused, sign(JSON.stringify(reused)));
       assert.deepEqual([paidNow.statusCode, paidNow.body], [200, { applied: true }], 'a matching event marks the order paid');
+      const queriesAfterPayment = touched.length;
+      const replay = await deliver(reused, sign(JSON.stringify(reused)));
+      assert.deepEqual([replay.statusCode, replay.body], [200, { applied: false, duplicate: true }]);
+      assert.equal(touched.length, queriesAfterPayment, 'confirmed duplicates skip the order query');
+      const next = { ...reused, providerRef: 'pi_next' };
+      const formatted = JSON.stringify(next, null, 2);
+      paidAnswer = { data: null, error: { code: 'XX000', message: 'temporary failure' } };
+      assert.equal((await deliver(formatted, sign(formatted))).statusCode, 500);
+      paidAnswer = { data: true, error: null };
+      assert.deepEqual((await deliver(formatted, sign(formatted))).body, { applied: true }, 'a failed operation releases its claim');
+
     } finally {
       if (realEnv.secret === undefined) delete process.env.PAYMENT_WEBHOOK_SECRET; else process.env.PAYMENT_WEBHOOK_SECRET = realEnv.secret;
       if (realEnv.provider === undefined) delete process.env.PAYMENT_PROVIDER; else process.env.PAYMENT_PROVIDER = realEnv.provider;
@@ -7015,6 +7079,7 @@ async function main() {
   await inputClassContracts();
   unstorableTextContracts();
   strictQueryContracts();
+  await quizStepQueryContracts();
   await malformedBodyContracts();
   await oversizeBodyContracts();
   await requestIdContracts();
@@ -7029,11 +7094,12 @@ function consentContracts() {
   const read = (path: string) => readFileSync(join(process.cwd(), path), 'utf8');
   const main = read('client/src/main.tsx');
   const analytics = read('client/src/lib/analytics.ts');
+  const executable = transformSync(analytics, { loader: 'ts', format: 'esm', target: 'esnext' }).code;
   // posthog-js comes in through lib/posthogClient.ts alone, which the
   // consent gate imports dynamically.
   assert.doesNotMatch(main, /posthog-js|posthogClient/, 'main.tsx must not import PostHog');
   assert.doesNotMatch(analytics, /^import (?!type)[^;]*'posthog-js'/m, 'analytics.ts must not import posthog-js at run time');
-  assert.equal(analytics.match(/import\('\.\/posthogClient'\)/g)?.length, 1, 'one dynamic import of the PostHog client');
+  assert.equal(executable.match(/import\(['"]\.\/posthogClient['"]\)/g)?.length, 1, 'one dynamic import of the PostHog client');
   assert.doesNotMatch(analytics, /^import [^;]*'\.\/posthogClient'/m, 'the PostHog client is never imported statically');
   assert.match(read('client/src/lib/posthogClient.ts'), /opt_out_capturing_by_default: true,\s+opt_out_persistence_by_default: true/);
   assert.match(analytics, /if \(!active \|\| !key\) return Promise\.resolve\(null\);/, 'PostHog loads only while analytics consent holds');

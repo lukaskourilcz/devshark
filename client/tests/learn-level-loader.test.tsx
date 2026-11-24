@@ -10,7 +10,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import Roadmap from '../src/components/Roadmap';
 import { DelayedQuoteLoader, LOADER_DELAY_MS, LOADER_MIN_SHOWN_MS, revealDelay } from '../src/components/learn/LevelLoader';
-import { MIN_LOADING_MS } from '../src/components/LoadingScreen';
+import LoadingScreen, { MIN_LOADING_MS, QuoteLoader } from '../src/components/LoadingScreen';
 import type { RoadmapStructure } from '../src/types/quiz';
 import { server } from './mocks/server';
 
@@ -117,4 +117,20 @@ describe('the loader of a Learn level', () => {
     expect(screen.queryByText(QUOTE)).toBeNull();
     expect(container.querySelector('[data-loader="pending"]')).toHaveStyle({ flex: '1' });
   });
+});
+
+it.each(['ordinary', 'quoted'] as const)('mounts the %s loading status before announcing its visible label', (kind) => {
+  vi.useFakeTimers();
+  try {
+    render(kind === 'quoted' ? <QuoteLoader quote="Study quote" label="Preparing lesson" /> : <LoadingScreen label="Preparing lesson" />);
+    const region = screen.getByRole('status');
+    expect(region).toHaveTextContent('Preparing lesson');
+    expect(region).not.toHaveTextContent('Study quote');
+    expect(screen.getByText('Preparing lesson')).toHaveAttribute('aria-hidden', 'true');
+    act(() => { vi.runOnlyPendingTimers(); });
+    expect(screen.getByRole('status')).toBe(region);
+    expect(screen.getByText('Preparing lesson')).toBe(region);
+  } finally {
+    vi.useRealTimers();
+  }
 });

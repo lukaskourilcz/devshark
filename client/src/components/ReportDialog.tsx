@@ -3,6 +3,7 @@
 // design system: an Astryx form Dialog with a RadioList of reasons, a TextArea
 // for detail, and a Banner for submit errors. All logic is preserved.
 
+import { useDialogTitleFocus } from './ui/useDialogTitleFocus';
 import { useState } from 'react';
 import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
 import { Button } from '@astryxdesign/core/Button';
@@ -27,6 +28,7 @@ interface Props {
 
 export function ReportDialog({ open, onClose, onSubmit }: Props) {
   const t = useT();
+  const headerFocus = useDialogTitleFocus(open);
   const [reason, setReason] = useState<Reason>('incorrect-answer');
   const [detail, setDetail] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -62,6 +64,7 @@ export function ReportDialog({ open, onClose, onSubmit }: Props) {
       width="min(560px, 94vw)"
     >
       <DialogHeader
+        ref={headerFocus}
         title={t('report.title')}
         onOpenChange={(next) => {
           if (!next) handleClose();

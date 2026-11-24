@@ -1,0 +1,19 @@
+meta {
+  name: Play Join no-auth
+  type: http
+  seq: 63
+}
+
+post {
+  url: {{baseUrl}}/api/play/join
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

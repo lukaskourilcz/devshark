@@ -325,6 +325,7 @@ function InteractiveExample({ section }: { section: Extract<LessonSection, { kin
     const controller = new AbortController();
     active.current = controller;
     setRunning(true);
+    setOutput(null);
     setError(null);
     try {
       const outcome = await runCodeTests({ track: 'javascript', code, tests: [], grade: false, signal: controller.signal });
@@ -363,11 +364,9 @@ function InteractiveExample({ section }: { section: Extract<LessonSection, { kin
         <Button variant="ghost" isDisabled={running || code === section.code} onClick={() => { setCode(section.code); setOutput(null); setError(null); }} label={t('paths.example.reset')} />
       </div>
       {error && <p className="lp-notice lp-notice--error" role="alert">{error}</p>}
-      {output !== null && !error && (
-        <pre className="lp-example__output" role="status" aria-live="polite">
-          {output.length > 0 ? output.join('\n') : t('paths.example.noOutput')}
-        </pre>
-      )}
+      <pre role="status" aria-live="polite" className={output !== null && !error ? 'lp-example__output' : 'ss-sr-only'}>
+        {output !== null && !error && (output.length > 0 ? output.join('\n') : t('paths.example.noOutput'))}
+      </pre>
       <p className="lp-example__note">{section.note}</p>
     </figure>
   );

@@ -378,17 +378,13 @@ export async function getWithheldQuestions(subject?: ScopeSubjectId): Promise<Ma
 }
 
 /**
- * Whether the override layer was readable the last time it was consulted.
- *
- * False means the served set is the static bank alone and there may be
- * operator-authored questions, edits or hides this process cannot see. Callers
- * that count what is deliverable have to treat that as unknown rather than as
- * zero — an uncountable source is the difference between a claim about the
- * whole bank and no claim at all.
+ * The effective questions a coverage report can count. A missing configured
+ * override layer could hide or add questions. Use the map that produced this
+ * list, since another request can refresh or invalidate the shared cache.
  */
-export function overridesAvailable(): boolean {
-  if (!supabase) return true; // No override layer configured: the bank is all there is.
-  return overrideCache != null && overrideCache.value != null;
+export async function getCountableQuestions(subject?: ScopeSubjectId): Promise<Question[] | null> {
+  const snapshot = await effective(subject);
+  return supabase && snapshot.source === null ? null : snapshot.list;
 }
 
 /** Clear the serving cache so the next request re-reads overrides. */

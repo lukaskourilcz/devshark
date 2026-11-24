@@ -616,7 +616,7 @@ export function PremiumCancelPage() {
         )}
 
         {step.kind === 'link-loading' && (
-          <div className="ss-billing-confirm" role="status" aria-live="polite">
+          <div className="ss-billing-confirm">
             <h2 tabIndex={-1}>{t('billing.cancel.linkLoading')}</h2>
             <Skeleton width={220} height={14} radius={2} />
           </div>

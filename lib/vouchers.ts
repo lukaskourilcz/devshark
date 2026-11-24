@@ -86,7 +86,7 @@ export async function handleVoucherRedeem(req: VercelRequest, res: VercelRespons
   const redeemed = await withTimeout(
     supabase.rpc('redeem_premium_voucher', { p_user_id: auth.sub, p_code_hash: voucherHash(code) }),
   ).catch(() => null);
-  if (!redeemed) return jsonError(res, 504, 'upstream_timeout', 'The voucher could not be checked. Try again in a moment.');
+  if (!redeemed) return jsonError(res, 503, 'upstream_timeout', 'The voucher could not be checked. Try again in a moment.');
   if (redeemed.error) {
     if (isRpcMissing(redeemed.error)) {
       logEvent({ status: 503, kind: 'voucher_redeem', reason: 'migration_missing' });

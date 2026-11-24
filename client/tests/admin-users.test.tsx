@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
+import type { Editor } from '@tiptap/core';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import AdminUsers from '../src/components/admin/AdminUsers';
 import AdminEmails from '../src/components/admin/AdminEmails';
 import DevVouchers from '../src/components/dev/DevVouchers';
 import { server } from './mocks/server';
+import { clearAccountData } from '../src/lib/accountData';
+import { adminEmailsKey } from '../src/lib/adminDirectory';
 import type { AdminDirectory } from '../../shared/admin-directory';
 import { EMAIL_TEMPLATE_IDS, fallbackEmailTemplate } from '../../shared/email-templates';
 
@@ -16,8 +19,7 @@ const DATA: AdminDirectory = { page: 1, pageSize: 25, total: 26, hasNextPage: tr
   plan: { tier: 'premium', source: 'promo', validUntil: '2027-02-09T12:00:00Z', currentPeriodEnd: null, cancelAtPeriodEnd: false, inGrace: false },
   vouchers: [{ voucherId: 'voucher-1', hint: 'AROL', note: 'Community access', redeemedAt: '2026-11-11T12:00:00Z', validUntil: '2027-02-09T12:00:00Z', status: 'active' }],
 }] };
-function view(child: React.ReactNode) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+function view(child: React.ReactNode, client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })) {
   return render(<QueryClientProvider client={client}><MemoryRouter><LanguageProvider>{child}</LanguageProvider></MemoryRouter></QueryClientProvider>);
 }
 describe('the admin account directory', () => {
@@ -69,6 +71,101 @@ it('edits an email template, previews it and saves it without sending any email'
   expect(posts).toHaveLength(1);
   expect(posts[0]).toMatchObject({ action: 'save', id: 'cancelled', subject: 'Premium cancelled' });
 });
+describe('editing multiple email templates', () => {
+  const templates = Object.fromEntries(EMAIL_TEMPLATE_IDS.map(id => [id, { ...fallbackEmailTemplate(id), custom: false, updatedAt: null }]));
+  function openEditor(client?: QueryClient) {
+    server.use(http.get('*/api/admin/emails', () => HttpResponse.json({ deliveryConfigured: false, billingEnabled: false, authSync: { configured: false }, templates })));
+    return view(<AdminEmails />, client);
+  }
+
+  it('moves focus and selection together across template tabs with arrow, Home and End keys', async () => {
+    openEditor();
+    const tabs = await screen.findAllByRole('tab');
+    tabs[0].focus();
+    fireEvent.keyDown(tabs[0], { key: 'ArrowLeft' });
+    expect(tabs[tabs.length - 1]).toHaveFocus();
+    fireEvent.keyDown(tabs[tabs.length - 1], { key: 'ArrowRight' });
+    expect(tabs[0]).toHaveFocus();
+    fireEvent.keyDown(tabs[0], { key: 'End' });
+    expect(tabs[tabs.length - 1]).toHaveAttribute('aria-selected', 'true');
+    fireEvent.keyDown(tabs[tabs.length - 1], { key: 'Home' });
+    expect(tabs[0]).toHaveFocus();
+    expect(tabs.filter(tab => tab.tabIndex === 0)).toEqual([tabs[0]]);
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', tabs[0].id);
+  });
+
+  it('retains unsaved text when visiting another template and discards only the selected draft', async () => {
+    openEditor();
+    const subject = await screen.findByLabelText('Subject');
+    const firstTab = screen.getByRole('tab', { selected: true });
+    const otherTab = screen.getByRole('tab', { name: 'Cancellation receipt' });
+    fireEvent.change(subject, { target: { value: 'Edited confirmation' } });
+    const body = await screen.findByRole('textbox', { name: 'Email text' }) as HTMLElement & { editor: Editor };
+    act(() => { body.editor.commands.insertContent('Unsaved body text '); });
+    fireEvent.click(otherTab);
+    fireEvent.change(subject, { target: { value: 'Edited cancellation' } });
+    fireEvent.click(firstTab);
+    expect(subject).toHaveValue('Edited confirmation');
+    expect(await screen.findByRole('textbox', { name: 'Email text' })).toHaveTextContent('Unsaved body text');
+    fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+    expect(subject).toHaveValue(templates.signup_confirmation.subject);
+    fireEvent.click(otherTab);
+    expect(subject).toHaveValue('Edited cancellation');
+  });
+
+  it('keeps an earlier account’s delayed save out of a newly opened editor', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+    let finish: (() => void) | undefined;
+    server.use(http.post('*/api/admin/emails', async () => new Promise<Response>(resolve => {
+      finish = () => resolve(HttpResponse.json({ template: { ...templates.signup_confirmation, subject: 'Former admin edit', custom: true }, authSync: null }));
+    })));
+    const first = openEditor(client);
+    fireEvent.change(await screen.findByLabelText('Subject'), { target: { value: 'Former admin edit' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save template' }));
+    await waitFor(() => expect(finish).toBeDefined());
+    first.unmount();
+    clearAccountData();
+    client.removeQueries({ queryKey: adminEmailsKey });
+    openEditor(client);
+    await waitFor(() => expect(screen.getByLabelText('Subject')).toHaveValue(templates.signup_confirmation.subject));
+    await act(async () => { finish!(); });
+    await waitFor(() => expect(client.isMutating()).toBe(0));
+    expect(screen.getByLabelText('Subject')).toHaveValue(templates.signup_confirmation.subject);
+  });
+
+  it('applies a delayed save to its own template and preserves newer typing', async () => {
+    let finish: (() => void) | undefined;
+    let writes = 0;
+    server.use(http.post('*/api/admin/emails', async ({ request }) => {
+      const submitted = await request.json() as { id: string; subject: string };
+      writes++;
+      return new Promise<Response>(resolve => { finish = () => resolve(HttpResponse.json({
+        template: { ...templates[submitted.id], subject: submitted.subject, custom: true }, authSync: null,
+      })); });
+    }));
+    openEditor();
+    const subject = await screen.findByLabelText('Subject');
+    const firstTab = screen.getByRole('tab', { selected: true });
+    const otherTab = screen.getByRole('tab', { name: 'Cancellation receipt' });
+    fireEvent.click(otherTab);
+    fireEvent.change(subject, { target: { value: 'Sent cancellation' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save template' }));
+    await waitFor(() => expect(finish).toBeDefined());
+    fireEvent.change(subject, { target: { value: 'Newer cancellation' } });
+    fireEvent.click(firstTab);
+    fireEvent.change(subject, { target: { value: 'Newer confirmation' } });
+    await act(async () => { finish!(); });
+    await waitFor(() => expect(screen.queryByText('Saving…')).not.toBeInTheDocument());
+    expect(subject).toHaveValue('Newer confirmation');
+    expect(screen.queryByText('Template saved. The next email of this kind uses the new text.')).toBeNull();
+    fireEvent.click(otherTab);
+    expect(subject).toHaveValue('Newer cancellation');
+    fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+    expect(subject).toHaveValue('Sent cancellation');
+    expect(writes).toBe(1);
+  });
+});
+
 it('updates a voucher cap without replacing its grants or resetting redemptions', async () => {
   let cap = 100; let body: unknown;
   const voucher = { id: '11111111-1111-4111-8111-111111111111', hint: 'AROL', note: 'Community', premiumDays: 90, maxRedemptions: 100, redeemedCount: 5, redeemableUntil: null, active: true, createdAt: '2026-11-11T12:00:00Z', revokedAt: null, state: 'open' };

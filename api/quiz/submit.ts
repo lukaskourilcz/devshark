@@ -9,7 +9,7 @@ import {
   type DecodedQuizSession,
 } from '../../lib/quiz-tokens';
 import { AuthError, tryAuth } from '../../lib/auth';
-import { createServiceClient, jsonError, createLogger, withTimeout, withRequestContext, isRpcMissing, ServiceUnavailableError, tryAuthOnce } from '../../lib/http';
+import { createServiceClient, jsonError, createLogger, withTimeout, withRequestContext, isRpcMissing, ServiceUnavailableError, tryAuthOnce, unstorableText, UNSTORABLE_TEXT_MESSAGE } from '../../lib/http';
 import { getEffectiveQuestionsById } from '../../lib/questions-store';
 import { enforceClassRateLimit, enforceRateLimit, RATE_LIMITS } from '../../lib/rate-limit';
 import { subjectForCategory } from '../../shared/subject-catalog';
@@ -466,8 +466,8 @@ async function handleReport(req: VercelRequest, res: VercelResponse) {
   }
   // Postgres text cannot hold U+0000, so a report carrying one failed its
   // insert and answered 500. It is the reporter's text, refused as such.
-  if ([body.question_id, body.detail].some((value) => typeof value === 'string' && value.includes('\u0000'))) {
-    return jsonError(res, 400, 'bad_request', 'A report cannot contain a null character');
+  if ([body.question_id, body.detail].some((value) => unstorableText(value))) {
+    return jsonError(res, 400, 'bad_request', UNSTORABLE_TEXT_MESSAGE);
   }
   const detail =
     typeof body.detail === 'string' && body.detail.length <= 1000 ? body.detail : null;

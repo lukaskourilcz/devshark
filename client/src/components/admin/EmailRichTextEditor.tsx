@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -15,6 +15,7 @@ export default function EmailRichTextEditor({ initialDocument, onChange, labelId
   helpId: string;
 }) {
   const { t } = useLanguage();
+  const ownChange = useRef<EmailDocument | null>(null);
   const editor = useEditor({
     extensions: [StarterKit.configure({
       heading: { levels: [1, 2, 3] },
@@ -30,7 +31,11 @@ export default function EmailRichTextEditor({ initialDocument, onChange, labelId
       },
     },
     // ProseMirror objects carry null prototypes; send plain JSON.
-    onUpdate: ({ editor }) => onChange(JSON.parse(JSON.stringify(editor.getJSON())) as EmailDocument),
+    onUpdate: ({ editor }) => {
+      const document = JSON.parse(JSON.stringify(editor.getJSON())) as EmailDocument;
+      ownChange.current = document;
+      onChange(document);
+    },
   });
   const active = useEditorState({
     editor,
@@ -47,7 +52,9 @@ export default function EmailRichTextEditor({ initialDocument, onChange, labelId
   });
   // A template switch, a save or a reset replaces the content. Typing never does, so the selection
   // and the undo history survive.
-  useEffect(() => { editor?.commands.setContent(initialDocument, { emitUpdate: false }); }, [editor, initialDocument]);
+  useEffect(() => {
+    if (initialDocument !== ownChange.current) editor?.commands.setContent(initialDocument, { emitUpdate: false });
+  }, [editor, initialDocument]);
   if (!editor) return <p role="status">{t('admin.emails.editorLoading')}</p>;
   const tool = (label: string, glyph: string, pressed: boolean | undefined, run: () => void, disabled = false) =>
     <button type="button" className="admin-email-tool" aria-label={label} title={label} aria-pressed={pressed} disabled={disabled} onClick={run}><span aria-hidden="true">{glyph}</span></button>;

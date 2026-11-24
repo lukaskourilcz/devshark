@@ -13,6 +13,8 @@ import {
 } from '../../lib/quiz-tokens';
 import {
   jsonError,
+  queryInt,
+  queryString,
   withTimeout,
   requireAuthSub,
   requireAuthResult,
@@ -69,7 +71,8 @@ import {
   LEVELS_PER_CHECKPOINT,
   LEVEL_PASS,
   partRanges,
-  isValidPart,
+  PARTS_PER_TOPIC,
+  topicLevelCount,
   PART_TEST_PASS,
   PART_TEST_SIZE,
   type RoadmapTopic,
@@ -495,17 +498,12 @@ async function learnerContext(
 
 type StepRequest = ProgressStep;
 
-/** Start the tier read of the step a signed-in learner asked for, beside the
- * reads that come before its gates. `part` is the part test's number, when
- * the request is for one; `ref` is the number asked for. A request whose
- * number is not a step's, or that carries no token, reads nothing; a token
- * that fails is answered by `learnerContext`. */
-async function prefetchStepTier(req: VercelRequest, topic: RoadmapTopic, part: string | undefined, ref: string | undefined): Promise<void> {
-  const n = Number.parseInt(ref ?? '', 10);
-  if (!Number.isInteger(n) || n < 1 || (part !== undefined && !isValidPart(n))) return;
+/** Read the validated step's tier alongside progress. learnerContext handles
+ * credentials that fail verification. */
+async function prefetchStepTier(req: VercelRequest, content: GatedContent): Promise<void> {
   const auth = await tryAuthOnce(req).catch(() => null);
   if (!auth) return;
-  await prefetchTier(auth.sub, part !== undefined ? { kind: 'learn-part-test', topic, part: n } : { kind: 'learn-level', topic, level: n });
+  await prefetchTier(auth.sub, content);
 }
 
 /** Why the server will not serve this step, or null when it will. */
@@ -744,7 +742,9 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   //   POST ?resource=coding-submit       → server grading (every track)
   //   POST ?resource=coding-reveal       → the reference solution after a pass or give-up
   //   POST ?resource=coding-reset        → Reset, signed in: opens the task's repeat XP
-  const resource = typeof req.query.resource === 'string' ? req.query.resource : '';
+  const requestedResource = queryString(req, 'resource');
+  if (requestedResource === null) return jsonError(res, 400, 'bad_request', 'Expected one resource');
+  const resource = requestedResource ?? '';
   if (resource.startsWith('coding-')) {
     try {
       if (resource === 'coding-task' && (req.method === 'GET' || req.method === 'POST')) return await handleCodingTask(req, res, supabase);
@@ -754,7 +754,10 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
       if (resource === 'coding-reveal' && req.method === 'POST') return await handleCodingReveal(req, res, supabase);
       if (resource === 'coding-reset' && req.method === 'POST') return await handleCodingReset(req, res, supabase);
       if (resource === 'coding-approaches' && req.method === 'GET') return await handleCodingApproaches(req, res, supabase);
-      res.setHeader('Allow', resource === 'coding-task' ? 'GET, POST' : ['coding-approaches', 'coding-brief', 'coding-state'].includes(resource) ? 'GET' : 'POST');
+      const read = ['coding-approaches', 'coding-brief', 'coding-state'].includes(resource);
+      const write = ['coding-submit', 'coding-reveal', 'coding-reset'].includes(resource);
+      if (!read && !write && resource !== 'coding-task') return jsonError(res, 404, 'unknown_resource', 'Unknown roadmap resource');
+      res.setHeader('Allow', resource === 'coding-task' ? 'GET, POST' : read ? 'GET' : 'POST');
       return jsonError(res, 405, 'method_not_allowed', 'Method not allowed');
     } catch (error) {
       if (error instanceof ServiceUnavailableError) return jsonError(res, 503, error.code, error.message);
@@ -772,7 +775,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
       if (resource === 'learning-path-catalog') return await handleLearningPathCatalog(req, shareCatalogWithCdn(req, res));
       if (resource === 'learning-path-start') return await handleActivityStart(req, res, supabase);
       if (resource === 'learning-path-submit') return await handleActivitySubmit(req, res, supabase);
-      return jsonError(res, 404, 'not_found', 'Unknown learning-path resource');
+      return jsonError(res, 404, 'unknown_resource', 'Unknown roadmap resource');
     } catch (error) {
       if (error instanceof ServiceUnavailableError) throw error;
       logEvent({ status: 500, kind: 'learning_path_error', resource, category: error instanceof Error ? error.name : 'unknown' });
@@ -851,6 +854,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
         plans,
       });
     } catch (error) {
+      if (error instanceof ServiceUnavailableError) throw error;
       logEvent({ status: 500, kind: 'eligibility_error', category: error instanceof Error ? error.name : 'unknown' });
       return jsonError(res, 500, 'internal_error', 'Could not load what is available');
     }
@@ -861,6 +865,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
       try {
         return await handlePlacementStart(req, res);
       } catch (error) {
+        if (error instanceof ServiceUnavailableError) throw error;
         logEvent({ status: 500, kind: 'placement_start_error', category: error instanceof Error ? error.name : 'unknown' });
         return jsonError(res, 500, 'internal_error', 'Could not start placement');
       }
@@ -891,18 +896,25 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  // Recognised sub-resources above return directly on their supported method.
+  // Only the absence of a resource selects the public roadmap.
+  if (resource) {
+    const read = ['eligibility', 'progress'].includes(resource);
+    const write = ['answer', 'complete', 'attempt-status', 'skill-check'].includes(resource);
+    if (!read && !write) return jsonError(res, 404, 'unknown_resource', 'Unknown roadmap resource');
+    res.setHeader('Allow', read ? 'GET' : 'POST');
+    return jsonError(res, 405, 'method_not_allowed', 'Method not allowed');
+  }
+
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET, POST');
     return jsonError(res, 405, 'method_not_allowed', 'Method not allowed');
   }
 
   const topicRaw = (req.query.topic as string) || '';
-  const levelRaw = req.query.level as string | undefined;
-  const checkpointRaw = req.query.checkpoint as string | undefined;
-  const testRaw = req.query.test as string | undefined;
 
   // No topic → return the whole map so the client can render the path.
-  if (!topicRaw && levelRaw === undefined && checkpointRaw === undefined && testRaw === undefined) {
+  if (!topicRaw && req.query.level === undefined && req.query.checkpoint === undefined && req.query.test === undefined) {
     // The same for everyone, so only the address tier: verifying a token
     // here would cost a round trip the map never needed.
     if (!(await enforceRateLimit(req, res, RATE_LIMITS.readAddress))) return;
@@ -930,10 +942,22 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     return jsonError(res, 400, 'bad_request', 'Unknown topic');
   }
   const topic: RoadmapTopic = topicRaw;
+  const part = queryInt(req, 'test', { min: 1, max: PARTS_PER_TOPIC });
+  if (part === null) return jsonError(res, 400, 'bad_request', 'Invalid test');
+  const checkpoint = queryInt(req, 'checkpoint', { min: 1, max: PARTS_PER_TOPIC });
+  if (checkpoint === null) return jsonError(res, 400, 'bad_request', 'Invalid checkpoint');
+  const levelParam = queryInt(req, 'level', { min: 1, max: topicLevelCount(topic) });
+  if (levelParam === null) return jsonError(res, 400, 'bad_request', 'Invalid level');
+  const exam = part ?? checkpoint;
+  const ref = exam ?? levelParam;
+  if (ref === undefined) return jsonError(res, 400, 'bad_request', 'Invalid level');
+  const content: GatedContent = exam !== undefined
+    ? { kind: 'learn-part-test', topic, part: exam }
+    : { kind: 'learn-level', topic, level: ref };
   const subject = subjectForTopic(topic)!;
   // A coding level can persist its parent attempt while it opens. The part
   // tests, checkpoints and topics without coding only deal a sealed session.
-  if (supabase && isLearnCodingTopic(topic) && levelRaw !== undefined && testRaw === undefined && checkpointRaw === undefined) {
+  if (supabase && isLearnCodingTopic(topic) && exam === undefined) {
     requireFreshAuth(req);
   }
   if (!(await limitRead(req, res))) return;
@@ -946,7 +970,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   const [learner, byId] = await Promise.all([
     learnerContext(req, res),
     getEffectiveQuestionsById(subject),
-    prefetchStepTier(req, topic, testRaw ?? checkpointRaw, testRaw ?? checkpointRaw ?? levelRaw),
+    prefetchStepTier(req, content),
   ]);
   if (learner === undefined) return;
   const exists = (id: string) => byId.has(id);
@@ -974,9 +998,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   // ── Part test (a focused exam over one of the topic's 3 parts) ────────────
   // A part is a contiguous slice of the topic's (live) levels; the test samples
   // up to PART_TEST_SIZE questions from across that slice and grades at 85%.
-  if (testRaw !== undefined) {
-    const part = parseInt(testRaw, 10);
-    if (!isValidPart(part)) return jsonError(res, 400, 'bad_request', 'Invalid test');
+  if (part !== undefined) {
     const range = partRanges(live.levels.length).find((r) => r.part === part);
     if (!range || range.size <= 0) return jsonError(res, 400, 'bad_request', 'Invalid test');
     if (live.unavailableParts.has(part)) {
@@ -984,7 +1006,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
       return jsonError(res, 409, STEP_UNAVAILABLE.code, STEP_UNAVAILABLE.message);
     }
     if (refuse({ kind: 'test', part, from: range.startLevel, to: range.endLevel })) return;
-    if (await refusePremium({ kind: 'learn-part-test', topic, part }, { kind: 'checkpoint', checkpoint: part })) return;
+    if (await refusePremium(content, { kind: 'checkpoint', checkpoint: part })) return;
 
     const pool: string[] = [];
     for (let l = range.startLevel; l <= range.endLevel; l++) {
@@ -1011,9 +1033,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   // so this serves exactly what `?test=n` serves, over the part's levels.
   // Serving the authored five-level block here would grade an exam the map
   // never offered and record it under a number that means something else.
-  if (checkpointRaw !== undefined) {
-    const checkpoint = parseInt(checkpointRaw, 10);
-    if (!isValidPart(checkpoint)) return jsonError(res, 400, 'bad_request', 'Invalid checkpoint');
+  if (checkpoint !== undefined) {
     const range = partRanges(live.levels.length).find((r) => r.part === checkpoint);
     if (!range || range.size <= 0) return jsonError(res, 400, 'bad_request', 'Invalid checkpoint');
     if (live.unavailableParts.has(checkpoint)) {
@@ -1021,7 +1041,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
       return jsonError(res, 409, STEP_UNAVAILABLE.code, STEP_UNAVAILABLE.message);
     }
     if (refuse({ kind: 'checkpoint', checkpoint })) return;
-    if (await refusePremium({ kind: 'learn-part-test', topic, part: checkpoint }, { kind: 'checkpoint', checkpoint })) return;
+    if (await refusePremium(content, { kind: 'checkpoint', checkpoint })) return;
 
     const pool: string[] = [];
     for (let l = range.startLevel; l <= range.endLevel; l++) pool.push(...(live.levelIds[l - 1] ?? []));
@@ -1042,7 +1062,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   }
 
   // ── Level lesson (the surviving questions for that level) ─────────────────
-  const level = parseInt(levelRaw ?? '', 10);
+  const level = ref;
   const meta = live.levels.find((l) => l.level === level);
   if (!meta) return jsonError(res, 400, 'bad_request', 'Invalid level');
   if (meta.unavailable) {
@@ -1050,7 +1070,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
     return jsonError(res, 409, STEP_UNAVAILABLE.code, STEP_UNAVAILABLE.message);
   }
   if (refuse({ kind: 'level', level })) return;
-  if (await refusePremium({ kind: 'learn-level', topic, level }, { kind: 'level', level })) return;
+  if (await refusePremium(content, { kind: 'level', level })) return;
 
   // The completion routine re-checks the prerequisite in SQL by level number,
   // so it is told the nearest *available* level before this one: an

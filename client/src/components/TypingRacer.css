@@ -25,10 +25,10 @@
   border-radius: var(--radius-inner);
   padding: 14px 16px;
 }
-.ss-typing__ch--pending { color: var(--color-text-disabled); }
+.ss-typing__ch--pending { color: var(--color-text-secondary); }
 .ss-typing__ch--done { color: var(--color-text-primary); }
 .ss-typing__ch--error {
-  color: var(--ss-error);
+  color: var(--ss-error-text);
   background: var(--ss-error-soft);
   border-radius: 3px;
   /* underline, so an error is not signalled by colour alone */
@@ -52,7 +52,7 @@
   font-size: 1.05rem;
   color: var(--color-text-primary);
   background: var(--color-background-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-element);
   padding: 12px 14px;
   transition: border-color 0.12s ease;

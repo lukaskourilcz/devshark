@@ -3,12 +3,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import DailyQuestionPage from '../src/components/DailyQuestionPage';
 import { en } from '../src/i18n/translations';
-import { addDays, qotdTrack, utcToday } from '../../shared/daily-question';
+import { addDays, openQotdDate, qotdTrack, utcToday } from '../../shared/daily-question';
 import { server } from './mocks/server';
 
 const analytics = vi.hoisted(() => ({ capture: vi.fn() }));
@@ -34,8 +34,7 @@ function Where() {
   return <p>{`At ${at.pathname}${at.search}`}</p>;
 }
 
-function renderAt(path: string) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+function renderAt(path: string, client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })) {
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[path]}>
@@ -59,6 +58,44 @@ beforeEach(() => {
   analytics.capture.mockClear();
 });
 
+describe('Daily entry warmup', () => {
+  it('recognizes only available Daily routes and preserves their selected UTC day', () => {
+    const yesterday = addDays(today, -1);
+    expect(openQotdDate('/daily/')).toBe(today);
+    expect(openQotdDate(`/daily/${yesterday}/`)).toBe(yesterday);
+    for (const path of ['/quiz', '/daily/not-a-date', '/daily/2026-09-31', '/daily/2026-08-31',
+      `/daily/${addDays(today, 1)}`, `/daily/${yesterday}/extra`]) {
+      expect(openQotdDate(path)).toBeNull();
+    }
+  });
+
+  it('skips the sealed read after a route change while the data chunk was loading', async () => {
+    const { prefetchDailyLanding } = await import('../src/lib/dailyQuestion');
+    const client = new QueryClient();
+    const read = vi.spyOn(client, 'prefetchQuery').mockResolvedValue();
+    const previousPath = location.pathname + location.search + location.hash;
+    const yesterday = addDays(today, -1);
+    try {
+      window.history.replaceState(null, '', '/daily');
+      await prefetchDailyLanding(client, yesterday);
+      window.history.replaceState(null, '', '/quiz');
+      await prefetchDailyLanding(client, today);
+      window.history.replaceState(null, '', `/daily/${yesterday}`);
+      const offline = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+      try {
+        await prefetchDailyLanding(client, yesterday);
+      } finally {
+        offline.mockRestore();
+      }
+      expect(read).not.toHaveBeenCalled();
+      await prefetchDailyLanding(client, yesterday);
+      expect(read).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ queryKey: ['daily-question', yesterday] }));
+    } finally {
+      window.history.replaceState(null, '', previousPath);
+    }
+  });
+});
+
 describe('/daily', () => {
   it('shows the day’s question, checks one answer on the server and records nothing', async () => {
     const asked: string[] = [];
@@ -78,7 +115,8 @@ describe('/daily', () => {
     );
     renderAt('/daily');
     const h1 = screen.getByRole('heading', { level: 1 });
-    expect(h1).toHaveTextContent(`${trackName(today)} question of the day`);
+    expect(h1).toHaveTextContent(/^Question of the day$/);
+    expect(h1.previousElementSibling).toHaveTextContent(trackName(today));
     // The day is the kicker over the h1; no separate date line (questions-11).
     const day = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${today}T12:00:00Z`));
     expect(h1.previousElementSibling).toHaveTextContent(day);
@@ -97,8 +135,7 @@ describe('/daily', () => {
     expect(screen.getByRole('radio', { name: '"object", Correct answer' })).toBeDisabled();
     // The one primary after the check, in the shared action row (UX audit U2).
     expect(screen.getByRole('button', { name: `Practice ${trackName(today)} questions` })).toHaveClass('ss-swim-cta');
-    // Said once, in the lead (questions-11): no practice note repeats it.
-    expect(screen.getByText(/nothing is recorded/)).toHaveTextContent('One question a day from a different track. No account needed; nothing is recorded.');
+    expect(screen.queryByText(/nothing is recorded/i)).not.toBeInTheDocument();
     // The share status takes no line until it has something to say.
     expect(document.querySelector('.ss-daily__status')).toBeEmptyDOMElement();
 
@@ -109,6 +146,29 @@ describe('/daily', () => {
 
     fireEvent.click(screen.getByRole('button', { name: `Practice ${trackName(today)} questions` }));
     expect(await screen.findByText(`At /quiz?category=${qotdTrack(today)}`)).toBeInTheDocument();
+  });
+
+  it('keeps a selected answer and its active session when the connection returns', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+    let reads = 0;
+    server.use(http.get('*/api/quiz/daily', () => HttpResponse.json({ ...QUESTION, sessionId: `session-${++reads}` })));
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      renderAt(`/daily/${today}`, client);
+      const choice = await screen.findByRole('radio', { name: '"object"' });
+      fireEvent.click(choice);
+      expect(choice).toBeChecked();
+      act(() => { onlineManager.setOnline(false); });
+      vi.setSystemTime(Date.now() + 11 * 60_000);
+      await act(async () => { onlineManager.setOnline(true); });
+      await waitFor(() => expect(client.isFetching()).toBe(0));
+      expect({ checked: screen.getByRole('radio', { name: '"object"' }).getAttribute('aria-checked'), reads }).toEqual({
+        checked: 'true', reads: 1,
+      });
+    } finally {
+      onlineManager.setOnline(true);
+      vi.useRealTimers();
+    }
   });
 
   it('opens the new UTC day’s question when an overnight tab becomes visible', async () => {

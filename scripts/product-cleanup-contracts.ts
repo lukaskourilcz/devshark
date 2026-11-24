@@ -20,7 +20,8 @@ import { handleOrders, handleShopCatalogue } from '../lib/rewards/handlers';
 import { DEFAULT_SETTINGS, setGameSettingsForTests } from '../lib/settings-store';
 import settingsHandler from '../api/settings';
 import { DEFAULT_MERCH_SETTINGS, MERCH_ENABLED, merchRedemptionOpen, type MerchSettings } from '../shared/rewards';
-import { en as ENGLISH } from '../client/src/i18n/translations';
+import { en as shellEnglish } from '../client/src/i18n/translations';
+import { termsEn } from '../client/src/i18n/translations.terms';
 import { annualSaving, launchOfferDisplay } from '../shared/launch-offer';
 import { PREMIUM_PRICE } from '../shared/tiers';
 import { handleFlashcards } from '../api/flashcards';
@@ -30,6 +31,8 @@ import { getEffectiveQuestions } from '../lib/questions-store';
 import { isRoadmapTopic, levelQuestionIds } from '../lib/roadmap';
 import { LEARN_ID_PREFIXES, learnLevelOfQuestion, sharkCardStudyLink } from '../shared/shark-cards';
 import { SUBJECT_SCOPE_CATALOG } from '../shared/subject-catalog';
+
+const ENGLISH = { ...shellEnglish, ...termsEn };
 
 function mockResponse() {
   const headers = new Map<string, string>();

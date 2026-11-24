@@ -29,11 +29,9 @@ http.createServer((req, res) => {
       res.end(JSON.stringify(pathname === '/api/settings' ? settings : { error: { code: 'fixture_only', message: 'No external provider in this lab' } }));
     }, 400);
   }
-  // The React iframe has an opaque origin. Match production's public
-  // sandbox/worker asset policy; no API or personal response receives CORS.
-  if (/^\/(?:sandbox\/|assets\/coding-worker\/)/.test(pathname)) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  }
+  // The opaque exercise frame loads its modules from /sandbox/assets/.
+  if (pathname.startsWith('/sandbox/')) res.setHeader('Access-Control-Allow-Origin', '*');
+  else if (pathname.startsWith('/assets/')) res.setHeader('Access-Control-Allow-Origin', 'https://devshark.app');
   const accept = req.headers.accept;
   const acceptsHtml = accept === undefined || accept.trim() === '*/*' || accept.split(',').some(value => /^\s*text\/html\s*(?:;|$)/i.test(value) && !/;\s*q=0(?:\.0*)?\s*(?:;|$)/i.test(value));
   const pagePath = !/^\/(?:assets|sandbox|api)(?:\/|$)/.test(pathname) && !pathname.split('/').some(part => part.startsWith('.')) && extname(pathname) === '';

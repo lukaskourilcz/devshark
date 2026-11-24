@@ -160,11 +160,12 @@ function bundleHosts(js) {
 const STRIPE_FRAMES = ["'self'", 'https://js.stripe.com', 'https://*.js.stripe.com', 'https://hooks.stripe.com', 'https://checkout.stripe.com', 'https://link.com', 'https://*.link.com'];
 const APP_POLICY = {
   'default-src': ["'self'"],
+  'object-src': ["'none'"],
   // Stripe.js for checkout (client/src/lib/stripeCheckoutForm.ts), and each
   // inline script of client/index.html by its hash.
   'script-src': ["'self'", 'https://js.stripe.com', 'https://*.js.stripe.com', 'https://checkout.stripe.com', ...bootstrapHashes],
-  'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-  'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
+  'style-src': ["'self'", "'unsafe-inline'"],
+  'font-src': ["'self'"],
   // Google profile photos (the only avatar host lib/public-identity.ts and
   // client/src/lib/auth.tsx accept), and Stripe's and Link's images in
   // checkout, as Stripe's CSP guide lists them. data: carries the Play QR
@@ -174,14 +175,16 @@ const APP_POLICY = {
   // Stripe's API and Link; Supabase REST, Auth and the realtime socket; the
   // Sentry EU ingest host, which the DSN in client/src/lib/sentry.ts posts to
   // directly (no tunnel), so without it browser errors never arrive.
-  'connect-src': ["'self'", 'https://api.stripe.com', 'https://checkout.stripe.com', 'https://link.com', 'https://*.link.com', 'https://*.supabase.co', 'wss://*.supabase.co', 'https://*.ingest.de.sentry.io'],
+  'connect-src': ["'self'", 'https://api.stripe.com', 'https://checkout.stripe.com', 'https://link.com', 'https://*.link.com', 'https://rvlybcjdpafwyeuojvhl.supabase.co', 'wss://rvlybcjdpafwyeuojvhl.supabase.co', 'https://o4511808879001600.ingest.de.sentry.io'],
   // Stripe's checkout, Link and 3-D Secure frames.
   'frame-src': STRIPE_FRAMES,
   'child-src': STRIPE_FRAMES,
   'frame-ancestors': ["'none'"],
   'base-uri': ["'self'"],
   'form-action': ["'self'"],
-  'worker-src': ["'self'", 'blob:'],
+  'worker-src': ["'self'"],
+  'upgrade-insecure-requests': [],
+  'report-uri': ['/api/settings?op=csp-report'],
 };
 /** How policy `actual` differs from policy `expected` (both from
  * parsePolicy), directive by directive; sources may come in any order. The
@@ -230,6 +233,10 @@ for (const route of headerRoutes) {
 }
 assert.deepEqual(ruleBreaks, [], `A policy in vercel.json breaks a rule in scripts/check-security.mjs:\n  ${ruleBreaks.join('\n  ')}`);
 assert.equal(header(app, 'X-Content-Type-Options'), 'nosniff');
+const documentHeaders = headerRoutes.find(route => header(route, 'Cross-Origin-Opener-Policy'));
+assert(documentHeaders, 'app document opener policy is required');
+assert.equal(header(documentHeaders, 'Cross-Origin-Opener-Policy'), 'same-origin-allow-popups', 'provider popups can return to their opener');
+assert.equal(header(documentHeaders, 'Cross-Origin-Resource-Policy'), 'same-origin');
 assert.equal(header(app, 'X-Frame-Options'), 'DENY');
 assert.match(header(app, 'Strict-Transport-Security'), /max-age=63072000/);
 const sandbox = headerRoutes.find(route => route.src === '^/sandbox/.*$');
@@ -238,8 +245,33 @@ const sandboxCsp = header(sandbox, 'Content-Security-Policy');
 const connectionPolicy = sandboxCsp.split(';').map(part => part.trim()).find(part => part.startsWith('connect-src '));
 assert.equal(connectionPolicy || sandboxCsp.split(';').map(part => part.trim()).find(part => part.startsWith('default-src ')), connectionPolicy ? "connect-src 'none'" : "default-src 'none'", 'Exercise frames must not make network requests');
 assert(sandboxCsp.includes("form-action 'none'"), 'Native form events must never enable form navigation');
-assert(readFileSync('client/sandbox/index.html', 'utf8').includes("form-action 'none'"), 'Local preview must also block form navigation');
+const sandboxPolicy = parsePolicy(sandboxCsp);
+assert.deepEqual(sandboxPolicy.get('sandbox'), ['allow-scripts', 'allow-forms']);
+const localPolicy = /<meta http-equiv="Content-Security-Policy" content="([^"]+)"/i.exec(readFileSync('client/sandbox/index.html', 'utf8'))?.[1];
+assert(localPolicy, 'a local sandbox policy is required');
+const expectedMeta = new Map(sandboxPolicy);
+for (const responseOnly of ['frame-ancestors', 'sandbox']) expectedMeta.delete(responseOnly);
+assert.deepEqual(policyDifferences(parsePolicy(localPolicy), expectedMeta, 'sandbox HTML', 'sandbox header'), []);
+const worker = headerRoutes.find(route => route.src === '^/assets/coding-worker/.*$');
+assert.equal(header(worker, 'Content-Security-Policy'), "default-src 'none'; script-src 'self' 'unsafe-eval'");
 assert(!header(sandbox, 'X-Frame-Options'), 'Do not deny the exercise frame');
+// Raw HTML is permitted only in the isolated admin email preview.
+for (const root of ['client/src', 'client/sandbox']) {
+  for (const name of readdirSync(root, { recursive: true }).filter(file => /\.[jt]sx?$/.test(file))) {
+    const filename = join(root, name);
+    const code = readFileSync(filename, 'utf8');
+    assert.doesNotMatch(code, /\bdangerouslySetInnerHTML\b|\binsertAdjacentHTML\s*\(|\bouterHTML\s*=(?!=)|\bdocument\.write(?:ln)?\s*\(|\bcreateContextualFragment\s*\(/, filename);
+    for (const assignment of code.matchAll(/\.innerHTML\s*=(?!=)\s*([^;\n]+)/g)) {
+      assert.ok(/^(['"])\1\s*$/.test(assignment[1]), `${filename}: only clearing HTML is allowed`);
+    }
+    for (const tag of code.matchAll(/<iframe\b[^>]*\bsrcDoc\b[^>]*>/gis)) {
+      assert.match(tag[0], /\bsandbox=(?:""|'')/, `${filename}: isolate inline frame documents`);
+    }
+    if (!filename.startsWith(join('client', 'src', 'components', 'admin') + sep)) {
+      assert.doesNotMatch(code, /(?:import\s*\(|from\s*)['"][^'"]*EmailRichTextEditor/, filename);
+    }
+  }
+}
 console.log('Security policy contracts passed: main app, theme bootstrap, isolated coding frame.');
 
 // The built pages: the prerender and the build may change a bootstrap's bytes
@@ -345,7 +377,7 @@ if (url) {
     || (name === 'x-robots-tag' && value === 'noindex' && origin.hostname.endsWith('.vercel.app'));
   const namedHeaders = headerNames(config);
   for (const { pathname, response, body } of probes) {
-    const expected = vercelAnswer(config, pathname, path => deployed.has(path));
+    const expected = vercelAnswer(config, pathname, path => deployed.has(path), origin.hostname);
     const before = mismatches.length;
     if (expected.status !== null && response.status !== expected.status) {
       mismatches.push(`${pathname}: status ${response.status}, vercel.json gives ${expected.status} (${expected.ends})`);

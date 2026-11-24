@@ -3,7 +3,8 @@ on:
   schedule:
     - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
-permissions: {}
+permissions:
+  contents: read
 concurrency:
   group: production-health
   cancel-in-progress: false
@@ -13,15 +14,41 @@ jobs:
     timeout-minutes: 3
     steps:
       - name: Require two consecutive unhealthy probes
+        id: readiness
         shell: bash
+        env:
+          REQUIRE_GRADING_HEALTH: ${{ vars.REQUIRE_GRADING_HEALTH }}
         run: |
           probe() {
             curl --fail --silent --show-error --connect-timeout 10 --max-time 20 \
               https://devshark.app/api/health --output /tmp/health.json &&
-              jq -e '.dependencies | .database == "ok" and .serviceRole == "ok" and .rateLimiter == "configured"' /tmp/health.json
+              jq -e '
+                (.ts | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601) as $reported |
+                (now | floor) as $checked |
+                .ok == true and .status == "healthy" and
+                .dependencies.database == "ok" and .dependencies.serviceRole == "ok" and
+                .dependencies.rateLimiter == "configured" and
+                (.dependencies.grading == "ok" or
+                 ((.dependencies | has("grading") | not) and env.REQUIRE_GRADING_HEALTH != "true")) and
+                $reported >= ($checked - 300) and $reported <= ($checked + 300)
+              ' /tmp/health.json
           }
-          if probe; then exit 0; fi
-          sleep 30
-          if probe; then exit 0; fi
-          echo '::error::devshark.app failed two consecutive health probes'
-          exit 1
+          if ! probe; then
+            sleep 30
+            if ! probe; then
+              echo '::error::devshark.app failed two consecutive health probes'
+              exit 1
+            fi
+          fi
+          # The previous production release predates the new response and CSP.
+          # Once the release is live, compare its headers on every healthy probe.
+          jq -r '"audit_policy=" + (.dependencies | has("grading") | tostring)' /tmp/health.json >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.readiness.outputs.audit_policy == 'true'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.readiness.outputs.audit_policy == 'true'
+        with:
+          node-version: 24
+      - name: Verify the public site's security headers
+        if: steps.readiness.outputs.audit_policy == 'true'
+        run: npm run check:security -- --url=https://devshark.app

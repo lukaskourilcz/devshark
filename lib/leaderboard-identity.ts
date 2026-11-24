@@ -1,9 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { VercelRequest, VercelResponse } from './vercel-types';
 import { confirmedEmail, type AuthResult } from './auth';
-import { jsonError, requireAuthResult, withTimeout } from './http';
+import { createLogger, jsonError, requireAuthResult, withTimeout } from './http';
 import { publicName, verifiedProfile } from './public-identity';
 import { allocateSharkName } from './shark-name';
+
+const logEvent = createLogger('leaderboard-name');
 
 /** The account name a board may show: the verified Google name, else the
  * part of a confirmed address before the @. This preference never changes the
@@ -66,7 +68,8 @@ export async function handleLeaderboardName(req: VercelRequest, res: VercelRespo
     return res.json({ mode: saved.data?.leaderboard_name_mode ?? 'nickname', nickname: nickname.handle, accountName,
       showPhoto: photo.data?.show_on_leaderboards === true,
       picture: photo.data?.show_on_leaderboards === true ? photo.data?.picture ?? null : null });
-  } catch {
+  } catch (error) {
+    logEvent({ level: 'error', status: 503, kind: 'leaderboard_name_failed', category: error instanceof Error ? error.name : 'unknown' });
     return jsonError(res, 503, 'leaderboard_name_unavailable', 'Your leaderboard setting is temporarily unavailable');
   }
 }

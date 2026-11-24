@@ -1,5 +1,7 @@
 // /dev → Question bank: the question editor saves a new question once however
 // fast Save is pressed, and keeps what the admin typed while the bank reloads.
+import { useState } from 'react';
+import { installNativeDialog } from './dialog-escape';
 import { describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
@@ -15,6 +17,17 @@ import { server } from './mocks/server';
 const proto = HTMLDialogElement.prototype as unknown as { showModal?: () => void; close?: () => void };
 proto.showModal ??= function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
 proto.close ??= function (this: HTMLDialogElement) { this.removeAttribute('open'); };
+
+async function dismissConfirmation(opener: HTMLElement) {
+  opener.focus();
+  fireEvent.click(opener);
+  const dialog = await screen.findByRole('alertdialog');
+  const cancel = within(dialog).getByRole('button', { name: 'Cancel' });
+  await waitFor(() => expect(cancel).toHaveFocus());
+  fireEvent.keyDown(cancel, { key: 'Escape' });
+  await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+  expect(opener).toHaveFocus();
+}
 
 function renderEditor(props: Partial<Parameters<typeof QuestionEditor>[0]> = {}) {
   const onSaved = vi.fn();
@@ -34,6 +47,33 @@ function fillNewQuestion() {
 }
 
 describe('/dev → the question editor', () => {
+  it('returns from a dirty discard confirmation to the editor and then its opener', async () => {
+    installNativeDialog();
+    function EditorEntry() {
+      const [open, setOpen] = useState(false);
+      return <>
+        <button onClick={() => setOpen(true)}>Open editor</button>
+        <QuestionEditor open={open} initial={null} categories={['react', 'css']} onClose={() => setOpen(false)} onSaved={vi.fn()} />
+      </>;
+    }
+    render(<LanguageProvider><EditorEntry /></LanguageProvider>);
+    const opener = screen.getByRole('button', { name: 'Open editor' });
+    opener.focus();
+    fireEvent.click(opener);
+    const editor = await screen.findByRole('dialog');
+    await waitFor(() => expect(editor.contains(document.activeElement)).toBe(true));
+    const question = within(editor).getByRole('textbox', { name: 'Question' });
+    fireEvent.change(question, { target: { value: 'Unfinished question' } });
+    const cancel = within(editor).getByRole('button', { name: 'Cancel' });
+    await dismissConfirmation(cancel);
+    expect(question).toHaveValue('Unfinished question');
+    fireEvent.keyDown(cancel, { key: 'Escape' });
+    const confirm = await screen.findByRole('alertdialog');
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Discard changes' }));
+    await waitFor(() => expect(editor).not.toBeVisible());
+    expect(opener).toHaveFocus();
+  });
+
   it('creates a new question once when Save is pressed twice before it renders', async () => {
     const sent: unknown[] = [];
     server.use(http.post('*/api/admin/save', async ({ request }) => {
@@ -98,7 +138,10 @@ describe('/dev → Quality triage', () => {
       }),
     );
     renderTab('triage');
-    fireEvent.click(await screen.findByRole('button', { name: 'Delete all 3 shown' }));
+    const opener = await screen.findByRole('button', { name: 'Delete all 3 shown' });
+    await dismissConfirmation(opener);
+    expect(deleted).toEqual([]);
+    fireEvent.click(opener);
     fireEvent.click(await screen.findByRole('button', { name: 'Delete permanently' }));
     expect(await screen.findByText(/deleted 1 before stopping/)).toBeInTheDocument();
     expect(deleted).toEqual(['t1']);
@@ -214,7 +257,9 @@ describe('/dev → Question bank', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: 'Select question b2' }));
     expect(screen.getByRole('button', { name: 'Delete selected (2)' })).toBeInTheDocument();
     const row = screen.getByText('Question b1?').closest('tr') as HTMLElement;
-    fireEvent.click(within(row).getByRole('button', { name: 'Delete' }));
+    const opener = within(row).getByRole('button', { name: 'Delete' });
+    await dismissConfirmation(opener);
+    fireEvent.click(opener);
     fireEvent.click(await screen.findByRole('button', { name: 'Delete permanently' }));
     await waitFor(() => expect(screen.queryByText('Question b1?')).toBeNull());
     expect(await screen.findByRole('button', { name: 'Delete selected (1)' })).toBeInTheDocument();

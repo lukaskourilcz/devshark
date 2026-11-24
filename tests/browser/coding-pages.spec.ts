@@ -3,7 +3,9 @@ import AxeBuilder from '@axe-core/playwright';
 import { CODING_TASKS, playable } from '../../lib/coding/catalog';
 import { localAuth, storeFakeSession } from './fake-session';
 import { fulfilTaskRead, isTaskRead } from './coding-task-read';
-import { EVOLVING_CHALLENGES } from '../../shared/evolving';
+import { EVOLVING_CHALLENGES, evolvingTaskTrack, listedChallenges } from '../../shared/evolving';
+import { isFreeCodingTask } from '../../shared/tiers';
+import { CODING_SECTION_TRACKS, hasLearnLevel } from '../../shared/coding-catalog';
 
 // The Coding pages against the built app, with the API answered here in its
 // real shapes: a missing track or task (C3-17, V3-2), a track whose progress
@@ -23,6 +25,7 @@ const notFound = (route: Route) => route.fulfill({ status: 404, json: { error: {
 const unknownTask = (route: Route) => route.fulfill({ status: 404, json: { error: { code: 'not_found', message: 'Unknown task' } } });
 
 interface Api {
+  entitlement?: (route: Route) => Promise<void>;
   progress?: (route: Route) => Promise<void>;
   task?: (route: Route) => Promise<void>;
   session?: (route: Route) => Promise<void>;
@@ -38,7 +41,7 @@ async function answer(page: Page, api: Api = {}) {
       if (!url.search) return route.fulfill({ json: { topics: [], structure: {} } });
       return notFound(route);
     }
-    if (op === 'entitlement') return route.fulfill({ json: PREMIUM });
+    if (op === 'entitlement') return api.entitlement ? api.entitlement(route) : route.fulfill({ json: PREMIUM });
     if (op === 'coding-progress') return api.progress ? api.progress(route) : route.fulfill({ json: PROGRESS });
     if (op === 'coding-bookmarks') return api.bookmarks ? api.bookmarks(route) : route.fulfill({ json: { saved: [], collections: [] } });
     if (op === 'practice-session') return api.session ? api.session(route) : route.fulfill({ json: { session: null } });
@@ -125,7 +128,7 @@ test.describe('signed in', () => {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
       await page.addInitScript(value => {
         localStorage.setItem('devquiz:color-mode', value);
-        localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+        localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
       }, theme);
       await answer(page, {
         progress: route => route.fulfill({ json: { ...PROGRESS, tasks: { [project.stages[0]]: PROGRESS.tasks[TASK] } } }),
@@ -295,3 +298,158 @@ test.describe('signed in', () => {
     await expect(page.locator('.cm-content')).toContainText('// the copy on this device');
   });
 });
+
+test.describe('phone Coding routes', () => {
+  test.use({ hasTouch: true });
+  test('direct links show the owner notice in both orientations without starting the workbench', async ({ page }) => {
+    await page.addInitScript(() => sessionStorage.setItem('devshark:coding:narrow-editor:v1', '1'));
+    const heavy: string[] = [];
+    page.on('request', req => {
+      const url = new URL(req.url());
+      if (/CodingSection|CodingWorkbench|codemirror|\/sandbox\/|typescript-worker/i.test(url.pathname)
+        || ['coding-task', 'coding-brief', 'coding-state'].includes(url.searchParams.get('resource') ?? '')) heavy.push(req.url());
+    });
+    await answer(page);
+    for (const viewport of [{width: 390, height: 844}, {width: 844, height: 390}]) {
+      await page.setViewportSize(viewport);
+      for (const path of ['/coding', '/coding/javascript', '/coding/fullstack', '/coding/javascript/js-digit-sum']) {
+        await page.goto(path);
+        await expect(page.getByText('This section only works in desktop apps. Apologies, but coding on phone is painful and we dont want to cause no harm.', {exact: true})).toBeVisible();
+        await expect(page.locator('.cd-workbench, .cd-catalogue, .cm-editor')).toHaveCount(0);
+        await expect(page.locator('.ss-header')).toBeVisible();
+        await expect(page.getByRole('button', { name: /Use the editor here|Run|Submit/, exact: true })).toHaveCount(0);
+      }
+    }
+    expect(heavy).toEqual([]);
+  });
+  test('resizing back to desktop restores the edited task without submitting it', async ({ page }) => {
+    const posts: string[] = [];
+    const task = CODING_TASKS.find(one => one.id === TASK)!;
+    page.on('request', request => {
+      if (request.method() === 'POST' && new URL(request.url()).searchParams.get('resource') === 'coding-submit') posts.push(request.url());
+    });
+    await answer(page, { task: route => fulfilTaskRead(route, {
+      task: playable(task), session: 'resize-session', locked: null, progress: null, draft: null, signedIn: false,
+    }) });
+    await page.goto(`/coding/javascript/${TASK}`);
+    const editor = page.locator('.cm-content');
+    await editor.fill('const digitSum = n => n;');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByText('This section only works', { exact: false })).toBeVisible();
+    await expect(editor).toHaveCount(0);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(editor).toContainText('const digitSum = n => n;');
+    expect(posts).toEqual([]);
+  });
+
+});
+
+test('a guest project with a free opening stage shows its access rule once and a free start', async ({page}) => {
+  await answer(page);
+  await page.goto('/coding/fullstack');
+  const project = page.locator('.cd-project').filter({has: page.getByRole('button', {name: 'Start Link shortener', exact:true})});
+  await expect(project).toBeVisible();
+  await expect(project.getByText('Premium', {exact:true})).toHaveCount(0);
+});
+
+for (const category of [undefined, 'debugging'] as const) {
+  test(`a new ${category ?? 'evolving'} project targets its free first stage without a Premium badge`, async ({ page }) => {
+    const project = listedChallenges({ category })[0];
+    await answer(page);
+    await page.goto(category ? '/coding?projects=debugging' : '/coding');
+    const row = page.getByRole('article', { name: project.title, exact: true });
+    const action = row.getByRole('button', { name: 'Start ' + project.title, exact: true });
+    await expect(action).toBeVisible();
+    await expect(row.getByText('Premium', { exact: true })).toHaveCount(0);
+    await action.press('Enter');
+    const stage = project.stages[0];
+    await expect(page).toHaveURL(url => url.pathname === '/coding/' + evolvingTaskTrack(stage) + '/' + stage);
+  });
+}
+
+for (const [tier, stage] of [
+  ['free', 'first'], ['free', 'boundary'], ['premium', 'boundary'], ['unknown', 'boundary'], ['free', 'completed'],
+] as const) {
+  test(`project badge and keyboard action agree for a ${tier} account at ${stage}`, async ({ page }) => {
+    const project = EVOLVING_CHALLENGES.find(one => one.id === 'fullstack-links')!;
+    const paid = project.stages.findIndex(id => !isFreeCodingTask(id));
+    const passes = stage === 'first' ? 0 : stage === 'completed' ? project.stages.length : paid;
+    const target = project.stages[Math.min(passes, project.stages.length - 1)];
+    await storeFakeSession(page);
+    await localAuth(page);
+    await answer(page, {
+      entitlement: route => tier === 'unknown' ? notFound(route) : route.fulfill({ json: { ...PREMIUM, tier } }),
+      progress: route => route.fulfill({ json: {
+        ...PROGRESS, tasks: Object.fromEntries(project.stages.slice(0, passes).map(id => [id, PROGRESS.tasks[TASK]])),
+      } }),
+    });
+    await page.goto('/coding/fullstack');
+    const row = page.getByRole('article', { name: project.title, exact: true });
+    const action = row.getByRole('button');
+    await expect(action).toHaveAccessibleName(new RegExp(`${stage === 'completed' ? 'Review' : passes ? 'Continue' : 'Start'} ${project.title}`));
+    const locked = tier === 'free' && stage === 'boundary';
+    await expect(row.getByText('Premium', { exact: true })).toHaveCount(locked ? 1 : 0);
+    await action.focus();
+    await page.keyboard.press('Enter');
+    if (locked) {
+      await expect(page.getByRole('dialog')).toBeVisible();
+      await expect(page).toHaveURL(/\/coding\/fullstack$/);
+    } else {
+      await expect(page).toHaveURL(new RegExp(`/coding/${evolvingTaskTrack(target)}/${target}$`));
+    }
+  });
+}
+
+for (const track of CODING_SECTION_TRACKS) test(`track rows show the authored ${track} difficulty and estimated duration`, async ({page}) => {
+  await answer(page);
+  await page.goto('/coding/' + track);
+  const row = page.locator('.cd-catalogue .cd-row').first();
+  await expect(row).toBeVisible();
+  const title = await row.locator('.cd-row__title').textContent();
+  const task = CODING_TASKS.find(item => item.title === title && item.track === track)!;
+  const summary = playable(task);
+  await expect(row.getByText(`Est. ${summary.estimatedMinutes} min`, {exact:true})).toBeVisible();
+  await expect(row.getByText(new RegExp('^' + summary.difficulty + '$', 'i'))).toBeVisible();
+});
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`the task breadcrumb returns to the same filtered row and catalogue page in ${theme}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+    await page.addInitScript(mode => localStorage.setItem('devquiz:color-mode', mode), theme);
+    await storeFakeSession(page);
+    await localAuth(page);
+    await answer(page, { task: route => {
+      const id = new URL(route.request().url()).searchParams.get('id');
+      const entry = CODING_TASKS.find(task => task.id === id)!;
+      return fulfilTaskRead(route, { task: playable(entry), session: entry.id, locked: null, progress: null, draft: null, signedIn: true });
+    } });
+    const list = '/coding/javascript?q=a&difficulty=easy&page=2';
+    await page.goto(list);
+    const rows = page.locator('.cd-catalogue .cd-row');
+    await expect(rows).toHaveCount(20);
+    await expect(page.locator('.cd-catalogue > ul')).toHaveCount(2);
+    await expect(page.locator('.cd-pagination').getByRole('status').filter({ hasText: /Page \d+ of/ })).toContainText('Page 2 of');
+    const titles = await rows.locator('.cd-row__title').allTextContents();
+    const links = await page.locator('.cd-catalogue a.cd-row').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')!));
+    const link = links.find(path => {
+      const task = CODING_TASKS.find(one => one.id === path.split('/').pop());
+      return task && hasLearnLevel(task);
+    });
+    expect(link, 'a real task linked to a Learn level on the second filtered page').toBeTruthy();
+    const task = CODING_TASKS.find(one => one.id === link!.split('/').pop())!;
+    const entry = page.locator('.cd-catalogue a').filter({ has: page.getByText(task.title, { exact: true }) });
+    await entry.focus();
+    await expect(entry).toBeFocused();
+    expect((await entry.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await entry.press('Enter');
+    await expect(page.locator('.cm-content')).toBeVisible();
+    await expect(page.locator('.cd-workbench')).toContainText('Level ' + task.level);
+    const back = page.locator('.cd-editor-bar__path a').filter({ hasText: /^javascript$/i });
+    await expect(back).toHaveAttribute('href', list);
+    await back.click();
+    await expect(page).toHaveURL(url => url.pathname + url.search === list);
+    await expect(page.getByRole('searchbox')).toHaveValue('a');
+    await expect(page.locator('#javascript-difficulty')).toHaveValue('easy');
+    await expect(rows.locator('.cd-row__title')).toHaveText(titles);
+  });
+}

@@ -1,0 +1,15 @@
+meta {
+  name: User Orders no-auth
+  type: http
+  seq: 41
+}
+
+get {
+  url: {{baseUrl}}/api/user/orders
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

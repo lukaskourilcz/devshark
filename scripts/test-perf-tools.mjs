@@ -709,7 +709,10 @@ test('check:bundle --url measures raw Brotli/gzip/identity bodies with exact ano
   assert.notEqual(row.transferredBytes, row.decodedGzip6Bytes, 'wire compression is not reconstructed gzip6');
   assert.equal(row.encodedSha256, createHash('sha256').update(encodedMain).digest('hex')); assert.equal(row.headers['x-vercel-cache'], 'HIT'); assert.equal(row.headers['set-cookie'], undefined);
   assert.equal(report.totals.initialTransferredBytes, encodedMain.length + encodedShared.length + style.length); assert.equal(report.totals.preloadedFontTransferredBytes, font.length);
-  assert.equal(report.budgetApplied, false); assert.equal(report.localGzipBudgetReference, 218675); assert.match(report.scope, /exclude headers/);
+  const measuredBudget = JSON.parse(readFileSync(join(root, 'docs/quality/bundle-budget.json'), 'utf8'));
+  assert.equal(report.budgetApplied, false);
+  assert.equal(report.localGzipBudgetReference, measuredBudget.initialGzipBytes);
+  assert.match(report.scope, /exclude headers/);
   assert.deepEqual(JSON.parse(readFileSync(join(outputDirectory, 'bundle-live.json'), 'utf8')), report);
 });
 
@@ -802,7 +805,7 @@ test('check:bundle keeps its default shaped-build options and refuses mixed/repe
   assert.deepEqual(bundle.bundleOptions(['--largest=20']), { origin: null, largestCount: 20 });
   assert.deepEqual(bundle.bundleOptions(['--url=https://example.test']), { origin: 'https://example.test', largestCount: 10 });
   for (const args of [['--url=https://example.test', '--largest=20'], ['--url=https://example.test', '--url=https://other.test'], ['--url'], ['--largest=2', '--largest=3']]) assert.throws(() => bundle.bundleOptions(args));
-  assert.equal(JSON.parse(readFileSync(join(root, 'docs/quality/bundle-budget.json'), 'utf8')).initialGzipBytes, 218675);
+  assert.equal(JSON.parse(readFileSync(join(root, 'docs/quality/bundle-budget.json'), 'utf8')).initialGzipBytes, 217717);
 });
 
 // F1-38: exercise the existing CLI server, with no HTTP readiness polling.
@@ -867,16 +870,20 @@ test('perf:fixture never replaces missing assets, reserved paths or non-HTML req
   assert.match((await fixtureRead(missingRoot.origin, '/real')).body.toString(), /real route index/);
 });
 
-test('perf:fixture keeps method/traversal/containment refusals and the narrow asset CORS policy', async (t) => {
+test('perf:fixture keeps method, traversal and containment refusals', async (t) => {
   const server = await fixtureLab(t);
   assert.equal((await fixtureRead(server.origin, '/learn', { method: 'POST' })).status, 405);
   assert.equal((await fixtureRead(server.origin, '/bad%ZZ')).status, 400);
   for (const path of ['/%2e%2e/outside-secret', '/..%2f..%2foutside-secret', '/assets/escape.js']) {
     const response = await fixtureRead(server.origin, path); assert.equal(response.status, 403, path); assert.doesNotMatch(response.body.toString(), /outside must never/);
   }
-  const worker = await fixtureRead(server.origin, '/assets/coding-worker/worker.js'); assert.equal(worker.status, 200); assert.equal(worker.headers['access-control-allow-origin'], '*');
+});
+
+test('perf:fixture matches the app and exercise asset CORS policies', async (t) => {
+  const server = await fixtureLab(t);
+  const worker = await fixtureRead(server.origin, '/assets/coding-worker/worker.js'); assert.equal(worker.status, 200); assert.equal(worker.headers['access-control-allow-origin'], 'https://devshark.app');
   const sandbox = await fixtureRead(server.origin, '/sandbox/'); assert.equal(sandbox.status, 200); assert.equal(sandbox.headers['access-control-allow-origin'], '*');
-  const ordinary = await fixtureRead(server.origin, '/assets/main.js'); assert.equal(ordinary.status, 200); assert.equal(ordinary.headers['access-control-allow-origin'], undefined); assert.match(ordinary.headers['cache-control'], /immutable/);
+  const ordinary = await fixtureRead(server.origin, '/assets/main.js'); assert.equal(ordinary.status, 200); assert.equal(ordinary.headers['access-control-allow-origin'], 'https://devshark.app'); assert.match(ordinary.headers['cache-control'], /immutable/);
 });
 
 test('perf:fixture retains synthetic 400ms API-only settings and provider refusal responses', async (t) => {

@@ -1,6 +1,7 @@
 // Learn and Today follow what the server enforces: the learner's plan, the
 // account's verified record and unlocks, and the life of a level's session.
 // Each screen is rendered with invented fixtures in the real response shapes.
+import { trackAnnouncement } from './announcement';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -281,11 +282,13 @@ describe('the plan', () => {
     signInAs(BACKEND);
     answer();
     await mountAt('/roadmap', <CareerRoadmap />);
+    const verifyAnnouncement = trackAnnouncement('.career-roadmap [role="status"][aria-live]');
     act(() => {
       fireEvent.click(screen.getByRole('radio', { name: 'Frontend' }));
       fireEvent.click(screen.getByRole('radio', { name: 'Backend' }));
     });
     expect(await screen.findByText('Saved: Frontend')).toBeInTheDocument();
+    verifyAnnouncement('Saved: Frontend');
     expect(saves.calls).toHaveLength(1);
     expect(saves.calls[0][1]).toMatchObject({ baseTrack: 'frontend' });
   });

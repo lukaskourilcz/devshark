@@ -141,7 +141,7 @@ export const CONSENT_STORAGE_KEY = 'devshark:consent';
 // also writes a devshark_consent cookie copy that nothing reads today, so the
 // lab stores the localStorage record only.
 export function rejectedConsent(now) {
- return { version: 1, analytics: false, marketing: false, decidedAt: now };
+ return { version: 2, analytics: false, marketing: false, decidedAt: now };
 }
 
 // The cookie choice each row of a sample loads under. A first visit sees the

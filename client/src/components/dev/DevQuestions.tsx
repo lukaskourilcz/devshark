@@ -54,7 +54,7 @@ const captionStyle: React.CSSProperties = {
 const selectStyle: React.CSSProperties = {
   height: 40,
   borderRadius: 'var(--radius-element)',
-  border: '1px solid var(--color-border)',
+  border: '1px solid var(--color-border-strong)',
   background: 'var(--color-background-surface)',
   color: 'var(--color-text-primary)',
   padding: '0 12px',
@@ -144,7 +144,7 @@ function ActionButton({ label, onClick, danger }: { label: string; onClick: () =
         fontWeight: 600,
         padding: '2px 6px',
         borderRadius: 'var(--radius-inner)',
-        color: danger ? '#dc2626' : 'var(--brand-accent)',
+        color: danger ? 'var(--ss-error-text)' : 'var(--brand-accent)',
       }}
     >
       {label}
@@ -190,18 +190,18 @@ function Pill({
  * `reviewed` is served. An edit turns a reviewed item into
  * `superseded` until a review of the new wording is recorded in the ledger. */
 const REVIEW_COLOR: Record<AdminQuestion['review']['reason'], string> = {
-  reviewed: '#15803d',
-  'not-in-scope': '#6b7280',
-  unreviewed: '#b45309',
-  superseded: '#b45309',
-  retired: '#dc2626',
-  quarantined: '#dc2626',
-  'failed-gate': '#dc2626',
-  'invalid-record': '#dc2626',
+  reviewed: 'var(--ss-success-strong)',
+  'not-in-scope': 'var(--color-text-secondary)',
+  unreviewed: 'var(--ss-warning)',
+  superseded: 'var(--ss-warning)',
+  retired: 'var(--ss-error-text)',
+  quarantined: 'var(--ss-error-text)',
+  'failed-gate': 'var(--ss-error-text)',
+  'invalid-record': 'var(--ss-error-text)',
 };
 
 function ReviewCell({ review }: { review: AdminQuestion['review'] }) {
-  if (review.reason === 'not-in-scope') return <span style={{ fontSize: '0.75rem', color: 'var(--color-text-disabled)' }}>—</span>;
+  if (review.reason === 'not-in-scope') return <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>—</span>;
   const scores = review.relevance !== undefined && review.quality !== undefined ? ` · R ${review.relevance}/10 · Q ${review.quality}/5` : '';
   const title = [
     review.active ? 'Served: this exact wording has a current passing review.' : `Not served: ${review.reason}.`,
@@ -217,9 +217,9 @@ function ReviewCell({ review }: { review: AdminQuestion['review'] }) {
 }
 
 const SOURCE_PILL_COLOR: Record<AdminQuestion['source'], string> = {
-  base: 'var(--color-border)',
-  edited: '#f5a623',
-  custom: '#16a34a',
+  base: 'var(--color-text-secondary)',
+  edited: 'var(--ss-warning)',
+  custom: 'var(--ss-success-strong)',
 };
 
 export default function DevQuestions() {
@@ -626,7 +626,7 @@ export default function DevQuestions() {
                           key={i}
                           style={{
                             fontSize: '0.75rem',
-                            color: correct ? '#1b5e20' : 'var(--color-text-secondary)',
+                            color: correct ? 'var(--ss-success-strong)' : 'var(--color-text-secondary)',
                             fontWeight: correct ? 700 : 400,
                             whiteSpace: 'pre-wrap',
                             wordBreak: 'break-word',
@@ -685,11 +685,11 @@ export default function DevQuestions() {
                   {reportCounts[q.id] ? (
                     <Pill
                       label={`${reportCounts[q.id]} flagged`}
-                      color="#dc2626"
+                      color="var(--ss-error-text)"
                       title={`${reportCounts[q.id]} report(s) — see the Flags tab`}
                     />
                   ) : (
-                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-disabled)' }}>—</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>—</span>
                   )}
                 </TableCell>
                 <TableCell style={{ textAlign: 'center' }}>

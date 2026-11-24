@@ -29,8 +29,8 @@ jobs:
           --health-timeout 5s
           --health-retries 40
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
       - run: npm run test:sql
@@ -43,8 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -69,8 +69,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -84,14 +84,16 @@ jobs:
           # check:bundle measures with. tests/browser/lazy-auth.spec.ts needs it.
           VITE_SUPABASE_URL=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_URL")
           VITE_SUPABASE_ANON_KEY=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_ANON_KEY")
-          export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY
+          VITE_SENTRY_DSN=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SENTRY_DSN")
+          VITE_PUBLIC_POSTHOG_KEY=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_PUBLIC_POSTHOG_KEY")
+          export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY VITE_SENTRY_DSN VITE_PUBLIC_POSTHOG_KEY
           npm run build
         id: build
         env:
           VITE_PRODUCT: devshark
           VITE_LOCK_SUBJECT: webdev
       - run: npm run check:ci-build-artifact
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: quality-client-${{ github.sha }}
           path: artifacts/client-build.tar
@@ -103,8 +105,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -122,7 +124,7 @@ jobs:
           [[ "$BINARY_BASE_SHA" =~ ^[a-f0-9]{40}$ && "$BINARY_BASE_SHA" != "0000000000000000000000000000000000000000" ]] || exit 1
           git fetch --no-tags --depth=1 origin "$BINARY_BASE_SHA"
           npm run check:binary-size
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: quality-client-${{ github.sha }}
           path: artifacts
@@ -133,8 +135,10 @@ jobs:
           # check:bundle measures with. tests/browser/lazy-auth.spec.ts needs it.
           VITE_SUPABASE_URL=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_URL")
           VITE_SUPABASE_ANON_KEY=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_ANON_KEY")
-          export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY
-          npm run check:images && npm run check:public && npm run check:bundle
+          VITE_SENTRY_DSN=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SENTRY_DSN")
+          VITE_PUBLIC_POSTHOG_KEY=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_PUBLIC_POSTHOG_KEY")
+          export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY VITE_SENTRY_DSN VITE_PUBLIC_POSTHOG_KEY
+          npm run check:images && npm run check:security -- --dist && npm run check:public && npm run check:bundle
         id: check-build
         env:
           VITE_PRODUCT: devshark
@@ -144,8 +148,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -158,8 +162,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -167,14 +171,14 @@ jobs:
             package-lock.json
             client/package-lock.json
       - run: npm ci --no-audit && npm ci --no-audit --prefix client
-      - run: npm run test:coding
+      - run: CODING_RECEIPTS=1 npm run test:coding
   browser:
     needs: client-build
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -182,7 +186,7 @@ jobs:
             package-lock.json
             client/package-lock.json
       - run: npm ci --no-audit && npm ci --no-audit --prefix client
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: quality-client-${{ github.sha }}
           path: artifacts
@@ -191,7 +195,7 @@ jobs:
       - name: Read installed browser revision
         id: playwright
         run: echo "revision=$(node -p "require('node:crypto').createHash('sha256').update(require('node:fs').readFileSync('node_modules/playwright-core/browsers.json')).digest('hex')")" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-${{ runner.arch }}-chromium-${{ steps.playwright.outputs.revision }}
@@ -200,7 +204,7 @@ jobs:
         run: |
           npm run preview --prefix client -- --host 0.0.0.0 --port 4173 > /tmp/preview.log 2>&1 &
           node scripts/wait-for-preview.mjs
-          PLAYWRIGHT_HTML_REPORT=playwright-report/chromium npm run test:browser -- --project=chromium --workers=2 --output=test-results/chromium tests/browser/public.spec.ts tests/browser/images.spec.ts tests/browser/guide-startup.spec.ts tests/browser/profile-leaderboard-preferences.spec.ts tests/browser/profile-path-picker.spec.ts tests/browser/admin.spec.ts tests/browser/evolving.spec.ts tests/browser/coding-pages.spec.ts tests/browser/coding-workbench.spec.ts tests/browser/mobile-safari.spec.ts tests/browser/consent-reflow.spec.ts tests/browser/coding-drafts.spec.ts tests/browser/learning-release.spec.ts tests/browser/learn-sections.spec.ts tests/browser/fde-hub.spec.ts tests/browser/fde-taster.spec.ts tests/browser/fde-positioning.spec.ts tests/browser/interview-shelf.spec.ts tests/browser/path-content-shapes.spec.ts tests/browser/portfolio-export.spec.ts tests/browser/diagnostic-overview.spec.ts tests/browser/dsa-advanced.spec.ts tests/browser/segmented.spec.ts tests/browser/on-accent.spec.ts tests/browser/navigation.spec.ts tests/browser/lazy-auth.spec.ts tests/browser/sign-in.spec.ts tests/browser/route-errors.spec.ts tests/browser/first-load.spec.ts tests/browser/home-sample.spec.ts tests/browser/routes-axe.spec.ts tests/browser/daily.spec.ts tests/browser/launch-offer.spec.ts tests/browser/triage-private.spec.ts
+          CONSENT_EXPECT_TELEMETRY=1 MEMORY_EXPECT_TRACING=1 MEMORY_FULL_EXPIRY=1 PLAYWRIGHT_HTML_REPORT=playwright-report/chromium npm run test:browser -- --project=chromium --workers=2 --output=test-results/chromium tests/browser/public.spec.ts tests/browser/consent-network.spec.ts tests/browser/offline.spec.ts tests/browser/memory.spec.ts tests/browser/images.spec.ts tests/browser/guide-startup.spec.ts tests/browser/profile-leaderboard-preferences.spec.ts tests/browser/profile-path-picker.spec.ts tests/browser/admin.spec.ts tests/browser/evolving.spec.ts tests/browser/coding-pages.spec.ts tests/browser/coding-workbench.spec.ts tests/browser/mobile-safari.spec.ts tests/browser/consent-reflow.spec.ts tests/browser/coding-drafts.spec.ts tests/browser/learning-release.spec.ts tests/browser/learn-sections.spec.ts tests/browser/fde-hub.spec.ts tests/browser/fde-taster.spec.ts tests/browser/fde-positioning.spec.ts tests/browser/interview-shelf.spec.ts tests/browser/path-content-shapes.spec.ts tests/browser/portfolio-export.spec.ts tests/browser/diagnostic-overview.spec.ts tests/browser/dsa-advanced.spec.ts tests/browser/segmented.spec.ts tests/browser/on-accent.spec.ts tests/browser/navigation.spec.ts tests/browser/lazy-auth.spec.ts tests/browser/sign-in.spec.ts tests/browser/route-errors.spec.ts tests/browser/first-load.spec.ts tests/browser/home-sample.spec.ts tests/browser/routes-axe.spec.ts tests/browser/daily.spec.ts tests/browser/launch-offer.spec.ts tests/browser/triage-private.spec.ts
           export CHROME_BIN=$(node -e "console.log(require('@playwright/test').chromium.executablePath())")
           TOPIC=javascript-closures
           RESPONSIVE_WORKERS=2 npm run check:responsive -- --routes /,/quiz,/topics/$TOPIC,/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 360,390,430,768,820,1024,1280,1366,1440
@@ -208,6 +212,7 @@ jobs:
           RESPONSIVE_ZOOM=200 RESPONSIVE_WORKERS=2 npm run check:responsive -- --routes / --widths 1280
           RESPONSIVE_ZOOM=400 RESPONSIVE_WORKERS=2 npm run check:responsive -- --routes / --widths 1280
           npm run test:harness
+          npm run test:browser:csp
       - if: ${{ !cancelled() && steps.build.conclusion == 'success' }}
         name: Storybook and performance
         run: |
@@ -216,7 +221,7 @@ jobs:
           npm run storybook --prefix client -- --ci > /tmp/storybook.log 2>&1 &
           TEST_BASE_URL=http://localhost:6006 node scripts/wait-for-preview.mjs
           STORYBOOK_URL=http://localhost:6006 PLAYWRIGHT_HTML_REPORT=playwright-report/storybook npm run test:browser -- --project=chromium --output=test-results/storybook tests/browser/storybook.spec.ts
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: quality
@@ -232,8 +237,8 @@ jobs:
     env:
       CONTAINER_BASE_SHA: 0f35d67df7e3ae0c2cbd17eb4c44a18c7bf8d83c
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -242,7 +247,7 @@ jobs:
       - name: Fetch the published container baseline
         run: git fetch --no-tags --depth=1 origin "$CONTAINER_BASE_SHA"
       - run: npm run test:container
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: container-measurement

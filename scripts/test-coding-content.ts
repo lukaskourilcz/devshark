@@ -8,11 +8,12 @@ import { runtimePolicyForTask } from '../shared/coding-task-runtime';
 //   CODING_SKIP_INDEX=1         do not require shared/coding-index.ts to be fresh
 //   CODING_COVERAGE_ENFORCED=1  fail on Easy-band technique gaps even while COVERAGE_ENFORCED is off
 import assert from 'node:assert/strict';
+import { isDeepStrictEqual } from 'node:util';
 import { createRequire } from 'node:module';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { CODING_TASKS, DSA_FOUNDATIONS_TASK_IDS, EASY_BAND_TASK_IDS, MEDIUM_HARD_BAND_TASK_IDS, playable } from '../lib/coding/catalog';
-import { CODING_SUMMARIES, levelCodingTasks, tasksForLevel } from '../lib/coding/active';
+import { CODING_SOURCE_VERSIONS, CODING_SUMMARIES, levelCodingTasks, tasksForLevel } from '../lib/coding/active';
 import { solutionFor, solutionIds } from '../lib/coding/solutions';
 import { stripComments } from '../lib/coding/solutions/strip-comments';
 import { codingBoardContracts } from './coding-board-contract';
@@ -58,6 +59,13 @@ import { EVOLVING_CHALLENGES, evolvingResume, evolvingStage, evolvingUnlocked, e
 import { SKELETON_FILLS } from './fixtures/skeleton-fills';
 import { isFreeCodingTask } from '../shared/tiers';
 import { evaluateInRunRealm } from './run-realm-node';
+
+// Optional evidence from the ordinary checks. No challenge is rerun to produce it.
+function recordCodingReceipt(id: string, variant: string, accepted: boolean, visible: number, hidden: number): void {
+  if (process.env.CODING_RECEIPTS !== '1') return;
+  const hash = CODING_SOURCE_VERSIONS.get(id);
+  console.log('CODING_RECEIPT ' + JSON.stringify({ id, hash, variant, accepted, visible, hidden }));
+}
 
 const ALLOW_GAPS = process.env.CODING_ALLOW_LEVEL_GAPS === '1';
 const SKIP_INDEX = process.env.CODING_SKIP_INDEX === '1';
@@ -372,7 +380,20 @@ async function main() {
         // The new stage's checks lead, so the first rows in Results show what
         // the brief just asked for; every earlier check follows, unchanged.
         if (task.tests) {
-          assert.deepEqual(task.tests.slice(task.tests.length - prior.tests!.length), prior.tests, 'earlier runtime checks remain, after the new ones');
+          const introducedCount = task.tests.length - prior.tests!.length;
+          assert.deepEqual(task.tests.slice(introducedCount), prior.tests, 'earlier runtime checks remain, after the new ones');
+          const introduced = task.tests.slice(0, introducedCount);
+          for (const check of introduced) {
+            const matches = (other: typeof check) => other.call === check.call && isDeepStrictEqual(check, other);
+            if (introduced.filter(matches).length === 1) {
+              assert.ok(!prior.tests!.some(matches), `${id}: an unchanged inherited call appears twice: ${check.call}`);
+            }
+          }
+        }
+        if (prior.track === 'typescript' && task.track === 'typescript') {
+          const before = prior.typeTests ?? [];
+          const after = task.typeTests ?? [];
+          assert.deepEqual(after.slice(after.length - before.length), before, `${id}: a later TypeScript stage retains the earlier type contracts`);
         }
         if (task.suite && prior.suite) {
           // The shared header is whatever both suites open with, cut back to
@@ -514,8 +535,10 @@ async function main() {
       if (stripComments(body) !== body) fail(`${id}: the ${kind} board still carries an authoring comment`);
     }
   }
-  for (const id of ['react-user-directory', 'react-posts-dashboard', 'react-comments-viewer', 'react-todo-client', 'react-product-explorer']) {
-    if (!solutionFor(id)?.boardPlan?.trim()) fail(`${id}: both boards must retain the plan requested by the task`);
+  for (const task of CODING_TASKS) {
+    if (task.track === 'react' && task.starter.includes('// SYSTEM DESIGN NOTES') && !solutionFor(task.id)?.boardPlan?.trim()) {
+      fail(`${task.id}: both boards must retain the design notes requested by the task`);
+    }
   }
 
   /* ── difficulty labels ─────────────────────────────────────────────── */
@@ -669,8 +692,15 @@ async function main() {
         : prepared.key.band ? [prepared.key.band.max * 10 + 1]
           : prepared.key.order ? [[...prepared.key.order].reverse()]
             : [(prepared.key.correct! + 1) % task.drill!.options!.length];
-      if (gradeDesign(task, prepared.key, right as DesignAnswer[]).outcome !== 'passed') fail(`${task.id}: its grader fails the right answers`);
-      if (gradeDesign(task, prepared.key, wrong as DesignAnswer[]).outcome !== 'failed') fail(`${task.id}: its grader passes wrong answers`);
+      const rightOutcome = gradeDesign(task, prepared.key, right as DesignAnswer[]).outcome;
+      const wrongOutcome = gradeDesign(task, prepared.key, wrong as DesignAnswer[]).outcome;
+      if (rightOutcome !== 'passed') fail(`${task.id}: its grader fails the right answers`);
+      if (wrongOutcome !== 'failed') fail(`${task.id}: its grader passes wrong answers`);
+      if (process.env.CODING_RECEIPTS === '1') {
+        console.log('DESIGN_RECEIPT ' + JSON.stringify({
+          id: task.id, hash: CODING_SOURCE_VERSIONS.get(task.id), issued: issued.has(task.id), rightOutcome, wrongOutcome,
+        }));
+      }
     }
 
     // The review of 22 Oct 2026 (docs/audit/system-design-review-2026-10-22.md)
@@ -837,6 +867,34 @@ async function main() {
   const libDir = path.join(path.dirname(nodeRequire.resolve('typescript/package.json')), 'lib');
   const libs = Object.fromEntries(readdirSync(libDir).filter(isCheckerLibFile).map((name) => [name, readFileSync(path.join(libDir, name), 'utf8')]));
   const checker = createTypeScript({ ts: nodeRequire('typescript'), libs });
+  {
+    const isolation = checker.check(
+      'const result = "draft"; const toSlug = (text: string): string => text.trim();',
+      [
+        { code: 'declare const text: string; const result: string = toSlug(text);' },
+        { code: 'const result: number = toSlug("ready").length;' },
+        { code: 'toSlug(17);', rejects: true },
+      ],
+    );
+    assert.deepEqual(isolation.codeErrors, [], 'ordinary learner helper names remain local to the answer');
+    assert.deepEqual(isolation.typeTests.map(item => item.pass), [true, true, true]);
+    assert.match(isolation.typeTests[2].error ?? '', /number.*string/);
+    // A wider readonly parameter and an independent generic helper are valid
+    // ways to meet the Transform a list contract. Assertions may reuse names.
+    const mapper = CODING_TASKS.find(task => task.id === 'ts-transform-a-list')!;
+    const mapperSource = `const result = <Item>(item: Item): Item => item;
+function transform<Input, Output>(items: readonly Input[], change: (item: Input) => Output): Output[] {
+  return items.map(item => result(change(item)));
+}`;
+    assert.ok(typesPassed(checker.check(mapperSource, mapper.typeTests)), 'valid generic mapper accepts each published type case');
+    assert.ok(typesPassed(checker.check(mapperSource, solutionFor(mapper.id)?.hiddenTypeTests)), 'valid generic mapper accepts the private type cases');
+    const invalid = checker.check('const keep = 1;\nconst result: number = "wrong";', [
+      { code: 'const result: number = keep;' },
+    ]);
+    assert.equal(invalid.codeErrors[0]?.line, 2, 'learner diagnostics keep their original line');
+    assert.equal(invalid.typeTests[0].pass, true);
+  }
+
 
   // Every graded code task carries three solutions — the reference the
   // learner can give up to, and the junior and senior versions shown after a
@@ -866,7 +924,9 @@ async function main() {
     if (task.track === 'typescript') {
       const starterCheck = checker.check(task.starter, task.typeTests ?? []);
       const starterRun = await withTimeout(evaluateCalls({ code: checker.toJavaScript(task.starter), calls: task.tests.map((t) => t.call), expectations: task.tests.map((t) => t.expected) }), 8_000, where);
-      if (typesPassed(starterCheck) && allPassed(starterRun)) fail(`${where}: the untouched starter already passes`);
+      const accepted = typesPassed(starterCheck) && allPassed(starterRun);
+      recordCodingReceipt(where, 'starter', accepted, starterRun.results.length, 0);
+      if (accepted) fail(`${where}: the untouched starter already passes`);
       starterCode = checker.toJavaScript(task.starter);
       // Code that ends inside an unterminated template literal must not pull
       // the type tests into it: the check reports the code instead.
@@ -874,6 +934,7 @@ async function main() {
     }
     for (const [name, source] of variants(solution, where)) {
       const label = `${where} (${name})`;
+      const priorFailures = failures.length;
       let code = source;
       if (task.track === 'typescript') {
         const check = checker.check(source, task.typeTests ?? []);
@@ -900,11 +961,14 @@ async function main() {
         const hidden = await withTimeout(evaluateInRunRealm({ runtimePolicy: runtimePolicyForTask(task.id), code, calls: solution.hiddenTests.map((t) => t.call), expectations: solution.hiddenTests.map((t) => t.expected) }), 8_000, label);
         if (!allPassed(hidden)) fail(`${label}: solution fails hidden tests: ${hidden.codeError ?? hidden.results.map((r, i) => (r.pass ? null : solution.hiddenTests![i].call)).filter(Boolean).join('; ')}`);
       }
+      recordCodingReceipt(where, name, failures.length === priorFailures, server.visible.results.length, server.hidden?.results.length ?? 0);
     }
     // Algorithms challenges are plain JavaScript too, so their starters must fail the same way.
     if (task.track === 'javascript' || task.track === 'algorithms') {
       const starterRun = await withTimeout(evaluateCalls({ code: starterCode, calls: task.tests.map((t) => t.call), expectations: task.tests.map((t) => t.expected) }), 8_000, where);
-      if (allPassed(starterRun)) fail(`${where}: the untouched starter already passes`);
+      const accepted = allPassed(starterRun);
+      recordCodingReceipt(where, 'starter', accepted, starterRun.results.length, 0);
+      if (accepted) fail(`${where}: the untouched starter already passes`);
     }
   }
 
@@ -1036,16 +1100,19 @@ async function main() {
     if (solution.hiddenSuite !== undefined && /^\s*import\s/m.test(solution.hiddenSuite)) fail(`${where}: a hidden suite shares the visible suite's imports and declares none`);
     const suite = withHiddenCases(task.suite, solution.hiddenSuite);
     for (const [name, source] of variants(solution, where)) {
+      const priorFailures = failures.length;
       const run = await withTimeout(runReactSuite({ suite, appSource: source }), 20_000, `${where} (${name})`);
       if (run.compileError || run.failed > 0) {
         fail(`${where} (${name}): solution fails its suite: ${run.compileError ?? run.cases.filter((c) => c.status === 'fail').map((c) => `${c.name}: ${c.error}`).join('; ')}`);
       }
-      const { hidden } = splitHiddenCases(run.cases);
+      const { visible, hidden } = splitHiddenCases(run.cases);
       if (hidden.length !== hiddenCaseCount(solution.hiddenSuite)) fail(`${where} (${name}): the hidden suite declares ${hiddenCaseCount(solution.hiddenSuite)} case(s) and ran ${hidden.length}`);
       // The server refuses a run whose case count differs from the suite's.
       if (run.cases.length !== suiteCaseCount(suite)) fail(`${where} (${name}): the suite declares ${suiteCaseCount(suite)} case(s) and ran ${run.cases.length}`);
+      recordCodingReceipt(where, name, failures.length === priorFailures, visible.length, hidden.length);
     }
     const starter = await withTimeout(runReactSuite({ suite: task.suite, appSource: task.starter }), 20_000, where);
+    recordCodingReceipt(where, 'starter', !starter.compileError && starter.failed === 0, starter.cases.length, 0);
     if (!starter.compileError && starter.failed === 0) fail(`${where}: the untouched starter already passes its suite`);
     // A learning path runs the visible suite alone, and the server counts it too.
     if (!starter.compileError && starter.cases.length !== suiteCaseCount(task.suite)) fail(`${where}: the visible suite declares ${suiteCaseCount(task.suite)} case(s) and ran ${starter.cases.length}`);

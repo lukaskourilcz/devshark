@@ -45,6 +45,27 @@ it('opens the sign-in dialog from the hero link', () => {
   expect(link).toBeEnabled();
 });
 
+it('waits for a stored session before presenting a Sign in action', () => {
+  server.use(settingsHandler, freeEntitlementHandler);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  auth.value.isLoading = true;
+  try {
+    render(<QueryClientProvider client={client}><MemoryRouter><LanguageProvider><Home /></LanguageProvider></MemoryRouter></QueryClientProvider>);
+    expect(screen.queryByRole('button', { name: 'Sign in' })).toBeNull();
+  } finally { auth.value.isLoading = false; }
+});
+
+it('keeps the topic card bottom edge when keyboard or pointer selection changes', () => {
+  server.use(settingsHandler, freeEntitlementHandler);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  render(<QueryClientProvider client={client}><MemoryRouter><LanguageProvider><Home /></LanguageProvider></MemoryRouter></QueryClientProvider>);
+  const card = screen.getByRole('button', { name: 'Learn TypeScript' });
+  expect(card.style.borderBottom).toBe('2px solid var(--ss-card-edge)');
+  fireEvent.click(card);
+  expect(card).toHaveAttribute('aria-pressed', 'true');
+  expect(card.style.borderBottom).toBe('2px solid var(--ss-card-edge)');
+});
+
 // The tile says "Daily challenge": one question set for everyone a day, which
 // is the quiz's daily mode, not the survival Challenge it used to open.
 it('opens the daily challenge from the Daily challenge tile', async () => {
@@ -129,10 +150,11 @@ it.each([
   const sample = screen.getByRole('group', { name: 'What does this return?' });
   expect(within(sample).getAllByRole('button')).toHaveLength(4);
   const card = within(sample.parentElement!);
-  expect(card.queryByRole('status')).toBeNull();
+  const verdict = card.getByRole('status');
+  expect(verdict).toBeEmptyDOMElement();
   fireEvent.click(within(sample).getByRole('button', { name: answer }));
-  expect(card.getByRole('status')).toHaveTextContent(feedback);
-  expect(card.getByRole('status')).toHaveTextContent('The ** operator is exponentiation');
+  expect(verdict).toHaveTextContent(feedback);
+  expect(verdict).toHaveTextContent('The ** operator is exponentiation');
   for (const option of within(sample).getAllByRole('button')) expect(option).toBeDisabled();
   expect(screen.queryByRole('region', { name: 'devShark product video' })).toBeNull();
 });

@@ -1,8 +1,8 @@
 {
-  "initialGzipBytes": 218675,
+  "initialGzipBytes": 217717,
   "baselineGzipBytes": 224479,
   "scope": "The initial requests of index.html (entry script, modulepreload links, stylesheets), gzipped, from a production-shaped devShark build. Excludes lazy routes, the coding sandbox and fonts.",
-  "recorded": "2026-11-19",
+  "recorded": "2026-11-24",
   "measuredBuild": {
     "outDir": "dist-budget",
     "note": "Production sets these build-time variables, and client code depends on them. The check builds with these placeholders, in its own output directory, so the number matches what devshark.app serves; while the Supabase client was created eagerly, a build without the Supabase pair left out about 55 kB gzipped that production served. None is a credential: each is derived from a fixed seed and has the real value's length and alphabet, so it compresses like the real one. CI's main build reads the Supabase pair from here too, so tests/browser/lazy-auth.spec.ts runs against a build that signs in the way production does.",
@@ -11,7 +11,7 @@
       "VITE_LOCK_SUBJECT": "webdev",
       "VITE_SUPABASE_URL": "https://exampleprojectref123.supabase.co",
       "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YW1wbGVwcm9qZWN0cmVmMTIzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.u4DHjqduHWQem12_AzJsMK_2_dK8eDTYOa8tmp8_DU0",
-      "VITE_SENTRY_DSN": "https://87a18de67be56414c8cd9a7c6594a215@o1283380.ingest.de.sentry.io/7446582",
+      "VITE_SENTRY_DSN": "https://87a18de67be56414c8cd9a7c6594a215@consent-sentry-lab.localhost/7446582",
       "VITE_PUBLIC_POSTHOG_KEY": "phc_RTyhiAvO3XNWYzxvUxpP1ge7QVmibEFHmSarqOBcFbw"
     }
   },

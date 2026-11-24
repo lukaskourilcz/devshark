@@ -1,0 +1,15 @@
+meta {
+  name: User Learning Path Progress no-auth
+  type: http
+  seq: 38
+}
+
+get {
+  url: {{baseUrl}}/api/user/learning-path-progress
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

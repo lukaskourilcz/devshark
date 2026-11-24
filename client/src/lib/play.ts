@@ -242,7 +242,8 @@ export const fetchLeaderboard = (
   return apiFetch<LeaderboardResponse>(`/api/leaderboard?${qs}`, { signal: options.signal, expectedUserId: viewer ?? undefined });
 };
 
-export const fetchDistribution = (code: string, questionIdx: number, hostId: string) =>
+export const fetchDistribution = (code: string, questionIdx: number, hostId: string, signal?: AbortSignal) =>
   apiFetch<{ buckets: DistributionBucket[] }>(
     `/api/play/distribution?code=${encodeURIComponent(code)}&q=${questionIdx}&user_id=${encodeURIComponent(hostId)}`,
+    { signal },
   );

@@ -17,7 +17,8 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 // A built client in miniature: one file of each kind vercel.json routes.
 const APP_DOCUMENT = '<!doctype html><title>devShark fixture app</title>\n';
 const SITE = {
-  'index.html': APP_DOCUMENT,
+  'index.html': '<!doctype html><title>devShark fixture home</title>\n',
+  'app.html': APP_DOCUMENT,
   'assets/main-x.js': 'export {};\n',
   'assets/main-x.js.map': '{"version":3,"sources":[],"mappings":""}\n',
   'assets/coding-worker/worker-x.js': 'self.onmessage = () => {};\n',
@@ -184,6 +185,29 @@ async function assertVercelAnswer(origin, pathname, vercelConfig = config) {
   return { response, body };
 }
 
+test('app document headers support provider popups and keep exercise asset sharing scoped', async (t) => {
+  const origin = await startAdapter(t, { files: SITE });
+  for (const path of ['/', '/coding/javascript/js-double-numbers', '/premium/index.html']) {
+    const { headers } = await fetch(origin + path);
+    assert.match(headers.get('content-security-policy'), /(?:^|; )object-src 'none'(?:;|$)/);
+    assert.equal(headers.get('cross-origin-opener-policy'), 'same-origin-allow-popups');
+    assert.equal(headers.get('cross-origin-resource-policy'), 'same-origin');
+  }
+  for (const [path, cors] of [
+    ['/assets/main-x.js', 'https://devshark.app'],
+    ['/assets/coding-worker/worker-x.js', 'https://devshark.app'],
+    ['/sandbox/index.html', '*'],
+    ['/sandbox/assets/index-x.js', '*'],
+    ['/brand/x.svg', 'https://devshark.app'],
+    ['/api/probe', null],
+  ]) {
+    const { headers } = await fetch(origin + path);
+    assert.equal(headers.get('access-control-allow-origin'), cors, path);
+    assert.equal(headers.get('cross-origin-opener-policy'), null, path);
+    assert.equal(headers.get('cross-origin-resource-policy'), path.includes('coding-worker') || path.startsWith('/api/') ? 'same-origin' : null, path);
+  }
+});
+
 test('Docker answers each path with the headers vercel.json gives it on Vercel', async (t) => {
   const origin = await startAdapter(t, { files: SITE });
   const paths = [
@@ -288,7 +312,7 @@ test('Docker drops upgrade-insecure-requests from the CSP of a plain-HTTP reques
   for (const pathname of ['/', '/assets/main-x.js', '/sandbox/index.html', '/assets/missing-x.js', '/sandbox/nope']) {
     const plain = await fetch(origin + pathname, { redirect: 'manual', signal: AbortSignal.timeout(5_000) });
     await plain.arrayBuffer();
-    const withoutToken = vercelAnswer(config, pathname, isSiteFile).headers['content-security-policy'];
+    const withoutToken = vercelAnswer(config, pathname, isSiteFile).headers['content-security-policy']?.split('; ').filter(directive => directive !== TOKEN).join('; ');
     assert.equal(plain.headers.get('content-security-policy'), withoutToken, `${pathname} over plain HTTP: the policy without ${TOKEN}`);
 
     const { response: forwarded } = await assertVercelAnswer(origin, pathname, upgrades);

@@ -1,5 +1,5 @@
 import { beforeAll, afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import { CodingWorkbench } from '../src/coding/CodingWorkbench';
@@ -232,6 +232,20 @@ const mountPuzzle = () => render(
   </LanguageProvider></MemoryRouter>,
 );
 
+it('keeps keyboard focus on the selected puzzle line through navigation and reordering', async () => {
+  mountPuzzle();
+  const [first, second, last] = screen.getAllByRole('option');
+  first.focus();
+  fireEvent.keyDown(first, { key: 'ArrowDown' });
+  await waitFor(() => expect(second).toHaveFocus());
+  fireEvent.keyDown(second, { key: 'ArrowDown', shiftKey: true });
+  await waitFor(() => expect(screen.getAllByRole('option')[2]).toBe(second));
+  expect(second).toHaveFocus();
+  fireEvent.keyDown(second, { key: 'Home' });
+  expect(first).toHaveFocus();
+  fireEvent.keyDown(first, { key: 'ArrowDown' });
+  expect(last).toHaveFocus();
+});
 it('offers the editor beside a puzzle, and an earlier choice of the editor opens it straight away', () => {
   mountPuzzle();
   expect(screen.getByRole('button', { name: /Check the order/ })).toBeVisible();

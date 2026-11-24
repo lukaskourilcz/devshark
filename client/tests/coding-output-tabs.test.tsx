@@ -120,6 +120,7 @@ it.each(['click', 'shortcut'])('sends authoritative React Submit by %s while pre
   });
   expect(submitCoding).toHaveBeenCalledTimes(1);
   expect(harness.start).toHaveBeenCalledTimes(1);
+  expect(harness.start).toHaveBeenCalledWith(expect.anything(), { tests: false, preview: true });
 });
 
 it('keeps the complete task in Description, without a second brief above the editor or a Target line', () => {
@@ -270,7 +271,7 @@ it('scrolls the tab strip instead of squeezing its tabs, and drops the Resources
   expect(wider).toMatch(/^@media \(min-width: 600px\) \{\s*\.cd-tabs \{ gap: 2px; \}\s*\.cd-tab \{ gap: 6px; padding-inline: 10px; font-size: 0\.95rem; \}\s*\.cd-tab__badge \{ padding-inline: 6px; \}/);
 });
 
-it('lists checks as one divided list: the call, the expected value after an arrow, then what came back (coding-15)', async () => {
+it('previews checks in one list and expands the first failure with its input, expected and received values', async () => {
   const task = { ...tasks.javascript, tests: [{ call: 'digitSum(0)', expected: 0, edge: true, label: 'zero has a digit sum of zero' }, { call: 'digitSum(493)', expected: 16 }] } as PlayableCodingTask;
   render(<MemoryRouter><LanguageProvider><CodingWorkbench task={task} initialCode={null} session="s" locked={null} signedIn mode="section" /></LanguageProvider></MemoryRouter>);
   fireEvent.click(screen.getByRole('tab', { name: 'Results' }));
@@ -282,7 +283,7 @@ it('lists checks as one divided list: the call, the expected value after an arro
   expect(zero.querySelector('.cd-result__line > .cd-result__expect')).toHaveTextContent('→ expected 0');
   expect(zero.querySelector('.cd-tag.cd-result__edge')).toHaveTextContent('edge');
   expect(zero.querySelector('.cd-result__label')).toHaveTextContent('zero has a digit sum of zero');
-  // "Expected" is never printed: it is read in place of the arrow.
+  // Before a run the accessible label explains the arrow.
   expect(within(panel).queryByText(/Expected:/)).toBeNull();
   expect(within(panel).getAllByText('expected')[0]).toHaveClass('cd-visually-hidden');
   vi.mocked(runCodeTests).mockResolvedValueOnce({ results: [{ pass: true, actual: '0', error: null }, { pass: false, actual: 'undefined', error: null }], logs: [] } as never);
@@ -290,11 +291,13 @@ it('lists checks as one divided list: the call, the expected value after an arro
   const [, failed] = within(screen.getByRole('tabpanel', { name: /Results/ })).getAllByRole('listitem');
   expect(failed).toHaveClass('cd-result--fail');
   expect(failed.querySelector('.cd-result__status')).toHaveTextContent('Fail');
-  expect(failed).toHaveTextContent('digitSum(493) → expected 16 · got undefined');
+  expect(failed.querySelector('details')).toHaveAttribute('open');
+  expect(within(failed).getAllByRole('term').map(term => term.textContent)).toEqual(['Input', 'Expected', 'Received']);
+  expect(within(failed).getAllByRole('definition').map(value => value.textContent)).toEqual(['digitSum(493)', '16', 'undefined']);
   expect(other).toBeDefined();
 });
 
-it('draws the pane separator as a quiet 1px line in a 12px column with 2px either side (coding-18)', () => {
+it('draws the pane separator as a readable 1px line in a 12px column with 2px either side (coding-18)', () => {
   const { container } = mount('javascript');
   const separator = screen.getByRole('separator', { name: 'Resize the editor and task information panes' });
   expect(separator).toHaveAttribute('tabindex', '0');
@@ -302,7 +305,7 @@ it('draws the pane separator as a quiet 1px line in a 12px column with 2px eithe
   const css = readFileSync(new URL('../src/coding/Coding.css', import.meta.url), 'utf8');
   expect(css).toMatch(/grid-template-columns: minmax\(0, var\(--cd-split, 58%\)\) 12px minmax\(0, 1fr\);\s*column-gap: 2px;/);
   const rest = css.slice(css.indexOf('  .cd-splitter {'), css.indexOf('}', css.indexOf('  .cd-splitter {')));
-  expect(rest).toContain('var(--ss-card-line)');
+  expect(rest).toContain('var(--color-border-strong) calc(50% - 0.5px), var(--color-border-strong) calc(50% + 0.5px)');
   expect(rest).not.toContain('border-radius: 999px');
   expect(css).toMatch(/\.cd-splitter:hover,\s*\.cd-splitter:focus-visible \{ background: linear-gradient.*var\(--brand-accent\)/);
 });

@@ -101,11 +101,11 @@ function headersOf(routes, pathname, headers = {}) {
  * function or the proxied host decides it; `headers` maps lower-cased names
  * to the values vercel.json gives them, and leaves out what the platform adds.
  */
-export function vercelAnswer(config, pathname, isFile) {
+export function vercelAnswer(config, pathname, isFile, host = 'devshark.app') {
   const phases = routePhases(config);
   const headers = {};
   for (const route of phases.main) {
-    if (!route.src) continue;
+    if (!route.src || route.has?.some(condition => condition.type !== 'host' || condition.value !== host)) continue;
     const match = new RegExp(route.src).exec(pathname);
     if (!match) continue;
     if (route.continue) { Object.assign(headers, lowerKeys(route.headers)); continue; }

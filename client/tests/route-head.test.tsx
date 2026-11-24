@@ -37,6 +37,7 @@ const SHELL_HEAD = `
   <meta property="og:description" content="shell description" />
   <meta property="og:image" content="https://devshark.app/og-image.png?v=20261012" />
   <meta property="og:image:alt" content="devShark — Lessons, quizzes and coding challenges" />
+  <meta name="twitter:image:alt" content="devShark — Lessons, quizzes and coding challenges" />
   <meta name="twitter:image" content="https://devshark.app/og-image.png?v=20261012" />
   <meta name="twitter:title" content="devShark" />
   <meta name="twitter:description" content="shell description" />`;
@@ -51,7 +52,7 @@ describe('the tab title', () => {
     ['/quiz', 'Quiz · devShark'],
     ['/learn', 'Learn · devShark'],
     ['/learn/software-engineer', 'Software Engineer · devShark'],
-    ['/learn/big-o', 'Big O introduction'],
+    ['/learn/big-o', 'Big O introduction · devShark'],
     ['/curation', 'Page not found · devShark'],
     ['/learn/forward-deployed-engineer/path', 'Forward Deployed Engineer · devShark'],
     ['/learn/forward-deployed-engineer/path/m03', 'Forward Deployed Engineer · devShark'],
@@ -62,7 +63,7 @@ describe('the tab title', () => {
     ['/roadmap/paths/not-a-path', 'Page not found · devShark'],
     // React Router renders a trailing slash as the page itself.
     ['/quiz/', 'Quiz · devShark'],
-    ['/learn/big-o/', 'Big O introduction'],
+    ['/learn/big-o/', 'Big O introduction · devShark'],
     ['/learn/software-engineer/', 'Software Engineer · devShark'],
   ])('%s reads "%s"', (pathname, title) => {
     visit(pathname);
@@ -122,11 +123,16 @@ describe('a share page opened directly', () => {
     expect(meta('meta[property="og:url"]')).toBe(`https://devshark.app${path}`);
   });
 
-  it('does not keep a section head that names another page or none', () => {
+  it('accepts the published review alias and rejects a hidden track with no canonical', () => {
     // /coding/review opens /coding, and names it as canonical.
     expect(prerendered('/coding', 'Coding challenges · devShark', 'Tasks.')).not.toBeNull();
     window.history.replaceState(null, '', '/coding/review');
-    expect(readShareHead()).toBeNull();
+    expect(readShareHead()?.url).toBe('https://devshark.app/coding');
+    visit('/coding/review');
+    expect(canonical()).toBe('https://devshark.app/coding');
+    expect(meta('meta[property="og:url"]')).toBe('https://devshark.app/coding');
+    expect(document.title).toBe('Coding challenges · devShark');
+    expect(meta('meta[name="description"]')).toBe(en['coding.subtitle']);
     // Hidden system design is a noindex not-found page with no canonical.
     document.head.innerHTML = SHELL_HEAD + '<meta name="robots" content="noindex" />';
     window.history.replaceState(null, '', '/coding/system-design');
@@ -136,8 +142,7 @@ describe('a share page opened directly', () => {
   it('writes other routes as before, and puts the page’s head back on the way back', () => {
     const head = prerendered(TASK, TASK_TITLE, TASK_TEXT);
     visit(TASK, head);
-    visit('/quiz', head);
-    expect(document.title).toBe('Quiz · devShark');
+    visit('/today', head);
     expect(canonical()).toBeNull();
     expect(meta('meta[name="description"]')).not.toBe(TASK_TEXT);
     // Another task reached inside the app has no head of its own here.
@@ -154,7 +159,9 @@ describe('a share page opened directly', () => {
     for (const selector of ['meta[property="og:image"]', 'meta[name="twitter:image"]']) {
       document.querySelector(selector)?.setAttribute('content', taskImage);
     }
-    document.querySelector('meta[property="og:image:alt"]')?.setAttribute('content', TASK_TITLE);
+    for (const selector of ['meta[property="og:image:alt"]', 'meta[name="twitter:image:alt"]']) {
+      document.querySelector(selector)?.setAttribute('content', TASK_TITLE);
+    }
     const head = readShareHead();
 
     visit('/quiz', head);
@@ -170,6 +177,7 @@ describe('a share page opened directly', () => {
     expect(meta('meta[property="og:image"]')).toBe(taskImage);
     expect(meta('meta[name="twitter:image"]')).toBe(taskImage);
     expect(meta('meta[property="og:image:alt"]')).toBe(TASK_TITLE);
+    expect(meta('meta[name="twitter:image:alt"]')).toBe(TASK_TITLE);
   });
 
   it('is not read from the plain shell', () => {
@@ -336,8 +344,29 @@ for (const [section, name] of [['web-developer', 'Web Developer'], ['software-en
     expect(meta('meta[property="og:url"]')).toBe(`https://devshark.app/learn/${section}`);
     expect(meta('meta[name="description"]')).not.toBe('shell description');
     expect(robots()).toEqual([]);
-    visit('/quiz');
+    visit('/today');
     expect(canonical()).toBeNull();
     expect(meta('meta[property="og:url"]')).toBeUndefined();
   });
 }
+
+describe('public and private route metadata', () => {
+  it.each(['/profile', '/cards', '/collection', '/shop', '/today', '/settings/github', '/play', '/play/ABCD', '/dev'])('%s is noindex', path => {
+    visit(path);
+    expect(robots()).toEqual(['noindex']);
+    expect(canonical()).toBeNull();
+  });
+
+  it('publishes one organization graph on the home page and clears it on navigation', () => {
+    visit('/');
+    visit('/');
+    expect(document.querySelectorAll('#site-schema')).toHaveLength(1);
+    const graph = JSON.parse(document.querySelector('#site-schema')!.textContent!)['@graph'];
+    expect(graph.map((node: { '@type': string }) => node['@type'])).toEqual(['WebSite', 'Organization']);
+    expect(graph[0].publisher['@id']).toBe(graph[1]['@id']);
+    visit('/quiz');
+    expect(document.querySelector('#site-schema')).toBeNull();
+    expect(canonical()).toBe('https://devshark.app/quiz');
+    expect(meta('meta[name="description"]')).toBe(en['quiz.buildTitle'] + ' ' + en['quiz.buildSubtitle']);
+  });
+});

@@ -1,3 +1,4 @@
+import { checkDialogEscape } from './dialog-keyboard';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { test, expect, allowConsoleErrors, type Page } from './console-clean';
@@ -239,7 +240,7 @@ for (const theme of ['light', 'dark'] as const) for (const width of [360, 1280])
     await page.addInitScript((theme) => {
       localStorage.setItem('devquiz:color-mode', theme);
       localStorage.setItem('devquiz:quiz-setup:v1', JSON.stringify({ count: 10, difficulty: 'zero-to-hero', categories: [] }));
-      localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+      localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
     }, theme);
     let starts = 0;
     await page.route('**/api/quiz/questions*', (route) => {
@@ -281,7 +282,7 @@ test('standalone state cards stay vertically centred across viewports', async ({
   await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'dark' });
   await page.addInitScript(() => {
     localStorage.setItem('devquiz:color-mode', 'dark');
-    localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+    localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
   });
   const panel = page.locator('.ss-route > .ss-state-panel');
   for (const path of ['/play', '/play/ABC123', '/cards', '/settings/github']) {
@@ -422,19 +423,23 @@ test('route focus preserves a keyboard control focused before the delayed handof
   await expect(topic).toBeFocused();
 });
 
-test('phone: the drawer opens Coding without a blank or a loader', async ({ page }) => {
-  const { holdChunks } = await prepare(page, 390);
-  await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  holdChunks();
-  await page.getByRole('button', { name: 'Open navigation menu' }).click();
-  const frames = await measure(page, () => page.locator('.ss-drawer-panel a[href="/coding"]').click());
-  expect(frames.filter((f) => !f.route || f.kids === 0)).toEqual([]);
-  const arrived = frames.findIndex((f) => f.h1 === 'Coding challenges');
-  expect(arrived).toBeGreaterThan(0);
-  expect(frames.slice(0, arrived).every((f) => f.root === frames[0].root && f.h1 === frames[0].h1)).toBe(true);
-  expect(new Set(frames.slice(arrived).map((f) => f.root)).size).toBe(1);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+test.describe('phone drawer navigation', () => {
+  test.use({ hasTouch: true, isMobile: true });
+  test('the drawer opens the phone Coding notice without a blank or a loader', async ({ page }) => {
+    const { holdChunks } = await prepare(page, 390);
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    holdChunks();
+    await page.getByRole('button', { name: 'Open navigation menu' }).click();
+    const frames = await measure(page, () => page.locator('.ss-drawer-panel a[href="/coding"]').click());
+    expect(frames.filter((f) => !f.route || f.kids === 0)).toEqual([]);
+    const arrived = frames.findIndex((f) => f.h1 === 'Coding');
+    await expect(page.getByText('This section only works in desktop apps.', { exact: false })).toBeVisible();
+    expect(arrived).toBeGreaterThan(0);
+    expect(frames.slice(0, arrived).every((f) => f.root === frames[0].root && f.h1 === frames[0].h1)).toBe(true);
+    expect(new Set(frames.slice(arrived).map((f) => f.root)).size).toBe(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
 });
 
 // UX audit shell-public-15: the drawer splits Practice from You, as the
@@ -713,4 +718,14 @@ test('a later route cancels the pending focus callback of the previous route', a
   } finally {
     await testInfo.attach('route-focus-timeline', { body: JSON.stringify(await routeFocusLog(page), null, 2), contentType: 'application/json' });
   }
+});
+
+test('cookie settings and sign-in return keyboard control to their 390px openers', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/play');
+  const banner = page.getByRole('region', { name: 'Cookies on devShark' });
+  await checkDialogEscape(page, banner.getByRole('button', { name: 'Choose', exact: true }), page.getByRole('dialog', { name: 'Cookie settings' }));
+  await banner.getByRole('button', { name: 'Reject all', exact: true }).click();
+  const opener = page.locator('.ss-route').getByRole('button', { name: 'Sign in', exact: true }).first();
+  await checkDialogEscape(page, opener, page.getByRole('dialog'));
 });

@@ -6,7 +6,7 @@
    fields. Every control clears 44px on touch. */
 .ss-ledger { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .ss-ledger li { display: flex; justify-content: space-between; gap: 12px; font-size: var(--ss-type-meta); }
-.ss-ledger__in { color: var(--ss-success); font-variant-numeric: tabular-nums; }
+.ss-ledger__in { color: var(--ss-success-strong); font-variant-numeric: tabular-nums; }
 .ss-ledger__out { color: var(--color-text-secondary); font-variant-numeric: tabular-nums; }
 
 .ss-orders { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }

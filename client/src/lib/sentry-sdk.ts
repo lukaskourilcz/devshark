@@ -7,6 +7,8 @@
 import type { Breadcrumb, Event } from '@sentry/react';
 import { init, browserTracingIntegration, captureException } from '@sentry/react';
 import type { EarlyError } from './sentry';
+import { redactRoomCode } from './telemetryPath';
+import { checkServedBuild, isChunkLoadError } from './routeRecovery';
 
 export { captureException } from '@sentry/react';
 
@@ -16,12 +18,16 @@ export { captureException } from '@sentry/react';
 export function start(dsn: string, environment: string, early: EarlyError[] = []): void {
   init({
     dsn,
-    environment,
+    environment: import.meta.env.VITE_DEPLOY_ENV || environment,
+    release: import.meta.env.VITE_DEPLOY_SHA || undefined,
     // Performance tracing (Web Vitals + transactions) at a low sample rate,
     // without the cost of full sampling or Session Replay.
     // `linkPreviousTrace: 'in-memory'` is the SDK's default, pinned: the
     // other setting keeps the last trace in sessionStorage.
-    integrations: [browserTracingIntegration({ linkPreviousTrace: 'in-memory' })],
+    integrations: (defaults) => [
+      ...defaults.filter(({ name }) => name !== 'BrowserSession'),
+      browserTracingIntegration({ linkPreviousTrace: 'in-memory' }),
+    ],
     tracesSampleRate: 0.1,
     // No IP address, cookies or user context. Error monitoring runs for
     // every visitor without asking (lib/consent.ts, "necessary") only
@@ -32,7 +38,14 @@ export function start(dsn: string, environment: string, early: EarlyError[] = []
     // sendDefaultPii leaves addresses whole: every event, breadcrumb and
     // span loses its query strings, fragments, e-mail addresses and tokens
     // here (scrubEvent and scrubBreadcrumb below).
-    beforeSend: (event) => scrubEvent(event),
+    denyUrls: [/^(?:chrome-extension|moz-extension|safari-extension|safari-web-extension|webkit-masked-url):/i],
+    ignoreErrors: [/^ResizeObserver loop limit exceeded$/],
+    beforeSend: (event, hint) => {
+      if (event.extra?.chunkLoad === true || isChunkLoadError(hint?.originalException)) {
+        return checkServedBuild().then(build => build === 'newer' ? null : scrubEvent(event));
+      }
+      return scrubEvent(event);
+    },
     beforeSendTransaction: (event) => scrubEvent(event),
     beforeBreadcrumb: (crumb) => scrubBreadcrumb(crumb),
   });
@@ -58,7 +71,18 @@ const URL_USERINFO = /(\b[a-z][a-z0-9+.-]*:\/\/)[^\s\/@?#"'<>]+@/gi;
 /** An address without its query string or fragment; absolute or relative. */
 export function scrubAddress(value: string): string {
   const cut = value.search(/[?#]/);
-  return (cut === -1 ? value : value.slice(0, cut)).replace(URL_USERINFO, '$1');
+  return redactRoomCode((cut === -1 ? value : value.slice(0, cut)).replace(URL_USERINFO, '$1'));
+}
+
+/** Resource paths on other sites can identify a visitor (e.g. a profile image). */
+function scrubSpanAddress(address: string): string {
+  if (!/^(?:https?:)?\/\//i.test(address)) return scrubAddress(address);
+  try {
+    const url = new URL(address, globalThis.location?.href);
+    return url.origin === globalThis.location?.origin ? scrubAddress(url.origin + url.pathname) : url.origin;
+  } catch {
+    return '[url]';
+  }
 }
 
 const ABSOLUTE_URL_TAIL = /(\b[a-z][a-z0-9+.-]*:\/\/[^\s?#"'<>`]*)[?#][^\s"'<>`]*/gi;
@@ -70,7 +94,7 @@ const BEARER = /\bBearer\s+[\w.~+/-]{8,}=*/gi;
 /** Free text (a message, an error's value, a breadcrumb) without the parts
  * that could identify a person or open their account. */
 export function scrubText(value: string): string {
-  return value
+  return redactRoomCode(value)
     .replace(URL_USERINFO, '$1')
     .replace(ABSOLUTE_URL_TAIL, '$1')
     .replace(RELATIVE_URL_TAIL, '$1$2')
@@ -89,7 +113,7 @@ const QUERY_KEY = /(?:^|[._])(?:query|fragment|query_string)$/;
 // data or exception arguments with fields the scrubber cannot recognise.
 const SENSITIVE_KEY = /(?:^|[._-])(?:authorization|cookie|password|token|secret)(?:$|[._-])/i;
 
-function scrubBag(bag: Record<string, unknown> | undefined): void {
+function scrubBag(bag: Record<string, unknown> | undefined, cleanAddress = scrubAddress): void {
   if (!bag || typeof bag !== 'object') return;
   for (const key of Object.keys(bag)) {
     const value = bag[key];
@@ -98,7 +122,7 @@ function scrubBag(bag: Record<string, unknown> | undefined): void {
       delete bag[key];
       continue;
     }
-    if (typeof value === 'string') bag[key] = scrubText(ADDRESS_KEY.test(key) ? scrubAddress(value) : value);
+    if (typeof value === 'string') bag[key] = scrubText(ADDRESS_KEY.test(key) ? cleanAddress(value) : value);
   }
 }
 
@@ -131,6 +155,13 @@ export function scrubEvent<T extends Event>(event: T): T {
   for (const crumb of event.breadcrumbs ?? []) scrubBreadcrumb(crumb);
   scrubBag(event.extra);
   scrubBag(event.contexts?.trace?.data as Record<string, unknown> | undefined);
-  for (const span of event.spans ?? []) scrubBag(span.data as Record<string, unknown> | undefined);
+  for (const span of event.spans ?? []) {
+    scrubBag(span.data as Record<string, unknown> | undefined, scrubSpanAddress);
+    if (typeof span.description === 'string') {
+      // Resource spans put the complete URL in the name as well as in data.
+      // External resource paths can identify a learner, e.g. an avatar.
+      span.description = scrubText(span.description.replace(/(?:https?:)?\/\/[^\s"'<>`)]+/gi, scrubSpanAddress));
+    }
+  }
   return event;
 }

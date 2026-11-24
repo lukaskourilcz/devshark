@@ -782,10 +782,11 @@ async function main() {
     const logged: Record<string, unknown>[] = [];
     const captureLogs = async <T,>(run: () => Promise<T>): Promise<T> => {
       const log = console.log;
-      console.log = (...args: unknown[]) => {
+      const savedChannels = { warn: console.warn, error: console.error };
+      console.warn = console.error = console.log = (...args: unknown[]) => {
         for (const arg of args) { try { logged.push(JSON.parse(String(arg))); } catch { /* not a structured line */ } }
       };
-      try { return await run(); } finally { console.log = log; }
+      try { return await run(); } finally { console.log = log; Object.assign(console, savedChannels); }
     };
     const voucherRow = {
       id: '5d6a8a4e-1f59-4d6a-9f56-0f7b6c1e2a3b', hint: 'K7Q2', note: 'Trace', premiumDays: 30, maxRedemptions: 1, redeemedCount: 0,

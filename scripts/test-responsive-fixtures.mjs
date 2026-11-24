@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { apiFixture, fixtureSession, renderProblems } from './check-responsive.mjs';
+import { syntheticSentryFixture, apiFixture, fixtureSession, renderProblems } from './check-responsive.mjs';
 
 const budget = JSON.parse(readFileSync(new URL('../docs/quality/bundle-budget.json', import.meta.url), 'utf8'));
 const auth = new URL(budget.measuredBuild.env.VITE_SUPABASE_URL);
@@ -106,4 +106,19 @@ test('F6-04: the Shop receives a local read-only referral summary', () => {
   assert.ok([null, 'pending', 'credited'].includes(result.body.invited));
   assert.equal(apiFixture('GET', api('/api/user/referral'), 'guest'), null);
   assert.equal(apiFixture('POST', api('/api/user/referral')), null, 'the layout sweep never claims an invitation');
+});
+
+test('only the configured synthetic project envelope is fulfilled locally', () => {
+  const dsn = new URL(JSON.parse(readFileSync(new URL('../docs/quality/bundle-budget.json', import.meta.url), 'utf8')).measuredBuild.env.VITE_SENTRY_DSN);
+  const url = new URL(`/api${dsn.pathname}/envelope/`, dsn.origin);
+  url.searchParams.set('sentry_key', dsn.username);
+  assert.deepEqual(syntheticSentryFixture('POST', url), { status: 200, body: {} });
+  assert.deepEqual(syntheticSentryFixture('OPTIONS', url), { status: 200, body: {} });
+  assert.equal(syntheticSentryFixture('GET', url), null);
+  for (const mismatch of [
+    new URL(url.pathname + url.search, 'https://other.localhost'),
+    new URL('/api/0/envelope/' + url.search, url.origin),
+    new URL(url.pathname + '?sentry_key=other', url.origin),
+    new URL('/api/settings' + url.search, url.origin),
+  ]) assert.equal(syntheticSentryFixture('POST', mismatch), null);
 });

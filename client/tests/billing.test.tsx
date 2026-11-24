@@ -1,3 +1,4 @@
+import { trackAnnouncement } from './announcement';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -320,11 +321,13 @@ describe('/premium/success', () => {
       }));
       renderAt(`/premium/success?session_id=${SESSION}`, <PremiumSuccessPage />);
       expect(await screen.findByText('Not confirmed yet. We check again every few seconds.')).toBeInTheDocument();
+      const verifyAnnouncement = trackAnnouncement('.ss-billing-status');
       for (let check = 2; check <= 6; check++) {
         await vi.advanceTimersByTimeAsync(4000);
         await waitFor(() => expect(looked).toBe(check));
       }
       expect(await screen.findByText('Still not confirmed. Press Check again, or open your profile in a few minutes.')).toBeInTheDocument();
+      verifyAnnouncement('Still not confirmed.');
       await vi.advanceTimersByTimeAsync(20_000);
       expect(looked).toBe(6);
     } finally {
@@ -489,7 +492,10 @@ describe('/premium/cancel', () => {
     });
     renderAt(`/premium/cancel#confirm=${TOKEN}`, <PremiumCancelPage />);
     fireEvent.click(await screen.findByRole('button', { name: 'Try again' }));
-    expect(await screen.findByRole('heading', { level: 2, name: 'Confirm your cancellation' })).toBeInTheDocument();
+    const loading = screen.getByRole('heading', { level: 2, name: 'Checking your link' });
+    expect(loading).toHaveFocus();
+    expect(loading.closest('[aria-live], [role="status"]')).toBeNull();
+    expect(await screen.findByRole('heading', { level: 2, name: 'Confirm your cancellation' })).toHaveFocus();
     expect(screen.getByTestId('hash')).toHaveTextContent('');
     expect(bodies).toEqual([{ step: 'review', token: TOKEN }, { step: 'review', token: TOKEN }]);
   });
