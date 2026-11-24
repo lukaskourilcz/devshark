@@ -348,8 +348,17 @@ let sent=false;const result=await new Promise(resolve=>{
     appSource: `process.getBuiltinModule('fs').writeFileSync('/vercel/sandbox/result.json', JSON.stringify({ cases: [{ name: 'ok', status: 'pass', error: null, durationMs: 0 }], passed: 1, failed: 0, total: 1, compileError: null, timedOut: false })); process.exit(0); export default function App(){ return null }`,
     suite: `import App from './App'; \ntest('renders nothing yet', () => { expect(typeof App).toBe('function'); });`,
   });
-  assert.equal(forged.passed, 0, JSON.stringify(forged));
-  assert.match(forged.compileError ?? '', /'?process'? is not defined/);
+  // Since F11-14 the authored suite still reports its own cases after the
+  // learner module fails, so `passed` may count them. What must hold: the
+  // forged file is not the verdict (its case `ok` never appears) and the
+  // compile error makes the Submit an `error`, never `passed` (handlers.ts).
+  assert.match(forged.compileError ?? '', /'?process'? is not defined/, JSON.stringify(forged));
+  assert.ok(!forged.cases.some(one => one.name === 'ok'), JSON.stringify(forged));
+  assert.notDeepEqual(
+    { passed: forged.passed, failed: forged.failed, total: forged.total, compileError: forged.compileError },
+    { passed: 1, failed: 0, total: 1, compileError: null },
+    'the forged result.json must not be read back',
+  );
   console.log('PASS a forged result.json and early exit are not a verdict');
   const stuck = await runIsolatedReactSuite({
     appSource: 'while(true){}; export default function App(){return null}',
