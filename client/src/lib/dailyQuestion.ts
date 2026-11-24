@@ -18,6 +18,10 @@ export const dailyQuestionQuery = (date: string | 'today') =>
     // The session inside expires after an hour; a stale question is fetched
     // again rather than graded with a dead session.
     staleTime: 10 * 60_000,
+    // A new sealed session remounts the active question and discards its pick or
+    // verdict. Retry a missing question on reconnect; an expired check already
+    // offers an explicit reload, and a date change has its own query key.
+    refetchOnReconnect: (query) => query.state.data === undefined,
     retry: (count, error) => !(error instanceof ApiError && error.status >= 400 && error.status < 500) && count < 1,
   });
 
