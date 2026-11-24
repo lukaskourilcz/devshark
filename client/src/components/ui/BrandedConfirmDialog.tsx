@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertDialog } from '@astryxdesign/core/AlertDialog';
 import { useT } from '../../i18n/LanguageContext';
 
@@ -18,6 +18,11 @@ export function BrandedConfirmDialog({ request, onClose }: { request: ConfirmReq
   // that gap (a double click, Enter held down) ran a delete or an account
   // erasure twice. The ref holds from the first press.
   const busyRef = useRef(false);
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (request) dialog.current?.querySelector<HTMLButtonElement>('button')?.focus();
+  }, [request]);
+
 
   const confirm = async () => {
     if (!request || busyRef.current) return;
@@ -34,6 +39,7 @@ export function BrandedConfirmDialog({ request, onClose }: { request: ConfirmReq
 
   return (
     <AlertDialog
+      ref={dialog}
       className="ss-alert-dialog"
       isOpen={!!request}
       onOpenChange={(open) => { if (!open && !busy) onClose(); }}

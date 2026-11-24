@@ -16,6 +16,17 @@ const proto = HTMLDialogElement.prototype as unknown as { showModal?: () => void
 proto.showModal ??= function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
 proto.close ??= function (this: HTMLDialogElement) { this.removeAttribute('open'); };
 
+async function dismissConfirmation(opener: HTMLElement) {
+  opener.focus();
+  fireEvent.click(opener);
+  const dialog = await screen.findByRole('alertdialog');
+  const cancel = within(dialog).getByRole('button', { name: 'Cancel' });
+  await waitFor(() => expect(cancel).toHaveFocus());
+  fireEvent.keyDown(cancel, { key: 'Escape' });
+  await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+  expect(opener).toHaveFocus();
+}
+
 function renderEditor(props: Partial<Parameters<typeof QuestionEditor>[0]> = {}) {
   const onSaved = vi.fn();
   const onClose = vi.fn();
@@ -98,7 +109,10 @@ describe('/dev → Quality triage', () => {
       }),
     );
     renderTab('triage');
-    fireEvent.click(await screen.findByRole('button', { name: 'Delete all 3 shown' }));
+    const opener = await screen.findByRole('button', { name: 'Delete all 3 shown' });
+    await dismissConfirmation(opener);
+    expect(deleted).toEqual([]);
+    fireEvent.click(opener);
     fireEvent.click(await screen.findByRole('button', { name: 'Delete permanently' }));
     expect(await screen.findByText(/deleted 1 before stopping/)).toBeInTheDocument();
     expect(deleted).toEqual(['t1']);
@@ -214,7 +228,9 @@ describe('/dev → Question bank', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: 'Select question b2' }));
     expect(screen.getByRole('button', { name: 'Delete selected (2)' })).toBeInTheDocument();
     const row = screen.getByText('Question b1?').closest('tr') as HTMLElement;
-    fireEvent.click(within(row).getByRole('button', { name: 'Delete' }));
+    const opener = within(row).getByRole('button', { name: 'Delete' });
+    await dismissConfirmation(opener);
+    fireEvent.click(opener);
     fireEvent.click(await screen.findByRole('button', { name: 'Delete permanently' }));
     await waitFor(() => expect(screen.queryByText('Question b1?')).toBeNull());
     expect(await screen.findByRole('button', { name: 'Delete selected (1)' })).toBeInTheDocument();
