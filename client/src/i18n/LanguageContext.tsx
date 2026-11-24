@@ -1,6 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
+import { createContext, useContext, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
-import { en, type TranslationKey } from './translations';
+import { en, shellEn, type TranslationKey } from './translations';
 
 // The app ships one language, English, and `en` in translations.ts is the one
 // source of its copy. `t` resolves a key against it and fills in `{name}`
@@ -21,15 +21,20 @@ export function interpolate(template: string, vars?: Vars): string {
   );
 }
 
-/**
- * Translation for code outside the React tree (error boundaries, the api
- * layer). It reads the same dictionary as useT().
- */
+/** Synchronous access to the complete English dictionary outside the application shell. */
 export function translateStatic(key: TranslationKey, vars?: Vars): string {
   return interpolate(en[key] ?? key, vars);
 }
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
+type EnglishWords = Partial<Record<TranslationKey, string>>;
+
+const shellWords: EnglishWords = shellEn;
+
+export function translateShell(key: TranslationKey, vars?: Vars): string {
+  return interpolate(shellWords[key] ?? key, vars);
+}
+
+function LanguageRoot({ children, t }: { children: ReactNode; t: LanguageContextValue['t'] }) {
   // The document is English once the app runs. A prerendered public guide
   // arrives with its own `lang` and `data-public-locale` (vite.config.ts); the
   // guide's article keeps its own `lang` attribute, and the document goes back
@@ -39,22 +44,36 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     delete document.documentElement.dataset.publicLocale;
   }, []);
 
-  const t = useCallback((key: TranslationKey, vars?: Vars): string => translateStatic(key, vars), []);
-
   const value = useMemo<LanguageContextValue>(() => ({ t }), [t]);
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
-export function useLanguage(): LanguageContextValue {
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  return <LanguageRoot t={translateStatic}>{children}</LanguageRoot>;
+}
+
+export function ShellLanguageProvider({ children }: { children: ReactNode }) {
+  return <LanguageRoot t={translateShell}>{children}</LanguageRoot>;
+}
+
+export function useLanguage(words?: EnglishWords): LanguageContextValue {
   const ctx = useContext(LanguageContext);
-  if (!ctx) {
+  const value = useMemo(() => {
+    if (!ctx || !words) return ctx;
+    const t: LanguageContextValue['t'] = (key, vars) => {
+      const template = words[key];
+      return template === undefined ? ctx.t(key, vars) : interpolate(template, vars);
+    };
+    return { t };
+  }, [ctx, words]);
+  if (!value) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
-  return ctx;
+  return value;
 }
 
 // Convenience hook for components that only need the translate function.
-export function useT(): LanguageContextValue['t'] {
-  return useLanguage().t;
+export function useT(words?: EnglishWords): LanguageContextValue['t'] {
+  return useLanguage(words).t;
 }

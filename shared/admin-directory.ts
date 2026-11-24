@@ -11,7 +11,7 @@ export interface AdminUserVoucher {
   status: string;
 }
 
-export interface AdminDirectoryUser {
+interface AdminDirectoryUser {
   id: string;
   email: string | null;
   name: string | null;

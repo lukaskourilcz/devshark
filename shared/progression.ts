@@ -30,11 +30,11 @@ import { SUBJECT_SCOPE_CATALOG } from './subject-catalog';
 /** One level's or checkpoint's record. Structurally what both the browser's
  * `RoadmapProgress` and the server's stored progress blob already hold, so
  * neither side has to convert before asking a question. */
-export interface ProgressEntry {
+interface ProgressEntry {
   passed?: boolean;
   bestPct?: number;
 }
-export interface TopicProgressLike {
+interface TopicProgressLike {
   levels?: Record<string, ProgressEntry>;
   checkpoints?: Record<string, ProgressEntry>;
 }

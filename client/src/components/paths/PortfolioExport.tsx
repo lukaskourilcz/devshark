@@ -6,7 +6,7 @@ import { apiFetch, friendlyError } from '../../lib/api';
 import { downloadShareFile } from '../../lib/shareCard';
 import { portfolioDocument, portfolioMarkdown, type PortfolioEntry } from '../../lib/pathPortfolio';
 import { pathsEn as copy } from '../../i18n/translations.paths';
-import { translateStatic } from '../../i18n/LanguageContext';
+import { translateShell } from '../../i18n/LanguageContext';
 
 export function PortfolioExport({ manifest, enrollmentId, states }: {
   manifest: LearningPathManifest; enrollmentId: string; states: Map<string, EvidenceState>;
@@ -50,7 +50,7 @@ export function PortfolioExport({ manifest, enrollmentId, states }: {
       };
       await Promise.all([lane(), lane()]);
       if (controller.signal.aborted) return;
-      const body = format === 'json' ? JSON.stringify(portfolioDocument(manifest, entries), null, 2) : portfolioMarkdown(manifest, entries, state => translateStatic(`paths.state.${state}`));
+      const body = format === 'json' ? JSON.stringify(portfolioDocument(manifest, entries), null, 2) : portfolioMarkdown(manifest, entries, state => translateShell(`paths.state.${state}`));
       downloadShareFile(new File([body], `devshark-${manifest.id}-saved-writing.${format}`, {
         type: format === 'json' ? 'application/json' : 'text/markdown;charset=utf-8',
       }));

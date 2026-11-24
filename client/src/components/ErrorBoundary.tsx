@@ -4,8 +4,8 @@ import { Heading } from '@astryxdesign/core/Heading';
 import { Text } from '@astryxdesign/core/Text';
 import { reportError } from '../lib/sentry';
 // The boundary may catch a crash inside the LanguageProvider itself, so it
-// uses the non-React translateStatic (shared dictionaries, no context).
-import { translateStatic } from '../i18n/LanguageContext';
+// uses the non-React translateShell (shared dictionaries, no context).
+import { translateShell } from '../i18n/LanguageContext';
 
 interface PanelProps {
   title: string;
@@ -96,12 +96,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
     return (
       <ErrorPanel
-        title={translateStatic('error.somethingWrong')}
-        body={translateStatic('error.boundaryBody')}
+        title={translateShell('error.somethingWrong')}
+        body={translateShell('error.boundaryBody')}
         actions={
           <>
-            <Button onClick={this.handleReset} variant="secondary" label={translateStatic('error.tryAgain')} />
-            <Button onClick={() => window.location.reload()} variant="primary" label={translateStatic('error.reloadPage')} />
+            <Button onClick={this.handleReset} variant="secondary" label={translateShell('error.tryAgain')} />
+            <Button onClick={() => window.location.reload()} variant="primary" label={translateShell('error.reloadPage')} />
           </>
         }
       />

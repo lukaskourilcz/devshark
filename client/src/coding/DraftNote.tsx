@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Button } from '@astryxdesign/core/Button';
 import { useLanguage } from '../i18n/LanguageContext';
+import { codingEn } from '../i18n/translations.codingRoute';
 import { draftsEn as copy } from '../i18n/translations.drafts';
 import { accountEpoch } from '../lib/accountData';
 import { openSignIn } from '../lib/signInDialog';
@@ -88,7 +89,7 @@ export function useDraftChoice(id: string | null, opening: OpeningDraft | null, 
 }
 
 export function DraftNote({ choice }: { choice: ReturnType<typeof useDraftChoice> }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const note = useRef<HTMLParagraphElement | null>(null);
   const { opening, restored } = choice;
   // The button that asked is gone once the copy is back, so focus goes to

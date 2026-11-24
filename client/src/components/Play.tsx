@@ -42,6 +42,7 @@ import { TopicPill } from './ui/CategoryTag';
 import { renderQuestion } from './CodeBlock';
 import { QuoteLoader } from './LoadingScreen';
 import { useLanguage, useT } from '../i18n/LanguageContext';
+import { playEn } from '../i18n/translations.playRoute';
 import { RadioCardGroup, RadioCard } from './ui/RadioCards';
 import { StatePanel } from './ui/StatePanel';
 import { PageHeader } from './ui/PageHeader';
@@ -105,7 +106,7 @@ const isPlayOff = (err: unknown) => err instanceof ApiError && err.code === 'fea
 /** Shown in place of a Play page while live games are switched off. */
 function PlayUnavailable() {
   const navigate = useNavigate();
-  const t = useT();
+  const t = useT(playEn);
   return (
     <StatePanel level={1} title={t('play.unavailableTitle')} body={t('play.unavailableBody')}>
       <Button variant="primary" label={t('common.back')} onClick={() => navigate('/')} />
@@ -116,7 +117,7 @@ function PlayUnavailable() {
 /** /play and /play/:code signed out: the shared sign-in gate, as on /cards
  * and /collection (UX audit social-account-16). */
 function PlaySignIn() {
-  const t = useT();
+  const t = useT(playEn);
   return (
     <StatePanel level={1} title={t('play.signInTitle')} body={t('play.signInBody')} signIn />
   );
@@ -157,7 +158,7 @@ let pendingJoin: {
 
 export function PlayLanding() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useLanguage(playEn);
   const config = useGameConfig();
   const isDesktop = useMediaQuery('(min-width: 900px)');
   // Below 600px the topic pills fold behind one 44px "Topics: all" row, so
@@ -467,7 +468,7 @@ function PlayRoom() {
   const { code: codeParam } = useParams<{ code: string }>();
   const code = (codeParam || '').toUpperCase();
   const navigate = useNavigate();
-  const t = useT();
+  const t = useT(playEn);
   const config = useGameConfig();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
@@ -960,7 +961,7 @@ function PlayRoom() {
 }
 
 const CodeBadge = ({ code }: { code: string }) => {
-  const t = useT();
+  const t = useT(playEn);
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const status = copyFailed ? t('play.copyFailed') : copied ? t('play.copied') : t('play.copy');
@@ -1000,7 +1001,7 @@ function Lobby({
   onStart: () => void;
   startPending: boolean;
 }) {
-  const t = useT();
+  const t = useT(playEn);
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/play/${match.code}` : '';
   // The QR's box is held while the code draws, so the share text beside it
   // does not jump; a QR that cannot be drawn leaves the URL and the buttons.
@@ -1132,7 +1133,7 @@ function RunningQuestion({
   /** The server's clock minus this device's. */
   clockOffsetMs: number;
 }) {
-  const t = useT();
+  const t = useT(playEn);
   const lastQuestion = questionIdx >= total - 1;
   // Multiplayer is a fair race: the host answers like everyone else and never
   // sees the answer key. Only a classroom host presents instead of playing.
@@ -1406,7 +1407,7 @@ function RunningQuestion({
 }
 
 function ScoreboardList({ scoreboard, note }: { scoreboard: ScoreboardEntry[]; note?: string }) {
-  const t = useT();
+  const t = useT(playEn);
   if (scoreboard.length === 0) return null;
   return (
     <VStack gap={1}>
@@ -1470,7 +1471,7 @@ function DistributionChart({
   buckets: DistributionBucket[];
   correctIndex?: number;
 }) {
-  const t = useT();
+  const t = useT(playEn);
   const total = buckets.reduce((sum, b) => sum + b.count, 0) || 1;
 
   return (
@@ -1531,7 +1532,7 @@ function Finished({
   scoreboard: ScoreboardEntry[];
   onLeave: () => void;
 }) {
-  const t = useT();
+  const t = useT(playEn);
   // Move focus to the heading when the match ends so AT announces the result
   // (same pattern as the Quiz/Challenge completion screens).
   const headingRef = useRef<HTMLDivElement | null>(null);

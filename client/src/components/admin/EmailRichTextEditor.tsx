@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { operationsEn } from '../../i18n/translations.operationsRoute';
 import type { EmailDocument } from '../../../../shared/email-document';
 
 /**
@@ -14,7 +15,7 @@ export default function EmailRichTextEditor({ initialDocument, onChange, labelId
   labelId: string;
   helpId: string;
 }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(operationsEn);
   const ownChange = useRef<EmailDocument | null>(null);
   const editor = useEditor({
     extensions: [StarterKit.configure({

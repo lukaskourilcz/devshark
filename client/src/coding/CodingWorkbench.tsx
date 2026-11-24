@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuItem } from '@astryxdesign/core/DropdownMenu'
 import { Icon } from '@astryxdesign/core/Icon';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../i18n/LanguageContext';
+import { codingEn } from '../i18n/translations.codingRoute';
 import { workbenchCopy } from '../i18n/translations.workbench';
 import { openSignIn } from '../lib/signInDialog';
 import { readJSON, writeJSON } from '../lib/storage';
@@ -185,7 +186,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
   const { task, session, locked, signedIn, progress, initialCode, mode, onDraft, onEdit, onVerdict, onRevealed, nextHref, backHref, onContinue, saveAction, onRefreshTask } = props;
   const evolution = evolvingStage(task.id);
   const complexity = complexityGuidance(task);
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const [reportOpen, setReportOpen] = useState(false);
   const online = useOnline();
   const baseId = useId();

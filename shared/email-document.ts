@@ -6,14 +6,14 @@
  * underline. No HTML, styles, links or images are accepted, so the renderer
  * below, not anything an editor pasted, decides the markup that is sent.
  */
-export type EmailMark = { type: 'bold' | 'italic' | 'underline' };
-export type EmailInline = { type: 'text'; text: string; marks?: EmailMark[] } | { type: 'hardBreak' };
-export type EmailBlock =
+type EmailMark = { type: 'bold' | 'italic' | 'underline' };
+type EmailInline = { type: 'text'; text: string; marks?: EmailMark[] } | { type: 'hardBreak' };
+type EmailBlock =
   | { type: 'paragraph'; content?: EmailInline[] }
   | { type: 'heading'; attrs: { level: 1 | 2 | 3 }; content?: EmailInline[] }
   | { type: 'bulletList'; content: EmailListItem[] }
   | { type: 'orderedList'; attrs?: { start?: number; type?: '1' | 'a' | 'A' | 'i' | 'I' | null }; content: EmailListItem[] };
-export interface EmailListItem {
+interface EmailListItem {
   type: 'listItem';
   content: EmailBlock[];
 }

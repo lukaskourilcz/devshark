@@ -27,6 +27,7 @@ import { Button } from '@astryxdesign/core/Button';
 import { Skeleton } from '@astryxdesign/core/Skeleton';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { useLanguage } from '../i18n/LanguageContext';
+import { checkoutEn } from '../i18n/translations.checkoutRoute';
 import type { TranslationKey } from '../i18n/translations';
 import { useAuth } from '../lib/auth';
 import { accountEpoch } from '../lib/accountData';
@@ -71,7 +72,7 @@ const BANNER_REFUSALS: Partial<Record<VoucherRefusal, TranslationKey>> = {
  * money-09). While the voucher leads (billing off) it is the card.
  */
 export default function PremiumVoucher({ billingClosed, inline = false }: { billingClosed: boolean; inline?: boolean }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(checkoutEn);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const location = useLocation();

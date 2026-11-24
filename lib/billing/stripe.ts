@@ -89,9 +89,6 @@ export async function verifyStripeEvent(req: VercelRequest, secret: string): Pro
   return null;
 }
 
-export type { Stripe };
-
-
 /** Read the complete Stripe list before a caller changes its status filter. */
 export async function listStripeObjects<T extends { id: string }>(
   load: (page: { limit: number; starting_after?: string }) => PromiseLike<{ data: T[]; has_more: boolean }>,
