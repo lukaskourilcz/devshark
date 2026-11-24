@@ -4,6 +4,7 @@ import path from 'node:path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { sentryIdleDeadline } from './build/sentry-idle-deadline';
+import { deployEnvironment, deployRelease } from './build/deploy-stamp';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { PurgeCSS } from 'purgecss';
 import { PRODUCT_CATALOG, resolveCatalogProductId } from './product-catalog';
@@ -504,8 +505,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
   define: {
-    'import.meta.env.VITE_DEPLOY_SHA': JSON.stringify(/^[a-f0-9]{40}$/i.test(env.VERCEL_GIT_COMMIT_SHA ?? '') ? env.VERCEL_GIT_COMMIT_SHA : ''),
-    'import.meta.env.VITE_DEPLOY_ENV': JSON.stringify(['development', 'preview', 'production'].includes(env.VERCEL_ENV) ? env.VERCEL_ENV : ''),
+    'import.meta.env.VITE_DEPLOY_SHA': JSON.stringify(deployRelease(env)),
+    'import.meta.env.VITE_DEPLOY_ENV': JSON.stringify(deployEnvironment(env)),
     __MERCH_IMAGES__: JSON.stringify(merchImages(path.resolve(__dirname, 'public/merch'))),
     // Remove SDK diagnostic branches from the lazy production chunk. Tracing
     // stays enabled and keeps sentry-sdk.ts's existing 0.1 sampling policy.
