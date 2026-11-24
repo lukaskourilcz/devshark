@@ -912,31 +912,43 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
     </div>
   ) : null;
 
-  /** One row of the Results list. Before a run the row still says what goes
-   * in and what should come out; only the status column waits. A row is a
-   * line of a divided list, not a card of its own (UX audit coding-15): the
-   * call, then the expected value after an arrow, and after a run what came
-   * back. "Expected" is never printed; a screen reader hears it in place of
-   * the arrow. */
+  // Before a run, the list previews each public example. After a run the
+  // learner can inspect individual results, starting with the first failure.
+  const firstFailed = run?.results.findIndex(one => one.pass === false);
   const codeRow = (test: NonNullable<PlayableCodingTask['tests']>[number], result: RunOutcome['results'][number] | undefined, index: number): ReactNode => {
     const status = result?.pass === true ? 'pass' : result?.pass === false ? 'fail' : 'idle';
+    if (result) {
+      const expanded = status === 'fail' && index === firstFailed;
+      return <li key={index} className={`cd-result cd-result--${status}`}>
+        <details className="cd-result__case" open={expanded}>
+          <summary>
+            <span className="cd-result__status">{status === 'pass' ? t('coding.results.passedCase') : status === 'fail' ? t('coding.results.failedCase') : t('coding.results.case', { n: index + 1 })}</span>
+            <span className="cd-result__call">{test.label || test.shown || test.call || t('coding.results.case', { n: index + 1 })}</span>
+            {test.edge && <span className="cd-tag cd-result__edge">{t('coding.results.edge')}</span>}
+          </summary>
+          <dl>
+            <dt>{t('coding.results.input')}</dt><dd><pre>{test.shown ?? test.call}</pre></dd>
+            {test.expected !== undefined && <><dt>{t('coding.results.expectedField')}</dt><dd><pre>{JSON.stringify(test.expected, null, 2)}</pre></dd></>}
+            {result.error
+              ? <><dt>{t('coding.results.error')}</dt><dd><pre>{result.error}</pre></dd></>
+              : <><dt>{t('coding.results.received')}</dt><dd><pre>{result.actual ?? t('coding.results.notReturned')}</pre></dd></>}
+          </dl>
+        </details>
+      </li>;
+    }
     return (
       <li key={index} className={`cd-result cd-result--${status}`}>
-        <span className="cd-result__status">{status === 'pass' ? t('coding.results.pass') : status === 'fail' ? t('coding.results.fail') : <><span aria-hidden="true">—</span><span className="cd-visually-hidden">{t('coding.results.pending')}</span></>}</span>
+        <span className="cd-result__status"><span aria-hidden="true">—</span><span className="cd-visually-hidden">{t('coding.results.pending')}</span></span>
         {/* The call alone is .cd-result__call; what it should return and
             what came back follow it on the same line. */}
         <span className="cd-result__line">
           <span className="cd-result__call">{test.shown ?? test.call}</span>
-          {!result?.error && (
-            <span className="cd-result__expect">
+          <span className="cd-result__expect">
               <span aria-hidden="true"> → </span><span className="cd-visually-hidden"> {t('coding.results.expected')} </span>{JSON.stringify(test.expected)}
-              {result && <> · {workbenchCopy('coding.results.got', { value: result.actual ?? '' })}</>}
             </span>
-          )}
           {test.edge && <span className="cd-tag cd-result__edge">{t('coding.results.edge')}</span>}
         </span>
         {test.label && <span className="cd-result__label">{test.label}</span>}
-        {result?.error && <span className="cd-result__detail"><b>{t('coding.results.error')}:</b> {result.error}</span>}
       </li>
     );
   };

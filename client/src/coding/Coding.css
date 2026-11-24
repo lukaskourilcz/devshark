@@ -984,3 +984,11 @@
 @media (max-width: 1023px) {
   .cd-workbench--activity .cd-pane--output { order: -1; }
 }
+
+.cd-result__case { grid-column: 1 / -1; width: 100%; min-width: 0; }
+.cd-result__case summary { min-height: 44px; cursor: pointer; padding-block: 8px; overflow-wrap: anywhere; }
+.cd-result__case summary .cd-result__status { margin-inline-end: .6rem; }
+.cd-result__case dl { display: grid; gap: 2px; margin: 0 0 12px; }
+.cd-result__case dt { font-weight: 650; }
+.cd-result__case dd { margin: 0 0 8px; min-width: 0; }
+.cd-result__case pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
