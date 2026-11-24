@@ -697,7 +697,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       stopForAccountChange();
       return;
     }
-    if (expiresAt !== null && Date.now() >= expiresAt) {
+    // Ordinary online submissions let the grading server decide its deadline.
+    // An expired queued attempt must never be sent in the background.
+    if ((retryFor !== undefined || navigator.onLine === false) && expiresAt !== null && Date.now() >= expiresAt) {
       clearProgress(sessionId);
       setRetryFor(undefined);
       setStop('expired');

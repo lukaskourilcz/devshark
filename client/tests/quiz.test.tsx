@@ -1227,6 +1227,27 @@ describe('saving a result to the account', () => {
     });
   });
 
+  it('checks the restored account before automatically replaying an offline Submit', async () => {
+    let submissions = 0;
+    server.use(http.post('*/api/quiz/submit', () => {
+      submissions++;
+      return HttpResponse.json(graded([Q('a')]));
+    }));
+    sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({
+      sessionId: sessionFor('offline-previous-user'), questions: [Q('a')], answers: { a: 0 },
+      currentIndex: 0, mode: 'standard', locked: true, retryFor: 'previous-account',
+    }));
+    auth.value = { user: null, isAuthenticated: false, isLoading: true };
+    const view = renderQuiz();
+    await questionOnScreen();
+    expect(submissions).toBe(0);
+    act(() => { signIn(); });
+    view.rerender(quizTree());
+    expect(await screen.findByRole('heading', { name: 'Sign-in changed' })).toHaveFocus();
+    expect(submissions).toBe(0);
+    expect(sessionStorage.getItem(PROGRESS_KEY)).toBeNull();
+  });
+
   it('does not submit a quiz dealt before the account changed', async () => {
     signIn();
     let submits = 0;
