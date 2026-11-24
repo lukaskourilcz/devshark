@@ -1227,6 +1227,55 @@ describe('saving a result to the account', () => {
     });
   });
 
+  it('keeps an explicitly submitted offline answer and grades it once on reconnect', async () => {
+    const payloads: unknown[] = [];
+    server.use(http.post('*/api/quiz/submit', async ({ request }) => {
+      payloads.push(await request.json());
+      return HttpResponse.json(graded([Q('a')]));
+    }));
+    await startQuiz([Q('a')]);
+    answerAll(1);
+    const online = vi.spyOn(window.navigator, 'onLine', 'get').mockReturnValue(false);
+    try {
+      act(() => window.dispatchEvent(new Event('offline')));
+      fireEvent.click(screen.getByRole('button', { name: 'Submit quiz' }));
+      await waitFor(() => {
+        const saved = JSON.parse(sessionStorage.getItem(PROGRESS_KEY) ?? 'null');
+        expect({ queuedFor: saved?.retryFor, gradingRequests: payloads.length }).toEqual({ queuedFor: null, gradingRequests: 0 });
+      });
+      expect(payloads).toEqual([]);
+      online.mockReturnValue(true);
+      act(() => window.dispatchEvent(new Event('online')));
+      await waitFor(() => expect(payloads).toHaveLength(1));
+      expect(payloads[0]).toMatchObject({ sessionId: sessionFor('standard'), answers: { a: 0 } });
+      act(() => window.dispatchEvent(new Event('online')));
+      expect(payloads).toHaveLength(1);
+    } finally {
+      online.mockRestore();
+    }
+  });
+
+  it('checks the restored account before automatically replaying an offline Submit', async () => {
+    let submissions = 0;
+    server.use(http.post('*/api/quiz/submit', () => {
+      submissions++;
+      return HttpResponse.json(graded([Q('a')]));
+    }));
+    sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({
+      sessionId: sessionFor('offline-previous-user'), questions: [Q('a')], answers: { a: 0 },
+      currentIndex: 0, mode: 'standard', locked: true, retryFor: 'previous-account',
+    }));
+    auth.value = { user: null, isAuthenticated: false, isLoading: true };
+    const view = renderQuiz();
+    await questionOnScreen();
+    expect(submissions).toBe(0);
+    act(() => { signIn(); });
+    view.rerender(quizTree());
+    expect(await screen.findByRole('heading', { name: 'Sign-in changed' })).toHaveFocus();
+    expect(submissions).toBe(0);
+    expect(sessionStorage.getItem(PROGRESS_KEY)).toBeNull();
+  });
+
   it('does not submit a quiz dealt before the account changed', async () => {
     signIn();
     let submits = 0;
