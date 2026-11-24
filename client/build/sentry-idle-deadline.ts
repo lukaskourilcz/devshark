@@ -40,7 +40,7 @@ export function sentryIdleDeadline(tracingConfigured: boolean): Plugin {
       if (!id.replaceAll('\\', '/').endsWith(MODULE)) return;
       const updated = patchSentryDeadline(code, id);
       applied = true;
-      return { code: updated.toString(), map: updated.generateMap({ hires: true, source: id, includeContent: true }) };
+      return { code: updated.toString(), map: updated.generateMap({ hires: true, source: id, includeContent: true }).toString() };
     },
     buildEnd(error) {
       if (!error && tracingConfigured && !applied) this.error('The Sentry idle-span module was not visited. Review its version, module path and deadline cleanup.');

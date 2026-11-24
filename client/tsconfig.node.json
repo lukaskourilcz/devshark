@@ -35,6 +35,7 @@
     "src/og/png.ts",
     "src/i18n/translations.ts",
     "src/i18n/translations.codingLists.ts",
+    "src/i18n/translations.topicContext.ts",
     "../shared/**/*.ts",
     "src/components/learn/SectionPreviewStatic.tsx",
     "src/i18n/translations.learn.ts",

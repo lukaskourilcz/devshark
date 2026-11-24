@@ -50,6 +50,7 @@ import { recordPerfectQuiz } from '../lib/achievements';
 import { announceVerifiedQuestXp, announceXpHeld, awardQuestXp, syncXpWithServer } from '../lib/xp';
 import { useGameConfig } from '../lib/gameConfig';
 import { useOnline } from './learn/useOnline';
+import { isOnline } from '../lib/routeRecovery';
 import { ReportDialog } from './ReportDialog';
 import { capture } from '../lib/analytics';
 import { reportError } from '../lib/sentry';
@@ -699,14 +700,14 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     }
     // Ordinary online submissions let the grading server decide its deadline.
     // An expired queued attempt must never be sent in the background.
-    if ((retryFor !== undefined || navigator.onLine === false) && expiresAt !== null && Date.now() >= expiresAt) {
+    if ((retryFor !== undefined || !isOnline()) && expiresAt !== null && Date.now() >= expiresAt) {
       clearProgress(sessionId);
       setRetryFor(undefined);
       setStop('expired');
       setState('error');
       return;
     }
-    if (navigator.onLine === false) {
+    if (!isOnline()) {
       setAnswersLocked(true);
       setRetryFor(actor);
       setError(null);
@@ -824,7 +825,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
       if (screen !== screenRef.current) return;
       // An unavailable session or an answer set already graded with other
       // picks cannot be recovered by submitting again.
-      if (navigator.onLine === false && accountEpoch() === epoch && !(err instanceof ApiError && err.status > 0)) {
+      if (!isOnline() && accountEpoch() === epoch && !(err instanceof ApiError && err.status > 0)) {
         setRetryFor(actor);
       } else if (err instanceof ApiError && (err.code === 'invalid_session' || err.code === 'attempt_already_graded')) {
         clearProgress(sessionId);

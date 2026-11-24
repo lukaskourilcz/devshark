@@ -75,7 +75,6 @@ export function posthogConfig(apiHost: string): Partial<PostHogConfig> {
     disable_session_recording: true,
     capture_heatmaps: false,
     capture_exceptions: false,
-    capture_performance: false,
     disable_surveys: true,
     disable_product_tours: true,
     disable_conversations: true,
