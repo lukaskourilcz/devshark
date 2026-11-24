@@ -3971,7 +3971,7 @@ async function inputClassContracts() {
     ['coding brief: a repeated id', roadmapHandler, 'GET', { resource: 'coding-brief', id: ['a', 'b'] }, undefined, 400, 'bad_request'],
     ['coding state: constructor as the id', roadmapHandler, 'GET', { resource: 'coding-state', id: 'constructor' }, undefined, 404, 'not_found'],
     ['coding approaches: constructor as the id', roadmapHandler, 'GET', { resource: 'coding-approaches', id: 'constructor' }, undefined, 404, 'not_found'],
-    ['learning paths: an unknown resource', roadmapHandler, 'GET', { resource: 'learning-path-no-such-resource' }, undefined, 404, 'not_found'],
+    ['learning paths: an unknown resource', roadmapHandler, 'GET', { resource: 'learning-path-no-such-resource' }, undefined, 404, 'unknown_resource'],
     ['lesson: constructor as the topic', roadmapHandler, 'GET', { resource: 'lesson', topic: 'constructor', level: '1' }, undefined, 400, 'bad_request'],
     ['lesson: __proto__ as the topic', roadmapHandler, 'GET', { resource: 'lesson', topic: '__proto__', level: '1' }, undefined, 400, 'bad_request'],
     ['lesson: a repeated topic', roadmapHandler, 'GET', { resource: 'lesson', topic: ['javascript'], level: '1' }, undefined, 400, 'bad_request'],
