@@ -143,8 +143,6 @@ export const shellEn = {
   'subject.webdev.name': 'Web Dev',
 
   'challenge.noQuestions': 'No questions available right now.',
-  'play.hostFallback': 'Host',
-  'play.playerFallback': 'Player',
 
   // Register prompt (guest snackbar)
   'register.title': 'Save your progress from now on',
@@ -647,7 +645,6 @@ export const shellEn = {
 
   // Achievements
 
-  'play.title': 'Play live',
   'common.back': 'Back',
 
   // Loading / error states

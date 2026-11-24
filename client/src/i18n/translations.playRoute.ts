@@ -1,6 +1,9 @@
 // English labels used exclusively by this lazy feature.
 export const playEn = {
   // Play (live / multiplayer / classroom)
+  'play.title': 'Play live',
+  'play.hostFallback': 'Host',
+  'play.playerFallback': 'Player',
   'play.signInTitle': 'Sign in to play live',
   'play.signInBody': 'Multiplayer and classroom games need an account so we can show your name on the scoreboard.',
   'play.enterCode': 'Enter a match code',
