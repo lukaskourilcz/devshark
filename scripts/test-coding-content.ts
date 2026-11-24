@@ -8,6 +8,7 @@ import { runtimePolicyForTask } from '../shared/coding-task-runtime';
 //   CODING_SKIP_INDEX=1         do not require shared/coding-index.ts to be fresh
 //   CODING_COVERAGE_ENFORCED=1  fail on Easy-band technique gaps even while COVERAGE_ENFORCED is off
 import assert from 'node:assert/strict';
+import { isDeepStrictEqual } from 'node:util';
 import { createRequire } from 'node:module';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
@@ -372,7 +373,15 @@ async function main() {
         // The new stage's checks lead, so the first rows in Results show what
         // the brief just asked for; every earlier check follows, unchanged.
         if (task.tests) {
-          assert.deepEqual(task.tests.slice(task.tests.length - prior.tests!.length), prior.tests, 'earlier runtime checks remain, after the new ones');
+          const introducedCount = task.tests.length - prior.tests!.length;
+          assert.deepEqual(task.tests.slice(introducedCount), prior.tests, 'earlier runtime checks remain, after the new ones');
+          const introduced = task.tests.slice(0, introducedCount);
+          for (const check of introduced) {
+            const matches = (other: typeof check) => other.call === check.call && isDeepStrictEqual(check, other);
+            if (introduced.filter(matches).length === 1) {
+              assert.ok(!prior.tests!.some(matches), `${id}: an unchanged inherited call appears twice: ${check.call}`);
+            }
+          }
         }
         if (task.suite && prior.suite) {
           // The shared header is whatever both suites open with, cut back to
