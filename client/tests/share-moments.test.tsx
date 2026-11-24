@@ -1,6 +1,7 @@
 // Sharing at a moment of success (#239): the invite link after a first
 // passed Learn level or a Challenge run, and the result card of the Challenge
 // and the typing racer. Invented fixtures; the op=referral shape is the real one.
+import { trackAnnouncement } from './announcement';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -68,9 +69,11 @@ describe('the invite link at a moment of success', () => {
     expect(screen.getByText(/you each get 100 coins/)).toBeInTheDocument();
     // No share sheet on this platform: copying is the primary action.
     expect(screen.queryByRole('button', { name: 'Share invite' })).toBeNull();
+    const verifyAnnouncement = trackAnnouncement('.ss-share-moment .ss-share-moment__status');
     fireEvent.click(screen.getByRole('button', { name: 'Copy invite link' }));
     await waitFor(() => expect(clipboard.writeText).toHaveBeenCalledWith(`${window.location.origin}/?ref=abcd2345`));
     expect(await screen.findByText('Link copied.')).toHaveAttribute('role', 'status');
+    verifyAnnouncement('Link copied.');
     expect(analytics.capture).toHaveBeenCalledWith('share_initiated', { kind: 'referral', source: 'challenge', method: 'copy' });
   });
 
@@ -112,12 +115,14 @@ describe('the result card', () => {
 
   it('downloads a card made of the numbers and the date alone', async () => {
     render(<ResultShareActions {...props} />, { wrapper });
+    const verifyAnnouncement = trackAnnouncement('.ss-share-result .ss-share-moment__status');
     fireEvent.click(screen.getByRole('button', { name: 'Download card' }));
     await waitFor(() => expect(card.download).toHaveBeenCalled());
     const input = card.create.mock.calls[0][0] as unknown as Record<string, unknown>;
     expect(Object.keys(input).sort()).toEqual(['accent', 'brand', 'date', 'detail', 'fileSuffix', 'headline', 'label', 'theme']);
     expect(input).toMatchObject({ brand: 'devShark', label: 'Biggest Shark Challenge', headline: '14 correct', detail: 'before three strikes', fileSuffix: 'challenge' });
     expect(await screen.findByText('Card saved to your downloads.')).toHaveAttribute('role', 'status');
+    verifyAnnouncement('Card saved to your downloads.');
     expect(analytics.capture).toHaveBeenCalledWith('share_initiated', { kind: 'challenge_result', source: 'challenge', method: 'download' });
   });
 

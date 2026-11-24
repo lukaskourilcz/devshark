@@ -1,4 +1,5 @@
 // /dev → Vouchers (migration 045): create a code, see it once, list and revoke.
+import { trackAnnouncement } from './announcement';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
@@ -157,8 +158,11 @@ describe('/admin/vouchers', () => {
     renderConsole();
     fireEvent.change(await screen.findByRole('textbox', { name: /^Note/ }), { target: { value: 'For Pavel' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create voucher' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Copy code' }));
+    const copy = await screen.findByRole('button', { name: 'Copy code' });
+    const verifyAnnouncement = trackAnnouncement('.dev-voucher-hint[aria-live]');
+    fireEvent.click(copy);
     expect(await screen.findByText('Copying did not work. The code is selected: copy it by hand.')).toBeInTheDocument();
+    verifyAnnouncement('Copying did not work.');
     expect(screen.getByRole('textbox', { name: 'Voucher code' })).toHaveFocus();
   });
 

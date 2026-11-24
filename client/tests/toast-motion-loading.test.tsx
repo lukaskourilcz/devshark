@@ -63,11 +63,14 @@ describe('toast hosts while animation code is unavailable', () => {
   it('receives the first XP event immediately and preserves the gain exit gap', async () => {
     vi.useFakeTimers();
     render(<LanguageProvider><XpToaster /></LanguageProvider>);
+    const region = document.querySelector('[aria-live="polite"]');
+    expect(region).toBeEmptyDOMElement();
     emit(gain(25));
     emit(gain(50));
     expect(screen.getByText('+25 XP earned')).toBeVisible();
     await advance(2199);
-    expect(screen.getByRole('status')).toHaveTextContent('+25 XP');
+    expect(screen.getByRole('status')).toBe(region);
+    expect(region).toHaveTextContent('+25 XP');
     await advance(1);
     await advance(199);
     expect(screen.queryByText('+50 XP earned')).toBeNull();

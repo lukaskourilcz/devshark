@@ -1,4 +1,5 @@
 // The authored lesson figures: the stepped trace and its controls.
+import { trackAnnouncement } from './announcement';
 import { expect, it } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
@@ -28,9 +29,11 @@ it('keeps keyboard focus on a stepper control that still does something', () => 
   const previous = screen.getByRole('button', { name: 'Previous' });
   const next = screen.getByRole('button', { name: 'Next' });
   const reset = screen.getByRole('button', { name: 'Reset' });
+  const verifyAnnouncement = trackAnnouncement('.ss-figure__note');
   next.focus();
   fireEvent.click(next);
   expect(screen.getByText('Step 2 of 3')).toBeInTheDocument();
+  verifyAnnouncement('Frame 2.');
   expect(document.activeElement).toBe(next);
   fireEvent.click(next);
   expect(next).toBeDisabled();

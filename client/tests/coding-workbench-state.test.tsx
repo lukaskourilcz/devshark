@@ -130,8 +130,11 @@ for (const [name, run, says] of [
   it(`announces ${name} as what it is`, async () => {
     vi.mocked(runCodeTests).mockResolvedValueOnce(run);
     mount();
+    const announcement = status();
+    expect(announcement).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Run' }));
-    await waitFor(() => expect(status()).toHaveTextContent(says));
+    await waitFor(() => expect(announcement).toHaveTextContent(says));
+    expect(status()).toBe(announcement);
     expect(status()).not.toHaveTextContent(name === 'type errors' ? /^2 of 2 passing$/ : /passing/);
   });
 }
