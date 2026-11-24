@@ -212,6 +212,18 @@ describe('authored text and control colours', () => {
     expect([...seen].sort()).toEqual([...foregrounds].sort());
   });
 
+  it('checks the actual completed-stage label against the tint it uses', () => {
+    const rule = editor.match(/\.cd-stage-nav \.cd-stage--complete\s*\{([^}]+)\}/)![1];
+    const foreground = /(?:^|;)\s*color:\s*var\(--([\w-]+)\)/.exec(rule)![1];
+    expect(rule).toMatch(/background:\s*var\(--brand-accent-soft\)/);
+    for (const mode of ['light', 'dark'] as const) {
+      const accent = mode === 'light' ? SUBJECTS.webdev.accent : SUBJECTS.webdev.accentBright;
+      expect(['brand-accent', 'brand-accent-on-soft']).toContain(foreground);
+      const ink = foreground === 'brand-accent-on-soft' ? accentOnSoft(accent, accent, mode) : accent;
+      expect(accentSoftContrast(ink, accent, mode)).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+    }
+  });
+
   for (const design of ['brand', 'apple']) for (const mode of [0, 1] as const) {
     it(`checks text, focus and control surfaces in ${design} ${mode ? 'dark' : 'light'}`, () => {
       const sheets = design === 'apple' ? [apple, editorApple, theme, editor] : [theme, editor];

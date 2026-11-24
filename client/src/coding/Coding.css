@@ -964,7 +964,7 @@
 .cd-stage-nav__label { font-size: var(--ss-type-meta); color: var(--color-text-secondary); }
 .cd-stage-nav .astryx-button { flex: 0 0 auto; min-width: 44px; min-height: 44px; justify-content: center; }
 .cd-stage-nav [aria-current='step'] { color: var(--brand-accent); outline: 2px solid var(--brand-accent); outline-offset: 2px; }
-.cd-stage-nav .cd-stage--complete { color: var(--brand-accent); background: var(--brand-accent-soft); border-color: var(--brand-accent); }
+.cd-stage-nav .cd-stage--complete { color: var(--brand-accent-on-soft); background: var(--brand-accent-soft); border-color: var(--brand-accent); }
 .cd-task-run { align-self: flex-end; font-size: var(--ss-type-meta); }
 
 /* Compact samples keep every output tab readable instead of clipping labels. */
