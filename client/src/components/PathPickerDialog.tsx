@@ -1,3 +1,4 @@
+import { useDialogTitleFocus } from './ui/useDialogTitleFocus';
 import { FDE_SECTION_VISIBLE } from '../../../shared/learn-section-ids';
 // The learning-path picker: choose a base track, then the Learn sections
 // beside it, then the profile answers that let the product describe a plan
@@ -138,6 +139,7 @@ export default function PathPickerDialog({
   });
 
   const [step, setStep] = useState<Step>('track');
+  const headerFocus = useDialogTitleFocus(open, step);
   const [track, setTrack] = useState<Track>(current);
   const [role, setRole] = useState<RoleChoice>(currentSpecialization ?? 'none');
   const [softwareEngineer, setSoftwareEngineer] = useState(false);
@@ -196,6 +198,7 @@ export default function PathPickerDialog({
       width="min(560px, 94vw)"
     >
       <DialogHeader
+        ref={headerFocus}
         title={pickerCopy(TITLE[step])}
         subtitle={pickerCopy(SUBTITLE[step])}
         onOpenChange={(next) => {

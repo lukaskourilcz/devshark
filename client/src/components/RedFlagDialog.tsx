@@ -7,6 +7,7 @@
 // note, a CheckboxInput confirmation, and a Banner for submit errors. All logic
 // is preserved.
 
+import { useDialogTitleFocus } from './ui/useDialogTitleFocus';
 import { useState } from 'react';
 import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
 import { Button } from '@astryxdesign/core/Button';
@@ -27,6 +28,7 @@ interface Props {
 
 export function RedFlagDialog({ open, onClose, onSubmit }: Props) {
   const t = useT();
+  const headerFocus = useDialogTitleFocus(open);
   const [detail, setDetail] = useState('');
   const [review, setReview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -68,6 +70,7 @@ export function RedFlagDialog({ open, onClose, onSubmit }: Props) {
       width="min(520px, 94vw)"
     >
       <DialogHeader
+        ref={headerFocus}
         title={t('flag.title')}
         onOpenChange={(next) => {
           if (!next) handleClose();
