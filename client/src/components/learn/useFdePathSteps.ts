@@ -19,7 +19,7 @@
 import { FDE_SECTION_VISIBLE } from '../../../../shared/learn-section-ids';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../lib/auth';
-import { GAME_CONFIG_KEY, type GameConfig } from '../../lib/gameConfig';
+import { cachedConfigQuery } from '../../lib/gameConfig';
 import { entryFor, isOpen, useEnrollments, usePathCatalog, usePathProgress } from '../../lib/learningPaths';
 import { pathSteps, type PathSteps } from './sections';
 
@@ -31,7 +31,7 @@ import { pathSteps, type PathSteps } from './sections';
 export type FdeSettingsVerdict = 'open' | 'closed' | 'asking' | 'unknown';
 
 export function useFdeOpenInSettings(): FdeSettingsVerdict {
-  const settings = useQuery<GameConfig>({ queryKey: GAME_CONFIG_KEY, enabled: false });
+  const settings = useQuery(cachedConfigQuery);
   if (!FDE_SECTION_VISIBLE) return 'closed';
   const capability = settings.data?.learningPaths;
   if (capability) return capability.paths.fde?.enabled === true ? 'open' : 'closed';

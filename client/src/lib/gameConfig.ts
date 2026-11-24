@@ -112,18 +112,22 @@ const CONFIG_QUERY = {
   // The config rarely changes within a session; fetch once and keep it.
   staleTime: Infinity,
   gcTime: Infinity,
-  placeholderData: DEFAULT_CONFIG,
 } as const;
 
+// Learn and Today observe the app's settings read. A placeholder would turn
+// an unknown capability into a closed path before the server has answered.
+export const cachedConfigQuery = { ...CONFIG_QUERY, enabled: false } as const;
+const visibleConfigQuery = { ...CONFIG_QUERY, placeholderData: DEFAULT_CONFIG } as const;
+
 export function useGameConfig(): GameConfig {
-  const { data } = useQuery(CONFIG_QUERY);
+  const { data } = useQuery(visibleConfigQuery);
   return data ?? DEFAULT_CONFIG;
 }
 
 /** The config plus whether it is the server's answer rather than the
  * defaults, for a screen that must not act on a default (the billing pages). */
 export function useGameConfigStatus(): { config: GameConfig; fromServer: boolean; failed: boolean; retry: () => void } {
-  const { data, isPlaceholderData, isSuccess, isError, refetch } = useQuery(CONFIG_QUERY);
+  const { data, isPlaceholderData, isSuccess, isError, refetch } = useQuery(visibleConfigQuery);
   return {
     config: data ?? DEFAULT_CONFIG,
     fromServer: isSuccess && !isPlaceholderData,

@@ -17,7 +17,7 @@ import { Link } from 'react-router-dom';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useAuth } from '../../lib/auth';
-import { anyLearningPathOpen, GAME_CONFIG_KEY, type GameConfig } from '../../lib/gameConfig';
+import { anyLearningPathOpen, cachedConfigQuery } from '../../lib/gameConfig';
 import { isBarred, useContentLocks } from '../../lib/contentLocks';
 import { activityHref, entryFor, isOpen, pathProgressQuery, useEnrollments, usePathCatalog } from '../../lib/learningPaths';
 import { preloadPathPagesWithLinks } from '../../lib/learningPathWorkspace';
@@ -87,7 +87,7 @@ export function PathResumeSection() {
   // can show (a closed path offers none), so neither the 30 KB catalogue nor
   // the account's enrollments are asked for (#587 paths walk; as the Learn
   // map and Career, C06 and C20). Settings not yet in, or failed: as before.
-  const settings = useQuery<GameConfig>({ queryKey: GAME_CONFIG_KEY, enabled: false });
+  const settings = useQuery(cachedConfigQuery);
   const closed = settings.data?.learningPaths ? !anyLearningPathOpen(settings.data) : false;
   const userId = isAuthenticated && !closed ? user?.id : undefined;
   const catalog = usePathCatalog(!closed);
