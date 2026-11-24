@@ -115,6 +115,16 @@ const SETTINGS = JSON.parse(readFileSync(new URL('../tests/fixtures/api-settings
 const ACCOUNT = JSON.parse(readFileSync(new URL('../tests/fixtures/responsive-account.json', import.meta.url), 'utf8'));
 const BUDGET = JSON.parse(readFileSync(new URL('../docs/quality/bundle-budget.json', import.meta.url), 'utf8'));
 const AUTH_ORIGIN = new URL(BUDGET.measuredBuild.env.VITE_SUPABASE_URL).origin;
+const SENTRY_DSN = new URL(BUDGET.measuredBuild.env.VITE_SENTRY_DSN);
+
+/** Answer the measured build's local SDK envelope inside Chromium. */
+export function syntheticSentryFixture(method, url) {
+  if (method !== 'OPTIONS' && method !== 'POST') return null;
+  if (!SENTRY_DSN.hostname.endsWith('.localhost') || url.origin !== SENTRY_DSN.origin) return null;
+  if (url.pathname !== `/api${SENTRY_DSN.pathname}/envelope/` || url.searchParams.get('sentry_key') !== SENTRY_DSN.username) return null;
+  return { status: 200, body: {} };
+}
+
 
 /** A local session that no server issued. Fetch interception supplies Auth. */
 export function fixtureSession() {
@@ -748,14 +758,15 @@ async function openBrowser(seed, baseUrl, authMode, signal) {
         call('Fetch.continueRequest', { requestId }).catch(() => undefined);
         return;
       }
-      const fixture = apiOrAuth ? apiFixture(request.method, url, authMode) : null;
-      apiRequests.push({ request: `${request.method} ${url.pathname}${url.search}`, answered: Boolean(fixture) });
+      const envelope = syntheticSentryFixture(request.method, url);
+      const fixture = envelope ?? (apiOrAuth ? apiFixture(request.method, url, authMode) : null);
+      if (!envelope) apiRequests.push({ request: `${request.method} ${url.pathname}${url.search}`, answered: Boolean(fixture) });
       const { status, body } = fixture
         ?? { status: 503, body: { error: { code: 'not_configured', message: 'The responsive sweep has no fixture for this request' } } };
       call('Fetch.fulfillRequest', {
         requestId,
         responseCode: status,
-        responseHeaders: [{ name: 'Content-Type', value: 'application/json' }, { name: 'Cache-Control', value: 'no-store' }, { name: 'Access-Control-Allow-Origin', value: baseOrigin }, { name: 'Access-Control-Allow-Methods', value: 'GET,POST,OPTIONS' }, { name: 'Access-Control-Allow-Headers', value: 'authorization,apikey,content-type,x-client-info,x-supabase-api-version' }],
+        responseHeaders: [{ name: 'Content-Type', value: 'application/json' }, { name: 'Cache-Control', value: 'no-store' }, { name: 'Access-Control-Allow-Origin', value: baseOrigin }, { name: 'Access-Control-Allow-Methods', value: 'GET,POST,OPTIONS' }, { name: 'Access-Control-Allow-Headers', value: envelope ? 'content-type,sentry-trace,baggage' : 'authorization,apikey,content-type,x-client-info,x-supabase-api-version' }],
         body: Buffer.from(status === 204 ? '' : JSON.stringify(body)).toString('base64'),
       }).catch(() => undefined);
     });
