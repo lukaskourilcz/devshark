@@ -157,7 +157,7 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
       details: { email: 'ada@example.com' },
       componentStack: 'at Quiz',
     },
-  });
+  }, {});
   expect(thrown.extra).toEqual({ componentStack: 'at Quiz' });
   expect(JSON.stringify(thrown)).not.toContain('ada@example.com');
   expect(JSON.stringify(thrown)).not.toContain('oauth-code-123');
@@ -167,7 +167,7 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
     request: { url: 'https://alice:fixture-password@devshark.app/auth/callback?code=oauth-code-123' },
     extra: { componentStack: 'at Page', response: { token: 'fixture-response-token' }, password: 'fixture-form-password' },
     breadcrumbs: [{ data: { headers: { Authorization: 'fixture-header-token' }, method: 'GET' } }],
-  });
+  }, {});
   const serialized = JSON.stringify(privateDetails);
   for (const secret of ['fixture-password', 'fixture-response-token', 'fixture-form-password', 'fixture-header-token']) {
     expect(serialized).not.toContain(secret);
