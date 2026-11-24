@@ -295,3 +295,46 @@ test.describe('signed in', () => {
     await expect(page.locator('.cm-content')).toContainText('// the copy on this device');
   });
 });
+
+test.describe('phone Coding routes', () => {
+  test.use({ hasTouch: true });
+  test('direct links show the owner notice in both orientations without starting the workbench', async ({ page }) => {
+    await page.addInitScript(() => sessionStorage.setItem('devshark:coding:narrow-editor:v1', '1'));
+    const heavy: string[] = [];
+    page.on('request', req => {
+      if (/CodingWorkbench|codemirror|\/sandbox\/|typescript-worker/i.test(new URL(req.url()).pathname)) heavy.push(req.url());
+    });
+    await answer(page);
+    for (const viewport of [{width: 390, height: 844}, {width: 844, height: 390}]) {
+      await page.setViewportSize(viewport);
+      for (const path of ['/coding', '/coding/javascript', '/coding/fullstack', '/coding/javascript/js-digit-sum']) {
+        await page.goto(path);
+        await expect(page.getByText('This section only works in desktop apps. Apologies, but coding on phone is painful and we dont want to cause no harm.', {exact: true})).toBeVisible();
+        await expect(page.locator('.cd-workbench, .cd-catalogue, .cm-editor')).toHaveCount(0);
+        await expect(page.locator('.ss-header')).toBeVisible();
+        await expect(page.getByRole('button', { name: /Use the editor here|Run|Submit/, exact: true })).toHaveCount(0);
+      }
+    }
+    expect(heavy).toEqual([]);
+  });
+  test('resizing back to desktop restores the edited task without submitting it', async ({ page }) => {
+    const posts: string[] = [];
+    const task = CODING_TASKS.find(one => one.id === TASK)!;
+    page.on('request', request => {
+      if (request.method() === 'POST' && new URL(request.url()).searchParams.get('resource') === 'coding-submit') posts.push(request.url());
+    });
+    await answer(page, { task: route => fulfilTaskRead(route, {
+      task: playable(task), session: 'resize-session', locked: null, progress: null, draft: null, signedIn: false,
+    }) });
+    await page.goto(`/coding/javascript/${TASK}`);
+    const editor = page.locator('.cm-content');
+    await editor.fill('const digitSum = n => n;');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByText('This section only works', { exact: false })).toBeVisible();
+    await expect(editor).toHaveCount(0);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(editor).toContainText('const digitSum = n => n;');
+    expect(posts).toEqual([]);
+  });
+
+});

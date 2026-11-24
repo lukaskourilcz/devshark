@@ -1241,6 +1241,7 @@ export const en = {
   'coding.tier.interview': 'Interview',
   'coding.tier.capstone': 'Capstones',
   // D5 (#224): Easy, Medium and Hard, a label projected from the tiers above.
+  'coding.phoneNotice': 'This section only works in desktop apps. Apologies, but coding on phone is painful and we dont want to cause no harm.',
   'coding.difficulty.easy': 'Easy',
   'coding.difficulty.medium': 'Medium',
   'coding.difficulty.hard': 'Hard',
