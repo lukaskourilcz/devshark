@@ -416,7 +416,7 @@ function CapRow({ label, onHand, reserved, onSave }: {
             aria-invalid={!valid || undefined}
             style={{
               width: 80, minHeight: 36, padding: '0 8px', borderRadius: 8, font: 'inherit',
-              border: '1px solid var(--color-border)', background: 'var(--color-background-surface)', color: 'var(--color-text-primary)',
+              border: '1px solid var(--color-border-strong)', background: 'var(--color-background-surface)', color: 'var(--color-text-primary)',
             }}
           />
           <Button
@@ -469,7 +469,7 @@ function Queue({ onDone }: { onDone: (message: string) => void }) {
           value={view}
           onChange={(event) => setView(event.target.value as FulfilmentView)}
           style={{
-            minHeight: 40, borderRadius: 'var(--radius-element)', border: '1px solid var(--color-border)',
+            minHeight: 40, borderRadius: 'var(--radius-element)', border: '1px solid var(--color-border-strong)',
             background: 'var(--color-background-surface)', color: 'var(--color-text-primary)', padding: '0 12px', font: 'inherit',
           }}
         >

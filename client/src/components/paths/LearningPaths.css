@@ -528,7 +528,7 @@ a.lp-activity:focus-visible { outline: 3px solid var(--ss-focus); outline-offset
   padding: 10px 12px;
   min-height: 44px;
   border-radius: var(--radius-element);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   background: var(--color-background-surface);
   color: var(--color-text-primary);
   width: 100%;
@@ -683,7 +683,7 @@ a.lp-activity:focus-visible { outline: 3px solid var(--ss-focus); outline-offset
   width: 100%;
   min-height: 90px;
   padding: 10px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: 10px;
   background: var(--color-background-surface);
   color: var(--color-text-primary);

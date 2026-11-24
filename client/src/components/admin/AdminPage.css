@@ -29,10 +29,10 @@
 .admin-email-form form,.admin-email-test{display:grid;gap:12px}
 .admin-email-form code{font-size:.875em}
 .admin-email-label{margin:4px 0 0;font-weight:600}
-.admin-email-editor{border:1px solid var(--color-border);border-radius:var(--radius-inner);background:var(--color-background-primary,transparent)}
+.admin-email-editor{border:1px solid var(--color-border-strong);border-radius:var(--radius-inner);background:var(--color-background-primary,transparent)}
 .admin-email-editor:focus-within{outline:2px solid var(--ss-focus);outline-offset:2px}
 .admin-email-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:6px;border-bottom:1px solid var(--color-border)}
-.admin-email-toolbar select{min-height:36px;padding:0 8px;border:1px solid var(--color-border);border-radius:var(--radius-inner);background:transparent;color:inherit;font:inherit}
+.admin-email-toolbar select{min-height:36px;padding:0 8px;border:1px solid var(--color-border-strong);border-radius:var(--radius-inner);background:transparent;color:inherit;font:inherit}
 .admin-email-tool{min-width:36px;min-height:36px;border:1px solid transparent;border-radius:var(--radius-inner);background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
 .admin-email-tool[aria-pressed=true]{border-color:var(--color-border);background:var(--color-border)}
 .admin-email-tool:disabled{opacity:.4;cursor:default}

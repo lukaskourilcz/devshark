@@ -353,7 +353,7 @@
      verdict under it stays in view — it never has to be scrolled to. The outer
      scroll is only the fallback for a verdict and hint taller than the pane. */
   .cd-output-scroll > .cd-panel { flex: 1 1 auto; min-height: 160px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
-  /* Quiet at rest: a 1px card-line down the middle of the 12px column, which
+  /* At rest a 1px control boundary marks the middle of the 12px column, which
      stays the pointer's target. Hover and keyboard focus draw it 3px in the
      accent; focus keeps its ring as well. */
   .cd-splitter {
@@ -361,7 +361,7 @@
     grid-row: 1;
     align-self: stretch;
     width: 12px;
-    background: linear-gradient(to right, transparent calc(50% - 0.5px), var(--ss-card-line) calc(50% - 0.5px), var(--ss-card-line) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+    background: linear-gradient(to right, transparent calc(50% - 0.5px), var(--color-border-strong) calc(50% - 0.5px), var(--color-border-strong) calc(50% + 0.5px), transparent calc(50% + 0.5px));
     cursor: col-resize;
     touch-action: none;
   }
@@ -865,7 +865,7 @@
 .cd-search input, .cd-search select {
   min-height: 44px;
   padding: 0 10px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: 10px;
   background: var(--color-background);
   color: var(--color-text-primary);
