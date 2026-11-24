@@ -164,7 +164,7 @@ try {
   for (const lane of ['auth', 'upstash'] as const) {
     mode = 'hang'; phase = `${lane}-deadline`; begin = rows.length;
     const pending = lane === 'auth' ? requireAuth(request()) : claimOnce(`f7_connection:${++sequence}`, 60);
-    await assert.rejects(bounded<unknown>(pending, lane === 'auth' ? 4000 : 1500, 'Existing SDK deadline did not settle'), error => lane === 'auth' ? (error as { code?: string }).code === 'auth_timeout' : (error as { code?: string }).code === 'claim_unavailable');
+    await assert.rejects(bounded<unknown>(pending, lane === 'auth' ? 4000 : 1500, 'Existing SDK deadline did not settle'), error => lane === 'auth' ? (error as { code?: string; status?: number }).code === 'auth_unavailable' && (error as { status?: number }).status === 503 : (error as { code?: string }).code === 'claim_unavailable');
     await bounded(until(() => rows[begin]?.closed === true && closedSockets.has(rows[begin].socket)), 1000, 'Deadline left a fixture transport open');
     assert.equal(rows.length - begin, 1, `${lane}: no replay after timeout`); assert.equal(rows[begin].ended, false);
     report.push({ lane, scenario: 'deadline', ...snapshot(rows.slice(begin)) });

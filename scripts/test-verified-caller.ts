@@ -1714,8 +1714,8 @@ async function main() {
       call(questions as Handler, { account: A, query: { resource: 'due' } }),
     ]);
     assert.equal(normalAuth.statusCode, 200, 'another learner can verify while Auth stalls for one request');
-    assert.equal(stalledAuth.statusCode, 504);
-    assert.equal(errorCode(stalledAuth), 'auth_timeout');
+    assert.equal(stalledAuth.statusCode, 503, 'an Auth hang is an outage, 503, never 504');
+    assert.equal(errorCode(stalledAuth), 'auth_unavailable');
     for (let wait = 0; wait < 20 && closedAuthReads === 0; wait++) {
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
