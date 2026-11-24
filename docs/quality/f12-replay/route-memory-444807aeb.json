@@ -1,0 +1,107 @@
+{
+  "routes": [
+    "/learn/web-developer",
+    "/quiz",
+    "/coding",
+    "/challenge",
+    "/play",
+    "/premium",
+    "/leaderboard",
+    "/daily",
+    "/shop",
+    "/"
+  ],
+  "laps": [
+    {
+      "listeners": 504,
+      "documents": 18,
+      "nodes": 2644,
+      "longTimeouts": 15,
+      "totalTimeouts": 15,
+      "intervals": 0,
+      "stringTimers": 0
+    },
+    {
+      "listeners": 504,
+      "documents": 19,
+      "nodes": 2647,
+      "longTimeouts": 15,
+      "totalTimeouts": 15,
+      "intervals": 0,
+      "stringTimers": 0
+    },
+    {
+      "listeners": 504,
+      "documents": 19,
+      "nodes": 2647,
+      "longTimeouts": 15,
+      "totalTimeouts": 15,
+      "intervals": 0,
+      "stringTimers": 0
+    },
+    {
+      "listeners": 504,
+      "documents": 19,
+      "nodes": 2647,
+      "longTimeouts": 15,
+      "totalTimeouts": 15,
+      "intervals": 0,
+      "stringTimers": 0
+    },
+    {
+      "listeners": 504,
+      "documents": 19,
+      "nodes": 2647,
+      "longTimeouts": 15,
+      "totalTimeouts": 15,
+      "intervals": 0,
+      "stringTimers": 0
+    }
+  ],
+  "controlsBefore": {
+    "listeners": 504,
+    "documents": 19,
+    "nodes": 2647,
+    "longTimeouts": 15,
+    "totalTimeouts": 15,
+    "intervals": 0,
+    "stringTimers": 0
+  },
+  "held": {
+    "listeners": 516,
+    "documents": 19,
+    "nodes": 2647,
+    "longTimeouts": 16,
+    "totalTimeouts": 16,
+    "intervals": 1,
+    "stringTimers": 0
+  },
+  "released": {
+    "listeners": 504,
+    "documents": 19,
+    "nodes": 2647,
+    "longTimeouts": 15,
+    "totalTimeouts": 15,
+    "intervals": 0,
+    "stringTimers": 0
+  },
+  "idle35s": {
+    "listeners": 504,
+    "documents": 19,
+    "nodes": 2647,
+    "longTimeouts": 15,
+    "totalTimeouts": 15,
+    "intervals": 0,
+    "stringTimers": 0
+  },
+  "idle305s": {
+    "listeners": 504,
+    "documents": 19,
+    "nodes": 2647,
+    "longTimeouts": 2,
+    "totalTimeouts": 2,
+    "intervals": 0,
+    "stringTimers": 0
+  },
+  "sentryBundleLoaded": true
+}
