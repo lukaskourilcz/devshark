@@ -14,6 +14,17 @@ export function complexityContracts() {
   assert.equal(target('Target: O(n time.'), null, 'incomplete notation is not presented');
   assert.equal(complexityGuidance({ ...task, tests: [] }).targetTime, null, 'type-only tasks have no runtime target');
   assert.equal(complexityGuidance({ ...task, track: 'react' }).targetTime, null, 'UI rendering has no comparable runtime target');
+  for (const [id, time, space] of [
+    ['alg-dsaa-hop-distances', 'O(n+m)', 'O(n+m)'],
+    ['alg-dsaa-components', 'O(n+m)', 'O(n+m)'],
+    ['alg-dsaa-combinations', 'O(K*k+n)', 'O(n)'],
+    ['alg-dsaa-distinct-window', 'O(n)', 'O(s+1)'],
+    ['alg-dsaa-popcount32', 'O(b)', 'O(1)'],
+  ]) {
+    const guidance = complexityGuidance(codingTaskForHistory(id)!);
+    assert.equal(guidance.targetTime, time, id + ' displays its authored runtime target');
+    assert.equal(guidance.targetSpace, space, id + ' displays its authored space target');
+  }
   const check = (code: string) => assessComplexity(task, code);
   assert.equal(check('const solve = xs => xs.length;').time, 'O(1)');
   assert.equal(check('const solve = xs => xs.map(x => x * 2);').time, 'O(n)');
