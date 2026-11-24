@@ -156,6 +156,7 @@ let untimedQuizAttempt: string | undefined;
 let reviewRows: Row[] | undefined;
 let reviewStorageDown = false;
 let healthReadFails = false;
+let allocationFails = false;
 let healthReadHangs = false;
 let closedHealthReads = 0;
 const dailyMarkers = new Map<string, { grade_key: string; created_at: string }>();
@@ -420,6 +421,7 @@ async function startStandIns() {
         dailyMarkers.set(gradeKey, { grade_key: gradeKey, created_at: new Date(Date.now() - 10_000).toISOString() });
         return send(200, 'replay');
       }
+      if (rpc === 'allocate_shark_name' && allocationFails) return send(500, { code: '08006', message: 'stand-in allocation problem' });
       if (rpc === 'allocate_shark_name') return send(200, { handle: 'sleepySharkie17', ordinal: '17', base: 'sleepySharkie' });
       if (rpc === 'referral_summary') return send(200, { code: 'ab234567' });
       if (rpc === 'request_friend' && (body as Row | undefined)?.p_handle === 'locked-friend') {
@@ -736,6 +738,29 @@ async function main() {
     assert.equal(errorCode(photoBlind), 'leaderboard_name_unavailable');
     assert.ok(!reads('/rest/v1/user_stats').some((one) => one.method === 'POST'), 'no photo switch is written when the setting cannot be read');
     console.log('PASS verified caller: leaderboard names use the verified profile or confirmed email prefix, independently of friends');
+
+    {
+      const errors: Row[] = [];
+      const writeError = console.error;
+      allocationFails = true;
+      console.error = (line: string) => errors.push(JSON.parse(line) as Row);
+      let unavailable: Response;
+      try {
+        unavailable = await user('leaderboard-name', { account: A });
+      } finally {
+        allocationFails = false;
+        console.error = writeError;
+      }
+      assert.equal(unavailable.statusCode, 503);
+      assert.equal(errorCode(unavailable), 'leaderboard_name_unavailable');
+      const matching = errors.filter(event => event.kind === 'leaderboard_name_failed');
+      assert.equal(matching.length, 1);
+      assert.equal(matching[0].level, 'error');
+      assert.equal(matching[0].category, 'Error');
+      assert.ok(unavailable.headers['x-request-id']);
+      assert.equal(matching[0].request_id, unavailable.headers['x-request-id']);
+      assert.ok(!JSON.stringify(matching[0]).includes('stand-in allocation problem'));
+    }
 
     // A signed-in Challenge batch verifies its token once, for the rate limit
     // and the run alike.
