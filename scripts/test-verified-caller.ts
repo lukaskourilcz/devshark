@@ -285,6 +285,11 @@ async function startStandIns() {
         dailyMarkers.set(gradeKey, { grade_key: gradeKey, created_at: new Date(Date.now() - 10_000).toISOString() });
         return send(200, 'replay');
       }
+      const handle = (body as Row | undefined)?.p_handle;
+      if ((rpc === 'respond_friend' || rpc === 'remove_friend') && (handle === 'unknown-friend' || handle === 'hidden-friend')) {
+        const reason = rpc === 'respond_friend' && handle === 'hidden-friend' ? 'no_request' : 'handle_not_found';
+        return send(400, { code: 'P0001', message: reason });
+      }
       if (rpc === 'allocate_shark_name') return send(200, { handle: 'sleepySharkie17', ordinal: '17', base: 'sleepySharkie' });
       if (rpc === 'referral_summary') return send(200, { code: 'ab234567' });
       if (rpc === 'request_friend' && (body as Row | undefined)?.p_handle === 'locked-friend') {
@@ -432,6 +437,17 @@ async function main() {
     const reads = (path: string) => seen.filter((one) => one.path === path);
     const errorCode = (res: Response) => (res.body as { error?: { code?: string } } | undefined)?.error?.code;
 
+    for (const action of ['friends-respond', 'friends-remove']) {
+      for (const handle of ['unknown-friend', 'hidden-friend']) {
+        const response = await user(action, { method: 'POST', account: A, body: { handle, accept: true, block: true } });
+        if (action === 'friends-respond') {
+          assert.equal(response.statusCode, 404);
+          assert.equal((response.body as { error: { message: string } }).error.message, 'There is no request to answer');
+        } else {
+          assert.deepEqual(response.body, { removed: false });
+        }
+      }
+    }
     // These GETs can write account rows, so a warm token must still be
     // refused before the write when Supabase has ended the session.
     const writer = JWT_GET_WRITER;
