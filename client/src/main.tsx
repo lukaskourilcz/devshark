@@ -70,6 +70,11 @@ prefetchStoredAccountPlan();
 // first commit (lib/routePreload.ts useFirstPageTransition), and the import
 // it then runs is this one.
 void preloadPath(window.location.pathname);
+if (/^\/daily\/?$/.test(window.location.pathname)) {
+  void import('./lib/dailyQuestion').then(({ prefetchDailyLanding }) => {
+    if (/^\/daily\/?$/.test(window.location.pathname)) return prefetchDailyLanding(queryClient);
+  }).catch(() => { /* The route loads its query normally after a chunk failure. */ });
+}
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>

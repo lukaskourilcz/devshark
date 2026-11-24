@@ -3,10 +3,10 @@
 // the question, holds the answer sealed in the session and grades it. The
 // check is practice: `api/quiz/submit.ts` records nothing for a `qotd`
 // session, signed in or not.
-import { queryOptions } from '@tanstack/react-query';
+import { queryOptions, type QueryClient } from '@tanstack/react-query';
 import { apiFetch, ApiError } from './api';
 import type { QuizResult } from '../types/quiz';
-import { QOTD_BEFORE_START, QOTD_NOT_YET, type QotdResponse } from '../../../shared/daily-question';
+import { QOTD_BEFORE_START, QOTD_NOT_YET, utcToday, type QotdResponse } from '../../../shared/daily-question';
 
 export const dailyQuestionQuery = (date: string | 'today') =>
   queryOptions({
@@ -24,6 +24,11 @@ export const dailyQuestionQuery = (date: string | 'today') =>
     refetchOnReconnect: (query) => query.state.data === undefined,
     retry: (count, error) => !(error instanceof ApiError && error.status >= 400 && error.status < 500) && count < 1,
   });
+
+/** Start the same sealed read as the page while its UI chunks are in flight. */
+export function prefetchDailyLanding(client: QueryClient): Promise<void> {
+  return client.prefetchQuery(dailyQuestionQuery(utcToday()));
+}
 
 export type QotdResult = QuizResult['results'][number];
 
