@@ -3,6 +3,7 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { sentryIdleDeadline } from './build/sentry-idle-deadline';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { PurgeCSS } from 'purgecss';
 import { PRODUCT_CATALOG, resolveCatalogProductId } from './product-catalog';
@@ -512,6 +513,7 @@ export default defineConfig(({ mode }) => {
   },
   plugins: [
     productMetadata(env),
+    sentryIdleDeadline(Boolean(env.VITE_SENTRY_DSN)),
     react(),
     purgeAstryxCss(),
     ...(analyze
