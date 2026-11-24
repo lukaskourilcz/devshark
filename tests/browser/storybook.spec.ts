@@ -38,7 +38,7 @@ test('confirmation restores focus after Escape', async ({ page }) => {
 });
 
 
-test('every published component story passes the accessibility checks', async ({ page, request }) => {
+test('every published component story passes the accessibility checks', async ({ context, request }) => {
   test.setTimeout(240_000);
   const address = process.env.STORYBOOK_URL!;
   const response = await request.get(address + '/index.json');
@@ -46,6 +46,7 @@ test('every published component story passes the accessibility checks', async ({
   const index = await response.json() as { entries: Record<string, { type: string; id: string }> };
   const stories = Object.values(index.entries).filter(entry => entry.type === 'story');
   expect(stories.length).toBeGreaterThan(leaderboardStates.length);
+  let previousPreview: Page | undefined;
   for (const { id } of stories) for (const theme of ['light', 'dark']) {
     if (theme === 'light' && leaderboardStates.some(state => id === 'screens-leaderboard--' + state)) continue;
     await test.step(id + ' ' + theme, async () => {
@@ -53,9 +54,20 @@ test('every published component story passes the accessibility checks', async ({
       url.searchParams.set('id', id);
       url.searchParams.set('viewMode', 'story');
       url.searchParams.set('globals', 'theme:' + theme);
+      // MSW unregisters when its last preview unloads. Keep that client alive
+      // until the next story has rendered with its own registered mock handlers.
+      const page = await context.newPage();
       await page.goto(url.href);
       await expect(page.locator('#storybook-root > *').first()).toBeVisible();
       await expect(page.locator('body')).not.toHaveClass(/sb-show-(?:errordisplay|nopreview)/);
+      await previousPreview?.close();
+      previousPreview = page;
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      // The segmented controls transition their ink when the toolbar switches themes.
+      await page.evaluate(async () => {
+        const transitions = document.getAnimations().filter(animation => animation instanceof CSSTransition);
+        await Promise.allSettled(transitions.map(transition => transition.finished));
+      });
       if (id === 'astryx-practice-sample--unanswered') {
         const feedback = page.getByRole('status');
         await expect(feedback).toBeEmpty();
