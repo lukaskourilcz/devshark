@@ -19,6 +19,7 @@
   "include": [
     "vite.config.ts",
     "build/sentry-idle-deadline.ts",
+    "build/deploy-stamp.ts",
     "vite.sandbox.config.ts",
     "product-catalog.ts",
     "src/lib/topicCatalog.ts",
