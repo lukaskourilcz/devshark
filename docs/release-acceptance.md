@@ -9164,7 +9164,7 @@ F1 archived its fresh-process import proxy and independently observed first-byte
 
 ### Eight routes in Chrome
 
-Each cell gives the F1 median, the 24 November intake median at `4db80e061`, and the reviewed median at `04ee69969`, in that order. Percentages compare the two 24 November builds under matched conditions. F1 used its archived browser and route readiness rules. Each November 24 build received 96 visits. All 192 scripted interactions registered. The cold visitor had no consent choice. The repeat visitor had rejected analytics. Daily and the leaderboard received disposable API fixtures. The input column records trusted button or answer interactions in the lab.
+Each cell gives the F1 median, the 24 November intake median at `4db80e061`, and the reviewed median at `04ee69969`, in that order. Percentages compare the two 24 November builds under matched conditions. F1 used its archived browser and route readiness rules. Each comparison uses 96 visits per revision. The intake kept its 48 original cold visits and 15 matching mobile repeats. An earlier supplemental run stored consent version 2 on the version 1 intake and left its banner open. The other 33 repeat visits were recollected with the intake’s version 1. The additional cold warm-ups are excluded. All 192 scripted interactions registered. The cold visitor had no consent choice. The repeat visitor had rejected analytics. Daily and the leaderboard received disposable API fixtures. The input column records trusted button or answer interactions in the lab.
 
 | Profile | Route | Visit | LCP ms | CLS | TBT ms | Input ms |
 | --- | --- | --- | ---: | ---: | ---: | ---: |
@@ -9179,27 +9179,27 @@ Each cell gives the F1 median, the 24 November intake median at `4db80e061`, and
 | mobile | `/daily` | cold | 1676 / 1616 / 836 (-48.3%) | 0.071 / 0.071 / 0 (-100.0%) | 64 / 16 / 11 (-31.2%) | 64 / 64 / 48 (-25.0%) |
 | mobile | `/daily` | repeat | 456 / 436 / 400 (-8.3%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 16 / 24 (+50.0%) |
 | mobile | `/premium` | cold | 872 / 852 / 840 (-1.4%) | 0 / 0 / 0 (same) | 60 / 13 / 14 (+7.7%) | 104 / 72 / 72 (+0.0%) |
-| mobile | `/premium` | repeat | 456 / 280 / 268 (-4.3%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 48 / 32 (-33.3%) |
+| mobile | `/premium` | repeat | 456 / 292 / 268 (-8.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 32 / 32 (+0.0%) |
 | mobile | `/topics/javascript-closures` | cold | 892 / 868 / 852 (-1.8%) | 0 / 0 / 0 (same) | 56 / 20 / 17 (-15.0%) | 88 / 88 / 72 (-18.2%) |
-| mobile | `/topics/javascript-closures` | repeat | 292 / 284 / 260 (-8.5%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 48 / 24 (-50.0%) |
+| mobile | `/topics/javascript-closures` | repeat | 292 / 300 / 260 (-13.3%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 40 / 24 (-40.0%) |
 | mobile | `/leaderboard` | cold | 1688 / 1644 / 1632 (-0.7%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 88 / 72 / 72 (+0.0%) |
-| mobile | `/leaderboard` | repeat | 472 / 264 / 428 (+62.1%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 32 / 32 (+0.0%) |
+| mobile | `/leaderboard` | repeat | 472 / 476 / 428 (-10.1%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 48 / 32 (-33.3%) |
 | desktop | `/` | cold | 344 / 312 / 312 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 80 / 64 / 64 (+0.0%) |
 | desktop | `/` | repeat | 76 / 80 / 80 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
 | desktop | `/learn` | cold | 356 / 332 / 328 (-1.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 112 / 80 / 72 (-10.0%) |
-| desktop | `/learn` | repeat | 556 / 80 / 560 (+600.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/learn` | repeat | 556 / 564 / 560 (-0.7%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
 | desktop | `/coding` | cold | 356 / 316 / 324 (+2.5%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 80 / 64 / 64 (+0.0%) |
 | desktop | `/coding` | repeat | 224 / 80 / 80 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 48 / 48 (+0.0%) |
 | desktop | `/quiz` | cold | 356 / 328 / 324 (-1.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 80 / 64 / 64 (+0.0%) |
-| desktop | `/quiz` | repeat | 108 / 80 / 108 (+35.0%) | 0.0002 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/quiz` | repeat | 108 / 112 / 108 (-3.6%) | 0.0002 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
 | desktop | `/daily` | cold | 340 / 308 / 156 (-49.4%) | 0.0528 / 0.0528 / 0 (-100.0%) | 0 / 0 / 0 (same) | 64 / 64 / 64 (+0.0%) |
-| desktop | `/daily` | repeat | 212 / 76 / 216 (+184.2%) | 0.0528 / 0.0528 / 0 (-100.0%) | 0 / 0 / 0 (same) | 32 / 16 / 32 (+100.0%) |
+| desktop | `/daily` | repeat | 212 / 220 / 216 (-1.8%) | 0.0528 / 0.0528448 / 0 (-100.0%) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
 | desktop | `/premium` | cold | 180 / 168 / 160 (-4.8%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 88 / 64 / 64 (+0.0%) |
-| desktop | `/premium` | repeat | 204 / 80 / 72 (-10.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/premium` | repeat | 204 / 72 / 72 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
 | desktop | `/topics/javascript-closures` | cold | 188 / 156 / 160 (+2.6%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 72 / 64 / 64 (+0.0%) |
 | desktop | `/topics/javascript-closures` | repeat | 72 / 76 / 76 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
 | desktop | `/leaderboard` | cold | 344 / 320 / 316 (-1.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 72 / 64 / 64 (+0.0%) |
-| desktop | `/leaderboard` | repeat | 208 / 72 / 220 (+205.6%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/leaderboard` | repeat | 208 / 220 / 220 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
 
 F1 source tables retain the individual observer samples. [Mobile](audit/f1-mobile-cdp-2026-11.json) · [Desktop](audit/f1-desktop-cdp-2026-11.json)
 
@@ -9225,19 +9225,19 @@ Before production, build the managed grading snapshot from the reviewed root pro
 
 ### Browser timings after the November dependency updates
 
-Three cold and three repeat visits per route and profile compare intake `4db80e061` with the production build at `fc013f382`. Chrome 158 ran on macOS ARM64. The mobile viewport was 390 × 844 with 4× CPU slowdown, 150 ms latency and 1.6 Mbps. Desktop used 1440 × 1000, native CPU, 20 ms and 10 Mbps. An anonymous loopback API added 120 ms. Cold visits had undecided consent. Repeat visits retained the analytics refusal.
+Three cold and three repeat visits per route and profile compare intake `4db80e061` with the production build at `fc013f382`. Chrome 158 ran on macOS ARM64. The mobile viewport was 390 × 844 with 4× CPU slowdown, 150 ms latency and 1.6 Mbps. Desktop used 1440 × 1000, native CPU, 20 ms and 10 Mbps. An anonymous loopback API added 120 ms. Cold visits had undecided consent. Repeat visits retained the analytics refusal. The intake used consent version 1 and the candidate used version 2. Of the 96 intake visits used here, 33 repeat controls were recollected with version 1; the earlier mismatched samples and the replacement cold warm-ups are excluded.
 
 Each entry lists **LCP ms / CLS / TBT ms / observed interaction ms** as intake → candidate medians. The scripted input was the navigation drawer on mobile, the theme toggle on desktop, or an answer on Daily. The interactions were registered in all 96 visits on both revisions.
 
 | Route | Mobile cold | Mobile repeat | Desktop cold | Desktop repeat |
 |---|---|---|---|---|
 | `/` | 1656/0/0/96 → 1620/0/0/72 | 260/0/0/48 → 264/0/0/32 | 312/0/0/64 → 312/0/0/72 | 80/0/0/32 → 76/0/0/32 |
-| `/learn` | 1644/0/4/88 → 1620/0/3/88 | 836/0/0/48 → 816/0/0/48 | 332/0/0/80 → 340/0/0/64 | 80/0/0/32 → 560/0/0/32 |
+| `/learn` | 1644/0/4/88 → 1620/0/3/88 | 836/0/0/48 → 816/0/0/48 | 332/0/0/80 → 340/0/0/64 | 564/0/0/32 → 560/0/0/32 |
 | `/coding` | 1628/0/0/88 → 1604/0/0/64 | 268/0/0/48 → 276/0/0/32 | 316/0/0/64 → 320/0/0/64 | 80/0/0/48 → 76/0/0/48 |
-| `/quiz` | 1656/0/0/80 → 1620/0/0/72 | 268/0/0/32 → 260/0/0/32 | 328/0/0/64 → 328/0/0/64 | 80/0/0/32 → 112/0/0/32 |
-| `/daily` | 1616/0.0709812/16/64 → 840/0/14/64 | 436/0/0/16 → 404/0/0/32 | 308/0.0528448/0/64 → 164/0/0/64 | 76/0.0528448/0/16 → 216/0/0/32 |
-| `/premium` | 852/0/13/72 → 848/0/25/72 | 280/0/0/48 → 280/0/0/32 | 168/0/0/64 → 160/0/0/64 | 80/0/0/32 → 72/0/0/32 |
-| `/topics/javascript-closures` | 868/0/20/88 → 856/0/16/72 | 284/0/0/48 → 256/0/0/32 | 156/0/0/64 → 176/0/0/64 | 76/0/0/32 → 76/0/0/32 |
-| `/leaderboard` | 1644/0/0/72 → 1608/0/0/72 | 264/0/0/32 → 412/0/0/32 | 320/0/0/64 → 324/0/0/64 | 72/0/0/32 → 208/0/0/32 |
+| `/quiz` | 1656/0/0/80 → 1620/0/0/72 | 268/0/0/32 → 260/0/0/32 | 328/0/0/64 → 328/0/0/64 | 112/0/0/32 → 112/0/0/32 |
+| `/daily` | 1616/0.0709812/16/64 → 840/0/14/64 | 436/0/0/16 → 404/0/0/32 | 308/0.0528448/0/64 → 164/0/0/64 | 220/0.0528448/0/32 → 216/0/0/32 |
+| `/premium` | 852/0/13/72 → 848/0/25/72 | 292/0/0/32 → 280/0/0/32 | 168/0/0/64 → 160/0/0/64 | 72/0/0/32 → 72/0/0/32 |
+| `/topics/javascript-closures` | 868/0/20/88 → 856/0/16/72 | 300/0/0/40 → 256/0/0/32 | 156/0/0/64 → 176/0/0/64 | 76/0/0/32 → 76/0/0/32 |
+| `/leaderboard` | 1644/0/0/72 → 1608/0/0/72 | 476/0/0/48 → 412/0/0/32 | 320/0/0/64 → 324/0/0/64 | 220/0/0/32 → 208/0/0/32 |
 
 Across the 96 candidate visits, maximum LCP was 1,692 ms mobile and 564 ms desktop. Every CLS was zero. Fifteen dedicated learner interactions passed. Median observed latency was 80 ms for Quiz start, 64 ms for an answer, 80 ms for Learn, 64 ms for a coding keystroke and 64 ms for the mobile drawer. The maximum was 96 ms. The fixture observed local interactions. Production field INP requires the live consented telemetry cohort.
