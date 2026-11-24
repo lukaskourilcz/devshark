@@ -7,6 +7,8 @@ These checks run on the existing Vite, Astryx, TanStack Query and PostHog stack.
 | Performance | `npm run audit:performance -- --url=http://127.0.0.1:4173`; `ANALYZE=true npm run check:bundle`; `npm run perf:measure -- --url=http://127.0.0.1:4173 --fixture` | Mobile and desktop Lighthouse reports, a production-shaped bundle treemap and initial gzip gate, and observed CDP interaction measurements. The system-font first visit downloads no font files; OG generation keeps its separate build-time fonts. |
 | MSW | `npm run test:client` | Real API transport, authentication failures, timeout and cancellation, offline responses, and the leaderboard's retry and empty states. No live API or user record is used. |
 | Knip | `npm run check:unused`; `npm run audit:unused` | CI rejects new and stale findings and enforces value exports in `lib/` and `shared/`. Client and type-only export reports stay advisory. It never deletes code. |
+| Upstream advisories | `npm run audit:upstream` | The pre-release check compares installed root and client versions with advisories published by package maintainers. |
+| Dependency placement | `npm run check:unused` | The placement check verifies runtime imports, peers, server externals and the advisory rationale for overrides. [Package ownership](../packages.md#runtime-dependencies) |
 | Public SEO | `npm run check:public` | The topic guides include real HTML, canonical URLs, internal links and truthful LearningResource JSON-LD. The build emits the sitemap and robots file. |
 | Copy and activation | `client/src/lib/analytics.ts`; [activation notes](activation.md) | English positioning and a sample → learning call to action → quiz or path funnel, with explicit property allow-lists. |
 | Storybook | `npm run storybook`; `npm run build:storybook` | Real Astryx sample, retry, toast and confirmation components, and a real leaderboard in populated, empty, loading, server-error and offline states. The toolbar switches light and dark. |
@@ -25,7 +27,7 @@ Do not add MSW initialization to `src/main.tsx` or copy its worker into `client/
 
 `check:unused` rejects new findings and stale reviewed-baseline entries. Value exports in `lib/` and `shared/` must have actual readers or a source-documented `@public` contract for a concrete dynamic-test, authoring or package API. Client exports and type-only exports remain advisory. The F14 cleanup leaves the reviewed baseline empty and adds no path ignores. Check actual readers before changing a documented contract.
 
-The Knip config declares the Vercel handlers, maintenance scripts, the isolated sandbox, stories and tests as entries. It does not execute the Vite and Storybook configs, because the build config imports a TSX renderer; their sources are still entries and are typechecked and built on their own. The explicit dependency exceptions are the Astryx CSS theme, the Astryx CLI, Babel's Vite peer, the Storybook accessibility addon and the Lighthouse executable; `vercel` is an externally installed development CLI.
+Knip reads the Storybook configuration and scans the Vercel handlers, nested maintenance scripts, Docker sources, isolated sandbox, stories and tests. Its Vite plugin is disabled because the build configuration imports a TSX renderer. The explicit dependency exceptions are the Astryx CSS theme and the Lighthouse executable. The development environment supplies `vercel` and `psql`. The preview-access fixture uses the system’s `mkfifo` command to create a named pipe.
 
 ## SEO and deployment
 
