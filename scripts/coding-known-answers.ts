@@ -43,6 +43,10 @@ const fullstackWrong = FULLSTACK_APPS.flatMap((app): KnownAnswer[] => {
 });
 
 export const KNOWN_WRONG_CODE: readonly KnownAnswer[] = [
+  { id: 'js-mh-deep-equal', label: 'counts a hidden own key as an enumerable match',
+    replace: [['Object.prototype.propertyIsEnumerable.call(b, key)', 'Object.hasOwn(b, key)']] },
+  { id: 'js-mh-settings-diff', label: 'treats a hidden leaf as still present',
+    replace: [['Object.prototype.propertyIsEnumerable.call(b, key)', 'Object.hasOwn(b, key)']] },
   ...fullstackWrong,
   ...DSA_FOUNDATIONS_WRONG,
   ...DSA_ADVANCED_WRONG,
