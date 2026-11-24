@@ -64,6 +64,7 @@ const MIME: Record<string, string> = {
 const DRIVER = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>harness driver</title></head>
 <body>
+<button id="run" type="button">Run</button>
 <script>
   window.__log = [];
   window.__origins = [];
@@ -83,6 +84,18 @@ const DRIVER = `<!doctype html>
   window.__send = function (message) {
     frame.contentWindow.postMessage(message, '*');
   };
+  var nextRun;
+  var run = document.getElementById('run');
+  window.__prepareRun = function (message) {
+    nextRun = message;
+    var box = run.getBoundingClientRect();
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  };
+  run.addEventListener('click', function () {
+    frame.focus({ preventScroll: true });
+    window.__send(nextRun);
+    nextRun = undefined;
+  });
   window.__reset = function () { window.__log = []; window.__origins = []; };
   // The parent must not be able to reach into an opaque-origin frame.
   window.__reachesFrame = function () {
@@ -432,11 +445,21 @@ async function main(): Promise<void> {
     for (const candidate of CODING_TASKS.filter(task => task.track === 'react' && task.suite)) {
       await reset();
       const token = `catalog-${candidate.id}`;
-      await send({type:'run',token,files:{'/App.js':solutionFor(candidate.id)!.solution,'/App.test.js':candidate.suite},preview:true,tests:true});
+      const message = {
+        type: 'run', token, preview: true, tests: true,
+        files: { '/App.js': solutionFor(candidate.id)!.solution, '/App.test.js': candidate.suite },
+      };
+      // The workbench's Run button supplies the user interaction that lets an
+      // opaque preview move focus. A background postMessage alone cannot.
+      const point = await evaluate<{ x: number; y: number }>(call, `window.__prepareRun(${JSON.stringify(message)})`);
+      await call('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button: 'left', clickCount: 1 });
+      await call('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button: 'left', clickCount: 1 });
       const entries = await settled(token);
-      const result = entries.find(entry => entry.type === 'done' && entry.token === token) as {passed:number;failed:number;total:number}|undefined;
-      const errors = entries.filter(entry => entry.type === 'compile-error' || entry.type === 'preview-error' || (entry.type === 'test' && entry.status === 'fail'));
-      check(Boolean(result && result.total > 0 && result.failed === 0 && errors.length === 0), `${candidate.id}: ${JSON.stringify(errors).slice(0,1500)}`);
+      const result = entries.find(entry => entry.type === 'done' && entry.token === token);
+      const errors = entries.filter(entry =>
+        entry.type === 'compile-error' || entry.type === 'preview-error' || (entry.type === 'test' && entry.status === 'fail'));
+      check(Boolean(result && Number(result.total) > 0 && result.failed === 0 && errors.length === 0),
+        `${candidate.id}: ${JSON.stringify(errors).slice(0, 1500)}`);
     }
   } finally {
     cleanup();

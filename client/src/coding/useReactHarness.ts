@@ -189,6 +189,10 @@ export function useReactHarness(): HarnessHandle {
       pending.current.resolve({ ...base, token: pending.current.token, status: 'timeout' });
       pending.current = null;
     }
+    // Give an already mounted test frame focus during Run or Submit. In
+    // Chromium an opaque child cannot move focus from the workbench into
+    // its fields on its own. The caller restores the originating control.
+    if (options.tests && readyRef.current) frame.current?.focus({ preventScroll: true });
     const isReady = await waitReady();
     if (epoch !== generation.current) return { ...base, status: 'timeout' };
     const target = frame.current?.contentWindow;

@@ -120,6 +120,7 @@ it.each(['click', 'shortcut'])('sends authoritative React Submit by %s while pre
   });
   expect(submitCoding).toHaveBeenCalledTimes(1);
   expect(harness.start).toHaveBeenCalledTimes(1);
+  expect(harness.start).toHaveBeenCalledWith(expect.anything(), { tests: false, preview: true });
 });
 
 it('keeps the complete task in Description, without a second brief above the editor or a Target line', () => {

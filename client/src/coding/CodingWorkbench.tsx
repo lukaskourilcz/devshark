@@ -455,9 +455,11 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
           setFrameWanted(true);
           const restoreFocus = keepFocus();
           setRunSource(code);
-          void harness.start(files(), { tests: true, preview: true }).then((outcome) => {
+          // A cold frame may render later, after the learner has moved on.
+          // Let the server grade that submission without a background focus test.
+          void harness.start(files(), { tests: harness.ready, preview: true }).then((outcome) => {
             restoreFocus();
-            if (!(outcome.status === 'done' && outcome.total > 0 && outcome.failed === 0)) setFailedRun(true);
+            if (outcome.status === 'compile-error' || (outcome.ran && outcome.failed > 0)) setFailedRun(true);
           }, restoreFocus);
           setRunCount((n) => n + 1);
           selectTab('results');
