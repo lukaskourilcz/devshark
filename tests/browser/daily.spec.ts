@@ -162,3 +162,51 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(page.getByText(/nothing is recorded/i)).toHaveCount(0);
   });
 }
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`long Daily content remains readable and gradeable at 200 percent text in ${theme}`, async ({ page, request }, info) => {
+    const intro = 'Use the example sequence to trace the value. '.repeat(8) + 'End of the introduction.';
+    const question = 'Keep reading through the whole question. '.repeat(6) + 'Which output is correct?';
+    const code = 'const current = [1, 2, 3];';
+    const answer = 'The complete answer includes all three numbers in their original order. '.repeat(3).trim();
+    const explanation = 'The array literal preserves its values and their insertion order. '.repeat(5) + 'End of the explanation.';
+    const grades: unknown[] = [];
+    await page.setViewportSize({ width: 360, height: 680 });
+    await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: theme });
+    await page.addInitScript(mode => localStorage.setItem('devquiz:color-mode', mode), theme);
+    await page.route('**/api/quiz/daily?qotd=*', route => route.fulfill({ json: {
+      date: today, track: qotdTrack(today), sessionId: 'long-daily-test',
+      question: { id: 'long-daily', introduction: intro, question: question + '\n\n```js\n' + code + '\n```',
+        options: [answer, 'One number', 'Two numbers', 'An empty array'], category: qotdTrack(today), difficulty: 2 },
+    } }));
+    await page.route('**/api/quiz/submit', route => {
+      grades.push(route.request().postDataJSON());
+      return route.fulfill({ json: { totalQuestions: 1, correctAnswers: 1, percentage: 100, questXp: 0,
+        results: [{ questionId: 'long-daily', selectedIndex: 0, correctAnswer: 0, isCorrect: true, explanation }] } });
+    });
+    const fallback = await request.get('/daily');
+    expect(await fallback.text()).not.toContain('No account needed; nothing is recorded.');
+    await page.goto('/daily');
+    await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+    const radio = page.getByRole('radio', { name: answer, exact: true });
+    await expect(radio).toBeVisible();
+    await expect(page.locator('.ss-daily__introduction')).toHaveText(intro);
+    await expect(page.getByText(question, { exact: true })).toBeVisible();
+    await expect(page.locator('.ss-daily pre')).toContainText(code);
+    const assertReadable = async (selector: string) => {
+      const geometry = await page.locator(selector).first().evaluate(node => ({
+        client: node.clientHeight, scroll: node.scrollHeight, overflow: getComputedStyle(node).overflowY,
+        pageWidth: document.documentElement.scrollWidth, viewport: innerWidth,
+      }));
+      expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewport + 1);
+      if (geometry.overflow === 'hidden' || geometry.overflow === 'clip') expect(geometry.scroll).toBeLessThanOrEqual(geometry.client + 1);
+    };
+    for (const selector of ['.ss-daily__introduction', '.ss-daily pre', '.ss-daily [role="radio"]']) await assertReadable(selector);
+    await radio.click();
+    await page.getByRole('button', { name: 'Check answer' }).click();
+    await expect(page.getByText(explanation, { exact: true })).toBeVisible();
+    await assertReadable('.ss-question-feedback');
+    expect(grades).toHaveLength(1);
+    await page.screenshot({ path: info.outputPath('daily-long-200-percent-' + theme + '.png'), fullPage: true });
+  });
+}

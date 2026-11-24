@@ -3,8 +3,9 @@ import AxeBuilder from '@axe-core/playwright';
 import { CODING_TASKS, playable } from '../../lib/coding/catalog';
 import { localAuth, storeFakeSession } from './fake-session';
 import { fulfilTaskRead, isTaskRead } from './coding-task-read';
-import { EVOLVING_CHALLENGES, evolvingTaskTrack } from '../../shared/evolving';
+import { EVOLVING_CHALLENGES, evolvingTaskTrack, listedChallenges } from '../../shared/evolving';
 import { isFreeCodingTask } from '../../shared/tiers';
+import { CODING_SECTION_TRACKS, hasLearnLevel } from '../../shared/coding-catalog';
 
 // The Coding pages against the built app, with the API answered here in its
 // real shapes: a missing track or task (C3-17, V3-2), a track whose progress
@@ -349,6 +350,21 @@ test('a guest project with a free opening stage shows its access rule once and a
   await expect(project.getByText('Premium', {exact:true})).toHaveCount(0);
 });
 
+for (const category of [undefined, 'debugging'] as const) {
+  test(`a new ${category ?? 'evolving'} project targets its free first stage without a Premium badge`, async ({ page }) => {
+    const project = listedChallenges({ category })[0];
+    await answer(page);
+    await page.goto(category ? '/coding?projects=debugging' : '/coding');
+    const row = page.getByRole('article', { name: project.title, exact: true });
+    const action = row.getByRole('button', { name: 'Start ' + project.title, exact: true });
+    await expect(action).toBeVisible();
+    await expect(row.getByText('Premium', { exact: true })).toHaveCount(0);
+    await action.press('Enter');
+    const stage = project.stages[0];
+    await expect(page).toHaveURL(url => url.pathname === '/coding/' + evolvingTaskTrack(stage) + '/' + stage);
+  });
+}
+
 for (const [tier, stage] of [
   ['free', 'first'], ['free', 'boundary'], ['premium', 'boundary'], ['unknown', 'boundary'], ['free', 'completed'],
 ] as const) {
@@ -382,14 +398,56 @@ for (const [tier, stage] of [
   });
 }
 
-test('track rows show the authored difficulty and estimated duration', async ({page}) => {
+for (const track of CODING_SECTION_TRACKS) test(`track rows show the authored ${track} difficulty and estimated duration`, async ({page}) => {
   await answer(page);
-  await page.goto('/coding/javascript');
+  await page.goto('/coding/' + track);
   const row = page.locator('.cd-catalogue .cd-row').first();
   await expect(row).toBeVisible();
   const title = await row.locator('.cd-row__title').textContent();
-  const task = CODING_TASKS.find(item => item.title === title && item.track === 'javascript')!;
+  const task = CODING_TASKS.find(item => item.title === title && item.track === track)!;
   const summary = playable(task);
   await expect(row.getByText(`Est. ${summary.estimatedMinutes} min`, {exact:true})).toBeVisible();
-  await expect(row.getByText(/^(Easy|Medium|Hard)$/)).toBeVisible();
+  await expect(row.getByText(new RegExp('^' + summary.difficulty + '$', 'i'))).toBeVisible();
 });
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`the task breadcrumb returns to the same filtered row and catalogue page in ${theme}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+    await page.addInitScript(mode => localStorage.setItem('devquiz:color-mode', mode), theme);
+    await storeFakeSession(page);
+    await localAuth(page);
+    await answer(page, { task: route => {
+      const id = new URL(route.request().url()).searchParams.get('id');
+      const entry = CODING_TASKS.find(task => task.id === id)!;
+      return fulfilTaskRead(route, { task: playable(entry), session: entry.id, locked: null, progress: null, draft: null, signedIn: true });
+    } });
+    const list = '/coding/javascript?q=a&difficulty=easy&page=2';
+    await page.goto(list);
+    const rows = page.locator('.cd-catalogue .cd-row');
+    await expect(rows).toHaveCount(20);
+    await expect(page.locator('.cd-catalogue > ul')).toHaveCount(2);
+    await expect(page.locator('.cd-pagination [role=status]')).toContainText('Page 2 of');
+    const titles = await rows.locator('.cd-row__title').allTextContents();
+    const links = await page.locator('.cd-catalogue a.cd-row').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')!));
+    const link = links.find(path => {
+      const task = CODING_TASKS.find(one => one.id === path.split('/').pop());
+      return task && hasLearnLevel(task);
+    });
+    expect(link, 'a real task linked to a Learn level on the second filtered page').toBeTruthy();
+    const task = CODING_TASKS.find(one => one.id === link!.split('/').pop())!;
+    const entry = page.locator('.cd-catalogue a').filter({ has: page.getByText(task.title, { exact: true }) });
+    await entry.focus();
+    await expect(entry).toBeFocused();
+    expect((await entry.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await entry.press('Enter');
+    await expect(page.locator('.cm-content')).toBeVisible();
+    await expect(page.locator('.cd-workbench')).toContainText('Level ' + task.level);
+    const back = page.locator('.cd-editor-bar__path a').filter({ hasText: /^javascript$/i });
+    await expect(back).toHaveAttribute('href', list);
+    await back.click();
+    await expect(page).toHaveURL(url => url.pathname + url.search === list);
+    await expect(page.getByRole('searchbox')).toHaveValue('a');
+    await expect(page.locator('#javascript-difficulty')).toHaveValue('easy');
+    await expect(rows.locator('.cd-row__title')).toHaveText(titles);
+  });
+}

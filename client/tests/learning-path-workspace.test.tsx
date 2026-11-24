@@ -757,6 +757,7 @@ describe('the content shapes of #497', () => {
     await mount(null, 'fde-v1-x01');
     await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Placement' })).toBeInTheDocument());
     expect(document.querySelector('.lp-head__kicker-row .lp-head__status')?.textContent).toBe('Optional');
+    expect(screen.getByText('Estimated total: 5 min · 1 activity')).toBeInTheDocument();
   });
 
   it('labels a loop module by its evidence, never Optional: Not started before any (B14, #510)', async () => {
@@ -800,6 +801,25 @@ describe('the module page primary', () => {
     await waitFor(() => expect(calls.start).toEqual([C]));
     // The open activity carries its own primary; the header's goes.
     expect(cta()).toBeNull();
+  });
+
+  it.each([
+    ['lesson', 70, 'Start reading · 70 min', 'Estimated total: 1h 20 min · 3 activities'],
+    ['artifact', 50, 'Start writing · 50 min', 'Estimated total: 1h · 3 activities'],
+    ['check', 0, 'Start check', '3 activities'],
+  ] as const)('describes the actual next %s and handles complete or partial estimates', async (kind, minutes, label, total) => {
+    const activity = manifest.modules[0].activities[0];
+    const original = { kind: activity.kind, estimatedMinutes: activity.estimatedMinutes };
+    Object.assign(activity, { kind, estimatedMinutes: minutes });
+    try {
+      recorded({});
+      await mount(null);
+      await waitFor(() => expect(cta()).toHaveAccessibleName(label));
+      expect(screen.getByText(total, { exact: true })).toBeInTheDocument();
+      expect(document.querySelector('.lp-activity--next')).toHaveTextContent(activity.title);
+    } finally {
+      Object.assign(activity, original);
+    }
   });
 
   it('continues at the first activity not yet passed or self-reviewed', async () => {

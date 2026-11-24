@@ -166,3 +166,16 @@ it('uses the authored level title and keeps the target topic and level in the ca
   expect(card).toHaveAttribute('href','/learn?topic=html&level=1');
   expect(card).toHaveTextContent('HTML · Level 1');
 });
+
+
+it.each([
+  ['new', {}],
+  ['unfinished', { html: { levels: { '1': { passed: false, bestPct: 30 } }, checkpoints: {} } }],
+  ['review', { html: { levels: { '1': { passed: true, bestPct: 90, passDays: [DAYS_AGO(2)], mastered: false, lastPassDay: DAYS_AGO(2) } }, checkpoints: {} } }],
+])('uses the actual level link and its fallback for a %s recommendation without a title', async (_kind, progress) => {
+  answer({ topics: ['html'], structure: { html: { levels: [{ ...level(1), title: '' }], checkpoints: [] } } }, progress);
+  await mountToday();
+  const label = await screen.findByText('HTML · Level 1');
+  expect(label.closest('a')).toHaveAttribute('href', '/learn?topic=html&level=1');
+  expect(label.closest('a')?.querySelector('.today-card__context')).toBeNull();
+});

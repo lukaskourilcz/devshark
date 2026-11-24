@@ -643,7 +643,8 @@ test('the former deferred DSA task names its now-issued foundations level', asyn
 });
 
 test('the first failed public case opens with separate Input, Expected and Received fields', async ({page}) => {
-  const verdict = {verdict:'failed', results:[{pass:false, actual:'null', error:null}, {pass:true, actual:'{"value":2}', error:null}]};
+  const receipt = JSON.stringify({ value: 2, details: 'More detail from that same case. '.repeat(12), last: 'Last line.' }, null, 2);
+  const verdict = {verdict:'failed', results:[{pass:false, actual:'null', error:null}, {pass:true, actual:receipt, error:null}]};
   await prepare(page, {signedIn:true, verdict});
   await openTask(page, '/coding/javascript/js-digit-sum');
   await fillEditor(page, 'const digitSum = n => null;');
@@ -655,7 +656,8 @@ test('the first failed public case opens with separate Input, Expected and Recei
   await expect(details.first().locator('dd').last()).toHaveText('null');
   await details.nth(1).locator('summary').focus();
   await page.keyboard.press('Enter');
-  await expect(details.nth(1).locator('dd').last()).toHaveText('{"value":2}');
+  expect(await details.nth(1).locator('dd pre').last().textContent()).toBe(receipt);
+  expect(await details.first().locator('dd').first().textContent()).not.toBe(await details.nth(1).locator('dd').first().textContent());
 });
 
 test('a timed-out local React loop reports to the workbench and a fresh Run recovers', async ({ page }, info) => {

@@ -295,13 +295,16 @@ async function quizAuditFixture(page: Page, signedIn = false, questions = quizAu
 
 for (const count of [1, 6, 50]) {
   test(`Quiz navigator preserves answers and moves keyboard focus across ${count} questions`, async ({ page }) => {
-    await prepare(page, 'light');
+    await page.setViewportSize({ width: 360, height: 800 });
+    await prepare(page, count === 50 ? 'dark' : 'light');
     const questions = Array.from({ length: count }, (_, index) => ({
-      ...quizAuditQuestions[0], id: `navigator-${index + 1}`, question: `Navigator question ${index + 1}?`,
+      ...quizAuditQuestions[0], id: `navigator-${index + 1}`, question: `Navigator question ${index + 1}? ${'Keep the full question visible. '.repeat(count === 50 ? 10 : 1)}`,
     }));
     const activity = await quizAuditFixture(page, false, questions);
     await page.goto('/quiz');
     await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
+    await page.getByRole('button', { name: 'Show hint', exact: true }).click();
+    await page.getByRole('button', { name: 'Close hint', exact: true }).click();
     await page.getByRole('radio', { name: 'object', exact: true }).click();
     const counter = (number: number) => page.getByRole('button', { name: `Question ${number} of ${count}`, exact: true });
     const overview = page.getByRole('dialog', { name: 'Choose a question' });
@@ -309,6 +312,12 @@ for (const count of [1, 6, 50]) {
     await page.keyboard.press('Enter');
     const first = overview.getByRole('button', { name: 'Question 1, answered', exact: true });
     await expect(first).toHaveAttribute('aria-current', 'step');
+    const geometry = await overview.locator('.quiz-question-nav button').evaluateAll(buttons => buttons.map(button => {
+      const box = button.getBoundingClientRect();
+      return { width: box.width, height: box.height, left: box.left, right: box.right };
+    }));
+    expect(geometry).toHaveLength(count);
+    expect(geometry.every(box => box.width >= 44 && box.height >= 44 && box.left >= 0 && box.right <= 361)).toBe(true);
     if (count > 1) await expect(overview.getByRole('button', { name: `Question ${count}, unanswered` })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(overview).toHaveCount(0);
@@ -322,6 +331,7 @@ for (const count of [1, 6, 50]) {
       await first.click();
     }
     await expect(page.getByRole('radio', { name: 'object', exact: true })).toBeChecked();
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('devquiz:in-progress')!).hinted)).toEqual(['navigator-1']);
     expect(activity.grades()).toBe(0);
     expect(activity.writes()).toBe(0);
   });
@@ -484,3 +494,40 @@ test('Quiz can cancel a slow question load and gives focus back to settings', as
   await expect(page.getByRole('button', { name: 'Start quiz', exact: true })).toBeVisible();
   await expect(page.getByText('What does typeof null return?', { exact: true })).toHaveCount(0);
 });
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`Today renders a long authored lesson title once per card and shares its roadmap read in ${theme}`, async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await prepare(page, theme);
+    const title = 'Structure and semantics for accessible navigation across the entire document';
+    let structureReads = 0;
+    await page.route('**/api/**', route => {
+      const url = new URL(route.request().url());
+      const resource = url.searchParams.get('resource');
+      if (url.pathname === '/api/quiz/roadmap' && !resource) {
+        structureReads++;
+        return route.fulfill({ json: { topics: ['html'], structure: { html: { levels: [{ level: 1, title, difficulty: 1, questionCount: 8 }], checkpoints: [] } } } });
+      }
+      if (resource === 'progress') return route.fulfill({ json: { data: {}, extra: { unlocked: [] } } });
+      if (resource === 'learning-path-catalog') return route.fulfill({ json: { versions: {}, paths: [] } });
+      return route.fulfill({ status: 404, json: { error: { code: 'not_found', message: 'No fixture for this guest read' } } });
+    });
+    await page.goto('/today');
+    const card = page.locator('a.today-card[href="/learn?topic=html&level=1"]');
+    await expect(card.locator('.today-card__meta')).toHaveText(title);
+    await expect(card.locator('.today-card__context')).toHaveText('HTML · Level 1');
+    await card.focus();
+    await expect(card).toBeFocused();
+    const bounds = await card.evaluate(el => {
+      const title = el.querySelector('.today-card__meta')!;
+      const parent = el.getBoundingClientRect();
+      const text = title.getBoundingClientRect();
+      return { overflow: document.documentElement.scrollWidth - innerWidth, height: parent.height,
+        contains: text.left >= parent.left && text.right <= parent.right + 1 && text.bottom <= parent.bottom + 1 };
+    });
+    expect(bounds.overflow).toBeLessThanOrEqual(1);
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    expect(bounds.contains).toBe(true);
+    expect(structureReads).toBe(1);
+  });
+}
