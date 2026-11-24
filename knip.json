@@ -44,7 +44,6 @@
       "storybook": false,
       "ignoreDependencies": [
         "@astryxdesign/theme-neutral",
-        "@astryxdesign/cli",
         "@babel/core",
         "@storybook/addon-a11y"
       ]
