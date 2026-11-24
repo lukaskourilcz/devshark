@@ -655,10 +655,22 @@ const paintBucket = (grid, row, col, colour) => {
     ],
   },
   'js-mh-deep-equal': {
-    solution: "const deepEqual = (a, b) => {\n  if (Object.is(a, b)) return true; // primitives, NaN, and the same object twice\n  // From here on both must be objects, and typeof null is \"object\" too.\n  if (typeof a !== \"object\" || typeof b !== \"object\" || a === null || b === null) return false;\n  if (Array.isArray(a) !== Array.isArray(b)) return false;\n  if (Array.isArray(a)) {\n    return a.length === b.length && Array.from({ length: a.length }, (_, i) => i).every(i => deepEqual(Object.hasOwn(a, i) ? a[i] : undefined, Object.hasOwn(b, i) ? b[i] : undefined));\n  }\n  const keys = Object.keys(a);\n  // Counting keys alone would let { a: undefined } equal { b: undefined }.\n  return keys.length === Object.keys(b).length &&\n    keys.every(key => Object.hasOwn(b, key) && deepEqual(a[key], b[key]));\n};",
-    junior: "const deepEqual = (a, b) => {\n  if (Object.is(a, b)) return true;\n  if (a === null || b === null || typeof a !== \"object\" || typeof b !== \"object\") return false;\n  const arrays = Array.isArray(a);\n  if (arrays !== Array.isArray(b)) return false;\n  if (arrays) {\n    if (a.length !== b.length) return false;\n    const indices = Array.from({ length: a.length }, (_, index) => index);\n    return indices.every(index => {\n      const left = Object.hasOwn(a, index) ? a[index] : undefined;\n      const right = Object.hasOwn(b, index) ? b[index] : undefined;\n      return deepEqual(left, right);\n    });\n  }\n  const keys = Object.keys(a);\n  if (keys.length !== Object.keys(b).length) return false;\n  return keys.every(key => Object.hasOwn(b, key) && deepEqual(a[key], b[key]));\n};",
-    senior: "const deepEqual = (a, b) => {\n  if (Object.is(a, b)) return true;\n  if (!a || !b || typeof a !== \"object\" || typeof b !== \"object\" || Array.isArray(a) !== Array.isArray(b)) return false;\n  if (Array.isArray(a)) {\n    return a.length === b.length && Array.from({ length: a.length }, (_, i) => i).every(i =>\n      deepEqual(Object.hasOwn(a, i) ? a[i] : undefined, Object.hasOwn(b, i) ? b[i] : undefined));\n  }\n  const keys = Object.keys(a);\n  return keys.length === Object.keys(b).length && keys.every(key => Object.hasOwn(b, key) && deepEqual(a[key], b[key]));\n};",
+    solution: "const deepEqual = (a, b) => {\n  if (Object.is(a, b)) return true; // primitives, NaN, and the same object twice\n  // From here on both must be objects, and typeof null is \"object\" too.\n  if (typeof a !== \"object\" || typeof b !== \"object\" || a === null || b === null) return false;\n  if (Array.isArray(a) !== Array.isArray(b)) return false;\n  if (Array.isArray(a)) {\n    return a.length === b.length && Array.from({ length: a.length }, (_, i) => i).every(i => deepEqual(Object.hasOwn(a, i) ? a[i] : undefined, Object.hasOwn(b, i) ? b[i] : undefined));\n  }\n  const keys = Object.keys(a);\n  // Counting keys alone would let { a: undefined } equal { b: undefined }.\n  return keys.length === Object.keys(b).length &&\n    keys.every(key => Object.prototype.propertyIsEnumerable.call(b, key) && deepEqual(a[key], b[key]));\n};",
+    junior: "const deepEqual = (a, b) => {\n  if (Object.is(a, b)) return true;\n  if (a === null || b === null || typeof a !== \"object\" || typeof b !== \"object\") return false;\n  const arrays = Array.isArray(a);\n  if (arrays !== Array.isArray(b)) return false;\n  if (arrays) {\n    if (a.length !== b.length) return false;\n    const indices = Array.from({ length: a.length }, (_, index) => index);\n    return indices.every(index => {\n      const left = Object.hasOwn(a, index) ? a[index] : undefined;\n      const right = Object.hasOwn(b, index) ? b[index] : undefined;\n      return deepEqual(left, right);\n    });\n  }\n  const keys = Object.keys(a);\n  if (keys.length !== Object.keys(b).length) return false;\n  return keys.every(key => Object.prototype.propertyIsEnumerable.call(b, key) && deepEqual(a[key], b[key]));\n};",
+    senior: "const deepEqual = (a, b) => {\n  if (Object.is(a, b)) return true;\n  if (!a || !b || typeof a !== \"object\" || typeof b !== \"object\" || Array.isArray(a) !== Array.isArray(b)) return false;\n  if (Array.isArray(a)) {\n    return a.length === b.length && Array.from({ length: a.length }, (_, i) => i).every(i =>\n      deepEqual(Object.hasOwn(a, i) ? a[i] : undefined, Object.hasOwn(b, i) ? b[i] : undefined));\n  }\n  const keys = Object.keys(a);\n  return keys.length === Object.keys(b).length && keys.every(key => Object.prototype.propertyIsEnumerable.call(b, key) && deepEqual(a[key], b[key]));\n};",
     hiddenTests: [
+      {
+        label: 'only enumerable own properties contribute keys in either direction',
+        call: `(() => {
+          const left = Object.freeze({ theme: 'dark' });
+          const right = Object.create(null);
+          Object.defineProperty(right, 'theme', { value: 'dark' });
+          right.other = 'dark';
+          Object.freeze(right);
+          return [deepEqual(left, right), deepEqual(right, left), deepEqual(right, { other: 'dark' })];
+        })()`,
+        expected: [false, false, true],
+      },
       { call: "(() => {const hole=Array(1),value=[1],undef=[undefined],extra=[1];extra.note=9;return [deepEqual(hole,value),deepEqual(value,hole),deepEqual(hole,undef),deepEqual(undef,hole),deepEqual(Array(1),Array(2)),deepEqual(extra,[1]),deepEqual(0,-0),deepEqual(-0,-0),deepEqual(NaN,NaN)];})()", expected: [false, false, true, true, false, true, false, true, true] },
       { call: "(() => {const a=Object.assign(Object.create(null),{x:Object.freeze([NaN,undefined,-0])}),b={x:Object.freeze([NaN,undefined,-0])};Object.defineProperty(a,\"hidden\",{value:1});a[Symbol(\"skip\")]=99;Object.freeze(a);Object.freeze(b);const left=Object.freeze(Array.from({length:10000},(_,i)=>i)),right=Object.freeze(Array.from({length:10000},(_,i)=>i));let x=1,y=1;for(let i=0;i<100;i++){x=Object.freeze([x]);y=Object.freeze([y]);}return [deepEqual(a,b),deepEqual(b,a),deepEqual(left,right),deepEqual(x,y),Object.hasOwn(b,\"hidden\")];})()", expected: [true, true, true, true, false] },
 
@@ -1420,7 +1432,7 @@ const diffSettings = (before, after) => {
     for (const key in a) {
       if (!Object.hasOwn(a, key)) continue;
       const path = join(prefix, key);
-      if (!Object.hasOwn(b, key)) everyLeaf(a[key], path, "removed");
+      if (!Object.prototype.propertyIsEnumerable.call(b, key)) everyLeaf(a[key], path, "removed");
       else if (isObject(a[key]) && isObject(b[key])) walk(a[key], b[key], path);
       else if (isObject(a[key]) || isObject(b[key])) {
         // An object on one side and a leaf on the other: both sides are reported.
@@ -1430,7 +1442,7 @@ const diffSettings = (before, after) => {
     }
     for (const key in b) {
       if (!Object.hasOwn(b, key)) continue;
-      if (!Object.hasOwn(a, key)) everyLeaf(b[key], join(prefix, key), "added");
+      if (!Object.prototype.propertyIsEnumerable.call(a, key)) everyLeaf(b[key], join(prefix, key), "added");
     }
   };
   walk(before, after, "");
@@ -1483,7 +1495,7 @@ const diffSettings = (before, after) => {
     for (const key in a) {
       if (!Object.hasOwn(a, key)) continue;
       const path = pathFor(prefix, key);
-      const inB = Object.prototype.hasOwnProperty.call(b, key);
+      const inB = Object.prototype.propertyIsEnumerable.call(b, key);
       if (!inB) {
         reportAll(a[key], path, "removed");
         continue;
@@ -1501,7 +1513,7 @@ const diffSettings = (before, after) => {
     }
     for (const key in b) {
       if (!Object.hasOwn(b, key)) continue;
-      const inA = Object.prototype.hasOwnProperty.call(a, key);
+      const inA = Object.prototype.propertyIsEnumerable.call(a, key);
       if (!inA) {
         reportAll(b[key], pathFor(prefix, key), "added");
       }
@@ -1545,7 +1557,18 @@ const diffSettings = (before, after) => {
   for (const path of next.keys()) if (!old.has(path)) changes.push({ path, change: "added" });
   return changes.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
 };`,
-    hiddenTests: [{"call": "(() => {const values=[0,false,null,NaN,-0,[0],[NaN],{}, {x:1},{x:{y:2}}];const flatten=(node,prefix='',out=[])=>{for(const key of Object.keys(node)){const path=prefix?prefix+'.'+key:key,value=node[key];if(value!==null&&typeof value==='object'&&!Array.isArray(value))flatten(value,path,out);else out.push([path,value]);}return out;};for(const x of values)for(const y of values){const a=flatten({a:x}),b=flatten({a:y}),old=new Map(a),next=new Map(b),expected=[];for(const[path,value]of a){if(!next.has(path))expected.push({path,change:'removed'});else{const other=next.get(path),same=Array.isArray(value)&&Array.isArray(other)?value.length===other.length&&value.every((v,i)=>v===other[i]):value===other;if(!same)expected.push({path,change:'changed'});}}for(const[path]of b)if(!old.has(path))expected.push({path,change:'added'});expected.sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:0);if(JSON.stringify(diffSettings({a:x},{a:y}))!==JSON.stringify(expected))return false;}return true;})()", "expected": true}, {"call": "(() => {const before=Object.assign(Object.create(null),{['__proto__']:Object.freeze([NaN,-0]),constructor:Infinity}),after=Object.assign(Object.create(null),{['__proto__']:Object.freeze([NaN,0]),constructor:Infinity});Object.defineProperty(before,'ignored',{value:1});before[Symbol('ignored')]=true;Object.freeze(before);Object.freeze(after);const a=diffSettings(before,after),b=diffSettings(before,after);if(a===b||a[0]===b[0]||JSON.stringify(a)!==JSON.stringify([{path:'__proto__',change:'changed'}]))return false;a[0].change='mutated';a.push({});return a[0].change==='mutated'&&a.length===2&&b[0].change==='changed'&&Object.is(before.__proto__[1],-0)&&after.__proto__[1]===0&&diffSettings({}, {})!==diffSettings({},{});})()", "expected": true}, {"call": "(() => {let a={leaf:1},b={leaf:2};for(let i=0;i<63;i++){a=Object.freeze({k:a});b=Object.freeze({k:b});}const deep=diffSettings(Object.freeze(a),Object.freeze(b)),wideA=Object.freeze({items:Object.freeze(Array(9998).fill(0))}),wideB=Object.freeze({items:Object.freeze(Array(9998).fill(0).concat(1))});return deep.length===1&&deep[0].path===Array(63).fill('k').concat('leaf').join('.')&&deep[0].change==='changed'&&JSON.stringify(diffSettings(wideA,wideB))===JSON.stringify([{path:'items',change:'changed'}]);})()", "expected": true}, {"call": "diffSettings({ proxy: { host: \"x\", port: 1 } }, { proxy: null })", "expected": [{"path": "proxy", "change": "added"}, {"path": "proxy.host", "change": "removed"}, {"path": "proxy.port", "change": "removed"}]}, {"call": "diffSettings({ cache: false }, { cache: { size: 10 } })", "expected": [{"path": "cache", "change": "removed"}, {"path": "cache.size", "change": "added"}]}, {"call": "diffSettings({ list: [1, 2], mixed: [1, \"1\"] }, { list: [1, 2, 3], mixed: [1, 1] })", "expected": [{"path": "list", "change": "changed"}, {"path": "mixed", "change": "changed"}]}, {"call": "diffSettings({ a: { b: { c: { d: 1 } } } }, { a: { b: { c: { d: 1, e: 2 } } } })", "expected": [{"path": "a.b.c.e", "change": "added"}]}, {"call": "diffSettings({ gone: {}, stay: 1 }, { stay: 1, fresh: {} })", "expected": []}, {"call": "diffSettings({ ui: { dark: true, size: \"m\" }, beta: false }, { ui: { dark: true, size: \"l\", font: null }, beta: false, lang: \"en\" })", "expected": [{"path": "lang", "change": "added"}, {"path": "ui.font", "change": "added"}, {"path": "ui.size", "change": "changed"}]}],
+    hiddenTests: [
+      {
+        label: 'a nested leaf becomes visible or hidden when its property changes enumerability',
+        call: `(() => {
+          const hidden = Object.create(null);
+          Object.defineProperty(hidden, 'theme', { value: 'dark' });
+          Object.freeze(hidden);
+          const visible = Object.freeze({ theme: 'dark' });
+          return [diffSettings({ ui: hidden }, { ui: visible }), diffSettings({ ui: visible }, { ui: hidden })];
+        })()`,
+        expected: [[{ path: 'ui.theme', change: 'added' }], [{ path: 'ui.theme', change: 'removed' }]],
+      },{"call": "(() => {const values=[0,false,null,NaN,-0,[0],[NaN],{}, {x:1},{x:{y:2}}];const flatten=(node,prefix='',out=[])=>{for(const key of Object.keys(node)){const path=prefix?prefix+'.'+key:key,value=node[key];if(value!==null&&typeof value==='object'&&!Array.isArray(value))flatten(value,path,out);else out.push([path,value]);}return out;};for(const x of values)for(const y of values){const a=flatten({a:x}),b=flatten({a:y}),old=new Map(a),next=new Map(b),expected=[];for(const[path,value]of a){if(!next.has(path))expected.push({path,change:'removed'});else{const other=next.get(path),same=Array.isArray(value)&&Array.isArray(other)?value.length===other.length&&value.every((v,i)=>v===other[i]):value===other;if(!same)expected.push({path,change:'changed'});}}for(const[path]of b)if(!old.has(path))expected.push({path,change:'added'});expected.sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:0);if(JSON.stringify(diffSettings({a:x},{a:y}))!==JSON.stringify(expected))return false;}return true;})()", "expected": true}, {"call": "(() => {const before=Object.assign(Object.create(null),{['__proto__']:Object.freeze([NaN,-0]),constructor:Infinity}),after=Object.assign(Object.create(null),{['__proto__']:Object.freeze([NaN,0]),constructor:Infinity});Object.defineProperty(before,'ignored',{value:1});before[Symbol('ignored')]=true;Object.freeze(before);Object.freeze(after);const a=diffSettings(before,after),b=diffSettings(before,after);if(a===b||a[0]===b[0]||JSON.stringify(a)!==JSON.stringify([{path:'__proto__',change:'changed'}]))return false;a[0].change='mutated';a.push({});return a[0].change==='mutated'&&a.length===2&&b[0].change==='changed'&&Object.is(before.__proto__[1],-0)&&after.__proto__[1]===0&&diffSettings({}, {})!==diffSettings({},{});})()", "expected": true}, {"call": "(() => {let a={leaf:1},b={leaf:2};for(let i=0;i<63;i++){a=Object.freeze({k:a});b=Object.freeze({k:b});}const deep=diffSettings(Object.freeze(a),Object.freeze(b)),wideA=Object.freeze({items:Object.freeze(Array(9998).fill(0))}),wideB=Object.freeze({items:Object.freeze(Array(9998).fill(0).concat(1))});return deep.length===1&&deep[0].path===Array(63).fill('k').concat('leaf').join('.')&&deep[0].change==='changed'&&JSON.stringify(diffSettings(wideA,wideB))===JSON.stringify([{path:'items',change:'changed'}]);})()", "expected": true}, {"call": "diffSettings({ proxy: { host: \"x\", port: 1 } }, { proxy: null })", "expected": [{"path": "proxy", "change": "added"}, {"path": "proxy.host", "change": "removed"}, {"path": "proxy.port", "change": "removed"}]}, {"call": "diffSettings({ cache: false }, { cache: { size: 10 } })", "expected": [{"path": "cache", "change": "removed"}, {"path": "cache.size", "change": "added"}]}, {"call": "diffSettings({ list: [1, 2], mixed: [1, \"1\"] }, { list: [1, 2, 3], mixed: [1, 1] })", "expected": [{"path": "list", "change": "changed"}, {"path": "mixed", "change": "changed"}]}, {"call": "diffSettings({ a: { b: { c: { d: 1 } } } }, { a: { b: { c: { d: 1, e: 2 } } } })", "expected": [{"path": "a.b.c.e", "change": "added"}]}, {"call": "diffSettings({ gone: {}, stay: 1 }, { stay: 1, fresh: {} })", "expected": []}, {"call": "diffSettings({ ui: { dark: true, size: \"m\" }, beta: false }, { ui: { dark: true, size: \"l\", font: null }, beta: false, lang: \"en\" })", "expected": [{"path": "lang", "change": "added"}, {"path": "ui.font", "change": "added"}, {"path": "ui.size", "change": "changed"}]}],
   },
   'js-mh-safe-stringify': {
     solution: `const safeStringify = value => {
