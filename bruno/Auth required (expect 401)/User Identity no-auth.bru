@@ -1,0 +1,15 @@
+meta {
+  name: User Identity no-auth
+  type: http
+  seq: 33
+}
+
+get {
+  url: {{baseUrl}}/api/user/identity
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

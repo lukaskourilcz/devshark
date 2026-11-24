@@ -674,7 +674,8 @@ export async function runBillingSuite(db: Backend, lib: Lib): Promise<number> {
   const logged = async (run: () => Promise<unknown>) => {
     const lines: Array<Record<string, unknown>> = [];
     const real = console.log;
-    console.log = (...args: unknown[]) => {
+    const savedChannels = { warn: console.warn, error: console.error };
+    console.warn = console.error = console.log = (...args: unknown[]) => {
       for (const arg of args) {
         if (typeof arg !== 'string' || !arg.startsWith('{')) continue;
         try { lines.push(JSON.parse(arg)); } catch { /* not a log line */ }
@@ -684,7 +685,7 @@ export async function runBillingSuite(db: Backend, lib: Lib): Promise<number> {
     try {
       await run();
     } finally {
-      console.log = real;
+      console.log = real; Object.assign(console, savedChannels);
     }
     return lines;
   };

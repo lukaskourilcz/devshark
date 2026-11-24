@@ -1,0 +1,19 @@
+meta {
+  name: Admin Reset no-auth
+  type: http
+  seq: 55
+}
+
+post {
+  url: {{baseUrl}}/api/admin/reset
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 403
+}

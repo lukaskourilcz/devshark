@@ -1,0 +1,15 @@
+meta {
+  name: User Entitlement no-auth
+  type: http
+  seq: 18
+}
+
+get {
+  url: {{baseUrl}}/api/user/entitlement
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

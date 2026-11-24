@@ -1,0 +1,15 @@
+meta {
+  name: Admin Questions no-auth
+  type: http
+  seq: 51
+}
+
+get {
+  url: {{baseUrl}}/api/admin/questions
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 403
+}

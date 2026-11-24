@@ -1,0 +1,15 @@
+meta {
+  name: User Badges no-auth
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/user/badges
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Admin Save no-auth
+  type: http
+  seq: 52
+}
+
+post {
+  url: {{baseUrl}}/api/admin/save
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 403
+}

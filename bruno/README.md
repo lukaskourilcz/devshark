@@ -29,7 +29,9 @@ npx @usebruno/cli run bruno --env Local
   `play/*`) is hit **without** a Bearer token and asserts `res.status: eq 401`;
   `admin/*` answers 403 `forbidden` (`requireAdmin` in `lib/admin-auth.ts`),
   and its request asserts that. Run the folder before a deploy to catch a
-  route that lost its guard. CI does not run this collection.
+  route that lost its guard. The launch suite exercises these requests against local Auth and PostgREST fixtures.
+  Shop and room state accept guests. Cards is retired (410). Billing cancellation accepts signed email links and both webhooks authenticate the payment provider separately. Coding Reset uses the fresh guest `session` from GET `/api/quiz/roadmap?resource=coding-task&id=js-double-numbers` as its `codingSession` collection variable. Checkout lookup uses GET because starting checkout can be disabled globally.
+  Health requires a responsive database and grading runtime. An unconfigured local limiter reports `in-memory-fallback`. A configured limiter that cannot reach Redis reports `memory-fallback`.
 
 To exercise the authenticated *happy path*, set a `token` var in your
 environment (a Supabase access token) and add `auth: bearer` to a copy of the

@@ -1,0 +1,19 @@
+meta {
+  name: Roadmap Coding Reset no-auth
+  type: http
+  seq: 74
+}
+
+post {
+  url: {{baseUrl}}/api/quiz/roadmap?resource=coding-reset
+  body: json
+  auth: none
+}
+
+body:json {
+  {"session": "{{codingSession}}"}
+}
+
+assert {
+  res.status: eq 401
+}

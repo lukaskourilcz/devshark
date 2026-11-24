@@ -1,0 +1,19 @@
+meta {
+  name: User Protection no-auth
+  type: http
+  seq: 43
+}
+
+post {
+  url: {{baseUrl}}/api/user/protection
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

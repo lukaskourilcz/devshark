@@ -1,0 +1,15 @@
+meta {
+  name: User Practice Session no-auth
+  type: http
+  seq: 42
+}
+
+get {
+  url: {{baseUrl}}/api/user/practice-session
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

@@ -1,0 +1,19 @@
+meta {
+  name: User Friends Request no-auth
+  type: http
+  seq: 24
+}
+
+post {
+  url: {{baseUrl}}/api/user/friends-request
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

@@ -1,0 +1,15 @@
+meta {
+  name: User Wallet no-auth
+  type: http
+  seq: 47
+}
+
+get {
+  url: {{baseUrl}}/api/user/wallet
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

@@ -1,0 +1,15 @@
+meta {
+  name: Admin Logs no-auth
+  type: http
+  seq: 56
+}
+
+get {
+  url: {{baseUrl}}/api/admin/logs
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 403
+}
