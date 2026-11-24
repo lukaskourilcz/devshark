@@ -3,6 +3,7 @@
  * function bundle, since nothing imports them statically. */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import * as path from 'node:path';
 import type * as TS from 'typescript';
@@ -72,8 +73,18 @@ export function transpileOrNull(checker: TypeScriptChecker, code: string): strin
 export function nodeTypeScriptChecker(): TypeScriptChecker {
   if (checker) return checker;
   const libDir = typescriptLibDir();
+  const files = readdirSync(libDir);
+  const checkerFiles = files.filter(isCheckerLibFile);
+  if (process.env.VERCEL_ENV === 'preview' && process.env.DEVSHARK_AUDIT_TS_FILES === '1') {
+    const shipped = files.filter(name => /^lib\..+\.d\.ts$/.test(name)).sort();
+    console.log(JSON.stringify({
+      route: 'coding/typescript', kind: 'preview_declaration_inventory',
+      shipped: shipped.length, used: checkerFiles.length,
+      names_sha256: createHash('sha256').update(shipped.join('\n')).digest('hex'),
+    }));
+  }
   const libs = Object.fromEntries(
-    readdirSync(libDir).filter(isCheckerLibFile).map((name) => [name, readFileSync(path.join(libDir, name), 'utf8')]),
+    checkerFiles.map((name) => [name, readFileSync(path.join(libDir, name), 'utf8')]),
   );
   checker = createTypeScript({ ts: loadTypeScript(), libs });
   return checker;
