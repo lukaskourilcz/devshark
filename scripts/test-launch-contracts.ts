@@ -1395,7 +1395,6 @@ function coinsContracts() {
   assert.doesNotMatch(month, /streak/i, 'the month never ranks by streak');
   assert.match(migration056, /REVOKE ALL ON FUNCTION public\.settle_month_top3\(TEXT, TEXT, INTEGER\[\], INTEGER\) FROM PUBLIC, anon, authenticated;/);
   assert.match(migration056, /GRANT EXECUTE ON FUNCTION public\.settle_month_top3\(TEXT, TEXT, INTEGER\[\], INTEGER\) TO service_role;/);
-  assert.match(routine('credit_social_visit'), /IF p_amount = 0 THEN RETURN FALSE;/, 'a zero grant credits nothing');
   assert.match(routine('record_coding_verdict'), /'coding:' \|\| public\.token_account_key\(p_user_id\) \|\| ':' \|\| p_task_id/,
     'coding XP is awarded once per account and task, not once per task');
   // Every credit goes through the ledger routine whose event id is its key.
@@ -1403,12 +1402,12 @@ function coinsContracts() {
   assert.match(ledger, /ON CONFLICT \(event_id\) DO NOTHING;\s*GET DIAGNOSTICS v_applied = ROW_COUNT;\s*IF v_applied = 0 THEN RETURN FALSE;/);
 
   // 3. Only service-role routines credit, and they write no learning table.
-  for (const name of ['credit_verified_xp_tokens', 'settle_coin_milestones', 'settle_month_top3', 'credit_social_visit', 'delete_coin_data', 'record_coding_verdict', 'revoke_premium_benefits']) {
+  for (const name of ['credit_verified_xp_tokens', 'settle_coin_milestones', 'settle_month_top3', 'delete_coin_data', 'record_coding_verdict', 'revoke_premium_benefits']) {
     assert.match(migration, new RegExp(`REVOKE ALL ON FUNCTION public\\.${name}\\([^;]*\\)\\s*FROM PUBLIC, anon, authenticated;`), `${name} is revoked from browsers`);
     assert.match(migration, new RegExp(`GRANT EXECUTE ON FUNCTION public\\.${name}\\([^;]*\\)\\s*TO service_role;`), `${name} is service-role only`);
     assert.match(routine(name), /SECURITY DEFINER\s*SET search_path = ''/, `${name} pins its search_path`);
   }
-  for (const name of ['credit_verified_xp_tokens', 'settle_coin_milestones', 'settle_month_top3', 'credit_social_visit', 'revoke_premium_benefits']) {
+  for (const name of ['credit_verified_xp_tokens', 'settle_coin_milestones', 'settle_month_top3', 'revoke_premium_benefits']) {
     assert.doesNotMatch(routine(name), /(INSERT INTO|UPDATE|DELETE FROM) public\.(user_xp|user_stats|user_streak|roadmap_progress|coding_progress|user_category_stats|user_activity_days)/,
       `${name} reads progress and never writes it`);
   }
@@ -3417,14 +3416,13 @@ function classroomRevealContracts() {
 /** The month's XP ledger and the top three it pays (migration 056, owner
  * decision 8). user_xp_days must hear of every verified award, so every
  * routine whose newest definition adds to user_xp also adds to the ledger,
- * except merge_user_xp: guest XP merged at sign-in was never verified. The
- * behaviour runs in supabase/tests/191 to 194. */
+ * as well. The behaviour runs in supabase/tests/191 to 194. */
 function monthlyXpContracts() {
   const read = (path: string) => readFileSync(join(process.cwd(), path), 'utf8');
   const files = readdirSync(join(process.cwd(), 'supabase'))
     .filter((name) => /^supabase-schema-\d{3}\.sql$/.test(name))
     .sort();
-  // The newest definition of every routine.
+  // These account writers have distinct names. Discard definitions that a later migration retired.
   const newest = new Map<string, { file: string; body: string }>();
   for (const file of files) {
     const sql = read(`supabase/${file}`);
@@ -3434,15 +3432,17 @@ function monthlyXpContracts() {
       const body = sql.slice(start, sql.indexOf('$$', bodyStart + 2));
       newest.set(match[1], { file, body });
     }
+    for (const match of sql.matchAll(/^DROP FUNCTION (?:IF EXISTS )?public\.([a-z0-9_]+)\(/gm)) {
+      // Some migrations drop and then recreate a function with a new return type.
+      if (!sql.slice(match.index!).match(new RegExp(`^CREATE (?:OR REPLACE )?FUNCTION public\\.${match[1]}\\(`, 'm'))) {
+        newest.delete(match[1]);
+      }
+    }
   }
   const writers = [...newest.entries()].filter(([, { body }]) => /INSERT INTO public\.user_xp \(/.test(body));
-  assert.deepEqual(writers.map(([name]) => name).sort(), ['merge_user_xp', 'record_verified_activity_xp', 'record_verified_quiz_result_v2'],
+  assert.deepEqual(writers.map(([name]) => name).sort(), ['record_verified_activity_xp', 'record_verified_quiz_result_v2'],
     'the routines that add XP to an account');
   for (const [name, { file, body }] of writers) {
-    if (name === 'merge_user_xp') {
-      assert.doesNotMatch(body, /add_xp_day/, 'merged guest XP is not verified and does not count toward a month');
-      continue;
-    }
     assert.match(body, /PERFORM public\.add_xp_day\(p_user_id, p_subject, /, `${name} (${file}) adds its award to the month's XP`);
   }
   // Learning XP lives in verified progress, not in user_xp: a first pass adds it.

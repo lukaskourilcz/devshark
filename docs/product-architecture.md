@@ -220,8 +220,8 @@ own transaction: `record_verified_quiz_result_v2`,
 `record_verified_activity_xp` (a Challenge run, a coding pass and its repeat
 XP, a Learn step's repeat XP) and `complete_verified_roadmap_attempt` (a Learn
 level or part test passed for the first time, at `learn_step_xp`, the numbers
-of `shared/progression.ts`). Guest XP merged at sign-in (`merge_user_xp`) does
-not count, because nothing verified it. A launch contract fails if a routine
+of `shared/progression.ts`). Historical guest balances do not enter the monthly ledger. Migration 088 retires
+the unused account balance merge. A launch contract fails if a routine
 adds to `user_xp` without adding to the ledger. `month_xp_ranks` is the one
 ranking (`RANK()`: 1, 1, 3); `month_xp_leaderboard` and
 `month_xp_leaderboard_rank` serve the board and the learner's own line. The
