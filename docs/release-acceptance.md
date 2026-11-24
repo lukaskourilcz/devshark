@@ -9348,3 +9348,61 @@ PR [#688](https://github.com/lukaskourilcz/devshark/pull/688) merged at `87dcd86
 These are lab and single-observer numbers, not field Core Web Vitals. The full eight-route matrix stays local, as recorded earlier.
 
 **Still open.** Sentry's ten release-tagged events need an authorized sign-in. The hosted per-handler comparison (F7) needs a day of production traffic on the new operation labels. Public Realtime stays on until older tabs have refreshed onto the private Play client, which shipped in this deployment. The local Mac `ci:parity` run on the merged source was not repeated; the required CI jobs on the merged head are the gate.
+
+## F7 serverless latency closeout (24 November 2026)
+
+This section closes out #636 against production `87dcd867` (`dpl_vPPHKGead2nYnwHhp6csEig2B3i3`, arn1). One guest run of `npm run perf:cold-start -- --url=https://devshark.app --samples=3 --bypass-cache` sent the fixed 36 anonymous GETs at 22:19 UTC: three per handler, the same reads and refusals as the F1 production run on 19 November at `cbdfa2aa`. All 36 answered with their expected status and a CDN MISS, with zero errors, retries or redirects. No account, attempt, score, reward or order was involved. [Raw observations](audit/f7-production-handlers-2026-11-24.json) · [F1 observations](audit/f1-handler-baseline-2026-11-19.json)
+
+### Handler first byte and app span
+
+Medians of three samples. First byte is measured from this observer, so it includes DNS, TCP, TLS and edge time. The median TCP connect was 18.2 ms in F1 and 28.3 ms here: the two observers' networks differed. The `app` Server-Timing span starts after module evaluation, so it measures handler work, not cold start.
+
+| Handler | Probe | F1 first byte ms | 87dcd867 first byte ms | Change | F1 app ms | 87dcd867 app ms | Change | Instance marks now |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| health | read 200 | 331.6 | 384.4 | +15.9% | 64.9 | 42.1 | -35.1% | repeat 3 |
+| settings | read 200 | 147.4 | 206.9 | +40.3% | 0.6 | 0.3 | both under 1 ms | unknown 3 |
+| leaderboard | read 200 | 377.1 | 484.0 | +28.3% | 106.8 | 79.0 | -26.0% | unknown 3 |
+| questions | read 200 | 429.6 | 309.6 | -27.9% | 161.5 | 139.9 | -13.4% | unknown 3 |
+| roadmap | read 200 | 191.4 | 295.3 | +54.3% | 48.9 | 48.4 | -1.0% | unknown 3 |
+| challenge | refusal 404 | 145.8 | 215.5 | +47.8% | 0.1 | 0.2 | both under 1 ms | first 1, repeat 2 |
+| daily | refusal 400 | 253.5 | 408.1 | +61.0% | 94.3 | 94.1 | -0.2% | first 1, repeat 2 |
+| submit | refusal 405 | 145.8 | 237.1 | +62.6% | 0.1 | 0.1 | both under 1 ms | first 1, repeat 2 |
+| flashcards | refusal 401 | 144.7 | 165.2 | +14.2% | 0.1 | 0.1 | both under 1 ms | first 1, repeat 2 |
+| user | refusal 404 | 141.2 | 242.6 | +71.9% | 0.1 | 0.1 | both under 1 ms | first 1, repeat 2 |
+| play | refusal 404 | 150.1 | 231.0 | +53.9% | 0.1 | 0.1 | both under 1 ms | first 1, repeat 2 |
+| admin | refusal 403 | 205.6 | 291.0 | +41.6% | 48.8 | 52.6 | +7.8% | first 1, repeat 2 |
+
+On the first module invocation, first byte moved as follows for the seven handlers marked `first` in both runs: challenge 172.8 → 198.2 ms, daily 465.2 → 408.1, submit 172.0 → 194.4, flashcards 194.4 → 165.2, user 169.5 → 271.4, play 316.6 → 296.6 and admin 305.6 → 363.9. Health was `first` in F1 and `repeat` here.
+
+**Result:** the acceptance box asks for every handler's cold start below F1. That is not met and this run cannot show it. One first-byte median of twelve is lower. Five of the six app spans above 1 ms are lower, and admin's is 7.8% higher. A first-invocation marker identifies the request that first ran the timing module. It does not measure platform boot, and the four shared public reads stay `unknown`. A literal cold-start comparison needs provider init duration per handler, which neither the collector nor the Vercel runtime log exposes. The local import table under "Handler import timings" above remains the closest proxy.
+
+### Upstream calls per operation, from Server-Timing
+
+Per sample, as `db_http`/`auth_http` call counts in F1 and `db_http`/`auth_http`/`redis_http` now. F1 had no Redis span, so its Redis count is unknown rather than zero.
+
+| Handler probe | F1 db/auth | 87dcd867 db/auth/redis |
+| --- | --- | --- |
+| health | 2/0 · 2/0 · 2/0 | 2/0/1 · 2/0/0 · 2/0/0 |
+| settings | 1/0 · 0/0 · 0/0 | 1/0/0 · 0/0/0 · 0/0/0 |
+| leaderboard | 1/0 · 1/0 · 1/0 | 1/0/1 · 1/0/1 · 1/0/1 |
+| questions | 1/0 · 0/0 · 0/0 | 1/0/2 · 0/0/2 · 0/0/2 |
+| roadmap | 1/0 · 0/0 · 0/0 | 1/0/1 · 0/0/1 · 0/0/1 |
+| challenge | 0/0 · 0/0 · 0/0 | 0/0/0 · 0/0/0 · 0/0/0 |
+| daily | 0/0 · 0/0 · 0/0 | 0/0/2 · 0/0/2 · 0/0/2 |
+| submit | 0/0 · 0/0 · 0/0 | 0/0/0 · 0/0/0 · 0/0/0 |
+| flashcards | 0/0 · 0/0 · 0/0 | 0/0/0 · 0/0/0 · 0/0/0 |
+| user | 0/0 · 0/0 · 0/0 | 0/0/0 · 0/0/0 · 0/0/0 |
+| play | 1/0 · 0/0 · 0/0 | 1/0/0 · 0/0/0 · 0/0/0 |
+| admin | 0/0 · 0/0 · 0/0 | 0/0/1 · 0/0/1 · 0/0/1 |
+
+Database and Auth counts are identical on all 36 matched requests. These probes are guest reads and refusals, so F7's reductions do not show up here. Its 31 → 12 service-client constructions happen at import, and its lazy imports make no network call.
+
+**Ten most frequent operations.** Production logs the operation label only since `87dcd867`. Between the release at 21:45 UTC and 22:18 UTC the deployment logged 34 request records, all from the release checks: 13 `quiz/roadmap:coding-submit` (0 db, 0 auth, 3 redis each, including three `grader_busy` 503s), 10 `quiz/roadmap:coding-task` (0/0/2), 8 `settings` (1/0/0 on 200, 0/0/0 on the one 304) and 3 `health` (2/0/1). No learner traffic was in the window, so there is no top-ten ranking yet. Older logs carry route-level counts only, so a per-operation "before" cannot be recovered. The box stays open until a day of production traffic carries the labels. The comparison then has to set those counts against the representative fixture budgets below, not against historical logs.
+
+### Status of the other acceptance boxes
+
+| Box | State | Evidence |
+| --- | --- | --- |
+| `memory` per function and roadmap `includeFiles` | `includeFiles` met. `memory` is a documented platform exception. | `vercel.json` includes `lib.{es,decorators}*.d.ts` and excludes the eleven non-reader declarations from both function rules. The 24 November Preview TypeScript Submit logged 91 shipped and 91 used `lib.*.d.ts` files ("Epic F release and released-site checks" above). With Fluid compute, Vercel sets memory in the project dashboard, and a `memory` key in `vercel.json` only causes a build warning. `docs/product-architecture.md` records the choice to keep Standard (2,048 MB provisioned, 223-473 MB peak over 12-18 November). |
+| Cache headers on settings, Learn map, Daily and public boards | Met, with two recorded privacy exceptions | `scripts/test-public-json.ts`, run by `scripts/test-request-timing.ts`, asserts settings `public, s-maxage=15, stale-while-revalidate=60` and the map `public, max-age=60, s-maxage=60, stale-while-revalidate=300`, with ETag/304 behavior. Daily sessions stay `private, no-store` because each carries a sealed, caller-bound session (`api/quiz/daily.ts:192`, asserted in `test-public-json.ts`). The public boards keep `public, s-maxage=60` with no stale extension, so a hidden name leaves every board within about a minute. `scripts/test-launch-contracts.ts:5215-5218` and `test-public-json.ts:228` assert this. |
+| `test:performance` with tightened budgets | Met | `scripts/test-f7-operation-counts.ts` now holds an Auth/REST/Upstash HTTP maximum for each of the 52 states of the ten representative operations, equal to the counts observed on 24 November. A missing budget fails, and so does any extra round trip. Lowering the answer operation's REST budget from 2 to 1 failed as expected. `npm run test:performance` passes. |
