@@ -339,6 +339,7 @@ const PLAN = [
   step('check:deploy-contexts', npmRun('check:deploy-contexts')),
   step('check:binary-size', npmRun('check:binary-size')),
   step('check:images', npmRun('check:images'), { needs: ['build'] }),
+  step('check:security:dist', npmRun('check:security', '-- --dist'), { needs: ['build'] }),
   step('check:public', npmRun('check:public'), { env: BUILD_ENV, needs: ['build'] }),
   step('check:bundle', npmRun('check:bundle'), { env: BUILD_ENV, needs: ['build'] }),
   step('audit:prod', 'npm audit --omit=dev'),

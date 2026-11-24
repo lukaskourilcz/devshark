@@ -28,7 +28,7 @@
         "Referrer-Policy": "strict-origin-when-cross-origin",
         "Permissions-Policy": "camera=(), microphone=(), geolocation=(), interest-cohort=()",
         "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-        "Content-Security-Policy": "default-src 'self'; object-src 'none'; script-src 'self' https://js.stripe.com https://*.js.stripe.com https://checkout.stripe.com 'sha256-GJpptaB9Bz6CfF0DRrD6q4aJv4Y6KtADhfPP5CcRGMQ='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://*.googleusercontent.com https://*.stripe.com https://*.link.com; connect-src 'self' https://api.stripe.com https://checkout.stripe.com https://link.com https://*.link.com https://*.supabase.co wss://*.supabase.co https://*.ingest.de.sentry.io; frame-src 'self' https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://checkout.stripe.com https://link.com https://*.link.com; child-src 'self' https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://checkout.stripe.com https://link.com https://*.link.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; worker-src 'self' blob:"
+        "Content-Security-Policy": "default-src 'self'; object-src 'none'; script-src 'self' https://js.stripe.com https://*.js.stripe.com https://checkout.stripe.com 'sha256-GJpptaB9Bz6CfF0DRrD6q4aJv4Y6KtADhfPP5CcRGMQ='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://*.googleusercontent.com https://*.stripe.com https://*.link.com; connect-src 'self' https://api.stripe.com https://checkout.stripe.com https://link.com https://*.link.com https://rvlybcjdpafwyeuojvhl.supabase.co wss://rvlybcjdpafwyeuojvhl.supabase.co https://o4511808879001600.ingest.de.sentry.io; frame-src 'self' https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://checkout.stripe.com https://link.com https://*.link.com; child-src 'self' https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://checkout.stripe.com https://link.com https://*.link.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; worker-src 'self'; upgrade-insecure-requests"
       },
       "continue": true
     },
@@ -48,16 +48,9 @@
       "continue": true
     },
     {
-      "src": "^/(?:t|%74)(?:r|%72)(?:i|%69)(?:a|%61)(?:g|%67)(?:e|%65)(?:-|%2[dD])(?:v|%76)(?:e|%65)(?:r|%72)(?:d|%64)(?:i|%69)(?:c|%63)(?:t|%74)(?:s|%73)(?:\\.|%2[eE])(?:j|%6[aA])(?:s|%73)(?:o|%6[fF])(?:n|%6[eE])$",
-      "headers": {
-        "Cache-Control": "no-store"
-      },
-      "status": 404
-    },
-    {
       "src": "^/assets/coding-worker/.*$",
       "headers": {
-        "Content-Security-Policy": "default-src 'none'; script-src 'self' 'unsafe-eval'; connect-src 'self'",
+        "Content-Security-Policy": "default-src 'none'; script-src 'self' 'unsafe-eval'",
         "X-Content-Type-Options": "nosniff",
         "Cross-Origin-Resource-Policy": "same-origin"
       },
@@ -66,7 +59,7 @@
     {
       "src": "^/sandbox/.*$",
       "headers": {
-        "Content-Security-Policy": "default-src 'none'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src data:; font-src 'self'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'",
+        "Content-Security-Policy": "default-src 'none'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src data:; font-src 'self'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'; sandbox allow-scripts allow-forms",
         "X-Content-Type-Options": "nosniff",
         "Referrer-Policy": "no-referrer",
         "Access-Control-Allow-Origin": "*"
@@ -74,11 +67,32 @@
       "continue": true
     },
     {
-      "src": "^/assets/.*$",
+      "src": "^/(?!api(?:/|$)|sandbox(?:/|$)|ingest(?:/|$)).*$",
       "headers": {
         "Access-Control-Allow-Origin": "https://devshark.app"
       },
       "continue": true
+    },
+    {
+      "src": "^/api(?:/|$).*",
+      "headers": {
+        "Cross-Origin-Resource-Policy": "same-origin"
+      },
+      "continue": true
+    },
+    {
+      "src": "^/(?:t|%74)(?:r|%72)(?:i|%69)(?:a|%61)(?:g|%67)(?:e|%65)(?:-|%2[dD])(?:v|%76)(?:e|%65)(?:r|%72)(?:d|%64)(?:i|%69)(?:c|%63)(?:t|%74)(?:s|%73)(?:\\.|%2[eE])(?:j|%6[aA])(?:s|%73)(?:o|%6[fF])(?:n|%6[eE])$",
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "status": 404
+    },
+    {
+      "src": "^/(?:sandbox/)?assets/.+\\.map$",
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "status": 404
     },
     {
       "src": "^/roadmap/specializations/fde/?$",

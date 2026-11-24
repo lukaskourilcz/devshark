@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
-import { AUTH_LANDING_PATHS, RESET_PASSWORD_PATH, takeAuthReturn } from './authReturn';
+import { isAuthLandingPath, RESET_PASSWORD_PATH, takeAuthReturn } from './authReturn';
 
 /**
  * Two moves, both made by App:
@@ -21,7 +21,7 @@ export function useAuthLanding(user: User | null, passwordRecovery: boolean): vo
   useEffect(() => {
     if (!user) return;
     const path = takeAuthReturn();
-    if (AUTH_LANDING_PATHS.includes(window.location.pathname)) return;
+    if (isAuthLandingPath(window.location.pathname)) return;
     if (path && path !== window.location.pathname + window.location.search) navigate(path, { replace: true });
   }, [user, navigate]);
 

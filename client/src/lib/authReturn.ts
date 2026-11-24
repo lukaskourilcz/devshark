@@ -12,6 +12,8 @@
 // paths only, and goes stale after fifteen minutes, so an abandoned sign-in
 // never hijacks a later one.
 
+import { isSafeRedirectPath } from './safeRedirect';
+
 const KEY = 'devshark:auth-return';
 
 /** Where a confirmation email's link lands (lib/emailAuth.ts). */
@@ -20,15 +22,13 @@ export const CONFIRMED_PATH = '/auth/confirmed';
 export const RESET_PASSWORD_PATH = '/reset-password';
 /** Pages an email link lands on. They say what happened themselves and offer
  * the way on, so the app shell sends nobody away from them after a sign-in. */
-export const AUTH_LANDING_PATHS: readonly string[] = [CONFIRMED_PATH, RESET_PASSWORD_PATH];
+const AUTH_LANDING_PATHS: readonly string[] = [CONFIRMED_PATH, RESET_PASSWORD_PATH];
 const MAX_AGE_MS = 15 * 60_000;
 
-/** A path on this origin: one leading slash, no scheme, no backslash, no
- * whitespace, and short enough to be a real route. */
-export function isSafeReturnPath(path: unknown): path is string {
-  return typeof path === 'string'
-    && path.length <= 512
-    && /^\/(?![/\\])[^\s\\]*$/.test(path);
+export const isSafeReturnPath = isSafeRedirectPath;
+
+export function isAuthLandingPath(path: string): boolean {
+  return AUTH_LANDING_PATHS.includes(path.split(/[?#]/u, 1)[0].replace(/\/+$/, '').toLowerCase());
 }
 
 /** The page the visitor is on (path, query and fragment), as a return path;

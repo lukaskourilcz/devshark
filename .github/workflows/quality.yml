@@ -134,7 +134,7 @@ jobs:
           VITE_SUPABASE_URL=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_URL")
           VITE_SUPABASE_ANON_KEY=$(node -p "require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_ANON_KEY")
           export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY
-          npm run check:images && npm run check:public && npm run check:bundle
+          npm run check:images && npm run check:security -- --dist && npm run check:public && npm run check:bundle
         id: check-build
         env:
           VITE_PRODUCT: devshark

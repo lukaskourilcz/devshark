@@ -182,13 +182,13 @@ async function main(): Promise<void> {
       res.writeHead(404).end('not found');
       return;
     }
-    // Mirror the production header for /assets/*: the sandbox document has an
+    // Mirror the production header for /sandbox/*: the sandbox document has an
     // opaque origin, so its `crossorigin` module script is a CORS request that
     // only loads when the asset answers with Access-Control-Allow-Origin.
     const headers: Record<string, string> = {
       'content-type': MIME[path.extname(target)] ?? 'application/octet-stream',
     };
-    if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/sandbox/')) {
+    if (url.pathname.startsWith('/sandbox/')) {
       headers['access-control-allow-origin'] = '*';
     }
     res.writeHead(200, headers);

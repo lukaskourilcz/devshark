@@ -1,3 +1,4 @@
+import { isGithubInstallUrl } from '../lib/safeRedirect';
 // Typed wrappers over the coding API resources plus the TanStack Query hooks
 // the section screens use. Query keys live under ['coding', …] so a submit
 // can invalidate exactly the progress it changed.
@@ -101,8 +102,10 @@ export function saveCodingDraft(id: string, code: string, base: string | null): 
 export function fetchGithubConnection(signal?: AbortSignal): Promise<GithubConnectionResponse> {
   return apiFetch<GithubConnectionResponse>(`${USER}?op=github-connection`, { signal });
 }
-export function startGithubConnect(): Promise<GithubConnectStartResponse> {
-  return apiFetch<GithubConnectStartResponse>(`${USER}?op=github-connect-start`, { method: 'POST', body: '{}' });
+export async function startGithubConnect(): Promise<GithubConnectStartResponse> {
+  const response = await apiFetch<GithubConnectStartResponse>(`${USER}?op=github-connect-start`, { method: 'POST', body: '{}' });
+  if (!isGithubInstallUrl(response.url)) throw new Error('GitHub returned an invalid installation link.');
+  return response;
 }
 /** `code` is GitHub's one-time user authorization from the install redirect;
  * the server exchanges it to check the installation is the learner's own. */

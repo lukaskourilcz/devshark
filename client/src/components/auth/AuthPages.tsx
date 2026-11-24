@@ -20,7 +20,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@astryxdesign/core/Button';
 import { useT } from '../../i18n/LanguageContext';
 import { useAuth } from '../../lib/auth';
-import { AUTH_LANDING_PATHS, isSafeReturnPath } from '../../lib/authReturn';
+import { isAuthLandingPath, isSafeReturnPath } from '../../lib/authReturn';
 import {
   PASSWORD_MIN_LENGTH,
   emailProblem,
@@ -43,7 +43,7 @@ import { EmailField, FailureBanner, PasswordField, useFieldMessage, withEmail } 
 /** Where Continue goes: the page that asked for the account, when it is a
  * page of this site and not one of these two. */
 function continuePath(next: string | null): string {
-  if (!next || !isSafeReturnPath(next) || AUTH_LANDING_PATHS.some((path) => next.startsWith(path))) return '/';
+  if (!next || !isSafeReturnPath(next) || isAuthLandingPath(next)) return '/';
   return next;
 }
 
