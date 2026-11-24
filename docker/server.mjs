@@ -236,9 +236,13 @@ function sendFile(res, file, status, headers) {
   createReadStream(file).pipe(res);
 }
 
-function applyHeaderRoutes(list, pathname, headers) {
+function matchesHost(route, host) {
+  return !route.has || route.has.every(condition => condition.type === 'host' && condition.value === host);
+}
+
+function applyHeaderRoutes(list, pathname, headers, host) {
   for (const route of list) {
-    if (!route.src || !route.continue || !route.headers) continue;
+    if (!route.src || !route.continue || !route.headers || !matchesHost(route, host)) continue;
     if (new RegExp(route.src).test(pathname)) Object.assign(headers, route.headers);
   }
 }
@@ -273,11 +277,12 @@ function dropUpgradeToken(res) {
 async function handle(req, res) {
   const url = new URL(req.url ?? '/', 'http://localhost');
   const pathname = url.pathname;
+  const host = (req.headers.host ?? '').toLowerCase().replace(/:[0-9]+$/, '');
   const headers = {};
   if (!overHttps(req)) dropUpgradeToken(res);
 
   if (!decodable(pathname)) {
-    applyHeaderRoutes(beforeFs, pathname, headers);
+    applyHeaderRoutes(beforeFs, pathname, headers, host);
     for (const [name, value] of Object.entries(headers)) res.setHeader(name, value);
     res.statusCode = 400;
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -286,7 +291,7 @@ async function handle(req, res) {
   }
 
   for (const route of beforeFs) {
-    if (!route.src) continue;
+    if (!route.src || !matchesHost(route, host)) continue;
     const match = new RegExp(route.src).exec(pathname);
     if (!match) continue;
     if (route.continue) { if (route.headers) Object.assign(headers, route.headers); continue; }
@@ -319,7 +324,7 @@ async function handle(req, res) {
 
   const direct = staticFile(pathname);
   if (direct) {
-    applyHeaderRoutes(hitRoutes, pathname, headers);
+    applyHeaderRoutes(hitRoutes, pathname, headers, host);
     sendFile(res, direct, 200, headers);
     return;
   }
@@ -342,7 +347,7 @@ async function handle(req, res) {
     }
     const file = staticFile(target);
     if (file) {
-      applyHeaderRoutes(hitRoutes, target, headers);
+      applyHeaderRoutes(hitRoutes, target, headers, host);
       sendFile(res, file, 200, headers);
       return;
     }

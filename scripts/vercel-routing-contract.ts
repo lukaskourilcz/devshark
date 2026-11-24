@@ -32,6 +32,7 @@ interface Route {
   check?: boolean;
   headers?: Record<string, string>;
   handle?: string;
+  has?: Array<{ type: 'host'; value: string }>;
 }
 
 interface VercelConfig {
@@ -71,10 +72,10 @@ export function routePhases(config: VercelConfig = readVercelConfig()): Record<P
 const routeMatches = (route: Route, path: string) => route.src !== undefined && new RegExp(route.src).test(path);
 
 /** The headers the routes of one phase give a path, later routes winning, keys lower-cased. */
-export function phaseHeaders(path: string, phase: Phase, phases = routePhases()): Record<string, string> {
+export function phaseHeaders(path: string, phase: Phase, phases = routePhases(), host = 'devshark.app'): Record<string, string> {
   const headers: Record<string, string> = {};
   for (const route of phases[phase]) {
-    if (!routeMatches(route, path)) continue;
+    if (!routeMatches(route, path) || route.has?.some(condition => condition.type !== 'host' || condition.value !== host)) continue;
     for (const [key, value] of Object.entries(route.headers ?? {})) headers[key.toLowerCase()] = value;
   }
   return headers;
@@ -141,6 +142,11 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
   }
   for (const path of ['/', '/premium', '/premium/cancel', '/daily', '/topics/javascript-closures']) {
     assert.equal(phaseHeaders(path, 'main', phases)['x-robots-tag'], undefined, `${path} remains indexable`);
+  }
+
+  for (const path of ['/', '/premium', '/daily']) {
+    assert.equal(phaseHeaders(path, 'main', phases, 'react-express-app-five.vercel.app')['x-robots-tag'], 'noindex');
+    assert.equal(phaseHeaders(path, 'main', phases, 'another.vercel.app')['x-robots-tag'], undefined);
   }
 
   // Main-phase rules normally add headers. Reviewed terminal exceptions

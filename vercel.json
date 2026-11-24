@@ -21,6 +21,12 @@
   },
   "routes": [
     {
+      "src": "^/.*$",
+      "has": [{ "type": "host", "value": "react-express-app-five.vercel.app" }],
+      "headers": { "X-Robots-Tag": "noindex" },
+      "continue": true
+    },
+    {
       "src": "^/(?!assets/coding-worker/|sandbox/).*$",
       "headers": {
         "X-Content-Type-Options": "nosniff",

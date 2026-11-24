@@ -377,7 +377,7 @@ if (url) {
     || (name === 'x-robots-tag' && value === 'noindex' && origin.hostname.endsWith('.vercel.app'));
   const namedHeaders = headerNames(config);
   for (const { pathname, response, body } of probes) {
-    const expected = vercelAnswer(config, pathname, path => deployed.has(path));
+    const expected = vercelAnswer(config, pathname, path => deployed.has(path), origin.hostname);
     const before = mismatches.length;
     if (expected.status !== null && response.status !== expected.status) {
       mismatches.push(`${pathname}: status ${response.status}, vercel.json gives ${expected.status} (${expected.ends})`);
