@@ -167,7 +167,7 @@ jobs:
             package-lock.json
             client/package-lock.json
       - run: npm ci --no-audit && npm ci --no-audit --prefix client
-      - run: npm run test:coding
+      - run: CODING_RECEIPTS=1 npm run test:coding
   browser:
     needs: client-build
     runs-on: ubuntu-latest
