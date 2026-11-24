@@ -16,6 +16,34 @@ describe('learner navigation', () => {
     expect(isAuthLandingPath('/Auth/Confirmed/?next=/coding')).toBe(true);
     expect(isAuthLandingPath('/auth/confirmed-next')).toBe(false);
   });
+  // The hostile targets #639 names, plus their encoded and whitespace forms:
+  // each would leave devshark.app or run script if a page navigated to it.
+  it.each([
+    '//evil.example',
+    '//evil.example/learn',
+    'https://evil.example',
+    'http://evil.example/learn?x=1',
+    'javascript:alert(1)',
+    'JavaScript:alert(1)',
+    ' javascript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    '\\\\evil.example',
+    '/\\evil.example',
+    '/%5Cevil.example',
+    '/%2F%2Fevil.example',
+    '/\t/evil.example',
+    '/\n/evil.example',
+    'learn',
+    '',
+  ])('rejects %j as a return path', target => {
+    expect(isSafeRedirectPath(target)).toBe(false);
+    expect(isSafeReturnPath(target)).toBe(false);
+  });
+  it('rejects values that are not strings', () => {
+    for (const value of [undefined, null, 1, ['/learn'], { pathname: '/learn' }]) {
+      expect(isSafeRedirectPath(value)).toBe(false);
+    }
+  });
   it('recognizes the GitHub App installation page', () => {
     expect(isGithubInstallUrl('https://github.com/apps/devshark-garden/installations/new?state=abc')).toBe(true);
     expect(isGithubInstallUrl('https://example.org/apps/devshark-garden/installations/new')).toBe(false);
