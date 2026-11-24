@@ -8,9 +8,7 @@ const TEST_DIR = join(__dirname, 'tests/browser');
 // which fails a test on a console.error or an unhandled rejection. Playwright
 // cannot inject a fixture from the config, so the config refuses to start
 // while a spec imports a value from '@playwright/test' (types may come from
-// either module). F15 owns the two specs below in the Epic F wave (#629);
-// F12-21 moves them to console-clean and removes this list.
-const CONSOLE_CLEAN_PENDING = new Set(['public.spec.ts', 'consent-network.spec.ts']);
+// either module).
 
 /** True when an import clause binds a value, not only types. */
 function bindsValue(clause: string): boolean {
@@ -24,7 +22,7 @@ function bindsValue(clause: string): boolean {
 
 const PLAYWRIGHT_IMPORT = /\bimport\s+([^'";]+?)\s+from\s+['"]@playwright\/test['"]/g;
 const outsideConsoleClean = readdirSync(TEST_DIR)
-  .filter((file) => file.endsWith('.spec.ts') && !CONSOLE_CLEAN_PENDING.has(file))
+  .filter((file) => file.endsWith('.spec.ts'))
   .filter((file) => [...readFileSync(join(TEST_DIR, file), 'utf8').matchAll(PLAYWRIGHT_IMPORT)].some(([, clause]) => bindsValue(clause)));
 if (outsideConsoleClean.length > 0) {
   throw new Error(`Import test and expect from './console-clean', not '@playwright/test', in tests/browser/${outsideConsoleClean.join(', tests/browser/')}`);
