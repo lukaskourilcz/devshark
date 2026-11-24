@@ -3871,6 +3871,38 @@ function strictQueryContracts() {
   console.log(`PASS strict query: ${strings.length + 2} string and ${ints.length} integer cases, arrays, fractions, exponents, signs and junk refused`);
 }
 
+async function quizStepQueryContracts() {
+  let caller = 0;
+  const get = async (handler: typeof roadmapHandler | typeof questionsHandler, query: Record<string, unknown>) => {
+    const res = mockResponse();
+    await handler({ method: 'GET', headers: { 'x-forwarded-for': `192.0.2.${++caller}` }, query } as never, res as never);
+    return res;
+  };
+  const invalid = [];
+  for (const key of ['level', 'test', 'checkpoint', 'count']) {
+    for (const value of ['1.9', '1abc', 'abc', ['1', '2']]) {
+      const res = key === 'count'
+        ? await get(questionsHandler, { categories: 'javascript', count: value })
+        : await get(roadmapHandler, { topic: 'javascript', [key]: value });
+      const code = (res.body as { error?: { code: string } }).error?.code;
+      if (res.statusCode !== 400 || code !== 'bad_request') invalid.push({ key, value, status: res.statusCode, code });
+    }
+  }
+  assert.deepEqual(invalid, [], 'malformed quiz counts and roadmap steps must each return 400 bad_request');
+  for (const [query, kind] of [[{ level: '1' }, 'level'], [{ checkpoint: '1' }, 'checkpoint'], [{ test: '1', level: '2' }, 'checkpoint']] as const) {
+    const res = await get(roadmapHandler, { topic: 'javascript', ...query });
+    assert.equal(res.statusCode, 200);
+    const step = res.body as { kind: string; ref: number };
+    assert.equal(step.kind, kind);
+    assert.equal(step.ref, 1);
+  }
+  for (const [count, expected] of [[undefined, DEFAULT_SETTINGS.quiz.defaultCount], ['0', 1], ['2', 2], ['999', DEFAULT_SETTINGS.quiz.maxCount]] as const) {
+    const res = await get(questionsHandler, { difficulty: 'mixed', categories: 'javascript', ...(count === undefined ? {} : { count }) });
+    assert.equal(res.statusCode, 200);
+    assert.equal((res.body as { questions: unknown[] }).questions.length, expected, `quiz count ${count ?? 'omitted'}`);
+  }
+}
+
 /* ── input classes the handlers already refuse (#638) ─────────────────────
  *
  * The section-code-audit list of untrusted input, per handler that parses
@@ -7019,6 +7051,7 @@ async function main() {
   await inputClassContracts();
   unstorableTextContracts();
   strictQueryContracts();
+  await quizStepQueryContracts();
   await malformedBodyContracts();
   await oversizeBodyContracts();
   await requestIdContracts();

@@ -8,7 +8,7 @@ import {
   generateMatchCode,
   withTimeout,
 } from '../../lib/play-helpers';
-import { requireAuthResult, requireAuthSub, isRpcMissing, withRequestContext, ServiceUnavailableError } from '../../lib/http';
+import { requireAuthResult, requireAuthSub, isRpcMissing, withRequestContext, ServiceUnavailableError, queryInt } from '../../lib/http';
 import { roomDisplayName } from '../../lib/public-identity';
 import { tryAuth } from '../../lib/auth';
 import { getEffectiveQuestions } from '../../lib/questions-store';
@@ -926,8 +926,8 @@ async function distribution(req: VercelRequest, res: VercelResponse) {
 
   if (!isShortString(req.query.code, 16)) return jsonError(res, 400, 'bad_request', 'code required');
   const code = req.query.code.toUpperCase();
-  const qParam = parseInt(req.query.q as string, 10);
-  if (!Number.isFinite(qParam) || qParam < 0)
+  const qParam = queryInt(req, 'q', { min: 0, max: 999 });
+  if (qParam === undefined || qParam === null)
     return jsonError(res, 400, 'bad_request', 'q (question index) required');
 
   try {

@@ -1,5 +1,6 @@
 import { test, expect, type Page } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
+import { addDays, qotdTrack } from '../../shared/daily-question';
 
 // The marketing launch pages (#239): the public question of the day and the
 // per-page share heads. The preview server has no API, so
@@ -49,6 +50,49 @@ test('opening Daily keeps its mobile header in place when the question arrives',
     release();
   }
 });
+
+for (const width of [390, 1280]) {
+  test(`a dated Daily link keeps its layout and starts exactly its own read at ${width}px`, async ({ page }) => {
+    const date = addDays(today, -1);
+    const track = qotdTrack(date);
+    const reads: string[] = [];
+    let release!: () => void;
+    const heldRoute = new Promise<void>(resolve => { release = resolve; });
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 800 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.addInitScript(() => {
+      const entries: number[] = [];
+      Object.assign(window, { dailyLayoutShifts: entries });
+      new PerformanceObserver(list => {
+        for (const entry of list.getEntries() as (PerformanceEntry & { value: number; hadRecentInput: boolean })[]) {
+          if (!entry.hadRecentInput) entries.push(entry.value);
+        }
+      }).observe({ type: 'layout-shift', buffered: true });
+    });
+    await page.route(/\/assets\/DailyQuestionPage-[^/]+\.js$/, async route => { await heldRoute; await route.continue(); });
+    await page.route('**/api/quiz/daily?*', route => {
+      reads.push(new URL(route.request().url()).searchParams.get('qotd') ?? '');
+      return route.fulfill({ json: { date, track, sessionId: 'dated-session', question: {
+        id: 'dated', question: 'Pick the first option.', options: ['One', 'Two'], category: track, difficulty: 1,
+      } } });
+    });
+    try {
+      await page.goto(`/daily/${date}`, { waitUntil: 'domcontentloaded' });
+      await expect.poll(() => reads).toEqual([date]);
+      await expect(page.locator('#main-content [data-activity="active"]')).toBeAttached();
+      await expect(page.locator('.ss-header')).toBeHidden();
+      release();
+      await expect(page.getByRole('radio', { name: 'One', exact: true })).toBeVisible();
+      await page.evaluate(() => document.fonts.ready);
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+      const shifts = await page.evaluate(() => (window as Window & { dailyLayoutShifts: number[] }).dailyLayoutShifts);
+      expect(shifts.reduce((sum, shift) => sum + shift, 0)).toBeLessThan(0.01);
+      expect(reads).toEqual([date]);
+    } finally {
+      release();
+    }
+  });
+}
 
 for (const theme of ['light', 'dark'] as const) for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 800 }]) {
   test(`${theme} ${viewport.width}px: /daily checks an answer and passes WCAG 2.2 AA`, async ({ page }, info) => {

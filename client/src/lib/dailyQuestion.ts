@@ -6,7 +6,7 @@
 import { queryOptions, type QueryClient } from '@tanstack/react-query';
 import { apiFetch, ApiError } from './api';
 import type { QuizResult } from '../types/quiz';
-import { QOTD_BEFORE_START, QOTD_NOT_YET, utcToday, type QotdResponse } from '../../../shared/daily-question';
+import { QOTD_BEFORE_START, QOTD_NOT_YET, openQotdDate, type QotdResponse } from '../../../shared/daily-question';
 
 export const dailyQuestionQuery = (date: string | 'today') =>
   queryOptions({
@@ -26,8 +26,11 @@ export const dailyQuestionQuery = (date: string | 'today') =>
   });
 
 /** Start the same sealed read as the page while its UI chunks are in flight. */
-export function prefetchDailyLanding(client: QueryClient): Promise<void> {
-  return client.prefetchQuery(dailyQuestionQuery(utcToday()));
+export async function prefetchDailyLanding(client: QueryClient, date: string): Promise<void> {
+  // The location or UTC day may have changed while this module was loading.
+  if (navigator.onLine && openQotdDate(window.location.pathname) === date) {
+    await client.prefetchQuery(dailyQuestionQuery(date));
+  }
 }
 
 export type QotdResult = QuizResult['results'][number];

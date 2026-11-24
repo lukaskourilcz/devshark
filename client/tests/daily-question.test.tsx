@@ -8,7 +8,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import DailyQuestionPage from '../src/components/DailyQuestionPage';
 import { en } from '../src/i18n/translations';
-import { addDays, qotdTrack, utcToday } from '../../shared/daily-question';
+import { addDays, openQotdDate, qotdTrack, utcToday } from '../../shared/daily-question';
 import { server } from './mocks/server';
 
 const analytics = vi.hoisted(() => ({ capture: vi.fn() }));
@@ -56,6 +56,44 @@ beforeEach(() => {
   Object.defineProperty(navigator, 'clipboard', { configurable: true, value: clipboard });
   clipboard.writeText.mockClear();
   analytics.capture.mockClear();
+});
+
+describe('Daily entry warmup', () => {
+  it('recognizes only available Daily routes and preserves their selected UTC day', () => {
+    const yesterday = addDays(today, -1);
+    expect(openQotdDate('/daily/')).toBe(today);
+    expect(openQotdDate(`/daily/${yesterday}/`)).toBe(yesterday);
+    for (const path of ['/quiz', '/daily/not-a-date', '/daily/2026-09-31', '/daily/2026-08-31',
+      `/daily/${addDays(today, 1)}`, `/daily/${yesterday}/extra`]) {
+      expect(openQotdDate(path)).toBeNull();
+    }
+  });
+
+  it('skips the sealed read after a route change while the data chunk was loading', async () => {
+    const { prefetchDailyLanding } = await import('../src/lib/dailyQuestion');
+    const client = new QueryClient();
+    const read = vi.spyOn(client, 'prefetchQuery').mockResolvedValue();
+    const previousPath = location.pathname + location.search + location.hash;
+    const yesterday = addDays(today, -1);
+    try {
+      window.history.replaceState(null, '', '/daily');
+      await prefetchDailyLanding(client, yesterday);
+      window.history.replaceState(null, '', '/quiz');
+      await prefetchDailyLanding(client, today);
+      window.history.replaceState(null, '', `/daily/${yesterday}`);
+      const offline = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+      try {
+        await prefetchDailyLanding(client, yesterday);
+      } finally {
+        offline.mockRestore();
+      }
+      expect(read).not.toHaveBeenCalled();
+      await prefetchDailyLanding(client, yesterday);
+      expect(read).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ queryKey: ['daily-question', yesterday] }));
+    } finally {
+      window.history.replaceState(null, '', previousPath);
+    }
+  });
 });
 
 describe('/daily', () => {

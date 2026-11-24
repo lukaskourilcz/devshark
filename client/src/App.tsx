@@ -7,6 +7,7 @@ import { AppToast } from './components/ui/AppToast';
 import { useIsMobile, useMediaQuery } from './lib/useMediaQuery';
 import './styles/app-shell.css';
 import './styles/route-transition.css';
+import { openQotdDate } from '../../shared/daily-question';
 import { MobileNavigationStatus } from './components/MobileNavigationStatus';
 import LoadingScreen from './components/LoadingScreen';
 import { SwimmingFin, Waterline } from './components/SharkFin';
@@ -513,7 +514,7 @@ function App() {
   const pageWidth = pageMaxWidth(location.pathname);
   // The open daily question owns navigation as soon as its controls arrive.
   // Keep the same space while its route chunk and anonymous read are pending.
-  const dailyLoadingActivity = /^\/daily\/?$/.test(location.pathname) ? 'active' : undefined;
+  const dailyLoadingActivity = openQotdDate(location.pathname) ? 'active' : undefined;
 
   // 1–5 shark fins on the footer ocean line, at random (non-overlapping) spots
   // each page load, each independently facing left or right so the school
