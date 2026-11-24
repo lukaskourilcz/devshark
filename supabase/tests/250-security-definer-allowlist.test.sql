@@ -1,5 +1,5 @@
 -- Every routine in the application schemas runs on an empty search_path, and
--- the browser roles execute a SECURITY DEFINER routine only when it is on the
+-- the browser roles execute an application routine only when it is on the
 -- allow-list below. 010-schema-security.test.sql looks at public alone and
 -- accepts search_path=public; this file also covers devshark_private and
 -- holds every routine, definer or invoker, to search_path="".
@@ -34,10 +34,13 @@ RETURNS TEXT[] LANGUAGE sql STABLE AS $$
     SELECT a.entry, pg_catalog.to_regprocedure(a.entry)::OID AS oid FROM unnest(p_allowed) AS a(entry)
   ),
   violation(line) AS (
-    SELECT 'browser roles execute definer ' || b.name
+    SELECT 'browser roles execute routine ' || b.name
       FROM browser b
-     WHERE b.prosecdef AND b.executable
+     WHERE b.executable
        AND b.oid NOT IN (SELECT a.oid FROM allowed a WHERE a.oid IS NOT NULL)
+    UNION ALL
+    SELECT 'missing caller comment on ' || r.name FROM routine r
+     WHERE r.prosecdef AND nullif(btrim(pg_catalog.obj_description(r.oid, 'pg_proc')), '') IS NULL
     UNION ALL
     SELECT 'search_path is not "" on ' || r.name || ' (' || coalesce(array_to_string(r.proconfig, ' '), 'not set') || ')'
       FROM routine r
@@ -57,13 +60,18 @@ $$;
 CREATE FUNCTION public.f8_probe_definer() RETURNS INTEGER
 LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$ SELECT 1 $$;
 GRANT EXECUTE ON FUNCTION public.f8_probe_definer() TO authenticated;
+CREATE FUNCTION public.f8_probe_invoker() RETURNS INTEGER
+LANGUAGE sql SECURITY INVOKER SET search_path = '' AS $$ SELECT 1 $$;
+GRANT EXECUTE ON FUNCTION public.f8_probe_invoker() TO authenticated;
 
 DO $$
 DECLARE
   v_found TEXT[] := pg_temp.definer_violations(ARRAY['public.f8_probe_missing(integer)']);
 BEGIN
-  ASSERT 'browser roles execute definer public.f8_probe_definer()' = ANY (v_found),
+  ASSERT 'browser roles execute routine public.f8_probe_definer()' = ANY (v_found),
     format('self-check: the executable definer probe went unreported: %s', v_found);
+  ASSERT 'browser roles execute routine public.f8_probe_invoker()' = ANY (v_found), 'invoker grant must be detected';
+  ASSERT 'missing caller comment on public.f8_probe_definer()' = ANY (v_found), 'undocumented definer must be detected';
   ASSERT 'search_path is not "" on public.f8_probe_definer() (search_path=public)' = ANY (v_found),
     format('self-check: the probe''s search_path=public went unreported: %s', v_found);
   ASSERT 'stale allow-list entry public.f8_probe_missing(integer)' = ANY (v_found),
@@ -72,6 +80,7 @@ END;
 $$;
 
 DROP FUNCTION public.f8_probe_definer();
+DROP FUNCTION public.f8_probe_invoker();
 
 DO $$
 DECLARE
