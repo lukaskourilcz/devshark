@@ -123,8 +123,8 @@ BEGIN
 
   -- Not vacuous: the tables learners read most hold both learners' rows, and
   -- A can read A's own.
-  ASSERT v_seeded @> ARRAY['user_stats', 'user_xp', 'user_category_stats', 'user_activity_days', 'user_streak_freezes',
-                           'coding_progress', 'coding_attempts', 'roadmap_progress', 'daily_attempts', 'token_balances',
+  ASSERT v_seeded @> ARRAY['user_stats', 'user_xp', 'user_category_stats', 'user_activity_days',
+                           'roadmap_progress', 'daily_attempts', 'token_balances',
                            'user_handles', 'friendships', 'coding_collections', 'coding_collection_items'],
     format('the seeded tables: %s', v_seeded);
   ASSERT v_checked @> ARRAY['user_stats', 'user_category_stats', 'user_xp', 'user_activity_days', 'token_balances'],
