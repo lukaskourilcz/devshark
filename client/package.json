@@ -78,7 +78,8 @@
   },
   "//overrides": {
     "satori": "GHSA-px8p-9vwx-vf98: satori pins fflate 0.7.3; drop when satori allows fflate >=0.7.5",
-    "@storybook/react-vite": "GHSA-3g3m-2fjr-6pw4: docgen ^0.7 uses glob 13; 0.9.1 uses tinyglobby; drop when Storybook requires docgen >=0.9"
+    "@storybook/react-vite": "GHSA-3g3m-2fjr-6pw4: docgen ^0.7 uses glob 13; 0.9.1 uses tinyglobby; drop when Storybook requires docgen >=0.9",
+    "solid-js@1.9.x": "The development query inspector uses Solid 1.9 with fixed 1.6.x serializer ranges. Use the patched seroval and seroval-plugins 1.x APIs for GHSA-6q9x-xgwm-cfpg, GHSA-72px-vh6m-89wc and GHSA-fc89-m4rj-8472. Remove when Solid accepts those patched versions."
   },
   "overrides": {
     "satori": {
@@ -86,6 +87,10 @@
     },
     "@storybook/react-vite": {
       "@joshwooding/vite-plugin-react-docgen-typescript": "0.9.1"
+    },
+    "solid-js@1.9.x": {
+      "seroval": "1.8.2",
+      "seroval-plugins": "1.8.0"
     }
   },
   "allowScripts": {
