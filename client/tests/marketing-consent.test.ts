@@ -102,7 +102,7 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
   initSentry();
   await vi.waitFor(() => expect(sentry.init).toHaveBeenCalledTimes(1));
   const options = sentry.init.mock.calls[0][0] as {
-    beforeSend?: (event: Record<string, unknown>) => Record<string, unknown>;
+    beforeSend?: (event: Record<string, unknown>, hint: Record<string, unknown>) => Record<string, unknown>;
     beforeSendTransaction?: (event: Record<string, unknown>) => Record<string, unknown>;
     beforeBreadcrumb?: (crumb: Record<string, unknown>) => Record<string, unknown>;
   };
@@ -126,7 +126,7 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
       { category: 'fetch', data: { url: 'https://x.supabase.co/rest/v1/profiles?user_id=eq.user-1', method: 'GET', status_code: 200 } },
     ],
     extra: { componentStack: 'at Quiz' },
-  });
+  }, {});
   const text = JSON.stringify(sent);
   for (const secret of ['ada@example.com', 'oauth-code-123', 'cs_live_1', 'eyJhbGciOiJIUzI1NiJ9', 'gh-code', 'sealed', 'user-1', 'abcdefghijklmnop', 'Referer', 'cookies']) {
     expect(text).not.toContain(secret);
