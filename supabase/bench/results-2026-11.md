@@ -113,3 +113,29 @@ The combined 077–089 candidate changes the Hall of Fame name lookup, then reti
 | 085 | `idx_user_stats_total_correct`, `idx_user_stats_last_quiz_date`, `idx_daily_attempts_date_score`, `challenge_scores_top_idx`, `idx_flashcards_user`, `idx_user_category_stats_category_correct`, `concept_reviews_due_idx`, `billing_events_unprocessed_idx`, `question_quality_suggestions_review_idx`, `learning_path_attempts_expiry_idx` |
 
 Issue #637 also records rejected exploratory alternatives. A 92 MB covering index against 11 MB originally improved the 30-day board from 139.1 to 111.4 ms but slowed the seven-day query from 4.7 to 9.2 ms. A separate 89 MB index moved the cached category all-time read from 90.0 to 38.8 ms. The month board changed from 31.2 to 35.7 ms, and a combined board/rank query took 280.1 ms. These historical experiments did not enter the migrations.
+
+## Combined 077–089 measurements, 24 November 2026
+
+PostgreSQL 17.11 (Postgres.app) on Apple silicon. One seeded database had 20,000 learners and 1,406,809,779 bytes at baseline. Settings were 128 MB shared buffers, 4 MB work_mem, 4 GB effective cache, two workers per gather and JIT enabled. The baseline came from `a9882348` through 076. After seven full passes, the same database received migrations 077–089 from `c167ecf2d`, was analyzed again and ran seven more passes. Each cohort contains 119 completed EXPLAIN ANALYZE statements.
+
+| # | Read | Before median ms | After median ms | Before → after buffers |
+|---|---|---:|---:|---:|
+| 01 | window_leaderboard: the 30-day board, every category (api/leaderboard.ts) | 80.0 | 82.8 | 4820 → 4820 |
+| 02 | window_leaderboard_rank: the viewer's place on the 30-day board | 42.0 | 41.8 | 3983 → 3983 |
+| 03 | month_xp_ranks: the month's XP per learner, read by 04 and 05 | 28.9 | 29.3 | 1483 → 1483 |
+| 04 | month_xp_leaderboard: the month XP board | 33.2 | 34.7 | 2271 → 2271 |
+| 05 | month_xp_leaderboard_rank: the viewer's own month XP and place (user_xp_days) | 25.1 | 26.2 | 1483 → 1483 |
+| 06 | category_leaderboard: javascript, all time | 79.5 | 83.5 | 15116 → 15116 |
+| 07 | subject_leaderboard: every devShark category, all time | 287.7 | 299.5 | 15266 → 15266 |
+| 08 | daily_leaderboard_v2: today's daily question | 1.40 | 1.36 | 2222 → 2224 |
+| 09 | challenge_leaderboard: the Hall of Fame top ten | 0.096 | 0.100 | 50 → 50 |
+| 10 | friend_list: the viewer's friends with their stats (lib/friends-handlers.ts) | 1.87 | 1.98 | 547 → 547 |
+| 11 | allocate_shark_name: the Hall of Fame name check, under the global counter lock (063) | 10.2 | 0.006 | 3131 → 3 |
+| 12 | coding progress: the viewer's passed tasks (lib/coding/handlers.ts) | 0.049 | 0.052 | 43 → 43 |
+| 13 | coin ledger: the last 25 entries (lib/rewards/handlers.ts) | 0.023 | 0.023 | 13 → 13 |
+| 14 | Shark Cards: the viewer's saved questions (api/flashcards.ts) | 0.022 | 0.022 | 13 → 13 |
+| 15 | user_stats: the viewer's stats row (api/user/[op].ts) | 0.006 | 0.004 | 3 → 3 |
+| 16 | question_edits: the override refresh every server instance makes (lib/questions-store.ts) | 0.517 | 0.539 | 156 → 156 |
+| 17 | credit_verified_xp_tokens: today's coin cap, summed under the account lock (041) | 0.013 | 0.012 | 5 → 5 |
+
+The Hall of Fame lookup changed from a sequential scan of challenge_scores to `challenge_scores_lower_name_idx`, saving 3,128 buffers. The daily board used `daily_attempts_subject_rank_idx` and `user_stats_user_id_key` after the change. User stats used the unique key. The card query used `flashcards_pkey` and sorted ten rows, with the same 13 buffers and 0.022 ms. The subject-scoped card index remains available. The all-time boards continued to read the same pages. A later privacy requirement in #668 bounds public name caching at 60 seconds.
