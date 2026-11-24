@@ -1,5 +1,7 @@
 // /dev → Question bank: the question editor saves a new question once however
 // fast Save is pressed, and keeps what the admin typed while the bank reloads.
+import { useState } from 'react';
+import { installNativeDialog } from './dialog-escape';
 import { describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
@@ -45,6 +47,33 @@ function fillNewQuestion() {
 }
 
 describe('/dev → the question editor', () => {
+  it('returns from a dirty discard confirmation to the editor and then its opener', async () => {
+    installNativeDialog();
+    function EditorEntry() {
+      const [open, setOpen] = useState(false);
+      return <>
+        <button onClick={() => setOpen(true)}>Open editor</button>
+        <QuestionEditor open={open} initial={null} categories={['react', 'css']} onClose={() => setOpen(false)} onSaved={vi.fn()} />
+      </>;
+    }
+    render(<LanguageProvider><EditorEntry /></LanguageProvider>);
+    const opener = screen.getByRole('button', { name: 'Open editor' });
+    opener.focus();
+    fireEvent.click(opener);
+    const editor = await screen.findByRole('dialog');
+    await waitFor(() => expect(editor.contains(document.activeElement)).toBe(true));
+    const question = within(editor).getByRole('textbox', { name: 'Question' });
+    fireEvent.change(question, { target: { value: 'Unfinished question' } });
+    const cancel = within(editor).getByRole('button', { name: 'Cancel' });
+    await dismissConfirmation(cancel);
+    expect(question).toHaveValue('Unfinished question');
+    fireEvent.keyDown(cancel, { key: 'Escape' });
+    const confirm = await screen.findByRole('alertdialog');
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Discard changes' }));
+    await waitFor(() => expect(editor).not.toBeVisible());
+    expect(opener).toHaveFocus();
+  });
+
   it('creates a new question once when Save is pressed twice before it renders', async () => {
     const sent: unknown[] = [];
     server.use(http.post('*/api/admin/save', async ({ request }) => {

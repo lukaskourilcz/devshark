@@ -216,7 +216,8 @@ export default function QuestionEditor({ open, initial, categories, onClose, onS
     });
   };
 
-  return (
+  // Keep the confirmation outside the editor so its Escape only closes one dialog.
+  return <>
     <Dialog
       isOpen={open}
       onOpenChange={requestClose}
@@ -356,7 +357,7 @@ export default function QuestionEditor({ open, initial, categories, onClose, onS
         <Button variant="ghost" label="Cancel" onClick={() => requestClose(false)} isDisabled={saving} />
         <Button variant="primary" label={saving ? 'Saving…' : 'Save'} onClick={handleSave} isDisabled={saving} />
       </div>
-      <BrandedConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </Dialog>
-  );
+    <BrandedConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
+  </>;
 }
