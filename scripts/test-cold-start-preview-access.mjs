@@ -165,3 +165,20 @@ test('an output alias introduced during sampling cannot overwrite the input stat
     assert(!result.stdout.includes(TOKEN)); assert(!result.stderr.includes(TOKEN)); assert(!result.stderr.includes(file));
   }
 });
+
+test('the hosted security probe substitutes only the two staging connect-src tokens', async () => {
+  const { PRODUCTION_SUPABASE_REF: prod, securityPreviewOptions, securityPreviewPolicy } = await import('./security-preview.mjs');
+  const stage = 'fixturestageabcdef12';
+  const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
+  const app = config.routes.map(route => route.headers?.['Content-Security-Policy']).find(policy => policy?.includes("frame-ancestors 'none'"));
+  const options = [`--preview-state=/owned/state.json`, `--staging-supabase-ref=${stage}`];
+  assert.deepEqual(securityPreviewOptions(options, ORIGIN), { state: '/owned/state.json', stage });
+  assert.equal(securityPreviewPolicy(app), app);
+  assert.equal(securityPreviewPolicy(app, stage), app.replace(`https://${prod}.supabase.co`, `https://${stage}.supabase.co`).replace(`wss://${prod}.supabase.co`, `wss://${stage}.supabase.co`));
+  for (const invalid of [
+    [options, 'https://devshark.app'], [options, 'https://react-express-app-five.vercel.app'], [options, `${ORIGIN}/?share=fixture`],
+    [[options[1]], ORIGIN], [[options[0], '--staging-supabase-ref=*'], ORIGIN], [[options[0], `--staging-supabase-ref=${prod}`], ORIGIN],
+    [[options[0], options[0]], ORIGIN], [['--preview-state='], ORIGIN],
+  ]) assert.throws(() => securityPreviewOptions(...invalid));
+  assert.throws(() => securityPreviewPolicy(app.replace(`wss://${prod}.supabase.co`, 'wss://other.example'), stage));
+});
