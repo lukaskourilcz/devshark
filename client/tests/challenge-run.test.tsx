@@ -579,6 +579,27 @@ async function strikeOutNow() {
   await settle();
 }
 
+describe('the account that started a Challenge', () => {
+  it.each(['sign-out', 'different account', 'same account after sign-out'])('keeps an old run out of a new session after %s', async (change) => {
+    api.auth = SIGNED_IN;
+    const gains: number[] = [];
+    const stop = onXpToast((toast) => { if (toast.kind === 'gain') gains.push(toast.amount); });
+    try {
+      await mount();
+      await start();
+      await answer('right');
+      await next();
+      act(() => { clearAccountData(); });
+      if (change === 'sign-out') api.auth = { user: null, isAuthenticated: false, isLoading: false };
+      if (change === 'different account') api.auth = { ...SIGNED_IN, user: { id: 'learner-2' } };
+      await strikeOutNow();
+      expect({ gains, completions: api.completions.length, queued: localStorage.getItem(PENDING) }).toEqual({
+        gains: [], completions: 0, queued: null,
+      });
+    } finally { stop(); }
+  });
+});
+
 describe('a refill that fails when the queue runs dry', () => {
   it('keeps the run, and Retry asks for the batch again under the same run', async () => {
     api.auth = SIGNED_IN;
