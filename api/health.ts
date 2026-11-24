@@ -10,11 +10,22 @@ const service = serviceClientOrNull();
 type DependencyStatus = 'ok' | 'down' | 'unconfigured';
 
 const gradingReadiness = createGradingReadiness(async (deadline) => {
-  const { runInQuickJS } = await import('../lib/coding/sandbox');
+  const [{ runInQuickJS }, { healthVariant }, { newQuickJSWASMModuleFromVariant }] = await Promise.all([
+    import('../lib/coding/sandbox'),
+    import('../lib/coding/quickjs-variant'),
+    import('quickjs-emscripten'),
+  ]);
+  if (performance.now() >= deadline) return false;
+  const engine = await newQuickJSWASMModuleFromVariant(healthVariant());
   const remainingMs = deadline - performance.now();
   if (remainingMs <= 0) return false;
-  const result = await runInQuickJS({ code: '', calls: ['1 + 1'], expectations: [2], deadlineMs: remainingMs });
-  return !result.timedOut && result.codeError === null && result.results[0]?.pass === true;
+  let disposed = true;
+  const result = await runInQuickJS(
+    { code: '', calls: ['1 + 1'], expectations: [2], deadlineMs: remainingMs },
+    () => { disposed = false; },
+    engine,
+  );
+  return disposed && !result.timedOut && result.codeError === null && result.results[0]?.pass === true;
 });
 
 /** Read one row of `table` on the service connection within 1.5 s. A check

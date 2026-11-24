@@ -1168,6 +1168,21 @@ async function main() {
       assert.equal(unconfigured.headers['cache-control'], 'no-store');
       process.env.REACT_RUNNER_SNAPSHOT_ID = 'fixture-presence-only';
       assert.equal((await call(health as Handler, {})).body.dependencies.grading, 'ok');
+      for (const operation of ['compile', 'instantiate'] as const) {
+        const original = WebAssembly[operation];
+        clockSkew += 300_001;
+        try {
+          WebAssembly[operation] = async () => { throw new Error('stand-in: WASM initialization failed'); };
+          const broken = await call(health as Handler, {});
+          assert.equal(broken.statusCode, 200);
+          assert.equal(broken.body.dependencies.grading, 'unavailable', operation);
+        } finally {
+          Object.assign(WebAssembly, { [operation]: original });
+        }
+        clockSkew += 300_001;
+        const recovered = await call(health as Handler, {});
+        assert.equal(recovered.body.dependencies.grading, 'ok', operation + ' recovers on the same instance');
+      }
     } finally {
       if (savedSnapshot === undefined) delete process.env.REACT_RUNNER_SNAPSHOT_ID;
       else process.env.REACT_RUNNER_SNAPSHOT_ID = savedSnapshot;
