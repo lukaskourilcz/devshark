@@ -8,6 +8,7 @@ import { runtimePolicyForTask } from '../shared/coding-task-runtime';
 //   CODING_SKIP_INDEX=1         do not require shared/coding-index.ts to be fresh
 //   CODING_COVERAGE_ENFORCED=1  fail on Easy-band technique gaps even while COVERAGE_ENFORCED is off
 import assert from 'node:assert/strict';
+import { isDeepStrictEqual } from 'node:util';
 import { createRequire } from 'node:module';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
@@ -372,7 +373,15 @@ async function main() {
         // The new stage's checks lead, so the first rows in Results show what
         // the brief just asked for; every earlier check follows, unchanged.
         if (task.tests) {
-          assert.deepEqual(task.tests.slice(task.tests.length - prior.tests!.length), prior.tests, 'earlier runtime checks remain, after the new ones');
+          const introducedCount = task.tests.length - prior.tests!.length;
+          assert.deepEqual(task.tests.slice(introducedCount), prior.tests, 'earlier runtime checks remain, after the new ones');
+          const introduced = task.tests.slice(0, introducedCount);
+          for (const check of introduced) {
+            const matches = (other: typeof check) => other.call === check.call && isDeepStrictEqual(check, other);
+            if (introduced.filter(matches).length === 1) {
+              assert.ok(!prior.tests!.some(matches), `${id}: an unchanged inherited call appears twice: ${check.call}`);
+            }
+          }
         }
         if (task.suite && prior.suite) {
           // The shared header is whatever both suites open with, cut back to
@@ -837,6 +846,25 @@ async function main() {
   const libDir = path.join(path.dirname(nodeRequire.resolve('typescript/package.json')), 'lib');
   const libs = Object.fromEntries(readdirSync(libDir).filter(isCheckerLibFile).map((name) => [name, readFileSync(path.join(libDir, name), 'utf8')]));
   const checker = createTypeScript({ ts: nodeRequire('typescript'), libs });
+  {
+    const isolation = checker.check(
+      'const result = "draft"; const toSlug = (text: string): string => text.trim();',
+      [
+        { code: 'declare const text: string; const result: string = toSlug(text);' },
+        { code: 'const result: number = toSlug("ready").length;' },
+        { code: 'toSlug(17);', rejects: true },
+      ],
+    );
+    assert.deepEqual(isolation.codeErrors, [], 'ordinary learner helper names remain local to the answer');
+    assert.deepEqual(isolation.typeTests.map(item => item.pass), [true, true, true]);
+    assert.match(isolation.typeTests[2].error ?? '', /number.*string/);
+    const invalid = checker.check('const keep = 1;\nconst result: number = "wrong";', [
+      { code: 'const result: number = keep;' },
+    ]);
+    assert.equal(invalid.codeErrors[0]?.line, 2, 'learner diagnostics keep their original line');
+    assert.equal(invalid.typeTests[0].pass, true);
+  }
+
 
   // Every graded code task carries three solutions — the reference the
   // learner can give up to, and the junior and senior versions shown after a

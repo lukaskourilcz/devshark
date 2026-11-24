@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util';
 import type {
   CodingTask,
   CallTest,
@@ -670,7 +671,15 @@ function orderStageChecks(out: CodingTask[], stages: readonly string[], header: 
     const next: CodingTask = { ...task };
     if (task.tests && samePrefix(original?.tests, task.tests)) {
       const fresh = task.tests.slice(original?.tests?.length ?? 0);
-      next.tests = [...fresh, ...(ordered?.tests ?? [])];
+      const earlier = ordered?.tests ?? [];
+      const introduced = fresh.filter((check, index) => {
+        // Different labels, display calls, edge flags, or expected values stay distinct.
+        const same = (other: CallTest) => other.call === check.call && isDeepStrictEqual(other, check);
+        if (!earlier.some(same)) return true;
+        // An explicit repeat in the same stage may exercise state in the submission.
+        return fresh.some((other, at) => at !== index && same(other));
+      });
+      next.tests = [...introduced, ...earlier];
     }
     if (task.typeTests && samePrefix(original?.typeTests, task.typeTests)) {
       const fresh = task.typeTests.slice(original?.typeTests?.length ?? 0);
