@@ -26,6 +26,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { isIP } from 'node:net';
+import { observeRedisTransport } from './request-timing';
 import type { VercelRequest, VercelResponse } from './vercel-types.js';
 import { jsonError, logEvent, ServiceUnavailableError, verifiedCallerId } from './http';
 import { getBearer } from './auth';
@@ -379,6 +380,7 @@ export function checkRateLimit(
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+if (UPSTASH_URL && UPSTASH_TOKEN) observeRedisTransport(UPSTASH_URL);
 const LIMITER_DEADLINE_MS = 500;
 
 /** `true` when the distributed limiter has been configured via env vars. */

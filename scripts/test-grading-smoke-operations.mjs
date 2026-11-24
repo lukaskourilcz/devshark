@@ -17,7 +17,7 @@ function fixture(t) {
 test('all ten anonymous submissions use only the approved frontdoor, with credentials omitted from the receipt', t => {
   const dir = fixture(t);
   const bundle = join(dir, 'load.mjs');
-  execFileSync('esbuild', [join(root, 'scripts/check-grading-load.ts'), '--bundle', '--platform=node', '--format=esm', '--packages=external', `--outfile=${bundle}`, '--log-level=warning']);
+  execFileSync(join(root, 'node_modules/.bin/esbuild'), [join(root, 'scripts/check-grading-load.ts'), '--bundle', '--platform=node', '--format=esm', '--packages=external', `--outfile=${bundle}`, '--log-level=warning']);
   const host = 'grading-fixture.vercel.app';
   const token = 'eyJtb2NrIjoxfQ.eyJtb2NrIjoyfQ.bW9jaw';
   const state = join(dir, 'state.json');

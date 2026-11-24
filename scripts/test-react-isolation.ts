@@ -560,6 +560,7 @@ async function main() {
     await artifactIntegrity();
     return;
   }
+  execFileSync(process.execPath, ['--test', 'scripts/test-grading-smoke-operations.mjs'], { stdio: 'inherit' });
   await localGuest();
   await artifactIntegrity();
   await sandboxVM();

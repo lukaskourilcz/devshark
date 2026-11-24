@@ -85,7 +85,7 @@ export function timingSpans(value) {
     const fields = splitQuoted(entry, ';');
     if (!fields) return { ...result, valid: false, marker: null };
     const name = fields.shift();
-    if (!['app', 'db_http', 'auth_http', 'instance'].includes(name)) continue;
+    if (!['app', 'db_http', 'auth_http', 'redis_http', 'instance'].includes(name)) continue;
     if (seen.has(name)) return { appMs: null, dbHttpMs: null, dbCalls: null, authHttpMs: null, authCalls: null, marker: null, valid: false };
     seen.add(name);
     const parameters = {};
@@ -100,8 +100,10 @@ export function timingSpans(value) {
     const count = calls && Number.isSafeInteger(Number(calls[1])) ? Number(calls[1]) : null;
     if (name === 'app') result.appMs = duration;
     else if (name === 'db_http') { result.dbHttpMs = duration; result.dbCalls = count; }
-    else { result.authHttpMs = duration; result.authCalls = count; }
+    else if (name === 'auth_http') { result.authHttpMs = duration; result.authCalls = count; }
+    else { result.redisHttpMs = duration; result.redisCalls = count; }
   }
+  if (seen.has('redis_http') && (result.redisHttpMs === null || result.redisCalls === null)) return result;
   result.valid = [result.appMs, result.dbHttpMs, result.dbCalls, result.authHttpMs, result.authCalls].every(value => typeof value === 'number' && Number.isFinite(value) && value >= 0);
   return result;
 }
@@ -124,7 +126,7 @@ export function originClassification(headers) {
   const spans = timingSpans(headers['server-timing']);
   if (cache === 'HIT' || cache === 'STALE') return { cache, instance: 'replayed', timingStatus: 'replayed', spans: null };
   const knownMiss = cache === 'MISS';
-  return { cache: knownMiss ? 'MISS' : 'unknown', instance: knownMiss && spans.valid && cacheAllowsMarker(headers['cache-control']) ? spans.marker ?? 'unknown' : 'unknown', timingStatus: !knownMiss ? 'cache-unknown' : spans.valid ? 'parsed' : 'malformed', spans: { appMs: spans.appMs, dbHttpMs: spans.dbHttpMs, dbCalls: spans.dbCalls, authHttpMs: spans.authHttpMs, authCalls: spans.authCalls } };
+  return { cache: knownMiss ? 'MISS' : 'unknown', instance: knownMiss && spans.valid && cacheAllowsMarker(headers['cache-control']) ? spans.marker ?? 'unknown' : 'unknown', timingStatus: !knownMiss ? 'cache-unknown' : spans.valid ? 'parsed' : 'malformed', spans: { appMs: spans.appMs, dbHttpMs: spans.dbHttpMs, dbCalls: spans.dbCalls, authHttpMs: spans.authHttpMs, authCalls: spans.authCalls, ...(spans.redisCalls !== undefined ? { redisHttpMs: spans.redisHttpMs, redisCalls: spans.redisCalls } : {}) } };
 }
 
 export function remoteSample(origin, probe, { bypassCache = false, timeoutMs = 15000, previewAccess = null } = {}) {

@@ -1,12 +1,50 @@
 // Aggregate transport timings only: no SQL, URL, identity, tokens or payloads.
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { channel } from 'node:diagnostics_channel';
 import { performance } from 'node:perf_hooks';
 import type { VercelResponse } from './vercel-types';
 
-type Timing = { response: VercelResponse; start: number; dbMs: number; dbCalls: number; authMs: number; authCalls: number };
+type Timing = { response: VercelResponse; start: number; dbMs: number; dbCalls: number; authMs: number; authCalls: number; redisCalls: number; redisMs: number };
 const timings = new AsyncLocalStorage<Timing>();
 // This is a claim on this timing-module instance, not a platform boot clock.
 let entered = false;
+
+/** The SDK uses Node fetch. Count transport attempts at the configured Redis
+ * origin; a batched pipeline is one request and an SDK retry creates another.
+ * Completion can run under a different concurrent request, so carry its owner
+ * from creation to response headers or error. Never read headers or bodies. */
+export function observeRedisTransport(configuredUrl: string): void {
+  let origin: string;
+  try { origin = new URL(configuredUrl).origin; } catch { return; }
+  const pending = new WeakMap<object, { timing: Timing; start: number }>();
+  channel('undici:request:create').subscribe(event => {
+    const timing = timings.getStore();
+    if (!timing) return;
+    const { request } = event as { request: { origin: string } };
+    if (request.origin !== origin) return;
+    timing.redisCalls++;
+    pending.set(request, { timing, start: performance.now() });
+  });
+  const finish = (event: unknown) => {
+    const { request } = event as { request: object };
+    const span = pending.get(request);
+    if (span) {
+      span.timing.redisMs += performance.now() - span.start;
+      pending.delete(request);
+    }
+  };
+  channel('undici:request:headers').subscribe(finish);
+  channel('undici:request:error').subscribe(finish);
+}
+
+export function upstreamSummary() {
+  const timing = timings.getStore();
+  return timing ? {
+    db_calls: timing.dbCalls, db_http_ms: Math.round(timing.dbMs),
+    auth_calls: timing.authCalls, auth_http_ms: Math.round(timing.authMs),
+    redis_calls: timing.redisCalls, redis_http_ms: Math.round(timing.redisMs),
+  } : {};
+}
 
 /** Fail closed: only explicit no-store with no shared/positive cache policy.
  * Private without no-store can still be stored by a browser, so omit there.
@@ -55,7 +93,7 @@ export async function withServerTiming<T>(res: VercelResponse, run: () => T): Pr
   // Claim before the first await; public/failed/no-write requests consume it.
   const first = !entered;
   entered = true;
-  const timing: Timing = { response: res, start: performance.now(), dbMs: 0, dbCalls: 0, authMs: 0, authCalls: 0 };
+  const timing: Timing = { response: res, start: performance.now(), dbMs: 0, dbCalls: 0, authMs: 0, authCalls: 0, redisMs: 0, redisCalls: 0 };
   return await timings.run(timing, async () => {
     let written = false;
     const writeHeader = () => {
@@ -67,7 +105,7 @@ export async function withServerTiming<T>(res: VercelResponse, run: () => T): Pr
       try {
         if (exposeInstanceMarker(res.getHeader?.('Cache-Control'))) marker = `, instance;desc="${first ? 'first' : 'repeat'}"`;
       } catch { /* unknown cache policy: omit rather than track/alter it */ }
-      res.setHeader('Server-Timing', `app;dur=${(performance.now() - timing.start).toFixed(1)}, db_http;dur=${timing.dbMs.toFixed(1)};desc="${timing.dbCalls} calls", auth_http;dur=${timing.authMs.toFixed(1)};desc="${timing.authCalls} calls"${marker}`);
+      res.setHeader('Server-Timing', `app;dur=${(performance.now() - timing.start).toFixed(1)}, db_http;dur=${timing.dbMs.toFixed(1)};desc="${timing.dbCalls} calls", auth_http;dur=${timing.authMs.toFixed(1)};desc="${timing.authCalls} calls", redis_http;dur=${timing.redisMs.toFixed(1)};desc="${timing.redisCalls} calls"${marker}`);
     };
     const json = res.json, send = res.send, end = res.end;
     if (json) res.json = function(body) { writeHeader(); return json.call(this, body); };
