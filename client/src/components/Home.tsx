@@ -171,7 +171,7 @@ export default function Home() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const subject = useActiveSubject();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const topicsRef = useRef<HTMLElement>(null);
   const topicsHeadingRef = useRef<HTMLHeadingElement>(null);
 
@@ -224,7 +224,7 @@ export default function Home() {
           <div style={{ display: 'flex', gap: '8px 20px', flexWrap: 'wrap', alignItems: 'center' }}>
             <FadeFinCta label={t('home.chooseTopic')} primary onClick={scrollToTopics} finLeft="-2px" finSize={58} accent={subject.accent} />
             <span className="ss-text-links" style={{ margin: 0 }}>
-              {isAuthenticated ? (
+              {isLoading ? null : isAuthenticated ? (
                 <Link to={learnTopicHref(selected?.id ?? '')}>{t('home.ctaLearn')}</Link>
               ) : (
                 <button type="button" aria-haspopup="dialog" onClick={() => openSignIn()}>
