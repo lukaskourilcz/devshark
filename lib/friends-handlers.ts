@@ -202,6 +202,7 @@ export async function handleFriends(
       const { data, error } = await withTimeout(
         supabase.rpc('respond_friend', { p_user_id: userId, p_handle: handle, p_accept: body.accept === true }),
       );
+      if (error?.message === 'handle_not_found') return jsonError(res, KNOWN.no_request.status, KNOWN.no_request.code, KNOWN.no_request.message);
       if (error) return rpcError(res, error, 'Could not answer the request');
       logEvent({ status: 200, op: 'respond', state: String(data) });
       return res.json({ state: data });
@@ -210,6 +211,7 @@ export async function handleFriends(
     const { data, error } = await withTimeout(
       supabase.rpc('remove_friend', { p_user_id: userId, p_handle: handle, p_block: body.block === true }),
     );
+    if (error?.message === 'handle_not_found') return res.json({ removed: false });
     if (error) return rpcError(res, error, 'Could not remove');
     logEvent({ status: 200, op: 'remove', blocked: body.block === true });
     return res.json({ removed: data === true });
