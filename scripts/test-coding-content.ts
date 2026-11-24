@@ -846,6 +846,25 @@ async function main() {
   const libDir = path.join(path.dirname(nodeRequire.resolve('typescript/package.json')), 'lib');
   const libs = Object.fromEntries(readdirSync(libDir).filter(isCheckerLibFile).map((name) => [name, readFileSync(path.join(libDir, name), 'utf8')]));
   const checker = createTypeScript({ ts: nodeRequire('typescript'), libs });
+  {
+    const isolation = checker.check(
+      'const result = "draft"; const toSlug = (text: string): string => text.trim();',
+      [
+        { code: 'declare const text: string; const result: string = toSlug(text);' },
+        { code: 'const result: number = toSlug("ready").length;' },
+        { code: 'toSlug(17);', rejects: true },
+      ],
+    );
+    assert.deepEqual(isolation.codeErrors, [], 'ordinary learner helper names remain local to the answer');
+    assert.deepEqual(isolation.typeTests.map(item => item.pass), [true, true, true]);
+    assert.match(isolation.typeTests[2].error ?? '', /number.*string/);
+    const invalid = checker.check('const keep = 1;\nconst result: number = "wrong";', [
+      { code: 'const result: number = keep;' },
+    ]);
+    assert.equal(invalid.codeErrors[0]?.line, 2, 'learner diagnostics keep their original line');
+    assert.equal(invalid.typeTests[0].pass, true);
+  }
+
 
   // Every graded code task carries three solutions — the reference the
   // learner can give up to, and the junior and senior versions shown after a
