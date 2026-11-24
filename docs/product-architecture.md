@@ -1854,6 +1854,22 @@ provider signature against the original bytes before processing an event.
 Retries use its provider event ID so a duplicate success cannot grant a
 second entitlement.
 
+Malformed JSON returns 400. A production handler requires the Supabase
+service-role key at startup. If configured Redis is unavailable, the admin
+gate, CSP reports, question reports, sign-in events, billing cancellation
+(including signed cancellation links), referral claims and voucher redemption
+return 503 `rate_limit_unavailable` from their closed rate-limit buckets.
+Other limits continue through each instance’s in-memory bucket. Single-use
+claims also refuse a write while a configured claim store is unavailable.
+The merchandise webhook verifies the HMAC over the raw body. It remembers
+a successful delivery digest for seven days and releases a failed claim for retry.
+
+The staged friend-privacy change in [#677](https://github.com/lukaskourilcz/devshark/pull/677)
+pairs the handlers with database migration 084. After that rollout, responding
+to a hidden stranger or an unknown name yields the same 404 `not_found`.
+Removing either returns `{ removed: false }`. Existing friendship or request
+rows retain their normal behavior.
+
 The health response distinguishes the database check, the service-role check,
 the rate limiter's current operating mode and grading readiness. The grading
 probe checks the local engine and required snapshot configuration. The

@@ -2335,6 +2335,8 @@ async function main() {
       }
     }
     const healthContract = readFileSync('bruno/Public/Health.bru', 'utf8');
+    assert.match(healthContract, /^\s*res\.body\.dependencies\.grading: eq ok\s*$/m);
+    assert.match(healthContract, /^\s*res\.body\.dependencies\.rateLimiter: neq memory-fallback\s*$/m);
     const healthy = await call(health as Handler, {});
     assert.equal(healthy.statusCode, 200);
     for (const [, field, operator, expected] of healthContract.matchAll(/res\.body\.dependencies\.(\w+): (eq|neq) ([\w-]+)/g)) {
