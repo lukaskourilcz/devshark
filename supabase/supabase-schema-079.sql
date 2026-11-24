@@ -37,6 +37,8 @@ DECLARE
 BEGIN
   FOREACH v_table IN ARRAY v_tables LOOP
     IF to_regclass('public.' || v_table) IS NOT NULL THEN
+      -- Wait for in-flight writers and keep new writes out until DROP commits.
+      EXECUTE format('LOCK TABLE public.%I IN ACCESS EXCLUSIVE MODE', v_table);
       EXECUTE format('SELECT EXISTS (SELECT 1 FROM public.%I)', v_table) INTO v_found;
       IF v_found THEN
         RAISE EXCEPTION 'migration 079 drops public.%, which holds rows; export them first', v_table;
