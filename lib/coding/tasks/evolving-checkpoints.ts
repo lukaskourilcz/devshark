@@ -510,7 +510,7 @@ function fullstackCheckpoints(slug: string): Record<string, Checkpoint> {
     ),
     '6': ui(
       `Add a form with controlled 'Name' and '${amount}' inputs and a 'Create' button. Wire input changes and prevent navigation on submit; sending POST is the next step.`,
-      `render(<App/>);await settle();fireEvent.change(screen.getByLabelText('Name'),{target:{value:'New'}});fireEvent.change(screen.getByLabelText('${amount}',{exact:true}),{target:{value:'3'}});expect(screen.getByLabelText('Name').value).toBe('New');expect(screen.getByLabelText('${amount}',{exact:true}).value).toBe('3');fireEvent.click(screen.getByRole('button',{name:'Create',exact:true}));`,
+      `render(<App/>);await settle();fireEvent.change(screen.getByLabelText('Name'),{target:{value:'New'}});fireEvent.change(screen.getByLabelText('${amount}',{exact:true}),{target:{value:'3'}});expect(screen.getByLabelText('Name').value).toBe('New');expect(screen.getByLabelText('${amount}',{exact:true}).value).toBe('3');await require('@testing-library/react').act(async()=>{fireEvent.click(screen.getByRole('button',{name:'Create',exact:true}));});`,
     ),
     '8': ui(
       `Add client-side 'Search' and 'Available only' filters. Search uses trimmed case-insensitive name substrings; available means ${amount}>0. Combine filters without changing API records.`,

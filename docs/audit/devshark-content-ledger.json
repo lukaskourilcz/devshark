@@ -332183,10 +332183,10 @@
    "level": 25,
    "objective": "Keep a controlled planner draft without submitting it before the creation milestone.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "bd62506fe25a2131",
+   "revision": 2,
+   "contentHash": "bc49e69ef34fa577",
    "hashSchema": "task-hash:v2",
-   "previousHash": "126627e1d6756460",
+   "previousHash": "bd62506fe25a2131",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -332221,70 +332221,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "The original checkpoint suite did not assert canceled form navigation or retention of long controlled values across rerenders."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "The checkpoint deliberately stops before POST creation. It now checks long and empty controlled drafts across rerenders, native submission cancellation, absence of writes and complete supplied lists. API ownership and inherited ordinary fields retain the earlier contract. Its reference still contains unused future-stage helpers and state, reflected in explanation3/5; that dead code is not presented as a repaired behavior.",
+   "rationale": "Keep a controlled planner draft without submitting it before the creation milestone. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: 37 native expected verdicts / 60 protocol assertions; final five suites and eleven programs byte-identical to native captures.",
-    "run: shared PATCH-only routing changes24programs in12unreviewed family IDs; all695already accepted hashes stay exact. Eight sibling IDs receive no new review records.",
-    "run: focused sibling diagnostics pass26published/positive-QA programs and49protocol assertions; finite evidence, not full individual sibling reviews.",
-    "run: the initial draft fixture incorrectly required invalid empty Create enabled and queried an off-page zero-hour button; those failures are retained and discarded. Corrected fixtures respect both valid UI policies.",
-    "run: 42/42 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 18 wrong).",
-    "run: baseline matched 25/42 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version bd62506fe25a2131 passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-planner-6-start",
-      "contentHash": "bd62506fe25a2131",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 26,
-      "hidden": 3
-     },
-     {
-      "id": "react-fullstack-planner-6-start",
-      "contentHash": "bd62506fe25a2131",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 26,
-      "hidden": 3
-     },
-     {
-      "id": "react-fullstack-planner-6-start",
-      "contentHash": "bd62506fe25a2131",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 26,
-      "hidden": 3
-     },
-     {
-      "id": "react-fullstack-planner-6-start",
-      "contentHash": "bd62506fe25a2131",
-      "label": "wrong-name-truncated-to-five",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 26,
-      "hidden": 3
-     },
-     {
-      "id": "react-fullstack-planner-6-start",
-      "contentHash": "bd62506fe25a2131",
-      "label": "wrong-submit-navigates",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 26,
-      "hidden": 3
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "bc49e69ef34fa577",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -332294,31 +332241,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b134; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: 37 native expected verdicts / 60 protocol assertions; final five suites and eleven programs byte-identical to native captures.",
-     "run: shared PATCH-only routing changes24programs in12unreviewed family IDs; all695already accepted hashes stay exact. Eight sibling IDs receive no new review records.",
-     "run: focused sibling diagnostics pass26published/positive-QA programs and49protocol assertions; finite evidence, not full individual sibling reviews.",
-     "run: the initial draft fixture incorrectly required invalid empty Create enabled and queried an off-page zero-hour button; those failures are retained and discarded. Corrected fixtures respect both valid UI policies.",
-     "run: 42/42 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 18 wrong).",
-     "run: baseline matched 25/42 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read original/final English prompt, previous requirements, hints, public and hidden suites, starters, all eleven complete programs and three positive QA variants. Shared fully read API prefixes were byte-compared and all new UI bodies read; QA is byte-equal to its declared edits. Reread final tests, scoped method guards, hints and independent UI alternatives. The alternatives reuse an authored API prefix; no independent API, independent-human, authenticated production, real network or physical-device claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "bc49e69ef34fa577",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "bd62506fe25a2131",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-planner-6-start"
    }
   },
   {
@@ -332335,10 +332277,10 @@
    "level": 25,
    "objective": "Create valid planner items through JSON requests while preserving pending and failed drafts.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "92105bce3bf20587",
+   "revision": 2,
+   "contentHash": "5ad754184513f702",
    "hashSchema": "task-hash:v2",
-   "previousHash": "af003e4231465c26",
+   "previousHash": "92105bce3bf20587",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -332373,107 +332315,18 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "Published reference misclassified a failed POST409 as Changed elsewhere.",
-    "Original checks did not cover all failed POST statuses, both retained fields, JSON header and pending duplicate behavior together."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "Checks cover JSON headers and normalized boundary values, one pending POST despite duplicate clicks, no premature list reload, invalid drafts, four failed outcomes with both fields retained, and later recovery. A 409 from POST must be Request failed, not a version conflict. The shared authored repair is restricted to PATCH conflict handling; disabling Create for an invalid empty form remains valid.",
+   "rationale": "Create valid planner items through JSON requests while preserving pending and failed drafts. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: 37 native expected verdicts / 60 protocol assertions; final five suites and eleven programs byte-identical to native captures.",
-    "run: shared PATCH-only routing changes24programs in12unreviewed family IDs; all695already accepted hashes stay exact. Eight sibling IDs receive no new review records.",
-    "run: focused sibling diagnostics pass26published/positive-QA programs and49protocol assertions; finite evidence, not full individual sibling reviews.",
-    "run: the initial draft fixture incorrectly required invalid empty Create enabled and queried an off-page zero-hour button; those failures are retained and discarded. Corrected fixtures respect both valid UI policies.",
-    "run: 42/42 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 18 wrong).",
-    "run: baseline matched 25/42 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version 92105bce3bf20587 passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview.",
+    "Focused local junior-board comparison: 31 of 31 cases passed before and after; the seven act warnings all occurred in the inherited form checkpoint before the fix, and none appeared afterward."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-planner-6",
-      "contentHash": "92105bce3bf20587",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-planner-6",
-      "contentHash": "92105bce3bf20587",
-      "label": "junior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-planner-6",
-      "contentHash": "92105bce3bf20587",
-      "label": "senior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-planner-6",
-      "contentHash": "92105bce3bf20587",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-planner-6",
-      "contentHash": "92105bce3bf20587",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-planner-6",
-      "contentHash": "92105bce3bf20587",
-      "label": "wrong-failure-clears-hours",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-planner-6",
-      "contentHash": "92105bce3bf20587",
-      "label": "wrong-post-missing-content-type",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-planner-6",
-      "contentHash": "92105bce3bf20587",
-      "label": "wrong-original-reference",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-planner-6",
-      "contentHash": "92105bce3bf20587",
-      "label": "existing-qa-1",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "5ad754184513f702",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -332483,31 +332336,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b134; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: 37 native expected verdicts / 60 protocol assertions; final five suites and eleven programs byte-identical to native captures.",
-     "run: shared PATCH-only routing changes24programs in12unreviewed family IDs; all695already accepted hashes stay exact. Eight sibling IDs receive no new review records.",
-     "run: focused sibling diagnostics pass26published/positive-QA programs and49protocol assertions; finite evidence, not full individual sibling reviews.",
-     "run: the initial draft fixture incorrectly required invalid empty Create enabled and queried an off-page zero-hour button; those failures are retained and discarded. Corrected fixtures respect both valid UI policies.",
-     "run: 42/42 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 18 wrong).",
-     "run: baseline matched 25/42 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read original/final English prompt, previous requirements, hints, public and hidden suites, starters, all eleven complete programs and three positive QA variants. Shared fully read API prefixes were byte-compared and all new UI bodies read; QA is byte-equal to its declared edits. Reread final tests, scoped method guards, hints and independent UI alternatives. The alternatives reuse an authored API prefix; no independent API, independent-human, authenticated production, real network or physical-device claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "5ad754184513f702",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "92105bce3bf20587",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-planner-6"
    }
   },
   {
@@ -332524,10 +332372,10 @@
    "level": 25,
    "objective": "Apply versioned hour changes and recover from conflicts using authoritative records.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "4c18327e0d4873aa",
+   "revision": 2,
+   "contentHash": "35fd518c32e294d5",
    "hashSchema": "task-hash:v2",
-   "previousHash": "4272285856a3581e",
+   "previousHash": "4c18327e0d4873aa",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -332562,125 +332410,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "All three published styles misclassified POST409 as a PATCH conflict.",
-    "Original repeated-write coverage did not exercise custom versions or amounts above nine."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "Custom IDs and versions, repeated decrements from17hours, zero-hour disabling, stale external writes and recovery using the new version expose hardcoded counters and versions. Existing deferred-write and ordinary-failure checks remain. A conflict reload does not resubmit the stale write. Earlier creation behavior remains independently checked.",
+   "rationale": "Apply versioned hour changes and recover from conflicts using authoritative records. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: 37 native expected verdicts / 60 protocol assertions; final five suites and eleven programs byte-identical to native captures.",
-    "run: shared PATCH-only routing changes24programs in12unreviewed family IDs; all695already accepted hashes stay exact. Eight sibling IDs receive no new review records.",
-    "run: focused sibling diagnostics pass26published/positive-QA programs and49protocol assertions; finite evidence, not full individual sibling reviews.",
-    "run: the initial draft fixture incorrectly required invalid empty Create enabled and queried an off-page zero-hour button; those failures are retained and discarded. Corrected fixtures respect both valid UI policies.",
-    "run: 42/42 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 18 wrong).",
-    "run: baseline matched 25/42 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version 4c18327e0d4873aa passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-planner-7",
-      "contentHash": "4c18327e0d4873aa",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-7",
-      "contentHash": "4c18327e0d4873aa",
-      "label": "junior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-7",
-      "contentHash": "4c18327e0d4873aa",
-      "label": "senior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-7",
-      "contentHash": "4c18327e0d4873aa",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-7",
-      "contentHash": "4c18327e0d4873aa",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-7",
-      "contentHash": "4c18327e0d4873aa",
-      "label": "wrong-patch-always-version-one",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-7",
-      "contentHash": "4c18327e0d4873aa",
-      "label": "wrong-caps-updated-hours-at-nine",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-7",
-      "contentHash": "4c18327e0d4873aa",
-      "label": "wrong-original-reference",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-7",
-      "contentHash": "4c18327e0d4873aa",
-      "label": "wrong-original-junior",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-7",
-      "contentHash": "4c18327e0d4873aa",
-      "label": "wrong-original-senior",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-7",
-      "contentHash": "4c18327e0d4873aa",
-      "label": "existing-qa-1",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "35fd518c32e294d5",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -332690,31 +332430,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b134; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: 37 native expected verdicts / 60 protocol assertions; final five suites and eleven programs byte-identical to native captures.",
-     "run: shared PATCH-only routing changes24programs in12unreviewed family IDs; all695already accepted hashes stay exact. Eight sibling IDs receive no new review records.",
-     "run: focused sibling diagnostics pass26published/positive-QA programs and49protocol assertions; finite evidence, not full individual sibling reviews.",
-     "run: the initial draft fixture incorrectly required invalid empty Create enabled and queried an off-page zero-hour button; those failures are retained and discarded. Corrected fixtures respect both valid UI policies.",
-     "run: 42/42 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 18 wrong).",
-     "run: baseline matched 25/42 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read original/final English prompt, previous requirements, hints, public and hidden suites, starters, all eleven complete programs and three positive QA variants. Shared fully read API prefixes were byte-compared and all new UI bodies read; QA is byte-equal to its declared edits. Reread final tests, scoped method guards, hints and independent UI alternatives. The alternatives reuse an authored API prefix; no independent API, independent-human, authenticated production, real network or physical-device claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "35fd518c32e294d5",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "4c18327e0d4873aa",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-planner-7"
    }
   },
   {
@@ -332731,10 +332466,10 @@
    "level": 25,
    "objective": "Derive combined name and availability filters without changing the planner collection.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "5110ec2d701b0121",
+   "revision": 2,
+   "contentHash": "566ebe3484950844",
    "hashSchema": "task-hash:v2",
-   "previousHash": "067b01836337eac1",
+   "previousHash": "5110ec2d701b0121",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -332769,80 +332504,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "Published reference inherited POST409 conflict misrouting.",
-    "Original filter checks did not distinguish substring from prefix or exactly one hour from at least two."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "The checkpoint combines trimmed case-insensitive substrings with hours>0, including exactly one hour and a mutation that makes a record unavailable. It tests empty recovery and retains all API records. It does not impose pagination or deletion before those are requested. Its creation and versioned-update contracts remain checked.",
+   "rationale": "Derive combined name and availability filters without changing the planner collection. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: 37 native expected verdicts / 60 protocol assertions; final five suites and eleven programs byte-identical to native captures.",
-    "run: shared PATCH-only routing changes24programs in12unreviewed family IDs; all695already accepted hashes stay exact. Eight sibling IDs receive no new review records.",
-    "run: focused sibling diagnostics pass26published/positive-QA programs and49protocol assertions; finite evidence, not full individual sibling reviews.",
-    "run: the initial draft fixture incorrectly required invalid empty Create enabled and queried an off-page zero-hour button; those failures are retained and discarded. Corrected fixtures respect both valid UI policies.",
-    "run: 42/42 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 18 wrong).",
-    "run: baseline matched 25/42 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version 5110ec2d701b0121 passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-planner-8-start",
-      "contentHash": "5110ec2d701b0121",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 29,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-8-start",
-      "contentHash": "5110ec2d701b0121",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 29,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-8-start",
-      "contentHash": "5110ec2d701b0121",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 29,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-8-start",
-      "contentHash": "5110ec2d701b0121",
-      "label": "wrong-search-only-prefix",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 29,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-8-start",
-      "contentHash": "5110ec2d701b0121",
-      "label": "wrong-available-means-at-least-two",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 29,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-planner-8-start",
-      "contentHash": "5110ec2d701b0121",
-      "label": "wrong-original-reference",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 29,
-      "hidden": 8
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "566ebe3484950844",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -332852,31 +332524,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b134; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: 37 native expected verdicts / 60 protocol assertions; final five suites and eleven programs byte-identical to native captures.",
-     "run: shared PATCH-only routing changes24programs in12unreviewed family IDs; all695already accepted hashes stay exact. Eight sibling IDs receive no new review records.",
-     "run: focused sibling diagnostics pass26published/positive-QA programs and49protocol assertions; finite evidence, not full individual sibling reviews.",
-     "run: the initial draft fixture incorrectly required invalid empty Create enabled and queried an off-page zero-hour button; those failures are retained and discarded. Corrected fixtures respect both valid UI policies.",
-     "run: 42/42 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 18 wrong).",
-     "run: baseline matched 25/42 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read original/final English prompt, previous requirements, hints, public and hidden suites, starters, all eleven complete programs and three positive QA variants. Shared fully read API prefixes were byte-compared and all new UI bodies read; QA is byte-equal to its declared edits. Reread final tests, scoped method guards, hints and independent UI alternatives. The alternatives reuse an authored API prefix; no independent API, independent-human, authenticated production, real network or physical-device claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "566ebe3484950844",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "5110ec2d701b0121",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-planner-8-start"
    }
   },
   {
@@ -332893,10 +332560,10 @@
    "level": 25,
    "objective": "Paginate filtered planner records and delete by identity without losing off-page data.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "6bae1a2da236d647",
+   "revision": 2,
+   "contentHash": "35196c88bfbfec73",
    "hashSchema": "task-hash:v2",
-   "previousHash": "6b548523d3fc7bfd",
+   "previousHash": "6bae1a2da236d647",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -332931,125 +332598,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "All three published styles misclassified POST409 as a PATCH conflict.",
-    "Original pagination and deletion checks did not cover a later-page filter reset into multiple pages or failed last-page deletion preserving all records."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "Five custom records expose filter-before-slice, reset from a later page into a two-page subset, zero/zero emptiness, failed last-page deletion preserving every API record, successful deletion clamping and intact off-page values. It preserves creation, conflict and amount rules. UI alternatives reuse authored API prefixes and are not independent whole API implementations.",
+   "rationale": "Paginate filtered planner records and delete by identity without losing off-page data. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: 37 native expected verdicts / 60 protocol assertions; final five suites and eleven programs byte-identical to native captures.",
-    "run: shared PATCH-only routing changes24programs in12unreviewed family IDs; all695already accepted hashes stay exact. Eight sibling IDs receive no new review records.",
-    "run: focused sibling diagnostics pass26published/positive-QA programs and49protocol assertions; finite evidence, not full individual sibling reviews.",
-    "run: the initial draft fixture incorrectly required invalid empty Create enabled and queried an off-page zero-hour button; those failures are retained and discarded. Corrected fixtures respect both valid UI policies.",
-    "run: 42/42 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 18 wrong).",
-    "run: baseline matched 25/42 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version 6bae1a2da236d647 passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-planner-8",
-      "contentHash": "6bae1a2da236d647",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-planner-8",
-      "contentHash": "6bae1a2da236d647",
-      "label": "junior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-planner-8",
-      "contentHash": "6bae1a2da236d647",
-      "label": "senior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-planner-8",
-      "contentHash": "6bae1a2da236d647",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-planner-8",
-      "contentHash": "6bae1a2da236d647",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-planner-8",
-      "contentHash": "6bae1a2da236d647",
-      "label": "wrong-failed-delete-removes-local-row",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-planner-8",
-      "contentHash": "6bae1a2da236d647",
-      "label": "wrong-filter-does-not-reset-page",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-planner-8",
-      "contentHash": "6bae1a2da236d647",
-      "label": "wrong-original-reference",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-planner-8",
-      "contentHash": "6bae1a2da236d647",
-      "label": "wrong-original-junior",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-planner-8",
-      "contentHash": "6bae1a2da236d647",
-      "label": "wrong-original-senior",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-planner-8",
-      "contentHash": "6bae1a2da236d647",
-      "label": "existing-qa-1",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "35196c88bfbfec73",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -333059,31 +332618,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b134; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: 37 native expected verdicts / 60 protocol assertions; final five suites and eleven programs byte-identical to native captures.",
-     "run: shared PATCH-only routing changes24programs in12unreviewed family IDs; all695already accepted hashes stay exact. Eight sibling IDs receive no new review records.",
-     "run: focused sibling diagnostics pass26published/positive-QA programs and49protocol assertions; finite evidence, not full individual sibling reviews.",
-     "run: the initial draft fixture incorrectly required invalid empty Create enabled and queried an off-page zero-hour button; those failures are retained and discarded. Corrected fixtures respect both valid UI policies.",
-     "run: 42/42 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 18 wrong).",
-     "run: baseline matched 25/42 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read original/final English prompt, previous requirements, hints, public and hidden suites, starters, all eleven complete programs and three positive QA variants. Shared fully read API prefixes were byte-compared and all new UI bodies read; QA is byte-equal to its declared edits. Reread final tests, scoped method guards, hints and independent UI alternatives. The alternatives reuse an authored API prefix; no independent API, independent-human, authenticated production, real network or physical-device claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "35196c88bfbfec73",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "6bae1a2da236d647",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-planner-8"
    }
   },
   {
@@ -333437,10 +332991,10 @@
    "level": 25,
    "objective": "Keep the controlled draft without premature creation.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "e8ab98ebee904a82",
+   "revision": 2,
+   "contentHash": "e4da714baaf9a603",
    "hashSchema": "task-hash:v2",
-   "previousHash": "3cefd534fa8cf9ca",
+   "previousHash": "e8ab98ebee904a82",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -333475,67 +333029,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "Existing tests did not distinguish the additional boundary, ownership and semantic negative controls recorded for this exact milestone."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "Long and empty controlled fields remain intact across rerenders. Form submission is canceled and creates nothing. No future POST or validation feedback policy is imposed. Unused future reference helpers remain a3/5 explanation caveat. All published programs/public suites remain unchanged in this batch. Alternative UIs reuse authored API prefixes and are not independent whole APIs. Inherited API checks use learner-owned records without fixing the general bridge limitation#466.",
+   "rationale": "Keep the controlled draft without premature creation. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-    "run: 36/36 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 12 wrong).",
-    "run: baseline matched 25/36 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version e8ab98ebee904a82 passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-stockroom-6-start",
-      "contentHash": "e8ab98ebee904a82",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 26,
-      "hidden": 3
-     },
-     {
-      "id": "react-fullstack-stockroom-6-start",
-      "contentHash": "e8ab98ebee904a82",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 26,
-      "hidden": 3
-     },
-     {
-      "id": "react-fullstack-stockroom-6-start",
-      "contentHash": "e8ab98ebee904a82",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 26,
-      "hidden": 3
-     },
-     {
-      "id": "react-fullstack-stockroom-6-start",
-      "contentHash": "e8ab98ebee904a82",
-      "label": "wrong-name-truncated-to-five",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 26,
-      "hidden": 3
-     },
-     {
-      "id": "react-fullstack-stockroom-6-start",
-      "contentHash": "e8ab98ebee904a82",
-      "label": "wrong-submit-navigates",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 26,
-      "hidden": 3
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "e4da714baaf9a603",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -333545,28 +333049,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b135; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-     "run: 36/36 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 12 wrong).",
-     "run: baseline matched 25/36 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read the English prompt, previous requirements, hints, starter, public/hidden tests, complete published programs and exact QA edits. Whole programs/public suites/starters were byte-compared after amount, endpoint and fixture-name substitutions to the fully read planner counterparts. Different domain wording and API bounds were read separately. Final English/tests/hints are reread separately in the same model session; no independent-human, authenticated, physical-device or real-network claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "e4da714baaf9a603",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "e8ab98ebee904a82",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-stockroom-6-start"
    }
   },
   {
@@ -333583,10 +333085,10 @@
    "level": 25,
    "objective": "Create valid records while preserving failed drafts and pending guards.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "07cf4e54c188315d",
+   "revision": 2,
+   "contentHash": "7036df07eadf1cf1",
    "hashSchema": "task-hash:v2",
-   "previousHash": "76ca91488343a95d",
+   "previousHash": "07cf4e54c188315d",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -333621,94 +333123,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "Existing tests did not distinguish the additional boundary, ownership and semantic negative controls recorded for this exact milestone."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "Creation covers normalized boundaries and invalid drafts, JSON headers, pending duplicate clicks, failed409/400/503/rejected requests with both fields retained and later success. The shared #467method repair already belongs to B134; this batch does not count that repair again. All published programs/public suites remain unchanged in this batch. Alternative UIs reuse authored API prefixes and are not independent whole APIs. Inherited API checks use learner-owned records without fixing the general bridge limitation#466.",
+   "rationale": "Create valid records while preserving failed drafts and pending guards. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-    "run: 36/36 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 12 wrong).",
-    "run: baseline matched 25/36 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version 07cf4e54c188315d passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-stockroom-6",
-      "contentHash": "07cf4e54c188315d",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-stockroom-6",
-      "contentHash": "07cf4e54c188315d",
-      "label": "junior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-stockroom-6",
-      "contentHash": "07cf4e54c188315d",
-      "label": "senior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-stockroom-6",
-      "contentHash": "07cf4e54c188315d",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-stockroom-6",
-      "contentHash": "07cf4e54c188315d",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-stockroom-6",
-      "contentHash": "07cf4e54c188315d",
-      "label": "wrong-failure-clears-hours",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-stockroom-6",
-      "contentHash": "07cf4e54c188315d",
-      "label": "wrong-post-missing-content-type",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-stockroom-6",
-      "contentHash": "07cf4e54c188315d",
-      "label": "existing-qa-1",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "7036df07eadf1cf1",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -333718,28 +333143,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b135; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-     "run: 36/36 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 12 wrong).",
-     "run: baseline matched 25/36 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read the English prompt, previous requirements, hints, starter, public/hidden tests, complete published programs and exact QA edits. Whole programs/public suites/starters were byte-compared after amount, endpoint and fixture-name substitutions to the fully read planner counterparts. Different domain wording and API bounds were read separately. Final English/tests/hints are reread separately in the same model session; no independent-human, authenticated, physical-device or real-network claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "7036df07eadf1cf1",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "07cf4e54c188315d",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-stockroom-6"
    }
   },
   {
@@ -333756,10 +333179,10 @@
    "level": 25,
    "objective": "Apply current-version updates and recover safely from conflicts.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "68a98cbfc4235ccd",
+   "revision": 2,
+   "contentHash": "a9c068bedeaaf97b",
    "hashSchema": "task-hash:v2",
-   "previousHash": "a225c3d6a5aaa273",
+   "previousHash": "68a98cbfc4235ccd",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -333794,94 +333217,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "Existing tests did not distinguish the additional boundary, ownership and semantic negative controls recorded for this exact milestone."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "Custom identities, versions, amounts above nine and repeated changes expose hardcoded counters or stale version1. External changes reload once and the next action uses the new version. Earlier creation, zero and pending behavior remain checked; #467was repaired in B134. All published programs/public suites remain unchanged in this batch. Alternative UIs reuse authored API prefixes and are not independent whole APIs. Inherited API checks use learner-owned records without fixing the general bridge limitation#466.",
+   "rationale": "Apply current-version updates and recover safely from conflicts. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-    "run: 36/36 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 12 wrong).",
-    "run: baseline matched 25/36 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version 68a98cbfc4235ccd passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-stockroom-7",
-      "contentHash": "68a98cbfc4235ccd",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-stockroom-7",
-      "contentHash": "68a98cbfc4235ccd",
-      "label": "junior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-stockroom-7",
-      "contentHash": "68a98cbfc4235ccd",
-      "label": "senior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-stockroom-7",
-      "contentHash": "68a98cbfc4235ccd",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-stockroom-7",
-      "contentHash": "68a98cbfc4235ccd",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-stockroom-7",
-      "contentHash": "68a98cbfc4235ccd",
-      "label": "wrong-patch-always-version-one",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-stockroom-7",
-      "contentHash": "68a98cbfc4235ccd",
-      "label": "wrong-caps-updated-hours-at-nine",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-stockroom-7",
-      "contentHash": "68a98cbfc4235ccd",
-      "label": "existing-qa-1",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "a9c068bedeaaf97b",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -333891,28 +333237,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b135; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-     "run: 36/36 selected final-hash QuickJS verdicts across five items (19 valid, 5 starters, 12 wrong).",
-     "run: baseline matched 25/36 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 19 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read the English prompt, previous requirements, hints, starter, public/hidden tests, complete published programs and exact QA edits. Whole programs/public suites/starters were byte-compared after amount, endpoint and fixture-name substitutions to the fully read planner counterparts. Different domain wording and API bounds were read separately. Final English/tests/hints are reread separately in the same model session; no independent-human, authenticated, physical-device or real-network claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "a9c068bedeaaf97b",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "68a98cbfc4235ccd",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-stockroom-7"
    }
   },
   {
@@ -333929,10 +333273,10 @@
    "level": 25,
    "objective": "Combine substring and availability filters without mutating records.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "059eb41372b81ea0",
+   "revision": 2,
+   "contentHash": "da29bb8a9aa061b1",
    "hashSchema": "task-hash:v2",
-   "previousHash": "6b3207ebd2c235b2",
+   "previousHash": "059eb41372b81ea0",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -333967,67 +333311,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "Existing tests did not distinguish the additional boundary, ownership and semantic negative controls recorded for this exact milestone."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "Substring matching, exactly-one availability, combined filters and an update to zero are checked while all stored records remain. No future pagination/deletion requirement is imposed. Earlier creation and concurrency checks remain. All published programs/public suites remain unchanged in this batch. Alternative UIs reuse authored API prefixes and are not independent whole APIs. Inherited API checks use learner-owned records without fixing the general bridge limitation#466.",
+   "rationale": "Combine substring and availability filters without mutating records. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-    "run: 33/33 selected final-hash QuickJS verdicts across five items (16 valid, 5 starters, 12 wrong).",
-    "run: baseline matched 22/33 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 16 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version 059eb41372b81ea0 passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-stockroom-8-start",
-      "contentHash": "059eb41372b81ea0",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 29,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-stockroom-8-start",
-      "contentHash": "059eb41372b81ea0",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 29,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-stockroom-8-start",
-      "contentHash": "059eb41372b81ea0",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 29,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-stockroom-8-start",
-      "contentHash": "059eb41372b81ea0",
-      "label": "wrong-search-only-prefix",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 29,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-stockroom-8-start",
-      "contentHash": "059eb41372b81ea0",
-      "label": "wrong-available-means-at-least-two",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 29,
-      "hidden": 8
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "da29bb8a9aa061b1",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -334037,28 +333331,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b136; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-     "run: 33/33 selected final-hash QuickJS verdicts across five items (16 valid, 5 starters, 12 wrong).",
-     "run: baseline matched 22/33 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 16 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read the English prompt, previous requirements, hints, starter, public/hidden tests, complete published programs and exact QA edits. Whole programs/public suites/starters were byte-compared after amount, endpoint and fixture-name substitutions to the fully read planner counterparts. Different domain wording and API bounds were read separately. Final English/tests/hints are reread separately in the same model session; no independent-human, authenticated, physical-device or real-network claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "da29bb8a9aa061b1",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "059eb41372b81ea0",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-stockroom-8-start"
    }
   },
   {
@@ -334075,10 +333367,10 @@
    "level": 25,
    "objective": "Paginate filtered collections and preserve records on failed deletion.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "eccedd942aeb4f17",
+   "revision": 2,
+   "contentHash": "6952b12b18134ad5",
    "hashSchema": "task-hash:v2",
-   "previousHash": "860792b4fc04f599",
+   "previousHash": "eccedd942aeb4f17",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -334113,94 +333405,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "Existing tests did not distinguish the additional boundary, ownership and semantic negative controls recorded for this exact milestone."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "A five-record model exercises filter-before-slice, later-page reset into a multi-page subset, empty0/0, failed last-page deletion preserving every record and successful clamping. Retained creation, version and availability behavior still runs. All published programs/public suites remain unchanged in this batch. Alternative UIs reuse authored API prefixes and are not independent whole APIs. Inherited API checks use learner-owned records without fixing the general bridge limitation#466.",
+   "rationale": "Paginate filtered collections and preserve records on failed deletion. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-    "run: 33/33 selected final-hash QuickJS verdicts across five items (16 valid, 5 starters, 12 wrong).",
-    "run: baseline matched 22/33 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 16 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version eccedd942aeb4f17 passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-stockroom-8",
-      "contentHash": "eccedd942aeb4f17",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-stockroom-8",
-      "contentHash": "eccedd942aeb4f17",
-      "label": "junior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-stockroom-8",
-      "contentHash": "eccedd942aeb4f17",
-      "label": "senior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-stockroom-8",
-      "contentHash": "eccedd942aeb4f17",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-stockroom-8",
-      "contentHash": "eccedd942aeb4f17",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-stockroom-8",
-      "contentHash": "eccedd942aeb4f17",
-      "label": "wrong-failed-delete-removes-local-row",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-stockroom-8",
-      "contentHash": "eccedd942aeb4f17",
-      "label": "wrong-filter-does-not-reset-page",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-stockroom-8",
-      "contentHash": "eccedd942aeb4f17",
-      "label": "existing-qa-1",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "6952b12b18134ad5",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -334210,28 +333425,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b136; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-     "run: 33/33 selected final-hash QuickJS verdicts across five items (16 valid, 5 starters, 12 wrong).",
-     "run: baseline matched 22/33 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 16 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read the English prompt, previous requirements, hints, starter, public/hidden tests, complete published programs and exact QA edits. Whole programs/public suites/starters were byte-compared after amount, endpoint and fixture-name substitutions to the fully read planner counterparts. Different domain wording and API bounds were read separately. Final English/tests/hints are reread separately in the same model session; no independent-human, authenticated, physical-device or real-network claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "6952b12b18134ad5",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "eccedd942aeb4f17",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-stockroom-8"
    }
   },
   {
@@ -334585,10 +333798,10 @@
    "level": 25,
    "objective": "Keep the controlled draft without premature creation.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "2caf0ceec1c6ce36",
+   "revision": 2,
+   "contentHash": "4f629574ef129cae",
    "hashSchema": "task-hash:v2",
-   "previousHash": "05ab83bc1d9190e9",
+   "previousHash": "2caf0ceec1c6ce36",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -334623,67 +333836,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "Existing tests did not distinguish the additional boundary, ownership and semantic negative controls recorded for this exact milestone."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "Long and empty controlled fields remain intact across rerenders. Form submission is canceled and creates nothing. No future POST or validation feedback policy is imposed. Unused future reference helpers remain a3/5 explanation caveat. All published programs/public suites remain unchanged in this batch. Alternative UIs reuse authored API prefixes and are not independent whole APIs. Inherited API checks use learner-owned records without fixing the general bridge limitation#466.",
+   "rationale": "Keep the controlled draft without premature creation. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-    "run: 33/33 selected final-hash QuickJS verdicts across five items (16 valid, 5 starters, 12 wrong).",
-    "run: baseline matched 22/33 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 16 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version 2caf0ceec1c6ce36 passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-workshops-6-start",
-      "contentHash": "2caf0ceec1c6ce36",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 26,
-      "hidden": 3
-     },
-     {
-      "id": "react-fullstack-workshops-6-start",
-      "contentHash": "2caf0ceec1c6ce36",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 26,
-      "hidden": 3
-     },
-     {
-      "id": "react-fullstack-workshops-6-start",
-      "contentHash": "2caf0ceec1c6ce36",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 26,
-      "hidden": 3
-     },
-     {
-      "id": "react-fullstack-workshops-6-start",
-      "contentHash": "2caf0ceec1c6ce36",
-      "label": "wrong-name-truncated-to-five",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 26,
-      "hidden": 3
-     },
-     {
-      "id": "react-fullstack-workshops-6-start",
-      "contentHash": "2caf0ceec1c6ce36",
-      "label": "wrong-submit-navigates",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 26,
-      "hidden": 3
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "4f629574ef129cae",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -334693,28 +333856,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b136; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-     "run: 33/33 selected final-hash QuickJS verdicts across five items (16 valid, 5 starters, 12 wrong).",
-     "run: baseline matched 22/33 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 16 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read the English prompt, previous requirements, hints, starter, public/hidden tests, complete published programs and exact QA edits. Whole programs/public suites/starters were byte-compared after amount, endpoint and fixture-name substitutions to the fully read planner counterparts. Different domain wording and API bounds were read separately. Final English/tests/hints are reread separately in the same model session; no independent-human, authenticated, physical-device or real-network claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "4f629574ef129cae",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "2caf0ceec1c6ce36",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-workshops-6-start"
    }
   },
   {
@@ -334731,10 +333892,10 @@
    "level": 25,
    "objective": "Create valid records while preserving failed drafts and pending guards.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "414070cf1dae8977",
+   "revision": 2,
+   "contentHash": "3b0a88ca1a7abac7",
    "hashSchema": "task-hash:v2",
-   "previousHash": "19a1baf6124f219a",
+   "previousHash": "414070cf1dae8977",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -334769,94 +333930,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "Existing tests did not distinguish the additional boundary, ownership and semantic negative controls recorded for this exact milestone."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "Creation covers normalized boundaries and invalid drafts, JSON headers, pending duplicate clicks, failed409/400/503/rejected requests with both fields retained and later success. The shared #467method repair already belongs to B134; this batch does not count that repair again. All published programs/public suites remain unchanged in this batch. Alternative UIs reuse authored API prefixes and are not independent whole APIs. Inherited API checks use learner-owned records without fixing the general bridge limitation#466.",
+   "rationale": "Create valid records while preserving failed drafts and pending guards. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-    "run: 39/39 selected final-hash QuickJS verdicts across five items (22 valid, 5 starters, 12 wrong).",
-    "run: baseline matched 27/39 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 22 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version 414070cf1dae8977 passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-workshops-6",
-      "contentHash": "414070cf1dae8977",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-workshops-6",
-      "contentHash": "414070cf1dae8977",
-      "label": "junior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-workshops-6",
-      "contentHash": "414070cf1dae8977",
-      "label": "senior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-workshops-6",
-      "contentHash": "414070cf1dae8977",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-workshops-6",
-      "contentHash": "414070cf1dae8977",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-workshops-6",
-      "contentHash": "414070cf1dae8977",
-      "label": "wrong-failure-clears-hours",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-workshops-6",
-      "contentHash": "414070cf1dae8977",
-      "label": "wrong-post-missing-content-type",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 27,
-      "hidden": 4
-     },
-     {
-      "id": "react-fullstack-workshops-6",
-      "contentHash": "414070cf1dae8977",
-      "label": "existing-qa-1",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 27,
-      "hidden": 4
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "3b0a88ca1a7abac7",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -334866,28 +333950,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b137; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-     "run: 39/39 selected final-hash QuickJS verdicts across five items (22 valid, 5 starters, 12 wrong).",
-     "run: baseline matched 27/39 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 22 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read the English prompt, previous requirements, hints, starter, public/hidden tests, complete published programs and exact QA edits. Whole programs/public suites/starters were byte-compared after amount, endpoint and fixture-name substitutions to the fully read planner counterparts. Different domain wording and API bounds were read separately. Final English/tests/hints are reread separately in the same model session; no independent-human, authenticated, physical-device or real-network claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "3b0a88ca1a7abac7",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "414070cf1dae8977",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-workshops-6"
    }
   },
   {
@@ -334904,10 +333986,10 @@
    "level": 25,
    "objective": "Apply current-version updates and recover safely from conflicts.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "e130b672aabbc9e0",
+   "revision": 2,
+   "contentHash": "3c8820286faf6107",
    "hashSchema": "task-hash:v2",
-   "previousHash": "dc15af4bb0c088c0",
+   "previousHash": "e130b672aabbc9e0",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -334942,94 +334024,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "Existing tests did not distinguish the additional boundary, ownership and semantic negative controls recorded for this exact milestone."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "Custom identities, versions, amounts above nine and repeated changes expose hardcoded counters or stale version1. External changes reload once and the next action uses the new version. Earlier creation, zero and pending behavior remain checked; #467was repaired in B134. All published programs/public suites remain unchanged in this batch. Alternative UIs reuse authored API prefixes and are not independent whole APIs. Inherited API checks use learner-owned records without fixing the general bridge limitation#466.",
+   "rationale": "Apply current-version updates and recover safely from conflicts. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-    "run: 39/39 selected final-hash QuickJS verdicts across five items (22 valid, 5 starters, 12 wrong).",
-    "run: baseline matched 27/39 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 22 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version e130b672aabbc9e0 passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-workshops-7",
-      "contentHash": "e130b672aabbc9e0",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-workshops-7",
-      "contentHash": "e130b672aabbc9e0",
-      "label": "junior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-workshops-7",
-      "contentHash": "e130b672aabbc9e0",
-      "label": "senior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-workshops-7",
-      "contentHash": "e130b672aabbc9e0",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-workshops-7",
-      "contentHash": "e130b672aabbc9e0",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-workshops-7",
-      "contentHash": "e130b672aabbc9e0",
-      "label": "wrong-patch-always-version-one",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-workshops-7",
-      "contentHash": "e130b672aabbc9e0",
-      "label": "wrong-caps-updated-hours-at-nine",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 28,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-workshops-7",
-      "contentHash": "e130b672aabbc9e0",
-      "label": "existing-qa-1",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 28,
-      "hidden": 8
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "3c8820286faf6107",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -335039,28 +334044,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b137; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-     "run: 39/39 selected final-hash QuickJS verdicts across five items (22 valid, 5 starters, 12 wrong).",
-     "run: baseline matched 27/39 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 22 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read the English prompt, previous requirements, hints, starter, public/hidden tests, complete published programs and exact QA edits. Whole programs/public suites/starters were byte-compared after amount, endpoint and fixture-name substitutions to the fully read planner counterparts. Different domain wording and API bounds were read separately. Final English/tests/hints are reread separately in the same model session; no independent-human, authenticated, physical-device or real-network claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "3c8820286faf6107",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "e130b672aabbc9e0",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-workshops-7"
    }
   },
   {
@@ -335077,10 +334080,10 @@
    "level": 25,
    "objective": "Combine substring and availability filters without mutating records.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "b15662b90633c3b3",
+   "revision": 2,
+   "contentHash": "5a3a4995f868f0b2",
    "hashSchema": "task-hash:v2",
-   "previousHash": "fc394266c5ffca5f",
+   "previousHash": "b15662b90633c3b3",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -335115,67 +334118,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "Existing tests did not distinguish the additional boundary, ownership and semantic negative controls recorded for this exact milestone."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "Substring matching, exactly-one availability, combined filters and an update to zero are checked while all stored records remain. No future pagination/deletion requirement is imposed. Earlier creation and concurrency checks remain. All published programs/public suites remain unchanged in this batch. Alternative UIs reuse authored API prefixes and are not independent whole APIs. Inherited API checks use learner-owned records without fixing the general bridge limitation#466.",
+   "rationale": "Combine substring and availability filters without mutating records. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-    "run: 39/39 selected final-hash QuickJS verdicts across five items (22 valid, 5 starters, 12 wrong).",
-    "run: baseline matched 27/39 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 22 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version b15662b90633c3b3 passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-workshops-8-start",
-      "contentHash": "b15662b90633c3b3",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 29,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-workshops-8-start",
-      "contentHash": "b15662b90633c3b3",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 29,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-workshops-8-start",
-      "contentHash": "b15662b90633c3b3",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 29,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-workshops-8-start",
-      "contentHash": "b15662b90633c3b3",
-      "label": "wrong-search-only-prefix",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 29,
-      "hidden": 8
-     },
-     {
-      "id": "react-fullstack-workshops-8-start",
-      "contentHash": "b15662b90633c3b3",
-      "label": "wrong-available-means-at-least-two",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 29,
-      "hidden": 8
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "5a3a4995f868f0b2",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -335185,28 +334138,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b137; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-     "run: 39/39 selected final-hash QuickJS verdicts across five items (22 valid, 5 starters, 12 wrong).",
-     "run: baseline matched 27/39 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 22 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read the English prompt, previous requirements, hints, starter, public/hidden tests, complete published programs and exact QA edits. Whole programs/public suites/starters were byte-compared after amount, endpoint and fixture-name substitutions to the fully read planner counterparts. Different domain wording and API bounds were read separately. Final English/tests/hints are reread separately in the same model session; no independent-human, authenticated, physical-device or real-network claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "5a3a4995f868f0b2",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "b15662b90633c3b3",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-workshops-8-start"
    }
   },
   {
@@ -335223,10 +334174,10 @@
    "level": 25,
    "objective": "Paginate filtered collections and preserve records on failed deletion.",
    "intendedLevel": "intermediate",
-   "revision": 1,
-   "contentHash": "00a3d6ccb247b014",
+   "revision": 2,
+   "contentHash": "a0eaf7ade5f67c7c",
    "hashSchema": "task-hash:v2",
-   "previousHash": "f2b7d9c561d49bbd",
+   "previousHash": "00a3d6ccb247b014",
    "previousHashSchema": "task-hash:v2",
    "quality": {
     "topicRelevance": 4,
@@ -335261,94 +334212,17 @@
    "decision": "rewrite",
    "retireReason": null,
    "defects": [
-    "Existing tests did not distinguish the additional boundary, ownership and semantic negative controls recorded for this exact milestone."
+    "The inherited Create-form checkpoint ended immediately after clicking Create. Implementations that submit at later stages could still be updating React state as the case finished."
    ],
-   "rationale": "A five-record model exercises filter-before-slice, later-page reset into a multi-page subset, empty0/0, failed last-page deletion preserving every record and successful clamping. Retained creation, version and availability behavior still runs. All published programs/public suites remain unchanged in this batch. Alternative UIs reuse authored API prefixes and are not independent whole APIs. Inherited API checks use learner-owned records without fixing the general bridge limitation#466.",
+   "rationale": "Paginate filtered collections and preserve records on failed deletion. The fixture now awaits React updates caused by its final Create click. The checkpoint still accepts a controlled form without a POST and later milestones retain their own submit and response requirements.",
    "evidence": [
-    "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-    "https://react.dev/learn/you-might-not-need-an-effect",
-    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-    "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-    "run: 39/39 selected final-hash QuickJS verdicts across five items (22 valid, 5 starters, 12 wrong).",
-    "run: baseline matched 27/39 expectations; newly explicit policies are distinguished in the item rationale.",
-    "run: 22 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
+    "Source review: compared both effective task definitions and all supplied solution boards. Only the synchronization of this one inherited click differs. The prompt, starter, displayed checks, grading assertions, hidden cases and authored solutions retain their previous behavior.",
+    "Prior version 00a3d6ccb247b014 passed the full test:coding job at e223dfe5993cd049853e17dc53f0ce5fb3439129; the historical ledger row and its original evidence remain retrievable through previousReview."
    ],
    "graderChecks": {
-    "cases": [
-     {
-      "id": "react-fullstack-workshops-8",
-      "contentHash": "00a3d6ccb247b014",
-      "label": "reference",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-workshops-8",
-      "contentHash": "00a3d6ccb247b014",
-      "label": "junior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-workshops-8",
-      "contentHash": "00a3d6ccb247b014",
-      "label": "senior",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-workshops-8",
-      "contentHash": "00a3d6ccb247b014",
-      "label": "starter",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-workshops-8",
-      "contentHash": "00a3d6ccb247b014",
-      "label": "alternative",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-workshops-8",
-      "contentHash": "00a3d6ccb247b014",
-      "label": "wrong-failed-delete-removes-local-row",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-workshops-8",
-      "contentHash": "00a3d6ccb247b014",
-      "label": "wrong-filter-does-not-reset-page",
-      "expected": "failed",
-      "verdict": "failed",
-      "visible": 30,
-      "hidden": 12
-     },
-     {
-      "id": "react-fullstack-workshops-8",
-      "contentHash": "00a3d6ccb247b014",
-      "label": "existing-qa-1",
-      "expected": "passed",
-      "verdict": "passed",
-      "visible": 30,
-      "hidden": 12
-     }
-    ],
-    "notes": "Finite worker evidence, not proof over arbitrary learner programs or measured asymptotic time."
+    "status": "pending-final-batch",
+    "contentHash": "a0eaf7ade5f67c7c",
+    "cases": []
    },
    "cs": {
     "hash": null,
@@ -335358,28 +334232,26 @@
    "reviewer": {
     "kind": "model",
     "passes": [
-     "individual-item-review",
-     "executable-recheck",
-     "self-review-of-final-English"
+     "effective-source-comparison",
+     "focused-fixture-review"
     ],
-    "run": "Codex session 2026-10-17, sequential five-item batch b137; no independent/human reader claim"
+    "run": "Codex audit on 2026-11-24. The preceding review and its grader observations remain tied to the previous content hash."
    },
-   "reviewedAt": "2026-10-17",
+   "reviewedAt": "2026-11-24",
    "verification": {
     "verdict": "accept",
-    "reader": "same model/session, separate final reading",
-    "problems": [],
-    "evidence": [
-     "https://react.dev/reference/react/useEffect#fetching-data-with-effects",
-     "https://react.dev/learn/you-might-not-need-an-effect",
-     "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#setting_a_body",
-     "run: original-to-final task scope, final combined suites, published programs and positive QA bytes are checked against the native captures.",
-     "run: 39/39 selected final-hash QuickJS verdicts across five items (22 valid, 5 starters, 12 wrong).",
-     "run: baseline matched 27/39 expectations; newly explicit policies are distinguished in the item rationale.",
-     "run: 22 selected authored-target/base-25-XP checks over supported boards pass; uncertain complexity stays unknown and is not penalized."
-    ],
-    "notes": "Read the English prompt, previous requirements, hints, starter, public/hidden tests, complete published programs and exact QA edits. Whole programs/public suites/starters were byte-compared after amount, endpoint and fixture-name substitutions to the fully read planner counterparts. Different domain wording and API bounds were read separately. Final English/tests/hints are reread separately in the same model session; no independent-human, authenticated, physical-device or real-network claim. Final English material and execution reread; same-session self-review only.",
-    "pass": "second-reading"
+    "reader": "Model-assisted source comparison",
+    "contentHash": "a0eaf7ade5f67c7c",
+    "scope": "Only the final Create click in the inherited form checkpoint now waits for React updates; previous-version runtime evidence is recorded separately.",
+    "problems": []
+   },
+   "previousReview": {
+    "revision": 1,
+    "contentHash": "00a3d6ccb247b014",
+    "reviewedAt": "2026-10-17",
+    "gitCommit": "e223dfe5993cd049853e17dc53f0ce5fb3439129",
+    "ledgerPath": "docs/audit/devshark-content-ledger.json",
+    "itemId": "react-fullstack-workshops-8"
    }
   },
   {
