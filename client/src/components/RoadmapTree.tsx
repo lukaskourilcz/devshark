@@ -132,7 +132,6 @@ function TopicCard({
         border: `1px solid ${complete ? color : unlocked ? 'var(--color-border)' : 'transparent'}`,
         borderTop: `3px solid ${color}`,
         backgroundColor: 'var(--color-background-surface)',
-        opacity: unlocked ? 1 : 0.6,
         boxShadow: unlocked ? `0 1px 6px ${color}22` : 'none',
         padding: 10,
         display: 'flex',
@@ -142,11 +141,11 @@ function TopicCard({
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <div aria-hidden style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
-        <div style={{ fontSize: '0.875rem', fontWeight: 700, color: unlocked ? 'var(--color-text-primary)' : 'var(--color-text-disabled)', lineHeight: 1.2 }}>
+        <div style={{ fontSize: '0.875rem', fontWeight: 700, color: unlocked ? 'var(--color-text-primary)' : 'var(--color-text-secondary)', lineHeight: 1.2 }}>
           {t(categoryLabelKey(family))}
         </div>
         {complete && (
-          <svg aria-hidden viewBox="0 0 24 24" style={{ width: 16, height: 16, marginLeft: 'auto', color }}>
+          <svg aria-hidden viewBox="0 0 24 24" style={{ width: 16, height: 16, marginLeft: 'auto', color: 'var(--ss-success-strong)' }}>
             <path d="M20 6 9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}

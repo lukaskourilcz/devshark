@@ -20,7 +20,7 @@ import { readOnce, settled, useFirstData } from '../lib/routeData';
 import type { Question, QuizResult } from '../types/quiz';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../lib/auth';
-import { useActiveSubject, useSubject, deliveryCategoriesForSubject } from '../lib/subjects';
+import { useSubject, deliveryCategoriesForSubject } from '../lib/subjects';
 import { visuallyHidden } from '../theme/MuiTheme';
 import { MotionPop, MotionProvider } from '../lib/motion';
 import { SharkFin } from './SharkFin';
@@ -212,7 +212,6 @@ function Challenge({ onActiveChange }: { onActiveChange?: (active: boolean) => v
   const { t } = useLanguage();
   const { user } = useAuth();
   const userId = user?.id ?? null;
-  const accent = useActiveSubject().accent;
 
   const [phase, setPhase] = useState<Phase>('intro');
   const [error, setError] = useState<string | null>(null);
@@ -940,7 +939,7 @@ function Challenge({ onActiveChange }: { onActiveChange?: (active: boolean) => v
               </Text>
               {/* The big number IS the score — no repeated caption underneath. */}
               <MotionPop>
-                <div style={{ fontSize: 'clamp(3rem, 12vw, 4.5rem)', fontWeight: 800, lineHeight: 1, color: accent }}>
+                <div style={{ fontSize: 'clamp(3rem, 12vw, 4.5rem)', fontWeight: 800, lineHeight: 1, color: 'var(--brand-accent)' }}>
                   {score}
                 </div>
               </MotionPop>

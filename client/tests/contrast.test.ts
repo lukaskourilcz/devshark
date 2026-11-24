@@ -224,6 +224,32 @@ describe('authored text and control colours', () => {
     }
   });
 
+  it('keeps active labels separate from topic decoration, inactive controls and table fills', () => {
+    const roadmap = css('components/Roadmap.tsx');
+    const tree = css('components/RoadmapTree.tsx');
+    const play = css('components/Play.tsx');
+    const questions = css('components/dev/DevQuestions.tsx');
+    const triage = css('components/dev/DevTriage.tsx');
+    expect(roadmap).toContain("color: passed ? passedLine : unlocked ? 'var(--color-text-primary)'");
+    expect(roadmap).toContain("color: passed ? '#3a2c00' : unlocked ? 'var(--color-text-primary)'");
+    expect(roadmap).toMatch(/color: 'var\(--ss-success-strong\)'[^}]*}}>[\s\S]{0,70}t\('roadmap\.allDone'\)/);
+    expect(tree).toContain("color: unlocked ? 'var(--color-text-primary)' : 'var(--color-text-secondary)'");
+    expect(tree).not.toMatch(/opacity:\s*unlocked\s*\?/);
+    expect(play).toMatch(/remainingS <= 5\s*\? 'var\(--ss-error-text\)'/);
+    expect(play).toMatch(/remainingS <= 5\s*\? 'var\(--ss-error-soft\)'/);
+    expect(play).toMatch(/color: 'var\(--brand-accent-on-soft\)',\s*background: 'var\(--brand-accent-soft\)'/);
+    expect(css('components/Challenge.tsx')).toMatch(/color: 'var\(--brand-accent\)' }}>[\s\S]{0,30}{score}/);
+    expect(questions).toContain("danger ? 'var(--ss-error-text)'");
+    expect(questions).toMatch(/correct \? 'var\(--ss-success-strong\)'/);
+    expect(triage).toMatch(/i === q.correctAnswer \? 'var\(--ss-success-strong\)'/);
+    for (const palette of ['REVIEW_COLOR', 'SOURCE_PILL_COLOR']) {
+      const entries = questions.match(new RegExp('const ' + palette + '[^=]+= \\{([^}]+)\\}'))![1];
+      for (const swatch of entries.matchAll(/:\s*'([^']+)'/g)) {
+        expect(swatch[1]).toMatch(/^var\(--(?:ss-(?:success-strong|error-text|warning)|color-text-secondary)\)$/);
+      }
+    }
+  });
+
   for (const design of ['brand', 'apple']) for (const mode of [0, 1] as const) {
     it(`checks text, focus and control surfaces in ${design} ${mode ? 'dark' : 'light'}`, () => {
       const sheets = design === 'apple' ? [apple, editorApple, theme, editor] : [theme, editor];
@@ -272,6 +298,20 @@ describe('authored text and control colours', () => {
           check(solid('color-text-primary'), fill);
           // Roadmap swatches and Today's completed mark contain glyphs; their labels sit outside.
           check(solid({ success: 'ss-success-strong', error: 'ss-error-text', warning: 'ss-warning', info: 'color-text-primary' }[status]!), fill);
+        }
+      }
+      for (const surface of surfaces) {
+        // Play's winner uses the same tint as the active level marker. The countdown
+        // changes to the semantic error tint in its final five seconds.
+        const baseAccent = SUBJECTS.webdev.accent;
+        const activeLevel = compositeOver(baseAccent, ACCENT_SOFT_ALPHA, surface);
+        check(accentOnSoft(brand, baseAccent, mode ? 'dark' : 'light'), activeLevel);
+        check(solid('color-text-primary'), activeLevel);
+        check(solid('ss-error-text'), tinted('ss-error-soft', surface));
+        // An open checkpoint uses a gradient. The trophy must be visible at both ends.
+        for (const [gold, alpha] of [['#ffd54f', 0x38 / 255], ['#f5a623', 0x24 / 255]] as const) {
+          check(solid('color-text-primary'), compositeOver(gold, alpha, surface), 3);
+          check('#3a2c00', gold, 3);
         }
       }
       const guide = css('components/TypingRacer.css');

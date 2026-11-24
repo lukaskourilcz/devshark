@@ -1275,7 +1275,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
           </div>
 
           {topicComplete && (
-            <div style={{ textAlign: 'center', marginTop: 24, fontWeight: 800, color: topicColor }}>
+            <div style={{ textAlign: 'center', marginTop: 24, fontWeight: 800, color: 'var(--ss-success-strong)' }}>
               {t('roadmap.allDone')}
             </div>
           )}
@@ -1397,7 +1397,7 @@ function LevelNode({
               position: 'relative', width: isCurrent ? 50 : 44, height: isCurrent ? 50 : 44, borderRadius: '50%',
               border: `2px solid ${passed ? passedLine : isCurrent ? accent : 'transparent'}`,
               background: passed ? passedFill : isCurrent ? 'var(--brand-accent-soft)' : 'var(--color-background-muted)',
-              color: passed ? passedLine : unlocked ? accent : 'var(--color-text-disabled)',
+              color: passed ? passedLine : unlocked ? 'var(--color-text-primary)' : 'var(--color-text-disabled)',
               cursor: unlocked ? 'pointer' : 'not-allowed',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.86rem',
               boxShadow: isCurrent ? `0 0 0 5px ${accent}1f` : 'none',
@@ -1476,7 +1476,7 @@ function PartTestNode({
                 : unlocked
                   ? `linear-gradient(150deg, ${grad[0]}38, ${grad[1]}24)`
                   : 'var(--color-background-surface)',
-              color: passed ? '#3a2c00' : unlocked ? accent : 'var(--color-text-disabled)',
+              color: passed ? '#3a2c00' : unlocked ? 'var(--color-text-primary)' : 'var(--color-text-disabled)',
               cursor: unlocked ? 'pointer' : 'not-allowed',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: isCurrent ? `0 0 0 5px ${accent}20` : 'none',

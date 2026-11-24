@@ -1245,7 +1245,7 @@ function RunningQuestion({
   const timerColor = noLimit || closedByTeacher
     ? 'var(--astryx-color-text-secondary, currentColor)'
     : remainingS <= 5
-      ? 'var(--ss-error)'
+      ? 'var(--ss-error-text)'
       : remainingS <= 10
         ? 'var(--ss-warning)'
         : 'var(--astryx-color-text-secondary, currentColor)';
@@ -1279,7 +1279,7 @@ function RunningQuestion({
               color: timerColor,
               background:
                 !noLimit && !closedByTeacher && remainingS <= 5
-                  ? 'color-mix(in srgb, var(--ss-error) 15%, transparent)'
+                  ? 'var(--ss-error-soft)'
                   : 'color-mix(in srgb, var(--brand-accent) 12%, transparent)',
             }}
             role="timer"
@@ -1576,8 +1576,8 @@ function Finished({
                 borderRadius: 999,
                 padding: '6px 16px',
                 fontWeight: 700,
-                color: 'var(--brand-accent)',
-                background: 'color-mix(in srgb, var(--brand-accent) 14%, transparent)',
+                color: 'var(--brand-accent-on-soft)',
+                background: 'var(--brand-accent-soft)',
                 textAlign: 'center',
               }}
             >

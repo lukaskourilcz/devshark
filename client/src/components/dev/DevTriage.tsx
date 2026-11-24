@@ -41,7 +41,7 @@ const selectStyle: React.CSSProperties = {
   height: 32,
   padding: '0 8px',
   borderRadius: 8,
-  border: '1px solid var(--color-border)',
+  border: '1px solid var(--color-border-strong)',
   background: 'var(--color-background-surface)',
   color: 'var(--color-text-primary)',
   fontSize: '0.875rem',
@@ -289,7 +289,7 @@ export default function DevTriage() {
                     {q.options.map((opt, i) => (
                       <div key={i} style={{
                         fontSize: '0.75rem',
-                        color: i === q.correctAnswer ? '#2e7d32' : 'var(--color-text-secondary)',
+                        color: i === q.correctAnswer ? 'var(--ss-success-strong)' : 'var(--color-text-secondary)',
                         fontWeight: i === q.correctAnswer ? 700 : 400,
                         whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                       }}>
@@ -302,7 +302,7 @@ export default function DevTriage() {
                       “{v.note}”
                     </div>
                   )}
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-disabled)', marginTop: 2 }}>{q.id} · diff {v.diff}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginTop: 2 }}>{q.id} · diff {v.diff}</div>
                 </TableCell>
 
                 <TableCell><span style={{ fontSize: '0.75rem', color: 'var(--color-text-primary)' }}>{getCategoryLabel(q.category)}</span></TableCell>
