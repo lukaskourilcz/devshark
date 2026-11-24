@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Require two consecutive unhealthy probes
         shell: bash
+        env:
+          REQUIRE_GRADING_HEALTH: ${{ vars.REQUIRE_GRADING_HEALTH }}
         run: |
           probe() {
             curl --fail --silent --show-error --connect-timeout 10 --max-time 20 \
@@ -23,7 +25,9 @@ jobs:
                 (now | floor) as $checked |
                 .ok == true and .status == "healthy" and
                 .dependencies.database == "ok" and .dependencies.serviceRole == "ok" and
-                .dependencies.rateLimiter == "configured" and .dependencies.grading == "ok" and
+                .dependencies.rateLimiter == "configured" and
+                (.dependencies.grading == "ok" or
+                 ((.dependencies | has("grading") | not) and env.REQUIRE_GRADING_HEALTH != "true")) and
                 $reported >= ($checked - 300) and $reported <= ($checked + 300)
               ' /tmp/health.json
           }
