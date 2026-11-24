@@ -849,7 +849,7 @@ test('check:bundle keeps its default shaped-build options and refuses mixed/repe
   assert.deepEqual(bundle.bundleOptions(['--largest=20']), { origin: null, largestCount: 20 });
   assert.deepEqual(bundle.bundleOptions(['--url=https://example.test']), { origin: 'https://example.test', largestCount: 10 });
   for (const args of [['--url=https://example.test', '--largest=20'], ['--url=https://example.test', '--url=https://other.test'], ['--url'], ['--largest=2', '--largest=3']]) assert.throws(() => bundle.bundleOptions(args));
-  assert.equal(JSON.parse(readFileSync(join(root, 'docs/quality/bundle-budget.json'), 'utf8')).initialGzipBytes, 215968);
+  assert.equal(JSON.parse(readFileSync(join(root, 'docs/quality/bundle-budget.json'), 'utf8')).initialGzipBytes, 215958);
 });
 
 // F1-38: exercise the existing CLI server, with no HTTP readiness polling.
