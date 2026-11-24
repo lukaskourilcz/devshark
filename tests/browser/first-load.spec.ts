@@ -132,16 +132,18 @@ async function coldLoad(page: Page, path = '/', api: Api = unavailable, ready?: 
     Object.assign(window, { __firstLoad: state });
     const describe = (node: Node | null) =>
       node instanceof Element ? `${node.tagName.toLowerCase()}${node.id ? `#${node.id}` : ''}${node.classList.length ? `.${[...node.classList].join('.')}` : ''}` : String(node?.nodeName);
-    new PerformanceObserver((list) => {
-      for (const entry of list.getEntries() as LayoutShiftEntry[]) {
-        state.shifts.push({
-          t: Math.round(entry.startTime),
-          value: entry.value,
-          input: entry.hadRecentInput,
-          sources: entry.sources.map((source) => describe(source.node)),
-        });
-      }
-    }).observe({ type: 'layout-shift', buffered: true });
+    if (PerformanceObserver.supportedEntryTypes.includes('layout-shift')) {
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries() as LayoutShiftEntry[]) {
+          state.shifts.push({
+            t: Math.round(entry.startTime),
+            value: entry.value,
+            input: entry.hadRecentInput,
+            sources: entry.sources.map((source) => describe(source.node)),
+          });
+        }
+      }).observe({ type: 'layout-shift', buffered: true });
+    }
     const sample = () => {
       const main = document.getElementById('main-content');
       if (main) {
@@ -192,25 +194,41 @@ for (const profile of PROFILES) {
       // Nothing on the page moved. Entries flagged as input count too.
       const moved = shifts.flatMap((shift) => shift.sources);
       expect.soft(moved.filter((node) => node === 'main#main-content' || node.startsWith('header') || node.startsWith('footer')), 'shell nodes that moved').toEqual([]);
-      await expectLowCLS(page, shifts, '/');
-      const total = shifts.reduce((sum, shift) => sum + shift.value, 0);
-      expect.soft(total, `layout shift score, all entries: ${JSON.stringify(shifts)}`).toBeLessThan(0.01);
+      await expectLayoutStability(page, { shifts, frames }, '/');
+      if (shifts.length > 0) {
+        const total = shifts.reduce((sum, shift) => sum + shift.value, 0);
+        expect.soft(total, `layout shift score, all entries: ${JSON.stringify(shifts)}`).toBeLessThan(0.01);
+      }
     });
   });
 }
 
 // Use the same session-window score as perf:measure, with no lab interaction.
-async function expectLowCLS(page: Page, shifts: Shift[], path: string) {
+async function expectLayoutStability(page: Page, { frames, shifts }: Recorder['__firstLoad'], path: string) {
   const { summarizeLayoutShifts } = await import(resolve('scripts/measure-web-performance.mjs'));
   const { cls } = summarizeLayoutShifts(shifts.map(shift => ({
     startTime: shift.t, hadRecentInput: shift.input, value: shift.value,
   })));
   const observerSupported = await page.evaluate(() => PerformanceObserver.supportedEntryTypes.includes('layout-shift'));
-  const receipt = { path, viewport: page.viewportSize(), cls, entries: shifts.length, observerSupported };
+  const mainTops = frames.map(frame => frame.mainTop);
+  const mainTopRangePx = mainTops.length ? Math.max(...mainTops) - Math.min(...mainTops) : null;
+  const receipt = {
+    path, viewport: page.viewportSize(), observerSupported,
+    cls: observerSupported ? cls : null, entries: observerSupported ? shifts.length : null,
+    sampledFrames: frames.length, mainTopRangePx,
+  };
   await test.info().attach('lab-cls', { body: JSON.stringify(receipt), contentType: 'application/json' });
   console.log('LAB_CLS_RECEIPT ' + JSON.stringify(receipt));
-  expect(observerSupported, 'layout-shift observation must be supported').toBe(true);
-  expect(cls, path + ' lab CLS: ' + JSON.stringify(shifts)).toBeLessThan(0.05);
+  if (page.context().browser()?.browserType().name() === 'chromium') {
+    expect(observerSupported, 'Chromium must expose the Layout Instability API').toBe(true);
+  }
+  if (observerSupported) {
+    expect(cls, path + ' lab CLS: ' + JSON.stringify(shifts)).toBeLessThan(0.05);
+  } else {
+    expect(frames.length, path + ' rendered animation frames').toBeGreaterThan(1);
+    expect(frames.some(frame => frame.route), path + ' rendered route').toBe(true);
+    expect(mainTopRangePx, path + ' movement of the top of main in CSS pixels').toBeLessThanOrEqual(1);
+  }
 }
 
 for (const profile of PROFILES) {
@@ -237,9 +255,9 @@ for (const profile of PROFILES) {
             else await expect(page.locator('.cd-track-directory a[href="/coding/javascript"]')).toBeVisible();
           }
         };
-        const { shifts } = await coldLoad(page, path, api, ready);
+        const recorded = await coldLoad(page, path, api, ready);
         expect(unhandled, 'requests without a local fixture').toEqual([]);
-        await expectLowCLS(page, shifts, path);
+        await expectLayoutStability(page, recorded, path);
       });
     }
   });
