@@ -34,13 +34,13 @@ Historical parent `b74d835c894d37e339eff3e51a0e762bd3338360`, test-only commit `
 | 08 | Delayed Shark Card writes across accounts | 32766292 → 60f0c381 |
 | 09 | Delayed practice session and saved tasks across accounts | 5151cf39 → 444b7454 |
 | 10 | Undo from the previous account | a7c5a22c → f84490ca |
-| 11 | Challenge completion after switching accounts | bfc7caa9 → f04735d1 |
-| 12 | Profile streak across UTC midnight | ea1f1750 → f0b017c2 |
-| 13 | Sign-in briefly appears during auth restoration | 8c11e884 → a1efd7ae |
-| 14 | Selected Home topic loses its border | 4bc4db6a → 2dc76089 |
-| 15 | Idle Learn/Today cache observers lacked a query function | 7f5b7a70 → eb3d9ac7 |
+| 11 | Challenge completion after switching accounts | 1d11ac02 → 477f556d |
+| 12 | Profile streak across UTC midnight | 80bb12ff → a7ee71f1 |
+| 13 | Sign-in briefly appears during auth restoration | 30cb909c → 69253a9d |
+| 14 | Selected Home topic loses its border | 75aa20ed → f9debc1f |
+| 15 | Idle Learn/Today cache observers lacked a query function | c69f184a → ea2164f9 |
 | 16 | Duplicate planned-run Start action | a02c0929 → ff589353 |
-| 17 | Presenter polls outlive the active question | b73da419 → cfbf7a48 |
+| 17 | Presenter polls outlive the active question | 4a3ecf0c → 863080f0 |
 | 18 | Product architecture update | 7940443f7, documentation |
 | 19 | Release acceptance entry | 7940443f7, documentation |
 | 20 | Saved track reset across live account updates | 430b74c2 → 8a30d866, cross-package |
