@@ -5987,7 +5987,7 @@ test('separate labelled filters and parent renders retain independent summaries;
 // User flow: the page opens on Prague. A search for a known city loads its
 // current temperature, and every reading joins the three recent searches.
 // Data model: CITIES maps a name to coordinates. State keeps the readings
-// ({ name, temperature }, newest first), the city asked for last, loading and error.
+// ({ name, temperature }, newest first), pending request count and the last failed city.
 // API endpoints: GET api.open-meteo.com/v1/forecast?latitude&longitude&current=temperature_2m
 // Reliability and scale: an external API can be slow, down or rate-limited.
 // Check response.ok, show an error with a retry, keep the last good readings on
@@ -6011,16 +6011,14 @@ const forecastUrl = city =>
 
 const App = () => {
   const [readings, setReadings] = useState([]);
-  const [lastCity, setLastCity] = useState(CITIES[0]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [failedCity, setFailedCity] = useState(null);
+  const [pending, setPending] = useState(0);
   const [name, setName] = useState('');
   const [unknown, setUnknown] = useState(null);
 
   const loadWeather = async city => {
-    setLastCity(city);
-    setError('');
-    setLoading(true);
+    setFailedCity(null);
+    setPending(count => count + 1);
     try {
       const response = await fetch(forecastUrl(city));
       if (!response.ok) throw new Error('Request failed');
@@ -6028,9 +6026,9 @@ const App = () => {
       const reading = { name: city.name, temperature: data.current.temperature_2m };
       setReadings(current => [reading, ...current.filter(one => one.name !== city.name)].slice(0, MAX_RECENT));
     } catch (requestError) {
-      setError('Could not load the weather');
+      setFailedCity(city);
     } finally {
-      setLoading(false);
+      setPending(count => count - 1);
     }
   };
 
@@ -6061,11 +6059,11 @@ const App = () => {
         <button type="submit">Search</button>
       </form>
       {unknown !== null && <p>Unknown city: {unknown}</p>}
-      {loading && <p>Loading…</p>}
-      {error && (
+      {pending > 0 && <p>Loading…</p>}
+      {failedCity && (
         <div>
-          <p role="alert">{error}</p>
-          <button type="button" onClick={() => loadWeather(lastCity)}>Retry</button>
+          <p role="alert">Could not load the weather</p>
+          <button type="button" onClick={() => loadWeather(failedCity)}>Retry</button>
         </div>
       )}
       <ul aria-label="Recent searches">
@@ -6105,9 +6103,8 @@ const CITIES = [
 
 const App = () => {
   const [readings, setReadings] = useState([]);
-  const [lastCity, setLastCity] = useState(CITIES[0]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [failedCity, setFailedCity] = useState(null);
+  const [pending, setPending] = useState(0);
   const [cityText, setCityText] = useState('');
   const [unknownCity, setUnknownCity] = useState(null);
 
@@ -6122,9 +6119,8 @@ const App = () => {
   };
 
   const loadWeather = async (city) => {
-    setLastCity(city);
-    setError('');
-    setLoading(true);
+    setFailedCity(null);
+    setPending(count => count + 1);
     try {
       const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + city.latitude + '&longitude=' + city.longitude + '&current=temperature_2m';
       const response = await fetch(url);
@@ -6143,9 +6139,9 @@ const App = () => {
         return updated;
       });
     } catch (requestError) {
-      setError('Could not load the weather');
+      setFailedCity(city);
     }
-    setLoading(false);
+    setPending(count => count - 1);
   };
 
   useEffect(() => {
@@ -6168,7 +6164,7 @@ const App = () => {
   };
 
   const handleRetry = () => {
-    loadWeather(lastCity);
+    loadWeather(failedCity);
   };
 
   let lowest = null;
@@ -6192,10 +6188,10 @@ const App = () => {
         <button type="submit">Search</button>
       </form>
       {unknownCity !== null && <p>Unknown city: {unknownCity}</p>}
-      {loading && <p>Loading…</p>}
-      {error !== '' && (
+      {pending > 0 && <p>Loading…</p>}
+      {failedCity && (
         <div>
-          <p role="alert">{error}</p>
+          <p role="alert">Could not load the weather</p>
           <button type="button" onClick={handleRetry}>Retry</button>
         </div>
       )}
@@ -6242,36 +6238,41 @@ const findCity = name => CITIES.find(city => city.name.toLowerCase() === name.tr
 
 const useRecentWeather = () => {
   const [readings, setReadings] = useState([]);
-  const [request, setRequest] = useState({ city: CITIES[0], status: 'loading' });
-  const inFlight = useRef(null);
+  const [failedCity, setFailedCity] = useState(null);
+  const [pending, setPending] = useState(0);
+  const inFlight = useRef(new Set());
 
   const load = useCallback(async city => {
-    inFlight.current?.abort();
     const mine = new AbortController();
-    inFlight.current = mine;
-    setRequest({ city, status: 'loading' });
+    inFlight.current.add(mine);
+    setPending(inFlight.current.size);
+    setFailedCity(null);
     try {
       const response = await fetch(forecastUrl(city), { signal: mine.signal });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const { current } = await response.json();
       if (mine.signal.aborted) return;
       setReadings(list => [{ name: city.name, temperature: current.temperature_2m }, ...list.filter(one => one.name !== city.name)].slice(0, MAX_RECENT));
-      setRequest({ city, status: 'idle' });
     } catch {
-      if (!mine.signal.aborted) setRequest({ city, status: 'error' });
+      if (!mine.signal.aborted) setFailedCity(city);
+    } finally {
+      if (inFlight.current.delete(mine)) setPending(inFlight.current.size);
     }
   }, []);
 
   useEffect(() => {
     load(CITIES[0]);
-    return () => inFlight.current?.abort();
+    return () => {
+      for (const controller of inFlight.current) controller.abort();
+      inFlight.current.clear();
+    };
   }, [load]);
 
-  return { readings, request, load };
+  return { readings, pending, failedCity, load };
 };
 
 const App = () => {
-  const { readings, request, load } = useRecentWeather();
+  const { readings, pending, failedCity, load } = useRecentWeather();
   const [name, setName] = useState('');
   const [unknown, setUnknown] = useState(null);
 
@@ -6297,11 +6298,11 @@ const App = () => {
         <button type="submit">Search</button>
       </form>
       {unknown !== null && <p>Unknown city: {unknown}</p>}
-      {request.status === 'loading' && <p aria-live="polite">Loading…</p>}
-      {request.status === 'error' && (
+      {pending > 0 && <p aria-live="polite">Loading…</p>}
+      {failedCity && (
         <div>
           <p role="alert">Could not load the weather</p>
-          <button type="button" onClick={() => load(request.city)}>Retry</button>
+          <button type="button" onClick={() => load(failedCity)}>Retry</button>
         </div>
       )}
       <ul aria-label="Recent searches">
@@ -6318,7 +6319,24 @@ const App = () => {
 };
 
 export default App;`,
-    hiddenSuite: `test('readings below zero, with decimals and at zero', () => withRequests(async calls => {
+    hiddenSuite: `test('overlapping city requests retain loading, the failed city and readings in arrival order', () => withRequests(async calls => {
+  render(<App />);
+  search('Brno');
+  await breakOff(calls[0]);
+  expectLine('Loading…');
+  expect(alertText()).toBe('Could not load the weather');
+  fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+  expect(asked(calls[2])).toEqual([FORECAST, 50.08, 14.44, 'temperature_2m']);
+  expect(alertText()).toBe('');
+  await answer(calls[2], 12);
+  expectLine('Loading…');
+  expect(recent()).toEqual(['Prague: 12 °C']);
+  await answer(calls[1], 8);
+  expect(recent()).toEqual(['Brno: 8 °C', 'Prague: 12 °C']);
+  expect(hasLine('Loading…')).toBe(false);
+}));
+
+test('readings below zero, with decimals and at zero', () => withRequests(async calls => {
   render(<App />);
   await answer(calls[0], -3.5);
   search('Ostrava');
