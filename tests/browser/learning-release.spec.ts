@@ -268,14 +268,14 @@ const quizAuditGrade = {
   ],
 };
 
-async function quizAuditFixture(page: Page, signedIn = false) {
+async function quizAuditFixture(page: Page, signedIn = false, questions = quizAuditQuestions) {
   let grades = 0;
   let writes = 0;
   await page.addInitScript(() => localStorage.setItem('devquiz:quiz-setup:v1', JSON.stringify({ count: 10, difficulty: 'mixed', categories: ['javascript'] })));
   await page.route('**/api/**', route => {
     const url = new URL(route.request().url());
     if (url.pathname === '/api/quiz/questions' || url.pathname === '/api/quiz/daily') {
-      return route.fulfill({ json: { sessionId: 'quiz-audit-session-unique-attempt-key', expiresAt: Date.now() + 3_600_000, questions: quizAuditQuestions } });
+      return route.fulfill({ json: { sessionId: 'quiz-audit-session-unique-attempt-key', expiresAt: Date.now() + 3_600_000, questions } });
     }
     if (url.pathname === '/api/quiz/submit') {
       grades++;
@@ -291,6 +291,40 @@ async function quizAuditFixture(page: Page, signedIn = false) {
     return route.fulfill({ status: 503, json: { error: { code: 'offline', message: 'local Quiz fixture' } } });
   });
   return { grades: () => grades, writes: () => writes };
+}
+
+for (const count of [1, 6, 50]) {
+  test(`Quiz navigator preserves answers and moves keyboard focus across ${count} questions`, async ({ page }) => {
+    await prepare(page, 'light');
+    const questions = Array.from({ length: count }, (_, index) => ({
+      ...quizAuditQuestions[0], id: `navigator-${index + 1}`, question: `Navigator question ${index + 1}?`,
+    }));
+    const activity = await quizAuditFixture(page, false, questions);
+    await page.goto('/quiz');
+    await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
+    await page.getByRole('radio', { name: 'object', exact: true }).click();
+    const counter = (number: number) => page.getByRole('button', { name: `Question ${number} of ${count}`, exact: true });
+    const overview = page.getByRole('dialog', { name: 'Choose a question' });
+    await counter(1).focus();
+    await page.keyboard.press('Enter');
+    const first = overview.getByRole('button', { name: 'Question 1, answered', exact: true });
+    await expect(first).toHaveAttribute('aria-current', 'step');
+    if (count > 1) await expect(overview.getByRole('button', { name: `Question ${count}, unanswered` })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(overview).toHaveCount(0);
+    await expect(counter(1)).toBeFocused();
+    await counter(1).click();
+    await overview.getByRole('button', { name: `Question ${count}, ${count === 1 ? 'answered' : 'unanswered'}`, exact: true }).click();
+    await expect(page.locator(`#question-text-navigator-${count}`)).toBeFocused();
+    await expect(overview).toHaveCount(0);
+    if (count > 1) {
+      await counter(count).click();
+      await first.click();
+    }
+    await expect(page.getByRole('radio', { name: 'object', exact: true })).toBeChecked();
+    expect(activity.grades()).toBe(0);
+    expect(activity.writes()).toBe(0);
+  });
 }
 
 async function finishQuizAudit(page: Page) {
@@ -438,7 +472,7 @@ test('Quiz can cancel a slow question load and gives focus back to settings', as
   let release: (() => void) | undefined;
   await page.route('**/api/quiz/questions?**', async route => {
     await new Promise<void>(resolve => { release = resolve; });
-    await route.fulfill({ json: { sessionId: 'late-quiz', questions: quizAuditQuestions } }).catch(() => undefined);
+    await route.fulfill({ json: { sessionId: 'late-quiz', questions } }).catch(() => undefined);
   });
   await page.goto('/quiz');
   await page.getByRole('button', { name: 'Start quiz', exact: true }).click();

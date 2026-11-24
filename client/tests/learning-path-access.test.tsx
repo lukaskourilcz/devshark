@@ -487,7 +487,7 @@ describe('the module page status', () => {
     await modulePage('fde-m02');
     const actions = await waitFor(() => document.querySelector('.lp-head__actions') as HTMLElement);
     expect(within(actions).getByText('Premium')).toBeInTheDocument();
-    fireEvent.click(within(actions).getByRole('button', { name: 'Start module' }));
+    fireEvent.click(within(actions).getByRole('button', { name: /^Start reading/ }));
     expect(state.sheet).toHaveBeenCalledWith({ kind: 'learning-path-activity', ref: 'fde:fde-m02-l1-read' });
   });
   it('offers no primary to a learner who has not enrolled', async () => {

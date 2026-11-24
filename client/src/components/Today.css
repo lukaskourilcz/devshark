@@ -191,3 +191,6 @@
 .today-path .today-card { flex-wrap: wrap; }
 .today-path .today-card__body { flex-basis: 200px; }
 .today-path .today-card__meta { overflow-wrap: anywhere; }
+
+.today-card__meta { overflow-wrap: anywhere; }
+.today-card__context { color: var(--color-text-secondary); font-size: var(--ss-type-meta); }

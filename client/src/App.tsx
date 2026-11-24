@@ -318,6 +318,10 @@ function App() {
   }, [signInResumeFailed]);
   const closeResumeFailed = useCallback(() => setResumeFailedOpen(false), []);
   const mobile = useIsMobile();
+  // A narrow desktop window or browser zoom keeps the keyboard workbench.
+  // On a touch phone, use the shorter viewport side in either orientation.
+  const codingPhone = useMediaQuery('(pointer: coarse) and (hover: none) and (max-width: 599.95px), (pointer: coarse) and (hover: none) and (orientation: landscape) and (max-width: 1023.95px) and (max-height: 599.95px)');
+  const codingNotice = <p className="ss-info-card">{t('coding.phoneNotice')}</p>;
   const analyticsIdentified = useRef(false);
 
   // Remember the learner's current rank on load so we don't re-celebrate a
@@ -842,11 +846,11 @@ function App() {
                   <Route path="/collection" element={<Collection />} />
                   <Route path="/typing" element={<TypingRacer />} />
                   <Route path="/roadmap" element={<CareerRoadmap />} />
-                  <Route path="/coding" element={<CodingHome />} />
-                  <Route path="/coding/review" element={<CodingReviewScreen />} />
-                  <Route path="/coding/fullstack" element={<FullStackScreen />} />
-                  <Route path="/coding/:track" element={<CodingTrackScreen />} />
-                  <Route path="/coding/:track/:taskId" element={<CodingTaskScreen />} />
+                  <Route path="/coding" element={codingPhone ? codingNotice : <CodingHome />} />
+                  <Route path="/coding/review" element={codingPhone ? codingNotice : <CodingReviewScreen />} />
+                  <Route path="/coding/fullstack" element={codingPhone ? codingNotice : <FullStackScreen />} />
+                  <Route path="/coding/:track" element={codingPhone ? codingNotice : <CodingTrackScreen />} />
+                  <Route path="/coding/:track/:taskId" element={codingPhone ? codingNotice : <CodingTaskScreen />} />
                   {/* Learning paths are devShark-only, like /coding and /roadmap.
                       The FDE path lives in its Learn section (#489); its old
                       addresses redirect. E5 (#496) retired the DSA Foundations

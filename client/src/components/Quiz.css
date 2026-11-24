@@ -150,3 +150,10 @@
 
 .quiz-save-status { margin: 0; font-size: var(--ss-type-compact); color: var(--color-text-secondary); }
 .quiz-save-status:empty { display: none; }
+
+.quiz-question-nav__trigger { min-height: 44px; padding-inline: 4px; font: inherit; color: inherit; background: none; border: 0; cursor: pointer; text-decoration: underline; text-underline-offset: .2em; }
+.quiz-question-nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(48px, 1fr)); gap: 6px; padding: 12px; max-height: 65dvh; overflow-y: auto; }
+.quiz-question-nav button { min-height: 44px; font: inherit; color: var(--color-text-primary); background: var(--color-background-surface); border: 1px solid var(--ss-card-line); border-radius: var(--radius-control); cursor: pointer; }
+.quiz-question-nav button[aria-current='step'] { border: 3px double currentColor; font-weight: 700; }
+.quiz-question-nav button span { margin-inline-start: 2px; }
+.quiz-question-nav button:focus-visible, .quiz-question-nav__trigger:focus-visible { outline: 2px solid var(--ss-focus); outline-offset: 1px; }

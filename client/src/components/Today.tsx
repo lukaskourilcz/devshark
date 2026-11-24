@@ -272,7 +272,7 @@ export default function Today() {
                 <ul className="today-list">
                   {group.map((item) => (
                     <li key={item.id}>
-                      <TodayCard item={item} isStartHere={item.id === startHereId} showReason={showReason} t={t} />
+                      <TodayCard item={item} lessonTitle={structure?.structure[item.topic]?.levels.find(level => level.level === item.level)?.title} isStartHere={item.id === startHereId} showReason={showReason} t={t} />
                     </li>
                   ))}
                 </ul>
@@ -346,14 +346,16 @@ function DonePanel({ t }: { t: TFn }) {
 
 /* ── one plan item, deep-linking into its Learn level ─────────────────────── */
 
-function TodayCard({ item, isStartHere, showReason, t }: { item: TodayItem; isStartHere: boolean; showReason: boolean; t: TFn }) {
+function TodayCard({ item, lessonTitle, isStartHere, showReason, t }: { item: TodayItem; lessonTitle?: string; isStartHere: boolean; showReason: boolean; t: TFn }) {
   const topicLabel = t(item.topicLabelKey);
   const meta = t('today.itemMeta', { topic: topicLabel, level: item.level });
   const color = getCategoryHexColor(item.topic);
   const actionLabel = t(ACTION_LABEL[item.kind]);
   // The whole card is one link; give it a full accessible name so the glyph and
   // decorative action affordance don't need their own.
-  const ariaLabel = isStartHere ? t('today.startHereAria', { label: meta }) : `${actionLabel}: ${meta}`;
+  const authored = lessonTitle?.trim();
+  const label = authored ? `${authored} · ${meta}` : meta;
+  const ariaLabel = isStartHere ? t('today.startHereAria', { label }) : `${actionLabel}: ${label}`;
   return (
     <Link
       to={`/learn?topic=${encodeURIComponent(item.topic)}&level=${item.level}`}
@@ -368,9 +370,10 @@ function TodayCard({ item, isStartHere, showReason, t }: { item: TodayItem; isSt
         {/* Start here is a tag after the title, not a row above it, so this
             card is as tall as the others. */}
         <span className="today-card__title">
-          <span className="today-card__meta">{meta}</span>
+          <span className="today-card__meta">{authored || meta}</span>
           {isStartHere && <span className="today-card__chip">{t('today.startHere')}</span>}
         </span>
+        {authored && <span className="today-card__context">{meta}</span>}
         {showReason && <span className="today-card__reason">{t(item.reason)}</span>}
       </span>
       <span className="today-card__action" aria-hidden="true">

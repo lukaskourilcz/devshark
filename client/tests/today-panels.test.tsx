@@ -157,3 +157,12 @@ describe('Today, a fresh plan', () => {
     expect(screen.queryByText(/0 to finish/)).toBeNull();
   });
 });
+
+it('uses the authored level title and keeps the target topic and level in the card', async () => {
+  answer({topics:['html'], structure:{html:{levels:[{...level(1),title:'Structure & Semantics'}],checkpoints:[]}}}, {});
+  await mountToday();
+  const primary = await screen.findByText('Structure & Semantics');
+  const card = primary.closest('a')!;
+  expect(card).toHaveAttribute('href','/learn?topic=html&level=1');
+  expect(card).toHaveTextContent('HTML · Level 1');
+});

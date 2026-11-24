@@ -10,6 +10,7 @@ import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Banner } from '@astryxdesign/core/Banner';
 import { Popover } from '@astryxdesign/core/Popover';
+import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
 import { AlertDialog } from '@astryxdesign/core/AlertDialog';
 import { SegmentedControl, SegmentedControlItem } from '@astryxdesign/core/SegmentedControl';
 import { AppToast } from './ui/AppToast';
@@ -190,6 +191,7 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   const [reviewFocusRequest, setReviewFocusRequest] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [navigatorOpen, setNavigatorOpen] = useState(false);
   const [stop, setStop] = useState<StopReason | null>(null);
   const [lastStart, setLastStart] = useState<StartSpec | null>(null);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
@@ -832,6 +834,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
   // In-app confirm dialog (window.confirm is blocked in many mobile WebViews
   // and bypasses i18n).
   const handleAbandon = () => setLeaveConfirmOpen(true);
+  useEffect(() => {
+    if (state !== 'in-progress' || submitting || answersLocked || (expiresAt !== null && sessionNow >= expiresAt)) setNavigatorOpen(false);
+  }, [state, submitting, answersLocked, expiresAt, sessionNow]);
   const confirmAbandon = () => {
     setLeaveConfirmOpen(false);
     handleRestart();
@@ -1451,7 +1456,8 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         actions={
           <>
             <QuestionActions
-              counter={counter}
+              counter={<button type="button" className="quiz-question-nav__trigger" aria-haspopup="dialog" aria-expanded={navigatorOpen}
+                disabled={submitting || answersLocked || expired} onClick={() => setNavigatorOpen(true)}>{counter}</button>}
               secondary={
                 <>
                   <QuestionIconButton
@@ -1517,6 +1523,24 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
         onClose={() => setReportTarget(null)}
         onSubmit={handleReport}
       />
+      <Dialog isOpen={navigatorOpen && !expired && !answersLocked && !submitting}
+        onOpenChange={setNavigatorOpen} width="min(30rem, 94vw)" aria-label={t('quiz.questionNavigator')}>
+        <DialogHeader title={t('quiz.questionNavigator')} onOpenChange={setNavigatorOpen} />
+        <div className="quiz-question-nav">
+          {questions.map((one, index) => {
+            const answered = answers[one.id] !== undefined;
+            const current = index === currentIndex;
+            return <button key={one.id} type="button" aria-current={current ? 'step' : undefined}
+              aria-label={t(answered ? 'quiz.jumpAnswered' : 'quiz.jumpUnanswered', { n: index + 1 })}
+              onClick={() => {
+                setNavigatorOpen(false);
+                if (submittingRef.current || answersLocked || (expiresAt !== null && Date.now() >= expiresAt)) return;
+                setCurrentIndex(index);
+                setQuestionFocusRequest(request => request + 1);
+              }}>{index + 1}<span aria-hidden="true">{answered ? '✓' : '○'}</span></button>;
+          })}
+        </div>
+      </Dialog>
       <AlertDialog
         className="ss-alert-dialog"
         isOpen={leaveConfirmOpen}

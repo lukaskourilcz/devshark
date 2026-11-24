@@ -638,3 +638,19 @@ test('the former deferred DSA task names its now-issued foundations level', asyn
   await expect(page.locator('.cd-brief__meta')).toHaveText(/DSA Foundations · Level 14$/);
   for (const text of await page.locator('.cd-result__call').allInnerTexts()) expect(text).not.toContain('__probe');
 });
+
+test('the first failed public case opens with separate Input, Expected and Received fields', async ({page}) => {
+  const verdict = {verdict:'failed', results:[{pass:false, actual:'null', error:null}, {pass:true, actual:'{"value":2}', error:null}]};
+  await prepare(page, {signedIn:true, verdict});
+  await openTask(page, '/coding/javascript/js-digit-sum');
+  await fillEditor(page, 'const digitSum = n => null;');
+  await page.getByRole('button', {name:'Submit', exact:true}).click();
+  const details = page.locator('.cd-result__case');
+  await expect(details).toHaveCount(2);
+  await expect(details.first()).toHaveAttribute('open', '');
+  await expect(details.first().locator('dt')).toHaveText(['Input','Expected','Received']);
+  await expect(details.first().locator('dd').last()).toHaveText('null');
+  await details.nth(1).locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(details.nth(1).locator('dd').last()).toHaveText('{"value":2}');
+});
