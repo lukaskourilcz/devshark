@@ -2093,7 +2093,6 @@ export const en = {
   'daily.title': '{track} question of the day',
   'daily.titlePlain': 'Question of the day',
   'daily.description': 'One developer question a day from devShark, from a different track each day. Pick an answer and check it, no account needed.',
-  'daily.lead': 'One question a day from a different track. No account needed; nothing is recorded.',
   'daily.loading': 'Loading the question…',
   'daily.check': 'Check answer',
   'daily.right': 'Right answer',

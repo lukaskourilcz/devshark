@@ -134,3 +134,27 @@ test('/daily names the day without JavaScript', async ({ browser }) => {
   await expect(page.getByText('Turn on JavaScript to see the question and check your answer.')).toBeVisible();
   await context.close();
 });
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`short Daily fits four choices and Check answer on a notebook in ${theme}`, async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 680 });
+    await page.emulateMedia({ colorScheme: theme });
+    await page.addInitScript(mode => localStorage.setItem('devquiz:color-mode', mode), theme);
+    await mockQuestion(page);
+    await page.goto('/daily');
+    const choices = page.getByRole('radio');
+    await expect(choices).toHaveCount(4);
+    const check = page.getByRole('button', { name: 'Check answer' });
+    const bounds = await check.boundingBox();
+    expect(bounds!.height).toBeGreaterThanOrEqual(44);
+    // App reserves the bottom 30px for the permanently visible ocean.
+    const oceanTop = await page.locator('main + [aria-hidden="true"]').evaluate(node => node.getBoundingClientRect().top);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(oceanTop);
+    for (const choice of await choices.all()) {
+      expect((await choice.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
+    const lines = await page.locator('.ss-daily__context').evaluate(el => el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight));
+    expect(lines).toBeLessThanOrEqual(2.01);
+    await expect(page.getByText(/nothing is recorded/i)).toHaveCount(0);
+  });
+}

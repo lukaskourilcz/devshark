@@ -36,7 +36,6 @@ import { AnswerOptionList, QuestionActions, QuestionFeedback, QuestionShell } fr
 import { questionText } from '../i18n/translations.question';
 import { SaveSharkCard } from './SaveSharkCard';
 import { Breadcrumb } from './ui/Breadcrumb';
-import { topicContext } from '../i18n/translations.topicContext';
 import { DailyHeader } from './DailyStaticArticle';
 import './DailyQuestion.css';
 
@@ -69,7 +68,7 @@ export default function DailyQuestionPage() {
   return (
     <article className="ss-info-page ss-daily" aria-busy={query.isFetching || undefined}>
       <Breadcrumb items={[{ label: t('nav.today'), href: '/today' }, { label: t('daily.titlePlain') }]} />
-      <DailyHeader trackInKicker={!dateParam} context={query.data ? <><p>{topicContext[query.data.question.category] ?? topicContext[query.data.track]}</p>{query.data.question.introduction?.trim() && <div>{renderQuestion(query.data.question.introduction)}</div>}</> : undefined} t={t} track={track ? trackName : undefined} date={valid ? shownDate : undefined} dateLabel={valid ? longDate(shownDate) : undefined} />
+      <DailyHeader trackInKicker={!dateParam} category={query.data?.question.category ?? track ?? undefined} t={t} track={track ? trackName : undefined} date={valid ? shownDate : undefined} dateLabel={valid ? longDate(shownDate) : undefined} />
 
       {availability !== 'open' ? (
         <Unavailable problem={availability === 'not-yet' ? 'not-yet' : 'before-start'} date={valid ? date : null} />
@@ -197,7 +196,7 @@ function DailyQuestion({ data, onReload, focusQuestion }: { data: QotdResponse; 
           <Badge variant="neutral" label={questionText('question.difficultyLevel', { level: question.difficulty })} />
         </div>
       }
-      question={renderQuestion(question.question)}
+      question={<>{question.introduction?.trim() && <div className="ss-daily__introduction">{renderQuestion(question.introduction)}</div>}{renderQuestion(question.question)}</>}
       actions={
         result ? (
           <>

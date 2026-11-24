@@ -135,8 +135,7 @@ describe('/daily', () => {
     expect(screen.getByRole('radio', { name: '"object", Correct answer' })).toBeDisabled();
     // The one primary after the check, in the shared action row (UX audit U2).
     expect(screen.getByRole('button', { name: `Practice ${trackName(today)} questions` })).toHaveClass('ss-swim-cta');
-    // Said once, in the lead (questions-11): no practice note repeats it.
-    expect(screen.getByText(/nothing is recorded/)).toHaveTextContent('One question a day from a different track. No account needed; nothing is recorded.');
+    expect(screen.queryByText(/nothing is recorded/i)).not.toBeInTheDocument();
     // The share status takes no line until it has something to say.
     expect(document.querySelector('.ss-daily__status')).toBeEmptyDOMElement();
 

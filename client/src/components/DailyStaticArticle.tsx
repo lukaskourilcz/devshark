@@ -2,9 +2,10 @@
 // build (vite.config.ts). It names the day and its track and holds no
 // question: the question, its options and its answer come from the server
 // when the page runs, so nothing of it sits in the HTML. Pure: no hooks.
-import type { ReactNode } from 'react';
 import type { TranslationKey } from '../i18n/translations';
 
+import { qotdTrack } from '../../../shared/daily-question';
+import { topicContext } from '../i18n/translations.topicContext';
 import { BreadcrumbList } from './ui/BreadcrumbList';
 
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
@@ -15,7 +16,9 @@ type Translate = (key: TranslationKey, vars?: Record<string, string | number>) =
  * day as the kicker, the h1 and a one-sentence lead. The kicker line is drawn
  * even without a day, so the h1 sits at one y.
  */
-export function DailyHeader({ t, track, dateLabel, date, context, trackInKicker }: { t: Translate; track?: string; dateLabel?: string; date?: string; context?: ReactNode; trackInKicker?: boolean }) {
+export function DailyHeader({ t, track, dateLabel, date, category, trackInKicker }: { t: Translate; track?: string; dateLabel?: string; date?: string; category?: string; trackInKicker?: boolean }) {
+  const topic = category ?? (date ? qotdTrack(date) : undefined);
+  const context = topic ? topicContext[topic]?.split('. ')[0] : undefined;
   return (
     <header className="ss-info-page__header">
       <span className="ss-info-page__kicker" aria-hidden={date && dateLabel ? undefined : true}>
@@ -23,8 +26,7 @@ export function DailyHeader({ t, track, dateLabel, date, context, trackInKicker 
         {trackInKicker && track && <> · {track}</>}
       </span>
       <h1>{track && !trackInKicker ? t('daily.title', { track }) : t('daily.titlePlain')}</h1>
-      {context && <div className="ss-daily__context">{context}</div>}
-      <p className="ss-daily__practice">{t('daily.lead')}</p>
+      {context && <p className="ss-daily__context">{context.replace(/\.$/, '')}.</p>}
     </header>
   );
 }
