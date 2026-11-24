@@ -6,9 +6,17 @@ import type { CodingSolution } from '../types';
 export const TYPESCRIPT_SOLUTIONS: Record<string, CodingSolution> = {
   "ts-typed-slug": {
     solution: "const toSlug = (title: string): string => title.trim().toLowerCase().split(/\\s+/).filter(Boolean).join(\"-\");",
-    junior: "const toSlug = (title: string): string => {\n  const words = title.trim().split(/\\s+/);\n  let slug = \"\";\n  for (const word of words) {\n    if (word === \"\") {\n      continue;\n    }\n    if (slug !== \"\") {\n      slug += \"-\";\n    }\n    slug += word.toLowerCase();\n  }\n  return slug;\n};",
+    junior: `const toSlug = (title: string): string => {
+  const words = title.trim().toLowerCase().split(/\\s+/);
+  const parts: string[] = [];
+  for (const word of words) {
+    if (word !== "") parts.push(word);
+  }
+  return parts.join("-");
+};`,
     senior: `const toSlug = (title: string): string => title.trim().toLowerCase().replace(/\\s+/g, "-");`,
     hiddenTests: [
+      { call: 'toSlug(" A\\tb \\n".repeat(256)) === Array(256).fill("a-b").join("-")', expected: true },
       {"call":"toSlug(\"\\tHello\\nWorld\\r \")","expected":"hello-world"},
       {"call":"toSlug(\" Café Menu \")","expected":"café-menu"},
       {"call":"toSlug(\" A+B / #C \")","expected":"a+b-/-#c"},

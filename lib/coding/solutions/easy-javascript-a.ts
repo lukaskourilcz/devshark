@@ -808,19 +808,39 @@ const reverseVowels = text => {
   /* ── async and await ──────────────────────────────────────────────── */
   'js-easy2-await-both': {
     solution: `const addBoth = async (first, second) => {
+  // Both producers are running. Observe second now, even if first never fulfills.
+  const pendingOutcome = Promise.allSettled([second]);
   const a = await first;
-  const b = await second;
-  // No try: a rejection escapes, which rejects the promise addBoth returns.
-  return a + b;
+  const [outcome] = await pendingOutcome;
+  if (outcome.status === "rejected") throw outcome.reason;
+  return a + outcome.value;
 };`,
     junior: `const addBoth = async (first, second) => {
+  const secondOutcome = second.then(
+    value => ({ ok: true, value }),
+    reason => ({ ok: false, reason })
+  );
   const firstValue = await first;
-  const secondValue = await second;
-  const total = firstValue + secondValue;
-  return total;
+  const result = await secondOutcome;
+  if (!result.ok) throw result.reason;
+  return firstValue + result.value;
 };`,
-    senior: "const addBoth = async (first, second) => (await first) + (await second);",
+    senior: `const addBoth = async (first, second) => {
+  const observed = Promise.allSettled([second]);
+  const a = await first;
+  const [b] = await observed;
+  if (b.status === "rejected") throw b.reason;
+  return a + b.value;
+};`,
     hiddenTests: [
+      {
+        call: `(() => {
+          const reason = Object.freeze({ input: "first" });
+          const never = new Promise(() => {});
+          return addBoth(Promise.reject(reason), never).then(() => false, error => error === reason);
+        })()`,
+        expected: true, async: true, label: 'the first rejection is delivered even when the second promise never settles',
+      },
       { call: "(async()=>{const firstReason=Object.freeze({}),secondReason=Symbol('second'),first=new Promise((_,reject)=>setTimeout(()=>reject(firstReason),30)),second=Promise.reject(secondReason);first.catch(()=>{});second.catch(()=>{});return addBoth(first,second).then(()=>false,error=>error===firstReason);})()", expected: true, async: true },
       { call: "(async()=>{const bad=Promise.reject('second');bad.catch(()=>{});return Promise.race([addBoth(new Promise(()=>{}),bad).then(()=>'settled',()=>'settled'),new Promise(done=>setTimeout(()=>done('pending'),80))]);})()", expected: "pending", async: true },
       { call: "(async()=>{const values=[];for(const [a,b] of [[-0,-0],[0.5,0.25],[10000000000000000,-10000000000000000]])values.push(Object.is(await addBoth(Promise.resolve(a),Promise.resolve(b)),a+b));const first=Object.freeze(Promise.resolve(2)),out=addBoth(first,Promise.resolve(3));return [values,out instanceof Promise,out!==first,await out];})()", expected: [[true, true, true], true, true, 5], async: true },

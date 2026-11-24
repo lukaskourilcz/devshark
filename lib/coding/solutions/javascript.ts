@@ -758,10 +758,12 @@ const flatten = arrays => [].concat(...arrays);`,
 };`,
     senior: `const debounce = (fn, waitMs) => {
   let timer;
-  let lastArgs = [];
+  let lastArgs;
   const fire = () => {
+    const args = lastArgs;
+    lastArgs = undefined; // keep the next burst independent if fn calls the wrapper
     timer = undefined;
-    fn(...lastArgs);
+    fn(...args);
   };
   return (...args) => {
     lastArgs = args; // every call overwrites them, so the last call in the burst decides what fn sees
