@@ -37,7 +37,7 @@ import {
   syncSubscription,
   type BillingDeps,
 } from './sync';
-import { stripeErrorCode } from './stripe';
+import { listStripeObjects, stripeErrorCode } from './stripe';
 
 export type CancelAction = 'cancel' | 'withdraw';
 const WITHDRAWAL_DAYS = 14;
@@ -89,9 +89,9 @@ async function cancelAtPeriodEnd(deps: BillingDeps, sub: Stripe.Subscription, em
 async function firstPaymentAt(deps: BillingDeps, customerIds: readonly string[]): Promise<number | null> {
   let first: number | null = null;
   const lists = await Promise.all([...new Set(customerIds)].map((customer) =>
-    deps.stripe.invoices.list({ customer, status: 'paid', limit: 100 })));
+    listStripeObjects((page) => deps.stripe.invoices.list({ customer, status: 'paid', ...page }))));
   for (const invoices of lists) {
-    for (const invoice of invoices.data) {
+    for (const invoice of invoices) {
       const paidAt = invoice.status_transitions?.paid_at;
       if (typeof paidAt === 'number' && (first === null || paidAt < first)) first = paidAt;
     }
@@ -136,8 +136,9 @@ async function withdraw(
     // The withdrawal period is over: the request still ends the subscription.
     return cancelAtPeriodEnd(deps, sub, email);
   }
-  const invoices = await deps.stripe.invoices.list({ subscription: sub.id, status: 'paid', limit: 100 });
-  const charged = invoices.data.filter((invoice) => invoice.amount_paid > 0);
+  const invoices = await listStripeObjects((page) =>
+    deps.stripe.invoices.list({ subscription: sub.id, status: 'paid', ...page }));
+  const charged = invoices.filter((invoice) => invoice.amount_paid > 0);
   // Money to give back: the account's one voluntary refund. Taken already, it
   // is a cancellation at the end of the paid period.
   if (charged.length > 0 && !(await claimRefund(deps, sub, customers))) {
@@ -147,8 +148,9 @@ async function withdraw(
 
   let refunded = false;
   for (const invoice of charged) {
-    const payments = await deps.stripe.invoicePayments.list({ invoice: invoice.id, status: 'paid', limit: 10 });
-    for (const payment of payments.data) {
+    const payments = await listStripeObjects((page) =>
+      deps.stripe.invoicePayments.list({ invoice: invoice.id, status: 'paid', ...page }));
+    for (const payment of payments) {
       const paymentIntent = idOf(payment.payment?.payment_intent);
       const charge = idOf(payment.payment?.charge);
       if (!paymentIntent && !charge) continue;
@@ -189,8 +191,9 @@ export async function cancelByEmail(
   const addresses = [...new Set([email, email.toLowerCase()])];
   const customers = new Map<string, Stripe.Customer>();
   // The reads run together; the changes below stay one after another.
-  const found = await Promise.all(addresses.map((address) => deps.stripe.customers.list({ email: address, limit: 10 })));
-  for (const list of found) for (const customer of list.data) customers.set(customer.id, customer);
+  const found = await Promise.all(addresses.map((address) =>
+    listStripeObjects((page) => deps.stripe.customers.list({ email: address, ...page }))));
+  for (const list of found) for (const customer of list) customers.set(customer.id, customer);
   const effects: CancelEffect[] = [];
   const all = [...customers.values()];
   const subsOf = await Promise.all(all.map((customer) => allSubscriptionsOf(deps, customer.id)));

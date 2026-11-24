@@ -371,6 +371,15 @@ const nowSeconds = () => Math.floor(Date.now() / 1000);
 
 type SubShape = { status?: string; periodEnd?: number; periodStart?: number; cancel?: boolean; metadataUser?: string | null; price?: string };
 
+type StripePageRequest = { limit?: number; starting_after?: string };
+
+function fakeStripePage<T extends { id: string }>(rows: T[], params: StripePageRequest) {
+  const from = params.starting_after ? rows.findIndex((row) => row.id === params.starting_after) + 1 : 0;
+  if (params.starting_after && from === 0) throw stripeError(400, 'invalid_request', 'Unknown pagination cursor');
+  const data = rows.slice(from, from + (params.limit ?? 10));
+  return { object: 'list', data: structuredClone(data), has_more: from + data.length < rows.length };
+}
+
 export class FakeStripe {
   customers = new Map<string, any>();
   subs = new Map<string, any>();
@@ -446,9 +455,9 @@ export class FakeStripe {
           if (options?.idempotencyKey) this.keys.set(options.idempotencyKey, customer);
           return customer;
         },
-        list: async (params: { email?: string }) => {
+        list: async (params: StripePageRequest & { email?: string }) => {
           this.call('customers.list');
-          return { object: 'list', data: [...this.customers.values()].filter((c) => c.email === params.email).map((c) => structuredClone(c)), has_more: false };
+          return fakeStripePage([...this.customers.values()].filter((c) => c.email === params.email), params);
         },
         update: async (id: string, params: { metadata?: Record<string, string> }) => {
           this.call('customers.update');
@@ -473,12 +482,12 @@ export class FakeStripe {
             return structuredClone(session);
           },
           retrieve: async (id: string) => { this.call('checkout.sessions.retrieve'); return this.get(this.sessions, id, 'checkout.session'); },
-          list: async (params: { customer?: string; status?: string }) => {
+          list: async (params: StripePageRequest & { customer?: string; status?: string }) => {
             this.call('checkout.sessions.list');
             if (params.customer && !this.customers.has(params.customer)) throw stripeError(400, 'resource_missing', `No such customer: '${params.customer}'`);
             const data = [...this.sessions.values()].filter((s) =>
               (!params.customer || s.customer === params.customer) && (!params.status || s.status === params.status));
-            return { object: 'list', data: structuredClone(data), has_more: false };
+            return fakeStripePage(data, params);
           },
           expire: async (id: string) => {
             this.call('checkout.sessions.expire');
@@ -526,20 +535,18 @@ export class FakeStripe {
           // Pages the way Stripe does: `limit` per page (10 by default),
           // continued after `starting_after`.
           const all = [...this.subs.values()].filter((s) => s.customer === params.customer);
-          const from = params.starting_after ? all.findIndex((s) => s.id === params.starting_after) + 1 : 0;
-          const page = all.slice(from, from + (params.limit ?? 10));
-          return { object: 'list', data: page.map((s) => structuredClone(s)), has_more: from + page.length < all.length };
+          return fakeStripePage(all, params);
         },
       },
       invoices: {
         retrieve: async (id: string) => { this.call('invoices.retrieve'); return this.get(this.invoices, id, 'invoice'); },
-        list: async (params: { subscription?: string; customer?: string; status?: string }) => {
+        list: async (params: StripePageRequest & { subscription?: string; customer?: string; status?: string }) => {
           this.call('invoices.list');
           const data = [...this.invoices.values()].filter((inv) =>
             (!params.subscription || inv.parent?.subscription_details?.subscription === params.subscription)
             && (!params.customer || inv.customer === params.customer)
             && (!params.status || inv.status === params.status));
-          return { object: 'list', data: structuredClone(data), has_more: false };
+          return fakeStripePage(data, params);
         },
       },
       invoicePayments: {
@@ -550,7 +557,7 @@ export class FakeStripe {
             && (params.invoice ? p.invoice === params.invoice : true)
             && (params.status ? p.status === params.status : true));
           const expand = (params.expand ?? []).includes('data.invoice');
-          return { object: 'list', data: data.map((p) => ({ ...structuredClone(p), invoice: expand ? structuredClone(this.invoices.get(p.invoice)) : p.invoice })), has_more: false };
+          return fakeStripePage(data.map((p) => ({ ...p, invoice: expand ? this.invoices.get(p.invoice) : p.invoice })), params);
         },
       },
       charges: {
@@ -1311,6 +1318,21 @@ export async function runBillingSuite(db: Backend, lib: Lib): Promise<number> {
     const { ended } = await lib.cancelForDeletedAccount({ stripe: stripe.api(), supabase } as never, lib.billingConfig(), a.ids.cus);
     assert.equal(ended, 1, 'account deletion ends the live subscription past the first page');
     assert.equal(stripe.subs.get(a.ids.sub).status, 'canceled');
+  });
+
+  await check('deleting an account expires all its devShark Checkout sessions across pages', async () => {
+    const a = await account('PagedCheckout');
+    const template = stripe.sessions.get(a.ids.cs);
+    for (let i = 0; i < 101; i += 1) {
+      const id = `cs_PagedCheckout_${i}`;
+      stripe.sessions.set(id, { ...structuredClone(template), id, status: 'open', metadata: { product: 'devshark' } });
+    }
+    const foreign = 'cs_PagedCheckout_foreign';
+    stripe.sessions.set(foreign, { ...structuredClone(template), id: foreign, status: 'open', metadata: {} });
+    const result = await lib.cancelForDeletedAccount({ stripe: stripe.api(), supabase } as never, lib.billingConfig(), a.ids.cus);
+    assert.equal(result.expired, 101);
+    const stillOpen = [...stripe.sessions.values()].filter((session) => session.customer === a.ids.cus && session.status === 'open');
+    assert.deepEqual(stillOpen.map((session) => session.id), [foreign]);
   });
 
   await check('only the newest Checkout Session can be paid, and one paid a moment ago blocks another', async () => {
