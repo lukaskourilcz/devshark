@@ -9064,6 +9064,12 @@ local `VITE_SENTRY_DSN` and run Chromium with `MEMORY_EXPECT_TRACING=1`
 and `MEMORY_FULL_EXPIRY=1`. The test blocks external HTTP; its
 `route-memory.json` attachment holds the per-lap, control and expiry readings.
 
+## F8 database source follow-up (24 November 2026)
+
+The 081 subset has two independent PostgreSQL 17.11 runs on its own source. Both reached the index hygiene checks; the 251/252 policy and grant findings belonged to the subsequent 082/083 migrations. The new 085–088 source covers secondary indexes, retention scheduling, routine grants/caller descriptions and the obsolete guest XP writer. The separate 089 client and policy source coordinates private room broadcasts.
+
+The retained production advisor snapshot is dated 18 November and precedes these migrations. Final combined SQL, second-apply fingerprints, pinned splinter export, same-seed EXPLAIN timings and real Realtime acceptance belong to the combined verification and hosted rollout. The owner application receipts for 077 onward remain distinct from any local or CI result.
+
 ## 24 November 2026 · challenge catalogue and application audit
 
 The audit started from `4db80e0615d20c75ca4061c135821cb169690708`. Reviewers examined 316 JavaScript, 183 React, 156 TypeScript, 114 Algorithms and 45 System Design tasks twice. Of the 769 published tasks, 110 have new content hashes (40 JavaScript, 24 React, 37 TypeScript, 9 Algorithms) and 659 retain their previous hashes. The 40 System Design drills and 5 walkthroughs remain hidden under the previous publication decision. The versioned content ledger records the two source reviews separately from executable grading.

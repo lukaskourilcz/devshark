@@ -15,7 +15,8 @@ Scaffold a migration for `$ARGUMENTS` by following `.claude/skills/supabase-migr
    -- Safe to re-run; the whole file is one transaction. Compatible with the code
    -- in production (<git rev-parse --short origin/main>): <fill in>.
    BEGIN;
-
+   SET LOCAL lock_timeout = '5s';
+   SET LOCAL statement_timeout = '30s';
    COMMIT;
    ```
 
@@ -54,3 +55,6 @@ Scaffold a migration for `$ARGUMENTS` by following `.claude/skills/supabase-migr
 7. Then write the body (skill section 2), the `_v2` routine and its `isRpcMissing` fallback when the change alters a routine production calls (section 3), the real assertions (section 4) and the `docs/product-architecture.md` sentence (section 5). Rerun step 6 on a fresh container after each change to the SQL.
 
 Report the three paths, the two numbers, the `Applied N schema files` line and the summary line `test:sql` printed, and the result of the second apply and of `git diff --check`. Leave the files uncommitted unless the caller asked for a commit. Do not apply anything to a Supabase project: the owner, or an agent the owner authorised for this migration, does that before the code merges (skill section 6).
+
+
+When filling this scaffold, grant authenticated SELECT explicitly for each intended owner-read table, revoke PUBLIC EXECUTE on each routine, name each definer's caller in a catalog comment and keep application tables outside publications. test:sql compares the second-apply catalog and row-count fingerprint.

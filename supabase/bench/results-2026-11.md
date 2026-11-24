@@ -101,3 +101,15 @@ Production (`get_advisors` through the Supabase MCP, read-only, observed 18 Nove
 | Performance | INFO | `auth_db_connections_absolute` (Auth capped at 10 connections) | 1 |
 
 The two `unused_index` counts differ because each reads its own statistics: the local one counts the scans of the 71 tests, production the scans of real traffic since its statistics last reset. F1 commits the full production export as `docs/audit/database-advisors-2026-11.json`.
+
+## Scope of the November 24 comparison
+
+The combined 077–089 candidate changes the Hall of Fame name lookup, then retires 17 index objects. Keep the original 17 reads and use the same seed for both cohorts. The measurements above describe the earlier schema.
+
+| Migration | Indexes retired |
+|---|---|
+| 079 (with their tables) | `question_explanations_review_idx`, `question_hints_review_idx` |
+| 081 | `idx_matches_code`, `idx_question_reports_question_id`, `user_badges_user_subject_idx`, `user_cards_user_subject_idx`, `idx_user_stats_user_id` |
+| 085 | `idx_user_stats_total_correct`, `idx_user_stats_last_quiz_date`, `idx_daily_attempts_date_score`, `challenge_scores_top_idx`, `idx_flashcards_user`, `idx_user_category_stats_category_correct`, `concept_reviews_due_idx`, `billing_events_unprocessed_idx`, `question_quality_suggestions_review_idx`, `learning_path_attempts_expiry_idx` |
+
+Issue #637 also records rejected exploratory alternatives. A 92 MB covering index against 11 MB originally improved the 30-day board from 139.1 to 111.4 ms but slowed the seven-day query from 4.7 to 9.2 ms. A separate 89 MB index moved the cached category all-time read from 90.0 to 38.8 ms. The month board changed from 31.2 to 35.7 ms, and a combined board/rank query took 280.1 ms. These historical experiments did not enter the migrations.

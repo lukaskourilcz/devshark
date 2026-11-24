@@ -7,7 +7,7 @@
 -- Learn level or part test passed for the first time, at the XP
 -- shared/progression.ts gives it. A replayed award, a later pass, a failed
 -- level, a run that earned nothing and guest XP merged at sign-in
--- (merge_user_xp) add nothing.
+-- from before migration 088 add nothing.
 
 SET LOCAL ROLE service_role;
 
@@ -99,9 +99,9 @@ BEGIN
   SELECT quest_xp INTO v_total FROM public.user_xp WHERE user_id = v_user;
   ASSERT v_total = 79, format('user_xp holds the quiz, Challenge and coding XP: expected 79, got %s', v_total);
 
-  -- Guest XP merged at sign-in was never verified and does not count.
-  PERFORM public.merge_user_xp(v_guest, 500, '{"webdev":500}');
-  ASSERT EXISTS (SELECT 1 FROM public.user_xp WHERE user_id = v_guest), 'the guest XP was merged';
+  -- An account can still have an old unverified balance from before 088.
+  ASSERT to_regprocedure('public.merge_user_xp(text,bigint,jsonb)') IS NULL, 'no unverified XP writer remains';
+  INSERT INTO public.user_xp (user_id, quest_xp, quest_xp_by_subject) VALUES (v_guest, 500, '{"webdev":500}');
   ASSERT NOT EXISTS (SELECT 1 FROM public.user_xp_days WHERE user_id = v_guest), 'merged guest XP is not in the month';
 
   -- The learning XP the ledger uses is shared/progression.ts's.

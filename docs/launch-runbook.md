@@ -57,16 +57,16 @@ Sign-in uses Google OAuth and email with a password. Google OAuth must allow `ht
 1. Take and verify a backup ([backup and restore](backup-restore.md)).
 2. Compare the environment's applied migrations with `supabase/`. A new environment applies `supabase/supabase-schema.sql`, then `supabase-schema-002.sql` through the newest file, in numeric order; `npm run test:sql` builds the schema the same way.
 3. Apply a new migration to production before merging the code that needs it, and keep the routines the running code calls until that code is gone (`.claude/skills/supabase-migration/SKILL.md`).
-4. Apply one file at a time. Each file wraps itself in `BEGIN` and `COMMIT` and is safe to re-run.
+4. Apply one file at a time. Files from 077 onward wrap their changes in one transaction and set both timeouts. The SQL suite compares their second-apply fingerprints. Apply 002 through 076 once; [the schema guide](../supabase/README.md) lists the historical exceptions.
 5. After applying, compare the new routines in production with the repository file (for example `md5(prosrc)` of each function) and check their grants: `service_role` only for server routines.
-6. Browser roles must not be able to write protected stats, answer keys, reports, flashcards, roadmap, streak, XP or learning-path tables. `supabase/tests/010-schema-security.test.sql` and `158-rls-own-rows-only.test.sql` prove it locally.
+6. Browser roles must not be able to write protected stats, answer keys, reports, flashcards, roadmap, streak, XP or learning-path tables. Fixtures 010 and 158 exercise protected tables and own-row reads. Fixtures 250–253 cover routine privileges, RLS predicates, default grants, publications and indexes.
 7. Record the apply, with the backup it followed, in `docs/release-acceptance.md`.
 8. `learning_path_attempts` keeps row level security **on** with **no** SELECT policy or grant for `authenticated`: it holds grading material, and owning a row is not a reason to read it. The other learning-path tables need the owner policy and the matching `GRANT SELECT`.
 9. Each file's header says what it adds, what it needs and why the running code survives it. Never edit a file production has applied; write a forward migration.
 
 Do not restore removed browser write policies during a rollback: they are the controls that keep scores and answer keys server-authored.
 
-Production runs `public.purge_expired_learning_data()` once a day through pg_cron. A new environment needs the same schedule.
+Migration 086 checks or creates `purge_expired_learning_data_daily` for 03:07 in the pg_cron scheduler time zone (UTC on the observed project). Confirm its active status, role, database and most recent successful run. If the migration reported that pg_cron was unavailable, enable the extension and reapply 086 before relying on automated retention.
 
 ## Preflight
 

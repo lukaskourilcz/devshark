@@ -223,8 +223,8 @@ own transaction: `record_verified_quiz_result_v2`,
 `record_verified_activity_xp` (a Challenge run, a coding pass and its repeat
 XP, a Learn step's repeat XP) and `complete_verified_roadmap_attempt` (a Learn
 level or part test passed for the first time, at `learn_step_xp`, the numbers
-of `shared/progression.ts`). Guest XP merged at sign-in (`merge_user_xp`) does
-not count, because nothing verified it. A launch contract fails if a routine
+of `shared/progression.ts`). Historical guest balances do not enter the monthly ledger. Migration 088 retires
+the unused account balance merge. A launch contract fails if a routine
 adds to `user_xp` without adding to the ledger. `month_xp_ranks` is the one
 ranking (`RANK()`: 1, 1, 3); `month_xp_leaderboard` and
 `month_xp_leaderboard_rank` serve the board and the learner's own line. The
@@ -1764,8 +1764,8 @@ Do not rename the schema. The browser keeps no coin balance of its own; old
   recording each decision, a capped one included), `settle_coin_milestones`
   (`streak:<n>:<account>`, `topic:<id>:<account>`, `project:<id>:<account>`),
   `settle_month_top3` (`month-top:<yyyy-mm>:<place>:<account>`, once per month
-  in `token_month_settlements`), `grant_signup_tokens` (`signup:<account>`) and
-  `credit_social_visit` (`social:<platform>:<account>`). The routines read
+  in `token_month_settlements`), and `grant_signup_tokens` (`signup:<account>`).
+  Migration 078 retires the unused social visit credit. The routines read
   `is_premium()` themselves; none writes a learning, score or streak table.
   `settle_coin_milestones` asks `is_premium()` when it settles, so a new
   subscriber's first wallet read pays milestones reached on the free plan.
@@ -2259,6 +2259,10 @@ opening the email on a different device.
   settings, or the defaults when it has none, and logs the failure, so a
   database blip never turns back on a feature the owner switched off.
 
+## Database access and retention
+
+Migrations 077 and 078 pin the remaining trigger path and retire old score and card routines. Migration 079 retires the unused AI question tables only if they contain no rows. Migration 080 adds the case-insensitive Hall of Fame name lookup; 081 and 085 remove redundant and unused secondary indexes. Migration 082 closes inherited browser object grants and removes the three raw Play tables from the Realtime publication. Migration 083 applies authenticated own-row policies and removes unreachable ones; 084 preserves the visibility of directional friend blocks. Migration 087 documents definer callers in the catalog and removes direct browser execution of three trigger functions. See [the schema guide](../supabase/README.md) for the verification commands.
+
 ## Account erasure
 
 `DELETE /api/user/delete-account` ends any live Stripe subscription first and
@@ -2381,8 +2385,7 @@ seeds a row in every such table.
   bases, a retention table, deletion, rights and changes. The cookie table
   (`COOKIE_ROWS`) names the real keys; change it with them. The sign-in log
   (`auth_events`) keeps a record 12 months: migration 057 adds that delete to
-  `purge_expired_learning_data`, which production runs daily through
-  pg_cron, and `consentContracts()` in `scripts/test-launch-contracts.ts`
+  `purge_expired_learning_data`, whose daily pg_cron job is defined in migration 086, and `consentContracts()` in `scripts/test-launch-contracts.ts`
   ties the sentence to the SQL.
 
 ## Client start-up
