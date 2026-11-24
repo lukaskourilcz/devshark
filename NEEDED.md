@@ -10,6 +10,12 @@ Task format: `- [ ] **Title** — desc. [imp:1-5] [owner:me|ai] [time:30m] [kind
 - [ ] **Walk the FDE path after reopening** — deferred during the 6 November 2026 owner hold. Nobody has tested it signed in on production or preview. Go through the diagnostic, the free first module and one Premium module with a dedicated Premium account, then look at the first real learners' attempts after a week. [imp:3] [owner:me] [time:1h] [kind:deploy]
 - [ ] **Approve the Terms line about learning paths** — `legal.terms.plans.premium` in `client/src/i18n/translations.ts` still says Premium opens "the FDE and DSA learning paths as each one opens". The DSA path was retired into Learn (#496), so the line promises a path that no longer exists. Suggested: "…and the FDE learning path once it opens.", with `LEGAL_UPDATED` (`client/src/components/LegalPages.tsx`, now 2026-10-09) moved to the publication date. Agents do not change legal text without your approval. [imp:3] [owner:me] [time:10m] [kind:legal]
 
+## Dependency maintenance (#631)
+
+- [x] **Group dependency updates and pin CI actions** — The weekly root, client and Actions groups live in `.github/dependabot.yml`. QuickJS updates need a rebuilt WASM binary, and grader changes need a reviewed snapshot. The Vercel Git rule skips Dependabot branches. Remove the configuration files or individual rules to revert the corresponding choice. [imp:3] [owner:ai] [time:done] [kind:decision]
+
+- [x] **Limit install scripts to the build tools that need them** — The root and client allow esbuild. The client explicitly skips the core-js, MSW and fsevents install hooks. Delete the two allowScripts objects to return to npm's default behavior. [imp:3] [owner:ai] [time:done] [kind:decision]
+
 ## Production health (#190)
 
 - [ ] **Make failure alerts reach you** — For F15-35 (#644), confirm the Actions failure-notification address and an external monitor for `https://devshark.app/api/health` every five minutes. Require HTTP 200 within five seconds, `ok: true`, `status: healthy`, `dependencies.database` and `dependencies.serviceRole` equal to `ok`, `dependencies.rateLimiter` equal to `configured`, and `ts` no older than five minutes; alert after two consecutive failures. Add the reviewed grading-readiness assertion only after F9's field is deployed and confirmed. Trigger one harmless test alert and record that it reached the channel you read on #190. [imp:4] [owner:me] [time:20m] [kind:setup]

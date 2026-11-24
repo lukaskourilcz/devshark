@@ -84,3 +84,12 @@ the container's health check says `unhealthy`), and signed-in features answer
 
 To release a version, tag `main` with `docker-v<version>`. The job pushes
 `<version>`, `latest` and `sha-<commit>` for `linux/amd64` and `linux/arm64`.
+
+
+## Dependency updates
+
+Dependabot checks the root, client and GitHub Actions each Monday at 05:00 Europe/Prague. Each npm directory permits three open update PRs and waits seven days for version updates. Minor and patch updates to the React grader are grouped. Review the root and client versions together because Submit and the browser Results view use the same React and Testing Library behavior. A change to the runtime inside the grading VM needs a reviewed snapshot and a real Preview submission before production. [Grading operations](react-grading-operations.md)
+
+The remaining minor and patch updates are grouped by directory. Satori is reviewed separately because it generates share images with a pinned override. TypeScript and the Node declaration packages stay on their supported major lines. QuickJS requires an explicit compiler and WASM rebuild. Actions pin the full release commit and keep the vendor's version in a comment. Dependabot branches run GitHub quality checks while Vercel skips their Preview deployments.
+
+Node 24 is selected in `.nvmrc`. Knip reads Storybook's own configuration and the nested scripts and Docker sources. The Vite plugin stays disabled in Knip because the client configuration also performs the product's build-time content generation.
