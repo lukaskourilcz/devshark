@@ -6768,7 +6768,10 @@ async function main() {
     };
     const deliver = async (body: unknown, signature: string) => {
       const res = mockResponse();
-      await handlePaymentWebhook({ method: 'POST', headers: { 'x-payment-signature': signature }, query: {}, body } as never, res as never, db as never);
+      const req = { method: 'POST', headers: { 'x-payment-signature': signature, 'x-forwarded-for': '192.0.2.57' }, query: { op: 'payment-webhook' }, body, socket: {} };
+      if (await limitUserWrite(req as never, res as never, 'payment-webhook')) {
+        await handlePaymentWebhook(req as never, res as never, db as never);
+      }
       return res;
     };
     try {
@@ -6798,6 +6801,12 @@ async function main() {
       paidAnswer = { data: true, error: null };
       const paidNow = await deliver(reused, sign(JSON.stringify(reused)));
       assert.deepEqual([paidNow.statusCode, paidNow.body], [200, { applied: true }], 'a matching event marks the order paid');
+      for (let n = 1; n <= 25; n += 1) {
+        const raw = JSON.stringify({ ...reused, providerRef: `pi_burst_${n}` });
+        const received = await deliver(raw, sign(raw));
+        assert.deepEqual([received.statusCode, received.body], [200, { applied: true }], `signed provider delivery ${n} from one address`);
+      }
+      console.log('PASS payment webhook: all 25 signed deliveries from one address applied');
       const queriesAfterPayment = touched.length;
       const replay = await deliver(reused, sign(JSON.stringify(reused)));
       assert.deepEqual([replay.statusCode, replay.body], [200, { applied: false, duplicate: true }]);
