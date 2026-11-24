@@ -107,7 +107,7 @@ Three scripts in `scripts/` test a live deployment. No npm script, CI job or sch
 |---|---|---|
 | `scripts/check-live-accounts.mjs` | Signs in two test accounts through Supabase, then checks non-admin denial on `/api/admin/questions`, coding-draft isolation through the API and the Data API, that a sealed coding session refuses the other account, and a full Multiplayer and Classroom match (hidden answers, host-only start, duplicate answers, finish). Last, it deletes both accounts through `/api/user/delete-account` and confirms their tokens stop working. Writes `artifacts/live-account-check.json`. | `SMOKE_ACCOUNT_FILE` (required), `SMOKE_BASE_URL` (default `https://devshark.app`), `SMOKE_KEEP_FIXTURES` (any value skips the deletion) |
 | `scripts/check-live-browser.mjs` | Drives the same two accounts in headless Chromium through a Multiplayer and a Classroom match, with an offline reconnect and a reload during Classroom. Writes `artifacts/live-browser-results.json`, and page text and screenshots when a step fails. | `SMOKE_SESSION_FILE` (required), `SMOKE_BASE_URL` (required), `CHROME_BIN` (optional Chrome binary) |
-| `scripts/check-grading-load.ts` | Sends ten anonymous reference-solution submissions for three React tasks: one cold, then three batches at concurrency 3. Each must pass with no XP awarded. Writes p50, p95 and maximum latency to `artifacts/grading-load.json`. | `SMOKE_BASE_URL` (required) |
+| `scripts/check-grading-load.ts` | Sends ten anonymous reference-solution submissions for three React tasks: one cold, then three batches at concurrency 3. Each must pass with no XP awarded. Writes p50, p95 and maximum latency to `artifacts/grading-load.json`. | `SMOKE_BASE_URL` (required), `SMOKE_PREVIEW_STATE` (optional, protected Preview only) |
 
 `SMOKE_ACCOUNT_FILE` names a local JSON file, kept out of the repository: `{ "url": "<Supabase URL>", "key": "<anon key>", "users": [{ "id": "…", "email": "…", "password": "…" }, …] }` with exactly two users. The account script stops unless both emails match `launch-audit-*@example.invalid` and both accounts carry `app_metadata.launch_audit` set to `"2026-09-15"`, and it checks the marker again before each deletion. Only the service role can set app metadata, so create the two accounts in Supabase for this purpose alone.
 
@@ -123,6 +123,8 @@ The grading check needs no account. Bundle it first, the way `package.json` runs
 npx esbuild scripts/check-grading-load.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/grading-load.mjs --log-level=warning
 SMOKE_BASE_URL=<deployment> node node_modules/.cache/shark/grading-load.mjs
 ```
+
+On a protected Preview, set `SMOKE_PREVIEW_STATE` to the owner-only, exact-host Vercel protection state used by `perf:cold-start --preview-state`. The grading requests share only the deployment protection cookie. Application grading stays anonymous. The check refuses redirects, performs no retries and writes no credentials or submitted code to its receipt.
 
 ## Release and observation
 

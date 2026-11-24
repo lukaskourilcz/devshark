@@ -236,6 +236,8 @@ with its hidden suite, both compiled fixtures and a 48-character nonce.
    snapshot; code-only changes are uploaded with each run and use the current one.
    Retain the previous snapshot for rollback. No billing/plan settings change.
 
+For an approved temporary Preview rehearsal, set `REACT_SNAPSHOT_TTL_HOURS=1` when preparing the snapshot. The SDK measures expiry from the last use. Bind the new ID to that Preview alone and delete the temporary snapshot after the smoke. Omitting the variable keeps the release snapshot indefinitely. Creating a VM and retaining a snapshot use metered resources.
+
 ## Verification
 
 The learner's cleanup attempts timer/listener and engine-handle disposal
