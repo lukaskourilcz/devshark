@@ -522,7 +522,7 @@ async function artifactIntegrity(onlyVmAdmission = false) {
     assert.ok(included.includes('lib/coding/generated/react-sandbox.cjs'), 'the actual Vercel include pattern selects its runner');
     console.log('PASS artifact integrity: the real emitted guest and passive sidecar agree and both match Vercel inclusion');
   } catch (error) { failures.push(error as Error); }
-  const controls = ['tampered-runner', 'missing-sidecar', 'malformed-sidecar', 'wrong-digest-type', 'missing-runner', 'verified-cache', 'snapshot-versions', 'vm-admission', 'startup-cause'];
+  const controls = ['tampered-runner', 'wrong-hash', 'missing-sidecar', 'malformed-sidecar', 'wrong-digest-type', 'missing-runner', 'verified-cache', 'snapshot-versions', 'vm-admission', 'startup-cause'];
   for (const name of onlyVmAdmission ? ['vm-admission'] : controls) {
     const dir = mkdtempSync(join(tmpdir(), 'react-artifact-'));
     try {
@@ -555,6 +555,9 @@ exports.Sandbox = { create: async () => {
 }};
 `);
       if (name === 'tampered-runner') writeFileSync(join(generated, 'react-sandbox.cjs'), 'tampered fixture');
+      // A well-formed SHA-256 of other bytes beside an untouched runner: the
+      // bundle hash is wrong, so the API must refuse to grade (#640).
+      if (name === 'wrong-hash') writeFileSync(join(generated, 'react-sandbox.sha256.cjs'), artifactDigest(Buffer.from('a different guest bundle\n')));
       if (name === 'missing-sidecar') rmSync(join(generated, 'react-sandbox.sha256.cjs'));
       if (name === 'malformed-sidecar') writeFileSync(join(generated, 'react-sandbox.sha256.cjs'), 'not JSON digest data');
       if (name === 'wrong-digest-type') writeFileSync(join(generated, 'react-sandbox.sha256.cjs'), '{}\n');
