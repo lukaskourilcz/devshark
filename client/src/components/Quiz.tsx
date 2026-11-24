@@ -1025,11 +1025,9 @@ function Quiz({ onActiveChange }: { onActiveChange?: (active: boolean) => void }
     return (
       <div className="quiz-stop quiz-loading">
         <QuoteLoader quote={t('quiz.loadingQuote')} label={t('common.loading')} />
-        {slowLoad && (
-          <StatePanel inline body={t('quiz.loadingSlow')} live>
-            <Button variant="secondary" label={t('quiz.cancelLoading')} onClick={handleRestart} />
-          </StatePanel>
-        )}
+        <StatePanel inline className={slowLoad ? undefined : 'ss-sr-only'} body={slowLoad ? t('quiz.loadingSlow') : ''} live>
+          {slowLoad && <Button variant="secondary" label={t('quiz.cancelLoading')} onClick={handleRestart} />}
+        </StatePanel>
       </div>
     );
   }

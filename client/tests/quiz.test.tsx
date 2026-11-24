@@ -861,8 +861,13 @@ describe('slow loading and recovery', () => {
     renderQuiz();
     fireEvent.click(await screen.findByRole('button', { name: /start quiz/i }));
     await waitFor(() => expect(respond).toBeDefined());
+    const statusLine = () => document.querySelector('.quiz-loading .ss-state-panel__body[role="status"]');
+    const status = statusLine();
+    expect(status).toBeEmptyDOMElement();
     expect(screen.queryByRole('button', { name: 'Back to quiz settings' })).not.toBeInTheDocument();
     const cancel = await screen.findByRole('button', { name: 'Back to quiz settings' }, { timeout: 7_000 });
+    expect(statusLine()).toBe(status);
+    expect(status).toHaveTextContent('This is taking longer than usual.');
     cancel.focus();
     fireEvent.click(cancel);
     expect(screen.getByRole('heading', { level: 1, name: 'Build your quiz.' })).toHaveFocus();
