@@ -121,8 +121,7 @@ describe('the stage list on the free plan', () => {
 });
 
 describe('the project cards on the free plan', () => {
-  // UX audit coding-05: the rule is said once, in the list's intro, and every
-  // row keeps only its "Premium" badge beside its progress line.
+  // The intro explains future paid stages. Each new project opens on a free stage.
   it('name the stages the free plan opens once: 1 and 2 of a FullStack app, level 1 of a short path', () => {
     mount('/coding/fullstack', <FullStackScreen />, '/coding/fullstack');
     const list = screen.getByRole('region', { name: 'FullStack projects' });
@@ -134,7 +133,7 @@ describe('the project cards on the free plan', () => {
     const rows = within(list).getAllByRole('article');
     expect(rows).toHaveLength(4);
     for (const row of rows) {
-      expect(within(row).getByText('Premium')).toBeInTheDocument();
+      expect(within(row).queryByText('Premium')).toBeNull();
       expect(row).not.toHaveTextContent(/free plan/);
       expect(row.querySelector('.cd-project__track')).toBeNull();
       const title = within(row).getByRole('heading').textContent;

@@ -150,10 +150,11 @@ it.each([
   const sample = screen.getByRole('group', { name: 'What does this return?' });
   expect(within(sample).getAllByRole('button')).toHaveLength(4);
   const card = within(sample.parentElement!);
-  expect(card.queryByRole('status')).toBeNull();
+  const verdict = card.getByRole('status');
+  expect(verdict).toBeEmptyDOMElement();
   fireEvent.click(within(sample).getByRole('button', { name: answer }));
-  expect(card.getByRole('status')).toHaveTextContent(feedback);
-  expect(card.getByRole('status')).toHaveTextContent('The ** operator is exponentiation');
+  expect(verdict).toHaveTextContent(feedback);
+  expect(verdict).toHaveTextContent('The ** operator is exponentiation');
   for (const option of within(sample).getAllByRole('button')) expect(option).toBeDisabled();
   expect(screen.queryByRole('region', { name: 'devShark product video' })).toBeNull();
 });
