@@ -94,6 +94,24 @@ it('preserves null and absent case errors, normal messages and compile/preview f
   expect((await completion).compileError).toBe('Compile error');
 });
 
+it('keeps the useful frame diagnostic when WebKit follows it with an opaque script error', async () => {
+  const h = mountHarness();
+  const first = await start(h);
+  const message = 'PreviewLoopTimeoutError: A loop ran for two seconds without yielding.';
+  h.send(h.frame, errorMessage('preview-error', first.token, message));
+  h.send(h.frame, errorMessage('preview-error', first.token, 'Script error.'));
+  expect(h.result.current.run?.previewError).toBe(message);
+  h.send(h.frame, errorMessage('preview-error', first.token, 'A subsequent render failed'));
+  expect(h.result.current.run?.previewError).toBe('A subsequent render failed');
+  h.send(h.frame, { type: 'done', token: first.token, passed: 0, failed: 1, total: 1 });
+  await first.completion;
+  const next = await start(h);
+  h.send(h.frame, errorMessage('preview-error', next.token, 'Script error.'));
+  expect(h.result.current.run?.previewError).toBe('Script error.');
+  h.send(h.frame, { type: 'done', token: next.token, passed: 0, failed: 1, total: 1 });
+  await next.completion;
+});
+
 it('uses the existing text boundary without splitting a surrogate pair', async () => {
   const h = mountHarness();
   const { token, completion } = await start(h);
