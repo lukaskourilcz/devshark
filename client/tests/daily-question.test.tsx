@@ -3,7 +3,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import DailyQuestionPage from '../src/components/DailyQuestionPage';
@@ -34,8 +34,7 @@ function Where() {
   return <p>{`At ${at.pathname}${at.search}`}</p>;
 }
 
-function renderAt(path: string) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+function renderAt(path: string, client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })) {
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[path]}>
@@ -109,6 +108,29 @@ describe('/daily', () => {
 
     fireEvent.click(screen.getByRole('button', { name: `Practice ${trackName(today)} questions` }));
     expect(await screen.findByText(`At /quiz?category=${qotdTrack(today)}`)).toBeInTheDocument();
+  });
+
+  it('keeps a selected answer and its active session when the connection returns', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+    let reads = 0;
+    server.use(http.get('*/api/quiz/daily', () => HttpResponse.json({ ...QUESTION, sessionId: `session-${++reads}` })));
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      renderAt(`/daily/${today}`, client);
+      const choice = await screen.findByRole('radio', { name: '"object"' });
+      fireEvent.click(choice);
+      expect(choice).toBeChecked();
+      act(() => { onlineManager.setOnline(false); });
+      vi.setSystemTime(Date.now() + 11 * 60_000);
+      await act(async () => { onlineManager.setOnline(true); });
+      await waitFor(() => expect(client.isFetching()).toBe(0));
+      expect({ checked: screen.getByRole('radio', { name: '"object"' }).getAttribute('aria-checked'), reads }).toEqual({
+        checked: 'true', reads: 1,
+      });
+    } finally {
+      onlineManager.setOnline(true);
+      vi.useRealTimers();
+    }
   });
 
   it('opens the new UTC day’s question when an overnight tab becomes visible', async () => {
