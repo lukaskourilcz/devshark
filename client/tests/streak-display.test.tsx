@@ -188,6 +188,23 @@ describe('the Profile streak card', () => {
     expect(await (await protection()).findByRole('alert')).toHaveTextContent('Learn today to keep your streak');
   });
 
+  it('rechecks the displayed streak and protection balance after UTC midnight', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      vi.setSystemTime(new Date('2026-10-23T23:58:00Z'));
+      let reads = 0;
+      server.use(http.get('*/api/user/freezes', () => {
+        reads++;
+        return HttpResponse.json({ remaining: 0, period: '2026-10', used: [], shieldDays: [], shieldUntil: null, shieldSupported: true });
+      }));
+      render(<LanguageProvider><StreakCard stats={account(12, 1)} /></LanguageProvider>);
+      expect((await protection()).getByText('No protection left this month')).toBeVisible();
+      expect(currentStreak().getByText('12')).toBeVisible();
+      await act(async () => { await vi.advanceTimersByTimeAsync(122_000); });
+      expect({ displayed: currentStreak().queryByText('0') !== null, reads }).toEqual({ displayed: true, reads: 2 });
+    } finally { vi.useRealTimers(); }
+  });
+
   it('stops showing an expired protection on an open Profile', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
