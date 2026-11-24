@@ -1123,7 +1123,7 @@ console.log(page(["a", "b", "c", "d", "e"], 2, 2));
     tier: 2,
     focus: ['async-await'],
     title: 'Await two values',
-    prompt: "Write an `async` function `addBoth(first, second)`, where both arguments are promises of numbers. `await` each one and return their sum, so the caller gets a promise of the total. `addBoth(Promise.resolve(2), Promise.resolve(3))` resolves to 5. If either promise rejects, the promise `addBoth` returns rejects with the same error. Both inputs are ordinary native Promises with standard methods, fulfilling with finite Numbers of absolute value at most 10000000000000000, including -0. Await first before awaiting second: if both reject, the first rejection wins even if the second rejects sooner. A rejection of second cannot settle the result while first is still pending. This ordered exercise differs from fail-fast Promise.all aggregation. Forward the exact original rejection reason/reference, which need not be an Error. Use ordinary Number addition without rounding and leave user-visible input properties unchanged. Return a new native Promise immediately. Producers may already be running; ordered awaits do not serialize their start. The caller/checks handle any early rejection of second until it is awaited. Target: O(1) time and retained wrapper state, excluding waiting, producer work and host scheduling.",
+    prompt: "Write an `async` function `addBoth(first, second)`, where both arguments are promises of numbers. `await` each one and return their sum, so the caller gets a promise of the total. `addBoth(Promise.resolve(2), Promise.resolve(3))` resolves to 5. If either promise rejects, the promise `addBoth` returns rejects with the same error. Both inputs are ordinary native Promises with standard methods, fulfilling with finite Numbers of absolute value at most 10000000000000000, including -0. Await first before awaiting second: if both reject, the first rejection wins even if the second rejects sooner. A rejection of second cannot settle the result while first is still pending. This ordered exercise differs from fail-fast Promise.all aggregation. Forward the exact original rejection reason/reference, which need not be an Error. Use ordinary Number addition without rounding and leave user-visible input properties unchanged. Return a new native Promise immediately. Producers may already be running; ordered awaits do not serialize their start. Observe second as soon as addBoth starts so its rejection is handled even if first stays pending or rejects. Keep the two outcomes in input order. Target: O(1) time and retained wrapper state, excluding waiting, producer work and host scheduling.",
     starter: `const addBoth = async (first, second) => {
 
 };
@@ -1132,15 +1132,15 @@ console.log(page(["a", "b", "c", "d", "e"], 2, 2));
 addBoth(Promise.resolve(2), Promise.resolve(3)).then(total => console.log(total));
 `,
     skeleton: `const addBoth = async (first, second) => {
-  const a = /* the value first resolves to */;
-  const b = /* the value second resolves to */;
-  return a + b;
+  const outcome = /* start observing second without letting its rejection go unhandled */;
+  const a = /* wait for first */;
+  /* use the observed outcome to return the sum or throw the original reason */
 };`,
     hints: ['`await promise` pauses the async function until the promise settles and gives you its value. A rejection becomes a throw, which rejects the promise `addBoth` returns.'],
     approach: [
       'Mark the function `async`, so whatever it returns arrives wrapped in a promise.',
-      'Write `await first` and `await second` to get the two numbers.',
-      'Return their sum. You need no `try`: letting a rejection escape is how the caller hears about it.',
+      'Observe both outcomes of second right away. For example, Promise.allSettled([second]) always fulfills with a record of what happened.',
+      'Await first. If it succeeds, inspect the saved second outcome. Add its value or throw its original reason.',
     ],
     verify: 'tests',
     estimatedMinutes: 5,
