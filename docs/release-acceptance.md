@@ -9315,3 +9315,7 @@ The rebuilt frame puts its external module's SHA-384 in the HTML and response po
 The owner chose to keep the frame on the existing site. The original desktop Chrome observation recorded 66 parent timer ticks over three seconds. A separate, bounded WebKit control recorded a 36 ms response. Five fresh connections to the existing Vercel alias had a median 55.19 ms of TLS negotiation and 79.66 ms from lookup through TLS. The original frame HTML and module totalled 282,559 gzip bytes. A second origin also needs its own deployment and changes to frame and message policies. The local native exercise verifies ordinary interaction. The historical stress observation and the deployed-build criterion remain separate.
 
 The owner also selected configuration A for Sentry. Public map requests remain blocked on both adapters, and private uploads are disabled. The two dated decisions and the requirements for revisiting them are recorded in `NEEDED.md` under F10-32 and F10-33.
+
+## F15 production handler errors (24 November 2026)
+
+For 25 October through 23 November inclusive, seven dated windows covered all 30 days. There were 293 error-level `DEP0169` records across 16 handlers (#477), zero structured stdout errors and one `/api/quiz/questions` 503 (#689). The [per-handler and per-window report](audit/f15-production-errors-2026-11-24.md) gives the counts and the limits of the incident evidence.
