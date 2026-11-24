@@ -4,6 +4,7 @@ import { Button } from '@astryxdesign/core/Button';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { Banner } from '@astryxdesign/core/Banner';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { operationsEn } from '../../i18n/translations.operationsRoute';
 import { adminDirectoryKey, listAdminUsers } from '../../lib/adminDirectory';
 import { friendlyError } from '../../lib/api';
 import { StatePanel } from '../ui/StatePanel';
@@ -17,7 +18,7 @@ export function adminDate(value: string | null) {
 }
 
 export default function AdminUsers() {
-  const { t } = useLanguage();
+  const { t } = useLanguage(operationsEn);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const query = useQuery({ queryKey: adminDirectoryKey(page), queryFn: () => listAdminUsers(page), staleTime: 30_000 });

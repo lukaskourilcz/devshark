@@ -60,4 +60,20 @@ for (const [label, lib] of [['esm', esm], ['cjs', cjs]]) {
     assert.equal(result.passed, 1);
     assert.equal(result.cases[0].name, 'math adds');
   });
+
+  test(`${label}: completed cases release their deadlines and tolerate a wall-clock correction`, async (t) => {
+    const scheduled = t.mock.method(globalThis, 'setTimeout');
+    const cleared = t.mock.method(globalThis, 'clearTimeout');
+    const now = Date.now;
+    let adjustment = 0;
+    t.mock.method(Date, 'now', () => now() + adjustment);
+    const jest = lib.createMiniJest();
+    jest.globals.it('clock moves forward', () => { adjustment = 225_000; });
+    jest.globals.it('rejects normally', () => { throw new Error('fixture failure'); });
+    const result = await jest.run();
+    assert.deepEqual(result.cases.map(item => item.status), ['pass', 'fail']);
+    assert.equal(result.cases[0].durationMs < 225_000, true);
+    assert.equal(scheduled.mock.calls.length, 2);
+    assert.deepEqual(cleared.mock.calls.map(call => call.arguments[0]), scheduled.mock.calls.map(call => call.result));
+  });
 }

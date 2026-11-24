@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { AdminQuestion } from './questions-store';
 
-export type QualityIssueKind =
+type QualityIssueKind =
   | 'weak_distractor'
   | 'duplicate'
   | 'ambiguous_wording'

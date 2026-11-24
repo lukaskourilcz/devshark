@@ -35,7 +35,7 @@ export interface SourceTypeTest {
   rejects?: boolean;
 }
 
-export interface SourceDesign {
+interface SourceDesign {
   scenario: string;
   brief: string;
   steps: { key: string; title: string; prompt: string; options: string[]; correct: number; explanation: string }[];
@@ -43,7 +43,7 @@ export interface SourceDesign {
   passMark: number;
 }
 
-export interface SourceDrill {
+interface SourceDrill {
   format: DesignDrillFormat;
   scenario: string;
   prompt: string;

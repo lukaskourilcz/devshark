@@ -1,5 +1,6 @@
 import type { CodingVerdictResponse } from '../../../shared/coding-api';
 import { useLanguage } from '../i18n/LanguageContext';
+import { codingEn } from '../i18n/translations.codingRoute';
 import { clockTime } from '../lib/xp';
 
 /** One line under a verified pass about earning the task's XP again
@@ -9,7 +10,7 @@ import { clockTime } from '../lib/xp';
  * A pass that paid nothing is also told in a toast (`submitCoding`); this line
  * stays on the card after the toast goes. */
 export function RepeatXpNote({ verdict }: { verdict: CodingVerdictResponse }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const repeat = verdict.repeatXp;
   if (verdict.verdict !== 'passed' || !repeat || verdict.xpForfeited) return null;
   const time = repeat.availableAt ? clockTime(repeat.availableAt) : null;

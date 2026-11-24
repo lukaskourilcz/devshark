@@ -13,7 +13,7 @@ import App from './App';
 import { preloadPath } from './lib/routePreload';
 import { ColorModeProvider } from './theme/ColorModeContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { LanguageProvider } from './i18n/LanguageContext';
+import { ShellLanguageProvider } from './i18n/LanguageContext';
 import { AuthProvider } from './lib/auth';
 import { prefetchStoredAccountPlan } from './lib/entitlement';
 import { openQotdDate } from '../../shared/daily-question';
@@ -82,11 +82,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <BrowserRouter>
-            <LanguageProvider>
+            <ShellLanguageProvider>
               <ColorModeProvider>
                 <App />
               </ColorModeProvider>
-            </LanguageProvider>
+            </ShellLanguageProvider>
           </BrowserRouter>
         </AuthProvider>
         {ReactQueryDevtools && (

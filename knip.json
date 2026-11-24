@@ -50,6 +50,7 @@
   ],
   "ignoreBinaries": [
     "vercel",
-    "psql"
+    "psql",
+    "mkfifo"
   ]
 }

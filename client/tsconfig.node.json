@@ -34,6 +34,7 @@
     "src/og/ogImages.ts",
     "src/og/png.ts",
     "src/i18n/translations.ts",
+    "src/i18n/translations.*Route.ts",
     "src/i18n/translations.codingLists.ts",
     "src/i18n/translations.topicContext.ts",
     "../shared/**/*.ts",

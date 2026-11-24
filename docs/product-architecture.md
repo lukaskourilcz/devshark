@@ -1854,6 +1854,22 @@ provider signature against the original bytes before processing an event.
 Retries use its provider event ID so a duplicate success cannot grant a
 second entitlement.
 
+Malformed JSON returns 400. A production handler requires the Supabase
+service-role key at startup. If configured Redis is unavailable, the admin
+gate, CSP reports, question reports, sign-in events, billing cancellation
+(including signed cancellation links), referral claims and voucher redemption
+return 503 `rate_limit_unavailable` from their closed rate-limit buckets.
+Other limits continue through each instance’s in-memory bucket. Single-use
+claims also refuse a write while a configured claim store is unavailable.
+The merchandise webhook verifies the HMAC over the raw body. It remembers
+a successful delivery digest for seven days and releases a failed claim for retry.
+
+The staged friend-privacy change in [#677](https://github.com/lukaskourilcz/devshark/pull/677)
+pairs the handlers with database migration 084. After that rollout, responding
+to a hidden stranger or an unknown name yields the same 404 `not_found`.
+Removing either returns `{ removed: false }`. Existing friendship or request
+rows retain their normal behavior.
+
 The health response distinguishes the database check, the service-role check,
 the rate limiter's current operating mode and grading readiness. The grading
 probe checks the local engine and required snapshot configuration. The
@@ -2613,10 +2629,22 @@ Vouchers reuse the existing creation, one-time code display and revocation scree
 
 Emails edits every template (`docs/email-delivery.md`): delivery state on one line, a rich-text editor, a live preview with sample values, and one test send to a typed address.
 
+### Public pages and monitoring
+
+The fallback HTML omits a canonical. Prerendered pages declare their own URL, and `routeHead.ts` updates it on client navigation. `publicMetadata.ts` lists the public articles separately from the practice and legal pages in `PRERENDERED_APP_PAGES`. The legal pages use their published revision dates. Past and current Daily pages within the 120-day lookback use their date as sitemap `lastmod`. Future Daily pages can be shared before they enter the sitemap. `isNoindexPath` covers private account and room routes. The robots file reserves the API, sandbox, developer, admin and ingestion paths from crawling.
+
+`npm run check:public` classifies every app route and checks the built heads, including one canonical for each indexable page, titles under 60 characters and descriptions of 50–160 characters for listed and share-only pages. It checks that permanent redirects land directly and that indexable destinations appear under the intended sitemap rules.
+
+The lazy Sentry client takes its release from the full Vercel commit SHA and its environment from `VERCEL_ENV`. It excludes the browser session integration, removes identifying URL parts and Play room codes from event, breadcrumb and span fields, filters browser-extension frames and the known ResizeObserver limit message, and suppresses a chunk-load error when a version check confirms a newer build. PostHog starts after consent. Its explicit options turn off automatic capture, replay, heatmaps, remote extras and performance collection. Its outgoing URL and path properties mask room codes.
+
 ### Browser deployment policies
 
 App documents load scripts and workers from the same origin; Stripe and Link supply the hosted payment UI. Fonts ship with the client. The production connection policy names the devShark Supabase HTTP and Realtime origins and its Sentry ingest host. Google profile images and images used in hosted checkout have separate image permissions. Add any future merchandise image host when sales resume. The Docker adapter accepts explicit local service origins through `CSP_CONNECT_EXTRA`.
 
 The exercise iframe has an opaque origin and can run scripts and handle forms. Its page and response policies block outgoing connections and form navigation. Its own assets allow cross-origin module loading. App documents use `same-origin-allow-popups` for payment and identity returns, and app documents and API responses carry a same-origin resource policy. Production source-map requests under either asset directory return 404 with `no-store`.
 
-Browser CSP reports go to the same-origin settings handler. It forwards the directive name and a fixed site origin to the configured Sentry project under a dedicated rate limit. Sampling text, original URLs, referrers, cookies and client IP addresses are omitted.
+The app policy in `vercel.json` allows the theme bootstrap by hash. It limits scripts to the app and Stripe, styles to the app and CodeMirror's inline styles, fonts and workers to the app, objects to none, and app navigation forms and the base URL to the same origin. The image list adds Google account avatars and Stripe/Link checkout assets. Payment frames and connections use the Stripe and Link hosts named in the policy. The production Supabase HTTPS and WSS origins serve account and Play traffic, and the organization-specific Sentry host accepts monitoring data. Merchandise currently links out. If hosted product images return, authorize their exact image origin after review.
+
+Route expressions match case-sensitively. The coding worker uses `default-src 'none'; script-src 'self' 'unsafe-eval'` for local grading, with no connection permission. The sandbox file rule grants `Access-Control-Allow-Origin: *` to its opaque frame. Ordinary assets use the app origin. Docker adds each explicitly configured HTTP(S) `CSP_CONNECT_EXTRA` origin and its WS(S) counterpart to the app's connection list. It retains `upgrade-insecure-requests` on HTTPS and drops it for plain HTTP, including a local LAN server. To check an authorized protected Preview, supply its approved share URL to `npm run check:security -- --url="$PREVIEW_SHARE_URL"` and keep the share token private.
+
+Browser CSP reports go to the same-origin settings handler through the named Reporting API endpoint or the legacy report URI. Modern batches contain at most eight reports within 8 KiB. Each forwarded report uses one token from the same rate limit as a legacy report. It forwards the directive name and a fixed site origin to the configured Sentry project under a dedicated rate limit. Sampling text, original URLs, referrers, cookies and client IP addresses are omitted.

@@ -3,11 +3,12 @@
 // hears "Difficulty Easy" rather than a bare adjective.
 import { Badge } from '@astryxdesign/core/Badge';
 import { useLanguage } from '../i18n/LanguageContext';
+import { codingEn } from '../i18n/translations.codingRoute';
 import type { Difficulty } from '../../../shared/coding-catalog';
 import './DifficultyBadge.css';
 
 export function DifficultyBadge({ difficulty }: { difficulty: Difficulty }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   return (
     <Badge
       variant="neutral"

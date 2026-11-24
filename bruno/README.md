@@ -31,7 +31,7 @@ npx @usebruno/cli run bruno --env Local
   and its request asserts that. Run the folder before a deploy to catch a
   route that lost its guard. The launch suite exercises these requests against local Auth and PostgREST fixtures.
   Shop and room state accept guests. Cards is retired (410). Billing cancellation accepts signed email links and both webhooks authenticate the payment provider separately. Coding Reset uses the fresh guest `session` from GET `/api/quiz/roadmap?resource=coding-task&id=js-double-numbers` as its `codingSession` collection variable. Checkout lookup uses GET because starting checkout can be disabled globally.
-  Health requires a responsive database and grading runtime. An unconfigured local limiter reports `in-memory-fallback`. A configured limiter that cannot reach Redis reports `memory-fallback`.
+- **`Public/Health.bru`** checks HTTP 200, a working grading runtime and the limiter's current mode. `dependencies.grading` is `ok` when the local QuickJS check passes, `unconfigured` when a production instance lacks its React snapshot ID, or `unavailable` when the local engine fails or misses its deadline. The collection requires `ok`. `dependencies.rateLimiter` is `configured` when Redis answers, `in-memory-fallback` when no Redis is configured locally, or `memory-fallback` when configured Redis cannot be reached. The latter fails this check.
 
 To exercise the authenticated *happy path*, set a `token` var in your
 environment (a Supabase access token) and add `auth: bearer` to a copy of the

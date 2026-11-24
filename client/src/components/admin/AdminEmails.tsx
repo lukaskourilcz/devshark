@@ -4,6 +4,7 @@ import { Banner } from '@astryxdesign/core/Banner';
 import { Button } from '@astryxdesign/core/Button';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { operationsEn } from '../../i18n/translations.operationsRoute';
 import { adminEmailsKey, listAdminEmails, saveAdminEmail } from '../../lib/adminDirectory';
 import { friendlyError } from '../../lib/api';
 import { accountEpoch } from '../../lib/accountData';
@@ -33,7 +34,7 @@ type TemplateEdit = { id: EmailTemplateId; draft: EmailTemplate };
  * its subject and text, see the branded result with sample values, save, and send one test email.
  */
 export default function AdminEmails() {
-  const { t } = useLanguage();
+  const { t } = useLanguage(operationsEn);
   const queryClient = useQueryClient();
   const [openedEpoch] = useState(accountEpoch);
   const query = useQuery({ queryKey: adminEmailsKey, queryFn: listAdminEmails, staleTime: 60_000 });

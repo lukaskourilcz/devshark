@@ -35,6 +35,7 @@ Content counts come from `shared/subject-catalog.ts`, `shared/coding-index.ts` a
 - **CodeMirror**: the code editor in the browser.
 - **Vitest**: the client's unit tests.
 - **Playwright**: the responsive and browser checks in CI.
+- **Dependabot** checks both npm lockfiles and GitHub Actions weekly, grouping compatible updates for review. [Dependency update policy](docs/packages.md#dependency-updates)
 - **Supabase** (project in `eu-north-1`): Postgres, Auth, Row Level Security, RPCs and Realtime; scores and grading stay on the server. Preview deployments share the production project.
 - **GitHub App (the garden)**: optional; commits passed coding tasks to the learner's own repository through installation tokens. No user token is stored, and the learner can disconnect from the profile.
 - **Stripe** (built, switched off with `BILLING_ENABLED=false`): Checkout with Managed Payments, Billing and the Customer Portal. The server uses the `stripe` package; the checkout page loads Stripe.js from Stripe and mounts Stripe's payment iframe, so card data never reaches devShark. Stripe (as Link) is the seller of record. A payment changes which content an account may start, never grading or scores.
