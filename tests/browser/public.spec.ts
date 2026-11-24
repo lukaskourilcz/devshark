@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { qotdTrack, utcToday } from '../../shared/daily-question';
+import { fulfilTaskRead, isTaskRead } from './coding-task-read';
 import { FDE_SECTION_VISIBLE } from '../../shared/learn-section-ids';
 const slug = 'javascript-closures';
 for (const theme of ['light', 'dark']) {
@@ -33,7 +35,7 @@ for (const theme of ['light', 'dark']) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await article.locator('.ss-topic-cta').click();
     await expect(page).toHaveURL(/\/quiz\?category=/);
-    await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://devshark.app/quiz');
     await expect(page.locator('#public-schema')).toHaveCount(0);
   });
 }
@@ -85,6 +87,9 @@ test('the app shell names no canonical, and the home page gets its own at runtim
     expect(html).not.toContain('rel="canonical"');
     expect(html).not.toContain('property="og:url"');
   }
+  const homepage = await (await request.get('/')).text();
+  expect(homepage).toContain('<link rel="canonical" href="https://devshark.app/"');
+  expect(homepage).toContain('id="site-schema"');
   await page.goto('/');
   await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://devshark.app/');
@@ -124,3 +129,52 @@ test('the held FDE section has no public preview or sitemap listing', async ({ r
   expect(html).not.toContain('<title>Forward Deployed Engineer · devShark</title>');
   expect(html).not.toContain('href="https://devshark.app/learn/forward-deployed-engineer"');
 });
+
+// Compare the actual document delivered to a crawler with the live heading
+// of the same route. A hard reload exercises fallback removal and metadata boot.
+const headingPages = [
+  '/', '/topics/javascript-closures', '/learn/web-developer', '/premium', '/premium/cancel',
+  '/coding', '/coding/review', '/coding/fullstack', '/coding/javascript', '/coding/javascript/js-digit-sum',
+  '/daily', '/daily/' + utcToday(), '/quiz', '/leaderboard', '/typing', '/challenge',
+  '/classroom', '/big-o', '/learn/big-o', '/roadmap', '/privacy', '/terms',
+];
+for (const path of headingPages) {
+  test(`${path} keeps its static heading after startup`, async ({ page, request }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.route('**/api/**', async route => {
+      const url = new URL(route.request().url());
+      const resource = url.searchParams.get('resource');
+      if (isTaskRead(resource)) {
+        const { CODING_TASKS, playable } = await import('../../lib/coding/catalog');
+        const task = CODING_TASKS.find(item => item.id === 'js-digit-sum')!;
+        return fulfilTaskRead(route, { task: playable(task), session: task.id, locked: null, progress: null, draft: null, signedIn: false });
+      }
+      if (url.pathname === '/api/quiz/daily') {
+        const date = url.searchParams.get('qotd') ?? utcToday();
+        const track = qotdTrack(date);
+        return route.fulfill({ json: { date, track, sessionId: 'heading-fixture', question: {
+          id: 'heading', question: 'Pick one.', options: ['One', 'Two'], category: track, difficulty: 1,
+        } } });
+      }
+      if (url.pathname === '/api/quiz/roadmap') return route.fulfill({ json: { topics: [], structure: {} } });
+      if (url.searchParams.get('op') === 'coding-progress') return route.fulfill({ json: { tasks: {}, due: [], javascriptLevelsCleared: 0 } });
+      return route.fulfill({ status: 404, json: { error: { code: 'not_found', message: 'No fixture' } } });
+    });
+    const response = await request.get(path);
+    expect(response.status()).toBe(200);
+    const heading = await page.evaluate(html => {
+      const doc = new DOMParser().parseFromString(html.replace(/<\/?noscript>/gi, ''), 'text/html');
+      const headings = doc.querySelectorAll('#root h1');
+      return headings.length === 1 ? headings[0].textContent?.trim() : null;
+    }, await response.text());
+    expect(heading).toBeTruthy();
+    await page.goto(path);
+    // #main-content is mounted by the live app. Waiting on it prevents the
+    // static fallback from satisfying the comparison before React starts.
+    await expect(page.locator('#main-content h1')).toHaveText(heading!);
+    if (path === '/daily' || path.startsWith('/daily/')) {
+      await expect(page.getByRole('radio', { name: 'One', exact: true })).toBeVisible();
+      await expect(page.locator('#main-content h1')).toHaveText(heading!);
+    }
+  });
+}

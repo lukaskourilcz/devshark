@@ -41,7 +41,7 @@
       "continue": true
     },
     {
-      "src": "^/(?:admin(?:/.*)?|premium/(?:success|checkout)|auth/confirmed|reset-password)/?$",
+      "src": "^/(?:admin(?:/.*)?|premium/(?:success|checkout)|auth/confirmed|reset-password|profile|cards|collection|shop|today|settings/github|dev|play(?:/.*)?)/?$",
       "headers": {
         "X-Robots-Tag": "noindex"
       },
@@ -95,16 +95,21 @@
       "status": 404
     },
     {
+      "src": "^/support/?$",
+      "status": 308,
+      "headers": { "Location": "/premium" }
+    },
+    {
       "src": "^/roadmap/specializations/fde/?$",
       "headers": {
-        "Location": "/learn/forward-deployed-engineer/path"
+        "Location": "/learn/web-developer"
       },
       "status": 308
     },
     {
       "src": "^/roadmap/specializations/fde/([^/]+)(?:/.*)?$",
       "headers": {
-        "Location": "/learn/forward-deployed-engineer/path/$1"
+        "Location": "/learn/web-developer"
       },
       "status": 308
     },
@@ -117,7 +122,7 @@
     },
     {
       "src": "^/cs/topics(?:/.*)?$",
-      "dest": "/index.html",
+      "dest": "/app.html",
       "status": 404,
       "headers": {
         "Cache-Control": "no-store",
@@ -215,8 +220,52 @@
       "destination": "/learn/software-engineer/index.html"
     },
     {
-      "source": "/((?!api/|assets/|ingest/|sandbox/|topics/|brand/|og/).*)",
+      "source": "/quiz",
+      "destination": "/quiz/index.html"
+    },
+    {
+      "source": "/leaderboard",
+      "destination": "/leaderboard/index.html"
+    },
+    {
+      "source": "/typing",
+      "destination": "/typing/index.html"
+    },
+    {
+      "source": "/challenge",
+      "destination": "/challenge/index.html"
+    },
+    {
+      "source": "/classroom",
+      "destination": "/classroom/index.html"
+    },
+    {
+      "source": "/big-o",
+      "destination": "/big-o/index.html"
+    },
+    {
+      "source": "/learn/big-o",
+      "destination": "/learn/big-o/index.html"
+    },
+    {
+      "source": "/roadmap",
+      "destination": "/roadmap/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy/index.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms/index.html"
+    },
+    {
+      "source": "/",
       "destination": "/index.html"
+    },
+    {
+      "source": "/((?!api/|assets/|ingest/|sandbox/|topics/|brand/|og/).*)",
+      "destination": "/app.html"
     }
   ]
 }

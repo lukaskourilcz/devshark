@@ -1382,7 +1382,7 @@ export function CodingWorkbench(props: CodingWorkbenchProps) {
       className={`cd-workbench cd-workbench--${mode}`}
       onKeyDown={onKeyDown}
     >
-      {mode === 'section' && <h1 className="cd-visually-hidden">{codingFilename(task)}</h1>}
+      {mode === 'section' && <h1 className="cd-visually-hidden">{task.title}</h1>}
       <span className="cd-visually-hidden" role="status" aria-live="polite">{announcement}</span>
       <div className="cd-workbench__grid" style={{ ['--cd-split' as string]: `${layout.split}%` }}>
         <section className="cd-pane cd-pane--output" aria-label={workbenchCopy('coding.output.label')}>
