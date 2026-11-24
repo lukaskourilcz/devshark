@@ -79,6 +79,9 @@ for (const [theme, width, touch] of [['light', 360, true], ['dark', 1280, false]
     });
 
     await page.goto('/profile');
+    if (!touch) {
+      await checkDialogEscape(page, page.getByRole('button', { name: /Account menu for/i }), page.getByRole('dialog'));
+    }
     await expect(page.getByText('Sections: Web Developer · Software Engineer', { exact: true })).toBeVisible();
     const pathOpener = page.getByRole('button', { name: 'Choose your path' });
     const dialog = page.getByRole('dialog');
