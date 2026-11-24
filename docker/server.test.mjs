@@ -17,7 +17,8 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 // A built client in miniature: one file of each kind vercel.json routes.
 const APP_DOCUMENT = '<!doctype html><title>devShark fixture app</title>\n';
 const SITE = {
-  'index.html': APP_DOCUMENT,
+  'index.html': '<!doctype html><title>devShark fixture home</title>\n',
+  'app.html': APP_DOCUMENT,
   'assets/main-x.js': 'export {};\n',
   'assets/main-x.js.map': '{"version":3,"sources":[],"mappings":""}\n',
   'assets/coding-worker/worker-x.js': 'self.onmessage = () => {};\n',

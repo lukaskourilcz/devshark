@@ -1,3 +1,4 @@
+import { SOCIAL_PROFILES } from '../../product-catalog';
 import { FDE_SECTION_VISIBLE } from '../../../shared/learn-section-ids';
 import { TOPIC_LANDINGS, type TopicLandingDefinition } from './topicCatalog';
 import { PREMIUM_PRICE } from '../../../shared/tiers';
@@ -28,13 +29,13 @@ const ALL_PUBLIC_PAGES = [
   { path: '/premium', titleKey: 'title.premium', descriptionKey: 'premium.page.lead', schema: 'premium' },
   { path: '/premium/cancel', titleKey: 'title.premiumCancel', descriptionKey: 'billing.cancel.lead', schema: null },
   // #239: the public question of the day (its dated pages /daily/<date> have
-  // their own static heads, outside the sitemap).
+  // their own static heads, listed up to the build day).
   { path: '/daily', titleKey: 'title.daily', descriptionKey: 'daily.description', schema: null },
 ] as const;
-export const PUBLIC_PAGES = ALL_PUBLIC_PAGES.filter(page => FDE_SECTION_VISIBLE || page.path !== '/learn/forward-deployed-engineer');
-export type PublicPage = (typeof PUBLIC_PAGES)[number];
+export const ARTICLE_PAGES = ALL_PUBLIC_PAGES.filter(page => FDE_SECTION_VISIBLE || page.path !== '/learn/forward-deployed-engineer');
+export type PublicPage = (typeof ARTICLE_PAGES)[number];
 export const publicPage = (pathname: string): PublicPage | null =>
-  PUBLIC_PAGES.find((page) => page.path === pathname.replace(/(.)\/$/, '$1')) ?? null;
+  ARTICLE_PAGES.find((page) => page.path === pathname.replace(/(.)\/$/, '$1')) ?? null;
 
 /** A key of the privacy policy's own dictionary (translations.privacy.ts),
  * which only the legal pages load. Named by its prefix, so neither this file
@@ -60,14 +61,21 @@ export interface PrerenderedAppPage {
  * description cut from the page's own copy, a canonical URL and og:url, a
  * sitemap entry, and the page's h1 and lead in a noscript; the app is the
  * body. The app (routeHead.ts) writes the same canonical and description.
- * Kept apart from PUBLIC_PAGES, which scripts/test-launch-contracts.ts holds
- * to one vercel.json rewrite each: until those rewrites land (F15-55),
- * Vercel serves <path>/index.html as a directory index, as it does
- * /sandbox. */
+ * Both kinds of public page require an explicit static rewrite. */
 export const PRERENDERED_APP_PAGES: readonly PrerenderedAppPage[] = [
+  { path: '/quiz', titleKey: 'title.quiz', headingKey: 'quiz.buildTitle', leadKey: 'quiz.buildSubtitle', descriptionKeys: ['quiz.buildTitle', 'quiz.buildSubtitle'] },
+  { path: '/leaderboard', titleKey: 'title.leaderboard', headingKey: 'leaderboard.title', leadKey: 'leaderboard.scope30d', descriptionKeys: ['leaderboard.scope30d'] },
+  { path: '/typing', titleKey: 'title.typing', headingKey: 'typing.title', leadKey: 'typing.subtitle', descriptionKeys: ['typing.subtitle'] },
+  { path: '/challenge', titleKey: 'title.challenge', headingKey: 'challenge.title', leadKey: 'challenge.description', descriptionKeys: ['challenge.description'] },
+  { path: '/classroom', titleKey: 'title.classroom', headingKey: 'classroomPage.title', leadKey: 'classroomPage.lead', descriptionKeys: ['classroomPage.lead'] },
+  { path: '/big-o', titleKey: 'bigO.title', headingKey: 'bigO.title', leadKey: 'bigO.lead', descriptionKeys: ['bigO.lead'] },
+  { path: '/learn/big-o', titleKey: 'bigO.pathTitle', headingKey: 'bigO.pathTitle', leadKey: 'bigO.pathLead', descriptionKeys: ['bigO.pathLead'] },
+  { path: '/roadmap', titleKey: 'title.roadmap', headingKey: 'roadmapPage.title', leadKey: 'careerRoadmap.headerBody', descriptionKeys: ['careerRoadmap.headerBody'] },
   { path: '/privacy', titleKey: 'title.privacy', headingKey: 'legal.privacy.title', leadKey: 'legal.privacy.lead', descriptionKeys: ['legal.privacy.lead'], updated: 'PRIVACY_UPDATED' },
   { path: '/terms', titleKey: 'title.terms', headingKey: 'legal.terms.title', leadKey: 'legal.terms.lead', descriptionKeys: ['legal.terms.lead'], updated: 'LEGAL_UPDATED' },
 ];
+export const PUBLIC_PAGES = [...ARTICLE_PAGES, ...PRERENDERED_APP_PAGES];
+
 export const prerenderedAppPage = (pathname: string): PrerenderedAppPage | null =>
   PRERENDERED_APP_PAGES.find((page) => page.path === pathname.replace(/(.)\/$/, '$1')) ?? null;
 
@@ -109,7 +117,24 @@ export function codingShareDescription({ difficulty, track, brand, free, total }
 /** App routes that must stay out of search results: a Stripe return carries a
  * checkout id and means nothing to anyone else, and the pages an email link
  * opens mean something only to whoever got the email. */
-export const NOINDEX_PATHS: readonly string[] = ['/admin', '/admin/users', '/admin/vouchers', '/admin/emails', '/admin/questions', '/admin/triage', '/admin/quality', '/admin/paths', '/admin/flags', '/admin/settings', '/admin/logs', '/admin/merch', '/premium/success', '/premium/checkout', '/auth/confirmed', '/reset-password'];
+export const NOINDEX_PATHS: readonly string[] = ['/admin', '/admin/users', '/admin/vouchers', '/admin/emails', '/admin/questions', '/admin/triage', '/admin/quality', '/admin/paths', '/admin/flags', '/admin/settings', '/admin/logs', '/admin/merch', '/premium/success', '/premium/checkout', '/auth/confirmed', '/reset-password', '/profile', '/cards', '/collection', '/shop', '/today', '/settings/github', '/play', '/dev'];
+export const isNoindexPath = (path: string) => NOINDEX_PATHS.includes(path) || path.startsWith('/play/') || path.startsWith('/admin/');
+
+export function siteSchema(brand: string) {
+  const url = PUBLIC_ORIGIN + '/';
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      { '@type': 'WebSite', '@id': url + '#website', name: brand, url, publisher: { '@id': url + '#organization' } },
+      { '@type': 'Organization', '@id': url + '#organization', name: brand, url, logo: PUBLIC_ORIGIN + '/icon-512.png',
+        sameAs: Object.values(SOCIAL_PROFILES).filter((profile): profile is string => profile !== null) },
+    ],
+  };
+}
+
+export function publicAppTitle(path: string, title: string, brand: string): string {
+  return path === '/big-o' || path === '/learn/big-o' ? title + ' · ' + brand : title;
+}
 
 /** Structured data for /premium. The guides above stay free to read
  * (`isAccessibleForFree: true`); Premium is the paid subscription, so it says

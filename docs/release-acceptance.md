@@ -7205,6 +7205,17 @@ Branch `claude/f15b-seo-observability`, stacked on `claude/f15-seo-observability
 
 Every other F15 finding, F15-09 and F15-12 through F15-57 included, stays in #646 for the next agent.
 
+### Public caching observed on 18 November 2026 (F15-54)
+
+The production GETs recorded on #644 covered `/daily/2026-11-18`, `/daily`,
+`/og/daily/2026-11-18.png`, a coding task page, `/sitemap.xml` and `/robots.txt`.
+Each returned `Cache-Control: public, max-age=0, must-revalidate` and
+`x-vercel-cache: HIT`. The dated Daily HTML reported `Age: 3263`. Browsers
+revalidate the HTML so a release can replace a page immediately. Keep those
+HTML headers. A one-day browser lifetime for `/og/daily/*.png` and
+`/og/coding/*.png` remains optional if crawler request counts justify it.
+These observations describe the 18 November deployment.
+
 ## Epic F4 images: public assets and invitation codes (19 November 2026)
 
 Issue #633, with cross-package F15-59 from #646. I archived 80 build-only brand

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
+import ts from 'typescript';
 const dir = 'client/dist';
 assert(!existsSync(`${dir}/triage-verdicts.json`), 'reviewer triage data is not in the public build');
 const sitemap = new JSDOM(readFileSync(`${dir}/sitemap.xml`, 'utf8'), { contentType: 'application/xml' });
@@ -14,11 +15,13 @@ assert(!urls.some(url => url.pathname.includes('forward-deployed-engineer')), 't
 const LEARN_SECTION_PAGES = ['/learn/web-developer', '/learn/software-engineer'];
 const APP_PAGES = [...LEARN_SECTION_PAGES, '/premium', '/premium/cancel', '/daily'];
 assert.deepEqual(urls.filter(url => APP_PAGES.includes(url.pathname)).map(url => url.pathname), APP_PAGES);
-// F15-11: app routes the build writes a static head for, kept apart from
-// PUBLIC_PAGES until vercel.json has a rewrite for each (PRERENDERED_APP_PAGES
-// in client/src/lib/publicMetadata.ts): a canonical, a sitemap entry, and the
-// live page's h1 and lead in a noscript. Each maps to that h1.
-const PRERENDERED_APP_HEADINGS = { '/privacy': 'Privacy policy', '/terms': 'Terms of use' };
+// Each static fallback opens with the heading rendered by the live route.
+const PRERENDERED_APP_HEADINGS = {
+  '/quiz': 'Build your quiz.', '/leaderboard': 'Leaderboard', '/typing': 'Typing racer',
+  '/challenge': 'Biggest Shark Challenge', '/classroom': 'Run a focused classroom challenge.',
+  '/big-o': 'Big O, simply explained', '/learn/big-o': 'Big O introduction', '/roadmap': 'Career roadmap',
+  '/privacy': 'Privacy policy', '/terms': 'Terms of use',
+};
 const PRERENDERED_APP_PAGES = Object.keys(PRERENDERED_APP_HEADINGS);
 assert.deepEqual(urls.filter(url => PRERENDERED_APP_PAGES.includes(url.pathname)).map(url => url.pathname), PRERENDERED_APP_PAGES, 'the sitemap lists the prerendered app pages');
 /** Each sitemap address with its lastmod, or null. */
@@ -48,29 +51,16 @@ assert(tasks.length > 700, 'the coding index was read');
 assert(!tasks.some(({ track }) => track === 'system-design'), 'the index the browser ships holds no system design task');
 // F15-01: every prerendered page has exactly one class, chosen by its address,
 // and its head and the sitemap must agree with that class.
-// - listed: in the sitemap, canonical to itself, indexable. The home page's
-//   canonical is written by the app at runtime (RUNTIME_CANONICAL).
-// - alias: canonical to another listed page, not in the sitemap. Only
-//   /coding/review, which opens /coding (C4-4).
-// - share-only: canonical to itself and indexable, not in the sitemap. The
-//   coding task pages (owner decision, 9 Oct 2026) and the dated question of
-//   the day pages.
-// - noindex: robots noindex, no canonical, not in the sitemap. The hidden
-//   system design track (owner decision, 9 Oct 2026).
-// A page that no rule or more than one rule matches fails: give a new page a
-// class here.
+// Listed pages, aliases, share-only pages and noindex pages have disjoint heads.
 const ALIASES = { '/coding/review': '/coding' };
-// F15-10: dist/index.html is the home page and also the shell the catch-all
-// rewrite (vercel.json) serves for every app route and every missing page.
-// A canonical in it told crawlers that /today, /profile and any 404 were
-// copies of the home page, so it names none; routeHead.ts writes the home
-// page's canonical and og:url when the app starts.
-const RUNTIME_CANONICAL = new Set(['/']);
+const buildDay = lastmods.get(ORIGIN + '/daily');
+assert.match(buildDay ?? '', /^\d{4}-\d{2}-\d{2}$/, '/daily records the UTC build day');
+const datedDay = (pagePath) => /^\/daily\/(\d{4}-\d{2}-\d{2})$/.exec(pagePath)?.[1];
 const TASK_PATHS = new Set(tasks.map(({ id, track }) => `/coding/${track}/${id}`));
 const PAGE_CLASSES = [
-  ['listed', (pagePath) => pagePath === '/' || /^\/topics\/[a-z0-9-]+$/.test(pagePath) || APP_PAGES.includes(pagePath) || PRERENDERED_APP_PAGES.includes(pagePath) || SITEMAP_CODING_PAGES.includes(pagePath)],
+  ['listed', (pagePath) => (datedDay(pagePath) && datedDay(pagePath) <= buildDay) || pagePath === '/' || /^\/topics\/[a-z0-9-]+$/.test(pagePath) || APP_PAGES.includes(pagePath) || PRERENDERED_APP_PAGES.includes(pagePath) || SITEMAP_CODING_PAGES.includes(pagePath)],
   ['alias', (pagePath) => Object.hasOwn(ALIASES, pagePath)],
-  ['share-only', (pagePath) => TASK_PATHS.has(pagePath) || /^\/daily\/\d{4}-\d{2}-\d{2}$/.test(pagePath)],
+  ['share-only', (pagePath) => TASK_PATHS.has(pagePath) || (datedDay(pagePath) && datedDay(pagePath) > buildDay)],
   ['noindex', (pagePath) => pagePath === HIDDEN_CODING_PATH],
 ];
 const classesOf = (pagePath) => PAGE_CLASSES.filter(([, test]) => test(pagePath)).map(([kind]) => kind);
@@ -222,6 +212,7 @@ for (const pagePath of pagePaths) {
   assert.equal(classes.length, 1, `${pagePath}: ${classes.length ? `more than one class (${classes.join(', ')})` : 'no class; give the page one in scripts/check-public.mjs'}`);
   const [kind] = classes;
   const doc = readPage(pagePath);
+  assert.equal(doc.querySelectorAll('#site-schema').length, pagePath === '/' ? 1 : 0, `${pagePath}: site identity belongs to the homepage`);
   const url = pageUrl(pagePath);
   const canonicals = [...doc.querySelectorAll('link[rel="canonical"]')].map(link => link.getAttribute('href'));
   const ogUrls = [...doc.querySelectorAll('meta[property="og:url"]')].map(meta => meta.getAttribute('content'));
@@ -235,7 +226,7 @@ for (const pagePath of pagePaths) {
     assert.equal(canonical, null, `${pagePath} (noindex): no canonical`);
     assert.equal(ogUrls[0] ?? null, null, `${pagePath} (noindex): no og:url`);
   } else {
-    const expected = kind === 'alias' ? pageUrl(ALIASES[pagePath]) : RUNTIME_CANONICAL.has(pagePath) ? null : url;
+    const expected = kind === 'alias' ? pageUrl(ALIASES[pagePath]) : url;
     assert.equal(canonical, expected, `${pagePath} (${kind}): ${expected ? 'canonical' : 'no canonical in the shell'}`);
     assert.equal(ogUrls[0] ?? null, canonical, `${pagePath} (${kind}): og:url matches the canonical`);
     // No robots line at all: a nofollow or a snippet limit costs an indexable
@@ -296,11 +287,16 @@ assert.equal(urls.length, classCounts.listed, 'the sitemap lists exactly the lis
 const tiers = readFileSync('shared/tiers.ts', 'utf8');
 const price = (plan) => tiers.match(new RegExp(`${plan}: '([0-9.]+)'`))?.[1];
 for (const url of urls) {
-  const file = path.join(dir, url.pathname, 'index.html');
-  const doc = new JSDOM(readFileSync(file, 'utf8')).window.document;
   if (url.pathname === '/') continue;
   // Checked as section pages below.
   if (SITEMAP_CODING_PAGES.includes(url.pathname)) continue;
+  const day = datedDay(url.pathname);
+  if (day) {
+    assert(day <= buildDay, `${url}: future dates are share-only`);
+    assert.equal(lastmods.get(url.href), day, `${url}: lastmod is the question date`);
+    continue;
+  }
+  const doc = readPage(url.pathname);
   if (PRERENDERED_APP_PAGES.includes(url.pathname)) {
     // The app is the body. A visitor without JavaScript reads the live page's
     // h1 and lead, and the description is cut from those same words.
@@ -381,7 +377,63 @@ for (const pagePath of SECTION_PAGES) {
   assert.notEqual(doc.title, home.title, `${pagePath}: its own title`);
   assert.notEqual(doc.querySelector('meta[name="description"]').getAttribute('content'), homeDescription, `${pagePath}: its own description`);
 }
-const rewrites = JSON.parse(readFileSync('vercel.json', 'utf8')).rewrites;
+// Route patterns that represent several different concrete pages have an
+// explicit policy. A new literal route must have a corresponding built page,
+// an HTTP noindex rule, or a reviewed redirect.
+const deployment = JSON.parse(readFileSync('vercel.json', 'utf8'));
+const runtimeNoindex = deployment.routes.filter(route => route.continue && route.headers?.['X-Robots-Tag'] === 'noindex').map(route => new RegExp(route.src));
+const redirects = deployment.routes.filter(route => route.status === 308);
+const routeFamilies = new Map([
+  ['/learn/:section?', 'listed Learn sections; the root and invalid sections redirect to the open section'],
+  ['/coding/:track', 'listed tracks; the hidden track has a noindex page'],
+  ['/coding/:track/:taskId', 'share-only task pages'],
+  ['/topics/:slug', 'listed guides; missing guides are noindex'],
+  ['/daily/:date', 'listed published days; future days are share-only'],
+  ['/play/:code', 'private match, runtime and HTTP noindex'],
+  ['/admin/:section?', 'private administration, runtime and HTTP noindex'],
+  ['/roadmap/paths/dsa-foundations/*', 'redirect to the Software Engineer DSA topic'],
+  ['/roadmap/specializations/fde/*', 'redirect to the open Learn section'],
+  ['/learn/forward-deployed-engineer/*', 'redirect while the FDE section is held'],
+  ['FDE_PATH', 'redirect while held; section-specific path when open'],
+  ['`${FDE_PATH}/:moduleId`', 'redirect while held; module-specific path when open'],
+  ['*', 'the not-found component sets noindex'],
+]);
+function checkRouteInventory(source) {
+  const router = ts.createSourceFile('App.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  function visit(node) {
+    if ((ts.isJsxSelfClosingElement(node) || ts.isJsxOpeningElement(node)) && node.tagName.getText(router) === 'Route') {
+      const attr = node.attributes.properties.find(prop => ts.isJsxAttribute(prop) && prop.name.getText(router) === 'path');
+      assert(attr?.initializer, 'a React route has an explicit path');
+      const value = attr.initializer;
+      const pattern = ts.isStringLiteral(value) ? value.text : value.expression?.getText(router);
+      const literal = ts.isStringLiteral(value) && !/[:*?]/.test(pattern);
+      const classes = [
+        routeFamilies.has(pattern), pagePaths.includes(pattern),
+        literal && runtimeNoindex.some(rule => rule.test(pattern)),
+        literal && redirects.some(route => new RegExp(route.src).test(pattern)),
+      ].filter(Boolean);
+      assert.equal(classes.length, 1, `${pattern}: every React route needs exactly one search policy`);
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(router);
+}
+checkRouteInventory(readFileSync('client/src/App.tsx', 'utf8'));
+assert.throws(() => checkRouteInventory('<Route path="/unclassified-sample" />'), /exactly one search policy/);
+const manifest = JSON.parse(readFileSync(path.join(dir, 'manifest.webmanifest'), 'utf8'));
+assert(!Object.hasOwn(manifest, 'orientation'), 'the installed app follows the device orientation');
+const shell = parser.parseFromString(readFileSync(path.join(dir, 'app.html'), 'utf8'), 'text/html');
+assert(!shell.querySelector('link[rel="canonical"], meta[property="og:url"], #site-schema'), 'the generic app shell has no homepage identity');
+function checkRedirect(route, all) {
+  const target = new URL(route.headers.Location.replace(/\$\d+/g, 'example'), ORIGIN);
+  assert.equal(target.origin, ORIGIN, `${route.src}: an internal redirect target`);
+  assert(!all.some(other => new RegExp(other.src).test(target.pathname)), `${route.src}: target ${target.pathname} redirects again`);
+  assert(!runtimeNoindex.some(rule => rule.test(target.pathname)), `${route.src}: target is HTTP noindex`);
+  assert.deepEqual(classesOf(target.pathname), ['listed'], `${route.src}: target is an indexable final page`);
+}
+for (const route of redirects) checkRedirect(route, redirects);
+assert.throws(() => checkRedirect({ src: '^/old-support$', headers: { Location: '/support' } }, redirects), /redirects again/);
+const rewrites = deployment.rewrites;
 for (const source of ['/coding', '/coding/:track']) {
   assert(rewrites.some(rule => rule.source === source && rule.destination === `${source}/index.html`), `${source} serves its own HTML on Vercel`);
 }

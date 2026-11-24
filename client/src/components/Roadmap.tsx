@@ -1029,7 +1029,7 @@ function Roadmap({ onActiveChange }: { onActiveChange?: (active: boolean) => voi
   return (
     <div className="de-page">
       <Breadcrumb items={[{ label: t('roadmap.title'), href: '/learn' }, { label: sectionName }]} />
-      <header className="rm-journey-heading"><Kicker as="h1" className="ss-section-title">{t('roadmap.title')}</Kicker></header>
+      <header className="rm-journey-heading"><Kicker as="h1" className="ss-section-title">{sectionName}</Kicker></header>
 
       {retired && (
         <div className="cd-note" role="status" style={{ marginBottom: 16 }}>
