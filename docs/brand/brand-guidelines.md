@@ -8,13 +8,13 @@ The header and the mobile menu show `BrandLogo`: the V9 fin and wave beside a pl
 
 The fin paths and wave stroke are the V9 ones, unchanged. The fin and wave stand as tall as the wordmark: the fin tip aligns with the top of the lettering and the bottom of the wave stroke with its bottom. The gap is 28% of the wordmark height. The fin and "dev" use `--brand-accent`; "Shark" uses `--brand-ink` in light mode and white in dark mode. The logo has fixed dimensions (about 166 × 22 px in the header, 151 × 20 px in the mobile menu), needs no font and takes the home link's accessible name. The two lettering paths share one hashed SVG request, cached apart from JavaScript, and the SVG `use` instances inherit their theme colours from `BrandLogo`.
 
-`node scripts/render-og-image.mjs --logo-svg --out docs/brand/source/approved/navbar-logo-ink.svg` exports the same lockup to the [approved share-image source](source/approved/navbar-logo-ink.svg), which the share-image build reads.
+`node scripts/render-og-image.mjs --logo-svg --out client/src/og/assets/navbar-logo-ink.svg` exports the same lockup to the [approved share-image source](../../client/src/og/assets/navbar-logo-ink.svg), which the share-image build reads.
 
 ## The V9 kit
 
 The kit lives in [`docs/brand/source/v9/`](source/v9/README.md). Compared with the [earlier one-wave revision](source/devshark-approved/README.md), V9 moves the fin up to the top ascender line, draws the wave as thick as the letter stems, and sets the lettering optically bolder with rounded corners. The owner's generator produced every file from one geometry; the lettering is outlines, so no file depends on a font, and every PNG has a transparent background. The generator, the HTML brand manual and the change list stay in the owner's archive.
 
-The source archive keeps the original artwork and provenance. The build and regeneration scripts read the [approved lockup](source/approved/navbar-logo-ink.svg), the V9 fin and the [Open Graph background](source/og/architecture-current.webp) from this directory. Vite serves the optimized root icons and final share images from `client/public/`; it does not copy the source archive into the website. Optimize served copies while preserving their geometry, `viewBox` and externally referenced SVG IDs.
+The source archive keeps the original artwork and provenance. The share-image build reads the [approved lockup](../../client/src/og/assets/navbar-logo-ink.svg) and [V9 fin](../../client/src/og/assets/devshark-fin-wave-green.svg) from the client. Their original archive paths link to those files. The manual image regeneration script reads the [Open Graph background](source/og/architecture-current.webp) from the archive. Vite serves the optimized root icons and final share images from `client/public/`; it does not copy the source archive into the website. Optimize served copies while preserving their geometry, `viewBox` and externally referenced SVG IDs.
 
 ### Files
 
