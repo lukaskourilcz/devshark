@@ -2,7 +2,7 @@
   "git": {
     "deploymentEnabled": { "dependabot/**": false }
   },
-  "buildCommand": "npm run build:react-runner && npm ci --prefix client && npm run build --prefix client",
+  "buildCommand": "node --version && npm run build:react-runner && npm ci --prefix client && npm run build --prefix client",
   "outputDirectory": "client/dist",
   "framework": null,
   "regions": [
