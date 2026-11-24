@@ -39,6 +39,7 @@
     "check:security": "node scripts/check-security.mjs",
     "ci:parity": "node scripts/ci-parity.mjs",
     "audit:performance": "node scripts/audit-performance.mjs",
+    "test:browser:csp": "node scripts/test-browser-csp.mjs",
     "test:browser": "playwright test",
     "check:bundle": "node scripts/check-bundle.mjs",
     "build:react-runner": "node scripts/build-react-runner.mjs",

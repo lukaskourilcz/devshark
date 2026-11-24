@@ -363,6 +363,7 @@ const PLAN = [
     needs: ['preview', 'chromium'], chrome: true, env: { RESPONSIVE_ZOOM: String(zoom), RESPONSIVE_WORKERS: '2' },
   })),
   step('test:harness', npmRun('test:harness'), { tier: 'full', needs: ['build', 'chromium'], chrome: true }),
+  step('test:browser:csp', npmRun('test:browser:csp'), { tier: 'full', needs: ['build', 'chromium'], chrome: true }),
   step('audit:performance', npmRun('audit:performance', PREVIEW_PORT === 4173 ? '' : `-- --url=${PREVIEW_URL}`), {
     ci: [npmRun('audit:performance')], tier: 'full', needs: ['preview', 'chromium'], chrome: true,
   }),

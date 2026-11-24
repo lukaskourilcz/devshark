@@ -361,10 +361,11 @@ if (!existsSync(STATIC)) {
   process.exit(1);
 }
 
-http.createServer((req, res) => {
+const server = http.createServer((req, res) => {
   handle(req, res).catch((error) => {
     console.error(JSON.stringify({ level: 'error', category: 'docker_server', message: String(error?.message ?? error) }));
     if (!res.headersSent) res.statusCode = 500;
     res.end();
   });
-}).listen(PORT, () => console.log(`devShark listening on http://localhost:${PORT}`));
+});
+server.listen(PORT, process.env.BIND_ADDRESS, () => console.log(`devShark listening on http://localhost:${server.address().port}`));

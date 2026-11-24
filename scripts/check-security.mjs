@@ -254,6 +254,23 @@ assert.deepEqual(policyDifferences(parsePolicy(localPolicy), expectedMeta, 'sand
 const worker = headerRoutes.find(route => route.src === '^/assets/coding-worker/.*$');
 assert.equal(header(worker, 'Content-Security-Policy'), "default-src 'none'; script-src 'self' 'unsafe-eval'");
 assert(!header(sandbox, 'X-Frame-Options'), 'Do not deny the exercise frame');
+// Raw HTML is permitted only in the isolated admin email preview.
+for (const root of ['client/src', 'client/sandbox']) {
+  for (const name of readdirSync(root, { recursive: true }).filter(file => /\.[jt]sx?$/.test(file))) {
+    const filename = join(root, name);
+    const code = readFileSync(filename, 'utf8');
+    assert.doesNotMatch(code, /\bdangerouslySetInnerHTML\b|\binsertAdjacentHTML\s*\(|\bouterHTML\s*=(?!=)|\bdocument\.write(?:ln)?\s*\(|\bcreateContextualFragment\s*\(/, filename);
+    for (const assignment of code.matchAll(/\.innerHTML\s*=(?!=)\s*([^;\n]+)/g)) {
+      assert.ok(/^(['"])\1\s*$/.test(assignment[1]), `${filename}: only clearing HTML is allowed`);
+    }
+    for (const tag of code.matchAll(/<iframe\b[^>]*\bsrcDoc\b[^>]*>/gis)) {
+      assert.match(tag[0], /\bsandbox=(?:""|'')/, `${filename}: isolate inline frame documents`);
+    }
+    if (!filename.startsWith(join('client', 'src', 'components', 'admin') + sep)) {
+      assert.doesNotMatch(code, /(?:import\s*\(|from\s*)['"][^'"]*EmailRichTextEditor/, filename);
+    }
+  }
+}
 console.log('Security policy contracts passed: main app, theme bootstrap, isolated coding frame.');
 
 // The built pages: the prerender and the build may change a bootstrap's bytes

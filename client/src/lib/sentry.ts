@@ -14,7 +14,7 @@
 // through the same scrubbing as every event (lib/sentry-sdk.ts).
 //
 // The SDK posts straight to the DSN's ingest host. The CSP `connect-src` in
-// vercel.json allows only the EU one (`https://*.ingest.de.sentry.io`), and
+// vercel.json allows only this project’s EU ingest host, and
 // `npm run check:security` asserts it; a DSN in another region needs its host
 // added there, or every event is refused by the browser.
 //

@@ -2572,3 +2572,9 @@ The existing `api/admin/[op].ts` handler routes `users` and `emails` after `requ
 Vouchers reuse the existing creation, one-time code display and revocation screens. A new `action: 'limit'` changes only `max_redemptions` through a single row update. Validation bounds it to 1–10,000, and the existing database constraint and redemption row lock prevent lowering it below completed redemptions. It never resets usage or changes a grant already issued.
 
 Emails edits every template (`docs/email-delivery.md`): delivery state on one line, a rich-text editor, a live preview with sample values, and one test send to a typed address.
+
+### Browser deployment policies
+
+App documents load scripts and workers from the same origin; Stripe and Link supply the hosted payment UI. Fonts ship with the client. The production connection policy names the devShark Supabase HTTP and Realtime origins and its Sentry ingest host. Google profile images and images used in hosted checkout have separate image permissions. Add any future merchandise image host when sales resume. The Docker adapter accepts explicit local service origins through `CSP_CONNECT_EXTRA`.
+
+The exercise iframe has an opaque origin and can run scripts and handle forms. Its page and response policies block outgoing connections and form navigation. Its own assets allow cross-origin module loading. App documents use `same-origin-allow-popups` for payment and identity returns, and app documents and API responses carry a same-origin resource policy. Production source-map requests under either asset directory return 404 with `no-store`.

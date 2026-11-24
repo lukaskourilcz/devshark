@@ -208,6 +208,7 @@ jobs:
           RESPONSIVE_ZOOM=200 RESPONSIVE_WORKERS=2 npm run check:responsive -- --routes / --widths 1280
           RESPONSIVE_ZOOM=400 RESPONSIVE_WORKERS=2 npm run check:responsive -- --routes / --widths 1280
           npm run test:harness
+          npm run test:browser:csp
       - if: ${{ !cancelled() && steps.build.conclusion == 'success' }}
         name: Storybook and performance
         run: |
