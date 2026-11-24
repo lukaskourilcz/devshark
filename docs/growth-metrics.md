@@ -23,6 +23,8 @@ devShark sends product analytics to PostHog EU Cloud, and only after the visitor
 
 Analytics never receives an email, display name, access, session or answer token, room code, free text, question text or selected answer. PostHog identifies a signed-in account by its user id.
 
+PostHog captures the events the application sends. Session replay, heatmaps, automatic errors and performance capture, surveys, product tours, conversations, experiments and external script loading are disabled in the client. Browser monitoring uses the separate Sentry privacy rules. Both URL and path properties replace a Play room code before transmission.
+
 ## Campaign labels
 
 A link may carry `utm_source`, `utm_medium` and `utm_campaign` (`client/src/lib/analytics.ts`). A value is kept only when it is a short lower-case label (`^[a-z0-9][a-z0-9._-]{0,63}$`). The first pageview of a page load keeps the three in its URL and as properties. The browser's first campaign, kept 30 days, becomes the account's initial `utm_source`, `utm_medium` and `utm_campaign` when the visitor signs in (set-once properties on `identify`). Every other query parameter (`ref`, `voucher`, `session_id` and the rest) is removed from every URL PostHog receives.

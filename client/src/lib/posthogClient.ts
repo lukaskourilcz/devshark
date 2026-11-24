@@ -62,6 +62,14 @@ export function posthogConfig(apiHost: string): Partial<PostHogConfig> {
     respect_dnt: true,
     autocapture: false,
     disable_session_recording: true,
+    capture_heatmaps: false,
+    capture_exceptions: false,
+    capture_performance: false,
+    disable_surveys: true,
+    disable_product_tours: true,
+    disable_conversations: true,
+    disable_web_experiments: true,
+    disable_external_dependency_loading: true,
     capture_dead_clicks: false,
     // devShark supplies its own campaign labels. PostHog still derives
     // session and initial properties, so before_send filters those too.

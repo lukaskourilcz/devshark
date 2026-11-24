@@ -324,9 +324,14 @@ it('keeps only approved campaign labels in real PostHog events and person proper
   try {
     const { PostHog } = await vi.importActual<typeof import('posthog-js')>('posthog-js');
     const { posthogConfig } = await import('../src/lib/posthogClient');
+    const config = posthogConfig('https://posthog.invalid');
+    expect(config).toMatchObject({
+      disable_session_recording: true, capture_heatmaps: false, capture_exceptions: false,
+      capture_performance: false, disable_surveys: true, disable_product_tours: true,
+      disable_conversations: true, disable_web_experiments: true, disable_external_dependency_loading: true,
+    });
     const ph = new PostHog().init('phc_campaign_test', {
-      ...posthogConfig('https://posthog.invalid'),
-      disable_external_dependency_loading: true,
+      ...config,
       disable_compression: true,
     }, 'campaign-test')!;
     ph.opt_in_capturing({ captureEventName: false });

@@ -8,6 +8,7 @@ import type { Breadcrumb, Event } from '@sentry/react';
 import { init, browserTracingIntegration, captureException } from '@sentry/react';
 import type { EarlyError } from './sentry';
 import { redactRoomCode } from './telemetryPath';
+import { checkServedBuild, isChunkLoadError } from './routeRecovery';
 
 export { captureException } from '@sentry/react';
 
@@ -37,7 +38,14 @@ export function start(dsn: string, environment: string, early: EarlyError[] = []
     // sendDefaultPii leaves addresses whole: every event, breadcrumb and
     // span loses its query strings, fragments, e-mail addresses and tokens
     // here (scrubEvent and scrubBreadcrumb below).
-    beforeSend: (event) => scrubEvent(event),
+    denyUrls: [/^(?:chrome-extension|moz-extension|safari-extension|safari-web-extension|webkit-masked-url):/i],
+    ignoreErrors: [/^ResizeObserver loop limit exceeded$/],
+    beforeSend: (event, hint) => {
+      if (event.extra?.chunkLoad === true || isChunkLoadError(hint.originalException)) {
+        return checkServedBuild().then(build => build === 'newer' ? null : scrubEvent(event));
+      }
+      return scrubEvent(event);
+    },
     beforeSendTransaction: (event) => scrubEvent(event),
     beforeBreadcrumb: (crumb) => scrubBreadcrumb(crumb),
   });

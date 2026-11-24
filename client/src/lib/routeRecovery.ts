@@ -81,7 +81,15 @@ function entryScript(doc: Document): string | null {
 
 /** Ask for the current index.html, past every cache, and compare its entry
  * script with this page's. */
-export async function checkServedBuild(timeoutMs = BUILD_CHECK_TIMEOUT_MS): Promise<BuildCheck> {
+let pendingBuildCheck: Promise<BuildCheck> | undefined;
+
+export function checkServedBuild(timeoutMs = BUILD_CHECK_TIMEOUT_MS): Promise<BuildCheck> {
+  if (timeoutMs !== BUILD_CHECK_TIMEOUT_MS) return readServedBuild(timeoutMs);
+  pendingBuildCheck ??= readServedBuild(timeoutMs).finally(() => { pendingBuildCheck = undefined; });
+  return pendingBuildCheck;
+}
+
+async function readServedBuild(timeoutMs: number): Promise<BuildCheck> {
   const running = entryScript(document);
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), timeoutMs);
