@@ -128,7 +128,7 @@ SMOKE_BASE_URL=<deployment> node node_modules/.cache/shark/grading-load.mjs
 
 When the Preview shares an Upstash database, set `DEVSHARK_PREVIEW_REDIS_NAMESPACE=epic-f-20261124` on that deployment to isolate rate buckets, one-time claims, and payment delivery keys. The optional namespace accepts 1–32 lowercase letters, digits or hyphens, starting with a letter or digit. Production always uses its established keys.
 
-On a protected Preview, set `SMOKE_PREVIEW_STATE` to the owner-only, exact-host Vercel protection state used by `perf:cold-start --preview-state`. The grading requests share only the deployment protection cookie. Application grading stays anonymous. The check refuses redirects, performs no retries and writes no credentials or submitted code to its receipt.
+On a protected Preview, set `SMOKE_PREVIEW_STATE` to the owner-only, exact-host Vercel protection state used by `perf:cold-start --preview-state`. The grading requests share only the deployment protection cookie. Application grading stays anonymous. The check refuses redirects and writes no credentials or submitted code to its receipt. Its one retry is for a 503 `grader_busy`: a React VM keeps its instance admission until its stop returns after the answer, so a batch right after the previous one can meet three held admissions. The refusal is kept as its own `busy` sample, left out of the latency percentiles, and the Submit is sent again once after the advertised Retry-After (at most 10 s). A second refusal or any other status fails the run.
 
 ## Release and observation
 
