@@ -54,7 +54,7 @@ const DEFAULT_BASE = 'http://localhost:4173';
 //   /roadmap (GET /api/user/* for the learner's profile);
 //   /dev (GET /api/admin/settings); /play/EXPIRED
 //   (signed out it is the same sign-in gate as /play).
-const DEFAULT_ROUTES = [
+export const DEFAULT_ROUTES = [
   '/',
   '/quiz',
   '/daily',
@@ -135,6 +135,10 @@ async function loadServerFixtures() {
     bundle: true, platform: 'node', format: 'esm', write: false, logLevel: 'error',
   });
   return import(`data:text/javascript;base64,${Buffer.from(out.outputFiles[0].text).toString('base64')}`);
+}
+/** Shared by the CDP reflow sweep and whole-route Playwright accessibility checks. */
+export async function prepareResponsiveFixtures() {
+  SERVER ??= await loadServerFixtures();
 }
 const ROADMAP = '/api/quiz/roadmap';
 // The Biggest Shark Challenge board (lib/challenge-store.ts) and the 30-day
@@ -524,13 +528,22 @@ const PROBE = `(() => {
   return { winW, docW, overflow, horizOffenders, parentOffenders };
 })()`;
 
-// What the route drew: whether the app mounted, and its page headings.
-const RENDERED = `(() => ({
-  mounted: (document.getElementById('root')?.childElementCount ?? 0) > 0,
-  headings: [...document.querySelectorAll('h1')].map((h) => h.textContent.trim()).filter(Boolean),
-  pathname: location.pathname,
-  readyMarkers: [['profile', '.de-profile-identity'], ['cards', '.sc-card'], ['today', '.today-card'], ['shop', '.rw-wallet__amount']].filter(([, selector]) => document.querySelector(selector)).map(([name]) => name),
-}))()`;
+export const ROUTE_READY_MARKERS = {
+  '/profile': ['profile', '.de-profile-identity'], '/cards': ['cards', '.sc-card'],
+  '/today': ['today', '.today-card'], '/shop': ['shop', '.rw-wallet__amount'],
+};
+
+// Runs in the measured page in either CDP or Playwright.
+export function readRenderedRoute(markers) {
+  return {
+    mounted: (document.getElementById('root')?.childElementCount ?? 0) > 0,
+    headings: [...document.querySelectorAll('h1')].map(h => h.textContent.trim()).filter(Boolean),
+    pathname: location.pathname,
+    readyMarkers: Object.values(markers).filter(([, selector]) => document.querySelector(selector)).map(([name]) => name),
+  };
+}
+
+const RENDERED = `(${readRenderedRoute.toString()})(${JSON.stringify(ROUTE_READY_MARKERS)})`;
 
 export function renderProblems(route, rendered, apiRequests, notFoundHeading, authMode = 'signed-in') {
   const problems = [];
@@ -548,7 +561,7 @@ export function renderProblems(route, rendered, apiRequests, notFoundHeading, au
   if (rendered.pathname && rendered.pathname !== expected && !redirects[expected]?.includes(rendered.pathname)) {
     problems.push(`requested route ${expected} landed on ${rendered.pathname}`);
   }
-  const requiredMarker = { '/profile': 'profile', '/cards': 'cards', '/today': 'today', '/shop': 'shop' }[expected];
+  const requiredMarker = ROUTE_READY_MARKERS[expected]?.[0];
   if (authMode === 'signed-in' && requiredMarker && !rendered.readyMarkers?.includes(requiredMarker)) {
     problems.push(`${requiredMarker} content is not ready; a heading or sign-in gate does not establish this route`);
   }
@@ -781,7 +794,7 @@ async function main() {
     console.log(JSON.stringify({ routes, viewports, zoom, authMode, workers, shards }, null, 2));
     return;
   }
-  SERVER = await loadServerFixtures();
+  await prepareResponsiveFixtures();
   const baseUrl = (optionValue('--base-url') ?? process.env.RESPONSIVE_BASE_URL ?? DEFAULT_BASE).replace(/\/$/, '');
   const configuredOutput = optionValue('--output-dir') ?? process.env.RESPONSIVE_OUTPUT_DIR;
   const outDir = configuredOutput
