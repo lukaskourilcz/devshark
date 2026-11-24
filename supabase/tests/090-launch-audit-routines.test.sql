@@ -1,9 +1,10 @@
 -- The routines migration 047 corrected, each held to the behaviour a learner
 -- relies on: a block stays with whoever set it, a daily started before
 -- midnight still counts, only Google avatars reach the public boards, badges
--- sync, a revealed coding task does not complete a Learn level, a pack with a
--- repeated card can be claimed, a friend's streak is the live one, and the
--- first verified daily result stands.
+-- sync, a revealed coding task does not complete a Learn level, a friend's
+-- streak is the live one, and the first verified daily result stands. 047
+-- also let a card pack repeat a card; migration 078 dropped that routine with
+-- the retired packs.
 
 SET LOCAL ROLE service_role;
 
@@ -144,20 +145,6 @@ BEGIN
   PERFORM public.complete_verified_roadmap_attempt(v_user, v_attempt, '["js-double-numbers"]');
   SELECT (data #>> '{javascript,levels,1,passed}')::BOOLEAN INTO v_passed FROM public.roadmap_progress WHERE user_id = v_user;
   ASSERT v_passed IS FALSE, format('a revealed task leaves the level not passed, got %s', v_passed);
-END;
-$$;
-
--- A daily pack that holds the same card twice is granted, and counts it twice.
-DO $$
-DECLARE
-  v_status TEXT;
-  v_count INTEGER;
-BEGIN
-  SELECT status INTO v_status FROM public.grant_daily_queue_cards('aaaaaaaa-0000-4000-8000-000000000910', 'webdev',
-    (NOW() AT TIME ZONE 'UTC')::DATE, '["webdev-topic-html","webdev-topic-html","webdev-topic-react"]');
-  SELECT count INTO v_count FROM public.user_cards
-   WHERE user_id = 'aaaaaaaa-0000-4000-8000-000000000910' AND card_id = 'webdev-topic-html';
-  ASSERT v_status = 'granted' AND v_count = 2, format('the pack is granted with the repeat counted: %s, %s', v_status, v_count);
 END;
 $$;
 
