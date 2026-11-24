@@ -198,13 +198,13 @@ test('app document headers support provider popups and keep exercise asset shari
     ['/assets/coding-worker/worker-x.js', 'https://devshark.app'],
     ['/sandbox/index.html', '*'],
     ['/sandbox/assets/index-x.js', '*'],
-    ['/brand/x.svg', null],
+    ['/brand/x.svg', 'https://devshark.app'],
     ['/api/probe', null],
   ]) {
     const { headers } = await fetch(origin + path);
     assert.equal(headers.get('access-control-allow-origin'), cors, path);
     assert.equal(headers.get('cross-origin-opener-policy'), null, path);
-    assert.equal(headers.get('cross-origin-resource-policy'), path.includes('coding-worker') ? 'same-origin' : null, path);
+    assert.equal(headers.get('cross-origin-resource-policy'), path.includes('coding-worker') || path.startsWith('/api/') ? 'same-origin' : null, path);
   }
 });
 
@@ -312,7 +312,7 @@ test('Docker drops upgrade-insecure-requests from the CSP of a plain-HTTP reques
   for (const pathname of ['/', '/assets/main-x.js', '/sandbox/index.html', '/assets/missing-x.js', '/sandbox/nope']) {
     const plain = await fetch(origin + pathname, { redirect: 'manual', signal: AbortSignal.timeout(5_000) });
     await plain.arrayBuffer();
-    const withoutToken = vercelAnswer(config, pathname, isSiteFile).headers['content-security-policy'];
+    const withoutToken = vercelAnswer(config, pathname, isSiteFile).headers['content-security-policy']?.split('; ').filter(directive => directive !== TOKEN).join('; ');
     assert.equal(plain.headers.get('content-security-policy'), withoutToken, `${pathname} over plain HTTP: the policy without ${TOKEN}`);
 
     const { response: forwarded } = await assertVercelAnswer(origin, pathname, upgrades);

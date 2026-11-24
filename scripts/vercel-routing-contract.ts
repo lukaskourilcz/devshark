@@ -118,11 +118,11 @@ const APP_CHUNK = '/assets/CodingSection-DVDpGXcJ.js';
 const APP_STYLES = '/assets/main-BmQx2Zrs.css';
 const WORKER_CHUNK = '/assets/coding-worker/worker-duXtWM9V.js';
 const SANDBOX_CHUNK = '/sandbox/assets/index-DKkK9iSG.js';
-const ASSET_PATHS = [APP_CHUNK, APP_STYLES, `${APP_CHUNK}.map`, WORKER_CHUNK, SANDBOX_CHUNK, '/assets/', '/sandbox/assets/'];
+const ASSET_PATHS = [APP_CHUNK, APP_STYLES, WORKER_CHUNK, SANDBOX_CHUNK, '/assets/', '/sandbox/assets/'];
 const STATIC_MEDIA_PATHS = ['/og/', '/og/coding/stale.png', '/brand/', '/brand/v9/recommended/stale.svg'];
 const FILE_PATHS = [...ASSET_PATHS, ...STATIC_MEDIA_PATHS];
 const DOCUMENTS = ['/', '/index.html', '/coding', '/coding/javascript/js-double-numbers', '/premium/index.html', '/topics/javascript-closures/index.html', '/sandbox/index.html'];
-const WORKER_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'; connect-src 'self'";
+const WORKER_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'";
 
 const RETIRED_TRIAGE_SOURCE = "^/(?:t|%74)(?:r|%72)(?:i|%69)(?:a|%61)(?:g|%67)(?:e|%65)(?:-|%2[dD])(?:v|%76)(?:e|%65)(?:r|%72)(?:d|%64)(?:i|%69)(?:c|%63)(?:t|%74)(?:s|%73)(?:\\.|%2[eE])(?:j|%6[aA])(?:s|%73)(?:o|%6[fF])(?:n|%6[eE])$";
 
@@ -168,6 +168,15 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
   const retiredGuides = phases.main.filter((route) => route.src === '^/cs/topics(?:/.*)?$');
   assert.equal(retiredGuides.length, 1, 'retired guide URLs answer the app shell with HTTP 404');
   const redirects = phases.main.filter((route) => route.status === 308);
+  const sourceMaps = phases.main.find(route => route.src === '^/(?:sandbox/)?assets/.+\\.map$');
+  assert.ok(sourceMaps);
+  assert.equal(sourceMaps.status, 404);
+  assert.deepEqual(sourceMaps.headers, { 'Cache-Control': 'no-store' });
+  for (const asset of [APP_CHUNK, WORKER_CHUNK, SANDBOX_CHUNK]) {
+    assert.ok(routeMatches(sourceMaps, `${asset}.map`));
+    assert.ok(!routeMatches(sourceMaps, asset));
+  }
+
   for (const route of phases.main) {
     if (route.src === '^/cs/topics(?:/.*)?$') {
       assert.equal(route.dest, '/app.html');
@@ -176,7 +185,7 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
       assert.equal(route.headers?.['X-Robots-Tag'], 'noindex');
       continue;
     }
-    if (route === privateAsset || redirects.includes(route)) continue;
+    if (route === privateAsset || route === sourceMaps || redirects.includes(route)) continue;
     assert.ok(route.continue === true && route.headers && !route.dest && route.status === undefined, `${route.src} runs before the filesystem check and must only add headers`);
   }
   // Public Learn previews must reach their own HTML before the SPA fallback.

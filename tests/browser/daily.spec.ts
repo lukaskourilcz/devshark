@@ -1,3 +1,7 @@
+declare global {
+  interface Window { dailyLayoutShifts: number[] }
+}
+
 import { test, expect, type Page } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
 import { addDays, qotdTrack } from '../../shared/daily-question';
@@ -85,7 +89,7 @@ for (const width of [390, 1280]) for (const dated of [false, true]) {
       await expect(page.getByRole('radio', { name: 'One', exact: true })).toBeVisible();
       await page.evaluate(() => document.fonts.ready);
       await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-      const shifts = await page.evaluate(() => (window as Window & { dailyLayoutShifts: number[] }).dailyLayoutShifts);
+      const shifts = await page.evaluate(() => window.dailyLayoutShifts);
       expect(shifts.reduce((sum, shift) => sum + shift, 0)).toBeLessThan(0.01);
       expect(reads).toEqual([date]);
     } finally {

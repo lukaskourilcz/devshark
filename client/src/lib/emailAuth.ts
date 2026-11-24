@@ -25,7 +25,7 @@ import { useEffect, useState } from 'react';
 import type { EmailOtpType, SupabaseClient } from '@supabase/supabase-js';
 import { loadSupabase } from './supabaseClient';
 import {
-  AUTH_LANDING_PATHS,
+  isAuthLandingPath,
   CONFIRMED_PATH,
   RESET_PASSWORD_PATH,
   clearAuthReturn,
@@ -204,7 +204,7 @@ const normalise = (email: string) => email.trim();
  * page that asked as `next` so the page can offer the way back. */
 export function confirmationRedirect(returnTo?: string | null, origin = window.location.origin): string {
   const asked = returnTo ?? currentReturnPath();
-  const next = asked && isSafeReturnPath(asked) && !AUTH_LANDING_PATHS.some((path) => asked.startsWith(path)) ? asked : null;
+  const next = asked && isSafeReturnPath(asked) && !isAuthLandingPath(asked) ? asked : null;
   return `${origin}${CONFIRMED_PATH}${next ? `?next=${encodeURIComponent(next)}` : ''}`;
 }
 

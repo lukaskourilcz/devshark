@@ -122,6 +122,9 @@ The Epic F run (#629, remaining work in #646) needs these from you. Remaining ow
 
 ## Decided during the Epic F audit (18 November 2026)
 
+- Production browser policy pins the Supabase and Sentry origins, uses same-origin workers and fonts, and blocks public source maps. A project move requires updating the CSP and its contract together. Docker accepts explicit development origins via `CSP_CONNECT_EXTRA`. To restore public source maps, remove the map refusal before the filesystem route.
+- The merchandise webhook retains successful delivery digests for seven days. A concurrent sender retries while the first delivery is pending. Failed database operations release their processing lease. The payment provider and its delivery retry horizon still need to be chosen before enabling merchandise.
+
 Agents took these reversible choices themselves, as you asked. Each line says how to undo it.
 
 - [x] **Keep the eight-route F1 lab local and count the authorized Home calibration (F1-44, #630)** — Use the full-placeholder CI-env build and invented local API fixtures for the eight-route Lighthouse/CDP tables. The original brief also explicitly authorizes one raw production bundle observation and the small Home-only Lighthouse/CDP calibration; the proposed under-250 sentence is inconsistent with the earlier approximate 290 requests and is not a new owner-approval gate. Bound and count those new observations, preserve the older incomplete ledger, stop on unexpected business/write branches, and never claim cumulative under-250 compliance. Raw-transfer and the small production Home calibration now have actual dated artifacts; their distinct request/event counts and the older incomplete history remain separate. Revert future measurements to local fixtures only while retaining every historical production observation and its scope. [imp:2] [owner:ai] [time:done] [kind:decision]
