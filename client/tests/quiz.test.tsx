@@ -902,12 +902,16 @@ describe('quiz orientation and deadline', () => {
   });
 
   it('uses the Daily deadline, warns on wake, and keeps answers available for a server-accepted submit', async () => {
+    const submits: unknown[] = [];
     let now = Date.now();
     vi.spyOn(Date, 'now').mockImplementation(() => now);
     const deadline = now + 4 * 60_000;
     server.use(
       http.get('*/api/quiz/daily', () => HttpResponse.json({ date: '2026-11-10', sessionId: sessionFor('daily'), questions: [Q('a')], expiresAt: deadline })),
-      http.post('*/api/quiz/submit', () => HttpResponse.json(graded([Q('a')]))),
+      http.post('*/api/quiz/submit', async ({ request }) => {
+        submits.push(await request.json());
+        return HttpResponse.json(graded([Q('a')]));
+      }),
     );
     renderQuiz();
     fireEvent.click(await screen.findByRole('button', { name: /today’s challenge/i }));
@@ -921,6 +925,8 @@ describe('quiz orientation and deadline', () => {
     expect(checked()).toEqual([false, true, false, false]);
     expect(JSON.parse(sessionStorage.getItem(PROGRESS_KEY)!).answers).toEqual({ a: 1 });
     fireEvent.click(screen.getByRole('button', { name: /submit quiz/i }));
+    await waitFor(() => expect(submits).toHaveLength(1));
+    expect(submits[0]).toMatchObject({ sessionId: sessionFor('daily'), answers: { a: 1 } });
     expect(await screen.findByText('1 / 1')).toBeInTheDocument();
   });
 
