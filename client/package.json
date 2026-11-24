@@ -46,8 +46,6 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "@astryxdesign/cli": "^0.1.6",
-    "@babel/core": "^7.29.7",
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource-variable/manrope": "^5.3.0",
     "@fontsource/inter": "5.3.0",
