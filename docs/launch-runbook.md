@@ -70,6 +70,8 @@ Migration 086 checks or creates `purge_expired_learning_data_daily` for 03:07 in
 
 ### Private Play broadcasts (089)
 
+On a fresh managed staging branch, confirm the branch reference and zero initial Auth users before creating disposable fixtures. Compare effective per-table privileges with the approved production catalog for `anon`, `authenticated` and `service_role`. On the November staging run, ordinary settings and room creation were refused until the branch matched the existing production service grants. Keep any repair scoped to the observed table, role and verbs. The first channel on a freshly started gateway may report `MissingPartition` while Realtime initializes. Record that result, retry normal member access, and check the explicit policy refusals independently.
+
 Apply 089 while the previous client is still supported. The room's host and each player must join through the Play API first. In staging, verify two signed-in members exchange updates, another account cannot subscribe, and a disconnected client follows the room by polling. Release the private-channel client, allow older tabs time to refresh, and then have the project owner disable **Allow public access** in Realtime settings. A client missing its private subscription continues polling. Reverting the client alone after disabling public access also uses polling. The Play join notification carries no account ID.
 
 ## Preflight
