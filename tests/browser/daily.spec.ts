@@ -51,9 +51,9 @@ test('opening Daily keeps its mobile header in place when the question arrives',
   }
 });
 
-for (const width of [390, 1280]) {
-  test(`a dated Daily link keeps its layout and starts exactly its own read at ${width}px`, async ({ page }) => {
-    const date = addDays(today, -1);
+for (const width of [390, 1280]) for (const dated of [false, true]) {
+  test(`a ${dated ? 'dated' : 'current-day'} Daily link keeps its layout and starts exactly its own read at ${width}px`, async ({ page }) => {
+    const date = dated ? addDays(today, -1) : today;
     const track = qotdTrack(date);
     const reads: string[] = [];
     let release!: () => void;
@@ -77,7 +77,7 @@ for (const width of [390, 1280]) {
       } } });
     });
     try {
-      await page.goto(`/daily/${date}`, { waitUntil: 'domcontentloaded' });
+      await page.goto(dated ? `/daily/${date}` : '/daily', { waitUntil: 'domcontentloaded' });
       await expect.poll(() => reads).toEqual([date]);
       await expect(page.locator('#main-content [data-activity="active"]')).toBeAttached();
       await expect(page.locator('.ss-header')).toBeHidden();
