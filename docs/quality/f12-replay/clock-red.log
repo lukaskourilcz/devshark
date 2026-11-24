@@ -1,0 +1,10 @@
+> vitest run --maxWorkers=1 tests/quiz.test.tsx -t uses the Daily deadline, warns on wake
+ ❯ tests/quiz.test.tsx (74 tests | 1 failed | 73 skipped) 3207ms
+ FAIL  tests/quiz.test.tsx > quiz orientation and deadline > uses the Daily deadline, warns on wake, and keeps answers available for a server-accepted submit
+AssertionError: expected [] to have a length of 1 but got +0
+- 1
++ 0
+ Test Files  1 failed (1)
+      Tests  1 failed | 73 skipped (74)
+   Start at  04:30:18
+   Duration  4.33s (tests 75%, transform 10%, import 8%, setup 7%)

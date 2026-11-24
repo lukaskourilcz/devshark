@@ -1,0 +1,6 @@
+> vitest run --maxWorkers=1 tests/sentry-idle-deadline.test.ts
+ ✓ tests/sentry-idle-deadline.test.ts (1 test) 428ms
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  04:29:56
+   Duration  825ms (tests 56%, setup 40%, transform 4%)

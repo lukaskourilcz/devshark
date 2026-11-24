@@ -1,0 +1,6 @@
+> vitest run --maxWorkers=1 tests/quiz.test.tsx -t uses the Daily deadline, warns on wake
+ ✓ tests/quiz.test.tsx (74 tests | 73 skipped) 226ms
+ Test Files  1 passed (1)
+      Tests  1 passed | 73 skipped (74)
+   Start at  04:30:49
+   Duration  1.34s (transform 33%, import 25%, setup 24%, tests 18%)
