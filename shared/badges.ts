@@ -30,7 +30,7 @@ export const CODING_BADGES: readonly { id: CodingBadgeId; tier: BadgeTier; glyph
   { id: 'capstone-shark', tier: 'gold', glyph: '▣' },
 ];
 
-export interface BadgeDef {
+interface BadgeDef {
   id: string;
   tier: BadgeTier;
   /** Glyph shown when earned; locked badges render a neutral outline. */

@@ -157,14 +157,14 @@ export interface TypeTest {
   rejects?: boolean;
 }
 
-export interface CodingApiNote {
+interface CodingApiNote {
   method: string;
   url: string;
   note: string;
 }
 
 /** A guided system-design walkthrough: five questions in interview order. */
-export interface GuidedDesignStep {
+interface GuidedDesignStep {
   key: string;
   title: string;
   prompt: string;
@@ -173,7 +173,7 @@ export interface GuidedDesignStep {
   correct: number;
   explanation: string;
 }
-export interface GuidedDesign {
+interface GuidedDesign {
   scenario: string;
   brief: string;
   steps: GuidedDesignStep[];
@@ -183,7 +183,7 @@ export interface GuidedDesign {
 }
 
 export type DesignDrillFormat = 'estimate' | 'tradeoff' | 'bottleneck' | 'sequence';
-export interface DesignDrill {
+interface DesignDrill {
   format: DesignDrillFormat;
   scenario: string;
   prompt: string;
@@ -360,7 +360,7 @@ export const CODING_TASK_XP: Record<CodingTier, number> = { 1: 25, 2: 25, 3: 25,
  * Clearing them opens JavaScript tier 3, and no other track's. */
 export const CODING_FOUNDATION_LEVELS = 10;
 
-export interface CodingProgressSummary {
+interface CodingProgressSummary {
   /** Passed task ids (revealed tasks are not passed). */
   passed: ReadonlySet<string>;
 }

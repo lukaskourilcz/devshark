@@ -43,7 +43,6 @@ export const RELEVANCE_MARKERS = [
   /** Helps prevent a failure or improve an outcome. */
   'risk-or-outcome-value',
 ] as const;
-export type RelevanceMarker = (typeof RELEVANCE_MARKERS)[number];
 
 export const MARKER_MAX = 2;
 export const RELEVANCE_MAX = RELEVANCE_MARKERS.length * MARKER_MAX; // 10
@@ -58,7 +57,6 @@ const QUALITY_CRITERIA = [
   'hint',
   'explanation',
 ] as const;
-export type QualityCriterion = (typeof QUALITY_CRITERIA)[number];
 
 export const QUALITY_MAX = QUALITY_CRITERIA.length; // 5
 /** Below this an item leaves the active pool. */
@@ -84,7 +82,7 @@ export const passesBothGates = (relevance: number, quality: number): boolean =>
  * specified and is not evidence that it has no defects. */
 /** @public Authoring API documented in .claude/skills/learn-question-authoring/references/ledger-row.md. */
 export const REVIEW_EVENT_KINDS = ['human', 'model', 'automated', 'execution'] as const;
-export type ReviewEventKind = (typeof REVIEW_EVENT_KINDS)[number];
+type ReviewEventKind = (typeof REVIEW_EVENT_KINDS)[number];
 
 export interface ReviewEvent {
   kind: ReviewEventKind;
@@ -122,7 +120,7 @@ export const isLedgerDecision = (value: unknown): value is LedgerDecision =>
   typeof value === 'string' && (LEDGER_DECISIONS as readonly string[]).includes(value);
 
 /** The five modern-relevance markers, 0-2 each, summed into `relevance`. */
-export interface RelevanceMarkers {
+interface RelevanceMarkers {
   presentDay: number;
   practicalUtility: number;
   transferable: number;
@@ -134,7 +132,7 @@ export const RELEVANCE_MARKER_KEYS = ['presentDay', 'practicalUtility', 'transfe
 
 /** The seven quality dimensions, 1-5 each. The final quality score is their
  * minimum, never their average, so one serious weakness cannot hide. */
-export interface QualityDimensions {
+interface QualityDimensions {
   topicRelevance: number;
   learningValue: number;
   technicalCorrectness: number;

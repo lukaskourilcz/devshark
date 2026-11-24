@@ -67,7 +67,7 @@ export interface QuestionEditRow {
  * is the same word the gate used, so an operator editing a devShark question
  * can see that the edit made it `superseded` and that it stays out of every
  * pool until a review of the new wording is recorded. */
-export interface AdminReviewState {
+interface AdminReviewState {
   active: boolean;
   reason: Eligibility['reason'];
   decision?: LedgerDecision;

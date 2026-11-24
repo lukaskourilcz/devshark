@@ -20,6 +20,7 @@ export type LessonSectionSource =
   | { kind: 'example'; language: string; code: string; caption: string; note: string }
   | { kind: 'callout'; tone: 'note' | 'warning'; body: string };
 
+/** @public Reexported by the learning-path lesson authoring facade in lib/learning-paths/types.ts. */
 export interface TraceSource {
   shape: TraceSpec['shape'];
   legend?: string[];

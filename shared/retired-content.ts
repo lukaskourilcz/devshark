@@ -25,7 +25,7 @@
  * What does not survive is delivery: nothing here may be served as a level, a
  * checkpoint, a practice pool or a recommendation. */
 
-export type RetirementReason =
+type RetirementReason =
   /** The material was redistributed into the topics it verifies. */
   | 'redistributed'
   /** The material became contextual help rather than a subject. */
