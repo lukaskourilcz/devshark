@@ -17,7 +17,7 @@ declare global {
 const guestSettings = { ...settings, billing: { ...settings.billing, enabled: false, launchOffer: false } };
 
 const routes = [
-  ['/learn/web-developer', /^Learn$/i], ['/quiz', /Build your quiz/i], ['/coding', /Coding challenges/i],
+  ['/learn/web-developer', /^Web Developer$/i], ['/quiz', /Build your quiz/i], ['/coding', /Coding challenges/i],
   ['/challenge', /Biggest Shark Challenge/i], ['/play', /Play live/i], ['/premium', /Premium|Everything in devShark/i],
   ['/leaderboard', /Leaderboard/i], ['/daily', /Question of the day/i], ['/shop', /^Coins$/i], ['/', /Lessons, quizzes|developer learning/i],
 ] as const;
