@@ -9319,3 +9319,32 @@ The owner also selected configuration A for Sentry. Public map requests remain b
 ## F15 production handler errors (24 November 2026)
 
 For 25 October through 23 November inclusive, seven dated windows covered all 30 days. There were 293 error-level `DEP0169` records across 16 handlers (#477), zero structured stdout errors and one `/api/quiz/questions` 503 (#689). The [per-handler and per-window report](audit/f15-production-errors-2026-11-24.md) gives the counts and the limits of the incident evidence.
+
+## Epic F release and released-site checks (24 November 2026)
+
+PR [#688](https://github.com/lukaskourilcz/devshark/pull/688) merged at `87dcd867` with a merge commit. Its last head `d9c41d07` passed all nine required jobs of run 45489177720, including `verify` and `sql`. The `tests` job on the previous head `46b5c2cb` failed once at `design-runner.test.tsx` ("moves focus to the verdict when it arrives") and passed on a rerun of the same commit; the branch does not touch that runner.
+
+**Production deployment.** Git-triggered production builds of `78b5d386`, `bb392fb1` and `87dcd867` were all cancelled by the project's Ignored Build Step setting before a build ran, so `devshark.app` had stayed on `c1d610ad`. The merge was deployed from a clean `87dcd867` checkout with `vercel deploy --prod`: READY `dpl_vPPHKGead2nYnwHhp6csEig2B3i3` owns `devshark.app`, `react-express-app-five.vercel.app` and the project alias with no alias error. Its first 30 minutes had 44 info-level records and no warning or error.
+
+**React grading was down in production before the release.** An anonymous reference Submit to `c1d610ad` answered `ReactRunnerStartup` (no HTTP status), the same as a Preview using the retired temporary snapshot. A fresh dependency-only snapshot built with `scripts/prepare-react-snapshot.mjs` (no expiry) replaced `REACT_RUNNER_SNAPSHOT_ID` in Production before the deploy. A startup failure now also names the cause's class (never its message), covered by a new `startup-cause` control in `test:react-isolation`.
+
+**Protected Preview.** The corrected share-image build succeeded on the first CLI Preview (the earlier failure was the missing SVG). The build log records Node `v24.22.3`. With a 24-hour snapshot, `DEVSHARK_PREVIEW_REDIS_NAMESPACE=epic-f-20261124` and `DEVSHARK_AUDIT_TS_FILES=1`, the grading smoke passed ten React Submits (p50 5,736 ms, p95 7,179 ms), one TypeScript reference passed in 1,308 ms, and the declaration inventory logged 91 shipped and 91 used `lib.*.d.ts` files. `check:security` matched every header vercel.json sets on all ten Preview URLs, the map request answered 404, and 4 of 4 bundle connections were allowed by `connect-src`.
+
+**Grading smoke and admission.** A React VM keeps one of the instance's three admissions until its stop call returns after the answer, so a batch sent right after the previous one can receive 503 `grader_busy` (`react_vm_queue_full`). `check-grading-load.ts` now records such a refusal as its own `busy` sample, leaves it out of the percentiles and sends the Submit once more after the advertised Retry-After; a second refusal or any other status still fails.
+
+**Released site, read-only and as a guest.**
+
+| Check | Result |
+| --- | --- |
+| `/api/health` | 200 healthy; database, service role and grading `ok`, rate limiter configured |
+| Grading smoke, devshark.app | 10 of 10 React Submits passed, 3 `grader_busy` refusals each passed on its one retry; p50 5,429 ms, p95 7,326 ms, no XP |
+| `check:security -- --url=https://devshark.app` | all ten URLs match their vercel.json headers; source map 404; 4 of 4 connections allowed |
+| `check:bundle -- --url=https://devshark.app` | 5 requests, 221,872 initial encoded (br) bytes, 216,190 decoded gzip-6 bytes against the local 215,958-byte build reference |
+| `perf:measure` Home, 3 samples, consent rejected | mobile cold LCP 1,824 ms, repeat 264 ms; desktop cold 504 ms, repeat 68 ms; CLS 0.000 and TBT 0 in all four rows |
+| `audit:performance` Home, 1 run | mobile performance 0.97 (LCP 1,000 ms, TBT 165 ms), desktop 1.00 (LCP 258 ms); accessibility, best practices and SEO 1.00 on both |
+| `www.devshark.app` | was 307 from Vercel's default; the domain is now on the project with a 308 to the apex: `https://www.` → 308 apex, `http://www.` → 308 `https://www.` → 308 apex, path and query kept |
+| `react-express-app-five.vercel.app` | 200 with `X-Robots-Tag: noindex`, the reviewed host rule; no redirect added |
+
+These are lab and single-observer numbers, not field Core Web Vitals. The full eight-route matrix stays local, as recorded earlier.
+
+**Still open.** Sentry's ten release-tagged events need an authorized sign-in. The hosted per-handler comparison (F7) needs a day of production traffic on the new operation labels. Public Realtime stays on until older tabs have refreshed onto the private Play client, which shipped in this deployment. The local Mac `ci:parity` run on the merged source was not repeated; the required CI jobs on the merged head are the gate.
