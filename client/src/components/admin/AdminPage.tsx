@@ -8,6 +8,7 @@ import LoadingScreen from '../LoadingScreen';
 import { useAuth } from '../../lib/auth';
 import { useColorMode } from '../../theme/ColorModeContext';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { operationsEn } from '../../i18n/translations.operationsRoute';
 import type { TranslationKey } from '../../i18n/translations';
 import { lazyShellPart } from '../../lib/routeRecovery';
 import AdminUsers from './AdminUsers';
@@ -39,7 +40,7 @@ export default function AdminPage() {
 }
 
 function AdminWorkspace({ lock }: { lock: () => void }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(operationsEn);
   const { user } = useAuth();
   const { mode, toggle } = useColorMode();
   const { pathname } = useLocation();

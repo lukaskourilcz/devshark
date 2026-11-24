@@ -21,6 +21,7 @@
 
 import { useCallback, useRef, useState, type KeyboardEvent } from 'react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { codingEn } from '../i18n/translations.codingRoute';
 import type { PuzzleLine, PuzzleView } from '../../../shared/coding-puzzle';
 import { Button } from '@astryxdesign/core/Button';
 
@@ -33,7 +34,7 @@ export function CodePuzzle({
   busy: boolean;
   onSubmit: (order: string[]) => void;
 }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const [lines, setLines] = useState<PuzzleLine[]>(puzzle.lines);
   const [selected, setSelected] = useState<string | null>(puzzle.lines[0]?.id ?? null);
   const refs = useRef<Record<string, HTMLLIElement | null>>({});

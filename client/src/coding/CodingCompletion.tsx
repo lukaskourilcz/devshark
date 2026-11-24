@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@astryxdesign/core/Button';
 import { Tooltip } from '@astryxdesign/core/Tooltip';
 import { useT } from '../i18n/LanguageContext';
+import { codingEn } from '../i18n/translations.codingRoute';
 import { InfoIcon } from '../components/ui/icons';
 import { workbenchCopy } from '../i18n/translations.workbench';
 import { openSignIn } from '../lib/signInDialog';
@@ -10,7 +11,7 @@ import type { ComplexityGuidance, ComplexityReport } from '../../../shared/codin
 import './Coding.css';
 
 export function ComplexityInfo({ guidance }: { guidance: ComplexityGuidance }) {
-  const t = useT();
+  const t = useT(codingEn);
   return <Tooltip placement="above" content={<div className="cd-complexity__tip"><p>{guidance.note}</p><p>{t('coding.complexity.learn')}</p></div>}>
     <Button as={Link} href="/big-o" variant="ghost" isIconOnly icon={<InfoIcon size={16} />} label={t('coding.complexity.info')} className="cd-complexity__info" />
   </Tooltip>;
@@ -24,7 +25,7 @@ export function CodingCompletion({ xp, complexity, nextHref, onNext, backHref, s
   signInToRecord?: boolean;
   sectionRef?: RefObject<HTMLElement | null>;
 }) {
-  const t = useT();
+  const t = useT(codingEn);
   const ownRef = useRef<HTMLElement>(null);
   const ref = sectionRef ?? ownRef;
   useEffect(() => { ref.current?.focus(); }, [ref]);

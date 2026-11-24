@@ -8,6 +8,7 @@ import { Button } from '@astryxdesign/core/Button';
 import { StatePanel } from '../ui/StatePanel';
 import { friendlyError } from '../../lib/api';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { operationsEn } from '../../i18n/translations.operationsRoute';
 
 type Phase = 'checking' | 'login' | 'ready' | 'error';
 
@@ -29,7 +30,7 @@ export default function DevAccess({ children }: { children: (lock: () => void) =
 
 function AccountAccess({ children }: { children: (lock: () => void) => ReactNode }) {
   const queryClient = useQueryClient();
-  const { t } = useLanguage();
+  const { t } = useLanguage(operationsEn);
   const [error, setError] = useState('');
   useEffect(() => () => { queryClient.removeQueries({ queryKey: ['admin'] }); }, [queryClient]);
   const [phase, setPhase] = useState<Phase>('checking');

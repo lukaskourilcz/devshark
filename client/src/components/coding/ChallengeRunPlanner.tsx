@@ -8,6 +8,7 @@
 import { useCallback, useId, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { codingEn } from '../../i18n/translations.codingRoute';
 import type { TranslationKey } from '../../i18n/translations';
 import { codingListCopy } from '../../i18n/translations.codingLists';
 import { useAdvanceSession, usePracticeSession, useStartSession } from '../../coding/practice';
@@ -96,7 +97,7 @@ export function runSummary(session: PracticeSession, t: (key: TranslationKey, va
 
 /** The open run, with its own actions. */
 function RunCard({ session, onDone, resumeInPrimary = false }: { session: PracticeSession; onDone: () => void; resumeInPrimary?: boolean }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const navigate = useNavigate();
   const advance = useAdvanceSession();
   const transitioning = useRef(false);
@@ -170,7 +171,7 @@ function RunCard({ session, onDone, resumeInPrimary = false }: { session: Practi
  * already open or scheduled keeps the planner open, so its card is never
  * hidden behind the toggle. */
 export function ChallengeRunPlanner({ signedIn, collapsible = false, resumeInPrimary = false }: { signedIn: boolean; collapsible?: boolean; resumeInPrimary?: boolean }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const [expanded, setExpanded] = useState(!collapsible);
   const bodyId = useId();
   const navigate = useNavigate();

@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { codingEn } from '../../i18n/translations.codingRoute';
 import { useAdvanceSession, usePracticeSession } from '../../coding/practice';
 import { accountEpoch } from '../../lib/accountData';
 import { currentRunTask, formatWhen, runSummary, taskHref, usePracticeRunDue } from './ChallengeRunPlanner';
@@ -22,7 +23,7 @@ const ArrowGlyph = ({ size = 16 }: { size?: number }) => (
 );
 
 export function ChallengeRunSection() {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const navigate = useNavigate();
   const query = usePracticeSession(true);
   const advance = useAdvanceSession();

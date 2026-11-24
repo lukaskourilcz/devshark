@@ -22,6 +22,7 @@ import { Skeleton } from '@astryxdesign/core/Skeleton';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { CheckboxInput } from '@astryxdesign/core/CheckboxInput';
 import { useLanguage } from '../i18n/LanguageContext';
+import { checkoutEn } from '../i18n/translations.checkoutRoute';
 import { ApiError, friendlyError } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { openSignIn } from '../lib/signInDialog';
@@ -64,7 +65,7 @@ type CheckoutRuntime = { controller: AbortController; form?: CheckoutView; timer
 /** Stripe owns the iframe and card fields. The server owns the order, consent,
  * price and fulfillment; a successful browser callback never grants Premium. */
 export function PremiumCheckoutPage() {
-  const { t } = useLanguage();
+  const { t } = useLanguage(checkoutEn);
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const billing = useBilling();
@@ -224,7 +225,7 @@ type SuccessState =
   | { kind: 'error'; message: string };
 
 export function PremiumSuccessPage() {
-  const { t } = useLanguage();
+  const { t } = useLanguage(checkoutEn);
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const sessionId = params.get('session_id') ?? '';
@@ -391,7 +392,7 @@ type CancelStep =
   | { kind: 'done'; receipt: CancelReceipt };
 
 export function PremiumCancelPage() {
-  const { t } = useLanguage();
+  const { t } = useLanguage(checkoutEn);
   const [params] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -680,7 +681,7 @@ export function PremiumCancelPage() {
 
 /** What changed, once the address was proven. */
 function CancelOutcome({ receipt, date }: { receipt: CancelReceipt; date: (iso: string) => string }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(checkoutEn);
   if (receipt.details.length === 0) return <p>{t('billing.cancel.doneNone')}</p>;
   // Two subscriptions that end the same way read as one line.
   const lines = [...new Set(receipt.details.map((detail) => (detail.withdrawn

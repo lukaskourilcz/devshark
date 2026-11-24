@@ -14,6 +14,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@astryxdesign/core/Button';
 import { useLanguage } from '../i18n/LanguageContext';
+import { checkoutEn } from '../i18n/translations.checkoutRoute';
 import { friendlyError } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { openSignIn } from '../lib/signInDialog';
@@ -22,7 +23,7 @@ import { useEntitlement } from '../lib/entitlement';
 import { useClearOnPageRestore } from '../lib/pageRestore';
 
 export default function PremiumCheckoutButton({ plan }: { plan: BillingPlan }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(checkoutEn);
   const billing = useBilling();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const entitlement = useEntitlement();

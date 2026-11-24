@@ -6418,9 +6418,8 @@ async function main() {
 
   // The app ships one dictionary, English, and it must not look truncated.
   {
-    const source = readFileSync(join(process.cwd(), 'client/src/i18n/translations.ts'), 'utf8');
-    const en = new Set((source.match(/^ {2}'[^']+':/gm) ?? []).map((line) => line.trim().slice(1, -2)));
-    assert.ok(en.size > 1500, `the English dictionary looks truncated: ${en.size} keys`);
+    const keys = Object.keys(shellEnglish);
+    assert.ok(keys.length > 1500, `the English dictionary looks truncated: ${keys.length} keys`);
   }
 
   // The pre-paint bootstrap has to run before anything that can block it.
