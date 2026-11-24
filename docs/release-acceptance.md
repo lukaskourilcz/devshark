@@ -9222,3 +9222,22 @@ The 28-package client update originally produced 24 TypeScript errors and 96 fai
 A local application parity run recorded two long starter times while macOS slept for 224 and 901 seconds. Every board verdict agreed with the successful Linux run on the same commit. Both affected tasks passed after switching the case-duration clock to monotonic time. The runner also releases each settled case deadline. The package smoke suite verified this for both published module formats.
 
 Before production, build the managed grading snapshot from the reviewed root production lockfile. Verify that its React version matches the client and exercise a real Preview submission. The database PRs and the changes in this section have separate rollout conditions.
+
+### Browser timings after the November dependency updates
+
+Three cold and three repeat visits per route and profile compare intake `4db80e061` with the production build at `fc013f382`. Chrome 158 ran on macOS ARM64. The mobile viewport was 390 × 844 with 4× CPU slowdown, 150 ms latency and 1.6 Mbps. Desktop used 1440 × 1000, native CPU, 20 ms and 10 Mbps. An anonymous loopback API added 120 ms. Cold visits had undecided consent. Repeat visits retained the analytics refusal.
+
+Each entry lists **LCP ms / CLS / TBT ms / observed interaction ms** as intake → candidate medians. The scripted input was the navigation drawer on mobile, the theme toggle on desktop, or an answer on Daily. The interactions were registered in all 96 visits on both revisions.
+
+| Route | Mobile cold | Mobile repeat | Desktop cold | Desktop repeat |
+|---|---|---|---|---|
+| `/` | 1656/0/0/96 → 1620/0/0/72 | 260/0/0/48 → 264/0/0/32 | 312/0/0/64 → 312/0/0/72 | 80/0/0/32 → 76/0/0/32 |
+| `/learn` | 1644/0/4/88 → 1620/0/3/88 | 836/0/0/48 → 816/0/0/48 | 332/0/0/80 → 340/0/0/64 | 80/0/0/32 → 560/0/0/32 |
+| `/coding` | 1628/0/0/88 → 1604/0/0/64 | 268/0/0/48 → 276/0/0/32 | 316/0/0/64 → 320/0/0/64 | 80/0/0/48 → 76/0/0/48 |
+| `/quiz` | 1656/0/0/80 → 1620/0/0/72 | 268/0/0/32 → 260/0/0/32 | 328/0/0/64 → 328/0/0/64 | 80/0/0/32 → 112/0/0/32 |
+| `/daily` | 1616/0.0709812/16/64 → 840/0/14/64 | 436/0/0/16 → 404/0/0/32 | 308/0.0528448/0/64 → 164/0/0/64 | 76/0.0528448/0/16 → 216/0/0/32 |
+| `/premium` | 852/0/13/72 → 848/0/25/72 | 280/0/0/48 → 280/0/0/32 | 168/0/0/64 → 160/0/0/64 | 80/0/0/32 → 72/0/0/32 |
+| `/topics/javascript-closures` | 868/0/20/88 → 856/0/16/72 | 284/0/0/48 → 256/0/0/32 | 156/0/0/64 → 176/0/0/64 | 76/0/0/32 → 76/0/0/32 |
+| `/leaderboard` | 1644/0/0/72 → 1608/0/0/72 | 264/0/0/32 → 412/0/0/32 | 320/0/0/64 → 324/0/0/64 | 72/0/0/32 → 208/0/0/32 |
+
+Across the 96 candidate visits, maximum LCP was 1,692 ms mobile and 564 ms desktop. Every CLS was zero. Fifteen dedicated learner interactions passed. Median observed latency was 80 ms for Quiz start, 64 ms for an answer, 80 ms for Learn, 64 ms for a coding keystroke and 64 ms for the mobile drawer. The maximum was 96 ms. The fixture observed local interactions. Production field INP requires the live consented telemetry cohort.
