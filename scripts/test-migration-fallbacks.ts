@@ -484,11 +484,13 @@ async function main() {
     assert.deepEqual(erased.body, { ok: true });
     // Then it erases once more, for rows a billing webhook wrote meanwhile
     // (finding PROF-4).
-    assert.deepEqual(calls.map((call) => call.name), ['delete_user_data', 'auth.admin.deleteUser', 'delete_user_data'],
-      'the deletion asks for delete_user_data and no dropped routine, deletes the sign-in identity, then erases once more');
-    assert.equal(calls[0].args.p_user_id, USER.id);
-    assert.equal(calls[1].args.id, USER.id);
-    assert.equal(calls[2].args.p_user_id, USER.id);
+    // Auth JS fetches the user before DELETE because the Auth server returns an empty body.
+    assert.deepEqual(calls, [
+      { name: 'delete_user_data', args: { p_user_id: USER.id } },
+      { name: 'auth.admin.getUserById', args: { id: USER.id } },
+      { name: 'auth.admin.deleteUser', args: { id: USER.id } },
+      { name: 'delete_user_data', args: { p_user_id: USER.id } },
+    ], 'only the verified account is read, deleted and erased a second time');
 
     // The name and picture a public board shows come from the account's
     // Google identity, never from the request body and never from

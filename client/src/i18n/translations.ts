@@ -1088,7 +1088,6 @@ export const en = {
   'today.title': 'Today',
   'today.subtitle': 'Your plan for today: a little unfinished work, a little review, a little new.',
   'today.startHere': 'Start here',
-  'today.startHereAria': 'Start here: {label}',
   'today.sectionUnfinished': 'Pick up where you left off',
   'today.sectionReview': 'Due for review',
   'today.sectionNew': 'New material',
