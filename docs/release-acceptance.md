@@ -9114,7 +9114,7 @@ Computing review metadata for all 2,583 authored quiz questions took 17.50 ms be
 
 ## Epic F closeout (24 November 2026)
 
-The F1 column uses the archived 19 November measurements. The application column identifies the observed build or environment. Rollout is still pending for the database and the reviewed React grading environment.
+The F1 column uses the archived 19 November measurements. The application column identifies the build or environment for each observation. The database rollout and its subsequent measurements appear below.
 
 | §5 measurement | F1 | Application evidence | Change and scope |
 | --- | --- | --- | --- |
@@ -9148,6 +9148,23 @@ The F1 column uses the archived 19 November measurements. The application column
 | `sentry-sdk` | 46,800 | 47,130 | +0.71% |
 
 The [F1 bundle](audit/f1-bundle-2026-11.json), [F1 API observations](audit/f1-handler-baseline-2026-11-19.json), [F1 CI cohort](audit/f1-ci-quality-snapshot-2026-11-19.json) and [F1 production advisors](audit/database-advisors-2026-11.json) preserve the original samples. The [Linux image job](https://github.com/lukaskourilcz/devshark/actions/runs/45325797806/job/138214970375) measured the current review tree with the same Docker harness.
+
+### Merged database and application checkpoint
+
+Production adopted schema 089 on 24 November. At the following source checkpoint (`bb392fb1`), the public website still served `c1d610ad`. The measurements identify which system produced each value. [Source and nine CI jobs](https://github.com/lukaskourilcz/devshark/actions/runs/45369569233)
+
+| Measure | F1 | Database and application checkpoint | Change |
+| --- | ---: | --- | --- |
+| Initial gzip | 218,661 B | 215,968 B in four requests, exactly the committed budget | −1.23% |
+| Emitted chunks | 233 | 236. The largest was the lazy TypeScript compiler at 1,092,846 B gzip. | +1.29% by count |
+| Browser | See the eight-route F1 and November comparison tables | At this commit, 371 Chromium scenarios, three production-policy scenarios and seven Storybook checks passed. The eight-route timings below came from the preceding dependency update. | Final deployed route timings require a measurement of the released website. |
+| Handler starts | Twelve archived handlers | Twelve local comparisons recorded below, with four improved medians. The provider's archived first-invocation marker measures a different interval from process startup. | A hosted comparison requires instance classification and matching operations. |
+| Images in the two source asset directories | 11 files, 269,577 B | 11 files, 269,577 B | 0.00% by count and size |
+| npm production advisories | 0 root, 0 client | 0 root, 0 client | Absolute change 0 |
+| Production database advisors | 39 warnings, 0 errors | 0 warnings, 0 errors, 50 informational results | −100% warnings |
+| Linux image and latest ten completed quality workflows | 141,951,324 B, 14,200 elapsed seconds and 33,831 summed job seconds | 142,945,081 B, 10,986 elapsed seconds and 28,793 summed job seconds | +0.70% bytes, −22.63% elapsed, −14.89% job seconds |
+
+Directory sizes in allocated KiB were 370,432 for the shared Git object store, 22,388 for docs, 1,512 for media and 284 for client/public. The Git store includes retained audit refs. The ten workflows include all conclusions. Their elapsed and aggregate job times describe that cohort. The container job also compared the candidate with its own older Docker reference, saving 41,935,479 B. [Linux image job](https://github.com/lukaskourilcz/devshark/actions/runs/45369569233/job/138360017268)
 
 ### Handler import timings
 
