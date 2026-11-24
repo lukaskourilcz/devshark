@@ -5952,6 +5952,10 @@ test('separate labelled filters and parent renders retain independent summaries;
 `,
   },
   "react-weather-style-dashboard": {
+    boardPlan: `// The page looks up the selected city and keeps its last good readings visible.
+// Fetch coordinates from the city list and request temperature_2m from Open-Meteo.
+// A production server can cache recent readings by city, bound waiting time and
+// retry temporary failures with backoff. The UI offers a retry when a read fails.`,
     solution: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
@@ -6367,6 +6371,10 @@ test('only a whole city name matches, not the start of one', () => withRequests(
 }));`,
   },
   "react-notification-center": {
+    boardPlan: `// Group notifications by day and derive the unread badge from the same records.
+// Store each notification with its user, read state and timestamp. Index by user
+// and creation time for a paged feed. Stream new records with SSE or a WebSocket.
+// On reconnect, fetch missed IDs and deduplicate before adding them to the list.`,
     solution: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
@@ -6736,6 +6744,10 @@ test('a page with notifications never says there are none', () => withRequests(a
 }));`,
   },
   "react-booking-prototype": {
+    boardPlan: `// Read the slots and submit the selected slot ID. A local disabled button guards
+// one browser. To prevent two customers from taking one slot, the server commits
+// a conditional update or unique booking inside a transaction and returns 409
+// if the slot is already taken. An idempotency key makes a network retry safe.`,
     solution: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
@@ -7139,6 +7151,10 @@ test('parent renders and separate or fresh booking roots keep their own slots an
 `,
   },
   "react-analytics-panel": {
+    boardPlan: `// Store events by ID, type and time. High-volume ingestion validates and enqueues
+// each event, then a worker batches writes into time-partitioned append-only storage.
+// The dashboard reads daily counts by type across its selected date range. These
+// rollups keep the read cost independent of the number of raw events per day.`,
     solution: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
@@ -7459,6 +7475,10 @@ test('separate filter controls and parent renders keep independent current summa
 `,
   },
   "react-interview-mini-project": {
+    boardPlan: `// The browser requests posts and filters them locally. A submitted title, body
+// and user ID go to the API, which authenticates the writer and validates the data.
+// The database inserts the post and returns its ID. The API returns the saved record
+// as JSON and React adds it to the list. Page larger reads and deduplicate retries.`,
     solution: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
