@@ -1,0 +1,1829 @@
+{
+  "mode": "anonymous-entry-read-refusal",
+  "origin": "https://devshark.app",
+  "samples": 3,
+  "intervalMs": 1100,
+  "bypassCache": true,
+  "rows": [
+    {
+      "sample": 0,
+      "handler": "health",
+      "kind": "read",
+      "purpose": "public dependency readiness read",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 156,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 100.6,
+        "dbHttpMs": 155.1,
+        "dbCalls": 2,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 97.5,
+        "redisCalls": 1
+      },
+      "raw": {
+        "dnsLookupEndMs": 15.900125000000003,
+        "tcpConnectEndMs": 153.659083,
+        "tlsHandshakeEndMs": 214.945,
+        "firstByteMs": 422.1315,
+        "headersMs": 423.318791,
+        "bodyEndMs": 424.597208
+      }
+    },
+    {
+      "sample": 1,
+      "handler": "health",
+      "kind": "read",
+      "purpose": "public dependency readiness read",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 156,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 36.7,
+        "dbHttpMs": 61.5,
+        "dbCalls": 2,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 3.5157910000000356,
+        "tcpConnectEndMs": 18.06529099999989,
+        "tlsHandshakeEndMs": 64.52700000000004,
+        "firstByteMs": 225.626708,
+        "headersMs": 225.9658750000001,
+        "bodyEndMs": 226.255541
+      }
+    },
+    {
+      "sample": 2,
+      "handler": "health",
+      "kind": "read",
+      "purpose": "public dependency readiness read",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 156,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 42.1,
+        "dbHttpMs": 78,
+        "dbCalls": 2,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 4.131832999999915,
+        "tcpConnectEndMs": 37.226624999999785,
+        "tlsHandshakeEndMs": 160.14249999999993,
+        "firstByteMs": 384.41674999999987,
+        "headersMs": 384.78291599999966,
+        "bodyEndMs": 385.172916
+      }
+    },
+    {
+      "sample": 0,
+      "handler": "settings",
+      "kind": "read",
+      "purpose": "public settings read",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 1074,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "unknown",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 61.2,
+        "dbHttpMs": 58.2,
+        "dbCalls": 1,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 4.191917000000103,
+        "tcpConnectEndMs": 27.944750000000568,
+        "tlsHandshakeEndMs": 70.13958300000013,
+        "firstByteMs": 217.0837500000007,
+        "headersMs": 219.914667,
+        "bodyEndMs": 220.05625000000055
+      }
+    },
+    {
+      "sample": 1,
+      "handler": "settings",
+      "kind": "read",
+      "purpose": "public settings read",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 1074,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "unknown",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 0.2,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 1.7484580000000278,
+        "tcpConnectEndMs": 33.748875000000226,
+        "tlsHandshakeEndMs": 71.46166600000015,
+        "firstByteMs": 206.85020800000075,
+        "headersMs": 208.19658300000083,
+        "bodyEndMs": 208.30662500000017
+      }
+    },
+    {
+      "sample": 2,
+      "handler": "settings",
+      "kind": "read",
+      "purpose": "public settings read",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 1074,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "unknown",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 0.3,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.7594159999998737,
+        "tcpConnectEndMs": 23.354957999999897,
+        "tlsHandshakeEndMs": 65.52479099999982,
+        "firstByteMs": 154.0269159999998,
+        "headersMs": 156.2758329999997,
+        "bodyEndMs": 156.4320829999997
+      }
+    },
+    {
+      "sample": 0,
+      "handler": "leaderboard",
+      "kind": "read",
+      "purpose": "public board, no personal row",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 337,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "unknown",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 306.4,
+        "dbHttpMs": 147.2,
+        "dbCalls": 1,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 115.9,
+        "redisCalls": 1
+      },
+      "raw": {
+        "dnsLookupEndMs": 3.7182920000013837,
+        "tcpConnectEndMs": 29.524750000000495,
+        "tlsHandshakeEndMs": 70.60012500000084,
+        "firstByteMs": 483.97604200000023,
+        "headersMs": 484.30745800000113,
+        "bodyEndMs": 484.700667000001
+      }
+    },
+    {
+      "sample": 1,
+      "handler": "leaderboard",
+      "kind": "read",
+      "purpose": "public board, no personal row",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 337,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "unknown",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 79,
+        "dbHttpMs": 30.9,
+        "dbCalls": 1,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 44.1,
+        "redisCalls": 1
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.207582999999431,
+        "tcpConnectEndMs": 16.749707999999373,
+        "tlsHandshakeEndMs": 58.04216699999961,
+        "firstByteMs": 234.8719999999994,
+        "headersMs": 235.03454199999942,
+        "bodyEndMs": 235.24625000000015
+      }
+    },
+    {
+      "sample": 2,
+      "handler": "leaderboard",
+      "kind": "read",
+      "purpose": "public board, no personal row",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 337,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "unknown",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 76.7,
+        "dbHttpMs": 29.5,
+        "dbCalls": 1,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 43.2,
+        "redisCalls": 1
+      },
+      "raw": {
+        "dnsLookupEndMs": 1.9642500000009022,
+        "tcpConnectEndMs": 763.976125000001,
+        "tlsHandshakeEndMs": 804.619834000001,
+        "firstByteMs": 956.3781670000008,
+        "headersMs": 956.4598750000005,
+        "bodyEndMs": 956.5923340000008
+      }
+    },
+    {
+      "sample": 0,
+      "handler": "questions",
+      "kind": "read",
+      "purpose": "coverage only, no question session",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 142,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "unknown",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 710.1,
+        "dbHttpMs": 128.3,
+        "dbCalls": 1,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 227.8,
+        "redisCalls": 2
+      },
+      "raw": {
+        "dnsLookupEndMs": 1.5464999999985594,
+        "tcpConnectEndMs": 19.013874999998734,
+        "tlsHandshakeEndMs": 56.8809999999994,
+        "firstByteMs": 891.5705839999991,
+        "headersMs": 892.8802499999983,
+        "bodyEndMs": 893.1969999999983
+      }
+    },
+    {
+      "sample": 1,
+      "handler": "questions",
+      "kind": "read",
+      "purpose": "coverage only, no question session",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 142,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "unknown",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 137.9,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 91.8,
+        "redisCalls": 2
+      },
+      "raw": {
+        "dnsLookupEndMs": 4.647125000001324,
+        "tcpConnectEndMs": 42.096167000001515,
+        "tlsHandshakeEndMs": 82.17695900000035,
+        "firstByteMs": 309.642084000001,
+        "headersMs": 309.80816700000105,
+        "bodyEndMs": 310.0655000000006
+      }
+    },
+    {
+      "sample": 2,
+      "handler": "questions",
+      "kind": "read",
+      "purpose": "coverage only, no question session",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 142,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "unknown",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 139.9,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 91.5,
+        "redisCalls": 2
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.0117089999985183,
+        "tcpConnectEndMs": 20.712083999998868,
+        "tlsHandshakeEndMs": 63.810459000000264,
+        "firstByteMs": 303.7651249999981,
+        "headersMs": 304.17525000000023,
+        "bodyEndMs": 304.7297499999986
+      }
+    },
+    {
+      "sample": 0,
+      "handler": "roadmap",
+      "kind": "read",
+      "purpose": "public structure only, no attempt",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 29111,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "unknown",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 462.5,
+        "dbHttpMs": 118.4,
+        "dbCalls": 1,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 95.3,
+        "redisCalls": 1
+      },
+      "raw": {
+        "dnsLookupEndMs": 8.843250000001717,
+        "tcpConnectEndMs": 34.29162500000166,
+        "tlsHandshakeEndMs": 129.78170800000225,
+        "firstByteMs": 704.1411670000016,
+        "headersMs": 705.0750829999997,
+        "bodyEndMs": 734.1802500000013
+      }
+    },
+    {
+      "sample": 1,
+      "handler": "roadmap",
+      "kind": "read",
+      "purpose": "public structure only, no attempt",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 29111,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "unknown",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 48.4,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 43.6,
+        "redisCalls": 1
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.5243330000012065,
+        "tcpConnectEndMs": 124.3000830000019,
+        "tlsHandshakeEndMs": 163.41720800000257,
+        "firstByteMs": 295.3378750000011,
+        "headersMs": 300.1225830000003,
+        "bodyEndMs": 346.2386250000018
+      }
+    },
+    {
+      "sample": 2,
+      "handler": "roadmap",
+      "kind": "read",
+      "purpose": "public structure only, no attempt",
+      "requestSent": true,
+      "ok": true,
+      "status": 200,
+      "errorCode": null,
+      "bytes": 29111,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "unknown",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 46.9,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 42.7,
+        "redisCalls": 1
+      },
+      "raw": {
+        "dnsLookupEndMs": 3.067165999997087,
+        "tcpConnectEndMs": 36.8892909999995,
+        "tlsHandshakeEndMs": 97.29812499999753,
+        "firstByteMs": 215.47762499999953,
+        "headersMs": 215.53466599999956,
+        "bodyEndMs": 260.50774999999703
+      }
+    },
+    {
+      "sample": 0,
+      "handler": "challenge",
+      "kind": "refusal",
+      "purpose": "unknown-resource refusal before question batch",
+      "requestSent": true,
+      "ok": true,
+      "status": 404,
+      "errorCode": "unknown_resource",
+      "bytes": 129,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "first",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 1,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.70966700000281,
+        "tcpConnectEndMs": 20.287583000001177,
+        "tlsHandshakeEndMs": 91.05391700000109,
+        "firstByteMs": 198.24383300000045,
+        "headersMs": 198.30579200000284,
+        "bodyEndMs": 198.39650000000256
+      }
+    },
+    {
+      "sample": 1,
+      "handler": "challenge",
+      "kind": "refusal",
+      "purpose": "unknown-resource refusal before question batch",
+      "requestSent": true,
+      "ok": true,
+      "status": 404,
+      "errorCode": "unknown_resource",
+      "bytes": 129,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 0.1,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.607458000002225,
+        "tcpConnectEndMs": 36.04670800000167,
+        "tlsHandshakeEndMs": 92.45695800000249,
+        "firstByteMs": 238.62433299999975,
+        "headersMs": 238.70583299999998,
+        "bodyEndMs": 238.8077919999996
+      }
+    },
+    {
+      "sample": 2,
+      "handler": "challenge",
+      "kind": "refusal",
+      "purpose": "unknown-resource refusal before question batch",
+      "requestSent": true,
+      "ok": true,
+      "status": 404,
+      "errorCode": "unknown_resource",
+      "bytes": 129,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 0.2,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.6252090000016324,
+        "tcpConnectEndMs": 43.874917000001005,
+        "tlsHandshakeEndMs": 94.99316700000054,
+        "firstByteMs": 215.4812090000014,
+        "headersMs": 215.55225000000064,
+        "bodyEndMs": 217.1454589999994
+      }
+    },
+    {
+      "sample": 0,
+      "handler": "daily",
+      "kind": "refusal",
+      "purpose": "invalid-date refusal before question/session selection",
+      "requestSent": true,
+      "ok": true,
+      "status": 400,
+      "errorCode": "bad_request",
+      "bytes": 141,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "first",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 258.4,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 216.9,
+        "redisCalls": 2
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.558042000000569,
+        "tcpConnectEndMs": 19.346457999999984,
+        "tlsHandshakeEndMs": 53.28620800000135,
+        "firstByteMs": 408.1139170000024,
+        "headersMs": 408.1698329999999,
+        "bodyEndMs": 408.2771670000002
+      }
+    },
+    {
+      "sample": 1,
+      "handler": "daily",
+      "kind": "refusal",
+      "purpose": "invalid-date refusal before question/session selection",
+      "requestSent": true,
+      "ok": true,
+      "status": 400,
+      "errorCode": "bad_request",
+      "bytes": 141,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 94.1,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 89.2,
+        "redisCalls": 2
+      },
+      "raw": {
+        "dnsLookupEndMs": 1.604165999997349,
+        "tcpConnectEndMs": 293.1007079999981,
+        "tlsHandshakeEndMs": 357.53462500000023,
+        "firstByteMs": 534.2540410000001,
+        "headersMs": 534.3662909999985,
+        "bodyEndMs": 534.5182499999974
+      }
+    },
+    {
+      "sample": 2,
+      "handler": "daily",
+      "kind": "refusal",
+      "purpose": "invalid-date refusal before question/session selection",
+      "requestSent": true,
+      "ok": true,
+      "status": 400,
+      "errorCode": "bad_request",
+      "bytes": 141,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 92.7,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 89.1,
+        "redisCalls": 2
+      },
+      "raw": {
+        "dnsLookupEndMs": 4.965166000001773,
+        "tcpConnectEndMs": 23.036166000001685,
+        "tlsHandshakeEndMs": 98.98099999999977,
+        "firstByteMs": 290.351458000001,
+        "headersMs": 290.5242079999989,
+        "bodyEndMs": 290.83908299999894
+      }
+    },
+    {
+      "sample": 0,
+      "handler": "submit",
+      "kind": "refusal",
+      "purpose": "GET method refusal, never grading/reporting",
+      "requestSent": true,
+      "ok": true,
+      "status": 405,
+      "errorCode": "method_not_allowed",
+      "bytes": 123,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "first",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 1.7,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.1377079999983835,
+        "tcpConnectEndMs": 15.63262499999837,
+        "tlsHandshakeEndMs": 92.01983299999847,
+        "firstByteMs": 194.3997079999972,
+        "headersMs": 194.6157499999972,
+        "bodyEndMs": 194.69641599999886
+      }
+    },
+    {
+      "sample": 1,
+      "handler": "submit",
+      "kind": "refusal",
+      "purpose": "GET method refusal, never grading/reporting",
+      "requestSent": true,
+      "ok": true,
+      "status": 405,
+      "errorCode": "method_not_allowed",
+      "bytes": 123,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 0.1,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.0461250000007567,
+        "tcpConnectEndMs": 113.7041250000002,
+        "tlsHandshakeEndMs": 151.65904100000262,
+        "firstByteMs": 237.09129100000064,
+        "headersMs": 238.23541599999953,
+        "bodyEndMs": 239.50724999999875
+      }
+    },
+    {
+      "sample": 2,
+      "handler": "submit",
+      "kind": "refusal",
+      "purpose": "GET method refusal, never grading/reporting",
+      "requestSent": true,
+      "ok": true,
+      "status": 405,
+      "errorCode": "method_not_allowed",
+      "bytes": 123,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 0,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 1.6528749999997672,
+        "tcpConnectEndMs": 40.37945800000307,
+        "tlsHandshakeEndMs": 74.80854199999885,
+        "firstByteMs": 927.9515420000025,
+        "headersMs": 929.0087500000009,
+        "bodyEndMs": 930.3237500000032
+      }
+    },
+    {
+      "sample": 0,
+      "handler": "flashcards",
+      "kind": "refusal",
+      "purpose": "anonymous auth/configuration refusal",
+      "requestSent": true,
+      "ok": true,
+      "status": 401,
+      "errorCode": "missing_token",
+      "bytes": 120,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "first",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 1.7,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.2993750000023283,
+        "tcpConnectEndMs": 25.109166000002006,
+        "tlsHandshakeEndMs": 73.42474999999831,
+        "firstByteMs": 165.22145799999998,
+        "headersMs": 167.04529100000218,
+        "bodyEndMs": 167.26637499999924
+      }
+    },
+    {
+      "sample": 1,
+      "handler": "flashcards",
+      "kind": "refusal",
+      "purpose": "anonymous auth/configuration refusal",
+      "requestSent": true,
+      "ok": true,
+      "status": 401,
+      "errorCode": "missing_token",
+      "bytes": 120,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 0.1,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.20908299999428,
+        "tcpConnectEndMs": 748.6161250000005,
+        "tlsHandshakeEndMs": 802.0087920000005,
+        "firstByteMs": 904.5018329999948,
+        "headersMs": 905.9166669999977,
+        "bodyEndMs": 906.0499999999956
+      }
+    },
+    {
+      "sample": 2,
+      "handler": "flashcards",
+      "kind": "refusal",
+      "purpose": "anonymous auth/configuration refusal",
+      "requestSent": true,
+      "ok": true,
+      "status": 401,
+      "errorCode": "missing_token",
+      "bytes": 120,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 0.1,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.142667000000074,
+        "tcpConnectEndMs": 19.035166999994544,
+        "tlsHandshakeEndMs": 68.36129199999414,
+        "firstByteMs": 148.02195899999788,
+        "headersMs": 148.0789999999979,
+        "bodyEndMs": 148.1646249999976
+      }
+    },
+    {
+      "sample": 0,
+      "handler": "user",
+      "kind": "refusal",
+      "purpose": "unknown-op/configuration refusal, never wallet/rewards",
+      "requestSent": true,
+      "ok": true,
+      "status": 404,
+      "errorCode": "unknown_op",
+      "bytes": 128,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "first",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 1.5,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 1.912333000000217,
+        "tcpConnectEndMs": 54.43212499999936,
+        "tlsHandshakeEndMs": 111.18404100000043,
+        "firstByteMs": 271.4425409999967,
+        "headersMs": 272.5734999999986,
+        "bodyEndMs": 272.67241600000125
+      }
+    },
+    {
+      "sample": 1,
+      "handler": "user",
+      "kind": "refusal",
+      "purpose": "unknown-op/configuration refusal, never wallet/rewards",
+      "requestSent": true,
+      "ok": true,
+      "status": 404,
+      "errorCode": "unknown_op",
+      "bytes": 128,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 0.1,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.824625000001106,
+        "tcpConnectEndMs": 18.77929199999926,
+        "tlsHandshakeEndMs": 72.9017079999976,
+        "firstByteMs": 147.82624999999825,
+        "headersMs": 151.36758299999929,
+        "bodyEndMs": 151.471292000002
+      }
+    },
+    {
+      "sample": 2,
+      "handler": "user",
+      "kind": "refusal",
+      "purpose": "unknown-op/configuration refusal, never wallet/rewards",
+      "requestSent": true,
+      "ok": true,
+      "status": 404,
+      "errorCode": "unknown_op",
+      "bytes": 128,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 0.1,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 1.56395799999882,
+        "tcpConnectEndMs": 64.26520800000435,
+        "tlsHandshakeEndMs": 100.59070800000336,
+        "firstByteMs": 242.64304200000333,
+        "headersMs": 242.73145800000202,
+        "bodyEndMs": 242.83237499999814
+      }
+    },
+    {
+      "sample": 0,
+      "handler": "play",
+      "kind": "refusal",
+      "purpose": "unknown-action/configuration/feature refusal, no room",
+      "requestSent": true,
+      "ok": true,
+      "status": 404,
+      "errorCode": "unknown_action",
+      "bytes": 136,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "first",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 96.2,
+        "dbHttpMs": 87.9,
+        "dbCalls": 1,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 1.7332919999971637,
+        "tcpConnectEndMs": 39.882125000003725,
+        "tlsHandshakeEndMs": 106.0815419999999,
+        "firstByteMs": 296.562125000004,
+        "headersMs": 304.2592500000028,
+        "bodyEndMs": 305.9237080000021
+      }
+    },
+    {
+      "sample": 1,
+      "handler": "play",
+      "kind": "refusal",
+      "purpose": "unknown-action/configuration/feature refusal, no room",
+      "requestSent": true,
+      "ok": true,
+      "status": 404,
+      "errorCode": "unknown_action",
+      "bytes": 136,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 0.1,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 1.6589579999999842,
+        "tcpConnectEndMs": 15.07233300000371,
+        "tlsHandshakeEndMs": 52.570125000005646,
+        "firstByteMs": 157.3790829999998,
+        "headersMs": 157.44141600000148,
+        "bodyEndMs": 157.53083300000435
+      }
+    },
+    {
+      "sample": 2,
+      "handler": "play",
+      "kind": "refusal",
+      "purpose": "unknown-action/configuration/feature refusal, no room",
+      "requestSent": true,
+      "ok": true,
+      "status": 404,
+      "errorCode": "unknown_action",
+      "bytes": 136,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 0.1,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 0,
+        "redisCalls": 0
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.171042000001762,
+        "tcpConnectEndMs": 27.50258400000166,
+        "tlsHandshakeEndMs": 66.46725000000151,
+        "firstByteMs": 231.0343750000029,
+        "headersMs": 231.0825840000034,
+        "bodyEndMs": 231.16100000000006
+      }
+    },
+    {
+      "sample": 0,
+      "handler": "admin",
+      "kind": "refusal",
+      "purpose": "anonymous admin refusal",
+      "requestSent": true,
+      "ok": true,
+      "status": 403,
+      "errorCode": "forbidden",
+      "bytes": 126,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "first",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 156.3,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 121.1,
+        "redisCalls": 1
+      },
+      "raw": {
+        "dnsLookupEndMs": 1.6767079999990528,
+        "tcpConnectEndMs": 32.417999999997846,
+        "tlsHandshakeEndMs": 64.62854199999856,
+        "firstByteMs": 363.9181669999962,
+        "headersMs": 363.97524999999587,
+        "bodyEndMs": 364.05916699999943
+      }
+    },
+    {
+      "sample": 1,
+      "handler": "admin",
+      "kind": "refusal",
+      "purpose": "anonymous admin refusal",
+      "requestSent": true,
+      "ok": true,
+      "status": 403,
+      "errorCode": "forbidden",
+      "bytes": 126,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 52.6,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 46.3,
+        "redisCalls": 1
+      },
+      "raw": {
+        "dnsLookupEndMs": 2.035415999998804,
+        "tcpConnectEndMs": 90.09645799999998,
+        "tlsHandshakeEndMs": 134.91075000000274,
+        "firstByteMs": 264.9180409999972,
+        "headersMs": 266.2353329999969,
+        "bodyEndMs": 266.3108329999959
+      }
+    },
+    {
+      "sample": 2,
+      "handler": "admin",
+      "kind": "refusal",
+      "purpose": "anonymous admin refusal",
+      "requestSent": true,
+      "ok": true,
+      "status": 403,
+      "errorCode": "forbidden",
+      "bytes": 126,
+      "region": [
+        "fra1",
+        "arn1"
+      ],
+      "cache": "MISS",
+      "instance": "repeat",
+      "timingStatus": "parsed",
+      "spans": {
+        "appMs": 49,
+        "dbHttpMs": 0,
+        "dbCalls": 0,
+        "authHttpMs": 0,
+        "authCalls": 0,
+        "redisHttpMs": 45.9,
+        "redisCalls": 1
+      },
+      "raw": {
+        "dnsLookupEndMs": 1.685417000000598,
+        "tcpConnectEndMs": 18.303874999997788,
+        "tlsHandshakeEndMs": 105.35333299999911,
+        "firstByteMs": 290.9990420000031,
+        "headersMs": 291.07133299999987,
+        "bodyEndMs": 293.6055419999975
+      }
+    }
+  ],
+  "summary": [
+    {
+      "handler": "health",
+      "measured": 3,
+      "errors": 0,
+      "skipped": 0,
+      "clientFirstByteMs": {
+        "samples": 3,
+        "median": 384.41674999999987,
+        "min": 225.626708,
+        "max": 422.1315
+      },
+      "classes": [
+        {
+          "cache": "MISS",
+          "instance": "repeat",
+          "status": 200,
+          "firstByteMs": {
+            "samples": 3,
+            "median": 384.41674999999987,
+            "min": 225.626708,
+            "max": 422.1315
+          },
+          "originAppMs": {
+            "samples": 3,
+            "median": 42.1,
+            "min": 36.7,
+            "max": 100.6
+          }
+        }
+      ],
+      "importWallMs": null,
+      "cpuUserMicros": null,
+      "cpuSystemMicros": null,
+      "heapDeltaBytes": null
+    },
+    {
+      "handler": "settings",
+      "measured": 3,
+      "errors": 0,
+      "skipped": 0,
+      "clientFirstByteMs": {
+        "samples": 3,
+        "median": 206.85020800000075,
+        "min": 154.0269159999998,
+        "max": 217.0837500000007
+      },
+      "classes": [
+        {
+          "cache": "MISS",
+          "instance": "unknown",
+          "status": 200,
+          "firstByteMs": {
+            "samples": 3,
+            "median": 206.85020800000075,
+            "min": 154.0269159999998,
+            "max": 217.0837500000007
+          },
+          "originAppMs": {
+            "samples": 3,
+            "median": 0.3,
+            "min": 0.2,
+            "max": 61.2
+          }
+        }
+      ],
+      "importWallMs": null,
+      "cpuUserMicros": null,
+      "cpuSystemMicros": null,
+      "heapDeltaBytes": null
+    },
+    {
+      "handler": "leaderboard",
+      "measured": 3,
+      "errors": 0,
+      "skipped": 0,
+      "clientFirstByteMs": {
+        "samples": 3,
+        "median": 483.97604200000023,
+        "min": 234.8719999999994,
+        "max": 956.3781670000008
+      },
+      "classes": [
+        {
+          "cache": "MISS",
+          "instance": "unknown",
+          "status": 200,
+          "firstByteMs": {
+            "samples": 3,
+            "median": 483.97604200000023,
+            "min": 234.8719999999994,
+            "max": 956.3781670000008
+          },
+          "originAppMs": {
+            "samples": 3,
+            "median": 79,
+            "min": 76.7,
+            "max": 306.4
+          }
+        }
+      ],
+      "importWallMs": null,
+      "cpuUserMicros": null,
+      "cpuSystemMicros": null,
+      "heapDeltaBytes": null
+    },
+    {
+      "handler": "questions",
+      "measured": 3,
+      "errors": 0,
+      "skipped": 0,
+      "clientFirstByteMs": {
+        "samples": 3,
+        "median": 309.642084000001,
+        "min": 303.7651249999981,
+        "max": 891.5705839999991
+      },
+      "classes": [
+        {
+          "cache": "MISS",
+          "instance": "unknown",
+          "status": 200,
+          "firstByteMs": {
+            "samples": 3,
+            "median": 309.642084000001,
+            "min": 303.7651249999981,
+            "max": 891.5705839999991
+          },
+          "originAppMs": {
+            "samples": 3,
+            "median": 139.9,
+            "min": 137.9,
+            "max": 710.1
+          }
+        }
+      ],
+      "importWallMs": null,
+      "cpuUserMicros": null,
+      "cpuSystemMicros": null,
+      "heapDeltaBytes": null
+    },
+    {
+      "handler": "roadmap",
+      "measured": 3,
+      "errors": 0,
+      "skipped": 0,
+      "clientFirstByteMs": {
+        "samples": 3,
+        "median": 295.3378750000011,
+        "min": 215.47762499999953,
+        "max": 704.1411670000016
+      },
+      "classes": [
+        {
+          "cache": "MISS",
+          "instance": "unknown",
+          "status": 200,
+          "firstByteMs": {
+            "samples": 3,
+            "median": 295.3378750000011,
+            "min": 215.47762499999953,
+            "max": 704.1411670000016
+          },
+          "originAppMs": {
+            "samples": 3,
+            "median": 48.4,
+            "min": 46.9,
+            "max": 462.5
+          }
+        }
+      ],
+      "importWallMs": null,
+      "cpuUserMicros": null,
+      "cpuSystemMicros": null,
+      "heapDeltaBytes": null
+    },
+    {
+      "handler": "challenge",
+      "measured": 3,
+      "errors": 0,
+      "skipped": 0,
+      "clientFirstByteMs": {
+        "samples": 3,
+        "median": 215.4812090000014,
+        "min": 198.24383300000045,
+        "max": 238.62433299999975
+      },
+      "classes": [
+        {
+          "cache": "MISS",
+          "instance": "first",
+          "status": 404,
+          "firstByteMs": {
+            "samples": 1,
+            "median": 198.24383300000045,
+            "min": 198.24383300000045,
+            "max": 198.24383300000045
+          },
+          "originAppMs": {
+            "samples": 1,
+            "median": 1,
+            "min": 1,
+            "max": 1
+          }
+        },
+        {
+          "cache": "MISS",
+          "instance": "repeat",
+          "status": 404,
+          "firstByteMs": {
+            "samples": 2,
+            "median": 227.05277100000058,
+            "min": 215.4812090000014,
+            "max": 238.62433299999975
+          },
+          "originAppMs": {
+            "samples": 2,
+            "median": 0.15000000000000002,
+            "min": 0.1,
+            "max": 0.2
+          }
+        }
+      ],
+      "importWallMs": null,
+      "cpuUserMicros": null,
+      "cpuSystemMicros": null,
+      "heapDeltaBytes": null
+    },
+    {
+      "handler": "daily",
+      "measured": 3,
+      "errors": 0,
+      "skipped": 0,
+      "clientFirstByteMs": {
+        "samples": 3,
+        "median": 408.1139170000024,
+        "min": 290.351458000001,
+        "max": 534.2540410000001
+      },
+      "classes": [
+        {
+          "cache": "MISS",
+          "instance": "first",
+          "status": 400,
+          "firstByteMs": {
+            "samples": 1,
+            "median": 408.1139170000024,
+            "min": 408.1139170000024,
+            "max": 408.1139170000024
+          },
+          "originAppMs": {
+            "samples": 1,
+            "median": 258.4,
+            "min": 258.4,
+            "max": 258.4
+          }
+        },
+        {
+          "cache": "MISS",
+          "instance": "repeat",
+          "status": 400,
+          "firstByteMs": {
+            "samples": 2,
+            "median": 412.3027495000006,
+            "min": 290.351458000001,
+            "max": 534.2540410000001
+          },
+          "originAppMs": {
+            "samples": 2,
+            "median": 93.4,
+            "min": 92.7,
+            "max": 94.1
+          }
+        }
+      ],
+      "importWallMs": null,
+      "cpuUserMicros": null,
+      "cpuSystemMicros": null,
+      "heapDeltaBytes": null
+    },
+    {
+      "handler": "submit",
+      "measured": 3,
+      "errors": 0,
+      "skipped": 0,
+      "clientFirstByteMs": {
+        "samples": 3,
+        "median": 237.09129100000064,
+        "min": 194.3997079999972,
+        "max": 927.9515420000025
+      },
+      "classes": [
+        {
+          "cache": "MISS",
+          "instance": "first",
+          "status": 405,
+          "firstByteMs": {
+            "samples": 1,
+            "median": 194.3997079999972,
+            "min": 194.3997079999972,
+            "max": 194.3997079999972
+          },
+          "originAppMs": {
+            "samples": 1,
+            "median": 1.7,
+            "min": 1.7,
+            "max": 1.7
+          }
+        },
+        {
+          "cache": "MISS",
+          "instance": "repeat",
+          "status": 405,
+          "firstByteMs": {
+            "samples": 2,
+            "median": 582.5214165000016,
+            "min": 237.09129100000064,
+            "max": 927.9515420000025
+          },
+          "originAppMs": {
+            "samples": 2,
+            "median": 0.05,
+            "min": 0,
+            "max": 0.1
+          }
+        }
+      ],
+      "importWallMs": null,
+      "cpuUserMicros": null,
+      "cpuSystemMicros": null,
+      "heapDeltaBytes": null
+    },
+    {
+      "handler": "flashcards",
+      "measured": 3,
+      "errors": 0,
+      "skipped": 0,
+      "clientFirstByteMs": {
+        "samples": 3,
+        "median": 165.22145799999998,
+        "min": 148.02195899999788,
+        "max": 904.5018329999948
+      },
+      "classes": [
+        {
+          "cache": "MISS",
+          "instance": "first",
+          "status": 401,
+          "firstByteMs": {
+            "samples": 1,
+            "median": 165.22145799999998,
+            "min": 165.22145799999998,
+            "max": 165.22145799999998
+          },
+          "originAppMs": {
+            "samples": 1,
+            "median": 1.7,
+            "min": 1.7,
+            "max": 1.7
+          }
+        },
+        {
+          "cache": "MISS",
+          "instance": "repeat",
+          "status": 401,
+          "firstByteMs": {
+            "samples": 2,
+            "median": 526.2618959999963,
+            "min": 148.02195899999788,
+            "max": 904.5018329999948
+          },
+          "originAppMs": {
+            "samples": 2,
+            "median": 0.1,
+            "min": 0.1,
+            "max": 0.1
+          }
+        }
+      ],
+      "importWallMs": null,
+      "cpuUserMicros": null,
+      "cpuSystemMicros": null,
+      "heapDeltaBytes": null
+    },
+    {
+      "handler": "user",
+      "measured": 3,
+      "errors": 0,
+      "skipped": 0,
+      "clientFirstByteMs": {
+        "samples": 3,
+        "median": 242.64304200000333,
+        "min": 147.82624999999825,
+        "max": 271.4425409999967
+      },
+      "classes": [
+        {
+          "cache": "MISS",
+          "instance": "first",
+          "status": 404,
+          "firstByteMs": {
+            "samples": 1,
+            "median": 271.4425409999967,
+            "min": 271.4425409999967,
+            "max": 271.4425409999967
+          },
+          "originAppMs": {
+            "samples": 1,
+            "median": 1.5,
+            "min": 1.5,
+            "max": 1.5
+          }
+        },
+        {
+          "cache": "MISS",
+          "instance": "repeat",
+          "status": 404,
+          "firstByteMs": {
+            "samples": 2,
+            "median": 195.2346460000008,
+            "min": 147.82624999999825,
+            "max": 242.64304200000333
+          },
+          "originAppMs": {
+            "samples": 2,
+            "median": 0.1,
+            "min": 0.1,
+            "max": 0.1
+          }
+        }
+      ],
+      "importWallMs": null,
+      "cpuUserMicros": null,
+      "cpuSystemMicros": null,
+      "heapDeltaBytes": null
+    },
+    {
+      "handler": "play",
+      "measured": 3,
+      "errors": 0,
+      "skipped": 0,
+      "clientFirstByteMs": {
+        "samples": 3,
+        "median": 231.0343750000029,
+        "min": 157.3790829999998,
+        "max": 296.562125000004
+      },
+      "classes": [
+        {
+          "cache": "MISS",
+          "instance": "first",
+          "status": 404,
+          "firstByteMs": {
+            "samples": 1,
+            "median": 296.562125000004,
+            "min": 296.562125000004,
+            "max": 296.562125000004
+          },
+          "originAppMs": {
+            "samples": 1,
+            "median": 96.2,
+            "min": 96.2,
+            "max": 96.2
+          }
+        },
+        {
+          "cache": "MISS",
+          "instance": "repeat",
+          "status": 404,
+          "firstByteMs": {
+            "samples": 2,
+            "median": 194.20672900000136,
+            "min": 157.3790829999998,
+            "max": 231.0343750000029
+          },
+          "originAppMs": {
+            "samples": 2,
+            "median": 0.1,
+            "min": 0.1,
+            "max": 0.1
+          }
+        }
+      ],
+      "importWallMs": null,
+      "cpuUserMicros": null,
+      "cpuSystemMicros": null,
+      "heapDeltaBytes": null
+    },
+    {
+      "handler": "admin",
+      "measured": 3,
+      "errors": 0,
+      "skipped": 0,
+      "clientFirstByteMs": {
+        "samples": 3,
+        "median": 290.9990420000031,
+        "min": 264.9180409999972,
+        "max": 363.9181669999962
+      },
+      "classes": [
+        {
+          "cache": "MISS",
+          "instance": "first",
+          "status": 403,
+          "firstByteMs": {
+            "samples": 1,
+            "median": 363.9181669999962,
+            "min": 363.9181669999962,
+            "max": 363.9181669999962
+          },
+          "originAppMs": {
+            "samples": 1,
+            "median": 156.3,
+            "min": 156.3,
+            "max": 156.3
+          }
+        },
+        {
+          "cache": "MISS",
+          "instance": "repeat",
+          "status": 403,
+          "firstByteMs": {
+            "samples": 2,
+            "median": 277.95854150000014,
+            "min": 264.9180409999972,
+            "max": 290.9990420000031
+          },
+          "originAppMs": {
+            "samples": 2,
+            "median": 50.8,
+            "min": 49,
+            "max": 52.6
+          }
+        }
+      ],
+      "importWallMs": null,
+      "cpuUserMicros": null,
+      "cpuSystemMicros": null,
+      "heapDeltaBytes": null
+    }
+  ],
+  "totals": {
+    "planned": 36,
+    "attempted": 36,
+    "sent": 36,
+    "responses": 36,
+    "skipped": 0
+  },
+  "notes": [
+    "Any protection-state preflight belongs to a separate explicit ledger; this command makes no exchange or document request",
+    "first/repeat is an origin timing-module invocation marker, never platform cold-boot duration",
+    "CDN HIT/STALE is replayed; unknown cache status is unclassified",
+    "GET probes may affect logs, rate counters or readiness reads; no learner/session/wallet operation is selected",
+    "No automatic redirects or retries; sent counts Node request-finish events, not provider ingestion",
+    "Raw timing offsets include network/edge/queueing; no boot-duration residual is invented"
+  ],
+  "localSourceRevision": "6fe161fab90900d5cd78984ad8c81707a1059c20",
+  "deploymentRevision": null,
+  "node": "v26.8.2",
+  "recorded": "2026-11-24T22:19:38.885Z"
+}
