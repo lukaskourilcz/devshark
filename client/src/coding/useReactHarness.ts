@@ -136,9 +136,14 @@ export function useReactHarness(): HarnessHandle {
           current.current = { ...active, logs: [...active.logs, { level: String(data.level), text: String(data.text) }].slice(-MAX_HARNESS_LOGS) };
           if (logFlush.current === undefined) logFlush.current = window.setTimeout(flushLogs, LOG_FLUSH_MS);
           return;
-        case 'preview-error':
-          settle({ ...active, previewError: frameErrorText(data.message, 'Render error') });
+        case 'preview-error': {
+          const previewError = frameErrorText(data.message, 'Render error');
+          // WebKit can report an opaque ErrorEvent after the frame has already
+          // sent a detailed error for this run.
+          if (previewError === 'Script error.' && active.previewError) return;
+          settle({ ...active, previewError });
           return;
+        }
         case 'done':
           // The frame closes a build error with an empty `done`; the error is
           // the result, so the count of no cases must not replace it.
