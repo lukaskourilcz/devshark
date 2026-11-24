@@ -62,6 +62,17 @@ export function scrubAddress(value: string): string {
   return redactRoomCode((cut === -1 ? value : value.slice(0, cut)).replace(URL_USERINFO, '$1'));
 }
 
+/** Resource paths on other sites can identify a visitor (e.g. a profile image). */
+function scrubSpanAddress(address: string): string {
+  if (!/^(?:https?:)?\/\//i.test(address)) return scrubAddress(address);
+  try {
+    const url = new URL(address, globalThis.location?.href);
+    return url.origin === globalThis.location?.origin ? scrubAddress(url.origin + url.pathname) : url.origin;
+  } catch {
+    return '[url]';
+  }
+}
+
 const ABSOLUTE_URL_TAIL = /(\b[a-z][a-z0-9+.-]*:\/\/[^\s?#"'<>`]*)[?#][^\s"'<>`]*/gi;
 const RELATIVE_URL_TAIL = /(^|[\s("'`])(\/[^\s?#"'<>`]*)[?#][^\s"'<>`)]*/g;
 const EMAIL = /[a-z0-9._%+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}/gi;
@@ -90,7 +101,7 @@ const QUERY_KEY = /(?:^|[._])(?:query|fragment|query_string)$/;
 // data or exception arguments with fields the scrubber cannot recognise.
 const SENSITIVE_KEY = /(?:^|[._-])(?:authorization|cookie|password|token|secret)(?:$|[._-])/i;
 
-function scrubBag(bag: Record<string, unknown> | undefined): void {
+function scrubBag(bag: Record<string, unknown> | undefined, cleanAddress = scrubAddress): void {
   if (!bag || typeof bag !== 'object') return;
   for (const key of Object.keys(bag)) {
     const value = bag[key];
@@ -99,7 +110,7 @@ function scrubBag(bag: Record<string, unknown> | undefined): void {
       delete bag[key];
       continue;
     }
-    if (typeof value === 'string') bag[key] = scrubText(ADDRESS_KEY.test(key) ? scrubAddress(value) : value);
+    if (typeof value === 'string') bag[key] = scrubText(ADDRESS_KEY.test(key) ? cleanAddress(value) : value);
   }
 }
 
@@ -133,18 +144,11 @@ export function scrubEvent<T extends Event>(event: T): T {
   scrubBag(event.extra);
   scrubBag(event.contexts?.trace?.data as Record<string, unknown> | undefined);
   for (const span of event.spans ?? []) {
-    scrubBag(span.data as Record<string, unknown> | undefined);
+    scrubBag(span.data as Record<string, unknown> | undefined, scrubSpanAddress);
     if (typeof span.description === 'string') {
       // Resource spans put the complete URL in the name as well as in data.
       // External resource paths can identify a learner, e.g. an avatar.
-      span.description = scrubText(span.description.replace(/https?:\/\/[^\s"'<>`)]+/gi, (address) => {
-        try {
-          const url = new URL(address);
-          return url.origin === globalThis.location?.origin ? url.origin + url.pathname : url.origin;
-        } catch {
-          return '[url]';
-        }
-      }));
+      span.description = scrubText(span.description.replace(/(?:https?:)?\/\/[^\s"'<>`)]+/gi, scrubSpanAddress));
     }
   }
   return event;

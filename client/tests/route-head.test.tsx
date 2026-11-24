@@ -37,6 +37,7 @@ const SHELL_HEAD = `
   <meta property="og:description" content="shell description" />
   <meta property="og:image" content="https://devshark.app/og-image.png?v=20261012" />
   <meta property="og:image:alt" content="devShark — Lessons, quizzes and coding challenges" />
+  <meta name="twitter:image:alt" content="devShark — Lessons, quizzes and coding challenges" />
   <meta name="twitter:image" content="https://devshark.app/og-image.png?v=20261012" />
   <meta name="twitter:title" content="devShark" />
   <meta name="twitter:description" content="shell description" />`;
@@ -154,7 +155,9 @@ describe('a share page opened directly', () => {
     for (const selector of ['meta[property="og:image"]', 'meta[name="twitter:image"]']) {
       document.querySelector(selector)?.setAttribute('content', taskImage);
     }
-    document.querySelector('meta[property="og:image:alt"]')?.setAttribute('content', TASK_TITLE);
+    for (const selector of ['meta[property="og:image:alt"]', 'meta[name="twitter:image:alt"]']) {
+      document.querySelector(selector)?.setAttribute('content', TASK_TITLE);
+    }
     const head = readShareHead();
 
     visit('/quiz', head);
@@ -170,6 +173,7 @@ describe('a share page opened directly', () => {
     expect(meta('meta[property="og:image"]')).toBe(taskImage);
     expect(meta('meta[name="twitter:image"]')).toBe(taskImage);
     expect(meta('meta[property="og:image:alt"]')).toBe(TASK_TITLE);
+    expect(meta('meta[name="twitter:image:alt"]')).toBe(TASK_TITLE);
   });
 
   it('is not read from the plain shell', () => {

@@ -273,6 +273,8 @@ for (const pagePath of pagePaths) {
   const image = one('meta[property="og:image"]');
   assert.match(image, /^https:\/\/devshark\.app\//, `${pagePath}: og:image is absolute under https://devshark.app/`);
   assert.equal(one('meta[name="twitter:image"]'), image, `${pagePath}: twitter:image is og:image`);
+  assert.equal(one('meta[property="og:site_name"]'), 'devShark', `${pagePath}: site name`);
+  assert.equal(one('meta[name="twitter:image:alt"]'), one('meta[property="og:image:alt"]'), `${pagePath}: share image text agrees`);
   assert(one('meta[property="og:image:alt"]').trim(), `${pagePath}: og:image:alt is not empty`);
   assert.equal(one('meta[name="twitter:card"]'), 'summary_large_image', `${pagePath}: twitter:card summary_large_image`);
   assert.equal(doc.documentElement.getAttribute('lang'), 'en', `${pagePath}: html lang en`);

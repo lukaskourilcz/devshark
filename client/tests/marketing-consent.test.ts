@@ -171,7 +171,7 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
     transaction: '/settings/github',
     request: { url: 'https://devshark.app/settings/github?code=gh-code' },
     contexts: { trace: { data: { 'url.full': 'https://devshark.app/settings/github?code=gh-code' } } },
-    spans: [{ data: { 'http.url': 'https://devshark.app/api/user?op=github-connect-finish', 'http.query': '?op=github-connect-finish', 'http.fragment': '#x', 'http.method': 'POST' } }],
+    spans: [{ data: { 'http.url': window.location.origin + '/api/user?op=github-connect-finish', 'http.query': '?op=github-connect-finish', 'http.fragment': '#x', 'http.method': 'POST' } }],
   });
   expect(JSON.stringify(trace)).not.toContain('gh-code');
   const invitation = options.beforeSendTransaction!({
@@ -180,15 +180,15 @@ it('sends no code, token, e-mail address or query string with an error, a breadc
     breadcrumbs: [{ message: 'open /play/K7Q2AB', data: { to: '/play/K7Q2AB' } }],
     spans: [
       { description: 'GET ' + window.location.origin + '/play/K7Q2AB?source=friend' },
-      { description: 'GET https://avatars.example.test/user/unique-avatar?size=24' },
+      { description: 'GET https://avatars.example.test/user/unique-avatar?size=24', data: { 'url.full': '//avatars.example.test/user/unique-avatar' } },
     ],
   });
   expect(invitation.transaction).toBe('/play/:code');
   expect(invitation.spans).toEqual([
     { description: 'GET ' + window.location.origin + '/play/:code' },
-    { description: 'GET https://avatars.example.test' },
+    { description: 'GET https://avatars.example.test', data: { 'url.full': 'https://avatars.example.test' } },
   ]);
   expect(JSON.stringify(invitation)).not.toMatch(/K7Q2AB|unique-avatar|source=friend/);
-  expect((trace.spans as { data: Record<string, unknown> }[])[0].data).toEqual({ 'http.url': 'https://devshark.app/api/user', 'http.method': 'POST' });
+  expect((trace.spans as { data: Record<string, unknown> }[])[0].data).toEqual({ 'http.url': window.location.origin + '/api/user', 'http.method': 'POST' });
   vi.unstubAllEnvs();
 });

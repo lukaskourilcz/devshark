@@ -103,6 +103,7 @@ const SHARED_META = [
   'meta[name="twitter:title"]',
   'meta[name="twitter:description"]',
   'meta[name="twitter:image"]',
+  'meta[name="twitter:image:alt"]',
 ] as const;
 
 export interface ShareHead {
@@ -181,6 +182,7 @@ export function applyRouteHead(rawPath: string, t: Translate, shareHead: ShareHe
   setMeta('meta[property="og:image:alt"]', imageAlt);
   setMeta('meta[name="twitter:title"]', document.title);
   setMeta('meta[name="twitter:image"]', image);
+  setMeta('meta[name="twitter:image:alt"]', imageAlt);
   if (appPage && privacyCopy) {
     // The privacy policy's words ship with the legal pages' chunk, not with
     // the shell (translations.privacy.ts). The page loads them anyway; the

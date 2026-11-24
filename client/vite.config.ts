@@ -301,7 +301,7 @@ function productMetadata(env: Record<string, string>): Plugin {
       const withImage = (html: string, image: string | null, alt: string) => image
         ? html
           .replace(/(<meta (?:property|name)="(?:og:image|twitter:image)" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(image) + end)
-          .replace(/(<meta property="og:image:alt" content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(alt) + end)
+          .replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*(" \/>)/g, (_, start, end) => start + escape(alt) + end)
         : html;
       /** The shell with a page's own title, description, canonical URL and
        * image. No URL writes no canonical; no image keeps the shell's. The
