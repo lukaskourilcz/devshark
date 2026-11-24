@@ -1437,7 +1437,7 @@ test('Refresh renders the actual new response title',()=>withPhasedRequests(asyn
     api: {
       method: "GET",
       url: "https://jsonplaceholder.typicode.com/todos/1",
-      note: "Change the final id from 1 to 200 to practise loading different todos.",
+      note: "Choose a todo ID from 1 to 20 for each refresh. Reusing an ID is allowed.",
     },
   },
   {
@@ -3724,7 +3724,7 @@ test('an answer that is not ok shows an alert and no users', () => withServer(as
     tier: 5,
     focus: ["fetch", "useState", "useEffect"],
     title: "Todo client",
-    prompt: "A todo list on the training API. On mount, fetch `https://jsonplaceholder.typicode.com/todos?_limit=5` once, showing a line with the word “Loading” until it answers; a failure, a network error or an answer that is not `ok`, shows a message in an element with `role=\"alert\"`. Show each todo as an `li` with a checkbox, ticked when the todo is `completed`, its title and a “Delete” button. Above the list, a line reads “Completed: <done> of <total>”, worked out from the list during render rather than kept in state of its own. A form with a text input and an “Add” button creates a todo: `POST` to `https://jsonplaceholder.typicode.com/todos` with a `Content-Type: application/json` header and the body `{ \"title\": <the text, trimmed>, \"completed\": false, \"userId\": 1 }`; once the server answers, append the todo it sends back and empty the input. Blank text sends nothing. A failed POST adds nothing and shows a message with `role=\"alert\"`. Ticking a checkbox flips that todo’s `completed` and Delete removes it, both at once and in local state only. In code comments, explain how you would handle two tabs editing the same todo.",
+    prompt: "A todo list on the training API. On mount, fetch `https://jsonplaceholder.typicode.com/todos?_limit=5` once, showing a line with the word “Loading” until it answers; a failure, a network error or an answer that is not `ok`, shows a message in an element with `role=\"alert\"`. Show each todo as an `li` with a checkbox, ticked when the todo is `completed`, its title and a “Delete” button. Above the list, a line reads “Completed: <done> of <total>”, worked out from the list during render rather than kept in state of its own. A form with a text input and an “Add” button creates a todo: `POST` to `https://jsonplaceholder.typicode.com/todos` with a `Content-Type: application/json` header and the body `{ \"title\": <the text, trimmed>, \"completed\": false, \"userId\": 1 }`; once the server answers, append the todo it sends back and empty the input. Blank text sends nothing. A failed POST adds nothing and shows a message with `role=\"alert\"`. Ticking a checkbox flips that todo’s `completed` and Delete removes it, both at once and in local state only. The practice API returns the same id for each creation. Give each appended row a stable local key so toggling or deleting it leaves the other rows alone. In code comments, explain how you would handle two tabs editing the same todo.",
     starter: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
@@ -3747,7 +3747,7 @@ const [error, setError] = useState('');
 const [title, setTitle] = useState('');
 
 useEffect(() => {
-  // GET TODOS_URL + '?_limit=5' inside try/catch: check response.ok and store the array,
+  // GET TODOS_URL + '?_limit=5' inside try/catch: check response.ok and give each loaded row a stable key and store the array,
   // put any failure in error, and stop loading in finally
 }, []);
 
@@ -3767,7 +3767,7 @@ const addTodo = async event => {
   }
 };
 
-const toggle = id => setTodos(current => current.map(todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo));
+const toggle = id => setTodos(current => current.map(todo => todo.rowKey === id ? { ...todo, completed: !todo.completed } : todo));
 const done = todos.filter(todo => todo.completed).length;`,
     hints: [
       "Keep the todos in one array, with separate loading, error and input states. Derive the completed count during render. Adding waits for the server and appends its returned record; toggling and deleting update local state immediately. Explain version conflicts between tabs in comments.",
@@ -3775,7 +3775,7 @@ const done = todos.filter(todo => todo.completed).length;`,
     approach: [
       "Fetch the todos into one array state with loading and error handling before adding any interaction.",
       "Add a controlled input whose submit handler POSTs the trimmed title as JSON, checks `response.ok`, and appends the created record the server returns.",
-      "Toggle by mapping to a spread copy with the completion flag inverted, and delete by filtering on the id.",
+      "Give each appended row a unique local key. Toggle by mapping to a copy with the completion flag inverted, and delete by filtering on that key.",
       "Derive the completion stats from that array during render, then explain conflict handling in comments: last write wins versus version numbers.",
     ],
     verify: "tests",
@@ -5071,7 +5071,7 @@ test('all and dictionary-like names are real event types, not control values or 
     tier: 5,
     focus: ["fetch", "useState", "useEffect"],
     title: "Interview mini project",
-    prompt: "Build a small posts app that reads and creates, the way an interview project would ask. On mount, fetch `https://jsonplaceholder.typicode.com/posts`; each post is `{ id, userId, title, body }`. While it loads, show “Loading posts…”. A failed request, rejected or answered with a status that is not ok, shows “Could not load posts” in an element with `role=\"alert\"`. List the posts in a `ul`, one `li` per post holding just its title. Two filters narrow the list: an input labelled “Search” keeps the posts whose title contains its text, ignoring case, and a `select` labelled “Author”, whose first option “All authors” keeps everyone, offers one option “User <userId>” per author in the posts, in ascending order of `userId`. Two lines of stats follow: “Showing <n> of <m> posts”, where m counts every post in state, and “Authors: <k>”, the number of different authors among the posts shown. A form adds a post: an input labelled “Title” and an “Add post” button. A blank title sends nothing. Otherwise send `POST https://jsonplaceholder.typicode.com/posts` with the JSON body `{ title, body: \"\", userId: 1 }`, the title trimmed; while it is on its way the button reads “Adding…” and is disabled. The answer is the new post with its id: add it to the end of the list and empty the Title box. A failed POST shows “Could not add the post” in an alert and keeps the title in the box; the next attempt clears the alert. Work the filtered list and the stats out of the posts in state while rendering. The notes at the top are for your explanation of the whole trip from the browser to the database and back; the checks do not read them.",
+    prompt: "Build a small posts app that reads and creates, the way an interview project would ask. On mount, fetch `https://jsonplaceholder.typicode.com/posts`; each post is `{ id, userId, title, body }`. While it loads, show “Loading posts…”. A failed request, rejected or answered with a status that is not ok, shows “Could not load posts” in an element with `role=\"alert\"`. List the posts in a `ul`, one `li` per post holding just its title. Two filters narrow the list: an input labelled “Search” keeps the posts whose title contains its text, ignoring case, and a `select` labelled “Author”, whose first option “All authors” keeps everyone, offers one option “User <userId>” per author in the posts, in ascending order of `userId`. Two lines of stats follow: “Showing <n> of <m> posts”, where m counts every post in state, and “Authors: <k>”, the number of different authors among the posts shown. A form adds a post: an input labelled “Title” and an “Add post” button. A blank title sends nothing. Otherwise send `POST https://jsonplaceholder.typicode.com/posts` with the JSON body `{ title, body: \"\", userId: 1 }`, the title trimmed; while it is on its way the button reads “Adding…” and is disabled. The answer is the new post with its id: add it to the end of the list and empty the Title box. A failed POST shows “Could not add the post” in an alert and keeps the title in the box; the next attempt clears the alert. Work the filtered list and the stats out of the posts in state while rendering. Practice writes can return the same post id. Keep every appended post separately identifiable when either filter changes. The notes at the top are for your explanation of the whole trip from the browser to the database and back; the checks do not read them.",
     starter: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
