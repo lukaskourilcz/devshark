@@ -50,7 +50,6 @@ BEGIN
   PERFORM public.start_practice_session_v2('erasesession00000001', v_gone, 'webdev', 15, NULL, '["js-double-numbers"]', 'random', 3, NOW() + INTERVAL '1 day');
   PERFORM public.record_concept_review_v2(v_gone, 'closures', 'webdev', 'erase-event-1', 1::SMALLINT, NOW() + INTERVAL '1 day', 1, 'q1', 'v1', 'independent', TRUE, 1, 0);
   PERFORM public.record_challenge_completion(v_gone, 'eraserun000000000001', 'webdev', 30, '{"javascript":{"correct":4,"total":7}}');
-  PERFORM public.grant_daily_queue_cards(v_gone, 'webdev', v_today, '["card-a"]');
   PERFORM public.activate_streak_shield(v_gone);
 
   -- Learning paths and the finished-path package.
@@ -96,6 +95,13 @@ BEGIN
   PERFORM public.grant_manual_entitlement(v_gone, NULL, 'test');
   PERFORM public.create_premium_voucher(repeat('8', 64), 'ERAS', 'erasure test voucher', 30, 5, NULL, v_gone);
   PERFORM public.redeem_premium_voucher(v_gone, repeat('8', 64));
+
+  -- The retired card packs (owner decision 12). Nothing writes them since
+  -- migration 078 dropped grant_daily_queue_cards, but rows from before stay
+  -- until the account goes.
+  INSERT INTO public.user_cards (user_id, subject, card_id) VALUES (v_gone, 'webdev', 'card-a');
+  INSERT INTO public.daily_queue_completions (user_id, subject, queue_date, granted_cards)
+    VALUES (v_gone, 'webdev', v_today, '["card-a"]');
 
   -- Tables the API writes directly.
   INSERT INTO public.user_badges (user_id, subject, badge_id) VALUES (v_gone, 'webdev', 'first-quiz');

@@ -1,5 +1,5 @@
 {
-  "initialGzipBytes": 215975,
+  "initialGzipBytes": 215968,
   "baselineGzipBytes": 224479,
   "scope": "The initial requests of index.html (entry script, modulepreload links, stylesheets), gzipped, from a production-shaped devShark build. Excludes lazy routes, the coding sandbox and fonts.",
   "recorded": "2026-11-24",

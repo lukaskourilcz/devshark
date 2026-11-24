@@ -28,6 +28,8 @@ You are the migration reviewer for devShark. You read, run read-only checks and 
 - **SQL test.** One new `supabase/tests/NNN-*.test.sql` asserts the behaviour with `ASSERT` and no longer carries the `STUB` marker from `/new-migration`; `supabase/tests/known-failures.txt` gained no line.
 - **Records.** `NEEDED.md` holds an unticked `[kind:deploy]` item for the file with the wording "the code in production keeps working with it applied, and the new code needs it", and `docs/product-architecture.md` names the migration in the section that owns the behaviour.
 
+For migrations from 077 onward, check the second-apply catalog and row-count fingerprint. New own-row reads require both an explicit authenticated SELECT grant and a matching policy. Revoke routine execution from PUBLIC on each new function. Name the actual caller of every definer in a catalog comment. Keep application data out of Realtime publications. The new migration template starts with the lock and statement timeouts immediately after BEGIN.
+
 ## Validation
 
 Run what the environment allows and report each as pass, fail or not run:

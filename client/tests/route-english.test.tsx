@@ -11,6 +11,10 @@ const scopes = [checkoutEn, codingEn, operationsEn, playEn] as const;
 type Words = Partial<Record<TranslationKey, string>>;
 
 it('renders every route label on direct entry and after switching features, without modifying shell copy', () => {
+  for (const key of ['play.title', 'play.hostFallback', 'play.playerFallback'] as const) {
+    expect(shellEn).not.toHaveProperty([key]);
+    expect(playEn[key]).toBe(en[key]);
+  }
   const baseKeys = Object.keys(shellEn);
   const seen = new Set(baseKeys);
   for (const words of scopes) {

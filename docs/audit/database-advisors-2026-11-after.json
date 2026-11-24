@@ -1,0 +1,1070 @@
+{
+  "checkedAtUtc": "2026-11-24T02:53:56Z",
+  "splinterCommit": "cc529aa9d3eeffd2e64576c7591e60b22abd205c",
+  "splinterBodySha256": "e652eb2be316eaf44ad523e8b0e6e76bb4952942be86692811064d0b72402b46",
+  "historicalProductionSnapshot": {
+    "observedDate": "2026-11-18",
+    "source": "https://github.com/lukaskourilcz/devshark/blob/4db80e06/docs/audit/database-advisors-2026-11.json",
+    "performanceAuthInitplanWarnings": 39,
+    "unusedIndexes": 16,
+    "securityErrors": 0,
+    "securityWarnings": 0,
+    "after": "Awaiting the project owner’s staged application of the migrations and a fresh provider export."
+  },
+  "environments": {
+    "native": {
+      "source": "c167ecf2dd46bd38714588ddd94ba98921db4574",
+      "postgres": "17.11 (Postgres.app)",
+      "migrations": 89,
+      "fixturesPassed": 81,
+      "fixturesSkipped": 1,
+      "skip": "Postgres.app has no pg_cron catalog. A separate scheduling-contract fixture passed.",
+      "counts": {
+        "ERROR": 0,
+        "WARN": 0,
+        "INFO": 50
+      },
+      "rawRowsSha256": "a73de405bb54a123248eeeb898404ecb54776a717228addd97aaa6d801f4e62d"
+    },
+    "hosted088": {
+      "source": "15d02829d",
+      "image": "supabase/postgres:17.6.1.171",
+      "migrations": 88,
+      "fixturesPassed": 81,
+      "fixturesSkipped": 0,
+      "job": "https://github.com/lukaskourilcz/devshark/actions/runs/45314706842/job/138178632054",
+      "counts": {
+        "ERROR": 0,
+        "WARN": 0,
+        "INFO": 50
+      },
+      "rawRowsSha256": "a73de405bb54a123248eeeb898404ecb54776a717228addd97aaa6d801f4e62d"
+    },
+    "hosted089": {
+      "source": "c30b3d88eda2650882141a9cc64ae395ef93b9c1",
+      "image": "supabase/postgres:17.6.1.171",
+      "migrations": 89,
+      "fixturesPassed": 82,
+      "fixturesSkipped": 0,
+      "job": "https://github.com/lukaskourilcz/devshark/actions/runs/45315542819/job/138181532238",
+      "counts": {
+        "ERROR": 0,
+        "WARN": 0,
+        "INFO": 50
+      },
+      "rawRowsSha256": "a73de405bb54a123248eeeb898404ecb54776a717228addd97aaa6d801f4e62d"
+    }
+  },
+  "findings": [
+    {
+      "cache_key": "no_primary_key_public_friendships",
+      "name": "no_primary_key",
+      "level": "INFO",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "metadata": {
+        "name": "friendships",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.friendships\\` does not have a primary key",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Migration 075 uses UNIQUE NULLS NOT DISTINCT on the two participants and optional blocker so one ordinary relation and independent directional blocks can coexist. The table is absent from logical publications."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_app_settings",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "app_settings",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.app_settings\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.app_settings is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_auth_events",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "auth_events",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.auth_events\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.auth_events is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_billing_cancel_requests",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "billing_cancel_requests",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.billing_cancel_requests\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.billing_cancel_requests is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_billing_events",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "billing_events",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.billing_events\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.billing_events is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_challenge_scores",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "challenge_scores",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.challenge_scores\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.challenge_scores is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_coding_attempts",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "coding_attempts",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.coding_attempts\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.coding_attempts is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_coding_drafts",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "coding_drafts",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.coding_drafts\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.coding_drafts is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_coding_progress",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "coding_progress",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.coding_progress\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.coding_progress is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_concept_review_receipts",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "concept_review_receipts",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.concept_review_receipts\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.concept_review_receipts is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_daily_queue_completions",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "daily_queue_completions",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.daily_queue_completions\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.daily_queue_completions is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_github_commits",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "github_commits",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.github_commits\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.github_commits is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_github_connections",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "github_connections",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.github_connections\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.github_connections is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_learning_path_attempts",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "learning_path_attempts",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.learning_path_attempts\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.learning_path_attempts is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_match_answers",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "match_answers",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.match_answers\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.match_answers is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_match_participants",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "match_participants",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.match_participants\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.match_participants is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_matches",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "matches",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.matches\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.matches is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_merch_stock",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "merch_stock",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.merch_stock\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.merch_stock is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_premium_voucher_redemptions",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "premium_voucher_redemptions",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.premium_voucher_redemptions\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.premium_voucher_redemptions is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_premium_vouchers",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "premium_vouchers",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.premium_vouchers\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.premium_vouchers is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_question_edits",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "question_edits",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.question_edits\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.question_edits is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_question_quality_suggestions",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "question_quality_suggestions",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.question_quality_suggestions\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.question_quality_suggestions is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_question_reports",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "question_reports",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.question_reports\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.question_reports is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_quiz_attempts",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "quiz_attempts",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.quiz_attempts\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.quiz_attempts is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_quiz_submissions",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "quiz_submissions",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.quiz_submissions\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.quiz_submissions is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_referrals",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "referrals",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.referrals\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.referrals is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_roadmap_attempt_answers",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "roadmap_attempt_answers",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.roadmap_attempt_answers\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.roadmap_attempt_answers is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_roadmap_attempt_coding",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "roadmap_attempt_coding",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.roadmap_attempt_coding\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.roadmap_attempt_coding is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_roadmap_attempts",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "roadmap_attempts",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.roadmap_attempts\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.roadmap_attempts is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_shark_name_allocations",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "shark_name_allocations",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.shark_name_allocations\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.shark_name_allocations is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_shark_name_counter",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "shark_name_counter",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.shark_name_counter\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.shark_name_counter is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_token_month_settlements",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "token_month_settlements",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.token_month_settlements\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.token_month_settlements is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_user_badges",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "user_badges",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.user_badges\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.user_badges is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_user_cards",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "user_cards",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.user_cards\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.user_cards is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_user_learn_step_xp",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "user_learn_step_xp",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.user_learn_step_xp\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.user_learn_step_xp is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_user_question_history",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "user_question_history",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.user_question_history\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.user_question_history is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_user_question_xp",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "user_question_xp",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.user_question_xp\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.user_question_xp is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_user_streak_config",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "user_streak_config",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.user_streak_config\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.user_streak_config is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_user_streak_freezes",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "user_streak_freezes",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.user_streak_freezes\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.user_streak_freezes is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_verified_activity_awards",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "verified_activity_awards",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.verified_activity_awards\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.verified_activity_awards is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "rls_enabled_no_policy_public_verified_skill_checks",
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "categories": [
+        "SECURITY"
+      ],
+      "metadata": {
+        "name": "verified_skill_checks",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Table \\`public.verified_skill_checks\\` has RLS enabled, but no policies exist",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Direct browser access to public.verified_skill_checks is closed. No authenticated/anonymous row policy is required for service-side access. The role and RLS invariants run in 158 and 251."
+    },
+    {
+      "cache_key": "unused_index_public_auth_events_idx_auth_events_created_at",
+      "name": "unused_index",
+      "level": "INFO",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "metadata": {
+        "name": "auth_events",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Index \\`idx_auth_events_created_at\\` on table \\`public.auth_events\\` has not been used",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Supports sign-in log retention. Migration 057 identifies this path for its age-bound delete."
+    },
+    {
+      "cache_key": "unused_index_public_billing_cancel_requests_billing_cancel_requests_email_idx",
+      "name": "unused_index",
+      "level": "INFO",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "metadata": {
+        "name": "billing_cancel_requests",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Index \\`billing_cancel_requests_email_idx\\` on table \\`public.billing_cancel_requests\\` has not been used",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Supports limiting cancellation requests by normalized email and request time in create_billing_cancel_request."
+    },
+    {
+      "cache_key": "unused_index_public_coding_progress_coding_progress_review_idx",
+      "name": "unused_index",
+      "level": "INFO",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "metadata": {
+        "name": "coding_progress",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Index \\`coding_progress_review_idx\\` on table \\`public.coding_progress\\` has not been used",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Partial next-review index for a learner. The disposable fixture does not establish production use or redundancy."
+    },
+    {
+      "cache_key": "unused_index_public_match_answers_idx_match_answers_summary",
+      "name": "unused_index",
+      "level": "INFO",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "metadata": {
+        "name": "match_answers",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Index \\`idx_match_answers_summary\\` on table \\`public.match_answers\\` has not been used",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Supports aggregating answers for one match and question, including the closed-question scoreboard."
+    },
+    {
+      "cache_key": "unused_index_public_matches_idx_matches_running_heartbeat",
+      "name": "unused_index",
+      "level": "INFO",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "metadata": {
+        "name": "matches",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Index \\`idx_matches_running_heartbeat\\` on table \\`public.matches\\` has not been used",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Partial index on the heartbeat of running rooms. The empty-schema fixture does not establish production use or redundancy."
+    },
+    {
+      "cache_key": "unused_index_public_matches_matches_subject_code_idx",
+      "name": "unused_index",
+      "level": "INFO",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "metadata": {
+        "name": "matches",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Index \\`matches_subject_code_idx\\` on table \\`public.matches\\` has not been used",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Matches subject-scoped Play lookups. The unique code index is another access path; this finding alone does not demonstrate a safe drop."
+    },
+    {
+      "cache_key": "unused_index_public_question_reports_idx_question_reports_created_at",
+      "name": "unused_index",
+      "level": "INFO",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "metadata": {
+        "name": "question_reports",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Index \\`idx_question_reports_created_at\\` on table \\`public.question_reports\\` has not been used",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Orders reports by creation time. The fixture does not represent operator report-list volume."
+    },
+    {
+      "cache_key": "unused_index_public_question_reports_question_reports_item_version_idx",
+      "name": "unused_index",
+      "level": "INFO",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "metadata": {
+        "name": "question_reports",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Index \\`question_reports_item_version_idx\\` on table \\`public.question_reports\\` has not been used",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Preserved composite report/version lookup. Migration 081 deliberately retained it when retiring the old single-column index."
+    },
+    {
+      "cache_key": "unused_index_public_quiz_submissions_quiz_submissions_created_idx",
+      "name": "unused_index",
+      "level": "INFO",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "metadata": {
+        "name": "quiz_submissions",
+        "type": "table",
+        "schema": "public"
+      },
+      "detail": "Index \\`quiz_submissions_created_idx\\` on table \\`public.quiz_submissions\\` has not been used",
+      "environments": [
+        "native",
+        "hosted088",
+        "hosted089"
+      ],
+      "reason": "Supports removing expired submission receipts by creation time in the daily retention routine."
+    }
+  ],
+  "productionUnusedIndexesRetained": {
+    "coding_collection_items_order_idx": "Ordered collection item reads in lib/coding/practice-handlers.ts.",
+    "billing_checkout_consents_user_idx": "Account erasure filters checkout consent by user_id.",
+    "billing_cancel_requests_email_idx": "Cancellation-request rate control by normalized email and requested_at in 039.",
+    "match_participants_user_idx": "Account erasure across matches by user_id.",
+    "flashcards_user_subject_created_idx": "Covers subject-scoped card list and creation order. On this seed the planner used flashcards_pkey after 085.",
+    "quiz_submissions_challenge_strikes_idx": "Migration 069 counts previous strikes on a Challenge.",
+    "question_reports_item_version_idx": "Used for item/version lookups; retained as the replacement in 081."
+  },
+  "limits": "Each fixture database has its own short-lived index statistics. Unused notices here do not measure production traffic. Hosted SQL tests exercise provider-shaped Realtime policy objects. Separate staging clients are needed to verify actual socket delivery."
+}

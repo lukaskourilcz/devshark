@@ -349,6 +349,7 @@ for (const file of known.keys()) {
 
 let failed = 0;
 let expected = 0;
+let skipped = 0;
 for (const name of tests) {
   const result = psql(['-c', 'BEGIN', '-f', join(testDir, name), '-c', 'ROLLBACK']);
   if (result.error) throw result.error;
@@ -368,7 +369,14 @@ for (const name of tests) {
       console.error(indent(output));
     }
   } else if (passed) {
-    console.log(`  ok    ${name}`);
+    // Fixtures with an optional provider extension can explicitly record what did not run.
+    const skip = result.stdout.match(/^TEST-SKIP: (.+)$/m);
+    if (skip) {
+      skipped += 1;
+      console.log(`  SKIP  ${name} — ${skip[1]}`);
+    } else {
+      console.log(`  ok    ${name}`);
+    }
   } else {
     failed += 1;
     console.error(`  FAIL  ${name}`);
@@ -380,7 +388,7 @@ function indent(text) {
   return text.split('\n').map((line) => `        ${line}`).join('\n');
 }
 
-const summary = `${tests.length} SQL test files · ${tests.length - failed - expected} passed · ${expected} known failures · ${failed} failed`;
+const summary = `${tests.length} SQL test files · ${tests.length - failed - expected - skipped} passed · ${skipped} skipped · ${expected} known failures · ${failed} failed`;
 if (failed) console.error(summary);
 else console.log(summary);
 

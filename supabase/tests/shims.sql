@@ -1,7 +1,6 @@
--- The few Supabase objects the migrations rely on. The supabase/postgres image
--- that CI runs already has every one of them, so there this file changes
--- nothing; it only lets the suite run on a bare Postgres too. Each object is
--- created only when missing, so a real definition is never replaced.
+-- Disposable database fixtures for Supabase roles and auth. On the CI image
+-- also enable the available pg_cron extension so its real catalog is tested.
+-- A bare PostgreSQL install can run the rest of the suite without pg_cron.
 CREATE SCHEMA IF NOT EXISTS extensions;
 
 DO $$
@@ -54,3 +53,18 @@ BEGIN
   END IF;
 END;
 $$;
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM pg_available_extensions WHERE name = 'pg_cron') THEN
+    IF current_setting('cron.database_name', true) IS DISTINCT FROM current_database() THEN
+      RAISE NOTICE 'pg_cron is not preloaded for this database; retention schedule will be skipped';
+    ELSE
+      CREATE EXTENSION IF NOT EXISTS pg_cron;
+    END IF;
+  END IF;
+END;
+$$;
+
+-- Local bare PostgreSQL also needs the provider's policy-facing contract.
+\ir realtime-fixture.sql
