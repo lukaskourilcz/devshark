@@ -1848,6 +1848,20 @@ Do not rename the schema. The browser keeps no coin balance of its own; old
 
 ## Sign-in, caching and limits
 
+The common HTTP request wrapper limits ordinary bodies to 256 KiB and signed
+webhook bodies to 1 MiB. Oversized bodies receive 413. Billing verifies the
+provider signature against the original bytes before processing an event.
+Retries use its provider event ID so a duplicate success cannot grant a
+second entitlement.
+
+The health response distinguishes the database check, the service-role check,
+the rate limiter's current operating mode and grading readiness. The grading
+probe checks the local engine and required snapshot configuration. The
+separate grading monitor submits an exercise to measure actual execution.
+The scheduled health check rejects unhealthy or stale responses. After the
+first production release containing the grading field, set
+`REQUIRE_GRADING_HEALTH=true` to reject missing fields as well.
+
 Browser sign-in redirects use PKCE. Supabase exchanges an authorization code
 with the verifier saved by the browser that started the request. Stored
 sessions keep their existing storage key. The default confirmation and
@@ -2349,6 +2363,10 @@ seeds a row in every such table.
   an error reported or thrown before that waits in memory (at most 20) and is
   sent through the same scrub hooks when the SDK starts. The pageload trace
   still reads its timings from the browser's buffered performance entries.
+  Vercel supplies the commit and deployment environment used for Sentry's
+  release and environment fields. The SDK excludes the BrowserSession
+  integration. Extension errors and obsolete lazy chunks have dedicated
+  filters, and request and span data go through the scrubber.
   PostHog sends each event as it is captured, so
   nothing batched before a withdrawal leaves after it.
 - **The privacy policy** (`PRIVACY` in `client/src/components/LegalPages.tsx`,
