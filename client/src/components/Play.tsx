@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Kicker, SwimCta } from './landing/LandingKit';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useIsMobile, useMediaQuery } from '../lib/useMediaQuery';
 import { VStack } from '@astryxdesign/core/VStack';
 import { HStack } from '@astryxdesign/core/HStack';
@@ -16,6 +16,7 @@ import { ProgressBar } from '@astryxdesign/core/ProgressBar';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { ToggleButton } from '@astryxdesign/core/ToggleButton';
 import { ToggleButtonGroup } from '@astryxdesign/core/ToggleButton';
+import { accountEpoch } from '../lib/accountData';
 import { useAuth, getUserProfile } from '../lib/auth';
 import {
   createMatch,
@@ -146,6 +147,14 @@ async function copyText(value: string): Promise<boolean> {
   }
 }
 
+// Only an opaque number enters browser history. The server's join response
+// belongs to the next navigation in this tab and to the account that sent it.
+let nextJoinId = 0;
+let pendingJoin: {
+  id: number; code: string; userId: string; epoch: number;
+  room: Awaited<ReturnType<typeof joinMatch>>; sentAt: number; receivedAt: number;
+} | undefined;
+
 export function PlayLanding() {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -226,12 +235,13 @@ export function PlayLanding() {
     setError(null);
     setLoading('join');
     try {
-      await joinMatch({
-        code,
-        user_id: user.id,
-      });
+      const epoch = accountEpoch();
+      const sentAt = Date.now();
+      const room = await joinMatch({ code, user_id: user.id });
+      if (accountEpoch() !== epoch) return;
+      pendingJoin = { id: ++nextJoinId, code, userId: user.id, epoch, room, sentAt, receivedAt: Date.now() };
       capture('classroom_or_match_joined');
-      navigate(`/play/${code}`);
+      navigate(`/play/${code}`, { state: { playJoinId: pendingJoin.id } });
     } catch (err) {
       if (isPlayOff(err)) setPlayOff(true);
       else setError(friendlyError(err));
@@ -461,6 +471,10 @@ function PlayRoom() {
   const config = useGameConfig();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
+  const { state } = useLocation();
+  const [landingJoin] = useState(() => pendingJoin && pendingJoin.id === state?.playJoinId &&
+    pendingJoin.code === code && pendingJoin.userId === user?.id && pendingJoin.epoch === accountEpoch()
+    ? pendingJoin : undefined);
   const [playOff, setPlayOff] = useState(false);
   const playOn = config.features.multiplayer && !playOff;
   // Bumped by "Try again" after a failed join, which runs the join again: a
@@ -484,8 +498,8 @@ function PlayRoom() {
   // neither closes a question early for a player nor reveals it early on the
   // presenter's screen.
   const [clockOffsetMs, setClockOffsetMs] = useState(0);
-  const noteServerClock = useCallback((serverNow: string | undefined, sentAt: number) => {
-    const offset = serverClockOffset(serverNow, sentAt, Date.now());
+  const noteServerClock = useCallback((serverNow: string | undefined, sentAt: number, receivedAt = Date.now()) => {
+    const offset = serverClockOffset(serverNow, sentAt, receivedAt);
     if (offset === null) return;
     setClockOffsetMs((current) => (Math.abs(offset - current) >= CLOCK_STEP_MS ? Math.round(offset) : current));
   }, []);
@@ -529,14 +543,16 @@ function PlayRoom() {
   const userId = user?.id;
   useEffect(() => {
     if (!isAuthenticated || !userId || !code || !playOn) return;
+    const entry = joinAttempt === 0 ? landingJoin : undefined;
+    if (entry === pendingJoin) pendingJoin = undefined;
     let cancelled = false;
     (async () => {
       try {
-        const sentAt = Date.now();
+        const sentAt = entry?.sentAt ?? Date.now();
         try {
-          const { server_now: serverNow, ...room } = await joinMatch({ code, user_id: userId });
+          const { server_now: serverNow, ...room } = entry?.room ?? await joinMatch({ code, user_id: userId });
           if (cancelled) return;
-          noteServerClock(serverNow, sentAt);
+          noteServerClock(serverNow, sentAt, entry?.receivedAt);
           setMatch(room);
         } catch (err) {
           // A finished room takes no new players, but its results are still
@@ -554,7 +570,7 @@ function PlayRoom() {
     return () => {
       cancelled = true;
     };
-  }, [code, isAuthenticated, userId, joinAttempt, playOn, noteServerClock]);
+  }, [code, isAuthenticated, userId, joinAttempt, playOn, noteServerClock, landingJoin]);
 
   // Pull the latest match state. Shared by the realtime/poll loop and by
   // submitAnswer so an auto-advance is reflected immediately for the answerer.
