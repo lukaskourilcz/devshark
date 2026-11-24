@@ -397,7 +397,7 @@ a.lp-activity:focus-visible { outline: 3px solid var(--ss-focus); outline-offset
 .lp-trace__cell--active { border-color: var(--brand-accent); border-width: 2px; }
 .lp-trace__cell--compare { border-color: var(--ss-info); border-style: dashed; }
 .lp-trace__cell--settled { border-color: var(--ss-success); background: var(--ss-success-soft); }
-.lp-trace__cell--excluded { opacity: 0.5; text-decoration: line-through; }
+.lp-trace__cell--excluded { color: var(--color-text-secondary); text-decoration: line-through; }
 .lp-trace__role { display: block; font-size: 0.66rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-text-secondary); }
 .lp-trace__note { margin: 0; line-height: 1.6; min-height: 3.2em; }
 .lp-trace__counter { font-variant-numeric: tabular-nums; font-weight: 600; }

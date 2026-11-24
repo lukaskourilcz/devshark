@@ -580,7 +580,7 @@
   --cd-syntax-constant: light-dark(#1c5979, #7bd8ff);
   --cd-syntax-type: light-dark(#245f88, #b8e2ff);
   --cd-syntax-operator: var(--color-text-primary);
-  --cd-syntax-comment: light-dark(#486b31, #a5d98b);
+  --cd-syntax-comment: light-dark(#40612c, #a5d98b);
   --cd-syntax-string: light-dark(#914827, #f4bda3);
 }
 

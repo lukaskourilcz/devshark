@@ -195,7 +195,7 @@ describe('authored text and control colours', () => {
   const theme = css('styles/astryx-theme.css');
   const apple = theme.match(/:root\[data-design='apple'\]\s*\{([^}]+)\}/)![1];
   const editor = css('coding/Coding.css');
-  const editorApple = editor.slice(editor.lastIndexOf('--cd-editor-bg:'));
+  const workbench = editor.match(/\.cd-workbench:not\(\.cd-workbench--landing\)\s*\{([^}]*--cd-editor-bg:[^}]+)\}/)![1];
   const tokens = (sheet: string, name: string) => new RegExp('(?:^|[;{\\s])--' + name + ':\\s*([^;]+);').exec(sheet)?.[1]?.trim();
   const foregrounds = [
     'brand-accent', 'brand-accent-on-soft', 'brand-on-accent', 'cd-editor-fg', 'color-background-surface',
@@ -225,6 +225,8 @@ describe('authored text and control colours', () => {
   });
 
   it('keeps active labels separate from topic decoration, inactive controls and table fills', () => {
+    const trace = css('components/paths/LearningPaths.css');
+    expect(trace).toMatch(/\.lp-trace__cell--excluded\s*\{\s*color: var\(--color-text-secondary\); text-decoration: line-through; \}/);
     const roadmap = css('components/Roadmap.tsx');
     const tree = css('components/RoadmapTree.tsx');
     const play = css('components/Play.tsx');
@@ -252,7 +254,7 @@ describe('authored text and control colours', () => {
 
   for (const design of ['brand', 'apple']) for (const mode of [0, 1] as const) {
     it(`checks text, focus and control surfaces in ${design} ${mode ? 'dark' : 'light'}`, () => {
-      const sheets = design === 'apple' ? [apple, editorApple, theme, editor] : [theme, editor];
+      const sheets = design === 'apple' ? [apple, workbench, theme, editor] : [theme, editor];
       function raw(name: string): string {
         for (const sheet of sheets) {
           const value = tokens(sheet, name);
@@ -331,6 +333,24 @@ describe('authored text and control colours', () => {
       check(solid('cd-editor-fg'), solid('cd-editor-bg'));
       for (const name of ['keyword', 'name', 'function', 'constant', 'type', 'operator', 'comment', 'string']) {
         check(solid('cd-syntax-' + name), solid('cd-editor-bg'));
+      }
+      // CodeMirror paints the selection and active-line layers together. The
+      // workbench overrides the standalone palette in both product designs.
+      for (const scope of [editor, workbench]) {
+        const paletteInk = (key: string) => {
+          const value = tokens(scope, key) ?? tokens(editor, key)!;
+          const stop = value.replace(/var\(--([\w-]+)\)/g, (_, token: string) => solid(token));
+          return /^light-dark\((#[\da-f]+),\s*(#[\da-f]+)\)$/i.exec(stop)?.[mode + 1] ?? stop;
+        };
+        const activeLine = (tokens(scope, 'cd-editor-line') ?? tokens(editor, 'cd-editor-line'))!;
+        const line = [...activeLine.matchAll(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([.\d]+)\)/g)][mode];
+        const selection = [...tokens(editor, 'cd-editor-selection')!.matchAll(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([.\d]+)\)/g)][mode];
+        const hex = (stop: RegExpMatchArray) => '#' + stop.slice(1, 4).map(v => Number(v).toString(16).padStart(2, '0')).join('');
+        const selected = compositeOver(hex(selection), Number(selection[4]), paletteInk('cd-editor-bg'));
+        const selectedLine = compositeOver(hex(line), Number(line[4]), selected);
+        for (const token of ['name', 'keyword', 'function', 'constant', 'type', 'operator', 'comment', 'string']) {
+          check(paletteInk('cd-syntax-' + token), selectedLine);
+        }
       }
       // Semantic topic fills on the roadmap choose their own white or dark ink.
       for (const option of CATEGORY_OPTIONS) {
