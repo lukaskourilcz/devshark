@@ -30,6 +30,26 @@ async function mockQuestion(page: Page) {
   }));
 }
 
+test('opening Daily keeps its mobile header in place when the question arrives', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockQuestion(page);
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/quiz/daily?*', async route => { await gate; await route.fallback(); });
+  await page.goto('/daily');
+  const heading = page.getByRole('heading', { name: 'Question of the day', exact: true });
+  try {
+    await expect(page.getByRole('status').filter({ hasText: 'Loading the question' })).toBeAttached();
+    await expect(page.locator('.ss-header')).toBeHidden();
+    const top = await heading.evaluate(element => element.getBoundingClientRect().top);
+    release();
+    await expect(page.getByRole('radio').first()).toBeVisible();
+    expect(Math.abs(await heading.evaluate(element => element.getBoundingClientRect().top) - top)).toBeLessThan(2);
+  } finally {
+    release();
+  }
+});
+
 for (const theme of ['light', 'dark'] as const) for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 800 }]) {
   test(`${theme} ${viewport.width}px: /daily checks an answer and passes WCAG 2.2 AA`, async ({ page }, info) => {
     await page.setViewportSize(viewport);
