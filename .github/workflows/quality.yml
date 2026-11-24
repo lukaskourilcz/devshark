@@ -33,6 +33,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Bootstrap the absent Realtime service fixture on the disposable database
+        env:
+          PG_CONTAINER: ${{ job.services.postgres.id }}
+        run: docker exec -i "$PG_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U supabase_admin -d postgres < supabase/tests/realtime-fixture.sql
       - run: npm run test:sql
         env:
           DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/postgres
