@@ -297,6 +297,19 @@ describe('the question buffer', () => {
 });
 
 describe('the timeout strike', () => {
+  it('announces the 15-second warning once in the existing region', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    await mount();
+    await start();
+    const region = document.querySelector('span[style][aria-live="polite"]');
+    expect(region).toBeEmptyDOMElement();
+    for (let second = 0; clockSeconds() > 15 && second < 90; second++) await tick(1000);
+    expect(screen.getByText('15 seconds remaining')).toBe(region);
+    await tick(1000);
+    expect(region).toBeInTheDocument();
+    expect(region).toBeEmptyDOMElement();
+  });
+
   it('is sent once when the clock runs out, and again only after a growing pause', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     let refuse = true;

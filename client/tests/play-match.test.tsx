@@ -650,6 +650,20 @@ describe('a classroom pupil', () => {
     return match;
   };
 
+  it('announces ten seconds remaining in the pupil’s existing region', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    pupilIn({ question_started_at: new Date().toISOString(), question_duration_s: 12 });
+    await mount();
+    await screen.findByText('Pick one?');
+    const region = document.querySelector('span[style][aria-live="polite"]');
+    expect(region).toBeEmptyDOMElement();
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
+    expect(screen.getByText('10 seconds remaining')).toBe(region);
+    await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+    expect(region).toBeInTheDocument();
+    expect(region).toBeEmptyDOMElement();
+  });
+
   it('closes the options and says so when the teacher reveals the answer', async () => {
     const match = pupilIn({ question_duration_s: 30 });
     await mount();

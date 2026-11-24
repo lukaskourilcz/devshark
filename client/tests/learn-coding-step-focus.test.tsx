@@ -38,11 +38,15 @@ const PLAYABLE = {
 
 it('moves focus to the coding step when the last question gives way to it', async () => {
   server.use(
-    http.post('*/api/quiz/roadmap', ({ request }) => (new URL(request.url).searchParams.get('resource') === 'answer'
-      ? HttpResponse.json({ selectedIndex: 0, correctAnswer: 0, isCorrect: true, explanation: 'Because it is first.' })
-      : HttpResponse.json({ error: { code: 'not_found', message: 'Not found' } }, { status: 404 }))),
+    http.post('*/api/quiz/roadmap', ({ request }) => {
+      const resource = new URL(request.url).searchParams.get('resource');
+      if (resource === 'coding-submit') return HttpResponse.json({ verdict: 'passed', results: [], hidden: null, check: null, logs: [], codeError: null, progress: null, firstPass: false, xpAwarded: 0 });
+      return resource === 'answer'
+        ? HttpResponse.json({ selectedIndex: 0, correctAnswer: 0, isCorrect: true, explanation: 'Because it is first.' })
+        : HttpResponse.json({ error: { code: 'not_found', message: 'Not found' } }, { status: 404 });
+    }),
   );
-  const t = ((key: string) => key) as never;
+  const t = ((key: string, values?: { n: number }) => key === 'coding.lesson.pending' ? `${values?.n} tasks left` : key) as never;
   await act(async () => render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })}>
       <MemoryRouter>
@@ -61,4 +65,8 @@ it('moves focus to the coding step when the last question gives way to it', asyn
   const intro = await screen.findByText(/coding\.lesson\.intro/);
   await waitFor(() => expect(intro).toHaveFocus());
   expect(document.activeElement).not.toBe(document.body);
+  const remaining = screen.getByText('1 tasks left: Digit sum');
+  expect(remaining).toHaveAttribute('aria-live', 'polite');
+  fireEvent.click(await screen.findByRole('button', { name: 'Submit' }));
+  expect(await screen.findByText('0 tasks left: Digit sum')).toBe(remaining);
 });

@@ -873,3 +873,19 @@ describe('the hint ladder', () => {
     expect(document.activeElement).toHaveTextContent('Add each value.');
   });
 });
+
+it.each(['code', 'artifact'] as const)('announces saved edits in the mounted %s draft status', async kind => {
+  const { CodeActivity, ArtifactActivity } = await import('../src/components/paths/ActivityViews');
+  const view = (draftStatus: 'idle' | 'saving' | 'saved') => <LanguageProvider>{kind === 'code'
+    ? <CodeActivity code={{ language: 'javascript', prompt: 'Sum it.', starter: '', hints: [], tests: [] }}
+        draft={null} result={null} onSubmit={() => {}} onDraft={() => {}} draftStatus={draftStatus} busy={false} />
+    : <ArtifactActivity artifact={{ brief: 'Explain the result.', fields: [], rubricDimensions: [] }} rubric={[]}
+        draft={null} result={null} onSubmit={() => {}} onDraft={() => {}} draftStatus={draftStatus} busy={false} />}</LanguageProvider>;
+  const { rerender } = render(view('idle'));
+  const region = screen.getByText('Nothing to save yet');
+  expect(region).toHaveAttribute('aria-live', 'polite');
+  rerender(view('saving'));
+  expect(screen.getByText('Saving…')).toBe(region);
+  rerender(view('saved'));
+  expect(screen.getByText('Draft saved')).toBe(region);
+});

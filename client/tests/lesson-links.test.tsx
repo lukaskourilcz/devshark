@@ -120,3 +120,15 @@ it('lets only the latest run of a lesson example paint its output', async () => 
   expect(view.container.querySelector('.lp-example__output')).toHaveTextContent('newer');
   expect(screen.getByRole('button', { name: 'Run it' })).toBeEnabled();
 });
+
+it('updates the same trace note when the learner steps forward', () => {
+  render(<LanguageProvider><LessonView lesson={{ id: 'count', title: 'Count', sources: [], sections: [
+    { kind: 'trace', caption: 'Two steps', trace: { shape: 'array', frames: [
+      { cells: ['1'], note: 'First value.' }, { cells: ['2'], note: 'Second value.' },
+    ] } },
+  ] }} /></LanguageProvider>);
+  const note = screen.getByText('First value.', { selector: '.lp-trace__note' });
+  expect(note).toHaveAttribute('aria-live', 'polite');
+  fireEvent.click(screen.getByRole('button', { name: 'Next step' }));
+  expect(screen.getByText('Second value.', { selector: '.lp-trace__note' })).toBe(note);
+});
