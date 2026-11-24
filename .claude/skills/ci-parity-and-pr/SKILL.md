@@ -106,7 +106,7 @@ The script tests the working tree, but CI sees only committed files, so commit b
 
 Vercel deploys `main` to production. For a change that alters production behaviour:
 
-1. Find the production deployment of the merge SHA and wait until it is READY (Vercel MCP `list_deployments` and `get_deployment`, or `gh api repos/lukaskourilcz/devshark/commits/<sha>/status`).
+1. Find the production deployment of the merge SHA and wait until it is READY (Vercel MCP `list_deployments` and `get_deployment`, or `gh api repos/lukaskourilcz/devshark/commits/<sha>/status`). A release made with the Vercel CLI instead passes the commit, or Sentry gets no release: `vercel deploy --prod --build-env DEPLOY_COMMIT_SHA=$(git rev-parse HEAD)` from a clean checkout of the merge SHA.
 2. Run the smoke checks the change needs from `docs/launch-runbook.md` ("Preview smoke test", "Release and observation") against devshark.app, read-only and as a guest unless the owner approved a fixture. Create no accounts, scores, orders or messages on production without approval.
 3. Write the acceptance entry (below) and the `NEEDED.md` updates. The merge has already happened, so commit them on the next issue's branch, or on a short `claude/<issue-id>-acceptance` branch with its own pull request when no next branch exists.
 
