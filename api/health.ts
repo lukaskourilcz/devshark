@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '../lib/vercel-types.js';
 import { jsonError, logEvent, serviceClientOrNull, withRequestContext } from '../lib/http';
+import { createGradingReadiness } from '../lib/grading-readiness';
 import { rateLimiterMode } from '../lib/rate-limit';
 
 // Null without Supabase, or in production without a usable service-role key:
@@ -7,6 +8,14 @@ import { rateLimiterMode } from '../lib/rate-limit';
 const service = serviceClientOrNull();
 
 type DependencyStatus = 'ok' | 'down' | 'unconfigured';
+
+const gradingReadiness = createGradingReadiness(async (deadline) => {
+  const { runInQuickJS } = await import('../lib/coding/sandbox');
+  const remainingMs = deadline - performance.now();
+  if (remainingMs <= 0) return false;
+  const result = await runInQuickJS({ code: '', calls: ['1 + 1'], expectations: [2], deadlineMs: remainingMs });
+  return !result.timedOut && result.codeError === null && result.results[0]?.pass === true;
+});
 
 /** Read one row of `table` on the service connection within 1.5 s. A check
  * that fails is logged with its reason, whether the read threw or answered an
@@ -50,13 +59,17 @@ function checkDependencies(): Promise<[DependencyStatus, DependencyStatus]> {
  * GET /api/health
  *
  * Liveness + readiness probe. Returns:
- *   { ok, status, dependencies: { database, serviceRole, rateLimiter }, ts: ISO }
+ *   { ok, status, dependencies: { database, serviceRole, rateLimiter, grading }, ts: ISO }
  *
  * `rateLimiter` is the limiter's live mode (lib/rate-limit.ts
  * `rateLimiterMode`): `configured` when Upstash answers a PING,
  * `memory-fallback` when it is configured and does not, and
  * `in-memory-fallback` without Upstash. It does not change the status code,
  * which stays the database checks'.
+ *
+ * Grading checks a fixed expression in this function's QuickJS runtime and,
+ * in production, the presence of the React runner snapshot configuration.
+ * The separate live grading monitor exercises actual submissions.
  *
  * Status code reflects readiness so a plain uptime monitor (UptimeRobot,
  * Better Stack) alerts without body parsing:
@@ -76,9 +89,12 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   // Private learning tables intentionally grant nothing to anonymous callers.
   // Readiness checks run on the server's authorized connection too; requiring
   // an anonymous SELECT would report a healthy, private database as down.
-  const [[supabaseStatus, privilegedStatus], rateLimiter] = await Promise.all([checkDependencies(), rateLimiterMode()]);
-
   const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+  const [[supabaseStatus, privilegedStatus], rateLimiter, grading] = await Promise.all([
+    checkDependencies(),
+    rateLimiterMode(),
+    gradingReadiness(!isProduction || Boolean(process.env.REACT_RUNNER_SNAPSHOT_ID)),
+  ]);
   const degraded = supabaseStatus === 'down' || privilegedStatus === 'down' ||
     (isProduction && (supabaseStatus === 'unconfigured' || privilegedStatus === 'unconfigured'));
   res.setHeader('Cache-Control', 'no-store');
@@ -90,6 +106,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
       database: supabaseStatus === 'ok' ? 'ok' : 'unavailable',
       serviceRole: privilegedStatus === 'ok' ? 'ok' : 'unavailable',
       rateLimiter,
+      grading,
     },
     ts: new Date().toISOString(),
   });
