@@ -244,6 +244,8 @@ const TaskRow = memo(function TaskRow({ task, status, premium = 'open', saved, o
       <span className="cd-row__main">
         <span className="cd-row__title">{task.title}</span>
         {level && <span className="cd-row__meta"><span aria-hidden>·</span>{level}</span>}
+        {task.difficulty && <span className="cd-row__meta">{t(`coding.difficulty.${task.difficulty}`)}</span>}
+        {task.estimatedMinutes > 0 && <span className="cd-row__meta">{t('coding.estimatedMinutes', { n: task.estimatedMinutes })}</span>}
         {formatOf(task) === 'debug' && <span className="cd-tag cd-tag--format">{t('coding.format.debug')}</span>}
         {isBarred(premium) && status !== 'premium' && <Badge variant="neutral" label={t('premium.badge')} />}
       </span>

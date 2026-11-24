@@ -381,3 +381,15 @@ for (const [tier, stage] of [
     }
   });
 }
+
+test('track rows show the authored difficulty and estimated duration', async ({page}) => {
+  await answer(page);
+  await page.goto('/coding/javascript');
+  const row = page.locator('.cd-catalogue .cd-row').first();
+  await expect(row).toBeVisible();
+  const title = await row.locator('.cd-row__title').textContent();
+  const task = CODING_TASKS.find(item => item.title === title && item.track === 'javascript')!;
+  const summary = playable(task);
+  await expect(row.getByText(`Est. ${summary.estimatedMinutes} min`, {exact:true})).toBeVisible();
+  await expect(row.getByText(/^(Easy|Medium|Hard)$/)).toBeVisible();
+});

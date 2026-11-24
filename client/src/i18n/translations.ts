@@ -1553,6 +1553,7 @@ export const en = {
   'coding.group.rendering': 'Rendering',
   'coding.group.design': 'System design',
   'coding.progress': '{passed} of {total} passed',
+  'coding.estimatedMinutes': 'Est. {n} min',
   'coding.minutes': '{n} min',
   'coding.level': 'Level {n}',
   'coding.filter.status': 'Status',
