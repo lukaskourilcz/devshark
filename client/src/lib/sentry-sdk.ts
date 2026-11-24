@@ -17,12 +17,16 @@ export { captureException } from '@sentry/react';
 export function start(dsn: string, environment: string, early: EarlyError[] = []): void {
   init({
     dsn,
-    environment,
+    environment: import.meta.env.VITE_DEPLOY_ENV || environment,
+    release: import.meta.env.VITE_DEPLOY_SHA || undefined,
     // Performance tracing (Web Vitals + transactions) at a low sample rate,
     // without the cost of full sampling or Session Replay.
     // `linkPreviousTrace: 'in-memory'` is the SDK's default, pinned: the
     // other setting keeps the last trace in sessionStorage.
-    integrations: [browserTracingIntegration({ linkPreviousTrace: 'in-memory' })],
+    integrations: (defaults) => [
+      ...defaults.filter(({ name }) => name !== 'BrowserSession'),
+      browserTracingIntegration({ linkPreviousTrace: 'in-memory' }),
+    ],
     tracesSampleRate: 0.1,
     // No IP address, cookies or user context. Error monitoring runs for
     // every visitor without asking (lib/consent.ts, "necessary") only

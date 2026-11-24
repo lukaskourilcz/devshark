@@ -501,6 +501,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
   define: {
+    'import.meta.env.VITE_DEPLOY_SHA': JSON.stringify(/^[a-f0-9]{40}$/i.test(env.VERCEL_GIT_COMMIT_SHA ?? '') ? env.VERCEL_GIT_COMMIT_SHA : ''),
+    'import.meta.env.VITE_DEPLOY_ENV': JSON.stringify(['development', 'preview', 'production'].includes(env.VERCEL_ENV) ? env.VERCEL_ENV : ''),
     __MERCH_IMAGES__: JSON.stringify(merchImages(path.resolve(__dirname, 'public/merch'))),
     // Remove SDK diagnostic branches from the lazy production chunk. Tracing
     // stays enabled and keeps sentry-sdk.ts's existing 0.1 sampling policy.
