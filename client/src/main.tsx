@@ -16,6 +16,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { AuthProvider } from './lib/auth';
 import { prefetchStoredAccountPlan } from './lib/entitlement';
+import { openQotdDate } from '../../shared/daily-question';
 import { queryClient } from './lib/queryClient';
 import { initSentry } from './lib/sentry';
 import { initAnalytics } from './lib/analytics';
@@ -70,10 +71,10 @@ prefetchStoredAccountPlan();
 // first commit (lib/routePreload.ts useFirstPageTransition), and the import
 // it then runs is this one.
 void preloadPath(window.location.pathname);
-if (/^\/daily\/?$/.test(window.location.pathname)) {
-  void import('./lib/dailyQuestion').then(({ prefetchDailyLanding }) => {
-    if (/^\/daily\/?$/.test(window.location.pathname)) return prefetchDailyLanding(queryClient);
-  }).catch(() => { /* The route loads its query normally after a chunk failure. */ });
+const dailyDate = openQotdDate(window.location.pathname);
+if (dailyDate) {
+  void import('./lib/dailyQuestion').then(({ prefetchDailyLanding }) => prefetchDailyLanding(queryClient, dailyDate))
+    .catch(() => { /* The route loads its query normally after a chunk failure. */ });
 }
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

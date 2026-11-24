@@ -59,6 +59,15 @@ export function qotdAvailability(date: string, today: string = utcToday()): Qotd
   return 'open';
 }
 
+/** The question an entry URL can open without asking the server for an unavailable date. */
+export function openQotdDate(pathname: string): string | null {
+  const match = /^\/daily(?:\/(\d{4}-\d{2}-\d{2}))?\/?$/i.exec(pathname);
+  if (!match) return null;
+  const today = utcToday();
+  const date = match[1] ?? today;
+  return isIsoDate(date) && qotdAvailability(date, today) === 'open' ? date : null;
+}
+
 /** The public page of one day's question; /daily shows today's. */
 export const qotdPath = (date?: string): string => (date ? `/daily/${date}` : '/daily');
 
