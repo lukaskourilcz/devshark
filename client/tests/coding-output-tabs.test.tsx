@@ -297,7 +297,7 @@ it('previews checks in one list and expands the first failure with its input, ex
   expect(other).toBeDefined();
 });
 
-it('draws the pane separator as a quiet 1px line in a 12px column with 2px either side (coding-18)', () => {
+it('draws the pane separator as a readable 1px line in a 12px column with 2px either side (coding-18)', () => {
   const { container } = mount('javascript');
   const separator = screen.getByRole('separator', { name: 'Resize the editor and task information panes' });
   expect(separator).toHaveAttribute('tabindex', '0');
@@ -305,7 +305,7 @@ it('draws the pane separator as a quiet 1px line in a 12px column with 2px eithe
   const css = readFileSync(new URL('../src/coding/Coding.css', import.meta.url), 'utf8');
   expect(css).toMatch(/grid-template-columns: minmax\(0, var\(--cd-split, 58%\)\) 12px minmax\(0, 1fr\);\s*column-gap: 2px;/);
   const rest = css.slice(css.indexOf('  .cd-splitter {'), css.indexOf('}', css.indexOf('  .cd-splitter {')));
-  expect(rest).toContain('var(--ss-card-line)');
+  expect(rest).toContain('var(--color-border-strong) calc(50% - 0.5px), var(--color-border-strong) calc(50% + 0.5px)');
   expect(rest).not.toContain('border-radius: 999px');
   expect(css).toMatch(/\.cd-splitter:hover,\s*\.cd-splitter:focus-visible \{ background: linear-gradient.*var\(--brand-accent\)/);
 });
