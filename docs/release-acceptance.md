@@ -9030,3 +9030,36 @@ pass. Original stage/head/dirty receipts and both earlier fast failures remain
 in `docs/quality/f11-binding-inventory-2026-11-19.md` and adjacent JSON.
 A new clean-head fast plus exactly one additional same-head Launch, then
 required CI/SQL/merge/deployment acceptance, remain pending.
+
+
+## Epic F12 client correctness (24 November 2026)
+
+On Chromium 158, the matched production builds `4db80e061` and `dfb93f8dc`
+each kept 513 listeners and zero intervals through five laps of ten routes in
+one guest document. The pending timeouts with a requested delay of at least
+one second measured 21, 26, 31, 36 and 35. This exceeded the 10% limit.
+Allocation traces on the latter build showed 20 outstanding Sentry navigation
+deadlines in lap five. After 35 seconds there were 15 remaining timeouts,
+of which 13 were query-cache evictions. After 305 seconds only the two clock
+timers for mounted Home components remained. Holding and releasing 12
+listeners, one timeout and one interval verified all three counters.
+
+| Finding | Implementation and verification |
+| --- | --- |
+| F12-04 | The production Vite transform checks the pinned Sentry 10.59.0 module and cancels its final timeout at the SDK's existing finished transition. The active span retains its 30-second deadline and its sampling policy. The client Vitest exercises the pinned SDK. `tests/browser/memory.spec.ts` checks the raw lap-five and +35 s counts. `MEMORY_FULL_EXPIRY=1` also records and checks +305 s. |
+| F12-06 | The earlier browser test drops the stats request after grading. A second offline case presses Submit before grading, observes zero requests, reconnects and checks one grade for the locked answers and one account receipt. Restoring a different account discards the queued Submit. |
+| F12-18 | The account-change contract and the console fixture are documented under “Caller data in React Query” and “Browser console checks” in `product-architecture.md`. |
+| F12-21 and F12-22 | The public page specs use the shared console fixture. The Playwright config checks every spec import. The Chromium job and local parity both select the offline and memory specs. |
+
+F12-11 through F12-15 and F12-17 received focused verification on #674.
+The Challenge stopped sending rewards after a sign-in change. The classroom
+presenter cancelled its old answer-distribution request on the next question
+and on exit. Earlier sections retain the original F12-01 through F12-10,
+F12-16, F12-20 and F12-23 observations and release scope.
+
+The integrated build, full browser console check, account-switch inventory
+and amended raw timer counts are queued for the final combined run. For
+the traced memory measurement, prepare the production build with a disposable
+local `VITE_SENTRY_DSN` and run Chromium with `MEMORY_EXPECT_TRACING=1`
+and `MEMORY_FULL_EXPIRY=1`. The test blocks external HTTP; its
+`route-memory.json` attachment holds the per-lap, control and expiry readings.

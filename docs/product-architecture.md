@@ -1960,6 +1960,22 @@ opening the email on a different device.
   (`beforeAccountChange`), then moves an account epoch (`accountEpoch`), and
   work that started before it (a progress sync, an XP sync, a level
   completion, a Challenge reward) writes and announces nothing.
+- **Caller data in React Query.** Include the authenticated account id in a
+  new caller-specific query key, or register the shared key among the ones
+  `clearAccountData` clears before another account renders. Add every new
+  prefix and its factory to `client/tests/account-switch-cache.test.tsx`.
+  A late mutation that could write a cache entry, navigate or announce a
+  reward must compare its starting `accountEpoch()` with the current one.
+  A pending Quiz Submit also keeps the identity that locked its answers. A
+  restored tab waits for auth before sending the saved answers to the grader.
+  Once graded, the server receipt uses its own account-scoped delivery queue.
+- **Browser console checks.** Browser specs import `test` and `expect` from
+  `tests/browser/console-clean.ts`. The fixture observes each page opened in
+  the test context for application console errors and unhandled errors.
+  A test that intentionally breaks a chunk names the expected message with
+  `allowConsoleErrors`. The report retains browser-generated HTTP failure
+  lines separately. `playwright.config.ts` rejects direct Playwright value
+  imports in spec files.
 - **Progress is read, never sent.** The server writes Learn progress itself on
   each completion. The browser pulls it at sign-in and when Today or a map
   asks (`GET /api/quiz/roadmap?resource=progress`, `syncProgressWithServer`,
