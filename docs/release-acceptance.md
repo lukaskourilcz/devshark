@@ -9096,3 +9096,100 @@ The hosted mobile Lighthouse Home score reached 93 against F1's 92. Desktop scor
 Across the twelve independently bundled API entry points, a configured fresh process created 31 service-role clients in total before the change and 12 after it. Each handler kept its own separate anonymous authenticator. Three interleaved before/after trials per handler used disposable credentials and sent zero requests. The Challenge median moved from 55.93 ms to 52.91 ms and the admin median from 63.33 ms to 60.92 ms. Some timings increased, including the user handler from 73.19 ms to 74.36 ms. These times measure local process imports.
 
 Computing review metadata for all 2,583 authored quiz questions took 17.50 ms before the change and 12.80 ms after it. For all 814 coding challenges, it took 42.05 ms and 22.81 ms respectively. Measurements are medians of eight warm passes after a warm-up, on Node 24.22.3. The SHA-256 digest of the complete serialized response matched across both versions for each catalogue.
+
+## Epic F closeout (24 November 2026)
+
+The F1 column uses the archived 19 November measurements. The application column identifies the observed build or environment. Rollout is still pending for the database and the reviewed React grading environment.
+
+| §5 measurement | F1 | Application evidence | Change and scope |
+| --- | --- | --- | --- |
+| 1. Initial gzip | 218,661 bytes | 217,717 bytes at `04ee69969` | -0.43%. The four requests are the main script, React, TanStack and CSS. The final column below accounts for every initial byte. |
+| 2. Treemap | 233 emitted chunks | 236 emitted chunks, measured with `ANALYZE=true npm run check:bundle` | +1.29% by count. The ten largest chunks appear below. |
+| 3. Browser performance | Home mobile Lighthouse 92. See the F1 mobile and desktop Lighthouse and CDP route tables. | Hosted run `45325797806` scored 92 mobile and 100 desktop. Five cold mobile LCP medians ranged from 852 to 1,648 ms and 15 scripted inputs peaked at 96 ms. CLS was zero on four routes at both widths. | Mobile Home score 0.00%. Eight-route matched local measurements use three visits per route, profile and cache state. Field INP requires real visitors. |
+| 4. Twelve handler cold starts | F1 recorded fresh-process import timings and separate production response headers. | In the paired local imports, four of twelve handler medians improved. With disposable provider configuration, the twelve handlers constructed 12 service clients, down from 31. | Client constructions −61.29%. Local imports cannot establish provider cold-start time. A deployment with comparable Server-Timing headers is required. |
+| 5. Images | 11 source assets, 269,577 bytes | 11 source assets, 269,577 bytes. Asset references and dimensions were inventoried. | 0.00% by count and bytes. The [F4 record](audit/f4-image-delivery-2026-11-18.json) identifies rendered dimensions and the routes observed. |
+| 6. npm production advisories | Root 0, client 0 | Root 0, client 0. Including development dependencies also returned 0 in both projects. | Absolute change 0. A percentage from a zero baseline is undefined. The separate upstream review led to two dependency fixes. |
+| 7. Database advisors | Hosted production had 33 security findings (all informational) and 57 performance findings (39 warnings). | The reviewed migration stack in CI returned 50 informational results and zero warnings or errors. | These are different databases. A production percentage needs the approved rollout and a new advisor export from the same project. |
+| 8. Repository, Linux image and CI | F1 allocated KiB: Git 132,988, docs 20,172, media 1,512, public 284. Linux/amd64 image 141,951,324 bytes. Ten completed workflows recorded 14,200 wall seconds and 33,831 total job seconds. | Allocated KiB: shared audit Git 232,040, docs 22,320, media 1,512, public 284. Linux/amd64 image 141,812,464 bytes. Ten completed workflows through run `45325797806` recorded 11,705 wall seconds and 29,151 job seconds. | Image -0.10%. Directory changes in the same order: +74.48%, +10.65%, +0.00%, +0.00%. The shared audit store includes additional refs. CI wall -17.57%, jobs -13.83% across different mixes of completed jobs. These durations are not billing records. |
+
+| File group (gzip bytes) | F1 | `04ee69969` | Change |
+| --- | ---: | ---: | ---: |
+| Initial main JS | 106,232 | 105,282 | -0.89% |
+| Initial React | 74,807 | 74,807 | +0.00% |
+| Initial TanStack | 12,989 | 12,989 | +0.00% |
+| Initial CSS | 24,633 | 24,639 | +0.02% |
+
+| Ten largest chunks (gzip bytes) | F1 | `04ee69969` | Change |
+| --- | ---: | ---: | ---: |
+| `ts-compiler` | 1,092,837 | 1,092,846 | +0.00% |
+| `Editor` | 173,083 | 173,083 | +0.00% |
+| `EmailRichTextEditor` | 130,655 | 130,678 | +0.02% |
+| `main` | 106,232 | 105,282 | -0.89% |
+| `posthogClient` | 93,472 | 99,173 | +6.10% |
+| `babel` | 83,128 | 83,128 | +0.00% |
+| `react` | 74,807 | 74,807 | +0.00% |
+| `estree` | 62,245 | 62,245 | +0.00% |
+| `supabase` | 55,304 | 55,304 | +0.00% |
+| `sentry-sdk` | 46,800 | 47,130 | +0.71% |
+
+The [F1 bundle](audit/f1-bundle-2026-11.json), [F1 API observations](audit/f1-handler-baseline-2026-11-19.json), [F1 CI cohort](audit/f1-ci-quality-snapshot-2026-11-19.json) and [F1 production advisors](audit/database-advisors-2026-11.json) preserve the original samples. The [Linux image job](https://github.com/lukaskourilcz/devshark/actions/runs/45325797806/job/138214970375) measured the current review tree with the same Docker harness.
+
+### Handler import timings
+
+F1 archived its fresh-process import proxy and independently observed first-byte latency on its production deployment. The matched 24 November trials measured three local Node 24.22.3 imports per handler on intake `4db80e061` and application checkpoint `ff08d461b`. The last two columns show a later paired experiment with disposable provider configuration and zero network requests, measured before and after client reuse (`2f7699880`). Each percentage compares observations from the same experiment.
+
+| Handler | F1 import ms | F1 production first byte ms | Intake → checkpoint ms | Change | Configured, before → after ms | Change |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| health | 18.99 | 331.58 | 13.43 → 16.41 | +22.2% | 29.20 → 28.96 | -0.8% |
+| settings | 34.33 | 147.43 | 22.95 → 24.12 | +5.1% | 36.54 → 36.52 | -0.1% |
+| leaderboard | 19.37 | 377.08 | 12.91 → 14.47 | +12.1% | 26.70 → 26.72 | +0.0% |
+| questions | 105.00 | 429.64 | 69.33 → 69.68 | +0.5% | 83.66 → 83.10 | -0.7% |
+| roadmap | 131.08 | 191.38 | 82.94 → 83.20 | +0.3% | 96.60 → 96.40 | -0.2% |
+| challenge | 83.44 | 145.81 | 40.06 → 40.18 | +0.3% | 55.93 → 52.91 | -5.4% |
+| daily | 65.48 | 253.48 | 41.61 → 39.24 | -5.7% | 53.69 → 52.32 | -2.5% |
+| submit | 59.96 | 145.81 | 39.69 → 39.51 | -0.5% | 52.20 → 52.34 | +0.3% |
+| flashcards | 57.37 | 144.67 | 38.82 → 38.96 | +0.4% | 51.28 → 51.34 | +0.1% |
+| user | 90.45 | 141.17 | 60.13 → 59.96 | -0.3% | 73.19 → 74.36 | +1.6% |
+| play | 58.58 | 150.08 | 39.55 → 39.61 | +0.2% | 52.37 → 52.06 | -0.6% |
+| admin | 78.79 | 205.57 | 49.87 → 48.72 | -2.3% | 63.33 → 60.92 | -3.8% |
+
+### Eight routes in Chrome
+
+Each cell gives the F1 median, the 24 November intake median at `4db80e061`, and the reviewed median at `04ee69969`, in that order. Percentages compare the two 24 November builds under matched conditions. F1 used its archived browser and route readiness rules. Each November 24 build received 96 visits. All 192 scripted interactions registered. The cold visitor had no consent choice. The repeat visitor had rejected analytics. Daily and the leaderboard received disposable API fixtures. The input column records trusted button or answer interactions in the lab.
+
+| Profile | Route | Visit | LCP ms | CLS | TBT ms | Input ms |
+| --- | --- | --- | ---: | ---: | ---: | ---: |
+| mobile | `/` | cold | 1688 / 1656 / 1660 (+0.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 104 / 96 / 96 (+0.0%) |
+| mobile | `/` | repeat | 284 / 260 / 276 (+6.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 48 / 48 (+0.0%) |
+| mobile | `/learn` | cold | 1696 / 1644 / 1664 (+1.2%) | 0 / 0 / 0 (same) | 25 / 4 / 9 (+125.0%) | 120 / 88 / 112 (+27.3%) |
+| mobile | `/learn` | repeat | 896 / 836 / 824 (-1.4%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 80 / 48 / 48 (+0.0%) |
+| mobile | `/coding` | cold | 1696 / 1628 / 1620 (-0.5%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 104 / 88 / 64 (-27.3%) |
+| mobile | `/coding` | repeat | 292 / 268 / 272 (+1.5%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 48 / 24 (-50.0%) |
+| mobile | `/quiz` | cold | 1704 / 1656 / 1636 (-1.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 88 / 80 / 72 (-10.0%) |
+| mobile | `/quiz` | repeat | 308 / 268 / 260 (-3.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| mobile | `/daily` | cold | 1676 / 1616 / 836 (-48.3%) | 0.071 / 0.071 / 0 (-100.0%) | 64 / 16 / 11 (-31.2%) | 64 / 64 / 48 (-25.0%) |
+| mobile | `/daily` | repeat | 456 / 436 / 400 (-8.3%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 16 / 24 (+50.0%) |
+| mobile | `/premium` | cold | 872 / 852 / 840 (-1.4%) | 0 / 0 / 0 (same) | 60 / 13 / 14 (+7.7%) | 104 / 72 / 72 (+0.0%) |
+| mobile | `/premium` | repeat | 456 / 280 / 268 (-4.3%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 48 / 32 (-33.3%) |
+| mobile | `/topics/javascript-closures` | cold | 892 / 868 / 852 (-1.8%) | 0 / 0 / 0 (same) | 56 / 20 / 17 (-15.0%) | 88 / 88 / 72 (-18.2%) |
+| mobile | `/topics/javascript-closures` | repeat | 292 / 284 / 260 (-8.5%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 48 / 24 (-50.0%) |
+| mobile | `/leaderboard` | cold | 1688 / 1644 / 1632 (-0.7%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 88 / 72 / 72 (+0.0%) |
+| mobile | `/leaderboard` | repeat | 472 / 264 / 428 (+62.1%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 32 / 32 (+0.0%) |
+| desktop | `/` | cold | 344 / 312 / 312 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 80 / 64 / 64 (+0.0%) |
+| desktop | `/` | repeat | 76 / 80 / 80 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/learn` | cold | 356 / 332 / 328 (-1.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 112 / 80 / 72 (-10.0%) |
+| desktop | `/learn` | repeat | 556 / 80 / 560 (+600.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/coding` | cold | 356 / 316 / 324 (+2.5%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 80 / 64 / 64 (+0.0%) |
+| desktop | `/coding` | repeat | 224 / 80 / 80 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 48 / 48 / 48 (+0.0%) |
+| desktop | `/quiz` | cold | 356 / 328 / 324 (-1.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 80 / 64 / 64 (+0.0%) |
+| desktop | `/quiz` | repeat | 108 / 80 / 108 (+35.0%) | 0.0002 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/daily` | cold | 340 / 308 / 156 (-49.4%) | 0.0528 / 0.0528 / 0 (-100.0%) | 0 / 0 / 0 (same) | 64 / 64 / 64 (+0.0%) |
+| desktop | `/daily` | repeat | 212 / 76 / 216 (+184.2%) | 0.0528 / 0.0528 / 0 (-100.0%) | 0 / 0 / 0 (same) | 32 / 16 / 32 (+100.0%) |
+| desktop | `/premium` | cold | 180 / 168 / 160 (-4.8%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 88 / 64 / 64 (+0.0%) |
+| desktop | `/premium` | repeat | 204 / 80 / 72 (-10.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/topics/javascript-closures` | cold | 188 / 156 / 160 (+2.6%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 72 / 64 / 64 (+0.0%) |
+| desktop | `/topics/javascript-closures` | repeat | 72 / 76 / 76 (+0.0%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+| desktop | `/leaderboard` | cold | 344 / 320 / 316 (-1.2%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 72 / 64 / 64 (+0.0%) |
+| desktop | `/leaderboard` | repeat | 208 / 72 / 220 (+205.6%) | 0 / 0 / 0 (same) | 0 / 0 / 0 (same) | 32 / 32 / 32 (+0.0%) |
+
+F1 source tables retain the individual observer samples. [Mobile](audit/f1-mobile-cdp-2026-11.json) · [Desktop](audit/f1-desktop-cdp-2026-11.json)
