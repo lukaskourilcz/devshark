@@ -100,7 +100,7 @@ interface GrantRow {
   updated_at: string;
 }
 
-export interface AdminGrant {
+interface AdminGrant {
   id: string;
   userId: string;
   source: EntitlementSource;

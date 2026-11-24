@@ -30,7 +30,7 @@ const logEvent = createLogger('referral');
 
 /** What `record_referral` answers. `off` is the server's own answer when the
  * owner has set the grant to 0. */
-export type ReferralClaimStatus = 'recorded' | 'already' | 'unknown' | 'self' | 'closed' | 'off';
+type ReferralClaimStatus = 'recorded' | 'already' | 'unknown' | 'self' | 'closed' | 'off';
 /** What `credit_referral` answers. */
 export type ReferralCreditStatus = 'none' | 'waiting' | 'already' | 'credited' | 'capped' | 'orphaned' | 'off';
 

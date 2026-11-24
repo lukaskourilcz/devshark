@@ -84,7 +84,7 @@ export const SATISFYING_STATES: Record<EvidenceState, readonly EvidenceState[]> 
 /* ── the public manifest ───────────────────────────────────────────────── */
 
 /** A named capability the path teaches and the diagnostic measures. */
-export interface CompetencyDescriptor {
+interface CompetencyDescriptor {
   id: string;
   title: string;
   summary: string;
@@ -101,7 +101,7 @@ export interface SourceReference {
 
 /** One rubric dimension, in the learner-visible words used before they start.
  * Descriptors are observable, so a learner can self-review honestly. */
-export interface RubricDimension {
+interface RubricDimension {
   id: string;
   title: string;
   levels: {
@@ -112,7 +112,7 @@ export interface RubricDimension {
   };
 }
 
-export interface RubricDescriptor {
+interface RubricDescriptor {
   version: number;
   dimensions: RubricDimension[];
 }
@@ -152,7 +152,7 @@ export interface ActivitySummary {
   fixtureNote?: string;
 }
 
-export interface ModuleRequirement {
+interface ModuleRequirement {
   activityId: string;
   state: EvidenceState;
 }
@@ -213,7 +213,7 @@ export interface ModuleSummary {
   shelf?: ModuleShelf;
 }
 
-export interface LessonSummary {
+interface LessonSummary {
   id: string;
   title: string;
   /** One sentence for the module list; the body arrives with the lesson. */
@@ -237,7 +237,7 @@ export interface BridgeSummary {
   estimatedMinutes: number;
 }
 
-export interface BridgeReference {
+interface BridgeReference {
   kind: 'roadmap-topic' | 'coding-task' | 'path-activity' | 'doc';
   /** Topic id, coding task id, activity id, or an absolute documentation URL. */
   ref: string;
@@ -345,7 +345,7 @@ export function pathInventory(manifest: LearningPathManifest): PathInventory {
 
 /* ── progress ──────────────────────────────────────────────────────────── */
 
-export interface ActivityProgress {
+interface ActivityProgress {
   activityId: string;
   state: EvidenceState;
   verification: VerificationKind | null;

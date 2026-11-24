@@ -15,7 +15,7 @@ import { jsonError } from '../http';
 import type { VercelRequest, VercelResponse } from '../vercel-types';
 import { enforceRateLimit, RATE_LIMITS } from '../rate-limit';
 
-export type SourceContent = {
+type SourceContent = {
   title: string; body: string; category: string; difficulty: string | null;
   code: string | null; options: string[]; answer: string | null; explanation: string | null;
   evidence: { url: string; title: string; excerpt: string; checkedAt: string }[];

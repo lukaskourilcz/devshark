@@ -105,7 +105,9 @@ const JWT_DELETED = jwtAccount(5);
 const JWT_OUTAGE = jwtAccount(6);
 const JWT_WRITER = jwtAccount(7);
 const JWT_GET_WRITER = jwtAccount(8);
-const JWT_ACCOUNTS = [JWT_LEARNER, JWT_TOGETHER, JWT_SHORT, JWT_ADMIN, JWT_DELETED, JWT_OUTAGE, JWT_WRITER, JWT_GET_WRITER];
+const PATH_READER = jwtAccount(9);
+const PREFERENCE_READER = jwtAccount(10);
+const JWT_ACCOUNTS = [JWT_LEARNER, JWT_TOGETHER, JWT_SHORT, JWT_ADMIN, JWT_DELETED, JWT_OUTAGE, JWT_WRITER, JWT_GET_WRITER, PATH_READER, PREFERENCE_READER];
 // An account whose saved learner profile Supabase Auth returns with the
 // token check, as it returns every account's user_metadata.
 const PROFILED: Account = {
@@ -440,6 +442,10 @@ async function startStandIns() {
     }
     if (url.pathname.startsWith('/rest/v1/')) {
       const single = String(req.headers.accept ?? '').includes('vnd.pgrst.object');
+      if (url.pathname === '/rest/v1/learning_path_enrollments' && filters.user_id === PATH_READER.id
+          && filters.enrollment_id === 'read-limit-enrollment') {
+        return send(200, { enrollment_id: filters.enrollment_id, user_id: PATH_READER.id, path_id: 'fde', status: 'active', curriculum_version: 1 });
+      }
       if (url.pathname === '/rest/v1/learning_path_enrollments' && filters.user_id === A.id
           && [SLOW_PATH_PROGRESS, SLOW_PATH_OPEN, SLOW_PATH_ACCEPT].includes(filters.enrollment_id)) {
         return send(200, {
@@ -1255,6 +1261,19 @@ async function main() {
       const req = { headers: { 'x-forwarded-for': from ?? '0.0.0.0' }, query: {} } as never;
       for (let n = 0; n < config.capacity; n += 1) rateLimit.checkRateLimit(req, res as never, config, identity);
     };
+    const pathReaders = [
+      { op: 'learning-path-progress', account: PATH_READER, query: { enrollmentId: 'read-limit-enrollment' } },
+      { op: 'learning-preference', account: PREFERENCE_READER, query: undefined },
+    ];
+    for (const { op, account, query } of pathReaders) {
+      for (let request = 1; request <= 120; request++) {
+        const response = await user(op, { account, query });
+        assert.equal(response.statusCode, 200, `${op} permits read ${request}: ${JSON.stringify(response.body)}`);
+      }
+      const overBudget = await user(op, { account, query });
+      assert.equal(overBudget.statusCode, 429, `${op} refuses read 121 in the same frozen minute`);
+    }
+    console.log('PASS verified caller: path progress and learning preferences each permit 120 reads and refuse read 121');
     drain(rateLimit.RATE_LIMITS.readPerUser, `user:${A.id}`);
     const limited = await lookup(A);
     assert.equal(limited.statusCode, 429, `a friend lookup past the account's read budget is refused (${JSON.stringify(limited.body)})`);
@@ -2316,6 +2335,8 @@ async function main() {
       }
     }
     const healthContract = readFileSync('bruno/Public/Health.bru', 'utf8');
+    assert.match(healthContract, /^\s*res\.body\.dependencies\.grading: eq ok\s*$/m);
+    assert.match(healthContract, /^\s*res\.body\.dependencies\.rateLimiter: neq memory-fallback\s*$/m);
     const healthy = await call(health as Handler, {});
     assert.equal(healthy.statusCode, 200);
     for (const [, field, operator, expected] of healthContract.matchAll(/res\.body\.dependencies\.(\w+): (eq|neq) ([\w-]+)/g)) {

@@ -1,7 +1,7 @@
 // Clear local service credentials before any handler dependency is evaluated.
 import './launch-test-env';
 import { transformSync } from 'esbuild';
-import { privateCspReport } from '../lib/csp-reports';
+import { handleCspReport, privateCspReport } from '../lib/csp-reports';
 import { adminDirectoryContracts } from './test-admin-directory';
 import { createCodingSession as encodeCodingSession } from '../lib/coding/session';
 import assert from 'node:assert/strict';
@@ -4052,6 +4052,52 @@ assert.deepEqual(sanitizedReport, { 'csp-report': { 'document-uri': 'https://dev
   'effective-directive': 'img-src', 'violated-directive': 'img-src', 'blocked-uri': 'redacted' } });
 assert.equal(privateCspReport({ 'csp-report': { 'effective-directive': 'private text' } }), null);
 
+async function cspReportingContracts() {
+  const previous = process.env.VITE_SENTRY_DSN;
+  const originalFetch = globalThis.fetch;
+  const sent: unknown[] = [];
+  const syntheticKey = '0'.repeat(32);
+  const host = 'o4511808879001600.ingest.de.sentry.io';
+  process.env.VITE_SENTRY_DSN = `https://${syntheticKey}@${host}/1`;
+  globalThis.fetch = async (url, init) => {
+    assert.equal(String(url), `https://${host}/api/1/security/?sentry_key=${syntheticKey}`);
+    assert.deepEqual(init?.headers, { 'content-type': 'application/csp-report' });
+    sent.push(JSON.parse(String(init?.body)));
+    return new Response(null, { status: 204 });
+  };
+  const post = async (body: unknown, type = 'application/reports+json', address = '192.0.2.77') => {
+    const req = { headers: { 'content-type': type, 'x-forwarded-for': address }, body, socket: {} };
+    const res = mockResponse();
+    await handleCspReport(req as never, res as never);
+    return res.statusCode;
+  };
+  const item = { type: 'csp-violation', url: 'https://example.test/private', body: {
+    effectiveDirective: 'img-src', blockedURL: 'https://images.example/private?query=fixture',
+    referrer: 'https://private.example/path', sample: 'private fixture text' } };
+  try {
+    assert.equal(await post(JSON.stringify([item, { type: 'deprecation', body: item.body },
+      { ...item, body: { effectiveDirective: 'script-src', blockedURL: 'inline' } }])), 204);
+    assert.deepEqual(sent, [sanitizedReport, { 'csp-report': { 'document-uri': 'https://devshark.app/',
+      'effective-directive': 'script-src', 'violated-directive': 'script-src', 'blocked-uri': 'inline' } }]);
+    assert.equal(await post({ 'csp-report': { 'effective-directive': 'img-src' } }, 'application/csp-report'), 204);
+    assert.deepEqual(sent[2], sanitizedReport, 'legacy posts share the same scrubber and sink');
+    assert.equal(await post({}), 400);
+    assert.equal(await post(Array(9).fill(item)), 413);
+    assert.equal(await post(' '.repeat(8193)), 413);
+    assert.equal(await post([{ ...item, url: 'x'.repeat(8193) }]), 413, 'decoded chunked batches keep the byte cap');
+    assert.equal(await post([], 'text/plain'), 415);
+    assert.equal(sent.length, 3);
+    const address = '192.0.2.78';
+    assert.equal(await post(Array(8).fill(item), 'application/reports+json', address), 204);
+    assert.equal(await post(Array(5).fill(item), 'application/reports+json', address), 429);
+    assert.equal(sent.length, 11, 'a batch over its remaining allowance forwards no partial batch');
+    console.log('PASS CSP collector: modern and legacy formats, sanitized envelopes, batch limits and unchanged per-report quota');
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (previous === undefined) delete process.env.VITE_SENTRY_DSN; else process.env.VITE_SENTRY_DSN = previous;
+  }
+}
+
 function assertGenericError(label: string, error: Record<string, unknown> | undefined) {
   assert.deepEqual(Object.keys(error ?? {}).filter((key) => !['code', 'message', 'requestId'].includes(key)), [],
     `${label} answers the generic error body`);
@@ -6418,9 +6464,8 @@ async function main() {
 
   // The app ships one dictionary, English, and it must not look truncated.
   {
-    const source = readFileSync(join(process.cwd(), 'client/src/i18n/translations.ts'), 'utf8');
-    const en = new Set((source.match(/^ {2}'[^']+':/gm) ?? []).map((line) => line.trim().slice(1, -2)));
-    assert.ok(en.size > 1500, `the English dictionary looks truncated: ${en.size} keys`);
+    const keys = Object.keys(shellEnglish);
+    assert.ok(keys.length > 1500, `the English dictionary looks truncated: ${keys.length} keys`);
   }
 
   // The pre-paint bootstrap has to run before anything that can block it.
@@ -6769,7 +6814,10 @@ async function main() {
     };
     const deliver = async (body: unknown, signature: string) => {
       const res = mockResponse();
-      await handlePaymentWebhook({ method: 'POST', headers: { 'x-payment-signature': signature }, query: {}, body } as never, res as never, db as never);
+      const req = { method: 'POST', headers: { 'x-payment-signature': signature, 'x-forwarded-for': '192.0.2.57' }, query: { op: 'payment-webhook' }, body, socket: {} };
+      if (await limitUserWrite(req as never, res as never, 'payment-webhook')) {
+        await handlePaymentWebhook(req as never, res as never, db as never);
+      }
       return res;
     };
     try {
@@ -6799,6 +6847,12 @@ async function main() {
       paidAnswer = { data: true, error: null };
       const paidNow = await deliver(reused, sign(JSON.stringify(reused)));
       assert.deepEqual([paidNow.statusCode, paidNow.body], [200, { applied: true }], 'a matching event marks the order paid');
+      for (let n = 1; n <= 25; n += 1) {
+        const raw = JSON.stringify({ ...reused, providerRef: `pi_burst_${n}` });
+        const received = await deliver(raw, sign(raw));
+        assert.deepEqual([received.statusCode, received.body], [200, { applied: true }], `signed provider delivery ${n} from one address`);
+      }
+      console.log('PASS payment webhook: all 25 signed deliveries from one address applied');
       const queriesAfterPayment = touched.length;
       const replay = await deliver(reused, sign(JSON.stringify(reused)));
       assert.deepEqual([replay.statusCode, replay.body], [200, { applied: false, duplicate: true }]);
@@ -7080,6 +7134,7 @@ async function main() {
   unstorableTextContracts();
   strictQueryContracts();
   await quizStepQueryContracts();
+  await cspReportingContracts();
   await malformedBodyContracts();
   await oversizeBodyContracts();
   await requestIdContracts();

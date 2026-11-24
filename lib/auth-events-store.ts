@@ -15,7 +15,7 @@ const TABLE = 'auth_events';
 // Ignore repeat sign-in pings for the same user within this window.
 const DEDUPE_MS = 2 * 60 * 1000;
 
-export type AuthEventType = 'register' | 'login';
+type AuthEventType = 'register' | 'login';
 
 export interface AuthEventRow {
   id: string;

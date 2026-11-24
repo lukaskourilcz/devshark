@@ -18,6 +18,7 @@ import ErrorRetry from '../ErrorRetry';
 import { AppToast } from '../ui/AppToast';
 import { ApiError, friendlyError } from '../../lib/api';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { operationsEn } from '../../i18n/translations.operationsRoute';
 import type { TranslationKey } from '../../i18n/translations';
 import { createVoucher, listVouchers, revokeVoucher, updateVoucherLimit, type VoucherInput } from '../../lib/devApi';
 import { normalizeVoucherCode, type AdminVoucher, type CreatedVoucher } from '../../../../shared/vouchers';
@@ -73,7 +74,7 @@ export function voucherInput(
 }
 
 export default function DevVouchers() {
-  const { t } = useLanguage();
+  const { t } = useLanguage(operationsEn);
   const [toast, setToast] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedVoucher | null>(null);
   // The list is what an admin checks; the form opens on demand (admin UX review, 12 November 2026).
@@ -94,7 +95,7 @@ export default function DevVouchers() {
 /* ── a new voucher ─────────────────────────────────────────────────────── */
 
 function CreateVoucher({ onCreated, onCancel }: { onCreated: (created: CreatedVoucher) => void; onCancel: () => void }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(operationsEn);
   const queryClient = useQueryClient();
   const [note, setNote] = useState('');
   const [days, setDays] = useState<DayChoice>('30');
@@ -228,7 +229,7 @@ function CreateVoucher({ onCreated, onCancel }: { onCreated: (created: CreatedVo
 /* ── the code, once ────────────────────────────────────────────────────── */
 
 function CreatedCode({ created, onDone }: { created: CreatedVoucher; onDone: () => void }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(operationsEn);
   const [copy, setCopy] = useState<'idle' | 'copied' | 'failed'>('idle');
   const heading = useRef<HTMLHeadingElement>(null);
   const field = useRef<HTMLInputElement>(null);
@@ -283,7 +284,7 @@ function CreatedCode({ created, onDone }: { created: CreatedVoucher; onDone: () 
 /* ── the list ──────────────────────────────────────────────────────────── */
 
 function VoucherFacts({ voucher }: { voucher: AdminVoucher }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(operationsEn);
   const day = (iso: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
   return (
     <ul className="dev-voucher-facts">
@@ -297,7 +298,7 @@ function VoucherFacts({ voucher }: { voucher: AdminVoucher }) {
 }
 
 function VoucherList({ onMessage }: { onMessage: (message: string) => void }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(operationsEn);
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: VOUCHERS_KEY, queryFn: listVouchers });
   const [confirming, setConfirming] = useState<string | null>(null);
@@ -357,7 +358,7 @@ function VoucherList({ onMessage }: { onMessage: (message: string) => void }) {
 }
 
 function VoucherLimit({ voucher }: { voucher: AdminVoucher }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(operationsEn);
   const client = useQueryClient();
   const [uses, setUses] = useState(String(voucher.maxRedemptions));
   const [busy, setBusy] = useState(false);

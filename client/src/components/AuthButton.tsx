@@ -124,7 +124,6 @@ function AuthButton() {
         type="button"
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label={t('auth.accountMenu', { name: displayName })}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -138,7 +137,9 @@ function AuthButton() {
           cursor: 'pointer',
         }}
       >
+        <span className="ss-sr-only">{t('auth.accountMenu', { name: displayName })} </span>
         <div
+          aria-hidden="true"
           style={{
             display: 'flex',
             flexShrink: 0,
@@ -170,10 +171,10 @@ function AuthButton() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, maxWidth: '100%' }}>
-            <Text type="body" weight="medium" color="primary" maxLines={1}>
+            <Text aria-hidden="true" type="body" weight="medium" color="primary" maxLines={1}>
               {displayName}
             </Text>
-            <Badge variant="green" label={levelInfo.level} />
+            <Badge variant="green" label={levelInfo.level} />{' '}
           </div>
           <span title={rankTitle} style={{ display: 'block', maxWidth: '100%', minWidth: 0 }}>
             <Text type="supporting" size="xsm" color="accent" weight="semibold" maxLines={1}>

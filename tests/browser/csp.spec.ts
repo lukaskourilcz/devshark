@@ -127,15 +127,17 @@ async function openTask(page: Page, path: string, source: string) {
   await editor.fill(source);
 }
 
-test('Run reaches a result in the JavaScript worker and the React sandbox frame without a violation', async ({ page, baseURL }) => {
+test('Run reaches a result for JavaScript, TypeScript and React under the deployed policy', async ({ page, baseURL }) => {
   test.setTimeout(120_000);
   const seen = await watchPolicy(page);
   await prepare(page, baseURL);
   const run = page.getByRole('button', { name: 'Run', exact: true });
 
-  await openTask(page, '/coding/javascript/js-double-numbers', solutionFor('js-double-numbers')!.solution);
-  await run.click();
-  await expect.soft(announced(page)).toHaveText(/^(\d+) of \1 passing$/, { timeout: 30_000 });
+  for (const [track, id] of [['javascript', 'js-double-numbers'], ['typescript', 'ts-typed-slug']]) {
+    await openTask(page, `/coding/${track}/${id}`, solutionFor(id)!.solution);
+    await run.click();
+    await expect.soft(announced(page)).toHaveText(/^([1-9]\d*) of \1 passing$/, { timeout: 30_000 });
+  }
 
   const react = 'react-easy2-focus-the-search';
   const cases = suiteCaseCount(CODING_TASKS.find((task) => task.id === react)!.suite);
