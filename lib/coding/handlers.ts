@@ -10,7 +10,7 @@ import { sendPublicJson } from '../public-json';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
 import { AuthError } from '../auth';
-import { isRpcMissing, jsonError, createLogger, requireAuthSub, tryAuthOnce, verifiedCallerId, withTimeout } from '../http';
+import { isRpcMissing, jsonError, createLogger, requireAuthSub, ServiceUnavailableError, tryAuthOnce, verifiedCallerId, withTimeout } from '../http';
 import { claimOnce, enforceAddressRateLimit, enforceClassRateLimit, enforcePerItemRateLimit, enforceRateLimit, enterInFlight, RATE_LIMITS } from '../rate-limit';
 import { deploymentSubjectIds } from '../product-scope';
 import { secureShuffle } from '../quiz-runtime';
@@ -378,6 +378,7 @@ async function openCodingTask(req: VercelRequest, res: VercelResponse, supabase:
         }
       }
     } catch (error) {
+      if (error instanceof ServiceUnavailableError) throw error;
       logEvent({ status: 500, kind: 'task_progress_unavailable', reason: error instanceof Error ? error.message : 'unknown' });
       jsonError(res, 500, 'db_error', 'Could not load coding progress');
       return null;
@@ -1081,7 +1082,12 @@ export async function handleCodingReveal(req: VercelRequest, res: VercelResponse
 
   let progress: CodingTaskProgress | null = null;
   if (userId && supabase) {
-    try { progress = await loadProgressRow(supabase, userId, task.id); } catch { return jsonError(res, 500, 'db_error', 'Could not load coding progress'); }
+    try {
+      progress = await loadProgressRow(supabase, userId, task.id);
+    } catch (error) {
+      if (error instanceof ServiceUnavailableError) throw error;
+      return jsonError(res, 500, 'db_error', 'Could not load coding progress');
+    }
   }
   if (progress?.status !== 'passed' && await refuseLocked(res, userId, codingSessionContent(task, session))) return;
   if (await refuseInvalidLearnLink(supabase, res, session, userId)) return;
@@ -1151,6 +1157,7 @@ export async function handleCodingProgress(req: VercelRequest, res: VercelRespon
     const out: CodingProgressResponse = { tasks, stagesWithSavedCode, due, javascriptLevelsCleared: cleared, passedByTrack };
     return res.json(out);
   } catch (error) {
+    if (error instanceof ServiceUnavailableError) throw error;
     logEvent({ status: 500, kind: 'progress_unavailable', reason: error instanceof Error ? error.message : 'unknown' });
     return jsonError(res, 500, 'db_error', 'Could not load coding progress');
   }

@@ -2141,12 +2141,6 @@ async function main() {
       // lib/github-handlers.ts: GitHub may have spent the one-time code by
       // then, and the callback page sends the same code again after a 503.
       'user POST github-connect-finish': 'answers 500 on purpose',
-      'Learn plan': 'F9-21',
-      'coding task': 'F9-20',
-      'coding state': 'F9-20',
-      'coding reveal': 'F9-20',
-      'user GET coding-progress': 'F9-20',
-      'user POST voucher': 'F9-22',
       // lib/rewards/referral.ts answers 504; left for F16 (not an F9 file).
       'user GET referral': 'F16',
       'user POST referral': 'F16',
@@ -2163,7 +2157,10 @@ async function main() {
       if (label in TIMEOUT_EXCEPTIONS) continue;
       assert.ok(res.statusCode !== 500 && res.statusCode !== 504, `${label} answers a hung database with ${outcome(res)}, not 503`);
     }
-    for (const label of ['leaderboard global', 'Shark Cards GET', 'Learn level', 'play GET state', 'admin GET reports', 'user GET stats', 'user POST friends-request']) {
+    for (const label of [
+      'leaderboard global', 'Shark Cards GET', 'Learn level', 'play GET state', 'admin GET reports', 'user GET stats',
+      'user POST friends-request', 'Learn plan', 'coding task', 'coding state', 'coding reveal', 'user GET coding-progress', 'user POST voucher',
+    ]) {
       const res = hungSweep.find(([one]) => one === label)![1];
       assert.equal(outcome(res), '503 upstream_timeout', `${label} answers a hung database 503 upstream_timeout`);
     }
