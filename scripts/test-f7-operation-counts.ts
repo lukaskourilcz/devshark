@@ -23,6 +23,65 @@ const manifest = [
   { id: 'answer', entry: 'api/quiz/roadmap.ts', query: { resource: 'answer' }, method: 'POST', auth: true },
 ] as const;
 
+// Upstream-call budgets per representative operation and state (#636), as
+// [Auth HTTP, Supabase REST, Upstash HTTP] maxima. They equal the counts this
+// fixture observed on 24 November 2026, so any added round trip fails here.
+// A new state needs its own row; lowering a count should lower its budget.
+const BUDGETS: Record<string, readonly [number, number, number]> = {
+  'settings:first-in-fresh-handler-child': [0, 1, 0],
+  'settings:immediate-repeat-existing-caches': [0, 0, 0],
+  'settings:conditional-content-revalidation': [0, 0, 0],
+  'settings:wrong-method-refusal': [0, 0, 0],
+  'map:first-in-fresh-handler-child': [0, 1, 1],
+  'map:immediate-repeat-existing-caches': [0, 0, 1],
+  'map:conditional-content-revalidation': [0, 0, 1],
+  'map:address-rate-refusal-first': [0, 0, 1],
+  'map:address-rate-refusal-repeat-same-address': [0, 0, 0],
+  'map:wrong-method-refusal': [0, 0, 0],
+  'catalogue:first-in-fresh-handler-child': [0, 0, 0],
+  'catalogue:immediate-repeat-existing-caches': [0, 0, 0],
+  'catalogue:conditional-content-revalidation': [0, 0, 0],
+  'catalogue:wrong-method-refusal': [0, 0, 0],
+  'brief:first-in-fresh-handler-child': [0, 0, 1],
+  'brief:immediate-repeat-existing-caches': [0, 0, 1],
+  'brief:conditional-content-revalidation': [0, 0, 1],
+  'brief:address-rate-refusal-first': [0, 0, 1],
+  'brief:address-rate-refusal-repeat-same-address': [0, 0, 0],
+  'brief:wrong-method-refusal': [0, 0, 0],
+  'lesson:first-in-fresh-handler-child': [0, 0, 1],
+  'lesson:immediate-repeat-existing-caches': [0, 0, 1],
+  'lesson:conditional-content-revalidation': [0, 0, 1],
+  'lesson:address-rate-refusal-first': [0, 0, 1],
+  'lesson:address-rate-refusal-repeat-same-address': [0, 0, 0],
+  'lesson:wrong-method-refusal': [0, 0, 0],
+  'leaderboard:first-in-fresh-handler-child': [0, 1, 1],
+  'leaderboard:immediate-repeat-existing-caches': [0, 1, 1],
+  'leaderboard:conditional-content-revalidation': [0, 1, 1],
+  'leaderboard:address-rate-refusal-first': [0, 0, 1],
+  'leaderboard:address-rate-refusal-repeat-same-address': [0, 0, 0],
+  'leaderboard:invalid-period-refusal': [0, 0, 1],
+  'progress:first-in-fresh-handler-child': [1, 2, 2],
+  'progress:accepted-token-and-settings-warm': [0, 1, 2],
+  'progress:address-rate-refusal-first': [0, 0, 1],
+  'progress:address-rate-refusal-repeat-same-address': [0, 0, 0],
+  'progress:invalid-token-refusal': [1, 0, 1],
+  'placement-start:first-in-fresh-handler-child': [0, 1, 2],
+  'placement-start:immediate-repeat-existing-caches': [0, 0, 2],
+  'placement-start:address-rate-refusal-first': [0, 0, 1],
+  'placement-start:address-rate-refusal-repeat-same-address': [0, 0, 0],
+  'placement-start:invalid-subject-refusal': [0, 0, 2],
+  'placement-round:questions-warm-by-required-setup': [0, 0, 3],
+  'placement-round:immediate-repeat-existing-caches': [0, 0, 3],
+  'placement-round:address-rate-refusal-first': [0, 0, 1],
+  'placement-round:address-rate-refusal-repeat-same-address': [0, 0, 0],
+  'placement-round:replayed-first-round-refusal': [0, 0, 3],
+  'answer:first-in-fresh-handler-child': [1, 2, 2],
+  'answer:immediate-repeat-existing-caches': [1, 1, 2],
+  'answer:address-rate-refusal-first': [1, 0, 1],
+  'answer:address-rate-refusal-repeat-same-address': [0, 0, 0],
+  'answer:foreign-owner-refusal': [1, 0, 2],
+};
+
 // Wire shapes below derive from test-prelude/test-learn-round-trips and
 // test-verified-caller's upstashAnswer. No production auth/claim core is copied.
 const beforeImport = String.raw`
@@ -223,6 +282,11 @@ try {
     for (const row of operation.rows) {
       assert.ok(row.events.every((event:any) => Number.isFinite(event.end) && Number.isInteger(event.endOrder)), 'No unfinished transport is silently dropped');
       assert.equal(row.authHttp + row.restHttp + row.upstashHttp,row.events.length);
+      const budget = BUDGETS[`${item.id}:${row.state}`];
+      assert.ok(budget, `${item.id}:${row.state} has an upstream-call budget`);
+      const [authMax, restMax, upstashMax] = budget;
+      assert.ok(row.authHttp <= authMax && row.restHttp <= restMax && row.upstashHttp <= upstashMax,
+        `${item.id}:${row.state} stays within its upstream-call budget [${budget.join(', ')}], made [${row.authHttp}, ${row.restHttp}, ${row.upstashHttp}]`);
       if (row.state === 'conditional-content-revalidation') assert.equal(row.status,304);
       if (row.state.startsWith('address-rate-refusal')) { assert.equal(row.status,429); assert.equal(row.restHttp,0); assert.ok(row.events.every((event:any) => event.commands.every((command:any) => command.role.endsWith('_address'))), 'A refused address spends no caller/claim command'); }
       if (row.state === 'address-rate-refusal-repeat-same-address') assert.equal(row.authHttp,0, 'A refused address does not start a second Auth check');

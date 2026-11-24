@@ -2534,6 +2534,9 @@ error and may overlap. Rank completed requests by method and operation over a
 stated window, then compare call counts under matching cache, identity and
 result conditions. Older logs contain route-level statistics only. They cannot
 establish the ten most frequent logical operations before this change.
+`scripts/test-f7-operation-counts.ts` holds an Auth, REST and Upstash HTTP
+maximum for every state of ten representative operations, so `npm run
+test:performance` fails on any added round trip.
 
 The footer carries the legal links, devShark's own social profiles, and the
 appearance and sound controls, and promotes no other product.
