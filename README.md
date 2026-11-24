@@ -180,7 +180,7 @@ Apply `supabase/supabase-schema.sql`, then numbered migrations in order through 
 
 The one-time import of interview-prepper history is `npm run import:interview-prepper -- --input export.json --user-id <id> [--apply]`; it reads a Firestore export, maps the old challenge ids to devShark task ids, and writes passed tasks and attempts without XP or scheduled reviews.
 
-After deployment, schedule `public.purge_expired_learning_data()` with Supabase Cron or another owner-controlled job. Back up before migrations and follow [docs/backup-restore.md](./docs/backup-restore.md).
+Migration 086 installs the named daily purge when pg_cron is available. Verify the active schedule and its execution in each environment. Back up before migrations and follow [docs/backup-restore.md](./docs/backup-restore.md).
 
 Operational instructions are in [docs/launch-runbook.md](./docs/launch-runbook.md). Owner actions are tracked in [NEEDED.md](./NEEDED.md). Current and projected infrastructure costs are in [scaling.md](./scaling.md).
 

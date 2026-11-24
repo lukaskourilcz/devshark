@@ -23,6 +23,8 @@ Copy the shape of `supabase/supabase-schema-065.sql` and the headers of 059 and 
 -- in production (<short sha>): <which routines that code calls keep their
 -- name, arguments, body and grants>.
 BEGIN;
+SET LOCAL lock_timeout = '5s';
+SET LOCAL statement_timeout = '30s';
 
 DO $$
 BEGIN
@@ -44,6 +46,7 @@ END;
 $$;
 REVOKE ALL ON FUNCTION public.<routine>(<arg types>) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.<routine>(<arg types>) TO service_role;
+COMMENT ON FUNCTION public.<routine>(<arg types>) IS 'Called by <actual caller path or database object>.';
 COMMIT;
 ```
 
@@ -113,6 +116,8 @@ The owner, or an agent the owner authorised for that migration, applies it to pr
 2. Compare the project's applied migrations (the connector's `list_migrations`) with the repository before you assume a file is live or missing.
 3. Apply the file in full through the Supabase SQL editor or the Supabase connector's `apply_migration`. When the connector fails on a large file, follow [references/apply-large-migration.md](references/apply-large-migration.md).
 4. Prove production matches a fresh build of the repository by fingerprint. Source: `docs/release-acceptance.md`, "Migration 046 proof" ("matched this local chain by fingerprint").
+
+For migrations from 077 onward, check the second-apply catalog and row-count fingerprint. New own-row reads require both an explicit authenticated SELECT grant and a matching policy. Revoke routine execution from PUBLIC on each new function. Name the actual caller of every definer in a catalog comment. Keep application data out of Realtime publications. The new migration template starts with the lock and statement timeouts immediately after BEGIN.
 
 ## Validation
 
