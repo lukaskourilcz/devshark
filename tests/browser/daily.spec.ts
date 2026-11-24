@@ -37,7 +37,7 @@ for (const theme of ['light', 'dark'] as const) for (const viewport of [{ width:
     await page.addInitScript((theme) => { try { localStorage.setItem('devquiz:color-mode', theme); } catch {} }, theme);
     await mockQuestion(page);
     await page.goto('/daily');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('question of the day');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Question of the day');
     await page.getByRole('radio', { name: '"object"' }).click();
     await page.getByRole('button', { name: 'Check answer' }).click();
     await expect(page.getByText('Right answer')).toBeVisible();

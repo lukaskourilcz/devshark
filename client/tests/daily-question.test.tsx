@@ -77,7 +77,8 @@ describe('/daily', () => {
     );
     renderAt('/daily');
     const h1 = screen.getByRole('heading', { level: 1 });
-    expect(h1).toHaveTextContent(`${trackName(today)} question of the day`);
+    expect(h1).toHaveTextContent(/^Question of the day$/);
+    expect(h1.previousElementSibling).toHaveTextContent(trackName(today));
     // The day is the kicker over the h1; no separate date line (questions-11).
     const day = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${today}T12:00:00Z`));
     expect(h1.previousElementSibling).toHaveTextContent(day);

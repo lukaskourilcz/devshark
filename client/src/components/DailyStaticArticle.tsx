@@ -15,13 +15,14 @@ type Translate = (key: TranslationKey, vars?: Record<string, string | number>) =
  * day as the kicker, the h1 and a one-sentence lead. The kicker line is drawn
  * even without a day, so the h1 sits at one y.
  */
-export function DailyHeader({ t, track, dateLabel, date, context }: { t: Translate; track?: string; dateLabel?: string; date?: string; context?: ReactNode }) {
+export function DailyHeader({ t, track, dateLabel, date, context, trackInKicker }: { t: Translate; track?: string; dateLabel?: string; date?: string; context?: ReactNode; trackInKicker?: boolean }) {
   return (
     <header className="ss-info-page__header">
       <span className="ss-info-page__kicker" aria-hidden={date && dateLabel ? undefined : true}>
         {date && dateLabel && <time dateTime={date}>{dateLabel}</time>}
+        {trackInKicker && track && <> · {track}</>}
       </span>
-      <h1>{track ? t('daily.title', { track }) : t('daily.titlePlain')}</h1>
+      <h1>{track && !trackInKicker ? t('daily.title', { track }) : t('daily.titlePlain')}</h1>
       {context && <div className="ss-daily__context">{context}</div>}
       <p className="ss-daily__practice">{t('daily.lead')}</p>
     </header>

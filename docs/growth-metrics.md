@@ -2,7 +2,7 @@
 
 devShark sends product analytics to PostHog EU Cloud, and only after the visitor allows analytics in the cookie banner (`client/src/lib/consent.ts`). Before that the SDK is not downloaded and nothing is stored or sent; a withdrawal resets PostHog and removes its cookies and the stored campaign. Without `VITE_PUBLIC_POSTHOG_KEY` every call is a no-op. Requests go through the same-origin `/ingest` proxy.
 
-`client/src/lib/posthogClient.ts` turns off autocapture, dead-click capture and session recording, honours Do Not Track, creates person profiles only for signed-in accounts, and leaves URL fragments out. Its `before_send` hook strips every URL and referrer property down to origin and path plus the campaign labels.
+`client/src/lib/posthogClient.ts` turns off autocapture, dead-click capture and session recording, honours Do Not Track, creates person profiles only for signed-in accounts, and leaves URL fragments out. Its `before_send` hook strips every URL and referrer property down to origin and path plus the campaign labels. Room invitations are masked as `/play/:code` in address and text properties. Feature-flag requests are disabled because their initial properties bypass the event scrubber.
 
 ## Events
 
