@@ -53,6 +53,7 @@ function TopicCard({
   // swimming 140px across the card (the CTAs in LandingKit do the same).
   const reduce = useMediaQuery('(prefers-reduced-motion: reduce)');
   const swim = hover && !reduce;
+  const border = `1px solid ${selected ? 'var(--brand-accent)' : 'var(--ss-card-line)'}`;
   return (
     <button
       type="button"
@@ -65,7 +66,7 @@ function TopicCard({
       style={{
         position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left',
         background: selected ? 'var(--brand-accent-soft)' : 'var(--ss-card-bg)',
-        border: `1px solid ${selected ? 'var(--brand-accent)' : 'var(--ss-card-line)'}`,
+        borderTop: border, borderLeft: border, borderRight: border,
         borderBottom: '2px solid var(--ss-card-edge)',
         boxShadow: hover
           ? `var(--shadow-med)${selected ? ', inset 0 0 0 1px var(--brand-accent)' : ''}`
