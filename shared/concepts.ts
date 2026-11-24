@@ -35,7 +35,7 @@ export interface Concept {
 }
 
 /** Concepts that are worth practising against each other, and why. */
-export interface ConceptGroup {
+interface ConceptGroup {
   id: string;
   topic: string;
   label: string;

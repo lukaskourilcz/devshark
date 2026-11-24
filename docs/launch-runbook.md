@@ -148,6 +148,10 @@ Two scheduled workflows watch production:
 
 GitHub runs scheduled workflows on a best-effort basis (the health workflow ran 6 of 96 times in one day) and emails a failed scheduled run only to the account that last changed its schedule. Until an external uptime monitor exists and failure emails are confirmed (#190), neither workflow is a reliable alert channel.
 
+For release attribution in Sentry, filter on the full deployment commit SHA and select its `production` or `preview` environment. After the authorized release, the owner inspects ten new events for the promised data exclusions. Record aggregate results only. In Vercel, filter structured runtime errors by handler and date. The older Node 24 `DEP0169` / `url.parse` launcher warning is tracked in #477. Current handler errors and warnings use stderr. For earlier releases, also search general runtime logs for the JSON field `"level":"error"` since the old code wrote those entries to stdout.
+
+The external monitor requested in #190 calls `/api/health` every five minutes. Require HTTP 200 within five seconds, `ok: true`, `status: healthy`, healthy database/service-role checks, a configured limiter and a timestamp at most five minutes old. Alert after two consecutive failures. Require grading to be present and `ok` after an authorized deployment confirms that field. The owner still needs to configure the monitor and confirm delivery of a harmless test alert.
+
 ## Rollback
 
 For a client or API regression, roll Vercel back to the last good deployment. Applied migrations stay: each one keeps the routines older code calls. If an older release depends on a browser write that a migration removed, forward-fix the release; do not reopen the table.

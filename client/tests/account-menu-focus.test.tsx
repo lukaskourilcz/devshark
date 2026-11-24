@@ -17,5 +17,7 @@ vi.mock('../src/lib/shop', () => ({ useEquippedRingColor: () => null }));
 
 it('restores focus to the signed-in account menu after Escape', async () => {
   render(<MemoryRouter><LanguageProvider><AuthButton /></LanguageProvider></MemoryRouter>);
-  await checkEscapeReturn(screen.getByRole('button', { name: 'Account menu for Test' }), 'dialog');
+  const rank = screen.getByTitle(/^Superjunior /).title;
+  const button = screen.getByRole('button', { name: `Account menu for Test 1 ${rank}` });
+  await checkEscapeReturn(button, 'dialog');
 });

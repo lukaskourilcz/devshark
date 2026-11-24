@@ -32,14 +32,14 @@ const SNIPPET_SUBTYPES = [
   /** Which expression or line completes it? */
   'complete',
 ] as const;
-export type SnippetSubtype = (typeof SNIPPET_SUBTYPES)[number];
+type SnippetSubtype = (typeof SNIPPET_SUBTYPES)[number];
 
 /** The notation the code is written in. `pseudocode` and `sql` are here because
  * not every readable snippet is a program in a language we run. */
 const SNIPPET_LANGUAGES = [
   'javascript', 'typescript', 'jsx', 'html', 'css', 'sql', 'bash', 'yaml', 'diff', 'pseudocode',
 ] as const;
-export type SnippetLanguage = (typeof SNIPPET_LANGUAGES)[number];
+type SnippetLanguage = (typeof SNIPPET_LANGUAGES)[number];
 
 /** Versioned so a later change to what the metadata means is a new version
  * rather than a silent reinterpretation of what authors already wrote. */

@@ -1,7 +1,7 @@
 import { Component, createRef, startTransition, type ErrorInfo, type ReactNode } from 'react';
 import { Button } from '@astryxdesign/core/Button';
 import { ErrorPanel } from './ErrorBoundary';
-import { translateStatic } from '../i18n/LanguageContext';
+import { translateShell } from '../i18n/LanguageContext';
 import { reportError } from '../lib/sentry';
 import {
   RELOAD_GRACE_MS,
@@ -179,18 +179,18 @@ export class RouteErrorBoundary extends Component<Props, State> {
       <ErrorPanel
         ref={this.panel}
         busy={busy}
-        title={translateStatic('error.somethingWrong')}
-        body={translateStatic(chunk ? 'error.network' : 'error.boundaryBody')}
+        title={translateShell('error.somethingWrong')}
+        body={translateShell(chunk ? 'error.network' : 'error.boundaryBody')}
         // The route box is a flex column; the panel takes the page's place.
         style={{ flex: 1, minHeight: 'auto', padding: '24px 0' }}
         actions={
           chunk ? (
             // Interruptible: busy but not disabled, so it keeps keyboard focus.
-            <Button variant="primary" label={translateStatic('error.tryAgain')} isLoading={busy} isInterruptible onClick={this.retry} />
+            <Button variant="primary" label={translateShell('error.tryAgain')} isLoading={busy} isInterruptible onClick={this.retry} />
           ) : (
             <>
-              <Button variant="secondary" label={translateStatic('error.tryAgain')} onClick={this.retry} />
-              <Button variant="primary" label={translateStatic('error.reloadPage')} onClick={() => this.recovery.reload()} />
+              <Button variant="secondary" label={translateShell('error.tryAgain')} onClick={this.retry} />
+              <Button variant="primary" label={translateShell('error.reloadPage')} onClick={() => this.recovery.reload()} />
             </>
           )
         }

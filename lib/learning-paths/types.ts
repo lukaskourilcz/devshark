@@ -24,19 +24,18 @@ import type { TaskRuntimePolicy } from '../../shared/coding-task-runtime';
 import { mergeLesson, type LessonSource, type MergedLesson } from '../learn-lessons/types';
 import type { SourceCallTest, SourceTypeTest } from '../coding/types';
 
-export type { SourceCallTest, SourceTypeTest };
-
 /* ── lessons ───────────────────────────────────────────────────────────── */
 
 // The lesson shape lives in lib/learn-lessons/types.ts, because a Learn level
 // carries the same lessons (#492). Re-exported so path content keeps one import.
+/** @public One import path for the supported lesson authoring facade. */
 export type { LessonSectionSource, LessonSource, MergedLesson, TraceSource } from '../learn-lessons/types';
 /** @public Authored path lesson facade documented above; keeps authoring imports on the shared lesson shape. */
 export { mergeLesson, mergeLessonSection } from '../learn-lessons/types';
 
 /* ── objective checks ─────────────────────────────────────────────────── */
 
-export interface CheckQuestionSource {
+interface CheckQuestionSource {
   id: string;
   prompt: string;
   context?: { language: string; code: string };
@@ -53,7 +52,7 @@ export interface CheckQuestionSource {
 
 /** One graded criterion. A critical criterion cannot be averaged away: if it
  * fails the activity fails, whatever the weighted rest scored. */
-export interface CriterionSource {
+interface CriterionSource {
   id: string;
   label: string;
   critical: boolean;
@@ -62,7 +61,7 @@ export interface CriterionSource {
   detail?: string;
 }
 
-export interface PathCodeSource {
+interface PathCodeSource {
   language: PathCodeLanguage;
   prompt: string;
   starter: string;
@@ -85,12 +84,13 @@ export interface PathCodeSource {
   criteria?: CriterionSource[];
 }
 
-export interface PathCallTest extends SourceCallTest {
+interface PathCallTest extends SourceCallTest {
   criterion?: string;
 }
 
 /* ── artifacts ────────────────────────────────────────────────────────── */
 
+/** @public Named field authoring contract in .claude/skills/learning-path-module-authoring/SKILL.md. */
 export interface ArtifactFieldSource {
   id: string;
   label: string;
@@ -100,7 +100,7 @@ export interface ArtifactFieldSource {
   maxLength: number;
 }
 
-export interface PathArtifactSource {
+interface PathArtifactSource {
   brief: string;
   fields: ArtifactFieldSource[];
   rubricDimensions: string[];
@@ -108,6 +108,7 @@ export interface PathArtifactSource {
 
 /* ── activities and modules ───────────────────────────────────────────── */
 
+/** @public Named activity authoring contract in .claude/skills/learning-path-module-authoring/SKILL.md. */
 export interface ActivitySource {
   id: string;
   kind: ActivityKind;
@@ -166,7 +167,7 @@ export interface ModuleSource {
 
 /* ── bridges and the path itself ──────────────────────────────────────── */
 
-export interface BridgeSource {
+interface BridgeSource {
   id: string;
   title: string;
   summary: string;
@@ -176,13 +177,13 @@ export interface BridgeSource {
   estimatedMinutes: number;
 }
 
-export interface CompetencySource {
+interface CompetencySource {
   id: string;
   title: string;
   summary: string;
 }
 
-export interface RubricDimensionSource {
+interface RubricDimensionSource {
   id: string;
   title: string;
   levels: { missing: string; partial: string; adequate: string; strong: string };
@@ -220,7 +221,7 @@ export interface PathCodeSolution {
 
 /* ── merge helpers ────────────────────────────────────────────────────── */
 
-export interface MergedCheckQuestion {
+interface MergedCheckQuestion {
   id: string;
   prompt: string;
   context?: { language: string; code: string };
@@ -231,7 +232,7 @@ export interface MergedCheckQuestion {
   competencies: string[];
 }
 
-export interface MergedCriterion {
+interface MergedCriterion {
   id: string;
   label: string;
   critical: boolean;
@@ -264,7 +265,7 @@ export interface MergedCallTest {
   criterion: string;
 }
 
-export interface MergedArtifact {
+interface MergedArtifact {
   brief: string;
   fields: { id: string; label: string; help: string; kind: ArtifactFieldSource['kind']; required: boolean; maxLength: number }[];
   rubricDimensions: string[];

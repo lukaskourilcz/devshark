@@ -1,6 +1,6 @@
 import { freshStoredAccessToken, getSupabaseSession, hasStoredSession, mayHaveSession } from './supabaseClient';
-import { translateStatic } from '../i18n/LanguageContext';
-import type { TranslationKey } from '../i18n/translations';
+import { translateShell } from '../i18n/LanguageContext';
+import type { shellEn } from '../i18n/translations';
 import { openUpgradeSheet } from './upgradeSheet';
 import { PREMIUM_REQUIRED, type GatedKind } from '../../../shared/tiers';
 
@@ -68,7 +68,7 @@ async function getAccessToken(expectedUserId?: string): Promise<string | null> {
   // supabase-js removes a session it can no longer refresh; one it keeps is
   // waiting for the network.
   if (hasStoredSession()) {
-    throw new ApiError(translateStatic('error.authUnavailable'), 0, 'auth_unavailable');
+    throw new ApiError(translateShell('error.authUnavailable'), 0, 'auth_unavailable');
   }
   return null;
 }
@@ -115,7 +115,7 @@ export async function apiFetch<T>(url: string, opts: Options = {}): Promise<T> {
     // Inside the try, so a token that cannot be read settles like any other
     // failure: the timer and the abort listener are released below.
     const token = isPublicRead(url, rest.method) ? null : await getAccessToken(expectedUserId);
-    if (expectedUserId && !token) throw new ApiError(translateStatic('error.cancelled'), 0, 'cancelled');
+    if (expectedUserId && !token) throw new ApiError(translateShell('error.cancelled'), 0, 'cancelled');
     const res = await fetch(url, {
       ...rest,
       signal: controller.signal,
@@ -142,7 +142,7 @@ export async function apiFetch<T>(url: string, opts: Options = {}): Promise<T> {
       // Without a server message (an HTML 404 page, a proxy error) the learner
       // gets the generic copy, never a bare status text such as "Not Found".
       throw new ApiError(
-        body?.error?.message || translateStatic('error.generic'),
+        body?.error?.message || translateShell('error.generic'),
         res.status,
         body?.error?.code,
         body?.error,
@@ -175,7 +175,7 @@ export async function apiFetch<T>(url: string, opts: Options = {}): Promise<T> {
 // Error codes with dedicated user-facing copy in the i18n dictionaries.
 // timeout/cancelled are minted client-side in apiFetch above; the play codes
 // have a single, unambiguous meaning so the dictionary copy fits every caller.
-const CODE_KEYS: Partial<Record<string, TranslationKey>> = {
+const CODE_KEYS: Partial<Record<string, keyof typeof shellEn>> = {
   timeout: 'error.timeout',
   cancelled: 'error.cancelled',
   // Minted in getAccessToken above, and the server's answer when it cannot
@@ -216,16 +216,16 @@ const CODE_KEYS: Partial<Record<string, TranslationKey>> = {
 };
 
 // friendlyError runs in the api layer (no React context), so it resolves the
-// shared dictionaries via translateStatic. Server messages for unmapped error
+// shared dictionaries via translateShell. Server messages for unmapped error
 // codes fall through as-is (English).
 export function friendlyError(err: unknown): string {
   if (err instanceof ApiError) {
     const codeKey = err.code ? CODE_KEYS[err.code] : undefined;
-    if (codeKey) return translateStatic(codeKey);
-    if (err.status === 0) return translateStatic('error.network');
-    if (err.status >= 500) return translateStatic('error.server');
-    if (err.status === 401 || err.status === 403) return translateStatic('error.signIn');
+    if (codeKey) return translateShell(codeKey);
+    if (err.status === 0) return translateShell('error.network');
+    if (err.status >= 500) return translateShell('error.server');
+    if (err.status === 401 || err.status === 403) return translateShell('error.signIn');
     return err.message;
   }
-  return translateStatic('error.generic');
+  return translateShell('error.generic');
 }

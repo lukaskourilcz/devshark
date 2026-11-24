@@ -17,9 +17,13 @@
  * argument the way that runner always has, and `clock()` returns milliseconds.
  * It reaches nothing else: no host object, no grading state. */
 
+/** @public Published by name through packages/coding-evaluator/src/index.ts in ESM and CommonJS. */
 export type ConsoleEmit = (line: string) => void;
+/** @public Published by name through packages/coding-evaluator/src/index.ts in ESM and CommonJS. */
 export type ConsoleFormat = (value: unknown) => string;
+/** @public Published by name through packages/coding-evaluator/src/index.ts in ESM and CommonJS. */
 export type ConsoleClock = () => number;
+/** @public Published by name through packages/coding-evaluator/src/index.ts in ESM and CommonJS. */
 export type LearnerConsole = Record<string, (...args: unknown[]) => void>;
 export type LearnerConsoleFactory = (emit: ConsoleEmit, format: ConsoleFormat, clock: ConsoleClock) => LearnerConsole;
 

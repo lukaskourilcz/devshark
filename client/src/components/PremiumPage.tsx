@@ -30,6 +30,7 @@ import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@astryxdesign/core/Button';
 import { useLanguage } from '../i18n/LanguageContext';
+import { checkoutEn } from '../i18n/translations.checkoutRoute';
 import type { TranslationKey } from '../i18n/translations';
 import { useAuth } from '../lib/auth';
 import { useBilling, type BillingPlan } from '../lib/billing';
@@ -68,7 +69,7 @@ const FAQ: readonly FaqItem[] = [
 const routerLink: RenderLink = (to, label) => <Link key={to} to={to}>{label}</Link>;
 
 function PlanCard({ plan, showAction, offer }: { plan: BillingPlan; showAction: boolean; offer: LaunchOfferDisplay | null }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(checkoutEn);
   const id = useId();
   const vars = premiumVars();
   const annual = plan === 'annual';
@@ -107,7 +108,7 @@ function usePremiumFirstData() {
 
 export default function PremiumPage() {
   usePremiumFirstData();
-  const { t } = useLanguage();
+  const { t } = useLanguage(checkoutEn);
   const billing = useBilling();
   const plan = useEntitlement();
   const vars = premiumVars();

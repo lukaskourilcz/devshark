@@ -110,3 +110,14 @@ Dependabot checks the root, client and GitHub Actions each Monday at 05:00 Europ
 The remaining minor and patch updates are grouped by directory. Satori is reviewed separately because it generates share images with a pinned override. TypeScript and the Node declaration packages stay on their supported major lines. QuickJS requires an explicit compiler and WASM rebuild. Actions pin the full release commit and keep the vendor's version in a comment. Dependabot branches run GitHub quality checks while Vercel skips their Preview deployments.
 
 Node 24 is selected in `.nvmrc`. Knip reads Storybook's own configuration and the nested scripts and Docker sources. The Vite plugin stays disabled in Knip because the client configuration also performs the product's build-time content generation.
+
+Review the two React grader groups together and land compatible root and browser versions in the same release. TypeScript grades learner submissions. Run `npm run test:coding` after a compiler update, even when the application itself type-checks. The QuickJS runtime also requires `npm run check:quickjs-build` on the pinned compiler before changing its SDK.
+
+| Failed check | Maintainer action |
+| --- | --- |
+| Root or client `npm audit --omit=dev` | Identify the importing package in that lockfile. Upgrade to a fixed compatible release or document a scoped override and its removal condition in the manifest. Run both production audits again. |
+| `npm run check:unused` | Read the reported package and its actual runtime or build reader. Correct the manifest placement, peer or Knip entry, then rerun the gate. |
+| `npm run check:bundle` | Inspect the initial asset breakdown. Defer a route-only import or keep the prior version if the new one exceeds the reviewed budget. |
+| Grading or a public UI contract | Identify the package and failing task or user flow. Keep the supported version for an incompatible update. Apply the compatible members of a group and rerun its quality checks. |
+
+Before a release, run `npm run audit:upstream` against both installed lockfiles. It reads the maintainers’ advisories in addition to the npm audits. For a changed grading runtime, the release owner runs `npm run prepare:react-snapshot` on the reviewed root lock, keeps the previous snapshot ID for rollback and configures `REACT_RUNNER_SNAPSHOT_ID` in Preview and Production. Verify `npm run test:react-isolation` against that snapshot and submit a real Preview solution before promoting the release. [Grading operations](react-grading-operations.md#configuration-and-rollout)

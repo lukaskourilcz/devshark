@@ -7,6 +7,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNod
 import { Kicker } from '../components/landing/LandingKit';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../i18n/LanguageContext';
+import { codingEn } from '../i18n/translations.codingRoute';
 import { RadioCard, RadioCardGroup } from '../components/ui/RadioCards';
 import { ApiError, friendlyError } from '../lib/api';
 import { submitCoding } from './api';
@@ -40,7 +41,7 @@ export function DesignRunner(props: DesignRunnerProps) {
 }
 
 function DesignAttempt({ task, session, locked, signedIn, mode, onVerdict, onRetry, nextHref, backHref, onContinue }: DesignRunnerProps) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const baseId = useId();
   const design = task.design;
   const drill = task.drill;

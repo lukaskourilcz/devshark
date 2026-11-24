@@ -84,7 +84,7 @@ export interface LearningPreferenceRequest {
 
 /* ── enrollment ────────────────────────────────────────────────────────── */
 
-export type EnrollmentStatus = 'active' | 'paused' | 'completed';
+type EnrollmentStatus = 'active' | 'paused' | 'completed';
 
 export interface PathEnrollment {
   enrollmentId: string;
@@ -116,7 +116,7 @@ export interface EnrollmentCreateRequest {
 
 /** Which competencies the diagnostic actually measured. A competency the
  * learner never attempted is `not_assessed`, never a silent zero. */
-export type CompetencyState = 'demonstrated' | 'gap' | 'not_assessed';
+type CompetencyState = 'demonstrated' | 'gap' | 'not_assessed';
 
 export interface CompetencyResult {
   competencyId: string;
@@ -243,7 +243,7 @@ export interface PathArtifactPayload {
   rubricDimensions: string[];
 }
 
-export interface ArtifactField {
+interface ArtifactField {
   id: string;
   label: string;
   help: string;

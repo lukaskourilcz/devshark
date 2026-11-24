@@ -10,7 +10,7 @@ import type { PuzzleCompetency, PuzzleView } from './coding-puzzle';
 import type { TypeCheckResult } from './coding-ts-check';
 
 export type CodingOutcome = 'passed' | 'failed' | 'error' | 'timeout';
-export type CodingProgressStatus = 'in_progress' | 'passed' | 'revealed';
+type CodingProgressStatus = 'in_progress' | 'passed' | 'revealed';
 
 export interface CodingTaskProgress {
   status: CodingProgressStatus;
@@ -251,7 +251,8 @@ export interface CodingDraftSaveResponse {
 
 /** The `error` of a 409 `draft_conflict`: the time of the draft the account
  * holds, saved since the base the request named. Its code is not sent; the
- * client reads it with GET coding-draft when the learner asks for it. */
+ * client reads it with GET coding-draft when the learner asks for it.
+ * @public Documented HTTP 409 response to a CodingDraftRequest. */
 export interface CodingDraftConflict {
   code: 'draft_conflict';
   message: string;
@@ -260,7 +261,7 @@ export interface CodingDraftConflict {
 
 /* ── GitHub garden ─────────────────────────────────────────────────────── */
 
-export type GithubConnectionStatus = 'pending_repo' | 'active' | 'broken';
+type GithubConnectionStatus = 'pending_repo' | 'active' | 'broken';
 
 export interface GithubConnectionResponse {
   available: boolean;
@@ -396,7 +397,7 @@ export interface PracticeSessionAdvanceRequest {
 
 /* ── curated approach comparisons ─────────────────────────────────────── */
 
-export interface CuratedApproachView {
+interface CuratedApproachView {
   name: string;
   code: string;
   readability: string;
@@ -423,7 +424,7 @@ export interface CodingApproachesResponse {
 /** The result of arranging a puzzle. `accepted` says the order is one the
  * author accepts; `competencies` and `claim` say exactly what that shows, so
  * nobody reads it as having written the code. */
-export interface PuzzleVerdict {
+interface PuzzleVerdict {
   accepted: boolean;
   competencies: PuzzleCompetency[];
   claim: string;
