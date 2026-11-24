@@ -6,6 +6,7 @@ import { TextInput } from '@astryxdesign/core/TextInput';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { adminEmailsKey, listAdminEmails, saveAdminEmail } from '../../lib/adminDirectory';
 import { friendlyError } from '../../lib/api';
+import { accountEpoch } from '../../lib/accountData';
 import { StatePanel } from '../ui/StatePanel';
 import { AdminDisclosure } from './AdminDisclosure';
 import type { AdminEmails as AdminEmailsData } from '../../../../shared/admin-directory';
@@ -34,6 +35,7 @@ type TemplateEdit = { id: EmailTemplateId; draft: EmailTemplate };
 export default function AdminEmails() {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
+  const [openedEpoch] = useState(accountEpoch);
   const query = useQuery({ queryKey: adminEmailsKey, queryFn: listAdminEmails, staleTime: 60_000 });
   const [selectedId, setSelectedId] = useState<EmailTemplateId>('signup_confirmation');
   const stored = query.data?.templates[selectedId];
@@ -71,8 +73,10 @@ export default function AdminEmails() {
     return { status: 'warning', title: sync.reason === 'not_configured' ? t('admin.emails.savedNoToken')
       : t('admin.emails.savedSyncFailed').replace('{status}', sync.status ? 'HTTP ' + sync.status : t('admin.emails.noResponse')) };
   };
-  const replace = (id: EmailTemplateId, template: AdminEmailsData['templates'][EmailTemplateId]) =>
+  const replace = (id: EmailTemplateId, template: AdminEmailsData['templates'][EmailTemplateId]) => {
+    if (openedEpoch !== accountEpoch()) return;
     queryClient.setQueryData<AdminEmailsData>(adminEmailsKey, old => old ? { ...old, templates: { ...old.templates, [id]: template } } : old);
+  };
 
   const save = useMutation({
     mutationFn: ({ id, draft }: TemplateEdit) => saveAdminEmail({ action: 'save', id, subject: draft.subject, document: draft.document }),
