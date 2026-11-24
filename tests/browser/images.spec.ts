@@ -60,7 +60,7 @@ async function settleImages(page: Page) {
 async function fixtures(page: Page) {
   await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'light' });
   await page.addInitScript(() => {
-    localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+    localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
   });
   await page.route('**/api/**', route => {
     const url = new URL(route.request().url());

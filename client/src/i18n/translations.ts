@@ -2270,7 +2270,7 @@ export const en = {
   'consent.necessary.locked': 'Necessary storage is always on.',
   'consent.necessary.link': 'What necessary storage keeps',
   'consent.analytics.label': 'Analytics',
-  'consent.analytics.purpose': 'PostHog, in the EU, counts page views and feature use so we can see what helps people learn.',
+  'consent.analytics.purpose': 'PostHog, in the EU, counts page views and feature use, and measures how quickly pages load, settle and respond.',
   'consent.analytics.link': 'How analytics works',
   'consent.marketing.label': 'Marketing',
   'consent.marketing.purpose': 'Google Analytics and the Meta Pixel would measure our ads. Not in use yet: we will ask again before they start.',

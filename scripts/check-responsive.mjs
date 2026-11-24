@@ -184,14 +184,14 @@ const API_FIXTURES = [
     // uses). The server names the day it answered for, never "today".
     method: 'GET',
     match: (url) => url.pathname === '/api/quiz/daily' && url.searchParams.has('qotd'),
-    body: (url) => ({
-      date: /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get('qotd') ?? '')
-        ? url.searchParams.get('qotd')
-        : new Date().toISOString().slice(0, 10),
-      track: 'javascript',
-      sessionId: 'responsive-sweep-session',
-      question: { id: 'q-1', question: 'What does `typeof null` return?', options: ['"null"', '"object"', '"undefined"', '"number"'], category: 'javascript', difficulty: 2 },
-    }),
+    body: (url) => {
+      const requested = url.searchParams.get('qotd');
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(requested ?? '') ? requested : new Date().toISOString().slice(0, 10);
+      const track = SERVER.qotdTrack(date);
+      return { date, track, sessionId: 'responsive-sweep-session', question: {
+        id: 'q-1', question: 'Pick the first option.', options: ['First', 'Second'], category: track, difficulty: 2,
+      } };
+    },
   },
 ];
 

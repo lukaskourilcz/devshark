@@ -15,7 +15,7 @@ for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
     await page.addInitScript(theme => {
       localStorage.setItem('devquiz:color-mode', theme);
-      localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+      localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
     }, theme);
     const errors: string[] = []; const writes: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
@@ -66,7 +66,7 @@ for (const [theme, width] of [['light', 360], ['dark', 1280]] as const) {
     await page.addInitScript(theme => {
       localStorage.setItem('devquiz:color-mode', theme);
       localStorage.setItem('devquiz:roadmap:section', 'forward-deployed-engineer');
-      localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+      localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
     }, theme);
     const errors: string[] = [], pathReads: string[] = [], writes: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
@@ -111,7 +111,7 @@ for (const [theme, width] of [['light', 360], ['dark', 1280]] as const) {
     await page.addInitScript(({ key, session, theme }) => {
       if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(session));
       localStorage.setItem('devquiz:color-mode', theme);
-      localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+      localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
     }, { key: sessionKey, session: fakeSession(user()), theme });
     await localAuth(page, { user });
     const saves: Record<string, unknown>[] = [], pathWrites: string[] = [];

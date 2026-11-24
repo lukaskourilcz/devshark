@@ -239,7 +239,7 @@ for (const theme of ['light', 'dark'] as const) for (const width of [360, 1280])
     await page.addInitScript((theme) => {
       localStorage.setItem('devquiz:color-mode', theme);
       localStorage.setItem('devquiz:quiz-setup:v1', JSON.stringify({ count: 10, difficulty: 'zero-to-hero', categories: [] }));
-      localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+      localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
     }, theme);
     let starts = 0;
     await page.route('**/api/quiz/questions*', (route) => {
@@ -281,7 +281,7 @@ test('standalone state cards stay vertically centred across viewports', async ({
   await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'dark' });
   await page.addInitScript(() => {
     localStorage.setItem('devquiz:color-mode', 'dark');
-    localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+    localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
   });
   const panel = page.locator('.ss-route > .ss-state-panel');
   for (const path of ['/play', '/play/ABC123', '/cards', '/settings/github']) {

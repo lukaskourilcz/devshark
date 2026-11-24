@@ -16,6 +16,11 @@ vi.mock('posthog-js', () => {
   return { default: client };
 });
 
+type ObservedVital = { value: number; entries: { startTime: number }[]; attribution: Record<string, unknown> };
+type RegisterVital = (callback: (metric: ObservedVital) => void, options: { generateTarget(node: Node): string }) => void;
+const vitals = vi.hoisted(() => ({ onLCP: vi.fn<RegisterVital>(), onINP: vi.fn<RegisterVital>(), onCLS: vi.fn<RegisterVital>() }));
+vi.mock('web-vitals/attribution', () => vitals);
+
 /** A fresh page load: new analytics and consent modules, an empty browser. */
 async function load() {
   vi.resetModules();
@@ -40,6 +45,7 @@ const storedNames = () => [
 
 beforeEach(() => {
   for (const fn of Object.values(client)) fn.mockReset();
+  for (const observer of Object.values(vitals)) observer.mockReset();
   loads.count = 0;
   localStorage.clear();
   sessionStorage.clear();
@@ -398,3 +404,66 @@ it('sends nothing after a withdrawal, not even an event captured just before it'
     else delete (navigator as { sendBeacon?: unknown }).sendBeacon;
   }
 }, 15_000);
+
+it('reports only opted-in LCP, INP and CLS with an allow-listed structural target', async () => {
+  vi.stubEnv('VITE_PUBLIC_POSTHOG_KEY', 'test-key');
+  let now = 100;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  const performanceObserver = Object.getOwnPropertyDescriptor(globalThis, 'PerformanceObserver');
+  Object.defineProperty(globalThis, 'PerformanceObserver', { configurable: true, value: class {} });
+  try {
+    const { consent, analytics } = await load();
+    analytics.initAnalytics();
+    consent.saveConsent({ analytics: false, marketing: true });
+    expect(Object.values(vitals).every(register => !register.mock.calls.length)).toBe(true);
+    consent.saveConsent({ analytics: true, marketing: false });
+    await vi.waitFor(() => expect(vitals.onCLS).toHaveBeenCalledTimes(1));
+    const [[lcp, options]] = vitals.onLCP.mock.calls;
+    const [[inp]] = vitals.onINP.mock.calls;
+    const [[cls]] = vitals.onCLS.mock.calls;
+    const button = document.createElement('button');
+    button.id = 'private-id';
+    button.className = 'private-class';
+    button.textContent = 'Private answer';
+    expect(options.generateTarget(button)).toBe('button');
+    expect(options.generateTarget(document.createElement('fixture-private'))).toBe('unknown');
+
+    const entry = (startTime: number, target: string) => ({
+      value: 12.5, entries: [{ startTime }], attribution: {
+        target, interactionTarget: target, largestShiftTarget: target,
+        url: 'https://example.test/private', rawText: button.textContent,
+      },
+    });
+    lcp(entry(0, 'h1')); // Buffered before the in-page choice.
+    const approved = performance.now();
+    lcp(entry(approved, 'h1'));
+    inp(entry(approved, 'button'));
+    cls(entry(approved, '#private-id.private-class')); // Detached-node SDK fallback.
+    await vi.waitFor(() => expect(client.capture.mock.calls).toEqual([
+      ['web_vital_lcp', { value: 12.5, target: 'h1' }],
+      ['web_vital_inp', { value: 12.5, target: 'button' }],
+      ['web_vital_cls', { value: 12.5, target: 'unknown' }],
+    ]));
+    const config = client.init.mock.calls[0][1];
+    expect(config.capture_performance).toBe(false);
+    expect(config.before_send({
+      event: 'web_vital_inp', properties: { value: 12.5, target: 'button', token: 'project', distinct_id: 'anonymous', $current_url: '/private', $set_once: { class: 'private' } },
+      $set: { name: 'private' }, $set_once: { referrer: '/private' }, $unset: ['private'],
+    })).toEqual({ event: 'web_vital_inp', properties: { value: 12.5, target: 'button', token: 'project', distinct_id: 'anonymous' } });
+
+    consent.rejectAllConsent();
+    const withdrawn = ++now;
+    inp(entry(withdrawn, 'a'));
+    now += 1;
+    consent.acceptAllConsent();
+    inp(entry(withdrawn, 'a')); // The new choice cannot revive an older observation.
+    cls(entry(performance.now(), 'main'));
+    await vi.waitFor(() => expect(client.capture).toHaveBeenCalledTimes(4));
+    expect(client.capture.mock.lastCall).toEqual(['web_vital_cls', { value: 12.5, target: 'main' }]);
+    expect(Object.values(vitals).every(register => register.mock.calls.length === 1)).toBe(true);
+  } finally {
+    clock.mockRestore();
+    if (performanceObserver) Object.defineProperty(globalThis, 'PerformanceObserver', performanceObserver);
+    else Reflect.deleteProperty(globalThis, 'PerformanceObserver');
+  }
+});

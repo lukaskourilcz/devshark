@@ -2,6 +2,7 @@
 // built from the same modules the handlers read, so a fixture cannot drift
 // from what production sends. The sweep bundles this file with esbuild when
 // it starts; nothing here touches a database or the network.
+export { qotdTrack } from '../shared/daily-question';
 import { ROADMAP_TOPICS, topicCheckpoints, topicLevels } from '../lib/roadmap';
 import { CODING_TASKS, playable } from '../lib/coding/catalog';
 import { LEARNING_PATHS, availabilityFor, inventoryFor, publicManifest } from '../lib/learning-paths/catalog';

@@ -68,7 +68,7 @@ async function prepare(page: Page, baseURL: string | undefined, { consent = true
   await page.addInitScript((consent) => {
     try {
       localStorage.setItem('devquiz:color-mode', 'light');
-      if (consent) localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+      if (consent) localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
     } catch { /* private mode */ }
   }, consent);
   const origin = new URL(baseURL!).origin;

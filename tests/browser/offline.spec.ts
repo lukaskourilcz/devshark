@@ -57,7 +57,7 @@ async function prepareQuiz(page: Page) {
   await page.setViewportSize({ width: 390, height: 1000 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.addInitScript(() => {
-    localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+    localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
     localStorage.setItem('devquiz:quiz-setup:v1', JSON.stringify({ count: 10, difficulty: 'mixed', categories: ['javascript'] }));
   });
   await storeFakeSession(page);

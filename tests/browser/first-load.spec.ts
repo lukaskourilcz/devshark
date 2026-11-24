@@ -76,7 +76,7 @@ test('an untouched Home visit leaves heavy optional packages outside requested c
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await page.waitForLoadState('networkidle');
   expect(scripts.size, 'observed entry and route script requests').toBeGreaterThan(0);
-  const forbidden = /(?:^|\/)node_modules\/(?:motion(?:-dom|-utils)?\/|framer-motion\/|@codemirror\/|@tiptap\/|react-syntax-highlighter\/|qrcode\/|posthog-js\/|@supabase\/supabase-js\/)/;
+  const forbidden = /(?:^|\/)node_modules\/(?:motion(?:-dom|-utils)?\/|framer-motion\/|@codemirror\/|@tiptap\/|react-syntax-highlighter\/|qrcode\/|posthog-js\/|web-vitals\/|@supabase\/supabase-js\/)/;
   const findings: { file: string; packages: string[] }[] = [];
   for (const file of scripts) {
     // Read build maps on the test runner. Production may refuse map URLs;
@@ -104,7 +104,7 @@ test('initial styles leave lazy component content rules outside the untouched sh
   expect(css).toContain('.ss-topic-article');
 });
 
-async function coldLoad(page: Page, path = '/', api: Api = unavailable) {
+async function coldLoad(page: Page, path = '/', api: Api = unavailable, ready?: () => Promise<void>) {
   // The entry script and its preloads load at once; everything imported later
   // (the landing page, motion's features, before the fix the account widget)
   // waits HOLD_MS.
@@ -162,6 +162,7 @@ async function coldLoad(page: Page, path = '/', api: Api = unavailable) {
   });
   await page.goto(path);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await ready?.();
   // Late work (fonts, the sign-in nudge, idle preloads) has time to land.
   await page.waitForTimeout(1500);
   const recorded = await page.evaluate(() => (window as unknown as Recorder).__firstLoad);
@@ -189,9 +190,51 @@ for (const profile of PROFILES) {
       // Nothing on the page moved. Entries flagged as input count too.
       const moved = shifts.flatMap((shift) => shift.sources);
       expect.soft(moved.filter((node) => node === 'main#main-content' || node.startsWith('header') || node.startsWith('footer')), 'shell nodes that moved').toEqual([]);
+      await expectLowCLS(shifts, '/');
       const total = shifts.reduce((sum, shift) => sum + shift.value, 0);
       expect.soft(total, `layout shift score, all entries: ${JSON.stringify(shifts)}`).toBeLessThan(0.01);
     });
+  });
+}
+
+// Use the same session-window score as perf:measure, with no lab interaction.
+async function expectLowCLS(shifts: Shift[], path: string) {
+  const { summarizeLayoutShifts } = await import(resolve('scripts/measure-web-performance.mjs'));
+  const { cls } = summarizeLayoutShifts(shifts.map(shift => ({
+    startTime: shift.t, hadRecentInput: shift.input, value: shift.value,
+  })));
+  expect(cls, path + ' lab CLS: ' + JSON.stringify(shifts)).toBeLessThan(0.05);
+}
+
+for (const profile of PROFILES) {
+  test.describe(profile.name + ', successful cold loads', () => {
+    test.use(profile.use);
+    for (const path of ['/learn', '/coding', '/daily']) {
+      test(path + ' shows its real content with lab CLS under 0.05', async ({ page }) => {
+        const { apiFixture, prepareResponsiveFixtures } = await import(resolve('scripts/check-responsive.mjs'));
+        await prepareResponsiveFixtures();
+        const unhandled: string[] = [];
+        const api: Api = async (route, url) => {
+          const response = apiFixture(route.request().method(), url, 'guest');
+          if (!response) unhandled.push(url.pathname + url.search);
+          return response ? route.fulfill({ status: response.status, json: response.body }) : unavailable(route, url);
+        };
+        const ready = async () => {
+          if (path === '/daily') await expect(page.getByRole('button', { name: 'Check answer' })).toBeVisible();
+          if (path === '/learn') {
+            await expect(page).toHaveURL(/\/learn\/web-developer$/);
+            await expect(page.getByRole('radiogroup', { name: 'Choose a topic' })).toBeVisible();
+          }
+          if (path === '/coding') {
+            if (profile.name === 'phone') await expect(page.getByText(/This section only works in desktop apps/)).toBeVisible();
+            else await expect(page.locator('.cd-track-directory a[href="/coding/javascript"]')).toBeVisible();
+          }
+        };
+        const { shifts } = await coldLoad(page, path, api, ready);
+        expect(unhandled, 'requests without a local fixture').toEqual([]);
+        await expectLowCLS(shifts, path);
+      });
+    }
   });
 }
 

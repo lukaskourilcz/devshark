@@ -27,7 +27,7 @@
 import { useSyncExternalStore } from 'react';
 
 /** Raise when the categories, their purposes or their providers change. */
-export const CONSENT_VERSION = 1;
+export const CONSENT_VERSION = 2;
 /** Asked again after this long. */
 export const CONSENT_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
 export const CONSENT_STORAGE_KEY = 'devshark:consent';
@@ -90,7 +90,7 @@ function readStored(now: number): ConsentRecord | null {
   }
 }
 
-/** The cookie copy: `v=1&analytics=1&marketing=0&at=<epoch seconds>`. */
+/** The cookie copy: `v=2&analytics=1&marketing=0&at=<epoch seconds>`. */
 export function consentCookieValue(record: Pick<ConsentRecord, 'version' | 'analytics' | 'marketing' | 'decidedAt'>): string {
   return `v=${record.version}&analytics=${record.analytics ? 1 : 0}&marketing=${record.marketing ? 1 : 0}&at=${Math.floor(record.decidedAt / 1000)}`;
 }

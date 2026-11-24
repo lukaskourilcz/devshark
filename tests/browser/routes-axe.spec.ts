@@ -50,7 +50,7 @@ for (const theme of ['light', 'dark'] as const) for (const viewport of WIDTHS) {
     await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: theme });
     await page.addInitScript(theme => {
       localStorage.setItem('devquiz:color-mode', theme);
-      localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+      localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
       sessionStorage.setItem('devquiz:auth-reported', '1');
     }, theme);
 

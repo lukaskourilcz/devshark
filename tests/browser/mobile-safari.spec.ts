@@ -11,7 +11,7 @@ async function prepare(page: Page) {
   await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
   await page.addInitScript(() => {
     localStorage.setItem('devquiz:color-mode', 'light');
-    localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+    localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
   });
   await page.route('**/api/**', (route) => {
     const url = new URL(route.request().url());

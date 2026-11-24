@@ -2284,7 +2284,7 @@ seeds a row in every such table.
   Pixel, not connected). The choice is stored in localStorage
   (`devshark:consent`: version, the two booleans, the time) and copied into
   the first-party cookie `devshark_consent`
-  (`v=1&analytics=0|1&marketing=0|1&at=<epoch s>`, `SameSite=Lax`, 12
+  (`v=2&analytics=0|1&marketing=0|1&at=<epoch s>`, `SameSite=Lax`, 12
   months) for a later server or edge read; nothing reads the cookie today.
   Until the visitor decides, both optional categories are off. Raising
   `CONSENT_VERSION` asks every browser again, and so does a choice older than
@@ -2323,6 +2323,12 @@ seeds a row in every such table.
   removes every `ph_` / `__ph_` cookie and storage key and the campaign,
   whenever they were written. Sign-out calls `reset()` and opts back in.
   `before_send` scrubs URLs before anything leaves the browser.
+  Consent wording version 2 includes load, responsiveness and layout measurements.
+  The same lazy client starts the attributed LCP, INP and CLS observers. Each
+  event carries its numeric measurement and one standard HTML tag or `unknown`.
+  The final property filter permits only these fields and PostHog’s project
+  token and distinct ID. Buffered observations predating permission are dropped.
+  Withdrawing permission also suppresses any pending report.
 - **Marketing readiness** (`client/src/lib/marketing.ts`). `MARKETING_LOADERS`
   (`lib/marketingTags.ts`) is empty, so `main.tsx` never loads `marketing.ts`
   and nothing runs: no `dataLayer`, no script, no CSP change. A loader added

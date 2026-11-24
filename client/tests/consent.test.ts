@@ -80,7 +80,7 @@ describe('the consent store', () => {
     expect(getConsent()).toMatchObject({ analytics: false, marketing: false });
   });
 
-  it('asks again when the wording has a new version', () => {
+  it('asks again before collecting field performance on a choice made under the earlier wording', () => {
     localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify({ version: CONSENT_VERSION - 1, analytics: true, marketing: true, decidedAt: Date.now() }));
     reload();
     expect(getConsent()).toBeNull();

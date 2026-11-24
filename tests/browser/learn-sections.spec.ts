@@ -36,7 +36,7 @@ async function prepare(page: Page, { theme = 'light', motion = 'reduce' }: { the
   await page.emulateMedia({ colorScheme: theme, reducedMotion: motion });
   await page.addInitScript((mode) => {
     localStorage.setItem('devquiz:color-mode', mode);
-    localStorage.setItem('devshark:consent', JSON.stringify({ version: 1, analytics: false, marketing: false, decidedAt: Date.now() }));
+    localStorage.setItem('devshark:consent', JSON.stringify({ version: 2, analytics: false, marketing: false, decidedAt: Date.now() }));
   }, theme);
 }
 

@@ -3,6 +3,8 @@
 // and the URL scrubber travel in one lazy chunk and never in the shell.
 
 import posthog, { type PostHog, type PostHogConfig } from 'posthog-js';
+import { isWebVital, vitalEventProperties } from './webVitals';
+export { startWebVitals } from './webVitals';
 import { redactRoomCode } from './telemetryPath';
 import { CAMPAIGN_KEYS, campaignLabel, scrubUrl } from './analytics';
 
@@ -21,8 +23,15 @@ const OTHER_ATTRIBUTION = new Set([
 
 /** Keep only approved campaign labels in URL and attribution fields,
  * including those the SDK extracts for the session and the person. */
-function scrubEvent<T extends { properties?: Record<string, unknown>; $set?: Record<string, unknown>; $set_once?: Record<string, unknown> } | null>(event: T): T {
+function scrubEvent<T extends { event?: string; $unset?: unknown; properties?: Record<string, unknown>; $set?: Record<string, unknown>; $set_once?: Record<string, unknown> } | null>(event: T): T {
   if (!event) return event;
+  if (isWebVital(event.event)) {
+    event.properties = vitalEventProperties(event.properties);
+    delete event.$set;
+    delete event.$set_once;
+    delete event.$unset;
+    return event;
+  }
   for (const bag of [event.properties, event.$set, event.$set_once, event.properties?.$set as Record<string, unknown> | undefined, event.properties?.$set_once as Record<string, unknown> | undefined]) {
     if (!bag || typeof bag !== 'object') continue;
     for (const key of Object.keys(bag)) {
@@ -61,6 +70,8 @@ export function posthogConfig(apiHost: string): Partial<PostHogConfig> {
     capture_pageleave: true,
     respect_dnt: true,
     autocapture: false,
+    // Our consent-gated metrics use a narrower property allow-list.
+    capture_performance: false,
     disable_session_recording: true,
     capture_heatmaps: false,
     capture_exceptions: false,
