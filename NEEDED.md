@@ -12,6 +12,8 @@ Task format: `- [ ] **Title** — desc. [imp:1-5] [owner:me|ai] [time:30m] [kind
 
 ## Dependency maintenance (#631)
 
+- [x] **Group dependency updates and pin CI actions** — The weekly root, client and Actions groups live in `.github/dependabot.yml`. QuickJS updates need a rebuilt WASM binary, and grader changes need a reviewed snapshot. The Vercel Git rule skips Dependabot branches. Remove the configuration files or individual rules to revert the corresponding choice. [imp:3] [owner:ai] [time:done] [kind:decision]
+
 - [x] **Use supported Node versions for the grader** — Both manifests and lockfiles specify `^22.22.2 || ^24.15.0`, with Node 24 for development, Vercel and TypeScript declarations. Restore the previous engines and declaration versions together to revert. [imp:3] [owner:ai] [time:done] [kind:decision]
 - [x] **Limit install scripts to the build tools that need them** — The root and client allow esbuild. The client explicitly skips the core-js, MSW and fsevents install hooks. Delete the two allowScripts objects to return to npm's default behavior. [imp:3] [owner:ai] [time:done] [kind:decision]
 
