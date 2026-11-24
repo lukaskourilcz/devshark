@@ -299,7 +299,9 @@ checks through `test:grading-integrity`. That umbrella clears
 and Sandbox credentials are configured.
 
 The isolation suite also runs fresh-process artifact controls with a fabricated
-local Sandbox SDK: invalid copies must fail before create/upload, a repaired
+local Sandbox SDK: invalid copies (a tampered runner, a well-formed digest of
+other bytes, a missing, malformed or non-string record, a missing runner) must
+fail before create/upload, a repaired
 pair must retry in the same process, and verified bytes must remain cached. The
 real builder's record and actual Vercel include glob are checked separately.
 These controls do not start a VM or establish deployed tracing/container
