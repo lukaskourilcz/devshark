@@ -15,13 +15,16 @@ import assert from 'node:assert/strict';
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { once } from 'node:events';
-import { globSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { globSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
+import { mock } from 'node:test';
+import type { VercelRequest, VercelResponse } from '../lib/vercel-types';
 import { constants as osConstants, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { GUEST_ENV, GUEST_NODE_FLAGS, readGuestRun, type GuestInput } from '../lib/coding/react-guest';
 import type { ReactSuiteOutcome } from '../lib/coding/react-runner';
 import { compileReactLearner } from '../lib/coding/react-transpile';
+import { REACT_COMPILE_WORKER_FILE } from '../lib/coding/react-compile-pool';
 import { CODING_TASKS } from '../lib/coding/catalog';
 import { solutionFor } from '../lib/coding/solutions/index';
 import { FETCH_STUB_SOURCE } from '../shared/coding-react-support';
@@ -367,12 +370,58 @@ const artifactDigest = (bytes: Buffer) => JSON.stringify(createHash('sha256').up
 const artifactPath = () => join(process.cwd(), 'lib/coding/generated/react-sandbox.cjs');
 const sidecarPath = () => join(process.cwd(), 'lib/coding/generated/react-sandbox.sha256.cjs');
 
-type ArtifactFixtureState = { creates: number; uploads: Buffer[] };
+type ArtifactFixtureState = {
+  creates: number;
+  uploads: Buffer[];
+  command?: (nonce: string) => { exitCode: number; stdout: () => Promise<string> };
+};
 async function artifactProbe(name: string) {
   const { runIsolatedReactSuite } = await import('../lib/coding/react-isolated');
   const state = (globalThis as unknown as { __reactArtifactFixture: ArtifactFixtureState }).__reactArtifactFixture;
   assert.ok(state, 'the fresh process loaded only the fabricated local SDK');
   const input = { appSource: 'export default function App(){ return null; }', suite: "test('fixture',()=>{});" };
+  if (name === 'snapshot-versions') {
+    const { withRequestContext } = await import('../lib/http');
+    const warnings: string[] = [];
+    const warn = mock.method(console, 'warn', (line: string) => { warnings.push(line); });
+    const verdict = {
+      cases: [{ name: 'fixture', status: 'pass', error: null, durationMs: 0 }],
+      passed: 1, failed: 0, total: 1, compileError: null, timedOut: false,
+    };
+    try {
+      for (const stale of [false, true]) {
+        const requestId = stale ? 'fixture-older-react' : 'fixture-current-react';
+        state.command = nonce => ({
+          exitCode: 0,
+          stdout: async () => {
+            const versions = stale ? `\n${nonce}:versions {"react":"19.2.4/19.2.3"}\n` : '';
+            return versions + `\n${nonce} ${JSON.stringify(verdict)}\n`;
+          },
+        });
+        const req: VercelRequest = { headers: { 'x-request-id': requestId }, method: 'POST', query: {}, socket: {} };
+        const headers = new Headers();
+        const unexpectedResponse = (): never => assert.fail('successful snapshot grading wrote an HTTP response');
+        const res: VercelResponse = {
+          setHeader(name, value) { headers.set(name, String(value)); return this; },
+          status: unexpectedResponse, json: unexpectedResponse, send: unexpectedResponse,
+          end: unexpectedResponse, redirect: unexpectedResponse,
+        };
+        const result = await withRequestContext(req, res, () => runIsolatedReactSuite(input));
+        assert.equal(headers.get('x-request-id'), requestId);
+        assert.deepEqual(result, verdict);
+        assert.equal(warnings.length, stale ? 1 : 0);
+      }
+      const { ts, ...record } = JSON.parse(warnings[0]);
+      assert.equal(typeof ts, 'string');
+      assert.deepEqual(record, {
+        route: 'coding/react', level: 'warn', request_id: 'fixture-older-react',
+        kind: 'snapshot_version_drift', versions: { react: '19.2.4/19.2.3' },
+      });
+    } finally {
+      warn.mock.restore();
+    }
+    return;
+  }
   if (name !== 'verified-cache') {
     await assert.rejects(runIsolatedReactSuite(input), (error: unknown) => {
       assert.ok(error instanceof Error);
@@ -416,7 +465,7 @@ async function artifactIntegrity() {
     assert.ok(included.includes('lib/coding/generated/react-sandbox.cjs'), 'the actual Vercel include pattern selects its runner');
     console.log('PASS artifact integrity: the real emitted guest and passive sidecar agree and both match Vercel inclusion');
   } catch (error) { failures.push(error as Error); }
-  for (const name of ['tampered-runner', 'missing-sidecar', 'malformed-sidecar', 'wrong-digest-type', 'missing-runner', 'verified-cache']) {
+  for (const name of ['tampered-runner', 'missing-sidecar', 'malformed-sidecar', 'wrong-digest-type', 'missing-runner', 'verified-cache', 'snapshot-versions']) {
     const dir = mkdtempSync(join(tmpdir(), 'react-artifact-'));
     try {
       const generated = join(dir, 'lib/coding/generated');
@@ -424,15 +473,24 @@ async function artifactIntegrity() {
       writeFileSync(join(dir, 'package.json'), '{"type":"commonjs"}\n');
       writeFileSync(join(generated, 'react-sandbox.cjs'), ARTIFACT_FIXTURE);
       writeFileSync(join(generated, 'react-sandbox.sha256.cjs'), artifactDigest(ARTIFACT_FIXTURE));
+      if (name === 'snapshot-versions') {
+        // This control compares package warnings. Use the actual built compiler
+        // so neither verdict has to fall back to an in-thread compile.
+        symlinkSync(join(process.cwd(), REACT_COMPILE_WORKER_FILE), join(dir, REACT_COMPILE_WORKER_FILE));
+      }
       // The SDK is intentionally fabricated here, rather than patching a real
       // provider module and accidentally falling through to its create method.
       writeFileSync(join(generated, 'vercel-sandbox.cjs'), `
 const state = globalThis.__reactArtifactFixture = { creates: 0, uploads: [] };
 exports.Sandbox = { create: async () => {
   state.creates++;
+  let nonce;
   return {
-    writeFiles: async files => state.uploads.push(files.find(file => file.path.endsWith('/runner.cjs')).content),
-    runCommand: async () => ({exitCode:124,stdout:async()=>''}),
+    writeFiles: async files => {
+      state.uploads.push(files.find(file => file.path.endsWith('/runner.cjs')).content);
+      nonce = JSON.parse(files.find(file => file.path.endsWith('/input.json')).content).nonce;
+    },
+    runCommand: async () => state.command ? state.command(nonce) : ({exitCode:124,stdout:async()=>''}),
     stop: async () => undefined,
   };
 }};
@@ -447,7 +505,8 @@ exports.Sandbox = { create: async () => {
         encoding: 'utf8', timeout: 30_000,
       });
       assert.equal(child.status, 0, `${name}: ${child.error?.message ?? child.stderr}`);
-      console.log(`PASS artifact integrity: ${name}; verified-byte reuse and failed-cache repair`);
+      if (name === 'snapshot-versions') console.log('PASS older React snapshot logs one request-correlated warning and preserves the passing verdict');
+      else console.log(`PASS artifact integrity: ${name}; verified-byte reuse and failed-cache repair`);
     } catch (error) { failures.push(error as Error); }
     finally { rmSync(dir, { recursive: true, force: true }); }
   }

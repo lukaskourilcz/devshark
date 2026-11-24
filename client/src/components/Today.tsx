@@ -352,16 +352,11 @@ function TodayCard({ item, lessonTitle, isStartHere, showReason, t }: { item: To
   const meta = t('today.itemMeta', { topic: topicLabel, level: item.level });
   const color = getCategoryHexColor(item.topic);
   const actionLabel = t(ACTION_LABEL[item.kind]);
-  // The whole card is one link; give it a full accessible name so the glyph and
-  // decorative action affordance don't need their own.
   const authored = lessonTitle?.trim();
-  const label = authored ? `${authored} · ${meta}` : meta;
-  const ariaLabel = isStartHere ? t('today.startHereAria', { label }) : `${actionLabel}: ${label}`;
   return (
     <Link
       to={`/learn?topic=${encodeURIComponent(item.topic)}&level=${item.level}`}
       className="today-card ss-panel ss-lift"
-      aria-label={ariaLabel}
       data-start-here={isStartHere || undefined}
     >
       <span className="today-card__glyph" aria-hidden="true">
@@ -371,12 +366,13 @@ function TodayCard({ item, lessonTitle, isStartHere, showReason, t }: { item: To
         {/* Start here is a tag after the title, not a row above it, so this
             card is as tall as the others. */}
         <span className="today-card__title">
-          <span className="today-card__meta">{authored || meta}</span>
+          <span className="today-card__meta">{authored || meta}</span>{' '}
           {isStartHere && <span className="today-card__chip">{t('today.startHere')}</span>}
-        </span>
-        {authored && <span className="today-card__context">{meta}</span>}
+        </span>{' '}
+        {authored && <span className="today-card__context">{meta} </span>}
         {showReason && <span className="today-card__reason">{t(item.reason)}</span>}
-      </span>
+      </span>{' '}
+      <span className="ss-sr-only">{actionLabel}</span>
       <span className="today-card__action" aria-hidden="true">
         <span className="today-card__action-label">{actionLabel}</span>
         <ArrowGlyph />

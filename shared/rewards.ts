@@ -82,14 +82,9 @@ export type MerchSku = (typeof MERCH_SKUS)[number];
 export const isMerchSku = (value: unknown): value is MerchSku =>
   typeof value === 'string' && (MERCH_SKUS as readonly string[]).includes(value);
 
-/** The one purchasable avatar cosmetic. Not merchandise: nothing is shipped. */
-const COSMETIC_IDS = ['crown'] as const;
-export type CosmeticId = (typeof COSMETIC_IDS)[number];
-
 /** T-shirt and hoodie sizes. The only variant axis any item has, kept small on
  * purpose: every extra variant is a monthly cap somebody has to set. */
 export const SHIRT_SIZES = ['S', 'M', 'L', 'XL', 'XXL'] as const;
-export type ShirtSize = (typeof SHIRT_SIZES)[number];
 
 export interface MerchItem {
   sku: MerchSku;
@@ -250,21 +245,6 @@ export const merchMarginMinor = (pricing: MerchPricing): number =>
 
 /* ── the wallet ────────────────────────────────────────────────────────── */
 
-/** Why tokens moved. Every ledger entry carries one, and every entry is
- * attributable to something the server itself verified. `milestone` and
- * `social` arrived with migration 041, `referral` with 042. */
-const TOKEN_REASONS = [
-  'signup',
-  'verified-xp',
-  'purchase',
-  'refund',
-  'adjustment',
-  'milestone',
-  'social',
-  'referral',
-] as const;
-export type TokenReason = (typeof TOKEN_REASONS)[number];
-
 /** Tokens earned per unit of verified XP. The server applies this to XP it
  * awarded itself; a browser's claim about its own XP is never an input. */
 const TOKENS_PER_XP = 0.1;
@@ -372,10 +352,6 @@ export const coinsUnderDailyCap = (amount: number, earnedToday: number, settings
   Math.max(0, Math.min(amount, settings.dailyXpCap - earnedToday));
 
 /* ── orders ────────────────────────────────────────────────────────────── */
-
-/** How an order was paid for. */
-const PAYMENT_KINDS = ['tokens', 'cash'] as const;
-export type PaymentKind = (typeof PAYMENT_KINDS)[number];
 
 /**
  * Order states, in the order they occur.

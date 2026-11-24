@@ -33,7 +33,7 @@
 
 /** A chain of labelled steps with what happens between them. Used for request
  * flows, data flow, and any "A, then B, then C" relationship. */
-export interface FlowBody {
+interface FlowBody {
   kind: 'flow';
   nodes: { id: string; label: string; note?: string }[];
   /** Each edge names what travels along it, so an arrow never means "somehow". */
@@ -41,13 +41,13 @@ export interface FlowBody {
 }
 
 /** Boxes inside boxes, outermost first. Box model, landmarks, stacking. */
-export interface NestedBody {
+interface NestedBody {
   kind: 'nested';
   layers: { label: string; value?: string; note?: string }[];
 }
 
 /** A small table. Fixture rows for a join, a growth comparison, grid tracks. */
-export interface TableBody {
+interface TableBody {
   kind: 'table';
   columns: string[];
   rows: string[][];
@@ -57,7 +57,7 @@ export interface TableBody {
 
 /** A sequence the learner steps through. Same shape as the learning-path trace
  * player: cells, a note per frame, and an optional running counter. */
-export interface StepsBody {
+interface StepsBody {
   kind: 'steps';
   /** A word above each cell — "index 0", "acc", "top". */
   legend?: string[];
@@ -70,7 +70,7 @@ export interface StepsBody {
   }[];
 }
 
-export type FigureBody = FlowBody | NestedBody | TableBody | StepsBody;
+type FigureBody = FlowBody | NestedBody | TableBody | StepsBody;
 
 export interface LessonFigure {
   id: string;

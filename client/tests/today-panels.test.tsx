@@ -133,6 +133,7 @@ describe('Today, a fresh plan', () => {
     expect(screen.queryByText('Next up on your path.')).toBeNull();
     // Start here sits on the title's row, after the title.
     const chip = screen.getByText('Start here');
+    expect(chip.closest('a')).toHaveAccessibleName('Level 1 title Start here JavaScript · Level 1 Start');
     expect(chip.parentElement).toHaveClass('today-card__title');
     expect(chip.previousElementSibling).toHaveClass('today-card__meta');
     // On a phone the tag wraps under its title; the cards of one list share
@@ -165,6 +166,7 @@ it('uses the authored level title and keeps the target topic and level in the ca
   const card = primary.closest('a')!;
   expect(card).toHaveAttribute('href','/learn?topic=html&level=1');
   expect(card).toHaveTextContent('HTML · Level 1');
+  expect(card).toHaveAccessibleName('Structure & Semantics HTML · Level 1 Start');
 });
 
 

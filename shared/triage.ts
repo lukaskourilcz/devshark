@@ -28,6 +28,7 @@ export interface TriageVerdict {
   note: string;
 }
 
+/** @public Reexported from the client triage API in client/src/lib/triageApi.ts. */
 export interface TriageMeta {
   total: number;
   keep: number;

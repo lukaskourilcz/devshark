@@ -21,7 +21,7 @@ const REACT = 'https://react.dev/reference/react';
 const REACT_LEARN = 'https://react.dev/learn';
 const TS = 'https://www.typescriptlang.org/docs/handbook';
 
-export type DocSource = 'MDN' | 'React' | 'TypeScript';
+type DocSource = 'MDN' | 'React' | 'TypeScript';
 
 export interface CodingDocLink {
   /** The technique tag this page documents. */

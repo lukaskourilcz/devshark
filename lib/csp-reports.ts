@@ -7,19 +7,31 @@ const directives = new Set([
   'script-src-elem', 'style-src', 'style-src-attr', 'style-src-elem', 'worker-src',
 ]);
 
-/** Discard visitor-supplied URLs, referrers, samples, and other free text. */
-export function privateCspReport(input: unknown) {
-  const data = input && typeof input === 'object' && 'csp-report' in input ? input['csp-report'] : null;
-  if (!data || typeof data !== 'object') return null;
-  const directive = 'effective-directive' in data ? data['effective-directive'] : null;
+const maxReportBytes = 8192;
+const maxBatchReports = 8;
+
+/** Send only the directive and a fixed classification of the blocked resource. */
+function sanitizeReport(directive: unknown, blocked: unknown) {
   if (typeof directive !== 'string' || !directives.has(directive)) return null;
-  const blocked = 'blocked-uri' in data ? data['blocked-uri'] : null;
   return { 'csp-report': {
     'document-uri': 'https://devshark.app/',
     'effective-directive': directive,
     'violated-directive': directive,
     'blocked-uri': blocked === 'inline' || blocked === 'eval' ? blocked : 'redacted',
   } };
+}
+
+export function privateCspReport(input: unknown) {
+  const body = input && typeof input === 'object' && 'csp-report' in input ? input['csp-report'] : null;
+  if (!body || typeof body !== 'object' || !('effective-directive' in body)) return null;
+  return sanitizeReport(body['effective-directive'], 'blocked-uri' in body ? body['blocked-uri'] : null);
+}
+
+function modernReport(input: unknown) {
+  if (!input || typeof input !== 'object' || !('type' in input) || input.type !== 'csp-violation' || !('body' in input)) return null;
+  const body = input.body;
+  if (!body || typeof body !== 'object' || !('effectiveDirective' in body)) return null;
+  return sanitizeReport(body.effectiveDirective, 'blockedURL' in body ? body.blockedURL : null);
 }
 
 function sentryEndpoint() {
@@ -39,22 +51,42 @@ export async function handleCspReport(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Cache-Control', 'private, no-store');
   if (!(await enforceRateLimit(req, res, RATE_LIMITS.cspReport))) return;
   const contentType = String(req.headers['content-type'] ?? '').split(';', 1)[0].trim().toLowerCase();
-  if (contentType !== 'application/csp-report') return res.status(415).end();
+  const modern = contentType === 'application/reports+json';
+  if (!modern && contentType !== 'application/csp-report') return res.status(415).end();
+  if (Number(req.headers['content-length']) > maxReportBytes) return res.status(413).end();
   let body: unknown = req.body;
-  if (Buffer.isBuffer(body)) body = body.toString('utf8');
+  if (Buffer.isBuffer(body)) {
+    if (body.length > maxReportBytes) return res.status(413).end();
+    body = body.toString('utf8');
+  }
   if (typeof body === 'string') {
-    if (Buffer.byteLength(body) > 8192) return res.status(413).end();
+    if (Buffer.byteLength(body) > maxReportBytes) return res.status(413).end();
     try { body = JSON.parse(body); } catch { return res.status(400).end(); }
+  } else if (modern && Array.isArray(body)) {
+    // Some adapters decode JSON before this handler, including chunked posts.
+    if (body.length > maxBatchReports || Buffer.byteLength(JSON.stringify(body)) > maxReportBytes) return res.status(413).end();
   }
-  const report = privateCspReport(body);
+  const batch = modern ? body : [body];
+  if (!Array.isArray(batch)) return res.status(400).end();
+  if (batch.length > maxBatchReports) return res.status(413).end();
+  const reports = batch.map(modern ? modernReport : privateCspReport).filter(report => report !== null);
   const endpoint = sentryEndpoint();
-  if (report && endpoint) {
-    try {
-      const result = await fetch(endpoint, { method: 'POST', redirect: 'error', signal: AbortSignal.timeout(1000),
-        headers: { 'content-type': 'application/csp-report' }, body: JSON.stringify(report) });
-      await result.body?.cancel();
-      if (!result.ok) return res.status(503).end();
-    } catch { return res.status(503).end(); }
+  if (!endpoint || reports.length === 0) return res.status(204).end();
+
+  // The request already consumed one token. A batch uses the same allowance
+  // per outgoing report as separate legacy posts. Reserve it before sending.
+  for (let n = 1; n < reports.length; n++) {
+    if (!(await enforceRateLimit(req, res, RATE_LIMITS.cspReport))) return;
   }
+  try {
+    const signal = AbortSignal.timeout(1000);
+    const accepted = await Promise.all(reports.map(async report => {
+      const response = await fetch(endpoint, { method: 'POST', redirect: 'error', signal,
+        headers: { 'content-type': 'application/csp-report' }, body: JSON.stringify(report) });
+      await response.body?.cancel();
+      return response.ok;
+    }));
+    if (accepted.some(ok => !ok)) return res.status(503).end();
+  } catch { return res.status(503).end(); }
   return res.status(204).end();
 }

@@ -5,6 +5,7 @@ import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from '
 import { Link, Navigate, useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { codingEn } from '../../i18n/translations.codingRoute';
 import { codingListCopy } from '../../i18n/translations.codingLists';
 import { useAuth } from '../../lib/auth';
 import { accountEpoch } from '../../lib/accountData';
@@ -130,7 +131,7 @@ if (!isCodingPhone()) {
  * track (system design) and anything under it read as a track that does not
  * exist, and the task behind it is never asked for. */
 function CodingNotFound({ what, track }: { what: 'track' | 'task' | 'retired'; track: CodingTrack | null }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   useEffect(() => {
     const robots = document.createElement('meta');
     robots.name = 'robots'; robots.content = 'noindex'; robots.dataset.notFound = '';
@@ -193,13 +194,13 @@ const nextOpenTask = (tasks: readonly CodingTaskSummary[], statusOf: (t: CodingT
 };
 
 function StatusText({ status }: { status: Status }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   return <span className={`cd-row__status cd-status--${status}`}>{t(`coding.status.${status}` as never)}</span>;
 }
 
 /** Save is offered only after both access and progression are known to open a challenge. */
 function SaveButton({ taskId, saved, onToggle, busy, toolbar = false }: { taskId: string; saved: boolean; onToggle: (next: boolean) => void; busy: boolean; toolbar?: boolean }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   return (
     <button
       type="button"
@@ -232,7 +233,7 @@ const TaskRow = memo(function TaskRow({ task, status, premium = 'open', saved, o
   returnTo?: string;
   reason?: string;
 }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const lockId = useId();
   const [lockExpanded, setLockExpanded] = useState(false);
   const locked = status === 'locked';
@@ -282,7 +283,7 @@ function freeStages(stages: readonly string[]): { count: number; list: string } 
 }
 
 function PremiumStagesNote({ stages, short }: { stages: readonly string[]; short: boolean }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const { count, list } = freeStages(stages);
   const note = short ? t('premium.levelsNote') : t(count > 1 ? 'premium.stagesNote' : 'premium.stageNote', { stages: list });
   return <p className="ss-premium-note"><span className="ss-premium-label">{t('premium.badge')}</span> {note}</p>;
@@ -300,7 +301,7 @@ function freeStagesOf(challenges: readonly { stages: readonly string[]; short?: 
  * every row (UX audit coding-05): level 1 of a path, the opening stages of a
  * project, or both when the list holds both. */
 function PremiumRuleNote({ challenges }: { challenges: readonly { stages: readonly string[]; short?: boolean }[] }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const stages = freeStagesOf(challenges);
   const paths = challenges.some((challenge) => challenge.short);
   const note = stages === null
@@ -313,18 +314,18 @@ function PremiumRuleNote({ challenges }: { challenges: readonly { stages: readon
  * under the page lead (UX audit coding-10), not a tinted bar and not again in
  * a list's intro. The header's Sign in button is the way to act on it. */
 function SignInLine() {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   return <p className="cd-signin-line">{t('coding.signInHint')}</p>;
 }
 
 /** Unknown access and stale progress mean the same thing on every Coding list. */
 function PlanNotice({ failed, onRetry }: { failed: boolean; onRetry: () => void }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   return failed ? <p className="cd-note cd-note--error" role="alert">{t('coding.planFailed')} <Button variant="secondary" onClick={onRetry} label={t('coding.retry')} /></p> : null;
 }
 
 function StaleProgressNotice({ failed, onRetry }: { failed: boolean; onRetry: () => void }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   return failed ? <p className="cd-note cd-note--error" role="alert">{codingListCopy('coding.progress.stale')} <Button variant="secondary" onClick={onRetry} label={t('coding.retry')} /></p> : null;
 }
 
@@ -336,7 +337,7 @@ function StaleProgressNotice({ failed, onRetry }: { failed: boolean; onRetry: ()
  * debugging list holds its three short paths; the plain list on the Coding
  * home holds the long projects only. `listedChallenges` decides. */
 function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = true, labelledBy }: { passed: ReadonlySet<string>; premiumOf: (taskId: string) => LockState; category?: EvolvingCategory; track?: CodingTrack; progressKnown?: boolean; labelledBy?: string }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const navigate = useNavigate();
   const location = useLocation();
   const listRef = useRef<HTMLDivElement>(null);
@@ -413,7 +414,7 @@ function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = t
  * signed-in learner it waits for their progress: worked out from nothing, it
  * would name the first challenge and then swap it for the real one. */
 function NextChallenge({ next, state, onRetry, inRun = false, errorText }: { next: CodingTaskSummary | null; state: 'loading' | 'error' | 'ready'; onRetry: () => void; inRun?: boolean; errorText?: string }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const navigate = useNavigate();
   return (
     <section className="cd-next" aria-labelledby="cd-next-label" aria-busy={state === 'loading' || undefined}>
@@ -440,7 +441,7 @@ function NextChallenge({ next, state, onRetry, inRun = false, errorText }: { nex
 export function CodingHome() {
   useCodingFirstData('session');
   useWarmWorkbench();
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const [params] = useSearchParams();
   const selectedProjects = params.get('projects');
   const projectFormat: EvolvingCategory | undefined = selectedProjects === 'debugging' || selectedProjects === 'fullstack' ? selectedProjects : undefined;
@@ -577,7 +578,7 @@ export function CodingHome() {
 export function FullStackScreen() {
   useCodingFirstData(null);
   useWarmWorkbench();
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const { isAuthenticated } = useAuth();
   const progress = useCodingProgress(isAuthenticated);
   const { passed, premiumOf, planLoading, planFailed, retryPlan } = useStatuses(progress.data);
@@ -604,7 +605,7 @@ export function CodingTrackScreen() {
 function CodingTrackList({ track }: { track: CodingTrack }) {
   useCodingFirstData('bookmarks');
   useWarmWorkbench();
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const location = useLocation();
   const catalogue = useRef<HTMLDivElement>(null);
   const [params, setParams] = useSearchParams();
@@ -840,7 +841,7 @@ function CodingTrackList({ track }: { track: CodingTrack }) {
  * difficulty. Consecutive stages with one label share a labelled group, so the
  * order stays the path's order even when an authored label breaks a band. */
 function StageNav({ stages, short, currentId, passed, savedStages, premiumOf }: { stages: readonly string[]; short: boolean; currentId: string; passed: ReadonlySet<string>; savedStages: ReadonlySet<string>; premiumOf: (taskId: string) => LockState }) {
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const navRef = useRef<HTMLElement>(null);
   const [explainedLock, setExplainedLock] = useState<string | null>(null);
   const prerequisiteReason = (index: number) => codingListCopy(short ? 'coding.level.unlock' : 'coding.stage.unlock', {
@@ -893,7 +894,7 @@ export function CodingTaskScreen() {
 
 function CodingTaskView({ track, taskId }: { track: CodingTrack; taskId: string }) {
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t } = useLanguage(codingEn);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isAuthenticated, isLoading: authLoading } = useAuth();

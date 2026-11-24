@@ -210,20 +210,25 @@ export function createMiniJest() {
     const follow = options.follow ?? ((value: unknown) => value);
     const results: MiniJestCase[] = [];
     for (const one of cases) {
-      const started = Date.now();
+      const started = performance.now();
+      let deadline: ReturnType<typeof setTimeout> | undefined;
       let error: string | null = null;
       try {
         for (const hook of before) await follow(hook());
         await Promise.race([
           Promise.resolve().then(() => follow(one.body())),
-          new Promise((_, reject) => setTimeout(() => reject(new Error(`timed out after ${timeoutMs} ms`)), timeoutMs)),
+          new Promise<never>((_, reject) => {
+            deadline = setTimeout(() => reject(new Error(`timed out after ${timeoutMs} ms`)), timeoutMs);
+          }),
         ]);
         for (const hook of after) await follow(hook());
       } catch (caught) {
         error = thrownMessage(caught);
+      } finally {
+        clearTimeout(deadline);
       }
       try { await options.afterEach?.(); } catch { /* cleanup never fails a case */ }
-      results.push({ name: one.name, status: error ? 'fail' : 'pass', error, durationMs: Date.now() - started });
+      results.push({ name: one.name, status: error ? 'fail' : 'pass', error, durationMs: Math.round(performance.now() - started) });
     }
     const passed = results.filter((r) => r.status === 'pass').length;
     return { cases: results, passed, failed: results.length - passed, total: results.length };
