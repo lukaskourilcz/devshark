@@ -269,6 +269,8 @@ describe('authored text and control colours', () => {
         for (const status of ['success', 'error', 'warning', 'info'] as const) {
           const fill = tinted('ss-' + status + '-soft', background);
           check(solid('ss-' + status), fill, 3);
+          check(solid('color-text-primary'), fill);
+          // Roadmap swatches and Today's completed mark contain glyphs; their labels sit outside.
           check(solid({ success: 'ss-success-strong', error: 'ss-error-text', warning: 'ss-warning', info: 'color-text-primary' }[status]!), fill);
         }
       }
@@ -284,6 +286,8 @@ describe('authored text and control colours', () => {
       check(onBrand, brand);
       check(solid('color-background-surface'), solid('ss-ink'));
       check(solid('ss-on-error-text'), solid('ss-error-text'));
+      check(solid('ss-on-success-strong'), solid('ss-success-strong'));
+      check(solid('cd-editor-gutter-fg'), solid('cd-editor-gutter'));
       check(solid('cd-editor-fg'), solid('cd-editor-bg'));
       for (const name of ['keyword', 'name', 'function', 'constant', 'type', 'operator', 'comment', 'string']) {
         check(solid('cd-syntax-' + name), solid('cd-editor-bg'));

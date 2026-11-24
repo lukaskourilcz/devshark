@@ -781,7 +781,8 @@ describe('what a room broadcasts', () => {
 
     api.fetchMatchState.mockResolvedValue(stateOf({ ...match, status: 'finished', current_index: 1 }));
     fireEvent.click(screen.getByRole('radio', { name: 'delta' }));
-    expect(await screen.findByRole('heading', { name: 'Match complete' })).toBeInTheDocument();
+    const result = await screen.findByRole('heading', { name: 'Match complete' });
+    await waitFor(() => expect(result.closest('[tabindex="-1"]')).toHaveFocus());
     expect(roomEvents()[1]).toEqual({ event: 'match_updated', payload: { status: 'finished', current_index: 1 } });
   });
 
