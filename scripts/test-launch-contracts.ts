@@ -3016,6 +3016,7 @@ function englishOnlyContracts() {
     'client/product-catalog.ts': 'the trader ID (IČO) and registered address',
     'client/src/components/LegalPages.tsx': 'the Czech out-of-court dispute body',
     'client/src/i18n/translations.privacy.ts': 'the Czech data protection office',
+    'client/src/i18n/translations.terms.ts': 'the Czech Trade Inspection Authority named in consumer dispute resolution',
     'client/src/i18n/translations.ts': 'Czech law and the Czech Trade Inspection Authority',
     'client/tests/merch.test.tsx': 'Czechia as a shipping region',
     'client/tests/premium-page.test.tsx': 'the trader address',
