@@ -243,6 +243,26 @@ describe('the Play page (social-account-12)', () => {
 });
 
 describe('joining a live room', () => {
+  it('retries a failed code on the landing page, then enters with only the successful join', async () => {
+    const lobby = running({ status: 'lobby', questions: [] });
+    api.joinMatch.mockRejectedValueOnce(new ApiError('Failed to fetch', 0, 'network')).mockResolvedValue(lobby);
+    api.fetchMatchState.mockResolvedValue(stateOf(running()));
+    await mount('/play');
+    fireEvent.change(screen.getByRole('textbox', { name: 'Match code' }), { target: { value: 'abc123' } });
+    fireEvent.click(screen.getByRole('button', { name: /^Join/ }));
+    await waitFor(() => expect(screen.getByRole('button', { name: /^Join/ })).toBeEnabled());
+    expect(api.fetchMatchState).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /^Join/ }));
+    await screen.findByText('Pick one?');
+    expect(api.joinMatch).toHaveBeenCalledTimes(2); // one rejected, one successful
+    expect(api.fetchMatchState).toHaveBeenCalledTimes(1);
+
+    cleanup();
+    await mount('/play/ABC123');
+    await screen.findByText('Pick one?');
+    expect(api.joinMatch).toHaveBeenCalledTimes(3); // direct entry joins again
+  });
+
   it('opens on the state read after joining when the host has already started', async () => {
     api.joinMatch.mockResolvedValue(running({ status: 'lobby', questions: [], question_started_at: null }));
     api.fetchMatchState.mockResolvedValue(stateOf(running()));
