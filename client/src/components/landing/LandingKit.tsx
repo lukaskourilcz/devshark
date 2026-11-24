@@ -222,19 +222,20 @@ export function SampleCard({ chip, question, onAnswered, showTeaser = true }: { 
         })}
         </div>
       </fieldset>
-      {answered && (
-        <div ref={feedbackRef} tabIndex={-1} role="status" aria-live="polite" style={{
+      <div ref={feedbackRef} tabIndex={-1} role="status" aria-live="polite"
+        className={answered ? undefined : 'ss-sr-only'} style={answered ? {
           borderRadius: 'var(--radius-element)', padding: '12px 14px',
           background: right ? 'var(--ss-success-soft)' : 'var(--ss-error-soft)',
           border: `1px solid ${right ? 'var(--ss-success)' : 'var(--ss-error)'}`,
           display: 'flex', flexDirection: 'column', gap: 6,
-        }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: right ? 'var(--ss-success)' : 'var(--ss-error)' }}>
+        } : undefined}>
+        {answered && <>
+          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: right ? 'var(--ss-success-strong)' : 'var(--ss-error-text)' }}>
             {right ? t('home.answerCorrect') : t('home.answerWrong', { answer: question.opts[correct] })}
           </span>
           <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>{question.e}</span>
-        </div>
-      )}
+        </>}
+      </div>
     </div>
   );
 }

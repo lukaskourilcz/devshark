@@ -142,3 +142,27 @@ describe('initials avatars (--ss-avatar-1 … 8)', () => {
     });
   }
 });
+
+describe('practice verdict text and the outline around its tinted panel', () => {
+  const css = readFileSync(new URL('../src/styles/astryx-theme.css', import.meta.url), 'utf8');
+  const pair = (name: string): [string, string] => {
+    const match = new RegExp(`--${name}: light-dark\\((#[0-9a-f]{6}), (#[0-9a-f]{6})\\)`).exec(css);
+    if (!match) throw new Error('Missing light and dark colours for ' + name);
+    return [match[1], match[2]];
+  };
+  const tint = (name: string): [number, number] => {
+    const match = new RegExp(`--${name}: light-dark\\(rgba\\([^)]*, ([.0-9]+)\\), rgba\\([^)]*, ([.0-9]+)\\)\\)`).exec(css);
+    if (!match) throw new Error('Missing light and dark alpha for ' + name);
+    return [Number(match[1]), Number(match[2])];
+  };
+  for (const severity of ['success', 'error'] as const) for (const mode of [0, 1] as const) {
+    it(`${severity} feedback in ${mode ? 'dark' : 'light'} mode`, () => {
+      const surface = pair('color-background-surface')[mode];
+      const outline = pair('ss-' + severity)[mode];
+      const background = compositeOver(outline, tint('ss-' + severity + '-soft')[mode], surface);
+      const text = pair(severity === 'error' ? 'ss-error-text' : 'ss-success-strong')[mode];
+      expect(contrastRatio(text, background)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(outline, background)).toBeGreaterThanOrEqual(3);
+    });
+  }
+});
