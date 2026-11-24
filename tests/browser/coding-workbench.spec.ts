@@ -14,6 +14,9 @@ import { fulfilTaskRead, isTaskRead } from './coding-task-read';
 // test:coding and test:grading-integrity. Each test names the finding of the
 // coding audit of 8 October 2026 it guards.
 
+// Narrow layouts here model keyboard workstations. mobile-safari.spec covers the touch phone gate and tablet editor.
+test.use({ isMobile: false, hasTouch: false });
+
 interface Seen { submits: number[]; practiceStarts: unknown[]; documents: string[] }
 
 async function prepare(page: Page, { signedIn = false, verdict = {} as Record<string, unknown> } = {}): Promise<Seen> {
@@ -411,7 +414,7 @@ test('TypeScript: Submit leaves at once, and a runaway type is named as one (C5-
   await expect(page.getByText(/infinite loop|loop whose condition/)).toHaveCount(0);
 });
 
-test('a phone waiting for a bigger screen loads no TypeScript compiler until the editor is chosen (V3-4)', async ({ page }) => {
+test('a narrow keyboard viewport loads no TypeScript compiler until the editor is chosen (V3-4)', async ({ page }) => {
   await prepare(page);
   await page.setViewportSize({ width: 390, height: 844 });
   const runner: string[] = [];

@@ -81,12 +81,30 @@ async function editorFonts(page: Page) {
 test.describe('touch editor typography', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
-  test('a real task uses at least 16px editable text at 390px with a coarse pointer', async ({ page }, info) => {
+  test('a touch phone opens the Coding notice without loading a compiler or editor', async ({ page }) => {
+    await prepare(page);
+    const workers: string[] = [];
+    page.on('request', request => {
+      if (new URL(request.url()).pathname.includes('/assets/coding-worker/')) workers.push(request.url());
+    });
+    for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }]) {
+      await page.setViewportSize(viewport);
+      await page.goto('/coding/typescript/ts-typed-slug');
+      await expect(page.getByRole('heading', { level: 1, name: 'Coding' })).toBeVisible();
+      await expect(page.getByText('This section only works', { exact: false })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Use the editor here' })).toHaveCount(0);
+      await expect(page.locator('.cm-content')).toHaveCount(0);
+    }
+    expect(workers).toEqual([]);
+  });
+
+  test('a tablet task uses at least 16px editable text with a coarse pointer', async ({ page }, info) => {
+    await page.setViewportSize({ width: 820, height: 1180 });
     await openEditor(page);
     const font = await editorFonts(page);
     await info.attach('editor-typography', { body: JSON.stringify(font), contentType: 'application/json' });
     expect(font.coarse).toBe(true);
-    expect(font.width).toBe(390);
+    expect(font.width).toBe(820);
     expect(font.editor).toBeGreaterThanOrEqual(16);
     expect(font.content).toBeGreaterThanOrEqual(16);
   });
@@ -131,8 +149,9 @@ test.describe('touch editor typography', () => {
   });
 
   test('the editor stays focusable and reachable after the viewport shrinks', async ({ page }) => {
+    await page.setViewportSize({ width: 820, height: 1180 });
     await openEditor(page);
-    await page.setViewportSize({ width: 390, height: 460 });
+    await page.setViewportSize({ width: 820, height: 650 });
     const editor = page.locator('.cm-content');
     await editor.fill('const answer = 42;');
     await editor.scrollIntoViewIfNeeded();
@@ -142,7 +161,7 @@ test.describe('touch editor typography', () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const scale = await page.evaluate(() => visualViewport?.scale ?? 1);
     expect(scale).toBe(1);
-    await page.setViewportSize({ width: 390, height: 844 });
+    await page.setViewportSize({ width: 820, height: 1180 });
     await expect(editor).toBeFocused();
   });
 

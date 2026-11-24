@@ -322,7 +322,12 @@ function App() {
   // A narrow desktop window or browser zoom keeps the keyboard workbench.
   // On a touch phone, use the shorter viewport side in either orientation.
   const codingPhone = useMediaQuery('(pointer: coarse) and (hover: none) and (max-width: 599.95px), (pointer: coarse) and (hover: none) and (orientation: landscape) and (max-width: 1023.95px) and (max-height: 599.95px)');
-  const codingNotice = <p className="ss-info-card">{t('coding.phoneNotice')}</p>;
+  const codingNotice = (
+    <section>
+      <h1>{t('nav.coding')}</h1>
+      <p className="ss-info-card">{t('coding.phoneNotice')}</p>
+    </section>
+  );
   const analyticsIdentified = useRef(false);
 
   // Remember the learner's current rank on load so we don't re-celebrate a
