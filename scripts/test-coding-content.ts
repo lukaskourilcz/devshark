@@ -383,6 +383,11 @@ async function main() {
             }
           }
         }
+        if (prior.track === 'typescript' && task.track === 'typescript') {
+          const before = prior.typeTests ?? [];
+          const after = task.typeTests ?? [];
+          assert.deepEqual(after.slice(after.length - before.length), before, `${id}: a later TypeScript stage retains the earlier type contracts`);
+        }
         if (task.suite && prior.suite) {
           // The shared header is whatever both suites open with, cut back to
           // a whole line: the imports, and for FullStack the runtime checks
@@ -860,6 +865,15 @@ async function main() {
     assert.deepEqual(isolation.codeErrors, [], 'ordinary learner helper names remain local to the answer');
     assert.deepEqual(isolation.typeTests.map(item => item.pass), [true, true, true]);
     assert.match(isolation.typeTests[2].error ?? '', /number.*string/);
+    // A wider readonly parameter and an independent generic helper are valid
+    // ways to meet the Transform a list contract. Assertions may reuse names.
+    const mapper = CODING_TASKS.find(task => task.id === 'ts-transform-a-list')!;
+    const mapperSource = `const result = <Item>(item: Item): Item => item;
+function transform<Input, Output>(items: readonly Input[], change: (item: Input) => Output): Output[] {
+  return items.map(item => result(change(item)));
+}`;
+    assert.ok(typesPassed(checker.check(mapperSource, mapper.typeTests)), 'valid generic mapper accepts each published type case');
+    assert.ok(typesPassed(checker.check(mapperSource, solutionFor(mapper.id)?.hiddenTypeTests)), 'valid generic mapper accepts the private type cases');
     const invalid = checker.check('const keep = 1;\nconst result: number = "wrong";', [
       { code: 'const result: number = keep;' },
     ]);

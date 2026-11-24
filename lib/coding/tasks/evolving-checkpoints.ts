@@ -681,9 +681,17 @@ function orderStageChecks(out: CodingTask[], stages: readonly string[], header: 
       });
       next.tests = [...introduced, ...earlier];
     }
-    if (task.typeTests && samePrefix(original?.typeTests, task.typeTests)) {
-      const fresh = task.typeTests.slice(original?.typeTests?.length ?? 0);
-      next.typeTests = [...fresh, ...(ordered?.typeTests ?? [])];
+    if (task.typeTests && ordered?.typeTests && task.track === 'typescript' && ordered.track === 'typescript') {
+      const earlier = ordered.typeTests;
+      // Milestones are built from their own specification and can omit type
+      // guarantees introduced by their checkpoint. The Result, Store, Schema
+      // and fullstack TypeScript stages keep these earlier public signatures.
+      // A switch of language starts a different set of type contracts.
+      const introduced = task.typeTests.filter(check => !earlier.some(prior =>
+        check.label === prior.label && Boolean(check.rejects) === Boolean(prior.rejects)
+        && (check.code === prior.code || check.code === `{ ${prior.code} }` || prior.code === `{ ${check.code} }`),
+      ));
+      next.typeTests = [...introduced, ...earlier];
     }
     if (task.suite && task.suite.startsWith(header) && original?.suite && task.suite.startsWith(original.suite)) {
       const fresh = task.suite.slice(original.suite.length);
