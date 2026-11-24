@@ -46,6 +46,7 @@ Scaffold a migration for `$ARGUMENTS` by following `.claude/skills/supabase-migr
    URL=postgres://postgres:postgres@127.0.0.1:$PORT/postgres
    docker run -d --name "$NAME" -p "$PORT":5432 -e POSTGRES_PASSWORD=postgres supabase/postgres:17.6.1.171
    until docker exec "$NAME" pg_isready -U postgres -h 127.0.0.1; do sleep 2; done
+   docker exec -i "$NAME" psql -X -v ON_ERROR_STOP=1 -U supabase_admin -d postgres < supabase/tests/realtime-fixture.sql
    DATABASE_URL="$URL" npm run test:sql
    psql "$URL" -X -v ON_ERROR_STOP=1 -f supabase/supabase-schema-<NNN>.sql
    docker rm -f "$NAME"
