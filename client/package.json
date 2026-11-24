@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "engines": {
-    "node": ">=22 <25"
+    "node": "^22.22.2 || ^24.15.0"
   },
   "scripts": {
     "dev": "vite",
@@ -56,7 +56,7 @@
     "@tanstack/react-query-devtools": "^5.101.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@types/jsdom": "^30.0.0",
-    "@types/node": "^25.0.9",
+    "@types/node": "^24.19.2",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
@@ -84,5 +84,11 @@
     "@storybook/react-vite": {
       "@joshwooding/vite-plugin-react-docgen-typescript": "0.9.1"
     }
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "core-js": false,
+    "msw": false,
+    "fsevents": false
   }
 }
