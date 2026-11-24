@@ -1139,7 +1139,7 @@ function RunningQuestion({
   }, [code, questionIdx]);
   useEffect(() => {
     if (!isPresenter || !hostSub) return;
-    let cancelled = false;
+    const controller = new AbortController();
     // One read at a time: on a slow connection a read outlasting the 1.5 s
     // tick stacked up more, and an older answer landing last drew counts
     // that had already gone up.
@@ -1147,9 +1147,9 @@ function RunningQuestion({
     const load = () => {
       if (inFlight) return;
       inFlight = true;
-      fetchDistribution(code, questionIdx, hostSub)
+      fetchDistribution(code, questionIdx, hostSub, controller.signal)
         .then((r) => {
-          if (!cancelled) {
+          if (!controller.signal.aborted) {
             setBuckets(r.buckets);
             setDistributionStale(false);
             // Reveal closes the question on the server. Retry the final count
@@ -1158,7 +1158,7 @@ function RunningQuestion({
           }
         })
         .catch(() => {
-          if (!cancelled) setDistributionStale(true);
+          if (!controller.signal.aborted) setDistributionStale(true);
         })
         .finally(() => {
           inFlight = false;
@@ -1167,7 +1167,7 @@ function RunningQuestion({
     const id = window.setInterval(load, 1500);
     load();
     return () => {
-      cancelled = true;
+      controller.abort();
       window.clearInterval(id);
     };
   }, [isPresenter, hostSub, code, questionIdx, closedByTeacher]);
