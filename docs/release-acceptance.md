@@ -9063,3 +9063,11 @@ the traced memory measurement, prepare the production build with a disposable
 local `VITE_SENTRY_DSN` and run Chromium with `MEMORY_EXPECT_TRACING=1`
 and `MEMORY_FULL_EXPIRY=1`. The test blocks external HTTP; its
 `route-memory.json` attachment holds the per-lap, control and expiry readings.
+
+## 24 November 2026 · challenge catalogue and application audit
+
+The audit started from `4db80e0615d20c75ca4061c135821cb169690708`. Reviewers examined 316 JavaScript, 183 React, 156 TypeScript, 114 Algorithms and 45 System Design tasks twice. Of the 769 published tasks, 95 have new content hashes (40 JavaScript, 9 React, 37 TypeScript, 9 Algorithms) and 674 retain their previous hashes. The 40 System Design drills and 5 walkthroughs remain hidden under the previous publication decision. The versioned content ledger records the two source reviews separately from executable grading.
+
+On Node 24.22.3 the three authored Promise boards passed both rejection orders and ordinary fulfillment under strict native rejection handling. Six breadth-first traversal boards produced the expected ordering with zero array shifts. In Chrome 158.0.8127.37 the Daily exercise on application build `0540b0583` reached the real local API, PostgREST 16.6 and native PostgreSQL 17. Correct and incorrect answers displayed their respective explanations. Both retries returned the original verdict. Four acknowledged claims produced two distinct guest receipts and zero XP or account-attempt writes.
+
+The combined application PR includes the earlier dependency and application PR heads. Its ordinary coding job emits the case counts and actual verdict for each authored board and starter. The immutable result of that job and the other required gates belong in the PR closeout. Database migrations 077 onward have their own review and rollout sequence. Before deploying the changed React grader, promote the reviewed provider snapshot and verify a real Preview Submit.
