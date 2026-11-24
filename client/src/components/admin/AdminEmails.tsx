@@ -125,9 +125,24 @@ export default function AdminEmails() {
       {data.authTemplatesUrl ? <a className="admin-external-link" href={data.authTemplatesUrl} target="_blank" rel="noreferrer">{t('admin.emails.manageAuth')} ↗</a> : null}
     </AdminDisclosure>
 
-    <div className="admin-email-tabs" role="tablist" aria-label={t('admin.emails.templates')}>
+    <div className="admin-email-tabs" role="tablist" aria-label={t('admin.emails.templates')} onKeyDown={event => {
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      const tabs = EMAIL_TEMPLATE_DEFINITIONS;
+      const index = tabs.findIndex(template => template.id === selectedId);
+      let next: number;
+      switch (event.key) {
+        case 'ArrowLeft': next = (index + tabs.length - 1) % tabs.length; break;
+        case 'ArrowRight': next = (index + 1) % tabs.length; break;
+        case 'Home': next = 0; break;
+        case 'End': next = tabs.length - 1; break;
+        default: return;
+      }
+      event.preventDefault();
+      setSelectedId(tabs[next].id);
+      event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+    }}>
       {EMAIL_TEMPLATE_DEFINITIONS.map(template => <button key={template.id} type="button" role="tab" id={'email-tab-' + template.id}
-        aria-selected={selectedId === template.id} aria-controls="email-template-panel" className="admin-email-tab"
+        tabIndex={selectedId === template.id ? 0 : -1} aria-selected={selectedId === template.id} aria-controls="email-template-panel" className="admin-email-tab"
         onClick={() => setSelectedId(template.id)}>{template.label}{data.templates[template.id].custom ? <span className="admin-email-tab-mark"> · {t('admin.emails.edited')}</span> : null}</button>)}
     </div>
 
