@@ -21,7 +21,7 @@ export const PROBES = Object.freeze([
   { id: 'flashcards', file: 'api/flashcards.ts', path: '/api/flashcards?subject=webdev', purpose: 'anonymous auth/configuration refusal', kind: 'refusal', outcomes: [[401, 'missing_token'], [503, 'not_configured'], [503, 'auth_not_configured']] },
   { id: 'user', file: 'api/user/[op].ts', path: '/api/user/__perf_probe__', purpose: 'unknown-op/configuration refusal, never wallet/rewards', kind: 'refusal', outcomes: [[404, 'unknown_op'], [503, 'not_configured']] },
   { id: 'play', file: 'api/play/[action].ts', path: '/api/play/__perf_probe__', purpose: 'unknown-action/configuration/feature refusal, no room', kind: 'refusal', outcomes: [[404, 'unknown_action'], [503, 'not_configured'], [503, 'feature_disabled']] },
-  { id: 'admin', file: 'api/admin/[op].ts', path: '/api/admin/__perf_probe__', purpose: 'anonymous admin refusal, no legacy password', kind: 'refusal', outcomes: [[403, 'forbidden'], [401, 'unauthorized']] },
+  { id: 'admin', file: 'api/admin/[op].ts', path: '/api/admin/__perf_probe__', purpose: 'anonymous admin refusal', kind: 'refusal', outcomes: [[403, 'forbidden']] },
 ]);
 export const USAGE = 'node scripts/perf-cold-start.mjs (--url=<bare HTTPS or HTTP loopback origin> | --local) [--handlers=<ids>] [--samples=1..10] [--interval-ms=1100..60000] [--bypass-cache] [--markers] [--output=<file>] [--preview-state=<approved-one-cookie-state-file>]';
 const FLAGS = { url: 'value', local: 'switch', handlers: 'value', samples: 'value', 'interval-ms': 'value', 'bypass-cache': 'switch', markers: 'switch', output: 'value', 'preview-state': 'value', help: 'switch' };

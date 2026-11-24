@@ -2050,7 +2050,7 @@ async function voucherContracts() {
     assert.ok(!JSON.stringify(createArgs).includes(plain), 'and never receives the code');
     assert.deepEqual({ ...createArgs, p_code_hash: 'hash', p_code_hint: 'hint' }, {
       p_code_hash: 'hash', p_code_hint: 'hint', p_note: 'For Pavel', p_premium_days: 30, p_max_redemptions: 1, p_redeemable_until: null, p_created_by: null,
-    }, 'a request that passed with the legacy password records no creator');
+    }, 'a directly invoked operation without a verified request does not invent a creator');
     assert.equal(JSON.stringify(created.body).split(shown).length - 1, 1, 'the answer carries the code once');
     assert.ok(!JSON.stringify(created.body).includes(plain) && !JSON.stringify(created.body).includes(sha256(plain)), 'and neither its bare form nor its hash');
     assert.equal(created.headers.get('cache-control'), 'no-store');

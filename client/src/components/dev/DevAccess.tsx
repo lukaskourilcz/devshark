@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import LoadingScreen from '../LoadingScreen';
 import DevLogin from './DevLogin';
-import { getDevPassword, clearDevPassword, verifyPassword } from '../../lib/devApi';
+import { verifyAdminAccess } from '../../lib/devApi';
 import { useAuth } from '../../lib/auth';
 import { Button } from '@astryxdesign/core/Button';
 import { StatePanel } from '../ui/StatePanel';
@@ -14,8 +14,7 @@ type Phase = 'checking' | 'login' | 'ready' | 'error';
 
 /**
  * Entry point for the authenticated /dev admin console. The API checks the
- * current Supabase session first and may allow an explicitly configured legacy
- * password during migration.
+ * current Supabase session.
  *
  * The access check belongs to the account that passed it. When the signed-in
  * account changes (a sign-out, or another account signing in) the check runs
@@ -24,6 +23,10 @@ type Phase = 'checking' | 'login' | 'ready' | 'error';
  */
 export default function DevAccess({ children }: { children: (lock: () => void) => ReactNode }) {
   const { user, isLoading } = useAuth();
+  useEffect(() => {
+    // Older admin tabs kept a retired credential here until the tab closed.
+    try { sessionStorage.removeItem('devquiz:dev-password'); } catch { /* storage may be disabled */ }
+  }, []);
   if (isLoading) return <LoadingScreen label="Checking access…" />;
   return <AccountAccess key={user?.id ?? 'signed-out'}>{children}</AccountAccess>;
 }
@@ -38,7 +41,7 @@ function AccountAccess({ children }: { children: (lock: () => void) => ReactNode
   useEffect(() => {
     if (phase !== 'checking') return;
     let active = true;
-    verifyPassword(getDevPassword())
+    verifyAdminAccess()
       .then((ok) => active && setPhase(ok ? 'ready' : 'login'))
       .catch(error => { if (active) { setError(friendlyError(error)); setPhase('error'); } });
     return () => {
@@ -50,7 +53,6 @@ function AccountAccess({ children }: { children: (lock: () => void) => ReactNode
   if (phase === 'error') return <StatePanel level={1} title={t('admin.accessFailed')} body={error}><Button variant="secondary" label={t('admin.retry')} onClick={() => setPhase('checking')} /></StatePanel>;
   if (phase === 'login') return <DevLogin onSuccess={() => setPhase('ready')} />;
   return children(() => {
-    clearDevPassword();
     queryClient.removeQueries({ queryKey: ['admin'] });
     setPhase('login');
   });

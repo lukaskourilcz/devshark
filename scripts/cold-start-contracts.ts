@@ -84,29 +84,41 @@ export async function coldStartContracts(): Promise<void> {
   // F14-03: ordinary admin work and refused methods never evaluate the overlay.
   {
     const marker = 'lib/admin-triage.ts';
-    const probe = (op: string, method = 'GET', password = 'triage-cold-contract') => `(async () => {
+    const env = { SUPABASE_URL: 'https://admin-cold.example.test', SUPABASE_ANON_KEY: 'fixture-anon', SUPABASE_SERVICE_ROLE_KEY: 'fixture-service' };
+    const transport = `
+      globalThis.fetch = async (input, init) => {
+        const request = input instanceof Request ? input : new Request(input, init);
+        const url = new URL(request.url);
+        if (url.origin !== 'https://admin-cold.example.test' || request.method !== 'GET') throw new Error('unexpected admin fixture transport');
+        if (url.pathname === '/auth/v1/user' && request.headers.get('authorization') === 'Bearer cold-admin') {
+          return Response.json({ id: 'cold-admin-id', app_metadata: { role: 'admin' } });
+        }
+        if (url.pathname === '/rest/v1/app_settings') return Response.json([]);
+        throw new Error('unexpected admin fixture path');
+      };`;
+    const probe = (op: string, method = 'GET', signedIn = true) => `(async () => {
       const res = { statusCode: 200, headers: {}, body: null,
         status(code) { this.statusCode = code; return this; },
         setHeader(name, value) { this.headers[name.toLowerCase()] = value; return this; },
         getHeader(name) { return this.headers[name.toLowerCase()]; },
         json(body) { this.body = body; return this; }, end() { return this; } };
       await mod.default({ method: ${JSON.stringify(method)}, url: '/api/admin/triage',
-        headers: { 'x-dev-password': ${JSON.stringify(password)}, 'x-forwarded-for': 'triage-cold' },
+        headers: { ...(${signedIn} ? { authorization: 'Bearer cold-admin' } : {}), 'x-forwarded-for': 'triage-cold' },
         query: { op: ${JSON.stringify(op)} } }, res);
       return { status: res.statusCode, total: res.body?.meta?.total ?? null,
         cache: res.headers['cache-control'], loaded: globalThis.__evaluated ?? [] };
     })()`;
-    for (const [op, method, password, expected] of [
-      ['settings', 'GET', 'triage-cold-contract', 200],
-      ['triage', 'POST', 'triage-cold-contract', 405],
-      ['triage', 'GET', '', 401],
+    for (const [op, method, signedIn, expected] of [
+      ['settings', 'GET', true, 200],
+      ['triage', 'POST', true, 405],
+      ['triage', 'GET', false, 403],
     ] as const) {
-      const fresh = await loadFresh('api/admin/[op].ts', probe(op, method, password), { DEV_PASSWORD: 'triage-cold-contract' }, [marker]);
+      const fresh = await loadFresh('api/admin/[op].ts', probe(op, method, signedIn), env, [marker], transport);
       const result = fresh.probe as { status: number; loaded: string[] };
       assert.equal(result.status, expected);
       assert.ok(!result.loaded.includes(marker), `${op} ${method} loads no triage data`);
     }
-    const fresh = await loadFresh('api/admin/[op].ts', probe('triage'), { DEV_PASSWORD: 'triage-cold-contract' }, [marker]);
+    const fresh = await loadFresh('api/admin/[op].ts', probe('triage'), env, [marker], transport);
     const result = fresh.probe as { status: number; total: number; cache: string; loaded: string[] };
     assert.equal(result.status, 200);
     assert.equal(result.total, 3609);

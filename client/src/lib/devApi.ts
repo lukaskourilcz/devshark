@@ -1,45 +1,16 @@
-// Client for authenticated /api/admin endpoints. apiFetch always attaches the
-// current Supabase token; a legacy password can additionally be kept in
-// sessionStorage when that migration fallback is explicitly enabled server-side.
+// Authenticated admin requests use the current Supabase bearer supplied by apiFetch.
 
 import type { CoinSettings, MerchSettings, MerchSku } from '../../../shared/rewards';
 import type { AdminVoucher, CreatedVoucher } from '../../../shared/vouchers';
 import { apiFetch, ApiError } from './api';
 
-const PW_KEY = 'devquiz:dev-password';
-
-export const getDevPassword = (): string => {
-  try {
-    return sessionStorage.getItem(PW_KEY) ?? '';
-  } catch {
-    return '';
-  }
-};
-
-export const setDevPassword = (pw: string) => {
-  try {
-    sessionStorage.setItem(PW_KEY, pw);
-  } catch {
-    // ignore
-  }
-};
-
-export const clearDevPassword = () => {
-  try {
-    sessionStorage.removeItem(PW_KEY);
-  } catch {
-    // ignore
-  }
-};
-
 export function adminFetch<T>(
   op: string,
-  init: { method?: string; body?: unknown; password?: string; signal?: AbortSignal } = {},
+  init: { method?: string; body?: unknown; signal?: AbortSignal } = {},
 ): Promise<T> {
   return apiFetch<T>(`/api/admin/${op}`, {
     method: init.method ?? 'GET',
     signal: init.signal,
-    headers: { 'x-dev-password': init.password ?? getDevPassword() },
     body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
   });
 }
@@ -118,12 +89,10 @@ export interface GameSettings {
   coins: CoinSettings;
 }
 
-/** Check admin access (the session, or a legacy password) against the
- * server. False when it refuses the caller: 401 for a wrong password, 403 for
- * an account without the admin role. Throws on network and server errors. */
-export async function verifyPassword(pw: string): Promise<boolean> {
+/** Network and service failures remain retryable; a refused identity returns false. */
+export async function verifyAdminAccess(): Promise<boolean> {
   try {
-    await adminFetch('settings', { password: pw });
+    await adminFetch('settings');
     return true;
   } catch (err) {
     if (err instanceof ApiError && (err.status === 401 || err.status === 403)) return false;
@@ -307,7 +276,6 @@ export type FulfilmentView = 'queue' | 'submitted' | 'shipped' | 'awaiting_payme
 const fulfilmentFetch = <T,>(init: { method?: string; body?: unknown; query?: string } = {}) =>
   apiFetch<T>(`/api/user/[op]?op=fulfilment${init.query ?? ''}`, {
     method: init.method ?? 'GET',
-    headers: { 'x-dev-password': getDevPassword() },
     body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
   });
 

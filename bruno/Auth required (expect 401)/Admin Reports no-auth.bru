@@ -5,7 +5,7 @@ meta {
 }
 
 # api/admin/[op].ts calls requireAdmin (lib/admin-auth.ts): with no Supabase
-# session, and the legacy dev password not enabled, it answers 403 'forbidden'.
+# session it answers 403 'forbidden'.
 get {
   url: {{baseUrl}}/api/admin/reports
   body: none
