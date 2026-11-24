@@ -105,13 +105,14 @@ test('perf:measure presses a button the app renders at each profile width', () =
 
 // Exercise the real collector orchestration with a closed fake browser. The
 // existing owned-local Daily DOM diagnosis checks actual role/visibility.
-async function interactionLab(t, { path = '/daily', option = true, registered = true, zero = false } = {}) {
+async function interactionLab(t, { path = '/daily', option = true, registered = true, zero = false, supportedConsentVersion = 2, consentVersion = 2 } = {}) {
   const scratch = mkdtempSync(join(tmpdir(), 'devshark-interaction-contract-'));
   t.after(() => rmSync(scratch, { recursive: true, force: true }));
   const clicks = [], roleQueries = [], messages = [];
   const target = (kind, present) => ({ first() { return this; }, async count() { return present ? 1 : 0; }, async click() { clicks.push(kind); } });
   const radio = target('daily-radio', option);
   const button = (name) => target(name, path === '/' && name === label('footer.darkMode'));
+  let rejectedConsentStored = false;
   const page = {
     async addInitScript() {}, async goto() {}, async waitForTimeout() {}, keyboard: { async press() {} },
     locator(scope) {
@@ -120,13 +121,18 @@ async function interactionLab(t, { path = '/daily', option = true, registered = 
     },
     getByRole(role, { name }) { roleQueries.push(role); assert.equal(role, 'button'); return button(name); },
     async evaluate(_fn, arg) {
-      if (arg !== undefined) return;
+      if (arg !== undefined) {
+        const [key, record] = arg;
+        rejectedConsentStored = key === lab.CONSENT_STORAGE_KEY && record.version === supportedConsentVersion
+          && record.analytics === false && record.marketing === false;
+        return;
+      }
       if (this.flush) {
         this.flush = false;
         return { events: zero ? [{ name: 'click', interactionId: 1, startTime: 0, processingStart: 0, processingEnd: 0, duration: 0 }] : [], firstInput: registered ? { name: 'pointerdown', duration: 0 } : null };
       }
       this.flush = true;
-      return { navigation: { responseStart: 1, requestStart: 0, redirectStart: 0, redirectEnd: 0, domainLookupStart: 0, domainLookupEnd: 0, connectStart: 0, connectEnd: 0, secureConnectionStart: 0, responseEnd: 2, domContentLoadedEventEnd: 3, loadEventEnd: 4 }, fcp: 10, lcp: 20, lcpElement: { tag: 'h1', classes: [], size: 1 }, shifts: [], longTasks: [], measuredAt: 30, consentBanner: true, resources: [], heading: 'Invented local page', buttons: [] };
+      return { navigation: { responseStart: 1, requestStart: 0, redirectStart: 0, redirectEnd: 0, domainLookupStart: 0, domainLookupEnd: 0, connectStart: 0, connectEnd: 0, secureConnectionStart: 0, responseEnd: 2, domContentLoadedEventEnd: 3, loadEventEnd: 4 }, fcp: 10, lcp: 20, lcpElement: { tag: 'h1', classes: [], size: 1 }, shifts: [], longTasks: [], measuredAt: 30, consentBanner: !rejectedConsentStored, resources: [], heading: 'Invented local page', buttons: [] };
     },
   };
   const cdp = { async send() {}, on() {}, off() {} };
@@ -138,10 +144,29 @@ async function interactionLab(t, { path = '/daily', option = true, registered = 
   process.exitCode = undefined;
   try {
     const output = join(scratch, 'lab.json');
-    const rows = await lab.main({ origin: closedOrigin, routes: [path], samples: 1, profiles: ['desktop'], output });
+    const rows = await lab.main({ origin: closedOrigin, routes: [path], samples: 1, profiles: ['desktop'], output, consentVersion });
     return { rows, report: JSON.parse(readFileSync(output, 'utf8')), exitCode: process.exitCode ?? 0, clicks, roleQueries, messages };
   } finally { process.exitCode = previous; }
 }
+
+test('perf:measure omits the invalid repeat paint when a historical page ignores the stored version', async (t) => {
+  const run = await interactionLab(t, { supportedConsentVersion: 1 });
+  assert.equal(run.exitCode, 1);
+  assert.deepEqual(run.rows.map(row => row.consentBanner), [true, true]);
+  assert.ok(!run.rows[0].error);
+  assert.match(run.rows[1].error, /Rejected consent version 2/);
+  const repeat = run.report.summary.find(row => row.cache === 'repeat-browser');
+  assert.equal(repeat.errors, 1);
+  assert.equal(repeat.lcpMs, null);
+});
+
+test('perf:measure accepts a repeat paint after writing the version supported by a historical page', async (t) => {
+  const run = await interactionLab(t, { supportedConsentVersion: 1, consentVersion: 1 });
+  assert.equal(run.exitCode, 0);
+  assert.deepEqual(run.rows.map(row => row.consentBanner), [true, false]);
+  assert.ok(run.rows.every(row => !row.error));
+  assert.equal(run.report.environment.consentVersion, 1);
+});
 
 test('perf:measure selects a Daily radio without checking or submitting the answer', async (t) => {
   const run = await interactionLab(t);
