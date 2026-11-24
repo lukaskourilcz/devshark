@@ -9349,6 +9349,28 @@ These are lab and single-observer numbers, not field Core Web Vitals. The full e
 
 **Still open.** Sentry's ten release-tagged events need an authorized sign-in. The hosted per-handler comparison (F7) needs a day of production traffic on the new operation labels. Public Realtime stays on until older tabs have refreshed onto the private Play client, which shipped in this deployment. The local Mac `ci:parity` run on the merged source was not repeated; the required CI jobs on the merged head are the gate.
 
+## Epic F10 closeout: browser security checks (24 November 2026)
+
+This closes the F10 section (#639, F10-36 in #646). Each line cites the file that holds the rule and the run that checked it.
+
+| #639 acceptance | Result |
+| --- | --- |
+| App CSP without `https:` in `img-src`, with `object-src 'none'`; `check:security --url` asserts both plus COOP and CORP | `vercel.json` app rule: `img-src 'self' data: https://*.googleusercontent.com https://*.stripe.com https://*.link.com`, `object-src 'none'`, `font-src 'self'` (no Google Fonts host), `worker-src 'self'` (no `blob:`), `connect-src` names Supabase `rvlybcjdpafwyeuojvhl` and the Sentry organisation host, `upgrade-insecure-requests`. `scripts/check-security.mjs` pins every directive in `APP_POLICY` and refuses a bare scheme or wildcard host. The document rule sends `Cross-Origin-Opener-Policy: same-origin-allow-popups` and `Cross-Origin-Resource-Policy: same-origin`; `/api/*` sends the same CORP. `--url` compares each probed path with every header `vercel.json` gives it. |
+| `style-src` without `'unsafe-inline'` | Recorded per component in `docs/audit/csp-experiments-2026-11.md` (F10-12): only the CodeMirror editor breaks (2 refused `<style>` elements). The directive stays. Reports go to the same-origin collector `/api/settings?op=csp-report` (`lib/csp-reports.ts`), which keeps the directive and replaces every blocked URL with `redacted`, `inline` or `eval` before forwarding (`cspReportingContracts` in `scripts/test-launch-contracts.ts`). |
+| Safe redirects | `client/tests/safe-redirect.test.ts`: 20 tests pass. It rejects `//evil.example`, `https://evil.example`, `javascript:`, `\\evil.example`, `/\evil.example`, their encoded and whitespace forms and non-strings, and accepts `/learn?x=1`. Its syntax-tree inventory fails when a `client/src` file navigates or reads a return address without the shared helper. |
+| `Access-Control-Allow-Origin: *` only for the sandbox frame | `vercel.json` sends `*` on `^/sandbox/.*$` and `https://devshark.app` on every other non-API path, overriding Vercel's default `*` on static files. Production on 24 November: `/assets/main-ZM1VwTSF.js` answers `https://devshark.app`; `/sandbox/index.html` and `/sandbox/assets/index-CZNLWlJp.js` answer `*`. `tests/browser/coding-workbench.spec.ts` passed in the `browser` job of quality run 45493617485 (`87dcd867`). |
+| Docker parity and owner decisions | `node --test docker/server.test.mjs`: 38 of 38 pass; one test compares the status and every header name `vercel.json` sets with the Docker adapter's answer. `NEEDED.md` records the owner's two decisions of 24 November: the same-domain sandbox stays (F10-32, median 55.19 ms TLS per extra connection, 282,559 gzip bytes of frame assets) and source maps use configuration A (F10-33, no public maps, no private upload). |
+
+**Headers before and after.** Before F10 the app policy allowed `img-src https:`, Google Fonts hosts, `data:` fonts, `blob:` workers and wildcard Supabase and Sentry hosts, sent no COOP or CORP, and served `.map` files. After: `npm run check:security -- --url=https://devshark.app` on 24 November (deployment from `87dcd867`) matched every header `vercel.json` gives each of the nine probed paths, the main chunk's map answered 404, and 4 of 4 bundle connections (Supabase REST and socket, Sentry, PostHog `/ingest`) passed `connect-src`. The protected Preview gave the same result (see "Epic F release and released-site checks" above).
+
+**Continuous check.** `.github/workflows/health.yml` runs `check:security --url=https://devshark.app` after each healthy probe (F10-38). Run 45495567944 passed it.
+
+**CSP browser spec.** `npm run test:browser:csp` (`tests/browser/csp.spec.ts`, served by `docker/server.mjs`) passed in the `browser` job of quality run 45493617485.
+
+**Accepted residual risk.** The Supabase session stays in `localStorage` (supabase-js default). A script injected into the app could read it; the CSP, with no unsafe script keyword and named script hosts only, is the guard.
+
+**Not run here.** Reading a sanitized CSP report in Sentry needs an authorized Sentry sign-in. The full Playwright suite, `ci:parity` and the Docker image were not run on this Mac; the required CI jobs are the gate.
+
 ## F7 serverless latency closeout (24 November 2026)
 
 This section closes out #636 against production `87dcd867` (`dpl_vPPHKGead2nYnwHhp6csEig2B3i3`, arn1). One guest run of `npm run perf:cold-start -- --url=https://devshark.app --samples=3 --bypass-cache` sent the fixed 36 anonymous GETs at 22:19 UTC: three per handler, the same reads and refusals as the F1 production run on 19 November at `cbdfa2aa`. All 36 answered with their expected status and a CDN MISS, with zero errors, retries or redirects. No account, attempt, score, reward or order was involved. [Raw observations](audit/f7-production-handlers-2026-11-24.json) · [F1 observations](audit/f1-handler-baseline-2026-11-19.json)

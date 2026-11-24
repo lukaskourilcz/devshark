@@ -2654,7 +2654,7 @@ The fallback HTML omits a canonical. Prerendered pages declare their own URL, an
 
 `npm run check:public` classifies every app route and checks the built heads, including one canonical for each indexable page, titles under 60 characters and descriptions of 50–160 characters for listed and share-only pages. It checks that permanent redirects land directly and that indexable destinations appear under the intended sitemap rules.
 
-The lazy Sentry client takes its release from the full Vercel commit SHA and its environment from `VERCEL_ENV`. It excludes the browser session integration, removes identifying URL parts and Play room codes from event, breadcrumb and span fields, filters browser-extension frames and the known ResizeObserver limit message, and suppresses a chunk-load error when a version check confirms a newer build. PostHog starts after consent. Its explicit options turn off automatic capture, replay, heatmaps, remote extras and performance collection. Its outgoing URL and path properties mask room codes.
+The lazy Sentry client takes its release from the full Vercel commit SHA (`VERCEL_GIT_COMMIT_SHA`, or `DEPLOY_COMMIT_SHA` that a CLI release passes with `--build-env`) and its environment from `VERCEL_ENV`. It excludes the browser session integration, removes identifying URL parts and Play room codes from event, breadcrumb and span fields, filters browser-extension frames and the known ResizeObserver limit message, and suppresses a chunk-load error when a version check confirms a newer build. PostHog starts after consent. Its explicit options turn off automatic capture, replay, heatmaps, remote extras and performance collection. Its outgoing URL and path properties mask room codes.
 
 ### Browser deployment policies
 
