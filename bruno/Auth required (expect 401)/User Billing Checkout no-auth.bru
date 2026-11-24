@@ -1,0 +1,15 @@
+meta {
+  name: User Billing Checkout no-auth
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/user/billing-checkout
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

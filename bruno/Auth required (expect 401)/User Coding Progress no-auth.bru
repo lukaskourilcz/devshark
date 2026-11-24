@@ -1,0 +1,15 @@
+meta {
+  name: User Coding Progress no-auth
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{baseUrl}}/api/user/coding-progress
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

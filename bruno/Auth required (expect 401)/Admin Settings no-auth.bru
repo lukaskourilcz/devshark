@@ -1,0 +1,15 @@
+meta {
+  name: Admin Settings no-auth
+  type: http
+  seq: 57
+}
+
+get {
+  url: {{baseUrl}}/api/admin/settings
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 403
+}

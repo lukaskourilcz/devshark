@@ -799,7 +799,10 @@ export async function handlePaymentWebhook(req: VercelRequest, res: VercelRespon
   try {
     return await applyPaymentDelivery(res, supabase, provider, event, orderId, providerRef, accepted);
   } finally {
-    if (!completed) await finish(false);
+    if (!completed) {
+      // A failed request remains retryable when the short lease expires even if Redis is down.
+      await finish(false).catch(() => logEvent({ level: 'warn', kind: 'payment_claim_release_failed' }));
+    }
   }
 }
 

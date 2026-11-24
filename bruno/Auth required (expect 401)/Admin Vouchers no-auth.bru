@@ -1,0 +1,15 @@
+meta {
+  name: Admin Vouchers no-auth
+  type: http
+  seq: 62
+}
+
+get {
+  url: {{baseUrl}}/api/admin/vouchers
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 403
+}

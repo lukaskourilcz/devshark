@@ -1,0 +1,15 @@
+meta {
+  name: User Fulfilment no-auth
+  type: http
+  seq: 26
+}
+
+get {
+  url: {{baseUrl}}/api/user/fulfilment
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 403
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Flashcards POST no-auth
+  type: http
+  seq: 68
+}
+
+post {
+  url: {{baseUrl}}/api/flashcards
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

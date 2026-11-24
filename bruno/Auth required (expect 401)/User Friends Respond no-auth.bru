@@ -1,0 +1,19 @@
+meta {
+  name: User Friends Respond no-auth
+  type: http
+  seq: 25
+}
+
+post {
+  url: {{baseUrl}}/api/user/friends-respond
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

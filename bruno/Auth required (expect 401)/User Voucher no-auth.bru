@@ -1,0 +1,19 @@
+meta {
+  name: User Voucher no-auth
+  type: http
+  seq: 46
+}
+
+post {
+  url: {{baseUrl}}/api/user/voucher
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

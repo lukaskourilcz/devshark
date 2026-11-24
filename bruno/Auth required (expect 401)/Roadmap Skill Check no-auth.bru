@@ -1,0 +1,19 @@
+meta {
+  name: Roadmap Skill Check no-auth
+  type: http
+  seq: 70
+}
+
+post {
+  url: {{baseUrl}}/api/quiz/roadmap?resource=skill-check
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

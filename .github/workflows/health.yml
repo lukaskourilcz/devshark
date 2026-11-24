@@ -23,7 +23,7 @@ jobs:
                 (now | floor) as $checked |
                 .ok == true and .status == "healthy" and
                 .dependencies.database == "ok" and .dependencies.serviceRole == "ok" and
-                .dependencies.rateLimiter == "configured" and
+                .dependencies.rateLimiter == "configured" and .dependencies.grading == "ok" and
                 $reported >= ($checked - 300) and $reported <= ($checked + 300)
               ' /tmp/health.json
           }

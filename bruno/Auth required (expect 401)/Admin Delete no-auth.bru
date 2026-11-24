@@ -1,0 +1,19 @@
+meta {
+  name: Admin Delete no-auth
+  type: http
+  seq: 53
+}
+
+post {
+  url: {{baseUrl}}/api/admin/delete
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 403
+}

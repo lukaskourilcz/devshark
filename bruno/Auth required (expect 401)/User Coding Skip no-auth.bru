@@ -1,0 +1,19 @@
+meta {
+  name: User Coding Skip no-auth
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{baseUrl}}/api/user/coding-skip
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

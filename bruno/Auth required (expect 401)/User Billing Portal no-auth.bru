@@ -1,0 +1,19 @@
+meta {
+  name: User Billing Portal no-auth
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/user/billing-portal
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

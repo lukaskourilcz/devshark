@@ -1,0 +1,15 @@
+meta {
+  name: User Leaderboard Name no-auth
+  type: http
+  seq: 34
+}
+
+get {
+  url: {{baseUrl}}/api/user/leaderboard-name
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}
