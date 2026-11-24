@@ -552,8 +552,8 @@ test.describe('FDE routes and Career sections', () => {
     await prepare(page);
     await stand(page, 'guest');
     await page.goto('/roadmap/specializations/fde/fde-v1-m01?activity=fde-v1-m01-l1-read#lesson');
-    await expect(page).toHaveURL(FDE_SECTION_VISIBLE ? /\/learn\/forward-deployed-engineer\/path\/fde-v1-m01\?activity=fde-v1-m01-l1-read#lesson$/ : /\/learn\/web-developer$/);
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page).toHaveURL(FDE_SECTION_VISIBLE ? /\/learn\/forward-deployed-engineer\/path\/fde-v1-m01\?activity=fde-v1-m01-l1-read#lesson$/ : /\/learn\/web-developer\?activity=fde-v1-m01-l1-read#lesson$/);
+    await expect(page.getByRole('heading', { name: FDE_SECTION_VISIBLE ? undefined : 'Web Developer', level: 1 })).toBeVisible();
   });
 
   // E5 (#496) retired the standalone DSA path. Its overview and module links

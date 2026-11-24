@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { test, expect, type Page } from './console-clean';
-import { codingTaskRead, pathCatalog, roadmapStructure } from '../../scripts/responsive-fixtures';
+import { codingTaskRead } from '../../scripts/responsive-fixtures';
 import { localAuth, storeFakeSession } from './fake-session';
 
 const settings = JSON.parse(readFileSync('tests/fixtures/api-settings.json', 'utf8'));
@@ -39,20 +39,18 @@ async function prepareLearner(page: Page) {
   // Reuse the responsive runner's invented learner and wire bodies. A
   // variable import keeps the native .mjs helper outside TS's module graph.
   const fixturePath = resolve('scripts/check-responsive.mjs');
-  const { apiFixture, fixtureSession } = await import(fixturePath);
+  const { apiFixture, fixtureSession, prepareResponsiveFixtures } = await import(fixturePath);
+  await prepareResponsiveFixtures();
   const user = fixtureSession().user;
   await storeFakeSession(page, user);
   await localAuth(page, { user: () => user });
   const misses: string[] = [];
-  await page.route('**/api/**', (route) => {
+  const origin = new URL(process.env.TEST_BASE_URL || 'http://localhost:4173').origin;
+  await page.route(url => url.origin !== origin && /^https?:$/.test(url.protocol) && !url.pathname.startsWith('/auth/v1/'),
+    route => route.abort('blockedbyclient'));
+  await page.route(url => url.origin === origin && url.pathname.startsWith('/api/'), route => {
     const request = route.request();
     const url = new URL(request.url());
-    if (url.pathname === '/api/quiz/roadmap' && url.searchParams.get('resource') === 'learning-path-catalog') {
-      return route.fulfill({ json: pathCatalog() });
-    }
-    if (url.pathname === '/api/quiz/roadmap' && !url.searchParams.has('resource')) {
-      return route.fulfill({ json: roadmapStructure() });
-    }
     const fixture = apiFixture(request.method(), url);
     if (fixture) return route.fulfill({ status: fixture.status, json: fixture.body });
     misses.push(`${request.method()} ${url.pathname}${url.search}`);
@@ -255,11 +253,13 @@ test.describe('touch editor typography', () => {
     { path: '/terms', selector: '.ss-legal-trader a', label: 'support@devshark.app' },
   ]) {
     test(`${path}: the standalone ${label} link has a real 44px target`, async ({ page }, info) => {
+      if (path.startsWith('/coding/')) await page.setViewportSize({ width: 820, height: 1180 });
       const misses = await prepareLearner(page);
       await page.goto(path);
       // A cold public guide intentionally preserves its native focus; the
       // other routes perform the shell's delayed focus handoff to main.
       if (path.startsWith('/topics/')) await expect(page.locator('.ss-route .ss-topic-article')).toBeVisible();
+      else if (path === '/daily') await expect(page.getByRole('button', { name: 'Check answer' })).toBeVisible();
       else await expect(page.locator('#main-content')).toBeFocused();
       if (path === '/privacy') await page.locator('.ss-legal-index summary').click();
       const link = page.locator(selector).filter({ hasText: new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) });

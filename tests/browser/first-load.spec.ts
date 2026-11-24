@@ -119,7 +119,9 @@ async function coldLoad(page: Page, path = '/', api: Api = unavailable, ready?: 
     }
     await route.continue();
   });
-  await page.route('**/api/**', (route) => api(route, new URL(route.request().url())));
+  const origin = new URL(process.env.TEST_BASE_URL || 'http://localhost:4173').origin;
+  await page.route(url => url.origin === origin && url.pathname.startsWith('/api/'),
+    route => api(route, new URL(route.request().url())));
   await page.addInitScript(() => {
     type LayoutShiftEntry = PerformanceEntry & {
       value: number;
