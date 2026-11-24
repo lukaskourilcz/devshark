@@ -55,6 +55,17 @@ it('waits for a stored session before presenting a Sign in action', () => {
   } finally { auth.value.isLoading = false; }
 });
 
+it('keeps the topic card bottom edge when keyboard or pointer selection changes', () => {
+  server.use(settingsHandler, freeEntitlementHandler);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  render(<QueryClientProvider client={client}><MemoryRouter><LanguageProvider><Home /></LanguageProvider></MemoryRouter></QueryClientProvider>);
+  const card = screen.getByRole('button', { name: 'Learn TypeScript' });
+  expect(card.style.borderBottom).toBe('2px solid var(--ss-card-edge)');
+  fireEvent.click(card);
+  expect(card).toHaveAttribute('aria-pressed', 'true');
+  expect(card.style.borderBottom).toBe('2px solid var(--ss-card-edge)');
+});
+
 // The tile says "Daily challenge": one question set for everyone a day, which
 // is the quiz's daily mode, not the survival Challenge it used to open.
 it('opens the daily challenge from the Daily challenge tile', async () => {
