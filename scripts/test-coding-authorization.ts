@@ -437,12 +437,13 @@ async function main() {
 
   // A star saved on system design before it was hidden stays in the table
   // and never comes back to the browser, in the saved list or a collection.
+  const collectionId = 'practice-collection-0001';
   const starred = {
     from: (table: string) => {
       const rows: Record<string, unknown[]> = {
         coding_bookmarks: [{ task_id: 'sd-url-shortener' }, { task_id: 'js-double-numbers' }],
-        coding_collections: [{ collection_id: 'collection-0001', name: 'Later', position: 0 }],
-        coding_collection_items: [{ collection_id: 'collection-0001', task_id: 'dd-requests-per-second', position: 0 }, { collection_id: 'collection-0001', task_id: 'js-digit-sum', position: 1 }],
+        coding_collections: [{ collection_id: collectionId, name: 'Later', position: 0 }],
+        coding_collection_items: [{ collection_id: collectionId, task_id: 'dd-requests-per-second', position: 0 }, { collection_id: collectionId, task_id: 'js-digit-sum', position: 1 }],
       };
       const chain = {
         select: () => chain, eq: () => chain, order: () => chain, in: () => chain, maybeSingle: async () => ({ data: null, error: null }),
@@ -454,7 +455,7 @@ async function main() {
   const listed = response();
   await handleCodingBookmarks({ method: 'GET', headers: { authorization: 'Bearer stand-in-token' }, query: { user_id: 'account-a' } } as never, listed as never, starred as never);
   assert.equal(listed.statusCode, 200, JSON.stringify(listed.body));
-  assert.deepEqual(listed.body, { saved: ['js-double-numbers'], collections: [{ collectionId: 'collection-0001', name: 'Later', position: 0, taskIds: ['js-digit-sum'] }] }, 'no system design id comes back');
+  assert.deepEqual(listed.body, { saved: ['js-double-numbers'], collections: [{ collectionId, name: 'Later', position: 0, taskIds: ['js-digit-sum'] }] }, 'no system design id comes back');
   assert.equal(canSaveCodingTask('alg-valid-palindrome', new Set(), 'free', 0), true, 'a free open task may be saved');
   const higher = CODING_TASKS.find((task) => codingTaskById(task.id) && task.tier === 4 && task.track === 'javascript')!;
   assert.equal(canSaveCodingTask(higher.id, new Set(), 'premium', 0), false, 'Premium does not bypass the progression gate for Save');
@@ -470,8 +471,8 @@ async function main() {
   assert.equal(barred.statusCode, 402, JSON.stringify(barred.body));
   assert.equal(errorCode(barred.body), 'premium_required', 'Save preserves the shared Premium refusal contract');
   assert.equal(writes, 0, 'a locked bookmark is rejected before the write');
-  const collectionBarred = await mutateBookmark({ op: 'collection-item', taskId: higher.id, collectionId: 'collection-0001', present: true });
-  assert.equal(collectionBarred.statusCode, 402);
+  const collectionBarred = await mutateBookmark({ op: 'collection-item', taskId: higher.id, collectionId, present: true });
+  assert.equal(collectionBarred.statusCode, 402, JSON.stringify(collectionBarred.body));
   assert.equal(writes, 0, 'collections cannot bypass the bookmark gate');
   assert.equal((await mutateBookmark({ op: 'save', taskId: 'alg-valid-palindrome', saved: true })).statusCode, 200);
   assert.equal(writes, 1, 'an open free challenge can be saved');
