@@ -254,6 +254,27 @@ assert(localPolicy, 'a local sandbox policy is required');
 const expectedMeta = new Map(sandboxPolicy);
 for (const responseOnly of ['frame-ancestors', 'sandbox']) expectedMeta.delete(responseOnly);
 assert.deepEqual(policyDifferences(parsePolicy(localPolicy), expectedMeta, 'sandbox HTML', 'sandbox header'), []);
+// An opaque-origin Safari frame authenticates its own external entry using
+// the same digest in the response policy, HTML policy and module element.
+function sandboxEntry(html) {
+  const modules = [...html.matchAll(/<script\b[^>]*>/gi)].map(([tag]) => tag)
+    .filter(tag => /\btype="module"/.test(tag));
+  assert.equal(modules.length, 1, 'The built sandbox needs one module entry');
+  const [tag] = modules;
+  const src = /\bsrc="(\/sandbox\/assets\/[\w.-]+\.js)"/.exec(tag)?.[1];
+  const integrity = /\bintegrity="(sha384-[A-Za-z0-9+/]{64})"/.exec(tag)?.[1];
+  assert(src && integrity && /\bcrossorigin(?:="(?:anonymous)?")?(?=[\s>])/.test(tag), 'The built sandbox module needs a local src, crossorigin and SHA-384 integrity');
+  const meta = /<meta http-equiv="Content-Security-Policy" content="([^"]+)"/i.exec(html)?.[1];
+  assert(meta && parsePolicy(meta).get('script-src')?.includes(`'${integrity}'`), 'The built sandbox HTML policy must allow its module digest');
+  assert(sandboxPolicy.get('script-src')?.includes(`'${integrity}'`), 'The sandbox response policy must allow its module digest');
+  return { src, integrity };
+}
+
+function checkSandboxBytes(bytes, integrity) {
+  const digest = 'sha384-' + createHash('sha384').update(bytes).digest('base64');
+  assert.equal(digest, integrity, 'The shipped sandbox module bytes must match the integrity digest');
+}
+
 const worker = headerRoutes.find(route => route.src === '^/assets/coding-worker/.*$');
 assert.equal(header(worker, 'Content-Security-Policy'), "default-src 'none'; script-src 'self' 'unsafe-eval'");
 assert(!header(sandbox, 'X-Frame-Options'), 'Do not deny the exercise frame');
@@ -284,6 +305,8 @@ const distArgument = process.argv.find(arg => arg === '--dist' || arg.startsWith
 if (distArgument) {
   const dist = distArgument === '--dist' ? 'client/dist' : distArgument.slice('--dist='.length);
   assert(existsSync(join(dist, 'index.html')), `--dist: ${dist} holds no index.html; run npm run build first`);
+  const sandboxEntryPoint = sandboxEntry(readFileSync(join(dist, 'sandbox/index.html'), 'utf8'));
+  checkSandboxBytes(readFileSync(join(dist, sandboxEntryPoint.src)), sandboxEntryPoint.integrity);
   const isFile = pathname => existsSync(join(dist, pathname)) && statSync(join(dist, pathname)).isFile();
   const pages = readdirSync(dist, { recursive: true }).filter(file => file.endsWith('.html')).sort();
   const blocked = [];
@@ -354,6 +377,10 @@ if (url) {
     if (target === 'vercel.com' || target.endsWith('.vercel.com')) {
       assert.fail(`${origin.host}${pathname} answers ${response.status} to ${target}: the deployment sits behind Vercel Authentication. Pass a share link (--url='https://${origin.host}/?_vercel_share=<token>') or set VERCEL_AUTOMATION_BYPASS_SECRET${bypass ? ' to the project\'s current secret' : ' (sent to *.vercel.app hosts only)'}.`);
     }
+    if (pathname.startsWith('/sandbox/assets/')) {
+      const bytes = Buffer.from(await response.arrayBuffer());
+      return { pathname, response, body: bytes.toString('utf8'), bytes };
+    }
     return { pathname, response, body: await response.text() };
   };
   const chunkOf = (page, prefix) => new RegExp(`<script\\b[^>]*\\bsrc="(${prefix}[^"]+\\.js)"`).exec(page.body)?.[1];
@@ -421,6 +448,10 @@ if (url) {
   // Sentry organisation or PostHog host fails here instead of in the
   // learner's browser. Each extraction that finds nothing fails as well: the
   // check would otherwise pass while proving nothing.
+  const deployedSandbox = sandboxEntry(sandboxPage.body);
+  const frameModule = probes.find(probe => probe.pathname === deployedSandbox.src);
+  assert(frameModule && frameModule.response.status === 200, 'The deployed sandbox module must be readable');
+  checkSandboxBytes(frameModule.bytes, deployedSandbox.integrity);
   const chunk = probes.find(probe => probe.pathname === mainChunk);
   const deployedPolicy = parsePolicy(home.response.headers.get('content-security-policy') ?? '');
   const connect = deployedPolicy.get('connect-src') ?? deployedPolicy.get('default-src');
