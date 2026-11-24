@@ -3917,6 +3917,9 @@ async function inputClassContracts() {
   type Case = [label: string, handler: (req: never, res: never) => unknown, method: 'GET' | 'POST', query: Record<string, unknown>, body: unknown, status: number, code: string];
   const answers = (count: number) => Object.fromEntries(Array.from({ length: count }, (_, i) => [`q-${i}`, 0]));
   const cases: Case[] = [
+    ['roadmap: an unknown resource', roadmapHandler, 'GET', { resource: 'missing-resource' }, undefined, 404, 'unknown_resource'],
+    ['roadmap: a read using a write method', roadmapHandler, 'POST', { resource: 'progress' }, undefined, 405, 'method_not_allowed'],
+    ['roadmap: a write using a read method', roadmapHandler, 'GET', { resource: 'answer' }, undefined, 405, 'method_not_allowed'],
     ['questions: a repeated difficulty', questionsHandler, 'GET', { difficulty: ['easy', 'mixed'] }, undefined, 400, 'bad_request'],
     ['questions: constructor as the difficulty', questionsHandler, 'GET', { difficulty: 'constructor' }, undefined, 400, 'bad_request'],
     ['questions: constructor as a category', questionsHandler, 'GET', { categories: 'constructor' }, undefined, 400, 'bad_request'],
@@ -5544,10 +5547,11 @@ async function main() {
     assert.equal(await write('stats', `pupil-${stamp}-1`), 200, 'and that spends nobody else\'s budget');
     // A caller without an account keeps the per-address rate it had.
     const lone = `lone-${stamp}`;
-    for (let n = 0; n < RATE_LIMITS.userMutation.capacity; n += 1) assert.equal(await write('payment-webhook', null, lone), 200);
-    assert.equal(await write('payment-webhook', null, lone), 429, 'a caller without an account keeps the per-address rate');
+    for (let n = 0; n < RATE_LIMITS.userMutation.capacity; n += 1) assert.equal(await write('stats', null, lone), 200);
+    assert.equal(await write('stats', null, lone), 429, 'a caller without an account keeps the per-address rate');
     // The signed webhook and a path draft autosave are not charged here.
     assert.equal(await write('billing-webhook', null, lone), 200);
+    assert.equal(await write('payment-webhook', null, lone), 200);
     assert.equal(await write('learning-path-draft', null, lone), 200);
     // The address backstop holds a class at the per-account rate.
     assert.ok(RATE_LIMITS.userMutationAddress.capacity >= SHARED_NETWORK_SEATS * RATE_LIMITS.userMutation.capacity);
@@ -6782,6 +6786,17 @@ async function main() {
       paidAnswer = { data: true, error: null };
       const paidNow = await deliver(reused, sign(JSON.stringify(reused)));
       assert.deepEqual([paidNow.statusCode, paidNow.body], [200, { applied: true }], 'a matching event marks the order paid');
+      const queriesAfterPayment = touched.length;
+      const replay = await deliver(reused, sign(JSON.stringify(reused)));
+      assert.deepEqual([replay.statusCode, replay.body], [200, { applied: false, duplicate: true }]);
+      assert.equal(touched.length, queriesAfterPayment, 'confirmed duplicates skip the order query');
+      const next = { ...reused, providerRef: 'pi_next' };
+      const formatted = JSON.stringify(next, null, 2);
+      paidAnswer = { data: null, error: { code: 'XX000', message: 'temporary failure' } };
+      assert.equal((await deliver(formatted, sign(formatted))).statusCode, 500);
+      paidAnswer = { data: true, error: null };
+      assert.deepEqual((await deliver(formatted, sign(formatted))).body, { applied: true }, 'a failed operation releases its claim');
+
     } finally {
       if (realEnv.secret === undefined) delete process.env.PAYMENT_WEBHOOK_SECRET; else process.env.PAYMENT_WEBHOOK_SECRET = realEnv.secret;
       if (realEnv.provider === undefined) delete process.env.PAYMENT_PROVIDER; else process.env.PAYMENT_PROVIDER = realEnv.provider;

@@ -24,6 +24,7 @@
 // Callers should prefer `await enforceRateLimit(...)`; `checkRateLimit()` stays
 // exported for the fallback path and any sync call site.
 
+import { randomUUID } from 'node:crypto';
 import { isIP } from 'node:net';
 import type { VercelRequest, VercelResponse } from './vercel-types.js';
 import { jsonError, logEvent, ServiceUnavailableError, verifiedCallerId } from './http';
@@ -804,7 +805,10 @@ export function enterInFlight(req: VercelRequest, scope: string, limits: InFligh
 // (`ServiceUnavailableError`). Only without Upstash, as in local development,
 // does a per-instance map hold the claim.
 
-type OnceStore = { set: (key: string, value: string, opts: { nx: true; ex: number }) => Promise<unknown> };
+type OnceStore = {
+  set: (key: string, value: string, opts: { nx: true; ex: number }) => Promise<unknown>;
+  eval: (script: string, keys: string[], args: string[]) => Promise<unknown>;
+};
 let onceStore: Promise<OnceStore | null> | null = null;
 const localClaims = new Map<string, number>();
 
@@ -851,6 +855,61 @@ export async function claimOnce(key: string, ttlSeconds: number): Promise<boolea
   }
   localClaims.set(key, now + ttlSeconds * 1000);
   return true;
+}
+
+// Keep a short processing lease separate from a confirmed delivery. An active
+// owner may still fail, so concurrent deliveries must ask their sender to retry.
+const PAYMENT_LEASE_SECONDS = 60;
+const PAYMENT_RECEIPT_SECONDS = 7 * 24 * 60 * 60;
+const localDeliveries = new Map<string, { value: string; until: number }>();
+const beginDelivery = `
+  local state = redis.call('GET', KEYS[1])
+  if state then return state end
+  redis.call('SET', KEYS[1], ARGV[1], 'EX', ARGV[2])
+  return ARGV[1]`;
+const endDelivery = `
+  if redis.call('GET', KEYS[1]) ~= ARGV[1] then return 0 end
+  if ARGV[2] == 'done' then
+    redis.call('SET', KEYS[1], 'done', 'EX', ARGV[3])
+  else
+    redis.call('DEL', KEYS[1])
+  end
+  return 1`;
+
+export async function claimPaymentDelivery(digest: string) {
+  const key = `payment-webhook:${digest}`;
+  const owner = randomUUID();
+  const now = Date.now();
+  const store = await getOnceStore();
+  async function command(script: string, args: string[]) {
+    try {
+      if (!store) throw new Error('once_store_unavailable');
+      return await withLimiterDeadline(store.eval(script, [key], args));
+    } catch {
+      throw new ServiceUnavailableError('claim_unavailable', 'Payment delivery could not be checked. Please retry.');
+    }
+  }
+  let state: unknown;
+  if (isDistributedRateLimitEnabled()) {
+    state = await command(beginDelivery, [owner, String(PAYMENT_LEASE_SECONDS)]);
+  } else {
+    if (localDeliveries.size >= 10_000) {
+      for (const [id, entry] of localDeliveries) if (entry.until <= now) localDeliveries.delete(id);
+    }
+    const previous = localDeliveries.get(key);
+    state = previous && previous.until > now ? previous.value : owner;
+    if (state === owner) localDeliveries.set(key, { value: owner, until: now + PAYMENT_LEASE_SECONDS * 1000 });
+  }
+  if (state === 'done') return null;
+  if (state !== owner) throw new ServiceUnavailableError('delivery_processing', 'This delivery is being processed. Please retry.');
+  return async (completed: boolean) => {
+    if (isDistributedRateLimitEnabled()) {
+      await command(endDelivery, [owner, completed ? 'done' : 'release', String(PAYMENT_RECEIPT_SECONDS)]);
+    } else if (localDeliveries.get(key)?.value === owner) {
+      if (completed) localDeliveries.set(key, { value: 'done', until: Date.now() + PAYMENT_RECEIPT_SECONDS * 1000 });
+      else localDeliveries.delete(key);
+    }
+  };
 }
 
 /* -------------------------------------------------------------------------- */
