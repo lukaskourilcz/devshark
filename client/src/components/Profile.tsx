@@ -37,6 +37,7 @@ import { useActiveSubject, topicSetForSubject } from '../lib/subjects';
 // Retry and the rest of the profile stays.
 const FriendsPanel = lazyShellPart(() => import('./FriendsPanel'));
 import LoadingScreen from './LoadingScreen';
+import { LoadingLabel } from './ui/LoadingLabel';
 import ErrorRetry from './ErrorRetry';
 import { ShellPartBoundary } from './ShellPartBoundary';
 import { lazyShellPart } from '../lib/routeRecovery';
@@ -736,8 +737,8 @@ function AdvisorCard() {
           </HStack>
 
           {!result ? (
-            <div role="status" aria-live="polite" style={{ padding: '6px 0' }}>
-              <Text type="supporting" size="xsm" color="secondary">{t('advisor.loading')}</Text>
+            <div style={{ padding: '6px 0' }}>
+              <Text type="supporting" size="xsm" color="secondary"><LoadingLabel>{t('advisor.loading')}</LoadingLabel></Text>
             </div>
           ) : 'error' in result ? (
             <ErrorRetry

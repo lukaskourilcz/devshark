@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Kicker } from './landing/LandingKit';
 import { DayChangeNote } from './DayChangeNote';
 import { PageHeader } from './ui/PageHeader';
+import { LoadingLabel } from './ui/LoadingLabel';
 import { Link } from 'react-router-dom';
 import { Heading } from '@astryxdesign/core/Heading';
 import { Text } from '@astryxdesign/core/Text';
@@ -213,11 +214,11 @@ export default function Today() {
   if (structureQuery.isPending || planLoading) {
     return (
       <TodayShell t={t}>
-        <div className="today-loading" role="status" aria-live="polite">
+        <div className="today-loading">
           <Skeleton height={96} radius={3} index={0} />
           <Skeleton height={78} radius={3} index={1} />
           <Skeleton height={78} radius={3} index={2} />
-          <span className="today-loading__label">{t('today.loading')}</span>
+          <span className="today-loading__label"><LoadingLabel>{t('today.loading')}</LoadingLabel></span>
         </div>
       </TodayShell>
     );

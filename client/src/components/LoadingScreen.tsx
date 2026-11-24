@@ -1,4 +1,5 @@
 import { Text } from '@astryxdesign/core/Text';
+import { LoadingLabel } from './ui/LoadingLabel';
 import { SwimmingShark } from './SharkFin';
 import { sxToStyle, type SxLike } from '../lib/styleProps';
 
@@ -30,8 +31,6 @@ export const holdLoadingScreen = (startedAt: number): Promise<void> =>
 export function QuoteLoader({ quote, label }: { quote: string; label: string }) {
   return (
     <div
-      role="status"
-      aria-live="polite"
       style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}
     >
       <div style={{ fontStyle: 'italic', textAlign: 'center', maxWidth: 520, padding: '0 8px' }}>
@@ -40,7 +39,7 @@ export function QuoteLoader({ quote, label }: { quote: string; label: string }) 
         </Text>
       </div>
       <SwimmingShark size={44} />
-      <Text type="supporting" color="secondary">{label}</Text>
+      <Text type="supporting" color="secondary"><LoadingLabel>{label}</LoadingLabel></Text>
     </div>
   );
 }
@@ -49,8 +48,6 @@ export function QuoteLoader({ quote, label }: { quote: string; label: string }) 
 export default function LoadingScreen({ label, size, sx }: Props) {
   return (
     <div
-      role="status"
-      aria-live="polite"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -62,7 +59,7 @@ export default function LoadingScreen({ label, size, sx }: Props) {
       }}
     >
       <SwimmingShark size={size ?? 48} />
-      <Text type="supporting" color="secondary">{label}</Text>
+      <Text type="supporting" color="secondary"><LoadingLabel>{label}</LoadingLabel></Text>
     </div>
   );
 }
