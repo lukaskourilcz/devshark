@@ -145,8 +145,14 @@ function DesignAttempt({ task, session, locked, signedIn, mode, onVerdict, onRet
     if (key) moveButtons.current[key]?.focus();
   }, [order]);
 
+  // Both views keep this header in the same position, so the learner's
+  // first verdict updates the region already used for sequence moves.
+  const verdictLabel = verdict && (
+    verdict.verdict === 'passed' && verdict.xpForfeited === true ? t('coding.verdict.passedNoXp') : t(`coding.verdict.${verdict.verdict}` as never)
+  );
   const header = (
     <div className="cd-pane__head">
+      <span className="cd-visually-hidden" role="status" aria-live="polite">{verdictLabel ?? moved}</span>
       <Kicker>{t('coding.track.system-design')} · {design ? t('coding.design.step', { n: Math.min(stepIndex + 1, steps.length), total: steps.length }) : t(`coding.design.format.${drill?.format ?? 'tradeoff'}` as never)}</Kicker>
       <h2>{task.title}</h2>
       <div className="cd-pane__meta">
@@ -180,16 +186,13 @@ function DesignAttempt({ task, session, locked, signedIn, mode, onVerdict, onRet
   if (verdict) {
     const correct = verdict.design?.filter((one) => one.correct).length ?? 0;
     const passed = verdict.verdict === 'passed';
-    // A pass after a revealed solution says why it paid nothing.
-    const label = passed && verdict.xpForfeited === true ? t('coding.verdict.passedNoXp') : t(`coding.verdict.${verdict.verdict}` as never);
     return (
       <div className="cd-design">
         <section className="cd-pane">
-          <span className="cd-visually-hidden" role="status" aria-live="polite">{label}</span>
           {header}
           <section className={`cd-verdict cd-verdict--${verdict.verdict}`} ref={verdictRef} tabIndex={-1}>
             <h3 className="cd-verdict__title">
-              <span>{label}</span>
+              <span>{verdictLabel}</span>
               {verdict.xpAwarded > 0 && <span className="cd-verdict__xp">{t('coding.verdict.xp', { xp: verdict.xpAwarded })}</span>}
             </h3>
             {design && <p className="cd-verdict__row">{t('coding.design.score', { correct, total: steps.length })} · {t('coding.design.passMark', { n: design.passMark, total: steps.length })}</p>}
@@ -307,7 +310,6 @@ function DesignAttempt({ task, session, locked, signedIn, mode, onVerdict, onRet
             {drill.format === 'sequence' && drill.steps && (
               <>
                 <p className="cd-editor-label">{t('coding.design.order')}</p>
-                <span className="cd-visually-hidden" role="status" aria-live="polite">{moved}</span>
                 <ol className="cd-sequence">
                   {order.map((original, position) => (
                     <li key={original}>

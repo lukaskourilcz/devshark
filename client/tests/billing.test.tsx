@@ -489,7 +489,10 @@ describe('/premium/cancel', () => {
     });
     renderAt(`/premium/cancel#confirm=${TOKEN}`, <PremiumCancelPage />);
     fireEvent.click(await screen.findByRole('button', { name: 'Try again' }));
-    expect(await screen.findByRole('heading', { level: 2, name: 'Confirm your cancellation' })).toBeInTheDocument();
+    const loading = screen.getByRole('heading', { level: 2, name: 'Checking your link' });
+    expect(loading).toHaveFocus();
+    expect(loading.closest('[aria-live], [role="status"]')).toBeNull();
+    expect(await screen.findByRole('heading', { level: 2, name: 'Confirm your cancellation' })).toHaveFocus();
     expect(screen.getByTestId('hash')).toHaveTextContent('');
     expect(bodies).toEqual([{ step: 'review', token: TOKEN }, { step: 'review', token: TOKEN }]);
   });

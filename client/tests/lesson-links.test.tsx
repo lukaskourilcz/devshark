@@ -103,13 +103,19 @@ it('lets only the latest run of a lesson example paint its output', async () => 
     { kind: 'example', language: 'javascript', caption: 'Print', code: 'console.log(1)', note: 'Nothing here is graded.' },
   ] }} /></LanguageProvider>);
   const button = screen.getByRole('button', { name: 'Run it' });
+  const outputRegion = () => view.container.querySelector('pre[role="status"]');
+  const status = outputRegion();
+  expect(status).toBeEmptyDOMElement();
+  button.focus();
   // Two presses inside one task: the disabled state has not reached the DOM yet.
   act(() => { button.click(); button.click(); });
   expect(runner.signals).toHaveLength(2);
   expect(runner.signals[0]?.aborted).toBe(true);
   expect(runner.signals[1]?.aborted).toBe(false);
   await act(async () => { runner.finish[1](['newer']); });
-  expect(view.container.querySelector('.lp-example__output')).toHaveTextContent('newer');
+  expect(outputRegion()).toBe(status);
+  expect(status).toHaveTextContent('newer');
+  expect(button).toHaveFocus();
   await act(async () => { runner.finish[0](['older']); });
   expect(view.container.querySelector('.lp-example__output')).toHaveTextContent('newer');
   expect(screen.getByRole('button', { name: 'Run it' })).toBeEnabled();
