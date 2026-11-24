@@ -192,7 +192,7 @@ for (const profile of PROFILES) {
       // Nothing on the page moved. Entries flagged as input count too.
       const moved = shifts.flatMap((shift) => shift.sources);
       expect.soft(moved.filter((node) => node === 'main#main-content' || node.startsWith('header') || node.startsWith('footer')), 'shell nodes that moved').toEqual([]);
-      await expectLowCLS(shifts, '/');
+      await expectLowCLS(page, shifts, '/');
       const total = shifts.reduce((sum, shift) => sum + shift.value, 0);
       expect.soft(total, `layout shift score, all entries: ${JSON.stringify(shifts)}`).toBeLessThan(0.01);
     });
@@ -200,11 +200,16 @@ for (const profile of PROFILES) {
 }
 
 // Use the same session-window score as perf:measure, with no lab interaction.
-async function expectLowCLS(shifts: Shift[], path: string) {
+async function expectLowCLS(page: Page, shifts: Shift[], path: string) {
   const { summarizeLayoutShifts } = await import(resolve('scripts/measure-web-performance.mjs'));
   const { cls } = summarizeLayoutShifts(shifts.map(shift => ({
     startTime: shift.t, hadRecentInput: shift.input, value: shift.value,
   })));
+  const observerSupported = await page.evaluate(() => PerformanceObserver.supportedEntryTypes.includes('layout-shift'));
+  const receipt = { path, viewport: page.viewportSize(), cls, entries: shifts.length, observerSupported };
+  await test.info().attach('lab-cls', { body: JSON.stringify(receipt), contentType: 'application/json' });
+  console.log('LAB_CLS_RECEIPT ' + JSON.stringify(receipt));
+  expect(observerSupported, 'layout-shift observation must be supported').toBe(true);
   expect(cls, path + ' lab CLS: ' + JSON.stringify(shifts)).toBeLessThan(0.05);
 }
 
@@ -234,7 +239,7 @@ for (const profile of PROFILES) {
         };
         const { shifts } = await coldLoad(page, path, api, ready);
         expect(unhandled, 'requests without a local fixture').toEqual([]);
-        await expectLowCLS(shifts, path);
+        await expectLowCLS(page, shifts, path);
       });
     }
   });
