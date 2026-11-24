@@ -423,19 +423,23 @@ test('route focus preserves a keyboard control focused before the delayed handof
   await expect(topic).toBeFocused();
 });
 
-test('phone: the drawer opens Coding without a blank or a loader', async ({ page }) => {
-  const { holdChunks } = await prepare(page, 390);
-  await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  holdChunks();
-  await page.getByRole('button', { name: 'Open navigation menu' }).click();
-  const frames = await measure(page, () => page.locator('.ss-drawer-panel a[href="/coding"]').click());
-  expect(frames.filter((f) => !f.route || f.kids === 0)).toEqual([]);
-  const arrived = frames.findIndex((f) => f.h1 === 'Coding challenges');
-  expect(arrived).toBeGreaterThan(0);
-  expect(frames.slice(0, arrived).every((f) => f.root === frames[0].root && f.h1 === frames[0].h1)).toBe(true);
-  expect(new Set(frames.slice(arrived).map((f) => f.root)).size).toBe(1);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+test.describe('phone drawer navigation', () => {
+  test.use({ hasTouch: true, isMobile: true });
+  test('the drawer opens the phone Coding notice without a blank or a loader', async ({ page }) => {
+    const { holdChunks } = await prepare(page, 390);
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    holdChunks();
+    await page.getByRole('button', { name: 'Open navigation menu' }).click();
+    const frames = await measure(page, () => page.locator('.ss-drawer-panel a[href="/coding"]').click());
+    expect(frames.filter((f) => !f.route || f.kids === 0)).toEqual([]);
+    const arrived = frames.findIndex((f) => f.h1 === 'Coding');
+    await expect(page.getByText('This section only works in desktop apps.', { exact: false })).toBeVisible();
+    expect(arrived).toBeGreaterThan(0);
+    expect(frames.slice(0, arrived).every((f) => f.root === frames[0].root && f.h1 === frames[0].h1)).toBe(true);
+    expect(new Set(frames.slice(arrived).map((f) => f.root)).size).toBe(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
 });
 
 // UX audit shell-public-15: the drawer splits Practice from You, as the
