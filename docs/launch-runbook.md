@@ -124,6 +124,8 @@ npx esbuild scripts/check-grading-load.ts --bundle --platform=node --format=esm 
 SMOKE_BASE_URL=<deployment> node node_modules/.cache/shark/grading-load.mjs
 ```
 
+When the Preview shares an Upstash database, set `DEVSHARK_PREVIEW_REDIS_NAMESPACE=epic-f-20261124` on that deployment to isolate rate buckets, one-time claims, and payment delivery keys. The optional namespace accepts 1–32 lowercase letters, digits or hyphens, starting with a letter or digit. Production always uses its established keys.
+
 On a protected Preview, set `SMOKE_PREVIEW_STATE` to the owner-only, exact-host Vercel protection state used by `perf:cold-start --preview-state`. The grading requests share only the deployment protection cookie. Application grading stays anonymous. The check refuses redirects, performs no retries and writes no credentials or submitted code to its receipt.
 
 ## Release and observation
