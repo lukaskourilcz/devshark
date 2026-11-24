@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { CATEGORY_OPTIONS, getCategoryHexColor, onCategoryColorText } from '../src/lib/categories';
 import { describe, expect, it } from 'vitest';
@@ -193,6 +194,7 @@ describe('authored text and control colours', () => {
   const root = fileURLToPath(new URL('../src/', import.meta.url));
   const css = (file: string) => readFileSync(join(root, file), 'utf8');
   const theme = css('styles/astryx-theme.css');
+  const core = readFileSync(createRequire(import.meta.url).resolve('@astryxdesign/core/astryx.css'), 'utf8');
   const apple = theme.match(/:root\[data-design='apple'\]\s*\{([^}]+)\}/)![1];
   const editor = css('coding/Coding.css');
   const workbench = editor.match(/\.cd-workbench:not\(\.cd-workbench--landing\)\s*\{([^}]*--cd-editor-bg:[^}]+)\}/)![1];
@@ -329,6 +331,22 @@ describe('authored text and control colours', () => {
       check(solid('color-background-surface'), solid('ss-ink'));
       check(solid('ss-on-error-text'), solid('ss-error-text'));
       check(solid('ss-on-success-strong'), solid('ss-success-strong'));
+      // Astryx uses this fill/ink for both error badges and destructive buttons.
+      // Its input state overlays come from the locked component stylesheet.
+      const libraryColour = (token: string) => {
+        const stops = /^light-dark\((#[\da-f]+),\s*(#[\da-f]+)\)$/i.exec(tokens(core, token)!)!;
+        return stops[mode + 1];
+      };
+      // The banner's secondary description inherits the ink from this exact
+      // status selector. Astryx mixes its error fill at 20% over the page.
+      expect(theme).toMatch(/\.astryx-banner\[data-status='error'\]\s*\{\s*--color-text-secondary: var\(--color-text-primary\)/);
+      const red = libraryColour('color-error');
+      for (const background of surfaces) check(solid('color-text-primary'), compositeOver(red, 0.2, background));
+      check(solid('color-on-error'), red);
+      for (const state of ['hover', 'pressed']) {
+        const overlay = libraryColour('color-overlay-' + state);
+        check(solid('color-on-error'), compositeOver(overlay.slice(0, 7), parseInt(overlay.slice(7), 16) / 255, red));
+      }
       check(solid('cd-editor-gutter-fg'), solid('cd-editor-gutter'));
       check(solid('cd-editor-fg'), solid('cd-editor-bg'));
       for (const name of ['keyword', 'name', 'function', 'constant', 'type', 'operator', 'comment', 'string']) {

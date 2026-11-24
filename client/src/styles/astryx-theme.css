@@ -109,6 +109,8 @@
      theme's --brand-on-accent ink gives 6.69:1, and light mode keeps white
      at 5.34:1. */
   --color-on-accent: var(--brand-on-accent);
+  /* The dark error fill is a brighter red on badges and destructive buttons. */
+  --color-on-error: light-dark(#ffffff, #0b141b);
   --ss-focus: color-mix(in srgb, var(--brand-accent) 72%, var(--ss-ink));
   --ss-selected: var(--brand-accent-soft, rgba(45, 122, 45, 0.12));
   --ss-select-arrow-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23132019' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 6 5 5 5-5'/%3E%3C/svg%3E");
@@ -197,6 +199,9 @@
   --ss-header-bg: rgba(255, 255, 255, 0.8);
   --ss-header-border: rgba(var(--ss-ink-rgb), 0.08);
 }
+
+/* Error banners put small descriptive text over a red tint. */
+.astryx-banner[data-status='error'] { --color-text-secondary: var(--color-text-primary); }
 
 :root[data-theme='dark'] {
   --brand-on-accent: #0b141b;
