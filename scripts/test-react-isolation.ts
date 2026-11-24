@@ -373,6 +373,7 @@ const sidecarPath = () => join(process.cwd(), 'lib/coding/generated/react-sandbo
 type ArtifactFixtureState = {
   creates: number;
   uploads: Buffer[];
+  createError?: () => unknown;
   stop?: () => Promise<void>;
   command?: (nonce: string) => { exitCode: number; stdout: () => Promise<string> };
 };
@@ -413,6 +414,28 @@ async function artifactProbe(name: string) {
     } finally { mock.timers.reset(); }
     console.log('PASS vm-admission control completed');
     return;
+  }
+  if (name === 'startup-cause') {
+    // Only a cause's class name or HTTP status reaches the error name that is
+    // logged; its message, which may carry provider text, never does. A failed
+    // create holds its admission until the VM would have expired, so this
+    // control stays within the instance's three admissions.
+    const cases: Array<[() => unknown, string]> = [
+      [() => Object.assign(new Error('secret provider text'), { response: { status: 404 } }), 'ReactRunnerStartupHttp404'],
+      [() => Object.assign(new Error('secret provider text'), { name: 'VercelOidcTokenError' }), 'ReactRunnerStartupVercelOidcTokenError'],
+      [() => Object.assign(new Error('secret provider text'), { name: 'not a class name' }), 'ReactRunnerStartup'],
+    ];
+    for (const [createError, expected] of cases) {
+      state.createError = createError;
+      await assert.rejects(runIsolatedReactSuite(input), (error: unknown) => {
+        assert.ok(error instanceof Error);
+        assert.equal(error.name, expected);
+        assert.doesNotMatch(`${error.name} ${error.message}`, /secret provider text/);
+        return true;
+      });
+    }
+    console.log('PASS startup-cause control completed');
+    process.exit(0);
   }
   if (name === 'snapshot-versions') {
     const { withRequestContext } = await import('../lib/http');
@@ -499,7 +522,7 @@ async function artifactIntegrity(onlyVmAdmission = false) {
     assert.ok(included.includes('lib/coding/generated/react-sandbox.cjs'), 'the actual Vercel include pattern selects its runner');
     console.log('PASS artifact integrity: the real emitted guest and passive sidecar agree and both match Vercel inclusion');
   } catch (error) { failures.push(error as Error); }
-  const controls = ['tampered-runner', 'missing-sidecar', 'malformed-sidecar', 'wrong-digest-type', 'missing-runner', 'verified-cache', 'snapshot-versions', 'vm-admission'];
+  const controls = ['tampered-runner', 'missing-sidecar', 'malformed-sidecar', 'wrong-digest-type', 'missing-runner', 'verified-cache', 'snapshot-versions', 'vm-admission', 'startup-cause'];
   for (const name of onlyVmAdmission ? ['vm-admission'] : controls) {
     const dir = mkdtempSync(join(tmpdir(), 'react-artifact-'));
     try {
@@ -519,6 +542,7 @@ async function artifactIntegrity(onlyVmAdmission = false) {
 const state = globalThis.__reactArtifactFixture = { creates: 0, uploads: [] };
 exports.Sandbox = { create: async () => {
   state.creates++;
+  if (state.createError) throw state.createError();
   let nonce;
   return {
     writeFiles: async files => {
@@ -543,6 +567,10 @@ exports.Sandbox = { create: async () => {
       if (name === 'vm-admission') {
         assert.match(child.stdout, /PASS vm-admission control completed/, 'the fourth request must settle without waiting for a slot');
         console.log('PASS React VM admission: three independent callers; fourth refused; success and uncertain stop release');
+      }
+      else if (name === 'startup-cause') {
+        assert.match(child.stdout, /PASS startup-cause control completed/);
+        console.log('PASS React VM startup failure names its cause class or HTTP status, never its message');
       }
       else if (name === 'snapshot-versions') console.log('PASS older React snapshot logs one request-correlated warning and preserves the passing verdict');
       else console.log(`PASS artifact integrity: ${name}; verified-byte reuse and failed-cache repair`);

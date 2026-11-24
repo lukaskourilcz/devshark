@@ -31,8 +31,13 @@ function runnerFailure(phase: string, cause?: unknown): Error {
   const error = new Error('React grading infrastructure is unavailable', { cause });
   const code = (cause as { code?: unknown } | undefined)?.code;
   const status = (cause as { response?: { status?: unknown } } | undefined)?.response?.status;
+  // Only an error class name enters the log, never its message: an SDK error
+  // without an HTTP status (missing OIDC token, abort, network) was otherwise
+  // indistinguishable from every other startup failure.
+  const causeName = cause instanceof Error && /^[A-Z][A-Za-z]{1,40}$/.test(cause.name) && cause.name !== 'Error'
+    ? cause.name : '';
   const detail = code === 'ENOENT' ? 'MissingFile' :
-    typeof status === 'number' && status >= 400 && status <= 599 ? `Http${status}` : '';
+    typeof status === 'number' && status >= 400 && status <= 599 ? `Http${status}` : causeName;
   error.name = `ReactRunner${phase}${detail}`;
   return error;
 }
