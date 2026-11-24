@@ -3999,12 +3999,13 @@ const App = () => {
         return response.json();
       })
       .then((books) => {
+        if (controller.signal.aborted) return;
         cache.current.set(query, books);
         setResult({ status: 'done', books });
       })
       .catch((error) => {
         // Aborting is this component's own doing, not a failure.
-        if (error.name === 'AbortError') return;
+        if (controller.signal.aborted || error.name === 'AbortError') return;
         setResult({ status: 'error', books: [] });
       });
     // A newer query, a retry or a closed page: the old request is no longer wanted.
@@ -4080,12 +4081,13 @@ const App = () => {
           throw new Error('Request failed');
         }
         const data = await response.json();
+        if (controller.signal.aborted) return;
         savedAnswers.current.set(searchText, data);
         setBooks(data);
         setAnswered(true);
         setSearching(false);
       } catch (error) {
-        if (error.name === 'AbortError') {
+        if (controller.signal.aborted || error.name === 'AbortError') {
           return;
         }
         setFailed(true);
@@ -4157,10 +4159,11 @@ const useBookSearch = (query) => {
         const response = await fetch(\`/api/books?q=\${encodeURIComponent(query)}\`, { signal: controller.signal });
         if (!response.ok) throw new Error(\`HTTP \${response.status}\`);
         const books = await response.json();
+        if (controller.signal.aborted) return;
         cache.current.set(query, books);
         setState({ status: 'done', books });
       } catch (error) {
-        if (error.name !== 'AbortError') setState({ status: 'error', books: [] });
+        if (!controller.signal.aborted && error.name !== 'AbortError') setState({ status: 'error', books: [] });
       }
     })();
     return () => controller.abort();
@@ -4322,7 +4325,8 @@ const App = () => {
 
   // This cleanup belongs to the first render, so only the refs know the newest text.
   useEffect(() => () => {
-    if (latest.current !== savedRef.current) {
+    again.current = false;
+    if (busy.current || latest.current !== savedRef.current) {
       fetch('/api/notes/1', { method: 'PUT', body: latest.current, keepalive: true }).catch(() => {});
     }
   }, []);
@@ -4415,8 +4419,9 @@ const App = () => {
 
   useEffect(() => {
     return () => {
-      if (newestText.current !== lastSavedText.current) {
-        const request = fetch('/api/notes/1', { method: 'PUT', body: newestText.current });
+      saveWanted.current = false;
+      if (saveInProgress.current || newestText.current !== lastSavedText.current) {
+        const request = fetch('/api/notes/1', { method: 'PUT', body: newestText.current, keepalive: true });
         request.catch(() => {});
       }
     };
@@ -4496,8 +4501,9 @@ const useAutosave = (text, initial) => {
   }, [text, save]);
 
   useEffect(() => () => {
-    const { latest, saved: last } = refs.current;
-    if (latest !== last) putNote(latest, { keepalive: true }).catch(() => {});
+    const { latest, saved: last, busy } = refs.current;
+    refs.current.again = false;
+    if (busy || latest !== last) putNote(latest, { keepalive: true }).catch(() => {});
   }, []);
 
   return { saved, saving, failed, save };
@@ -4596,12 +4602,49 @@ test('closing after a successful save sends nothing more', () => withSaves(calls
 };
 
 const PROJECT_ASYNC_REVIEW_CASES:Record<string,string>={
-"react-mh-search-as-you-type":`test('trailing-space typing resets the full raw-input debounce interval',()=>withFetch(calls=>withClock(async clock=>{render(<App/>);type('du');await clock.tick(75);type('du ');await clock.tick(75);expect(calls.length).toBe(0);await clock.tick(25);expect(calls.length).toBe(1);expect(calls[0].url).toBe('/api/books?q=du');})));
+"react-mh-search-as-you-type":`test('an older JSON body cannot replace a newer search result or populate its cache after abort', () => withClock(async clock => {
+  const original = globalThis.fetch;
+  const bodies = [];
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: () => new Promise(resolve => bodies.push(resolve)),
+  });
+  try {
+    const view = render(<App />);
+    type('first');
+    await clock.tick(100);
+    type('second');
+    await clock.tick(100);
+    expect(bodies.length).toBe(2);
+    await act(async () => { bodies[1]([{ id: 2, title: 'Second book' }]); });
+    await act(async () => { bodies[0]([{ id: 1, title: 'Old book' }]); });
+    expect(titles()).toEqual(['Second book']);
+    type('first');
+    await clock.tick(100);
+    expect(bodies.length).toBe(3);
+    view.unmount();
+  } finally {
+    globalThis.fetch = original;
+  }
+}));
+test('trailing-space typing resets the full raw-input debounce interval',()=>withFetch(calls=>withClock(async clock=>{render(<App/>);type('du');await clock.tick(75);type('du ');await clock.tick(75);expect(calls.length).toBe(0);await clock.tick(25);expect(calls.length).toBe(1);expect(calls[0].url).toBe('/api/books?q=du');})));
 test('two-character searches and empty constructor-key answers are cached by exact trimmed text',()=>withFetch(calls=>withClock(async clock=>{render(<App/>);type('xy');await clock.tick(100);expect(calls.length).toBe(1);expect(calls[0].url).toBe('/api/books?q=xy');await act(async()=>{calls[0].respond([]);});expect(hasLine('No books match “xy”')).toBe(true);type('constructor');await clock.tick(100);expect(calls.length).toBe(2);await act(async()=>{calls[1].respond([{id:71,title:'Construction patterns'}]);});expect(titles()).toEqual(['Construction patterns']);type('xy');await clock.tick(100);expect(calls.length).toBe(2);expect(hasLine('No books match “xy”')).toBe(true);expect(screen.queryByText('Searching…')).toBeNull();type('constructor');await clock.tick(100);expect(calls.length).toBe(2);expect(titles()).toEqual(['Construction patterns']);})));
 const withBookHTTP=async body=>{const original=globalThis.fetch,calls=[];globalThis.fetch=(url,options={})=>new Promise((resolve,reject)=>{const call={url:String(url),signal:options.signal,respond:(rows,status=200)=>resolve({ok:status>=200&&status<300,status,json:async()=>rows})};calls.push(call);const abort=()=>{const error=new Error('Aborted');error.name='AbortError';reject(error);};if(options.signal?.aborted)abort();else options.signal?.addEventListener('abort',abort);});try{await body(calls);}finally{globalThis.fetch=original;}};
 test('non-ok search responses fail and retry immediately,while a new short query aborts without an alert',()=>withBookHTTP(calls=>withClock(async clock=>{render(<App/>);type('encoded & query');await clock.tick(100);expect(calls[0].url).toBe('/api/books?q=encoded%20%26%20query');await act(async()=>{calls[0].respond([],503);});expect(alertMessage()).toBe('Search failed');expect(screen.queryByText('Searching…')).toBeNull();fireEvent.click(screen.getByRole('button',{name:'Try again'}));expect(calls.length).toBe(2);await act(async()=>{calls[1].respond([{id:8,title:'Recovered answer'}]);});expect(titles()).toEqual(['Recovered answer']);expect(screen.queryByRole('alert')).toBeNull();type('another');await clock.tick(100);expect(calls.length).toBe(3);expect(screen.getByText('Searching…')).toBeTruthy();type('x');await clock.tick(100);expect(calls[2].signal.aborted).toBe(true);expect(calls.length).toBe(3);expect(titles()).toEqual([]);expect(screen.queryByText('Searching…')).toBeNull();expect(screen.queryByRole('alert')).toBeNull();})));
 `,
-"react-mh-autosave":`test('returning to the saved text during a different pending write still saves the newest text next',()=>withSaves(calls=>withClock(async clock=>{render(<App/>);type('Buy bread');await clock.tick(150);expect(calls.length).toBe(1);expect(calls[0].body).toBe('Buy bread');type('Buy milk');await clock.tick(150);expect(calls.length).toBe(1);await act(async()=>{calls[0].ok();});expect(calls.length).toBe(2);expect(calls[1].body).toBe('Buy milk');await act(async()=>{calls[1].ok();});expect(status()).toBe('All changes saved');})));
+"react-mh-autosave":`test('closing with a different write pending flushes the restored original note just once', () => withSaves(calls => withClock(async clock => {
+  const view = render(<App />);
+  type('Buy bread');
+  await clock.tick(150);
+  type('Buy milk');
+  await clock.tick(150);
+  expect(calls.length).toBe(1);
+  view.unmount();
+  expect(calls.map(call => call.body)).toEqual(['Buy bread', 'Buy milk']);
+  await act(async () => { calls[0].ok(); });
+  expect(calls.length).toBe(2);
+})));
+test('returning to the saved text during a different pending write still saves the newest text next',()=>withSaves(calls=>withClock(async clock=>{render(<App/>);type('Buy bread');await clock.tick(150);expect(calls.length).toBe(1);expect(calls[0].body).toBe('Buy bread');type('Buy milk');await clock.tick(150);expect(calls.length).toBe(1);await act(async()=>{calls[0].ok();});expect(calls.length).toBe(2);expect(calls[1].body).toBe('Buy milk');await act(async()=>{calls[1].ok();});expect(status()).toBe('All changes saved');})));
 test('empty and multiline notes keep their exact body,and a failed long save retries the newest note without overlap',()=>withSaves(calls=>withClock(async clock=>{const v=render(<App/>);type('');await clock.tick(150);expect(calls.length).toBe(1);expect(calls[0].body).toBe('');await act(async()=>{calls[0].ok();});expect(status()).toBe('All changes saved');const long='First line\\nSecond & <tag> '+'X'.repeat(80);type(long);await clock.tick(150);expect(calls.length).toBe(2);expect(calls[1].body).toBe(long);await act(async()=>{calls[1].error();});expect(alertMessage()).toBe('Could not save');const newest=long+' latest';type(newest);fireEvent.click(screen.getByRole('button',{name:'Retry'}));expect(calls.length).toBe(3);expect(calls[2].body).toBe(newest);fireEvent.click(screen.getByRole('button',{name:'Retry'}));expect(calls.length).toBe(3);await act(async()=>{calls[2].ok();});expect(status()).toBe('All changes saved');expect(screen.queryByRole('alert')).toBeNull();await clock.tick(200);expect(calls.length).toBe(3);v.unmount();expect(calls.length).toBe(3);})));\x20
 `,
 };
