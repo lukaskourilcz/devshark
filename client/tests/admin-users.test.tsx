@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -69,6 +69,62 @@ it('edits an email template, previews it and saves it without sending any email'
   expect(posts).toHaveLength(1);
   expect(posts[0]).toMatchObject({ action: 'save', id: 'cancelled', subject: 'Premium cancelled' });
 });
+describe('editing multiple email templates', () => {
+  const templates = Object.fromEntries(EMAIL_TEMPLATE_IDS.map(id => [id, { ...fallbackEmailTemplate(id), custom: false, updatedAt: null }]));
+  function openEditor() {
+    server.use(http.get('*/api/admin/emails', () => HttpResponse.json({ deliveryConfigured: false, billingEnabled: false, authSync: { configured: false }, templates })));
+    return view(<AdminEmails />);
+  }
+
+  it('retains unsaved text when visiting another template and discards only the selected draft', async () => {
+    openEditor();
+    const subject = await screen.findByLabelText('Subject');
+    const firstTab = screen.getByRole('tab', { selected: true });
+    const otherTab = screen.getByRole('tab', { name: 'Cancellation receipt' });
+    fireEvent.change(subject, { target: { value: 'Edited confirmation' } });
+    fireEvent.click(otherTab);
+    fireEvent.change(subject, { target: { value: 'Edited cancellation' } });
+    fireEvent.click(firstTab);
+    expect(subject).toHaveValue('Edited confirmation');
+    fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+    expect(subject).toHaveValue(templates.signup_confirmation.subject);
+    fireEvent.click(otherTab);
+    expect(subject).toHaveValue('Edited cancellation');
+  });
+
+  it('applies a delayed save to its own template and preserves newer typing', async () => {
+    let finish: (() => void) | undefined;
+    let writes = 0;
+    server.use(http.post('*/api/admin/emails', async ({ request }) => {
+      const submitted = await request.json() as { id: string; subject: string };
+      writes++;
+      return new Promise<Response>(resolve => { finish = () => resolve(HttpResponse.json({
+        template: { ...templates[submitted.id], subject: submitted.subject, custom: true }, authSync: null,
+      })); });
+    }));
+    openEditor();
+    const subject = await screen.findByLabelText('Subject');
+    const firstTab = screen.getByRole('tab', { selected: true });
+    const otherTab = screen.getByRole('tab', { name: 'Cancellation receipt' });
+    fireEvent.click(otherTab);
+    fireEvent.change(subject, { target: { value: 'Sent cancellation' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save template' }));
+    await waitFor(() => expect(finish).toBeDefined());
+    fireEvent.change(subject, { target: { value: 'Newer cancellation' } });
+    fireEvent.click(firstTab);
+    fireEvent.change(subject, { target: { value: 'Newer confirmation' } });
+    await act(async () => { finish!(); });
+    await waitFor(() => expect(screen.queryByText('Saving…')).not.toBeInTheDocument());
+    expect(subject).toHaveValue('Newer confirmation');
+    expect(screen.queryByText('Template saved. The next email of this kind uses the new text.')).toBeNull();
+    fireEvent.click(otherTab);
+    expect(subject).toHaveValue('Newer cancellation');
+    fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+    expect(subject).toHaveValue('Sent cancellation');
+    expect(writes).toBe(1);
+  });
+});
+
 it('updates a voucher cap without replacing its grants or resetting redemptions', async () => {
   let cap = 100; let body: unknown;
   const voucher = { id: '11111111-1111-4111-8111-111111111111', hint: 'AROL', note: 'Community', premiumDays: 90, maxRedemptions: 100, redeemedCount: 5, redeemableUntil: null, active: true, createdAt: '2026-11-11T12:00:00Z', revokedAt: null, state: 'open' };
