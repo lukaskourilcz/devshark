@@ -1,3 +1,4 @@
+import { checkDialogEscape } from './dialog-keyboard';
 import { test, expect, type Page } from './console-clean';
 import AxeBuilder from '@axe-core/playwright';
 import { publicLesson } from '../../lib/learn-lessons';
@@ -235,6 +236,7 @@ for (const theme of ['light', 'dark'] as const) {
     await expect(next).toBeFocused();
     const counter = card.getByText('Question 1 of 2', { exact: true });
     const report = card.getByRole('button', { name: 'Flag this question as wrong or misleading' });
+    await checkDialogEscape(page, report, page.getByRole('dialog'));
     await expect(card.locator('.ss-question-header__row').first().getByRole('button', { name: 'Exit lesson' })).toBeVisible();
     const [cardBox, reportBox, counterBox, nextBox] = await Promise.all([
       card.boundingBox(), report.boundingBox(), counter.boundingBox(), next.boundingBox(),

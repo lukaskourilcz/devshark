@@ -1,3 +1,4 @@
+import { checkDialogEscape } from './dialog-keyboard';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { test, expect, allowConsoleErrors, type Page } from './console-clean';
@@ -713,4 +714,14 @@ test('a later route cancels the pending focus callback of the previous route', a
   } finally {
     await testInfo.attach('route-focus-timeline', { body: JSON.stringify(await routeFocusLog(page), null, 2), contentType: 'application/json' });
   }
+});
+
+test('cookie settings and sign-in return keyboard control to their 390px openers', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/play');
+  const banner = page.getByRole('region', { name: 'Cookies on devShark' });
+  await checkDialogEscape(page, banner.getByRole('button', { name: 'Choose', exact: true }), page.getByRole('dialog', { name: 'Cookie settings' }));
+  await banner.getByRole('button', { name: 'Reject all', exact: true }).click();
+  const opener = page.locator('.ss-route').getByRole('button', { name: 'Sign in', exact: true }).first();
+  await checkDialogEscape(page, opener, page.getByRole('dialog'));
 });
