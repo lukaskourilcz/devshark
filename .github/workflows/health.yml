@@ -18,7 +18,14 @@ jobs:
           probe() {
             curl --fail --silent --show-error --connect-timeout 10 --max-time 20 \
               https://devshark.app/api/health --output /tmp/health.json &&
-              jq -e '.dependencies | .database == "ok" and .serviceRole == "ok" and .rateLimiter == "configured"' /tmp/health.json
+              jq -e '
+                (.ts | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601) as $reported |
+                (now | floor) as $checked |
+                .ok == true and .status == "healthy" and
+                .dependencies.database == "ok" and .dependencies.serviceRole == "ok" and
+                .dependencies.rateLimiter == "configured" and
+                $reported >= ($checked - 300) and $reported <= ($checked + 300)
+              ' /tmp/health.json
           }
           if probe; then exit 0; fi
           sleep 30
