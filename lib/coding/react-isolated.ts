@@ -14,7 +14,16 @@ import { compileReactOnWorker } from './react-compile-pool';
 import { FETCH_STUB_SOURCE } from '../../shared/coding-react-support';
 import { LOCAL_FETCH_SOURCE } from '../../shared/coding-fullstack-support';
 import { afterResponse } from './after-response';
+import { threadSlots } from './grader-capacity';
 import { logEvent } from '../http';
+
+const VM_TIMEOUT_MS = 25_000;
+const vmSlots = threadSlots({ name: 'react_vm', threads: 3, waiting: 0, waitMs: 0 });
+
+// A lost create/stop response may still leave a provider session alive.
+function releaseAfterVmExpiry() {
+  setTimeout(vmSlots.release, VM_TIMEOUT_MS).unref();
+}
 
 // Keep operational diagnostics useful without logging learner code, SDK request
 // bodies, credentials, or arbitrary error messages.
@@ -109,15 +118,19 @@ export async function runIsolatedReactSuite(input: {
           projectId: process.env.VERCEL_PROJECT_ID,
         }
       : {};
+  await vmSlots.acquire();
   const sandbox = await Sandbox.create({
     ...credentials,
     source: { type: 'snapshot', snapshotId },
     persistent: false,
     networkPolicy: 'deny-all',
-    timeout: 25_000,
+    timeout: VM_TIMEOUT_MS,
     resources: { vcpus: 1 },
     signal,
-  }).catch((error) => { throw runnerFailure('Startup', error); });
+  }).catch((error) => {
+    releaseAfterVmExpiry();
+    throw runnerFailure('Startup', error);
+  });
   // When the command's budget would have run out. The run's signal stops
   // everything at 22 s; it is the learner's timeout only when it fires while
   // their command has had its whole budget and is still going. Fired while
@@ -162,6 +175,7 @@ export async function runIsolatedReactSuite(input: {
     // the runtime keeps the function alive for it (after-response.ts), so a
     // Submit is answered a Vercel API round trip sooner (#587, server item
     // 14). Elsewhere it is awaited here, as before.
-    await afterResponse(sandbox.stop({ signal: AbortSignal.timeout(2_000) }));
+    const stopped = sandbox.stop({ signal: AbortSignal.timeout(2_000) });
+    await afterResponse(stopped.then(vmSlots.release, releaseAfterVmExpiry));
   }
 }

@@ -138,11 +138,13 @@ compile admission/boot/work plus its 22 s signal gives 4 + 6 + 4 + 22 = 36 s,
 excluding auth, artifact reads and other outer work. No timer was raised to
 make these sums fit. Record the actual phase that stopped a request.
 
-There is currently no separate per-instance concurrent-React-VM semaphore.
-The one-thread compiler releases its slot before the VM runs; caller gates
-and provider capacity do not establish a global per-instance VM cap. Owner
-F11-29 remains open, as does snapshot baking F11-28. Exactly twelve physical
-handlers and current platform settings remain unchanged.
+Each function instance admits three simultaneous React VMs across all callers.
+A fourth VM gets `503 grader_busy` with `Retry-After` and records no result.
+There is no queue. A slot is held until the provider confirms stop. An uncertain
+create or stop holds it for the VM's 25-second expiry. The existing 2-per-task
+and 3-per-caller limits remain independent. Three VMs support the documented
+concurrency-3 rehearsal while bounding each instance to 3 grading vCPUs.
+The provider can start multiple function instances; this limit applies to each one.
 
 ## Upload per Submit
 
