@@ -2448,7 +2448,7 @@ analytics and the privacy policy".
 One Vercel project, `react-express-app`, builds this repository for
 `https://devshark.app` and runs its functions in `arn1` (`vercel.json`).
 Production reads the Supabase project `rvlybcjdpafwyeuojvhl` (eu-north-1),
-migrated through `supabase/supabase-schema-066.sql`; preview deployments share
+migrated through `supabase/supabase-schema-089.sql`; preview deployments share
 that project. Node 24 is the supported runtime, and CI runs on it
 (`.github/workflows/quality.yml`; `npm run ci:parity` repeats the `verify`
 job locally).

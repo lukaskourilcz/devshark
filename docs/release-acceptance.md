@@ -9247,3 +9247,30 @@ Each entry lists **LCP ms / CLS / TBT ms / observed interaction ms** as intake �
 | `/leaderboard` | 1644/0/0/72 → 1608/0/0/72 | 476/0/0/48 → 412/0/0/32 | 320/0/0/64 → 324/0/0/64 | 220/0/0/32 → 208/0/0/32 |
 
 Across the 96 candidate visits, maximum LCP was 1,692 ms mobile and 564 ms desktop. Every CLS was zero. Fifteen dedicated learner interactions passed. Median observed latency was 80 ms for Quiz start, 64 ms for an answer, 80 ms for Learn, 64 ms for a coding keystroke and 64 ms for the mobile drawer. The maximum was 96 ms. The fixture observed local interactions. Production field INP requires the live consented telemetry cohort.
+
+
+## Production F8 database rollout, 24 November 2026
+
+The operator verified the encrypted pre-maintenance backup and applied the reviewed SQL one file at a time. The production migration ledger previously ended at 076. Each row below has a matching migration ledger entry and a successful post-application catalog check. The source SHA for 077–080 is `4f0ba1fd2` ([#657](https://github.com/lukaskourilcz/devshark/pull/657)); 081 is `8df1b53ee` ([#675](https://github.com/lukaskourilcz/devshark/pull/675)).
+
+| File | Verified at (UTC) | Production ledger version | Verified change |
+|---|---|---|---|
+| 077 | 09:07:15 | `20261124090713` | Search paths pinned for match distribution and the update trigger. |
+| 078 | 09:07:23 | `20261124090722` | Retired definer routines absent. |
+| 079 | 09:07:27 | `20261124090726` | Guarded retirement of the three empty AI tables and their budget routine. |
+| 080 | 09:07:33 | `20261124090730` | Case-insensitive challenge-name index present. |
+| 081 | 09:07:45 | `20261124090743` | Five covered indexes removed and their replacements retained. |
+| 082 | 09:08:00 | `20261124090757` | Browser sequence/default grants and raw Play publication membership checked. |
+| 083 | 09:08:04 | `20261124090802` | Service-only policies removed and authenticated owner policies updated. |
+| 084 | 09:08:09 | `20261124090807` | The database friend-removal routine preserves hidden-handle privacy. |
+| 085 | 09:08:13 | `20261124090811` | Ten historical secondary indexes retired under the migration guards. |
+| 086 | 09:08:17 | `20261124090816` | Existing active 03:07 GMT retention job verified. |
+| 087 | 09:08:21 | `20261124090820` | Definer caller comments and trigger routine execution grants checked. |
+| 088 | 09:08:26 | `20261124090824` | Unused guest XP writer removed. |
+| 089 | 09:08:41 | `20261124090839` | Private Play membership function and both authenticated Broadcast policies present. |
+
+The 082–088 source is `15d02829d` ([#677](https://github.com/lukaskourilcz/devshark/pull/677)). The 089 source is `c30b3d88e` ([#678](https://github.com/lukaskourilcz/devshark/pull/678)). The production advisor count fell from 39 `auth_rls_initplan` warnings to zero warnings and zero errors. Fifty informational results remain: 40 service tables with RLS and no browser policy, one missing primary key, eight unused indexes and one absolute Auth connection limit.
+
+All nine production lookup plans were captured. The case-insensitive name lookup changed from a sequential scan to `challenge_scores_lower_name_idx`. All five 081 lookups used a retained replacement. The Daily, challenge and flashcard lookups kept their previous plans. These are planner observations. The retention job was active with a successful 03:07:00.321 UTC run on 24 November, before 086 verified its existing schedule.
+
+Managed staging still has to verify private Play broadcasts, denial for nonmembers, reconnect and polling before the private-channel client can ship. Disabling public Realtime channels remains a separate owner action after older clients refresh.

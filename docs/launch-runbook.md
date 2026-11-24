@@ -11,7 +11,7 @@ How devShark is deployed, released, watched and rolled back. Release evidence go
 | Function region | `arn1` (`vercel.json`) |
 | Node | 24 (CI and the React runner snapshot use Node 24; `package.json` accepts 22 to 24) |
 | Supabase project | `rvlybcjdpafwyeuojvhl`, eu-north-1 |
-| Schema | every migration through `supabase/supabase-schema-066.sql` |
+| Schema | every migration through `supabase/supabase-schema-089.sql` |
 
 Preview deployments use the production Supabase project. A preview that writes data writes production rows, so test on a preview with a disposable account and only when the change needs it.
 
