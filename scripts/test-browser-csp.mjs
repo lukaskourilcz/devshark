@@ -6,10 +6,12 @@ import { createInterface } from 'node:readline';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
+const sink = new URL(require('../docs/quality/bundle-budget.json').measuredBuild.env.VITE_SENTRY_DSN);
+if (!sink.hostname.endsWith('.localhost')) throw new Error('The measured browser DSN must use loopback');
 const built = spawnSync(process.execPath, ['docker/build-handlers.mjs'], { stdio: 'inherit' });
 if (built.status !== 0) process.exit(built.status ?? 1);
 const server = spawn(process.execPath, ['docker/server.mjs'], {
-  env: { ...process.env, PORT: '0', BIND_ADDRESS: '127.0.0.1', CSP_CONNECT_EXTRA: 'https://exampleprojectref123.supabase.co' },
+  env: { ...process.env, PORT: '0', BIND_ADDRESS: '127.0.0.1', CSP_CONNECT_EXTRA: `https://exampleprojectref123.supabase.co ${sink.origin}` },
   stdio: ['ignore', 'pipe', 'inherit'],
 });
 const lines = createInterface({ input: server.stdout });

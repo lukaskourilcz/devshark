@@ -11,7 +11,7 @@
       "VITE_LOCK_SUBJECT": "webdev",
       "VITE_SUPABASE_URL": "https://exampleprojectref123.supabase.co",
       "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YW1wbGVwcm9qZWN0cmVmMTIzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.u4DHjqduHWQem12_AzJsMK_2_dK8eDTYOa8tmp8_DU0",
-      "VITE_SENTRY_DSN": "https://87a18de67be56414c8cd9a7c6594a215@o1283380.ingest.de.sentry.io/7446582",
+      "VITE_SENTRY_DSN": "https://87a18de67be56414c8cd9a7c6594a215@consent-sentry-lab.localhost/7446582",
       "VITE_PUBLIC_POSTHOG_KEY": "phc_RTyhiAvO3XNWYzxvUxpP1ge7QVmibEFHmSarqOBcFbw"
     }
   },

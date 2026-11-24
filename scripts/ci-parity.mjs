@@ -147,7 +147,9 @@ const KNOWN_GLUE = [
   "- run: |",
   "VITE_SUPABASE_URL=$(node -p \"require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_URL\")",
   "VITE_SUPABASE_ANON_KEY=$(node -p \"require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_ANON_KEY\")",
-  "export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY",
+  "VITE_SENTRY_DSN=$(node -p \"require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SENTRY_DSN\")",
+  "VITE_PUBLIC_POSTHOG_KEY=$(node -p \"require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_PUBLIC_POSTHOG_KEY\")",
+  "export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY VITE_SENTRY_DSN VITE_PUBLIC_POSTHOG_KEY",
   "id: build",
   "env:",
   "VITE_PRODUCT: devshark",
@@ -186,7 +188,9 @@ const KNOWN_GLUE = [
   "- run: |",
   "VITE_SUPABASE_URL=$(node -p \"require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_URL\")",
   "VITE_SUPABASE_ANON_KEY=$(node -p \"require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SUPABASE_ANON_KEY\")",
-  "export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY",
+  "VITE_SENTRY_DSN=$(node -p \"require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_SENTRY_DSN\")",
+  "VITE_PUBLIC_POSTHOG_KEY=$(node -p \"require('./docs/quality/bundle-budget.json').measuredBuild.env.VITE_PUBLIC_POSTHOG_KEY\")",
+  "export VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY VITE_SENTRY_DSN VITE_PUBLIC_POSTHOG_KEY",
   "id: check-build",
   "env:",
   "VITE_PRODUCT: devshark",
@@ -306,6 +310,8 @@ const BUILD_ENV = {
   VITE_LOCK_SUBJECT: 'webdev',
   VITE_SUPABASE_URL: budget.VITE_SUPABASE_URL,
   VITE_SUPABASE_ANON_KEY: budget.VITE_SUPABASE_ANON_KEY,
+  VITE_SENTRY_DSN: budget.VITE_SENTRY_DSN,
+  VITE_PUBLIC_POSTHOG_KEY: budget.VITE_PUBLIC_POSTHOG_KEY,
 };
 
 // ---- The plan ----------------------------------------------------------------
@@ -321,7 +327,7 @@ const step = (id, command, more = {}) => ({ id, command, ci: [command], tier: 'f
 const RESPONSIVE_LIGHT = `-- --routes /,/quiz,/topics/${TOPIC},/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 360,390,430,768,820,1024,1280,1366,1440`;
 const RESPONSIVE_DARK = `-- --routes /,/quiz,/topics/${TOPIC},/daily,/learn,/learn/web-developer,/coding,/coding/javascript,/coding/javascript/js-double-numbers,/leaderboard,/profile,/premium,/play,/challenge,/today,/cards,/shop,/privacy,/terms,/not-found-responsive-check --widths 390,820,1280`;
 const BROWSER_SPECS = [
-  "tests/browser/public.spec.ts tests/browser/offline.spec.ts tests/browser/memory.spec.ts tests/browser/images.spec.ts tests/browser/guide-startup.spec.ts tests/browser/profile-leaderboard-preferences.spec.ts tests/browser/profile-path-picker.spec.ts tests/browser/admin.spec.ts tests/browser/evolving.spec.ts tests/browser/coding-pages.spec.ts tests/browser/coding-workbench.spec.ts tests/browser/mobile-safari.spec.ts tests/browser/consent-reflow.spec.ts tests/browser/coding-drafts.spec.ts tests/browser/learning-release.spec.ts tests/browser/learn-sections.spec.ts tests/browser/fde-hub.spec.ts tests/browser/fde-taster.spec.ts tests/browser/fde-positioning.spec.ts tests/browser/interview-shelf.spec.ts tests/browser/path-content-shapes.spec.ts tests/browser/portfolio-export.spec.ts tests/browser/diagnostic-overview.spec.ts tests/browser/dsa-advanced.spec.ts tests/browser/segmented.spec.ts tests/browser/on-accent.spec.ts tests/browser/navigation.spec.ts tests/browser/lazy-auth.spec.ts tests/browser/sign-in.spec.ts tests/browser/route-errors.spec.ts tests/browser/first-load.spec.ts tests/browser/home-sample.spec.ts tests/browser/routes-axe.spec.ts tests/browser/daily.spec.ts tests/browser/launch-offer.spec.ts tests/browser/triage-private.spec.ts",
+  "tests/browser/public.spec.ts tests/browser/consent-network.spec.ts tests/browser/offline.spec.ts tests/browser/memory.spec.ts tests/browser/images.spec.ts tests/browser/guide-startup.spec.ts tests/browser/profile-leaderboard-preferences.spec.ts tests/browser/profile-path-picker.spec.ts tests/browser/admin.spec.ts tests/browser/evolving.spec.ts tests/browser/coding-pages.spec.ts tests/browser/coding-workbench.spec.ts tests/browser/mobile-safari.spec.ts tests/browser/consent-reflow.spec.ts tests/browser/coding-drafts.spec.ts tests/browser/learning-release.spec.ts tests/browser/learn-sections.spec.ts tests/browser/fde-hub.spec.ts tests/browser/fde-taster.spec.ts tests/browser/fde-positioning.spec.ts tests/browser/interview-shelf.spec.ts tests/browser/path-content-shapes.spec.ts tests/browser/portfolio-export.spec.ts tests/browser/diagnostic-overview.spec.ts tests/browser/dsa-advanced.spec.ts tests/browser/segmented.spec.ts tests/browser/on-accent.spec.ts tests/browser/navigation.spec.ts tests/browser/lazy-auth.spec.ts tests/browser/sign-in.spec.ts tests/browser/route-errors.spec.ts tests/browser/first-load.spec.ts tests/browser/home-sample.spec.ts tests/browser/routes-axe.spec.ts tests/browser/daily.spec.ts tests/browser/launch-offer.spec.ts tests/browser/triage-private.spec.ts",
 ];
 
 const PLAN = [
@@ -353,8 +359,8 @@ const PLAN = [
     { ci: ['npm run preview --prefix client -- --host 0.0.0.0 --port 4173'], kind: 'server', url: PREVIEW_URL, needs: ['build'] }),
   ...BROWSER_SPECS.map((specs) => step('browser:chromium',
     npmRun('test:browser', `-- --project=chromium --workers=2 --output=test-results/chromium ${specs}`), {
-      ci: [`PLAYWRIGHT_HTML_REPORT=playwright-report/chromium ${npmRun('test:browser', `-- --project=chromium --workers=2 --output=test-results/chromium ${specs}`)}`],
-      env: { PLAYWRIGHT_HTML_REPORT: 'playwright-report/chromium' }, tier: 'full', needs: ['preview', 'chromium'],
+      ci: [`CONSENT_EXPECT_TELEMETRY=1 MEMORY_EXPECT_TRACING=1 MEMORY_FULL_EXPIRY=1 PLAYWRIGHT_HTML_REPORT=playwright-report/chromium ${npmRun('test:browser', `-- --project=chromium --workers=2 --output=test-results/chromium ${specs}`)}`],
+      env: { CONSENT_EXPECT_TELEMETRY: '1', MEMORY_EXPECT_TRACING: '1', MEMORY_FULL_EXPIRY: '1', PLAYWRIGHT_HTML_REPORT: 'playwright-report/chromium' }, tier: 'full', needs: ['preview', 'chromium'],
     })),
   step('check:responsive', npmRun('check:responsive', RESPONSIVE_LIGHT), { ci: [`RESPONSIVE_WORKERS=2 ${npmRun('check:responsive', RESPONSIVE_LIGHT)}`], env: { RESPONSIVE_WORKERS: '2' }, needs: ['preview', 'chromium'], chrome: true }),
   step('check:responsive:dark', npmRun('check:responsive', RESPONSIVE_DARK), {
