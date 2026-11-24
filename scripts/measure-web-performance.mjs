@@ -12,7 +12,7 @@ export const PROFILES = ['mobile', 'desktop'];
 // which names the mode it switches to. Ready Daily uses its local radio
 // selection instead: question focus mode hides both shell controls.
 export const INTERACTION_CONTROLS = { mobile: ['Open navigation menu'], desktop: ['Dark mode', 'Light mode'] };
-const FLAGS = { url: 'value', routes: 'value', samples: 'value', profiles: 'value', output: 'value', access: 'value', consent: 'value', 'api-origin': 'value', 'api-delay-ms': 'value', fixture: 'switch', 'reduced-motion': 'switch' };
+const FLAGS = { url: 'value', routes: 'value', samples: 'value', profiles: 'value', output: 'value', access: 'value', consent: 'value', 'consent-version': 'value', 'api-origin': 'value', 'api-delay-ms': 'value', fixture: 'switch', 'reduced-motion': 'switch' };
 // The cookie choice of the repeat-browser row. No mode accepts: a yes would
 // load PostHog and send the lab's page views to it.
 export const CONSENT_MODES = ['rejected', 'undecided'];
@@ -22,6 +22,7 @@ const DEFAULTS = {
  samples: 3,
  output: 'artifacts/performance/web-lab.json',
  consent: 'rejected',
+ consentVersion: 2,
  // The API delay of the #587 walk (docs/perf/2026-10-17).
  apiDelayMs: 120,
 };
@@ -35,6 +36,8 @@ export const USAGE = `Usage: node scripts/measure-web-performance.mjs --url=<ori
   --consent=<choice>    the repeat row's cookie choice: rejected, a returning visitor who
                         pressed Reject all (default), or undecided, the banner still open
                         as in runs before 18 November 2026; the cold row is always undecided
+  --consent-version=<n> version accepted by the measured build's rejected-consent record
+                        (default ${DEFAULTS.consentVersion}); applies only to a rejected repeat visit
   --fixture             answer the origin's API GETs from tests/fixtures/api-settings.json
   --api-origin=<origin> answer the page's anonymous API reads from this https or loopback
                         origin: one GET from Node per distinct read per run, no cookie,
@@ -88,11 +91,14 @@ export function resolveOptions(args) {
  for (const route of routes) if (!route.startsWith('/') || route.startsWith('//')) throw new UsageError(`--routes entries must start with one /, got "${route}"`);
  const consent = args.consent ?? DEFAULTS.consent;
  if (!CONSENT_MODES.includes(consent)) throw new UsageError(`--consent accepts ${CONSENT_MODES.join(' or ')}, got "${consent}"`);
+ const consentVersion = Number(args['consent-version'] ?? DEFAULTS.consentVersion);
+ if ((args['consent-version'] !== undefined && !/^[1-9]\d*$/.test(args['consent-version'])) || !Number.isSafeInteger(consentVersion))
+  throw new UsageError('--consent-version must be a positive whole number');
  const apiOrigin = args['api-origin'] === undefined ? null : replayOrigin(args['api-origin']);
  if (args['api-delay-ms'] !== undefined && !apiOrigin) throw new UsageError('--api-delay-ms needs --api-origin');
  const apiDelayMs = args['api-delay-ms'] ?? String(DEFAULTS.apiDelayMs);
  if (!/^\d+$/.test(apiDelayMs) || Number(apiDelayMs) > 10000) throw new UsageError(`--api-delay-ms must be a whole number from 0 to 10000, got "${apiDelayMs}"`);
- return { origin: url.origin, routes, samples: Number(samples), profiles, output: args.output ?? DEFAULTS.output, access: args.access ?? null, fixture: args.fixture === true, reducedMotion: args['reduced-motion'] === true, consent, apiOrigin, apiDelayMs: Number(apiDelayMs) };
+ return { origin: url.origin, routes, samples: Number(samples), profiles, output: args.output ?? DEFAULTS.output, access: args.access ?? null, fixture: args.fixture === true, reducedMotion: args['reduced-motion'] === true, consent, consentVersion, apiOrigin, apiDelayMs: Number(apiDelayMs) };
 }
 
 const LOOPBACK = ['127.0.0.1', 'localhost', '[::1]'];
@@ -140,8 +146,16 @@ export const CONSENT_STORAGE_KEY = 'devshark:consent';
 // The record "Reject all" stores, in the fields persist() writes. The press
 // also writes a devshark_consent cookie copy that nothing reads today, so the
 // lab stores the localStorage record only.
-export function rejectedConsent(now) {
- return { version: 2, analytics: false, marketing: false, decidedAt: now };
+export function rejectedConsent(now, version = DEFAULTS.consentVersion) {
+ return { version, analytics: false, marketing: false, decidedAt: now };
+}
+
+// Pages that never show this app's banner can still be measured. A rejected
+// repeat visit that still contains the banner used the wrong consent state.
+export function consentStateError(row, version) {
+ return row.cache === 'repeat-browser' && row.consent === 'rejected' && row.consentBanner
+  ? `Rejected consent version ${version} left the banner present; check --consent-version for this build`
+  : null;
 }
 
 // The cookie choice each row of a sample loads under. A first visit sees the
@@ -340,7 +354,7 @@ class FatalLabError extends Error {}
 
 const firstLine = error => String(error?.message ?? error).split('\n')[0];
 
-export async function main({ origin, routes, samples, profiles, output, access: accessFile, fixture: useFixture, reducedMotion = false, consent = DEFAULTS.consent, apiOrigin = null, apiDelayMs = DEFAULTS.apiDelayMs }) {
+export async function main({ origin, routes, samples, profiles, output, access: accessFile, fixture: useFixture, reducedMotion = false, consent = DEFAULTS.consent, consentVersion = DEFAULTS.consentVersion, apiOrigin = null, apiDelayMs = DEFAULTS.apiDelayMs }) {
  mkdirSync(dirname(output), { recursive: true });
  const access = accessFile ? JSON.parse(readFileSync(accessFile, 'utf8')) : null;
  const fixture = useFixture ? JSON.parse(readFileSync('tests/fixtures/api-settings.json', 'utf8')) : null;
@@ -374,7 +388,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
  const replaySummary = () => replay && { origin: apiOrigin, delayMs: apiDelayMs, forwarded: replay.reads.size, reads: [...replay.reads.values()].map(read => read.record), unlisted: [...replay.unlisted].map(([path, count]) => ({ path, count })) };
  let browser, chrome;
  const results = [];
- const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, apiOrigin, apiDelayMs: apiOrigin ? apiDelayMs : null, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', consent: consentByCache(consent), consentBannerDefinition: 'DOM presence only; question focus mode can hide the existing banner. This is not a visibility measurement.', ttfbDefinition: 'responseStart (web-vitals)', clsDefinition: 'largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press', tbtDefinition: 'long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)', summaryDefinition: 'one row per profile, path and cache state: the median of each metric over the measured samples (the lower middle one for an even count, so each value is one a sample measured), the LCP element of the median-LCP sample, errors = samples a failure left without a measurement', requestsDefinition: 'requests the page made per kind at the lab interception; sent = responses the origin returned over the network, without cache hits or answers the lab fulfilled', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, apiReplay: replaySummary(), requestTotals: requestTotals(results, { forwarded: replay?.reads.size ?? 0 }), summary: summarizeRows(results), interactionFailures: interactionFailures(results), results }, null, 2) + '\n');
+ const write = () => writeFileSync(output, JSON.stringify({ environment: { origin, apiOrigin, apiDelayMs: apiOrigin ? apiDelayMs : null, time: new Date().toISOString(), platform: os.platform(), arch: os.arch(), chrome, network: 'mobile150ms/1.6Mbps/CPU4;desktop20ms/10Mbps/CPU1; simulated via CDP', samples, reducedMotion: reducedMotion ? 'reduce' : 'no-preference', consent: consentByCache(consent), consentVersion, consentBannerDefinition: 'DOM presence only; question focus mode can hide the existing banner. This is not a visibility measurement.', ttfbDefinition: 'responseStart (web-vitals)', clsDefinition: 'largest session window (shifts under 1 s apart, window under 5 s) without recent input, read before the lab press; clsSum is the plain sum the cls field held before 18 November 2026; clsInputFlagged sums the shifts flagged hadRecentInput before the press', tbtDefinition: 'long tasks observed under the CPU throttle, each clipped to fcp..measuredAt, less 50 ms, summed (Lighthouse sums the same way over a simulated trace)', summaryDefinition: 'one row per profile, path and cache state: the median of each metric over the measured samples (the lower middle one for an even count, so each value is one a sample measured), the LCP element of the median-LCP sample, errors = samples a failure left without a measurement', requestsDefinition: 'requests the page made per kind at the lab interception; sent = responses the origin returned over the network, without cache hits or answers the lab fulfilled', serverWaitDefinition: 'responseStart - requestStart (navigation.ttfb before 18 November 2026; resources[].ttfb still uses it)', scope: 'anonymous,essential consent,read-only; cold browser is NOT proven cold server; inpMs is one scripted press per load, NOT field INP' }, apiReplay: replaySummary(), requestTotals: requestTotals(results, { forwarded: replay?.reads.size ?? 0 }), summary: summarizeRows(results), interactionFailures: interactionFailures(results), results }, null, 2) + '\n');
  try {
   for (const profile of profiles) for (const path of routes) for (let sample = 0; sample < samples; sample++) {
    // A browser that cannot start fails every sample the same way: let it end the run.
@@ -477,7 +491,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      cdp.on('Network.responseReceived', listener);
      // The repeat row stores the choice on the cold row's page, same origin,
      // before it navigates: no banner press, nothing sent.
-     if (consentByCache(consent)[cache] === 'rejected') await page.evaluate(([key, record]) => localStorage.setItem(key, JSON.stringify(record)), [CONSENT_STORAGE_KEY, rejectedConsent(Date.now())]);
+     if (consentByCache(consent)[cache] === 'rejected') await page.evaluate(([key, record]) => localStorage.setItem(key, JSON.stringify(record)), [CONSENT_STORAGE_KEY, rejectedConsent(Date.now(), consentVersion)]);
      const started = Date.now();
      await page.goto(origin + path, { waitUntil: 'load', timeout: 60000 });
      await page.waitForTimeout(profile === 'mobile' ? 3000 : 1500);
@@ -518,6 +532,8 @@ export async function main({ origin, routes, samples, profiles, output, access: 
      if (pressed) await page.keyboard.press('Escape');
      cdp.off('Network.responseReceived', listener);
      const row = { profile, path, sample, cache, consent: consentByCache(consent)[cache], elapsed: Date.now() - started, diskHits, blockedWrites, requests: { ...requests }, ...measurement };
+     const consentError = consentStateError(row, consentVersion);
+     if (consentError) row.error = consentError;
      results.push(row);
      write();
      console.log(profile, path, sample, cache, 'TTFB', Math.round(row.navigation.ttfb), 'serverWait', Math.round(row.navigation.serverWait), 'FCP', row.fcp === null ? 'none' : Math.round(row.fcp), 'LCP', Math.round(row.lcp), 'lcpElement', formatLcpElement(row.lcpElement), 'CLS', row.cls.toFixed(3), 'TBT', row.tbtMs === null ? 'none' : Math.round(row.tbtMs), 'longTasks', row.longTasks.count, 'INP', formatInp(row.inpMs), 'cacheHits', diskHits, 'requests', requestCount(requests), 'sent', requests.sent, 'consent', row.consent, 'bannerDOM', row.consentBanner ? 'present' : 'absent', 'pressed', row.interaction.matched ? row.interaction.control : 'nothing');
@@ -556,7 +572,7 @@ export async function main({ origin, routes, samples, profiles, output, access: 
  }
  const failed = results.filter(row => row.error);
  if (failed.length) {
-  console.error(`perf:measure: ${failed.length} of ${results.length} rows failed and carry an error instead of a measurement:`);
+  console.error(`perf:measure: ${failed.length} of ${results.length} rows failed and were excluded from the metric summaries:`);
   for (const row of failed) console.error(`  ${row.profile} ${row.path} sample ${row.sample} ${row.cache ?? 'setup'}: ${row.error}`);
   process.exitCode = 1;
  }

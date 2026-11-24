@@ -317,6 +317,25 @@ test('perf:measure loads the repeat row as a returning visitor who pressed Rejec
   for (const value of ['accepted', '']) assert.throws(() => resolveOptions(parseArgs(['--url=http://127.0.0.1:4211', `--consent=${value}`])), UsageError, value);
 });
 
+test('perf:measure refuses a mismatched historical consent cohort', () => {
+  const args = ['--url=http://127.0.0.1:4211'];
+  assert.equal(resolveOptions(parseArgs(args)).consentVersion, 2);
+  const version = resolveOptions(parseArgs([...args, '--consent-version=1'])).consentVersion;
+  assert.equal(lab.rejectedConsent(123, version).version, 1);
+  for (const invalid of ['0', '-1', '1.5', '9007199254740992']) {
+    assert.throws(() => resolveOptions(parseArgs([...args, `--consent-version=${invalid}`])), UsageError);
+  }
+  const warm = { profile: 'desktop', path: '/learn', cache: 'repeat-browser', consent: 'rejected', consentBanner: true };
+  const error = lab.consentStateError(warm, 2);
+  assert.match(error, /Rejected consent version 2.*--consent-version/);
+  const [summary] = lab.summarizeRows([{ ...warm, lcp: 80, error }]);
+  assert.equal(summary.errors, 1);
+  assert.equal(summary.lcpMs, null);
+  assert.equal(lab.consentStateError({ ...warm, consentBanner: false }, 1), null);
+  assert.equal(lab.consentStateError({ ...warm, consent: 'undecided' }, 1), null);
+  assert.equal(lab.consentStateError({ ...warm, cache: 'cold-browser' }, 1), null);
+});
+
 test('perf:measure replays only the anonymous API reads on its list', () => {
   assert.equal(typeof lab.replayableRead, 'function', 'perf:measure decides what --api-origin answers in replayableRead');
   const read = (path) => lab.replayableRead(new URL(path, 'http://127.0.0.1:4211'));
