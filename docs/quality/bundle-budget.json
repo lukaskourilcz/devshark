@@ -1,8 +1,8 @@
 {
-  "initialGzipBytes": 218675,
+  "initialGzipBytes": 217717,
   "baselineGzipBytes": 224479,
   "scope": "The initial requests of index.html (entry script, modulepreload links, stylesheets), gzipped, from a production-shaped devShark build. Excludes lazy routes, the coding sandbox and fonts.",
-  "recorded": "2026-11-19",
+  "recorded": "2026-11-24",
   "measuredBuild": {
     "outDir": "dist-budget",
     "note": "Production sets these build-time variables, and client code depends on them. The check builds with these placeholders, in its own output directory, so the number matches what devshark.app serves; while the Supabase client was created eagerly, a build without the Supabase pair left out about 55 kB gzipped that production served. None is a credential: each is derived from a fixed seed and has the real value's length and alphabet, so it compresses like the real one. CI's main build reads the Supabase pair from here too, so tests/browser/lazy-auth.spec.ts runs against a build that signs in the way production does.",

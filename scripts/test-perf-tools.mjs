@@ -709,7 +709,10 @@ test('check:bundle --url measures raw Brotli/gzip/identity bodies with exact ano
   assert.notEqual(row.transferredBytes, row.decodedGzip6Bytes, 'wire compression is not reconstructed gzip6');
   assert.equal(row.encodedSha256, createHash('sha256').update(encodedMain).digest('hex')); assert.equal(row.headers['x-vercel-cache'], 'HIT'); assert.equal(row.headers['set-cookie'], undefined);
   assert.equal(report.totals.initialTransferredBytes, encodedMain.length + encodedShared.length + style.length); assert.equal(report.totals.preloadedFontTransferredBytes, font.length);
-  assert.equal(report.budgetApplied, false); assert.equal(report.localGzipBudgetReference, 218675); assert.match(report.scope, /exclude headers/);
+  const measuredBudget = JSON.parse(readFileSync(join(root, 'docs/quality/bundle-budget.json'), 'utf8'));
+  assert.equal(report.budgetApplied, false);
+  assert.equal(report.localGzipBudgetReference, measuredBudget.initialGzipBytes);
+  assert.match(report.scope, /exclude headers/);
   assert.deepEqual(JSON.parse(readFileSync(join(outputDirectory, 'bundle-live.json'), 'utf8')), report);
 });
 
@@ -802,7 +805,7 @@ test('check:bundle keeps its default shaped-build options and refuses mixed/repe
   assert.deepEqual(bundle.bundleOptions(['--largest=20']), { origin: null, largestCount: 20 });
   assert.deepEqual(bundle.bundleOptions(['--url=https://example.test']), { origin: 'https://example.test', largestCount: 10 });
   for (const args of [['--url=https://example.test', '--largest=20'], ['--url=https://example.test', '--url=https://other.test'], ['--url'], ['--largest=2', '--largest=3']]) assert.throws(() => bundle.bundleOptions(args));
-  assert.equal(JSON.parse(readFileSync(join(root, 'docs/quality/bundle-budget.json'), 'utf8')).initialGzipBytes, 218675);
+  assert.equal(JSON.parse(readFileSync(join(root, 'docs/quality/bundle-budget.json'), 'utf8')).initialGzipBytes, 217717);
 });
 
 // F1-38: exercise the existing CLI server, with no HTTP readiness polling.
