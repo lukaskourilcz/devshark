@@ -16,6 +16,7 @@ describe('editable fields and resize handles', () => {
   it.each([
     ['styles/app-shell.css', '.ss-input, .ss-select'],
     ['coding/Coding.css', '.cd-search input, .cd-search select'],
+    ['coding/Coding.css', '.cd-skip-note'],
     ['components/TypingRacer.css', '.ss-typing__input'],
     ['components/paths/LearningPaths.css', '.lp-field input, .lp-field textarea'],
     ['components/paths/LearningPaths.css', '.lp-example__editor'],
@@ -24,6 +25,20 @@ describe('editable fields and resize handles', () => {
   ])('%s uses the control edge for %s', (path, selector) => {
     expect(declarations(path, selector).some(rule =>
       /\bborder:\s*1px solid var\(--color-border-strong\)/.test(rule),
+    )).toBe(true);
+  });
+
+  it.each([
+    ['styles/app-shell.css', '.ss-input, .ss-select'],
+    ['components/Friends.css', '.fr-input'],
+    ['components/Friends.css', '.fr-select'],
+    ['components/SharknameCard.css', '.sn-field'],
+    ['coding/Coding.css', '.cd-search input, .cd-search select'],
+    ['coding/Coding.css', '.cd-skip-note'],
+    ['components/paths/LearningPaths.css', '.lp-input'],
+  ])('%s supplies the themed input surface for %s', (path, selector) => {
+    expect(declarations(path, selector).some(rule =>
+      /\bbackground:\s*var\(--color-background-surface\)/.test(rule),
     )).toBe(true);
   });
 
