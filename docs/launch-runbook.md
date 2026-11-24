@@ -124,6 +124,8 @@ SMOKE_BASE_URL=<deployment> node node_modules/.cache/shark/grading-load.mjs
 
 Merge only after preflight and the smoke checks the change needs pass. After the deploy, watch Vercel function errors and latency, `/api/health`, Supabase database and Realtime health, 429 volume, 503 `upstream_timeout` answers (a Supabase call that outlasted `withTimeout` in `lib/http.ts`, logged at level error), sign-in failures, quiz submit failures, multiplayer reconnects and account deletion errors for at least 30 minutes. Never put access tokens, emails, answer tokens or submitted answers in logs.
 
+For a release investigation, identify the deployment commit first. In Sentry, filter events to its release and production environment. Review the ten most recent events for unexpected personal or learner data and record only the count and categories. In Vercel, compare runtime error groups with structured stderr records grouped by request path and level. Match the request ID to the handler when available. Group counts can span several handlers; record the actual window and the provider's retention limit. Older application warnings written to stdout require a separate structured-log search.
+
 Every API answer carries a `Server-Timing` header: `app` (the handler's time), `db_http` with its count of database calls and `auth_http` with its count of Supabase Auth calls. A request that suddenly makes more of either after a deploy is the first sign that a read lost its cache or its parallel wave.
 
 Some answers are cached, so a change reaches learners after a bound rather than at once (`docs/product-architecture.md`, "Sign-in, caching and limits"):
