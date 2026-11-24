@@ -13,7 +13,7 @@ import { createRequire } from 'node:module';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { CODING_TASKS, DSA_FOUNDATIONS_TASK_IDS, EASY_BAND_TASK_IDS, MEDIUM_HARD_BAND_TASK_IDS, playable } from '../lib/coding/catalog';
-import { CODING_SUMMARIES, levelCodingTasks, tasksForLevel } from '../lib/coding/active';
+import { CODING_SOURCE_VERSIONS, CODING_SUMMARIES, levelCodingTasks, tasksForLevel } from '../lib/coding/active';
 import { solutionFor, solutionIds } from '../lib/coding/solutions';
 import { stripComments } from '../lib/coding/solutions/strip-comments';
 import { codingBoardContracts } from './coding-board-contract';
@@ -59,6 +59,13 @@ import { EVOLVING_CHALLENGES, evolvingResume, evolvingStage, evolvingUnlocked, e
 import { SKELETON_FILLS } from './fixtures/skeleton-fills';
 import { isFreeCodingTask } from '../shared/tiers';
 import { evaluateInRunRealm } from './run-realm-node';
+
+// Optional evidence from the ordinary checks. No challenge is rerun to produce it.
+function recordCodingReceipt(id: string, variant: string, accepted: boolean, visible: number, hidden: number): void {
+  if (process.env.CODING_RECEIPTS !== '1') return;
+  const hash = CODING_SOURCE_VERSIONS.get(id);
+  console.log('CODING_RECEIPT ' + JSON.stringify({ id, hash, variant, accepted, visible, hidden }));
+}
 
 const ALLOW_GAPS = process.env.CODING_ALLOW_LEVEL_GAPS === '1';
 const SKIP_INDEX = process.env.CODING_SKIP_INDEX === '1';
@@ -910,7 +917,9 @@ function transform<Input, Output>(items: readonly Input[], change: (item: Input)
     if (task.track === 'typescript') {
       const starterCheck = checker.check(task.starter, task.typeTests ?? []);
       const starterRun = await withTimeout(evaluateCalls({ code: checker.toJavaScript(task.starter), calls: task.tests.map((t) => t.call), expectations: task.tests.map((t) => t.expected) }), 8_000, where);
-      if (typesPassed(starterCheck) && allPassed(starterRun)) fail(`${where}: the untouched starter already passes`);
+      const accepted = typesPassed(starterCheck) && allPassed(starterRun);
+      recordCodingReceipt(where, 'starter', accepted, starterRun.results.length, 0);
+      if (accepted) fail(`${where}: the untouched starter already passes`);
       starterCode = checker.toJavaScript(task.starter);
       // Code that ends inside an unterminated template literal must not pull
       // the type tests into it: the check reports the code instead.
@@ -918,6 +927,7 @@ function transform<Input, Output>(items: readonly Input[], change: (item: Input)
     }
     for (const [name, source] of variants(solution, where)) {
       const label = `${where} (${name})`;
+      const priorFailures = failures.length;
       let code = source;
       if (task.track === 'typescript') {
         const check = checker.check(source, task.typeTests ?? []);
@@ -944,11 +954,14 @@ function transform<Input, Output>(items: readonly Input[], change: (item: Input)
         const hidden = await withTimeout(evaluateInRunRealm({ runtimePolicy: runtimePolicyForTask(task.id), code, calls: solution.hiddenTests.map((t) => t.call), expectations: solution.hiddenTests.map((t) => t.expected) }), 8_000, label);
         if (!allPassed(hidden)) fail(`${label}: solution fails hidden tests: ${hidden.codeError ?? hidden.results.map((r, i) => (r.pass ? null : solution.hiddenTests![i].call)).filter(Boolean).join('; ')}`);
       }
+      recordCodingReceipt(where, name, failures.length === priorFailures, server.visible.results.length, server.hidden?.results.length ?? 0);
     }
     // Algorithms challenges are plain JavaScript too, so their starters must fail the same way.
     if (task.track === 'javascript' || task.track === 'algorithms') {
       const starterRun = await withTimeout(evaluateCalls({ code: starterCode, calls: task.tests.map((t) => t.call), expectations: task.tests.map((t) => t.expected) }), 8_000, where);
-      if (allPassed(starterRun)) fail(`${where}: the untouched starter already passes`);
+      const accepted = allPassed(starterRun);
+      recordCodingReceipt(where, 'starter', accepted, starterRun.results.length, 0);
+      if (accepted) fail(`${where}: the untouched starter already passes`);
     }
   }
 
@@ -1080,16 +1093,19 @@ function transform<Input, Output>(items: readonly Input[], change: (item: Input)
     if (solution.hiddenSuite !== undefined && /^\s*import\s/m.test(solution.hiddenSuite)) fail(`${where}: a hidden suite shares the visible suite's imports and declares none`);
     const suite = withHiddenCases(task.suite, solution.hiddenSuite);
     for (const [name, source] of variants(solution, where)) {
+      const priorFailures = failures.length;
       const run = await withTimeout(runReactSuite({ suite, appSource: source }), 20_000, `${where} (${name})`);
       if (run.compileError || run.failed > 0) {
         fail(`${where} (${name}): solution fails its suite: ${run.compileError ?? run.cases.filter((c) => c.status === 'fail').map((c) => `${c.name}: ${c.error}`).join('; ')}`);
       }
-      const { hidden } = splitHiddenCases(run.cases);
+      const { visible, hidden } = splitHiddenCases(run.cases);
       if (hidden.length !== hiddenCaseCount(solution.hiddenSuite)) fail(`${where} (${name}): the hidden suite declares ${hiddenCaseCount(solution.hiddenSuite)} case(s) and ran ${hidden.length}`);
       // The server refuses a run whose case count differs from the suite's.
       if (run.cases.length !== suiteCaseCount(suite)) fail(`${where} (${name}): the suite declares ${suiteCaseCount(suite)} case(s) and ran ${run.cases.length}`);
+      recordCodingReceipt(where, name, failures.length === priorFailures, visible.length, hidden.length);
     }
     const starter = await withTimeout(runReactSuite({ suite: task.suite, appSource: task.starter }), 20_000, where);
+    recordCodingReceipt(where, 'starter', !starter.compileError && starter.failed === 0, starter.cases.length, 0);
     if (!starter.compileError && starter.failed === 0) fail(`${where}: the untouched starter already passes its suite`);
     // A learning path runs the visible suite alone, and the server counts it too.
     if (!starter.compileError && starter.cases.length !== suiteCaseCount(task.suite)) fail(`${where}: the visible suite declares ${suiteCaseCount(task.suite)} case(s) and ran ${starter.cases.length}`);
