@@ -692,8 +692,15 @@ async function main() {
         : prepared.key.band ? [prepared.key.band.max * 10 + 1]
           : prepared.key.order ? [[...prepared.key.order].reverse()]
             : [(prepared.key.correct! + 1) % task.drill!.options!.length];
-      if (gradeDesign(task, prepared.key, right as DesignAnswer[]).outcome !== 'passed') fail(`${task.id}: its grader fails the right answers`);
-      if (gradeDesign(task, prepared.key, wrong as DesignAnswer[]).outcome !== 'failed') fail(`${task.id}: its grader passes wrong answers`);
+      const rightOutcome = gradeDesign(task, prepared.key, right as DesignAnswer[]).outcome;
+      const wrongOutcome = gradeDesign(task, prepared.key, wrong as DesignAnswer[]).outcome;
+      if (rightOutcome !== 'passed') fail(`${task.id}: its grader fails the right answers`);
+      if (wrongOutcome !== 'failed') fail(`${task.id}: its grader passes wrong answers`);
+      if (process.env.CODING_RECEIPTS === '1') {
+        console.log('DESIGN_RECEIPT ' + JSON.stringify({
+          id: task.id, hash: CODING_SOURCE_VERSIONS.get(task.id), issued: issued.has(task.id), rightOutcome, wrongOutcome,
+        }));
+      }
     }
 
     // The review of 22 Oct 2026 (docs/audit/system-design-review-2026-10-22.md)
