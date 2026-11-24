@@ -133,6 +133,8 @@ The Epic F run (#629, remaining work in #646) needs these from you. Remaining ow
 
 ## Decided during the Epic F audit (18 November 2026)
 
+- [x] **Apply the account read limit to path progress and learning preferences** — Both GETs share the 120-read account bucket. To restore the earlier behavior, remove `learning-path-progress` and `learning-preference` from `LIMITED_READS` in `api/user/[op].ts`. The separate production review covers any change to the threshold. [imp:2] [owner:ai] [time:done] [kind:decision]
+
 - Production browser policy pins the Supabase and Sentry origins, uses same-origin workers and fonts, and blocks public source maps. A project move requires updating the CSP and its contract together. Docker accepts explicit development origins via `CSP_CONNECT_EXTRA`. To restore public source maps, remove the map refusal before the filesystem route.
 - The merchandise webhook retains successful delivery digests for seven days. A concurrent sender retries while the first delivery is pending. Failed database operations release their processing lease. The payment provider and its delivery retry horizon still need to be chosen before enabling merchandise.
 
@@ -187,7 +189,7 @@ accepted native replays remain read-only and award no repeated XP.
 Stripe resources, prices and every gate before sales open are in `STRIPE_INTEGRATION_TODO.md`. Production runs with `BILLING_ENABLED=false`.
 
 - [ ] **Clear the Stripe gates and open sales** — complete Stripe's identity verification, then work through the gates in `STRIPE_INTEGRATION_TODO.md`: the Managed Payments check, a lawyer's review of the Terms, the checkout consent and the order button, the isolated sandbox purchase, webhook and refund test, and finally `BILLING_ENABLED=true` and a redeploy. Have the review cover withdrawal and cancellation for the Czech-registered business; English-only UI does not remove those duties. [imp:3] [owner:me] [time:3h] [kind:decision]
-- [ ] **Choose the merchandise payment provider before its webhook goes live** — the rewards audit (#568) found that `op=payment-webhook` checks its HMAC over the re-serialised JSON, not the raw request bytes, so a real provider's signature would fail whenever the serialisation differs. No provider is configured. When you pick one, an agent reads the raw body in `api/user/[op].ts` and verifies the provider's own signature scheme. [imp:2] [owner:me] [time:10m] [kind:decision]
+- [ ] **Choose the merchandise payment provider before its webhook goes live** — Confirm the provider, its signing scheme and retry horizon. The handler verifies the original request bytes, retains successful delivery digests for seven days and releases failed claims. Validate the chosen provider’s signed delivery and retry behavior before enabling merchandise. [imp:2] [owner:me] [time:10m] [kind:decision]
 - [ ] **Decide on the launch offer before 30 November** — the 55 % launch window in `shared/launch-offer.ts` and the coupon `launch55-2026nov30` end on 30 November 2026 at 23:59:59 Prague time. If sales do not open by then, nobody ever gets the offer. Move the window (code, coupon `redeem_by` and the price copy together) or drop it. [imp:3] [owner:me] [time:15m] [kind:decision]
 - [ ] **Check the launch-price wording** — Premium was never sold before, and the pages state an introductory launch price and name the regular price from 1 December 2026. Have that checked against the consumer-pricing rules. It does not block anything while sales are off. [imp:2] [owner:me] [time:30m] [kind:legal]
 
