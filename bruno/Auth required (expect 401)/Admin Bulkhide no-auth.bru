@@ -1,0 +1,19 @@
+meta {
+  name: Admin Bulkhide no-auth
+  type: http
+  seq: 54
+}
+
+post {
+  url: {{baseUrl}}/api/admin/bulkhide
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 403
+}

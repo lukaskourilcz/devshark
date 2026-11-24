@@ -1,0 +1,15 @@
+meta {
+  name: Admin Learning Paths no-auth
+  type: http
+  seq: 60
+}
+
+get {
+  url: {{baseUrl}}/api/admin/learning-paths
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 403
+}

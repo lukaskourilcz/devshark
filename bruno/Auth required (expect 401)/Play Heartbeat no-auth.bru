@@ -1,0 +1,19 @@
+meta {
+  name: Play Heartbeat no-auth
+  type: http
+  seq: 67
+}
+
+post {
+  url: {{baseUrl}}/api/play/heartbeat
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

@@ -1,0 +1,19 @@
+meta {
+  name: User Cosmetic no-auth
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{baseUrl}}/api/user/cosmetic
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

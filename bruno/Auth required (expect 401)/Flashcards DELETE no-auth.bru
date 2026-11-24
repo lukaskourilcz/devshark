@@ -1,0 +1,15 @@
+meta {
+  name: Flashcards DELETE no-auth
+  type: http
+  seq: 69
+}
+
+delete {
+  url: {{baseUrl}}/api/flashcards
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 401
+}

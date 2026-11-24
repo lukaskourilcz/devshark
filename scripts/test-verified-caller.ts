@@ -40,7 +40,7 @@
 import assert from 'node:assert/strict';
 import { gradingReadinessContracts } from './grading-readiness-contracts';
 import { createHash, generateKeyPairSync } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
@@ -594,6 +594,58 @@ async function main() {
     const reads = (path: string) => seen.filter((one) => one.path === path);
     const errorCode = (res: Response) => (res.body as { error?: { code?: string } } | undefined)?.error?.code;
 
+    // Exercise the committed Bruno requests through the local, configured handler fixtures.
+    const collection = 'bruno/Auth required (expect 401)';
+    const covered = new Set<string>();
+    for (const file of readdirSync(collection).filter(name => name.endsWith('.bru'))) {
+      const request = readFileSync(join(collection, file), 'utf8');
+      const method = /^(get|post|put|delete) \{/m.exec(request)?.[1].toUpperCase();
+      const target = /url: \{\{baseUrl\}\}(\S+)/.exec(request)?.[1];
+      const expected = /res\.status: eq (\d+)/.exec(request)?.[1];
+      assert.ok(method && target && expected && request.includes('auth: none'), file);
+      const url = new URL(target, 'http://localhost');
+      const [, , area, op] = url.pathname.split('/');
+      const routes = { user: userOps, admin: adminOps, play, quiz: roadmap, flashcards };
+      const handler = routes[area as keyof typeof routes];
+      assert.ok(handler, target);
+      const query = Object.fromEntries(url.searchParams);
+      if (area === 'user' || area === 'admin') query.op = op;
+      if (area === 'play') query.action = op;
+      let payload = /body:json \{\s*\n([^]*?)\n\}/.exec(request)?.[1];
+      if (payload?.includes('{{codingSession}}')) {
+        const guest = await call(roadmap as Handler, { query: { resource: 'coding-task', id: 'js-double-numbers' } });
+        const session = (guest.body as { session: string }).session;
+        assert.ok(session, 'a fresh guest coding session is required');
+        payload = payload.replace('{{codingSession}}', session);
+      }
+      const response = await call(handler as Handler, { method, query, body: payload ? JSON.parse(payload) : undefined });
+      assert.equal(response.statusCode, Number(expected), `${file}: ${JSON.stringify(response.body)}`);
+      covered.add(url.pathname);
+    }
+    const exceptions = new Set(['cards', 'shop', 'billing-cancel', 'billing-webhook', 'payment-webhook']);
+    for (const file of ['api/user/[op].ts', 'lib/github-handlers.ts', 'lib/friends-handlers.ts']) {
+      const dispatch = readFileSync(file, 'utf8');
+      for (const [, op] of dispatch.matchAll(/\bop === '([\w-]+)'/g)) {
+        if (!exceptions.has(op)) assert.ok(covered.has(`/api/user/${op}`), `Add a Bruno guest request for ${op}`);
+      }
+    }
+    for (const [area, path] of [['admin', 'api/admin/[op].ts'], ['play', 'api/play/[action].ts']]) {
+      const dispatch = readFileSync(path, 'utf8').split(area === 'admin' ? 'switch (op)' : 'switch (action)')[1]?.split('default:')[0];
+      assert.ok(dispatch, path);
+      for (const [, op] of dispatch.matchAll(/case '([\w-]+)'/g)) {
+        if (area !== 'play' || op !== 'state') assert.ok(covered.has(`/api/${area}/${op}`), `Add a Bruno guest request for ${area}/${op}`);
+      }
+    }
+    const healthContract = readFileSync('bruno/Public/Health.bru', 'utf8');
+    const healthy = await call(health as Handler, {});
+    assert.equal(healthy.statusCode, 200);
+    for (const [, field, operator, expected] of healthContract.matchAll(/res\.body\.dependencies\.(\w+): (eq|neq) ([\w-]+)/g)) {
+      const value = (healthy.body as { dependencies: Record<string, string> }).dependencies[field];
+      assert.equal(typeof value, 'string', field);
+      if (operator === 'eq') assert.equal(value, expected, field);
+      else assert.notEqual(value, expected, field);
+    }
+
     // These GETs can write account rows, so a warm token must still be
     // refused before the write when Supabase has ended the session.
     const writer = JWT_GET_WRITER;
@@ -985,14 +1037,15 @@ async function main() {
 
     // Every write the console makes leaves an audit line naming the admin.
     const realLog = console.log;
+    const savedChannels = { warn: console.warn, error: console.error };
     const audit: string[] = [];
-    console.log = (line: unknown) => { audit.push(String(line)); };
+    console.warn = console.error = console.log = (line: unknown) => { audit.push(String(line)); };
     try {
       assert.equal((await admin('delete', { method: 'POST', body: { id: 'rm-js-1' } })).statusCode, 200);
       assert.equal((await admin('reset', { method: 'POST', body: { id: 'rm-js-1' } })).statusCode, 200);
       assert.equal((await admin('bulkhide', { method: 'POST', body: { maxImportance: 1 } })).statusCode, 200);
     } finally {
-      console.log = realLog;
+      console.log = realLog; Object.assign(console, savedChannels);
     }
     for (const op of ['delete', 'reset', 'bulkhide']) {
       const line = audit.map((one) => JSON.parse(one) as Row).find((one) => one.route === 'admin' && one.op === op);
@@ -1464,14 +1517,15 @@ async function main() {
       seen.length = 0;
       const lines: Row[] = [];
       const original = console.log;
-      console.log = (line: unknown) => {
+      const savedChannels = { warn: console.warn, error: console.error };
+      console.warn = console.error = console.log = (line: unknown) => {
         try { lines.push(JSON.parse(String(line)) as Row); } catch { original(line); }
       };
       let down: Awaited<ReturnType<typeof routes>>;
       try {
         down = await routes();
       } finally {
-        console.log = original;
+        console.log = original; Object.assign(console, savedChannels);
       }
       const limiterLines = lines.filter((line) => line.route === 'rate-limit');
       const fallbacks = limiterLines.filter((line) => line.reason === 'distributed_fallback');
@@ -1596,7 +1650,8 @@ async function main() {
     const escapedLogs = async (thrown: Error) => {
       const lines: Row[] = [];
       const original = console.log;
-      console.log = (line: unknown) => {
+      const savedChannels = { warn: console.warn, error: console.error };
+      console.warn = console.error = console.log = (line: unknown) => {
         try { lines.push(JSON.parse(String(line)) as Row); } catch { original(line); }
       };
       const res = mockResponse();
@@ -1607,7 +1662,7 @@ async function main() {
           () => { throw thrown; },
         );
       } finally {
-        console.log = original;
+        console.log = original; Object.assign(console, savedChannels);
       }
       return { res, failure: lines.find((line) => line.route === 'request' && 'level' in line) };
     };

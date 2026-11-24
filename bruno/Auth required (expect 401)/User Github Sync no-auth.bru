@@ -1,0 +1,19 @@
+meta {
+  name: User Github Sync no-auth
+  type: http
+  seq: 32
+}
+
+post {
+  url: {{baseUrl}}/api/user/github-sync
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

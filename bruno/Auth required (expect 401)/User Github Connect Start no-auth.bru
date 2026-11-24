@@ -1,0 +1,19 @@
+meta {
+  name: User Github Connect Start no-auth
+  type: http
+  seq: 28
+}
+
+post {
+  url: {{baseUrl}}/api/user/github-connect-start
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

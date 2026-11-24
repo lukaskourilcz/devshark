@@ -1935,7 +1935,8 @@ async function voucherContracts() {
   // prove that no code, hash or hint is ever written to them.
   const logged: string[] = [];
   const realLog = console.log;
-  console.log = (...args: unknown[]) => { logged.push(args.map(String).join(' ')); };
+  const savedChannels = { warn: console.warn, error: console.error };
+  console.warn = console.error = console.log = (...args: unknown[]) => { logged.push(args.map(String).join(' ')); };
   try {
     const calls: { fn: string; args: Record<string, unknown> }[] = [];
     const answers = new Map<string, unknown>([
@@ -2115,7 +2116,7 @@ async function voucherContracts() {
       assert.doesNotMatch(line, /"(hint|code|codeHash)"/, `a log line names a code field: ${line}`);
     }
   } finally {
-    console.log = realLog;
+    console.log = realLog; Object.assign(console, savedChannels);
   }
 }
 
@@ -4028,13 +4029,14 @@ async function capturedCall(handler: (req: never, res: never) => unknown, req: u
   const res = mockResponse();
   const lines: Record<string, unknown>[] = [];
   const realLog = console.log;
-  console.log = (line?: unknown) => {
+  const savedChannels = { warn: console.warn, error: console.error };
+  console.warn = console.error = console.log = (line?: unknown) => {
     try { lines.push(JSON.parse(String(line))); } catch { /* not a structured line */ }
   };
   try {
     await handler(req as never, res as never);
   } finally {
-    console.log = realLog;
+    console.log = realLog; Object.assign(console, savedChannels);
   }
   return { res, lines, error: (res.body as { error?: Record<string, unknown> } | undefined)?.error };
 }

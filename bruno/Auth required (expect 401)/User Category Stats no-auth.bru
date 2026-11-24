@@ -1,0 +1,19 @@
+meta {
+  name: User Category Stats no-auth
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/api/user/category-stats
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

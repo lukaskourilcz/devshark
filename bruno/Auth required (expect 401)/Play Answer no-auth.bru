@@ -1,0 +1,19 @@
+meta {
+  name: Play Answer no-auth
+  type: http
+  seq: 65
+}
+
+post {
+  url: {{baseUrl}}/api/play/answer
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

@@ -1,0 +1,15 @@
+meta {
+  name: Admin Emails no-auth
+  type: http
+  seq: 50
+}
+
+get {
+  url: {{baseUrl}}/api/admin/emails
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 403
+}

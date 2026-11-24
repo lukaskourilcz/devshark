@@ -1,0 +1,19 @@
+meta {
+  name: User Github Disconnect no-auth
+  type: http
+  seq: 30
+}
+
+post {
+  url: {{baseUrl}}/api/user/github-disconnect
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 401
+}

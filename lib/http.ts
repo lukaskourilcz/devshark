@@ -375,7 +375,8 @@ export function lazyExport<M, K extends AsyncExport<M>>(load: () => Promise<M>, 
 
 /** Emit one structured single-line JSON log entry (Vercel ingests this natively). */
 export function logEvent(route: string, event: Record<string, unknown>) {
-  console.log(JSON.stringify({
+  const write = event.level === 'error' ? console.error : event.level === 'warn' ? console.warn : console.log;
+  write(JSON.stringify({
     ts: new Date().toISOString(),
     route,
     ...(requestContext.getStore()?.requestId ? { request_id: requestContext.getStore()!.requestId } : {}),
