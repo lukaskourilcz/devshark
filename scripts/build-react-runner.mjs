@@ -10,6 +10,14 @@ import { pinnedQuickJSBundle } from './quickjs-bundle.mjs';
 export const sandboxBundle = await buildSandboxWorker();
 await buildReactCompileWorker();
 
+const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+const snapshotPackages = ['react', 'react-dom', 'jsdom', '@testing-library/react', '@testing-library/dom', 'sucrase'];
+const expectedVersions = Object.fromEntries(snapshotPackages.map(name => {
+  const version = lock.packages[`node_modules/${name}`]?.version;
+  if (typeof version !== 'string') throw new Error(`Missing locked React grader dependency ${name}`);
+  return [name, version];
+}));
+
 // The grader's own code runs in strict mode, as its ES module sources were
 // written: a stack trace the component reads then hands out no grader
 // function or receiver.
@@ -18,6 +26,7 @@ export const guestBundle = await build({
   outfile: 'lib/coding/generated/react-sandbox.cjs',
   bundle: true, platform: 'node', format: 'cjs', packages: 'external', target: 'node24',
   banner: { js: '"use strict";' },
+  define: { __SNAPSHOT_VERSIONS__: JSON.stringify(expectedVersions) },
   // Keep the reviewed loader/FFI/custom payload; drop unused defaults only.
   metafile: true,
   plugins: [pinnedQuickJSBundle()],

@@ -40,6 +40,23 @@ export const guestResultLine = (nonce: string, json: string): string => `\n${non
  * print it. */
 export const guestStartedLine = (nonce: string): string => `\n${nonce}:started\n`;
 
+// Package versions are the only guest metadata copied to operational logs.
+export function snapshotVersionDrift(stdout: string, nonce: string): Record<string, string> | null {
+  const marker = `\n${nonce}:versions `;
+  const start = stdout.indexOf(marker);
+  if (start < 0) return null;
+  const line = stdout.slice(start + marker.length, start + marker.length + 1024).split('\n', 1)[0];
+  let record: unknown;
+  try { record = JSON.parse(line); } catch { return null; }
+  if (!record || typeof record !== 'object' || Array.isArray(record)) return null;
+  const drift: Record<string, string> = {};
+  for (const name of ['react', 'react-dom', 'jsdom', '@testing-library/react', '@testing-library/dom', 'sucrase']) {
+    const value = Object.getOwnPropertyDescriptor(record, name)?.value;
+    if (typeof value === 'string' && /^[0-9][a-z0-9.+-]{0,39}\/(?:missing|[0-9][a-z0-9.+-]{0,39})$/i.test(value)) drift[name] = value;
+  }
+  return Object.keys(drift).length ? drift : null;
+}
+
 /** What the learner reads when their code ended the guest before it could
  * report: the heap limit is the usual way (an endless chain of promises or
  * updates). */

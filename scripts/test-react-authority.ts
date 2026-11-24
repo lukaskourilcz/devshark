@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import { runReactSuite } from '../lib/coding/react-runner';
-import { guestResultLine, readGuestResult, serializeGuestResult } from '../lib/coding/react-guest';
+import { guestResultLine, readGuestResult, serializeGuestResult, snapshotVersionDrift } from '../lib/coding/react-guest';
 import { LOG_LINE_CUT, MAX_LOG_LINE_CHARS } from '../shared/coding-evaluate';
 import { reactSpreadContracts } from './react-spread-contract';
 import { runInNewContext } from 'node:vm';
 import { lockDownRealm } from '../lib/coding/realm-lockdown';
 import { reactRecordContracts } from './react-record-contract';
 
+assert.deepEqual(snapshotVersionDrift('\nfixture:versions {"react":"19.2.4/19.2.3","other":"1/2"}\n', 'fixture'), { react: '19.2.4/19.2.3' });
+assert.equal(snapshotVersionDrift('\nfixture:started\n', 'fixture'), null);
 await reactSpreadContracts();
 await reactRecordContracts();
 
