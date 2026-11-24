@@ -428,7 +428,7 @@ for (const theme of ['light', 'dark'] as const) {
     const rows = page.locator('.cd-catalogue .cd-row');
     await expect(rows).toHaveCount(20);
     await expect(page.locator('.cd-catalogue > ul')).toHaveCount(2);
-    await expect(page.locator('.cd-pagination [role=status]')).toContainText('Page 2 of');
+    await expect(page.locator('.cd-pagination').getByRole('status').filter({ hasText: /Page \d+ of/ })).toContainText('Page 2 of');
     const titles = await rows.locator('.cd-row__title').allTextContents();
     const links = await page.locator('.cd-catalogue a.cd-row').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')!));
     const link = links.find(path => {

@@ -596,7 +596,7 @@ for (const width of [360, 1440]) {
       refreshed = true;
       await reload.focus();
       await page.keyboard.press('Enter');
-      await expect(page.getByRole('heading', { name: 'Updated double task' })).toBeVisible();
+      await expect(page.getByRole('tabpanel', { name: 'Description' }).getByRole('heading', { name: 'Updated double task', level: 2 })).toBeVisible();
       await expect(reload).toHaveCount(0);
       await expect(page.locator('.cm-content')).toContainText(source);
       await expect(page.getByRole('button', { name: 'Submit', exact: true })).toBeEnabled();

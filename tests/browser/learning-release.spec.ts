@@ -312,12 +312,14 @@ for (const count of [1, 6, 50]) {
     await page.keyboard.press('Enter');
     const first = overview.getByRole('button', { name: 'Question 1, answered', exact: true });
     await expect(first).toHaveAttribute('aria-current', 'step');
-    const geometry = await overview.locator('.quiz-question-nav button').evaluateAll(buttons => buttons.map(button => {
-      const box = button.getBoundingClientRect();
-      return { width: box.width, height: box.height, left: box.left, right: box.right };
-    }));
-    expect(geometry).toHaveLength(count);
-    expect(geometry.every(box => box.width >= 44 && box.height >= 44 && box.left >= 0 && box.right <= 361)).toBe(true);
+    const positions = overview.locator('.quiz-question-nav button');
+    await expect(positions).toHaveCount(count);
+    // The dialog scales during its entrance. Measure the targets when it settles.
+    await expect.poll(() => positions.evaluateAll(buttons => buttons.flatMap(button => {
+      const { width, height, left, right } = button.getBoundingClientRect();
+      return width >= 44 && height >= 44 && left >= 0 && right <= innerWidth
+        ? [] : [{ label: button.getAttribute('aria-label'), width, height, left, right }];
+    }))).toEqual([]);
     if (count > 1) await expect(overview.getByRole('button', { name: `Question ${count}, unanswered` })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(overview).toHaveCount(0);
