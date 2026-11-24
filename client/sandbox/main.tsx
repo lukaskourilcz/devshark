@@ -11,6 +11,7 @@ import * as ReactDOMClient from 'react-dom/client';
 import * as JsxRuntime from 'react/jsx-runtime';
 import * as RTL from '@testing-library/react';
 import { transform } from 'sucrase';
+import { createPreviewLoopCheck, guardPreviewLoops } from './loop-budget';
 import { createMiniJest } from '../../shared/coding-mini-jest';
 import { asRunnableModule, failUncancelledSubmits, FETCH_STUB_SOURCE } from '../../shared/coding-react-support';
 import { LOCAL_FETCH_SOURCE } from '../../shared/coding-fullstack-support';
@@ -68,6 +69,7 @@ for (const name of ['localStorage', 'sessionStorage']) {
   Object.defineProperty(window, name, { value: memoryStorage(), configurable: false });
 }
 
+const reportedLoopErrors = new WeakSet<Error>();
 let currentToken = '';
 let previewRoot: ReactDOMClient.Root | null = null;
 
@@ -98,7 +100,9 @@ const BUILTINS: Record<string, unknown> = {
   '@testing-library/jest-dom': {},
 };
 
-function makeRequire(files: Record<string, string>, extra: Record<string, unknown>) {
+type Program = ReturnType<typeof guardPreviewLoops>;
+
+function makeRequire(files: Record<string, string>, extra: Record<string, unknown>, programs: Map<string, Program>, checkLoop: () => void) {
   const cache = new Map<string, unknown>();
   const require = (request: string): unknown => {
     if (request in BUILTINS) return BUILTINS[request];
@@ -109,10 +113,22 @@ function makeRequire(files: Record<string, string>, extra: Record<string, unknow
     if (cache.has(key)) return cache.get(key);
     const module = { exports: {} as Record<string, unknown> };
     cache.set(key, module.exports);
-    const source = key === '/App' ? asRunnableModule(file) : file;
+    let program = programs.get(key);
+    if (!program) {
+      const js = compile(file);
+      // The task suite and the full-stack fetch fixture belong to the
+      // project. Only learner-authored modules need a loop check.
+      program = key === '/App.test' || key === '/localFetch' ? { code: js, parameter: '' } : guardPreviewLoops(js);
+      programs.set(key, program);
+    }
     const names = ['require', 'module', 'exports', ...Object.keys(extra)];
+    const values: unknown[] = [require, module, module.exports, ...Object.values(extra)];
+    if (program.parameter) {
+      names.push(program.parameter);
+      values.push(checkLoop);
+    }
     // eslint-disable-next-line no-new-func -- the learner's code runs inside this sandboxed, network-less frame
-    new Function(...names, compile(source))(require, module, module.exports, ...Object.values(extra));
+    new Function(...names, program.code)(...values);
     cache.set(key, module.exports);
     return module.exports;
   };
@@ -153,9 +169,14 @@ async function runInner(message: RunMessage) {
     return;
   }
 
-  // Compile the App once up front so a syntax error is reported as such.
+  const programs = new Map<string, Program>();
+  const checkLoop = createPreviewLoopCheck(error => {
+    reportedLoopErrors.add(error);
+    if (currentToken === message.token) post({ type: 'preview-error', token: message.token, message: error.name + ': ' + error.message });
+  });
+  // Keep the compiled App for both local Run and Preview.
   try {
-    compile(asRunnableModule(files['/App.js']));
+    programs.set('/App', guardPreviewLoops(compile(asRunnableModule(files['/App.js']))));
   } catch (error) {
     post({ type: 'compile-error', token: message.token, message: String((error as Error)?.message ?? error).split('\n')[0] });
     post({ type: 'done', token: message.token, passed: 0, failed: 0, total: 0, ran: false });
@@ -170,7 +191,7 @@ async function runInner(message: RunMessage) {
     actEnvironment(true);
     const jest = createMiniJest();
     try {
-      makeRequire(files, jest.globals)('./App.test.js');
+      makeRequire(files, jest.globals, programs, checkLoop)('./App.test.js');
     } catch (error) {
       post({ type: 'test', token: message.token, name: 'suite', status: 'fail', error: `compiling suite: ${String((error as Error)?.message ?? error).split('\n')[0]}`, durationMs: 0 });
       failed = 1;
@@ -200,14 +221,16 @@ async function runInner(message: RunMessage) {
 
   if (message.preview) {
     try {
-      const app = makeRequire(files, {})('./App') as { default?: React.ComponentType };
+      const app = makeRequire(files, {}, programs, checkLoop)('./App') as { default?: React.ComponentType };
       const App = app.default;
       if (typeof App !== 'function') throw new Error('App.js has no default export');
       const container = document.getElementById('root')!;
       previewRoot = ReactDOMClient.createRoot(container);
       previewRoot.render(React.createElement(App));
     } catch (error) {
-      post({ type: 'preview-error', token: message.token, message: String((error as Error)?.message ?? error).split('\n')[0] });
+      if (!(error instanceof Error && reportedLoopErrors.has(error))) {
+        post({ type: 'preview-error', token: message.token, message: String((error as Error)?.message ?? error).split('\n')[0] });
+      }
     }
   }
   post({ type: 'done', token: message.token, passed, failed, total, ran: message.tests });
@@ -221,6 +244,9 @@ window.addEventListener('message', (event: MessageEvent<RunMessage>) => {
 });
 
 window.addEventListener('error', (event) => {
+  // A previously replaced preview may still have a pending callback. The
+  // guard reported under its original token; never relabel it as the new run.
+  if (event.error instanceof Error && reportedLoopErrors.has(event.error)) return;
   if (currentToken) post({ type: 'preview-error', token: currentToken, message: String(event.message).slice(0, 500) });
 });
 

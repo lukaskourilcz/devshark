@@ -338,6 +338,32 @@ async function main(): Promise<void> {
     check(throwLog.some((one) => one.type === 'preview-error' && one.token === throwToken), 'a component that throws produced no `preview-error`');
     check((throwLog.find((one) => one.type === 'done' && one.token === throwToken) as { ran: boolean } | undefined)?.ran === false, 'a preview-only run reported itself as having run tests');
 
+    // The frame instruments learner modules after compiling JSX. Normal
+    // nested loops, labels, continue and an empty loop keep their results.
+    await reset();
+    const finiteToken = 'tok-finite-loops';
+    await send({
+      type: 'run', token: finiteToken, preview: false, tests: true,
+      files: {
+        '/App.js': `function App() {
+          let sum = 0;
+          rows: for (const row of [[1, 2], [3, 4]]) for (const n of row) {
+            if (n % 2 === 0) continue rows;
+            sum += n;
+          }
+          for (let i = 0; i < 2; i++);
+          return <output data-testid="total">{sum}</output>;
+        }`,
+        '/App.test.js': `import React from 'react';
+          import {render, screen} from '@testing-library/react';
+          import App from './App';
+          test('sum stays four', () => { render(<App />); expect(screen.getByTestId('total').textContent).toBe('4'); });
+        `,
+      },
+    });
+    const finiteLog = await settled(finiteToken);
+    check(finiteLog.some(entry => entry.type === 'done' && entry.passed === 1 && entry.failed === 0), 'finite learner loops changed their result');
+
     // 7. `fetch` is the stub: the fixture answers, and no request leaves the frame.
     await reset();
     const fetchToken = 'tok-fetch';

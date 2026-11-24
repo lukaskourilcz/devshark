@@ -1,4 +1,4 @@
-import { test, expect, type Page } from './console-clean';
+import { test, expect, allowConsoleErrors, type Page } from './console-clean';
 import { CODING_TASKS, playable } from '../../lib/coding/catalog';
 import { solutionFor } from '../../lib/coding/solutions';
 import { suiteCaseCount } from '../../lib/coding/react-hidden';
@@ -656,4 +656,50 @@ test('the first failed public case opens with separate Input, Expected and Recei
   await details.nth(1).locator('summary').focus();
   await page.keyboard.press('Enter');
   await expect(details.nth(1).locator('dd').last()).toHaveText('{"value":2}');
+});
+
+test('a timed-out local React loop reports to the workbench and a fresh Run recovers', async ({ page }, info) => {
+  await prepare(page);
+  // Six finite iterations advance a controllable elapsed-time source in the
+  // frame. Exercise the real guard without hanging a tab or relying on CPU
+  // speed. The parent's response time uses the untouched browser clock.
+  await page.addInitScript(() => {
+    if (location.pathname !== '/sandbox/index.html') return;
+    const realNow = performance.now.bind(performance);
+    let offset = 0;
+    window.addEventListener('fixture-render-slice', () => { offset += 450; });
+    Object.defineProperty(performance, 'now', { value: () => realNow() + offset });
+  });
+  allowConsoleErrors(page, /A loop ran for two seconds without yielding/);
+  const id = 'react-easy2-focus-the-search';
+  await openTask(page, '/coding/react/' + id);
+  await fillEditor(page, `export default function App() {
+    for (let n=0; n<6; n++) window.dispatchEvent(new Event('fixture-render-slice'));
+    return <p>Six slices completed</p>;
+  }`);
+  const run = page.getByRole('button', { name: 'Run', exact: true });
+  await expect(run).not.toHaveAttribute('aria-disabled', 'true');
+  await page.evaluate(() => {
+    const started = performance.now();
+    const onMessage = (event: MessageEvent) => {
+      if (event.source !== document.querySelector<HTMLIFrameElement>('iframe.cd-frame')?.contentWindow || event.data?.type !== 'preview-error') return;
+      if (!String(event.data.message).startsWith('PreviewLoopTimeoutError:')) return;
+      document.documentElement.dataset.loopReportMs = String(performance.now() - started);
+      window.removeEventListener('message', onMessage);
+    };
+    window.addEventListener('message', onMessage);
+  });
+  await run.press('Enter');
+  await expect.poll(() => page.locator('html').getAttribute('data-loop-report-ms'), { timeout: 3_000 }).not.toBeNull();
+  const responseMs = Number(await page.locator('html').getAttribute('data-loop-report-ms'));
+  expect(responseMs).toBeLessThan(3_000);
+  const preview = page.getByRole('tab', { name: 'Preview' });
+  await preview.click();
+  await expect(page.getByText(/The preview could not render:.*loop ran for two seconds/i)).toBeVisible();
+  await info.attach('preview-loop-timing.json', { contentType: 'application/json', body: JSON.stringify({
+    browser: info.project.name, fixtureSlices: 6, simulatedMillisecondsPerSlice: 450, parentResponseMs: responseMs,
+  }) });
+  await fillEditor(page, solutionFor(id)!.solution);
+  await run.press('Enter');
+  await expect(announced(page)).toHaveText('4 of 4 passing', { timeout: 30_000 });
 });
