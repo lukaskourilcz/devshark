@@ -511,6 +511,9 @@ function App() {
   // Learn or FDE coding phase, coding-03) carries the class ss-wide-page, and
   // the route box widens through CSS (.ss-route:has(.ss-wide-page)).
   const pageWidth = pageMaxWidth(location.pathname);
+  // The open daily question owns navigation as soon as its controls arrive.
+  // Keep the same space while its route chunk and anonymous read are pending.
+  const dailyLoadingActivity = /^\/daily\/?$/.test(location.pathname) ? 'active' : undefined;
 
   // 1–5 shark fins on the footer ocean line, at random (non-overlapping) spots
   // each page load, each independently facing left or right so the school
@@ -817,8 +820,8 @@ function App() {
               fold: a move longer than the viewport, which scored 0.05 of CLS on
               a desktop and 0.15 on a phone, and 0.98 when the header settled in
               the same frame. */}
-          <Suspense fallback={<div style={ROUTE_BOX_STYLE}><RouteLoader /></div>}>
-            {!booted ? <div style={ROUTE_BOX_STYLE}><RouteLoader /></div> : <>
+          <Suspense fallback={<div style={ROUTE_BOX_STYLE} data-activity={dailyLoadingActivity}><RouteLoader /></div>}>
+            {!booted ? <div style={ROUTE_BOX_STYLE} data-activity={dailyLoadingActivity}><RouteLoader /></div> : <>
             <div
               key={boxKey}
               className="ss-route"

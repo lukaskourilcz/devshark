@@ -74,7 +74,7 @@ export default function DailyQuestionPage() {
       {availability !== 'open' ? (
         <Unavailable problem={availability === 'not-yet' ? 'not-yet' : 'before-start'} date={valid ? date : null} />
       ) : query.isPending ? (
-        <section className="ss-info-card ss-daily__card" aria-label={t('daily.loading')}>
+        <section className="ss-info-card ss-daily__card" data-activity="active" aria-label={t('daily.loading')}>
           <span role="status" className="ss-daily__sr">{t('daily.loading')}</span>
           <Skeleton width={120} height={22} radius={2} />
           <Skeleton width="100%" height={18} radius={2} />
