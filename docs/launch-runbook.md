@@ -68,6 +68,10 @@ Do not restore removed browser write policies during a rollback: they are the co
 
 Migration 086 checks or creates `purge_expired_learning_data_daily` for 03:07 in the pg_cron scheduler time zone (UTC on the observed project). Confirm its active status, role, database and most recent successful run. If the migration reported that pg_cron was unavailable, enable the extension and reapply 086 before relying on automated retention.
 
+### Private Play broadcasts (089)
+
+Apply 089 while the previous client is still supported. The room's host and each player must join through the Play API first. In staging, verify two signed-in members exchange updates, another account cannot subscribe, and a disconnected client follows the room by polling. Release the private-channel client, allow older tabs time to refresh, and then have the project owner disable **Allow public access** in Realtime settings. A client missing its private subscription continues polling. Reverting the client alone after disabling public access also uses polling. The Play join notification carries no account ID.
+
 ## Preflight
 
 Run the `verify` job locally before merging: `npm run ci:parity` (`--list` prints the plan, `--only` runs named steps, `--fast` skips the browser specs, the harness test and Storybook, and `--sql` adds the `sql` job against an empty Postgres in `DATABASE_URL`). CI's workflow `.github/workflows/quality.yml` runs the jobs `sql`, `quickjs`, `static`, `tests`, `coding` and `browser`; the aggregator `verify` passes only when the five non-SQL jobs pass, and branch protection requires `verify` and `sql`, for admins too.

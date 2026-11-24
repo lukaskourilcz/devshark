@@ -641,7 +641,7 @@ function PlayRoom() {
       setConnectionState(realtimeReady ? 'live' : 'polling');
       if (realtimeReady) {
         refreshFailures.current = 0;
-        void channel.send('participant_joined', { sub: userId });
+        void channel.send('participant_joined', {});
       }
     });
 

@@ -612,7 +612,7 @@ describe('a returning visitor with a stored session', () => {
     client.channel = vi.fn(() => channel);
     const { joinMatchChannel } = await import('../src/lib/realtime');
     joinMatchChannel('ABC123');
-    expect(client.channel).toHaveBeenCalledWith('match:ABC123', { config: { broadcast: { self: true } } });
+    expect(client.channel).toHaveBeenCalledWith('match:ABC123', { config: { private: true, broadcast: { self: true } } });
     expect(channel.subscribe).toHaveBeenCalledTimes(1);
   });
 });
