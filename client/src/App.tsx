@@ -146,6 +146,7 @@ const FdeModule = lazyPage(() => loadPaths().then((m) => ({ default: m.FdeModule
 function OldFdePathRedirect() {
   const { '*': rest = '' } = useParams();
   const { search, hash } = useLocation();
+  if (!FDE_SECTION_VISIBLE) return <Navigate to={'/learn/web-developer' + search + hash} replace />;
   const moduleId = rest.split('/')[0];
   return <Navigate to={`${FDE_PATH}${moduleId ? `/${encodeURIComponent(moduleId)}` : ''}${search}${hash}`} replace />;
 }

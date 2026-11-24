@@ -4921,6 +4921,7 @@ const TODOS_URL = 'https://jsonplaceholder.typicode.com/todos';
 
 const App = () => {
   const [todos, setTodos] = useState([]);
+  const nextCreatedKey = React.useRef(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [title, setTitle] = useState('');
@@ -4930,7 +4931,8 @@ const App = () => {
       try {
         const response = await fetch(TODOS_URL + '?_limit=5');
         if (!response.ok) throw new Error('Could not load the todos (' + response.status + ')');
-        setTodos(await response.json());
+        const data = await response.json();
+        setTodos(data.map(todo => ({ ...todo, rowKey: 'loaded-' + todo.id })));
       } catch (requestError) {
         setError(requestError.message || 'Could not load the todos');
       } finally {
@@ -4953,7 +4955,8 @@ const App = () => {
       if (!response.ok) throw new Error('Could not add the todo (' + response.status + ')');
       // The server's copy is the one to keep: it carries the id it gave.
       const created = await response.json();
-      setTodos(current => [...current, created]);
+      const row = { ...created, rowKey: 'created-' + nextCreatedKey.current++ };
+      setTodos(current => [...current, row]);
       setTitle('');
       setError('');
     } catch (requestError) {
@@ -4961,8 +4964,8 @@ const App = () => {
     }
   };
 
-  const toggleTodo = id => setTodos(current => current.map(todo => (todo.id === id ? { ...todo, completed: !todo.completed } : todo)));
-  const deleteTodo = id => setTodos(current => current.filter(todo => todo.id !== id));
+  const toggleTodo = id => setTodos(current => current.map(todo => (todo.rowKey === id ? { ...todo, completed: !todo.completed } : todo)));
+  const deleteTodo = id => setTodos(current => current.filter(todo => todo.rowKey !== id));
   const done = todos.filter(todo => todo.completed).length;
 
   if (loading) return <main><h2>Todo client</h2><p>Loading todos…</p></main>;
@@ -4978,11 +4981,11 @@ const App = () => {
       </form>
       <ul>
         {todos.map(todo => (
-          <li key={todo.id}>
+          <li key={todo.rowKey}>
             <label>
-              <input type="checkbox" checked={todo.completed} onChange={() => toggleTodo(todo.id)} /> {todo.title}
+              <input type="checkbox" checked={todo.completed} onChange={() => toggleTodo(todo.rowKey)} /> {todo.title}
             </label>
-            <button type="button" onClick={() => deleteTodo(todo.id)}>Delete</button>
+            <button type="button" onClick={() => deleteTodo(todo.rowKey)}>Delete</button>
           </li>
         ))}
       </ul>
@@ -4995,6 +4998,7 @@ export default App;`,
 
 const App = () => {
   const [todos, setTodos] = useState([]);
+  const nextCreatedKey = React.useRef(1);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [newTitle, setNewTitle] = useState('');
@@ -5007,7 +5011,7 @@ const App = () => {
           throw new Error('The server answered with status ' + response.status);
         }
         const data = await response.json();
-        setTodos(data);
+        setTodos(data.map(todo => ({ ...todo, rowKey: 'loaded-' + todo.id })));
       } catch (error) {
         setErrorMessage('Could not load the todos. ' + error.message);
       } finally {
@@ -5038,7 +5042,8 @@ const App = () => {
         throw new Error('The server answered with status ' + response.status);
       }
       const createdTodo = await response.json();
-      setTodos(currentTodos => [...currentTodos, createdTodo]);
+      const row = { ...createdTodo, rowKey: 'created-' + nextCreatedKey.current++ };
+      setTodos(currentTodos => [...currentTodos, row]);
       setNewTitle('');
       setErrorMessage('');
     } catch (error) {
@@ -5049,7 +5054,7 @@ const App = () => {
   const handleToggle = (id) => {
     const updatedTodos = [];
     for (const todo of todos) {
-      if (todo.id === id) {
+      if (todo.rowKey === id) {
         updatedTodos.push({ ...todo, completed: !todo.completed });
       } else {
         updatedTodos.push(todo);
@@ -5061,7 +5066,7 @@ const App = () => {
   const handleDelete = (id) => {
     const remainingTodos = [];
     for (const todo of todos) {
-      if (todo.id !== id) {
+      if (todo.rowKey !== id) {
         remainingTodos.push(todo);
       }
     }
@@ -5094,10 +5099,10 @@ const App = () => {
       </form>
       <ul>
         {todos.map(todo => (
-          <li key={todo.id}>
-            <input type="checkbox" checked={todo.completed} onChange={() => handleToggle(todo.id)} />
+          <li key={todo.rowKey}>
+            <input type="checkbox" checked={todo.completed} onChange={() => handleToggle(todo.rowKey)} />
             {todo.title}
-            <button type="button" onClick={() => handleDelete(todo.id)}>Delete</button>
+            <button type="button" onClick={() => handleDelete(todo.rowKey)}>Delete</button>
           </li>
         ))}
       </ul>
@@ -5115,15 +5120,16 @@ const requestJson = async (url, options) => {
 const TodoItem = ({ todo, onToggle, onDelete }) => (
   <li>
     <label>
-      <input type="checkbox" checked={todo.completed} onChange={() => onToggle(todo.id)} />
+      <input type="checkbox" checked={todo.completed} onChange={() => onToggle(todo.rowKey)} />
       {' '}{todo.title}
     </label>
-    <button type="button" aria-label={'Delete ' + todo.title} onClick={() => onDelete(todo.id)}>Delete</button>
+    <button type="button" aria-label={'Delete ' + todo.title} onClick={() => onDelete(todo.rowKey)}>Delete</button>
   </li>
 );
 
 const App = () => {
   const [todos, setTodos] = useState([]);
+  const nextCreatedKey = React.useRef(1);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
   const [title, setTitle] = useState('');
@@ -5132,7 +5138,7 @@ const App = () => {
   useEffect(() => {
     const controller = new AbortController();
     requestJson(TODOS_URL + '?_limit=5', { signal: controller.signal })
-      .then(data => { setTodos(data); setStatus('ready'); })
+      .then(data => { setTodos(data.map(todo => ({ ...todo, rowKey: 'loaded-' + todo.id }))); setStatus('ready'); })
       .catch(failure => {
         if (failure.name === 'AbortError') return;
         setError('Could not load the todos: ' + failure.message);
@@ -5152,7 +5158,8 @@ const App = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: text, completed: false, userId: 1 }),
       });
-      setTodos(current => [...current, created]);
+      const row = { ...created, rowKey: 'created-' + nextCreatedKey.current++ };
+      setTodos(current => [...current, row]);
       setTitle('');
       setError('');
     } catch (failure) {
@@ -5162,8 +5169,8 @@ const App = () => {
     }
   };
 
-  const toggle = useCallback(id => setTodos(current => current.map(todo => (todo.id === id ? { ...todo, completed: !todo.completed } : todo))), []);
-  const remove = useCallback(id => setTodos(current => current.filter(todo => todo.id !== id)), []);
+  const toggle = useCallback(id => setTodos(current => current.map(todo => (todo.rowKey === id ? { ...todo, completed: !todo.completed } : todo))), []);
+  const remove = useCallback(id => setTodos(current => current.filter(todo => todo.rowKey !== id)), []);
   const done = todos.filter(todo => todo.completed).length;
 
   if (status === 'loading') return <main><p role="status">Loading todos…</p></main>;
@@ -5177,7 +5184,7 @@ const App = () => {
         <input aria-label="New todo" value={title} onChange={event => setTitle(event.target.value)} />
         <button type="submit" disabled={saving}>Add</button>
       </form>
-      <ul>{todos.map(todo => <TodoItem key={todo.id} todo={todo} onToggle={toggle} onDelete={remove} />)}</ul>
+      <ul>{todos.map(todo => <TodoItem key={todo.rowKey} todo={todo} onToggle={toggle} onDelete={remove} />)}</ul>
     </main>
   );
 };`,
@@ -5251,6 +5258,24 @@ test('a load that throws shows an alert and no todos', () => withServer(async ca
   const { container } = render(<App />);
   gets(calls, TODOS_URL)[0].fail(new TypeError('Failed to fetch'));
   await expectFailure(container);
+}));
+
+test('two successful creates with the practice API’s repeated id can be changed independently', () => withServer(async calls => {
+  const container = await loaded(calls, SERVER_TODOS);
+  for (const title of ['Take out glass', 'Replace filter']) {
+    add(container, title);
+    posts(calls).at(-1).respond({ id: 201, userId: 1, title, completed: false });
+    await waitFor(() => expect(container.textContent).toContain(title));
+  }
+  const rows = () => Array.from(container.querySelectorAll('li'));
+  fireEvent.click(boxes(container)[SERVER_TODOS.length]);
+  expect(ticked(container).slice(-2)).toEqual([true, false]);
+  fireEvent.click(buttonNamed(rows()[SERVER_TODOS.length], 'Delete'));
+  expect(rows().length).toBe(SERVER_TODOS.length + 1);
+  expect(container.textContent.includes('Take out glass')).toBe(false);
+  expect(container.textContent).toContain('Replace filter');
+  expect(ticked(container).slice(-1)).toEqual([false]);
+  expect(calls.length).toBe(3);
 }));
 
 test('Delete and the checkboxes act on the todo they belong to', () => withServer(async calls => {
@@ -5952,6 +5977,10 @@ test('separate labelled filters and parent renders retain independent summaries;
 `,
   },
   "react-weather-style-dashboard": {
+    boardPlan: `// The page looks up the selected city and keeps its last good readings visible.
+// Fetch coordinates from the city list and request temperature_2m from Open-Meteo.
+// A production server can cache recent readings by city, bound waiting time and
+// retry temporary failures with backoff. The UI offers a retry when a read fails.`,
     solution: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
@@ -6367,6 +6396,10 @@ test('only a whole city name matches, not the start of one', () => withRequests(
 }));`,
   },
   "react-notification-center": {
+    boardPlan: `// Group notifications by day and derive the unread badge from the same records.
+// Store each notification with its user, read state and timestamp. Index by user
+// and creation time for a paged feed. Stream new records with SSE or a WebSocket.
+// On reconnect, fetch missed IDs and deduplicate before adding them to the list.`,
     solution: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
@@ -6736,6 +6769,10 @@ test('a page with notifications never says there are none', () => withRequests(a
 }));`,
   },
   "react-booking-prototype": {
+    boardPlan: `// Read the slots and submit the selected slot ID. A local disabled button guards
+// one browser. To prevent two customers from taking one slot, the server commits
+// a conditional update or unique booking inside a transaction and returns 409
+// if the slot is already taken. An idempotency key makes a network retry safe.`,
     solution: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
@@ -7139,6 +7176,10 @@ test('parent renders and separate or fresh booking roots keep their own slots an
 `,
   },
   "react-analytics-panel": {
+    boardPlan: `// Store events by ID, type and time. High-volume ingestion validates and enqueues
+// each event, then a worker batches writes into time-partitioned append-only storage.
+// The dashboard reads daily counts by type across its selected date range. These
+// rollups keep the read cost independent of the number of raw events per day.`,
     solution: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
@@ -7459,6 +7500,10 @@ test('separate filter controls and parent renders keep independent current summa
 `,
   },
   "react-interview-mini-project": {
+    boardPlan: `// The browser requests posts and filters them locally. A submitted title, body
+// and user ID go to the API, which authenticates the writer and validates the data.
+// The database inserts the post and returns its ID. The API returns the saved record
+// as JSON and React adds it to the list. Page larger reads and deduplicate retries.`,
     solution: `import React, { useEffect, useState } from 'react';
 
 // SYSTEM DESIGN NOTES
@@ -7479,6 +7524,7 @@ const POSTS_URL = 'https://jsonplaceholder.typicode.com/posts';
 
 const App = () => {
   const [posts, setPosts] = useState([]);
+  const nextCreatedKey = React.useRef(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
@@ -7516,7 +7562,8 @@ const App = () => {
       });
       if (!response.ok) throw new Error('Request failed');
       const created = await response.json();
-      setPosts(current => [...current, created]);
+      const row = { ...created, localKey: 'created-' + nextCreatedKey.current++ };
+      setPosts(current => [...current, row]);
       setTitle('');
     } catch (requestError) {
       setAddError('Could not add the post');
@@ -7547,7 +7594,7 @@ const App = () => {
       <p>Showing {shown.length} of {posts.length} posts</p>
       <p>Authors: {authorsShown}</p>
       <ul>
-        {shown.map(post => <li key={post.id}>{post.title}</li>)}
+        {shown.map(post => <li key={post.localKey ?? 'loaded-' + post.id}>{post.title}</li>)}
       </ul>
       <form onSubmit={addPost}>
         <label>Title <input value={title} onChange={event => setTitle(event.target.value)} /></label>
@@ -7572,6 +7619,7 @@ export default App;`,
 
 const App = () => {
   const [posts, setPosts] = useState([]);
+  const nextCreatedKey = React.useRef(1);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [searchText, setSearchText] = useState('');
@@ -7615,7 +7663,8 @@ const App = () => {
         throw new Error('Request failed');
       }
       const createdPost = await response.json();
-      setPosts((oldPosts) => [...oldPosts, createdPost]);
+      const row = { ...createdPost, localKey: 'created-' + nextCreatedKey.current++ };
+      setPosts((oldPosts) => [...oldPosts, row]);
       setNewTitle('');
     } catch (requestError) {
       setAddError('Could not add the post');
@@ -7671,7 +7720,7 @@ const App = () => {
       <p>Authors: {shownAuthors.length}</p>
       <ul>
         {shownPosts.map((post) => (
-          <li key={post.id}>{post.title}</li>
+          <li key={post.localKey ?? 'loaded-' + post.id}>{post.title}</li>
         ))}
       </ul>
       <form onSubmit={handleSubmit}>
@@ -7703,6 +7752,7 @@ const POSTS_URL = 'https://jsonplaceholder.typicode.com/posts';
 
 const usePosts = () => {
   const [state, setState] = useState({ status: 'loading', posts: [] });
+  const nextCreatedKey = React.useRef(1);
 
   useEffect(() => {
     let active = true;
@@ -7727,7 +7777,8 @@ const usePosts = () => {
     });
     if (!response.ok) throw new Error('HTTP ' + response.status);
     const created = await response.json();
-    setState(current => ({ ...current, posts: [...current.posts, created] }));
+    const row = { ...created, localKey: 'created-' + nextCreatedKey.current++ };
+    setState(current => ({ ...current, posts: [...current.posts, row] }));
   }, []);
 
   return { ...state, create };
@@ -7790,7 +7841,7 @@ const App = () => {
       </div>
       <p aria-live="polite">Showing {shown.length} of {posts.length} posts</p>
       <p>Authors: {authorsShown}</p>
-      <ul>{shown.map(post => <li key={post.id}>{post.title}</li>)}</ul>
+      <ul>{shown.map(post => <li key={post.localKey ?? 'loaded-' + post.id}>{post.title}</li>)}</ul>
       <NewPostForm onCreate={create} />
     </main>
   );
@@ -7878,6 +7929,21 @@ test('a POST that never reaches the server shows the alert and frees the button'
   expect(screen.getByLabelText('Title').value).toBe('Offline idea');
   expect(titles()).toHaveLength(4);
   expect(screen.getByRole('button', { name: 'Add post' }).disabled).toBe(false);
+}));
+
+test('filtering two created posts with the same practice API id never leaves a stale list item', () => withRequests(async calls => {
+  render(<App />);
+  await answer(calls[0], [{ id: 1, userId: 1, title: 'Already here', body: '' }]);
+  for (const title of ['First entry', 'Second entry']) {
+    typeIn('Title', title);
+    fireEvent.click(screen.getByRole('button', { name: 'Add post' }));
+    await answer(calls[calls.length - 1], { id: 101, userId: 1, title, body: '' });
+  }
+  expect(titles()).toEqual(['Already here', 'First entry', 'Second entry']);
+  typeIn('Search', 'Second');
+  expect(titles()).toEqual(['Second entry']);
+  typeIn('Search', '');
+  expect(titles()).toEqual(['Already here', 'First entry', 'Second entry']);
 }));
 
 test('Search reads the titles only, not the bodies', () => withRequests(async calls => {

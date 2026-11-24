@@ -301,11 +301,11 @@ describe('the Learn header (UX audit learn-01)', () => {
     return body?.textContent ?? '';
   };
 
-  it('is "Learn" for a visitor, with the section named only in the switcher', async () => {
+  it('names the selected section for a visitor in the heading and switcher', async () => {
     answer();
     await mountAt('/learn/software-engineer');
     await screen.findByRole('button', { name: 'Sign in to add it to your plan' });
-    expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toEqual(['Learn']);
+    expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toEqual(['Software Engineer']);
     expect(screen.getByRole('radio', { name: /^Software Engineer/ })).toHaveAttribute('aria-checked', 'true');
     expect(bodyText()).not.toContain('Software Engineer');
     expect(screen.queryByText('Clear the levels in each part, then pass its test.')).toBeNull();
@@ -313,12 +313,12 @@ describe('the Learn header (UX audit learn-01)', () => {
     expect(screen.getByText(/this progress stays on this device only/).closest('.rm-section-header')).not.toBeNull();
   });
 
-  it('stays "Learn" once signed in', async () => {
+  it('keeps the selected section heading once signed in', async () => {
     signIn({ devquiz_learning_preference_v1: FRONTEND });
     answer();
     await mountAt('/learn/software-engineer');
     await screen.findByRole('button', { name: 'Add it to your plan' });
-    expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toEqual(['Learn']);
+    expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toEqual(['Software Engineer']);
     expect(bodyText()).not.toContain('Software Engineer');
     expect(screen.queryByText(/this progress stays on this device only/)).toBeNull();
   });

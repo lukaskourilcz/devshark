@@ -123,7 +123,10 @@ categories in rotation from `QOTD_EPOCH`), so the build writes each day's page
 head and share image (`client/src/og/ogImages.ts`) ahead of the day, as it does
 for every coding task. `client/src/lib/routeHead.ts` reads such a prerendered
 head before the first route writes one, so a dated page or a task page keeps
-its own title, description and canonical URL. The Coding home and its track
+its own title, description and canonical URL. The Daily landing lists the UTC
+build day as its sitemap lastmod. Published dates within the build's 120-day
+lookback enter the sitemap with their own date as lastmod. The 45 future
+dates have share heads prepared in advance. The Coding home and its track
 pages (`/coding`, `/coding/<track>`, `/coding/fullstack`) get a head the same
 way and are in the sitemap; the task pages are not. `/coding/review` names
 `/coding` as canonical and stays out. `/coding/system-design` and every

@@ -21,6 +21,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { FDE_SECTION_VISIBLE } from '../shared/learn-section-ids';
 import { NOINDEX_PATHS } from '../client/src/lib/publicMetadata';
 
 interface Route {
@@ -133,7 +134,7 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
 
   // The browser adds robots metadata on navigation, but an email or payment
   // return must also stay out of search when a crawler never executes JS.
-  for (const pathname of NOINDEX_PATHS) {
+  for (const pathname of [...NOINDEX_PATHS, '/play/ABCD', '/admin/new-section']) {
     for (const path of [pathname, `${pathname}/`]) {
       assert.equal(phaseHeaders(path, 'main', phases)['x-robots-tag'], 'noindex', `${path} is excluded before the app renders`);
     }
@@ -169,7 +170,7 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
   const redirects = phases.main.filter((route) => route.status === 308);
   for (const route of phases.main) {
     if (route.src === '^/cs/topics(?:/.*)?$') {
-      assert.equal(route.dest, '/index.html');
+      assert.equal(route.dest, '/app.html');
       assert.equal(route.status, 404);
       assert.equal(route.continue, undefined);
       assert.equal(route.headers?.['X-Robots-Tag'], 'noindex');
@@ -183,7 +184,7 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
     const source = `/learn/${id}`;
     const rewrite = (config.rewrites ?? []).find(one => one.source === source);
     assert.equal(rewrite?.destination, `${source}/index.html`, `${source} serves its public preview`);
-    const fallback = (config.rewrites ?? []).findIndex(one => one.destination === '/index.html');
+    const fallback = (config.rewrites ?? []).findIndex(one => one.destination === '/app.html');
     assert.ok((config.rewrites ?? []).indexOf(rewrite!) < fallback, `${source} precedes the SPA fallback`);
   }
   for (const route of redirects) {
@@ -194,7 +195,7 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
     for (const path of [...FILE_PATHS, ...DOCUMENTS]) assert.ok(!routeMatches(route, path), `${route.src} would redirect ${path}`);
   }
   // The FDE path moved into its Learn section (#489, plan decision D4). Its
-  // old addresses answer a crawler with a 308 to the new one, the module kept.
+  // old addresses go directly to the open section; reopened modules keep their id.
   // These routes sit before the filesystem check, as Vercel compiles a
   // `redirects` entry; a `redirects` property itself would land after
   // `handle: hit` here, where a page that is no file never reaches it.
@@ -205,12 +206,15 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
     const match = new RegExp(route.src!).exec(path)!;
     return route.headers!.Location.replace(/\$(\d)/g, (_, index: string) => match[Number(index)] ?? '');
   };
+  const fdeTarget = (suffix = '') => FDE_SECTION_VISIBLE ? '/learn/forward-deployed-engineer/path' + suffix : '/learn/web-developer';
   const MOVED: [string, string][] = [
-    ['/roadmap/specializations/fde', '/learn/forward-deployed-engineer/path'],
-    ['/roadmap/specializations/fde/', '/learn/forward-deployed-engineer/path'],
-    ['/roadmap/specializations/fde/fde-v1-m03', '/learn/forward-deployed-engineer/path/fde-v1-m03'],
-    ['/roadmap/specializations/fde/fde-v1-m03/', '/learn/forward-deployed-engineer/path/fde-v1-m03'],
-    ['/roadmap/specializations/fde/fde-v1-m03/extra', '/learn/forward-deployed-engineer/path/fde-v1-m03'],
+    ['/support', '/premium'],
+    ['/support/', '/premium'],
+    ['/roadmap/specializations/fde', fdeTarget()],
+    ['/roadmap/specializations/fde/', fdeTarget()],
+    ['/roadmap/specializations/fde/fde-v1-m03', fdeTarget('/fde-v1-m03')],
+    ['/roadmap/specializations/fde/fde-v1-m03/', fdeTarget('/fde-v1-m03')],
+    ['/roadmap/specializations/fde/fde-v1-m03/extra', fdeTarget('/fde-v1-m03')],
     // E5 (#496) retired the DSA Foundations path. Its overview and every
     // module answer 308 to the DSA topic of the Software Engineer section,
     // where its readings and Coding tasks now live.
@@ -264,7 +268,7 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
       assert.ok(!pattern.test(path), `the rewrite ${rewrite.source} → ${rewrite.destination} catches ${path}`);
     }
   }
-  const fallback = rewrites.find((rewrite) => rewrite.destination === '/index.html');
+  const fallback = rewrites.find((rewrite) => rewrite.destination === '/app.html');
   assert.ok(fallback, 'the SPA fallback rewrite exists');
   for (const path of ['/', '/coding', '/coding/javascript/js-double-numbers', '/assets', '/profile']) {
     assert.ok(rewriteSourcePattern(fallback.source).test(path), `the SPA fallback still serves ${path}`);
@@ -281,8 +285,10 @@ export function vercelRoutingContracts(config: VercelConfig = readVercelConfig()
   // System design is hidden (owner decision, 9 Oct 2026): its track page and
   // every address under it, old task pages included, get the one noindex
   // not-found page the build writes, before the general coding rewrites or the
-  // fallback (whose shell names the home page as canonical) can answer them.
+  // fallback can answer them.
   const firstMatch = (path: string) => rewrites.find((rewrite) => rewriteSourcePattern(rewrite.source).test(path));
+  assert.equal(firstMatch('/')?.destination, '/index.html', 'the homepage serves the document with its own canonical');
+  assert.equal(firstMatch('/today')?.destination, '/app.html', 'a private page serves the generic shell');
   for (const path of ['/coding/system-design', '/coding/system-design/', '/coding/system-design/sd-url-shortener', '/coding/system-design/dd-requests-per-second/extra']) {
     assert.equal(firstMatch(path)?.destination, '/coding/system-design/index.html', `${path} is answered by the hidden-track page`);
   }
