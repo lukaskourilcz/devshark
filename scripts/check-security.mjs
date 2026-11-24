@@ -184,6 +184,7 @@ const APP_POLICY = {
   'form-action': ["'self'"],
   'worker-src': ["'self'"],
   'upgrade-insecure-requests': [],
+  'report-uri': ['/api/settings?op=csp-report'],
 };
 /** How policy `actual` differs from policy `expected` (both from
  * parsePolicy), directive by directive; sources may come in any order. The

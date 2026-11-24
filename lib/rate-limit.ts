@@ -76,6 +76,7 @@ export interface RateLimitConfig {
 export const SHARED_NETWORK_SEATS = 32;
 
 export const RATE_LIMITS = {
+  cspReport: { key: 'csp_report', capacity: 12, refillPerSecond: 2 / 60, onFailure: 'closed' },
   // Closed while Upstash fails (`onFailure`): it is the only brake on
   // guessing the legacy admin password.
   admin: { key: 'admin_gate', capacity: 5, refillPerSecond: 1, onFailure: 'closed' },

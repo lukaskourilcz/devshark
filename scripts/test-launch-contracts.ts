@@ -1,3 +1,4 @@
+import { privateCspReport } from '../lib/csp-reports';
 import { adminDirectoryContracts } from './test-admin-directory';
 // First: clears the environment the handlers below read when imported.
 import './launch-test-env';
@@ -4040,6 +4041,15 @@ async function capturedCall(handler: (req: never, res: never) => unknown, req: u
   }
   return { res, lines, error: (res.body as { error?: Record<string, unknown> } | undefined)?.error };
 }
+
+const sanitizedReport = privateCspReport({ 'csp-report': {
+  'effective-directive': 'img-src', 'blocked-uri': 'https://images.example/photo?access=private',
+  'document-uri': 'https://devshark.app/auth/confirmed?code=private', referrer: 'https://example.org/private',
+  'script-sample': 'private text',
+} });
+assert.deepEqual(sanitizedReport, { 'csp-report': { 'document-uri': 'https://devshark.app/',
+  'effective-directive': 'img-src', 'violated-directive': 'img-src', 'blocked-uri': 'redacted' } });
+assert.equal(privateCspReport({ 'csp-report': { 'effective-directive': 'private text' } }), null);
 
 function assertGenericError(label: string, error: Record<string, unknown> | undefined) {
   assert.deepEqual(Object.keys(error ?? {}).filter((key) => !['code', 'message', 'requestId'].includes(key)), [],
