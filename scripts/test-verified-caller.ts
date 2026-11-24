@@ -594,58 +594,6 @@ async function main() {
     const reads = (path: string) => seen.filter((one) => one.path === path);
     const errorCode = (res: Response) => (res.body as { error?: { code?: string } } | undefined)?.error?.code;
 
-    // Exercise the committed Bruno requests through the local, configured handler fixtures.
-    const collection = 'bruno/Auth required (expect 401)';
-    const covered = new Set<string>();
-    for (const file of readdirSync(collection).filter(name => name.endsWith('.bru'))) {
-      const request = readFileSync(join(collection, file), 'utf8');
-      const method = /^(get|post|put|delete) \{/m.exec(request)?.[1].toUpperCase();
-      const target = /url: \{\{baseUrl\}\}(\S+)/.exec(request)?.[1];
-      const expected = /res\.status: eq (\d+)/.exec(request)?.[1];
-      assert.ok(method && target && expected && request.includes('auth: none'), file);
-      const url = new URL(target, 'http://localhost');
-      const [, , area, op] = url.pathname.split('/');
-      const routes = { user: userOps, admin: adminOps, play, quiz: roadmap, flashcards };
-      const handler = routes[area as keyof typeof routes];
-      assert.ok(handler, target);
-      const query = Object.fromEntries(url.searchParams);
-      if (area === 'user' || area === 'admin') query.op = op;
-      if (area === 'play') query.action = op;
-      let payload = /body:json \{\s*\n([^]*?)\n\}/.exec(request)?.[1];
-      if (payload?.includes('{{codingSession}}')) {
-        const guest = await call(roadmap as Handler, { query: { resource: 'coding-task', id: 'js-double-numbers' } });
-        const session = (guest.body as { session: string }).session;
-        assert.ok(session, 'a fresh guest coding session is required');
-        payload = payload.replace('{{codingSession}}', session);
-      }
-      const response = await call(handler as Handler, { method, query, body: payload ? JSON.parse(payload) : undefined });
-      assert.equal(response.statusCode, Number(expected), `${file}: ${JSON.stringify(response.body)}`);
-      covered.add(url.pathname);
-    }
-    const exceptions = new Set(['cards', 'shop', 'billing-cancel', 'billing-webhook', 'payment-webhook']);
-    for (const file of ['api/user/[op].ts', 'lib/github-handlers.ts', 'lib/friends-handlers.ts']) {
-      const dispatch = readFileSync(file, 'utf8');
-      for (const [, op] of dispatch.matchAll(/\bop === '([\w-]+)'/g)) {
-        if (!exceptions.has(op)) assert.ok(covered.has(`/api/user/${op}`), `Add a Bruno guest request for ${op}`);
-      }
-    }
-    for (const [area, path] of [['admin', 'api/admin/[op].ts'], ['play', 'api/play/[action].ts']]) {
-      const dispatch = readFileSync(path, 'utf8').split(area === 'admin' ? 'switch (op)' : 'switch (action)')[1]?.split('default:')[0];
-      assert.ok(dispatch, path);
-      for (const [, op] of dispatch.matchAll(/case '([\w-]+)'/g)) {
-        if (area !== 'play' || op !== 'state') assert.ok(covered.has(`/api/${area}/${op}`), `Add a Bruno guest request for ${area}/${op}`);
-      }
-    }
-    const healthContract = readFileSync('bruno/Public/Health.bru', 'utf8');
-    const healthy = await call(health as Handler, {});
-    assert.equal(healthy.statusCode, 200);
-    for (const [, field, operator, expected] of healthContract.matchAll(/res\.body\.dependencies\.(\w+): (eq|neq) ([\w-]+)/g)) {
-      const value = (healthy.body as { dependencies: Record<string, string> }).dependencies[field];
-      assert.equal(typeof value, 'string', field);
-      if (operator === 'eq') assert.equal(value, expected, field);
-      else assert.notEqual(value, expected, field);
-    }
-
     // These GETs can write account rows, so a warm token must still be
     // refused before the write when Supabase has ended the session.
     const writer = JWT_GET_WRITER;
@@ -1173,16 +1121,16 @@ async function main() {
     // the owner to guess which dependency failed.
     {
       const lines: Row[] = [];
-      const original = console.log;
+      const original = console.error;
       healthReadFails = true;
-      console.log = (line: unknown) => {
+      console.error = (line: unknown) => {
         try { lines.push(JSON.parse(String(line)) as Row); } catch { original(line); }
       };
       let down: Response;
       try {
         down = await call(health as Handler, {});
       } finally {
-        console.log = original;
+        console.error = original;
         healthReadFails = false;
       }
       assert.equal(down.statusCode, 503, `a failing service-role read is degraded (${JSON.stringify(down.body)})`);
@@ -1631,11 +1579,11 @@ async function main() {
       assert.equal(child.status, 0, child.stderr.slice(0, 600));
       const out = child.stdout.split('\n').filter(Boolean);
       assert.equal(out.find((line) => line.startsWith('STATUSES ')), 'STATUSES [503,200,503]', 'a closed bucket refuses and an open one keeps to memory');
-      const logged = out.filter((line) => line.startsWith('{')).map((line) => JSON.parse(line) as Row);
+      const logged = child.stderr.split('\n').filter((line) => line.startsWith('{')).map((line) => JSON.parse(line) as Row);
       assert.deepEqual(
         logged.filter((line) => line.reason === 'limiter_init_failed').map((line) => [line.level, line.error]),
         [['error', 'TypeError']],
-        `a failed start is logged once, with the error's name (${child.stdout.slice(0, 600)})`,
+        `a failed start is logged once, with the error's name (${child.stderr.slice(0, 600)})`,
       );
       assert.deepEqual(
         logged.filter((line) => line.reason === 'distributed_fallback').map((line) => [line.bucket, line.policy]),
@@ -2298,6 +2246,59 @@ async function main() {
       assert.notEqual(inserted[0], inserted[1], 'with a new code the second time');
     }
     console.log('PASS verified caller: a duplicate insert answers 409 installation_taken or retries with a new room code');
+
+    // Exercise the committed Bruno requests through the local, configured handler fixtures.
+    upstashMode('healthy');
+    const collection = 'bruno/Auth required (expect 401)';
+    const covered = new Set<string>();
+    for (const file of readdirSync(collection).filter(name => name.endsWith('.bru'))) {
+      const request = readFileSync(join(collection, file), 'utf8');
+      const method = /^(get|post|put|delete) \{/m.exec(request)?.[1].toUpperCase();
+      const target = /url: \{\{baseUrl\}\}(\S+)/.exec(request)?.[1];
+      const expected = /res\.status: eq (\d+)/.exec(request)?.[1];
+      assert.ok(method && target && expected && request.includes('auth: none'), file);
+      const url = new URL(target, 'http://localhost');
+      const [, , area, op] = url.pathname.split('/');
+      const routes = { user: userOps, admin: adminOps, play, quiz: roadmap, flashcards };
+      const handler = routes[area as keyof typeof routes];
+      assert.ok(handler, target);
+      const query = Object.fromEntries(url.searchParams);
+      if (area === 'user' || area === 'admin') query.op = op;
+      if (area === 'play') query.action = op;
+      let payload = /body:json \{\s*\n([^]*?)\n\}/.exec(request)?.[1];
+      if (payload?.includes('{{codingSession}}')) {
+        const guest = await call(roadmap as Handler, { query: { resource: 'coding-task', id: 'js-double-numbers' } });
+        const session = (guest.body as { session: string }).session;
+        assert.ok(session, 'a fresh guest coding session is required');
+        payload = payload.replace('{{codingSession}}', session);
+      }
+      const response = await call(handler as Handler, { method, query, body: payload ? JSON.parse(payload) : undefined });
+      assert.equal(response.statusCode, Number(expected), `${file}: ${JSON.stringify(response.body)}`);
+      covered.add(url.pathname);
+    }
+    const exceptions = new Set(['cards', 'shop', 'billing-cancel', 'billing-webhook', 'payment-webhook']);
+    for (const file of ['api/user/[op].ts', 'lib/github-handlers.ts', 'lib/friends-handlers.ts']) {
+      const dispatch = readFileSync(file, 'utf8');
+      for (const [, op] of dispatch.matchAll(/\bop === '([\w-]+)'/g)) {
+        if (!exceptions.has(op)) assert.ok(covered.has(`/api/user/${op}`), `Add a Bruno guest request for ${op}`);
+      }
+    }
+    for (const [area, path] of [['admin', 'api/admin/[op].ts'], ['play', 'api/play/[action].ts']]) {
+      const dispatch = readFileSync(path, 'utf8').split(area === 'admin' ? 'switch (op)' : 'switch (action)')[1]?.split('default:')[0];
+      assert.ok(dispatch, path);
+      for (const [, op] of dispatch.matchAll(/case '([\w-]+)'/g)) {
+        if (area !== 'play' || op !== 'state') assert.ok(covered.has(`/api/${area}/${op}`), `Add a Bruno guest request for ${area}/${op}`);
+      }
+    }
+    const healthContract = readFileSync('bruno/Public/Health.bru', 'utf8');
+    const healthy = await call(health as Handler, {});
+    assert.equal(healthy.statusCode, 200);
+    for (const [, field, operator, expected] of healthContract.matchAll(/res\.body\.dependencies\.(\w+): (eq|neq) ([\w-]+)/g)) {
+      const value = (healthy.body as { dependencies: Record<string, string> }).dependencies[field];
+      assert.equal(typeof value, 'string', field);
+      if (operator === 'eq') assert.equal(value, expected, field);
+      else assert.notEqual(value, expected, field);
+    }
 
     console.log('Verified-caller contracts passed: a token acts for its own account whatever user_id says, admin by confirmed address or role, private caching by default, read limits, and one-time claims that fail closed.');
   } finally {
