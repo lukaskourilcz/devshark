@@ -482,7 +482,7 @@ test('Quiz can cancel a slow question load and gives focus back to settings', as
   let release: (() => void) | undefined;
   await page.route('**/api/quiz/questions?**', async route => {
     await new Promise<void>(resolve => { release = resolve; });
-    await route.fulfill({ json: { sessionId: 'late-quiz', questions } }).catch(() => undefined);
+    await route.fulfill({ json: { sessionId: 'late-quiz', questions: quizAuditQuestions } }).catch(() => undefined);
   });
   await page.goto('/quiz');
   await page.getByRole('button', { name: 'Start quiz', exact: true }).click();
