@@ -8,7 +8,8 @@
 import type { VercelRequest, VercelResponse } from './vercel-types.js';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { randomUUID } from 'node:crypto';
-import { timedSupabaseFetch, withServerTiming } from './request-timing';
+import { timedSupabaseFetch, withServerTiming, upstreamSummary } from './request-timing';
+import { requestOperation } from './request-operation';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { AuthError, hasAuthorizationHeader, requireAuth, type AuthResult } from './auth';
 import { SUBJECT_SCOPE_CATALOG } from '../shared/subject-catalog';
@@ -178,6 +179,8 @@ export function withRequestContext<T>(
         path: req.url?.split('?')[0] ?? 'unknown',
         status: res.statusCode ?? 200,
         latency_ms: Date.now() - started,
+        operation: requestOperation(req),
+        ...upstreamSummary(),
       });
     }
   })) as Promise<Awaited<T> | VercelResponse | void>;

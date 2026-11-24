@@ -2522,6 +2522,19 @@ Sources: [Vercel memory](https://vercel.com/docs/functions/configuring-functions
 and [duration](https://vercel.com/docs/functions/configuring-functions/duration),
 checked 19 November 2026. No platform setting changed for this package.
 
+The final request log records the HTTP method, a bounded operation label, status,
+latency, aggregate `db_calls`, `auth_calls`, and `redis_calls`, and their total
+transport duration in milliseconds. The operation
+allowlist names dispatched public API selectors. Unknown selectors become
+`other`; dates, task IDs, room codes, and search values do not enter that label.
+`Server-Timing` also reports `redis_http` beside `db_http` and `auth_http`. An
+Upstash pipeline is one HTTP attempt, a transport retry is another, and an
+in-memory result starts zero. Transport durations stop at response headers or
+error and may overlap. Rank completed requests by method and operation over a
+stated window, then compare call counts under matching cache, identity and
+result conditions. Older logs contain route-level statistics only. They cannot
+establish the ten most frequent logical operations before this change.
+
 The footer carries the legal links, devShark's own social profiles, and the
 appearance and sound controls, and promotes no other product.
 

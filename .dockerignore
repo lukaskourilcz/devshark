@@ -27,18 +27,5 @@ media
 **/*.test.*
 **/*.spec.*
 /scripts/test-*
-
-# Keep the same narrow OG build-source exception as .vercelignore.
-/docs/*
-!/docs/brand/
-/docs/brand/*
-!/docs/brand/source/
-/docs/brand/source/*
-!/docs/brand/source/approved/
-/docs/brand/source/approved/*
-!/docs/brand/source/approved/navbar-logo-ink.svg
-!/docs/brand/source/v9/
-/docs/brand/source/v9/*
-!/docs/brand/source/v9/recommended/
-/docs/brand/source/v9/recommended/*
-!/docs/brand/source/v9/recommended/devshark-fin-wave-green.svg
+/docs
+/supabase/.temp

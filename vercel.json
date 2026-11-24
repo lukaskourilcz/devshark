@@ -2,7 +2,7 @@
   "git": {
     "deploymentEnabled": { "dependabot/**": false }
   },
-  "buildCommand": "npm run build:react-runner && npm ci --prefix client && npm run build --prefix client",
+  "buildCommand": "node --version && npm run build:react-runner && npm ci --prefix client && npm run build --prefix client",
   "outputDirectory": "client/dist",
   "framework": null,
   "regions": [
@@ -66,7 +66,7 @@
     {
       "src": "^/sandbox/.*$",
       "headers": {
-        "Content-Security-Policy": "default-src 'none'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src data:; font-src 'self'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'; sandbox allow-scripts allow-forms",
+        "Content-Security-Policy": "default-src 'none'; script-src 'self' 'sha384-zBphGmP0SWp5c7Zi+BDhvacuV9ge7rC2oylDNKvkb7/62dMJfHOq0dYWa1uaeTcp' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src data:; font-src 'self'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'; sandbox allow-scripts allow-forms",
         "X-Content-Type-Options": "nosniff",
         "Referrer-Policy": "no-referrer",
         "Access-Control-Allow-Origin": "*"

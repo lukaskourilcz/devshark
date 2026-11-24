@@ -24,18 +24,5 @@
 **/*.spec.*
 /scripts/test-*
 *.log
-
-# The OG image build reads these two SVGs. Allow every parent explicitly.
-/docs/*
-!/docs/brand/
-/docs/brand/*
-!/docs/brand/source/
-/docs/brand/source/*
-!/docs/brand/source/approved/
-/docs/brand/source/approved/*
-!/docs/brand/source/approved/navbar-logo-ink.svg
-!/docs/brand/source/v9/
-/docs/brand/source/v9/*
-!/docs/brand/source/v9/recommended/
-/docs/brand/source/v9/recommended/*
-!/docs/brand/source/v9/recommended/devshark-fin-wave-green.svg
+/docs
+/supabase/.temp

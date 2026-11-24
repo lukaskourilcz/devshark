@@ -187,10 +187,6 @@ export function parseVoucherForm(body: Record<string, unknown>, now: number = Da
 const migrationRequired = (res: VercelResponse) =>
   jsonError(res, 503, 'migration_required', 'Voucher migration 045 is not installed');
 
-/** Who made an admin write, for its log line: the verified admin account, or
- * the legacy password, which names nobody (api/admin logs the same `by`). */
-const adminActor = (req: VercelRequest): string => adminSubject(req) ?? 'legacy-password';
-
 export async function handleAdminVouchers(req: VercelRequest, res: VercelResponse, supabase: SupabaseClient | null) {
   if (!supabase) return jsonError(res, 503, 'not_configured', 'Admin backend (Supabase) is not configured');
   res.setHeader('Cache-Control', 'no-store');
@@ -234,18 +230,18 @@ export async function handleAdminVouchers(req: VercelRequest, res: VercelRespons
           if (/premium_voucher_in_past/.test(created.error.message ?? '')) {
             return jsonError(res, 400, 'bad_request', 'redeemableUntil must be a future date within five years, or empty');
           }
-          logEvent({ status: 500, kind: 'voucher_create', reason: 'db_error', by: adminActor(req) });
+          logEvent({ status: 500, kind: 'voucher_create', reason: 'db_error', by: adminSubject(req) });
           return jsonError(res, 500, 'db_error', 'Could not create the voucher');
         }
         if (created.data === null) continue; // the code exists already
         const voucher = toAdminVoucher(created.data);
         if (!voucher) return jsonError(res, 500, 'db_error', 'Could not create the voucher');
-        logEvent({ status: 200, kind: 'voucher_create', by: adminActor(req), voucherId: voucher.id, custom: custom !== null, openEnded: premiumDays === null, uses: maxRedemptions });
+        logEvent({ status: 200, kind: 'voucher_create', by: adminSubject(req), voucherId: voucher.id, custom: custom !== null, openEnded: premiumDays === null, uses: maxRedemptions });
         const answer: CreatedVoucher = { voucher, code: formatVoucherCode(code) };
         return res.json(answer);
       }
       if (custom) return jsonError(res, 409, 'voucher_exists', 'That code is in use already. Choose another one.');
-      logEvent({ status: 500, kind: 'voucher_create', reason: 'no_free_code', by: adminActor(req) });
+      logEvent({ status: 500, kind: 'voucher_create', reason: 'no_free_code', by: adminSubject(req) });
       return jsonError(res, 500, 'db_error', 'Could not create the voucher');
     }
 
@@ -265,7 +261,7 @@ export async function handleAdminVouchers(req: VercelRequest, res: VercelRespons
         changed.error.code === '23514' ? 'invalid_limit' : 'voucher_unavailable',
         changed.error.code === '23514' ? 'The limit cannot be lower than the number of accounts that already redeemed the voucher.' : 'The limit could not be saved. Try again.');
       if (!changed.data) return jsonError(res, 404, 'not_found', 'No voucher with that id');
-      logEvent({ status: 200, kind: 'voucher_limit', by: adminActor(req), voucherId, maximum });
+      logEvent({ status: 200, kind: 'voucher_limit', by: adminSubject(req), voucherId, maximum });
       return res.json({ ok: true });
     }
 
@@ -279,7 +275,7 @@ export async function handleAdminVouchers(req: VercelRequest, res: VercelRespons
       }
       const voucher = revoked.data === null ? null : toAdminVoucher(revoked.data);
       if (!voucher) return jsonError(res, 404, 'not_found', 'No voucher with that id');
-      logEvent({ status: 200, kind: 'voucher_revoke', by: adminActor(req), voucherId: voucher.id });
+      logEvent({ status: 200, kind: 'voucher_revoke', by: adminSubject(req), voucherId: voucher.id });
       return res.json({ voucher });
     }
 

@@ -70,6 +70,8 @@ Migration 086 checks or creates `purge_expired_learning_data_daily` for 03:07 in
 
 ### Private Play broadcasts (089)
 
+On a fresh managed staging branch, confirm the branch reference and zero initial Auth users before creating disposable fixtures. Compare effective per-table privileges with the approved production catalog for `anon`, `authenticated` and `service_role`. On the November staging run, ordinary settings and room creation were refused until the branch matched the existing production service grants. Keep any repair scoped to the observed table, role and verbs. The first channel on a freshly started gateway may report `MissingPartition` while Realtime initializes. Record that result, retry normal member access, and check the explicit policy refusals independently.
+
 Apply 089 while the previous client is still supported. The room's host and each player must join through the Play API first. In staging, verify two signed-in members exchange updates, another account cannot subscribe, and a disconnected client follows the room by polling. Release the private-channel client, allow older tabs time to refresh, and then have the project owner disable **Allow public access** in Realtime settings. A client missing its private subscription continues polling. Reverting the client alone after disabling public access also uses polling. The Play join notification carries no account ID.
 
 ## Preflight
@@ -107,7 +109,7 @@ Three scripts in `scripts/` test a live deployment. No npm script, CI job or sch
 |---|---|---|
 | `scripts/check-live-accounts.mjs` | Signs in two test accounts through Supabase, then checks non-admin denial on `/api/admin/questions`, coding-draft isolation through the API and the Data API, that a sealed coding session refuses the other account, and a full Multiplayer and Classroom match (hidden answers, host-only start, duplicate answers, finish). Last, it deletes both accounts through `/api/user/delete-account` and confirms their tokens stop working. Writes `artifacts/live-account-check.json`. | `SMOKE_ACCOUNT_FILE` (required), `SMOKE_BASE_URL` (default `https://devshark.app`), `SMOKE_KEEP_FIXTURES` (any value skips the deletion) |
 | `scripts/check-live-browser.mjs` | Drives the same two accounts in headless Chromium through a Multiplayer and a Classroom match, with an offline reconnect and a reload during Classroom. Writes `artifacts/live-browser-results.json`, and page text and screenshots when a step fails. | `SMOKE_SESSION_FILE` (required), `SMOKE_BASE_URL` (required), `CHROME_BIN` (optional Chrome binary) |
-| `scripts/check-grading-load.ts` | Sends ten anonymous reference-solution submissions for three React tasks: one cold, then three batches at concurrency 3. Each must pass with no XP awarded. Writes p50, p95 and maximum latency to `artifacts/grading-load.json`. | `SMOKE_BASE_URL` (required) |
+| `scripts/check-grading-load.ts` | Sends ten anonymous reference-solution submissions for three React tasks: one cold, then three batches at concurrency 3. Each must pass with no XP awarded. Writes p50, p95 and maximum latency to `artifacts/grading-load.json`. | `SMOKE_BASE_URL` (required), `SMOKE_PREVIEW_STATE` (optional, protected Preview only) |
 
 `SMOKE_ACCOUNT_FILE` names a local JSON file, kept out of the repository: `{ "url": "<Supabase URL>", "key": "<anon key>", "users": [{ "id": "…", "email": "…", "password": "…" }, …] }` with exactly two users. The account script stops unless both emails match `launch-audit-*@example.invalid` and both accounts carry `app_metadata.launch_audit` set to `"2026-09-15"`, and it checks the marker again before each deletion. Only the service role can set app metadata, so create the two accounts in Supabase for this purpose alone.
 
@@ -123,6 +125,10 @@ The grading check needs no account. Bundle it first, the way `package.json` runs
 npx esbuild scripts/check-grading-load.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/shark/grading-load.mjs --log-level=warning
 SMOKE_BASE_URL=<deployment> node node_modules/.cache/shark/grading-load.mjs
 ```
+
+When the Preview shares an Upstash database, set `DEVSHARK_PREVIEW_REDIS_NAMESPACE=epic-f-20261124` on that deployment to isolate rate buckets, one-time claims, and payment delivery keys. The optional namespace accepts 1–32 lowercase letters, digits or hyphens, starting with a letter or digit. Production always uses its established keys.
+
+On a protected Preview, set `SMOKE_PREVIEW_STATE` to the owner-only, exact-host Vercel protection state used by `perf:cold-start --preview-state`. The grading requests share only the deployment protection cookie. Application grading stays anonymous. The check refuses redirects and writes no credentials or submitted code to its receipt. Its one retry is for a 503 `grader_busy`: a React VM keeps its instance admission until its stop returns after the answer, so a batch right after the previous one can meet three held admissions. The refusal is kept as its own `busy` sample, left out of the latency percentiles, and the Submit is sent again once after the advertised Retry-After (at most 10 s). A second refusal or any other status fails the run.
 
 ## Release and observation
 

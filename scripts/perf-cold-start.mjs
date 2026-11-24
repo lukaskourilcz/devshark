@@ -21,7 +21,7 @@ export const PROBES = Object.freeze([
   { id: 'flashcards', file: 'api/flashcards.ts', path: '/api/flashcards?subject=webdev', purpose: 'anonymous auth/configuration refusal', kind: 'refusal', outcomes: [[401, 'missing_token'], [503, 'not_configured'], [503, 'auth_not_configured']] },
   { id: 'user', file: 'api/user/[op].ts', path: '/api/user/__perf_probe__', purpose: 'unknown-op/configuration refusal, never wallet/rewards', kind: 'refusal', outcomes: [[404, 'unknown_op'], [503, 'not_configured']] },
   { id: 'play', file: 'api/play/[action].ts', path: '/api/play/__perf_probe__', purpose: 'unknown-action/configuration/feature refusal, no room', kind: 'refusal', outcomes: [[404, 'unknown_action'], [503, 'not_configured'], [503, 'feature_disabled']] },
-  { id: 'admin', file: 'api/admin/[op].ts', path: '/api/admin/__perf_probe__', purpose: 'anonymous admin refusal, no legacy password', kind: 'refusal', outcomes: [[403, 'forbidden'], [401, 'unauthorized']] },
+  { id: 'admin', file: 'api/admin/[op].ts', path: '/api/admin/__perf_probe__', purpose: 'anonymous admin refusal', kind: 'refusal', outcomes: [[403, 'forbidden']] },
 ]);
 export const USAGE = 'node scripts/perf-cold-start.mjs (--url=<bare HTTPS or HTTP loopback origin> | --local) [--handlers=<ids>] [--samples=1..10] [--interval-ms=1100..60000] [--bypass-cache] [--markers] [--output=<file>] [--preview-state=<approved-one-cookie-state-file>]';
 const FLAGS = { url: 'value', local: 'switch', handlers: 'value', samples: 'value', 'interval-ms': 'value', 'bypass-cache': 'switch', markers: 'switch', output: 'value', 'preview-state': 'value', help: 'switch' };
@@ -85,7 +85,7 @@ export function timingSpans(value) {
     const fields = splitQuoted(entry, ';');
     if (!fields) return { ...result, valid: false, marker: null };
     const name = fields.shift();
-    if (!['app', 'db_http', 'auth_http', 'instance'].includes(name)) continue;
+    if (!['app', 'db_http', 'auth_http', 'redis_http', 'instance'].includes(name)) continue;
     if (seen.has(name)) return { appMs: null, dbHttpMs: null, dbCalls: null, authHttpMs: null, authCalls: null, marker: null, valid: false };
     seen.add(name);
     const parameters = {};
@@ -100,8 +100,10 @@ export function timingSpans(value) {
     const count = calls && Number.isSafeInteger(Number(calls[1])) ? Number(calls[1]) : null;
     if (name === 'app') result.appMs = duration;
     else if (name === 'db_http') { result.dbHttpMs = duration; result.dbCalls = count; }
-    else { result.authHttpMs = duration; result.authCalls = count; }
+    else if (name === 'auth_http') { result.authHttpMs = duration; result.authCalls = count; }
+    else { result.redisHttpMs = duration; result.redisCalls = count; }
   }
+  if (seen.has('redis_http') && (result.redisHttpMs === null || result.redisCalls === null)) return result;
   result.valid = [result.appMs, result.dbHttpMs, result.dbCalls, result.authHttpMs, result.authCalls].every(value => typeof value === 'number' && Number.isFinite(value) && value >= 0);
   return result;
 }
@@ -124,7 +126,7 @@ export function originClassification(headers) {
   const spans = timingSpans(headers['server-timing']);
   if (cache === 'HIT' || cache === 'STALE') return { cache, instance: 'replayed', timingStatus: 'replayed', spans: null };
   const knownMiss = cache === 'MISS';
-  return { cache: knownMiss ? 'MISS' : 'unknown', instance: knownMiss && spans.valid && cacheAllowsMarker(headers['cache-control']) ? spans.marker ?? 'unknown' : 'unknown', timingStatus: !knownMiss ? 'cache-unknown' : spans.valid ? 'parsed' : 'malformed', spans: { appMs: spans.appMs, dbHttpMs: spans.dbHttpMs, dbCalls: spans.dbCalls, authHttpMs: spans.authHttpMs, authCalls: spans.authCalls } };
+  return { cache: knownMiss ? 'MISS' : 'unknown', instance: knownMiss && spans.valid && cacheAllowsMarker(headers['cache-control']) ? spans.marker ?? 'unknown' : 'unknown', timingStatus: !knownMiss ? 'cache-unknown' : spans.valid ? 'parsed' : 'malformed', spans: { appMs: spans.appMs, dbHttpMs: spans.dbHttpMs, dbCalls: spans.dbCalls, authHttpMs: spans.authHttpMs, authCalls: spans.authCalls, ...(spans.redisCalls !== undefined ? { redisHttpMs: spans.redisHttpMs, redisCalls: spans.redisCalls } : {}) } };
 }
 
 export function remoteSample(origin, probe, { bypassCache = false, timeoutMs = 15000, previewAccess = null } = {}) {

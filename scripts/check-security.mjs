@@ -3,6 +3,8 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, sep } from 'node:path';
 import { headerNames, vercelAnswer } from './vercel-headers.mjs';
+import { loadPreviewAccess } from './cold-start-preview-access.mjs';
+import { PRODUCTION_SUPABASE_REF, securityPreviewOptions, securityPreviewPolicy } from './security-preview.mjs';
 const config = JSON.parse(readFileSync('vercel.json', 'utf8'));
 // The header rules are `routes` that run before the filesystem check
 // (scripts/vercel-routing-contract.ts says why they are not `headers`).
@@ -176,7 +178,7 @@ const APP_POLICY = {
   // Stripe's API and Link; Supabase REST, Auth and the realtime socket; the
   // Sentry EU ingest host, which the DSN in client/src/lib/sentry.ts posts to
   // directly (no tunnel), so without it browser errors never arrive.
-  'connect-src': ["'self'", 'https://api.stripe.com', 'https://checkout.stripe.com', 'https://link.com', 'https://*.link.com', 'https://rvlybcjdpafwyeuojvhl.supabase.co', 'wss://rvlybcjdpafwyeuojvhl.supabase.co', 'https://o4511808879001600.ingest.de.sentry.io'],
+  'connect-src': ["'self'", 'https://api.stripe.com', 'https://checkout.stripe.com', 'https://link.com', 'https://*.link.com', `https://${PRODUCTION_SUPABASE_REF}.supabase.co`, `wss://${PRODUCTION_SUPABASE_REF}.supabase.co`, 'https://o4511808879001600.ingest.de.sentry.io'],
   // Stripe's checkout, Link and 3-D Secure frames.
   'frame-src': STRIPE_FRAMES,
   'child-src': STRIPE_FRAMES,
@@ -254,6 +256,27 @@ assert(localPolicy, 'a local sandbox policy is required');
 const expectedMeta = new Map(sandboxPolicy);
 for (const responseOnly of ['frame-ancestors', 'sandbox']) expectedMeta.delete(responseOnly);
 assert.deepEqual(policyDifferences(parsePolicy(localPolicy), expectedMeta, 'sandbox HTML', 'sandbox header'), []);
+// An opaque-origin Safari frame authenticates its own external entry using
+// the same digest in the response policy, HTML policy and module element.
+function sandboxEntry(html) {
+  const modules = [...html.matchAll(/<script\b[^>]*>/gi)].map(([tag]) => tag)
+    .filter(tag => /\btype="module"/.test(tag));
+  assert.equal(modules.length, 1, 'The built sandbox needs one module entry');
+  const [tag] = modules;
+  const src = /\bsrc="(\/sandbox\/assets\/[\w.-]+\.js)"/.exec(tag)?.[1];
+  const integrity = /\bintegrity="(sha384-[A-Za-z0-9+/]{64})"/.exec(tag)?.[1];
+  assert(src && integrity && /\bcrossorigin(?:="(?:anonymous)?")?(?=[\s>])/.test(tag), 'The built sandbox module needs a local src, crossorigin and SHA-384 integrity');
+  const meta = /<meta http-equiv="Content-Security-Policy" content="([^"]+)"/i.exec(html)?.[1];
+  assert(meta && parsePolicy(meta).get('script-src')?.includes(`'${integrity}'`), 'The built sandbox HTML policy must allow its module digest');
+  assert(sandboxPolicy.get('script-src')?.includes(`'${integrity}'`), 'The sandbox response policy must allow its module digest');
+  return { src, integrity };
+}
+
+function checkSandboxBytes(bytes, integrity) {
+  const digest = 'sha384-' + createHash('sha384').update(bytes).digest('base64');
+  assert.equal(digest, integrity, 'The shipped sandbox module bytes must match the integrity digest');
+}
+
 const worker = headerRoutes.find(route => route.src === '^/assets/coding-worker/.*$');
 assert.equal(header(worker, 'Content-Security-Policy'), "default-src 'none'; script-src 'self' 'unsafe-eval'");
 assert(!header(sandbox, 'X-Frame-Options'), 'Do not deny the exercise frame');
@@ -284,6 +307,8 @@ const distArgument = process.argv.find(arg => arg === '--dist' || arg.startsWith
 if (distArgument) {
   const dist = distArgument === '--dist' ? 'client/dist' : distArgument.slice('--dist='.length);
   assert(existsSync(join(dist, 'index.html')), `--dist: ${dist} holds no index.html; run npm run build first`);
+  const sandboxEntryPoint = sandboxEntry(readFileSync(join(dist, 'sandbox/index.html'), 'utf8'));
+  checkSandboxBytes(readFileSync(join(dist, sandboxEntryPoint.src)), sandboxEntryPoint.integrity);
   const isFile = pathname => existsSync(join(dist, pathname)) && statSync(join(dist, pathname)).isFile();
   const pages = readdirSync(dist, { recursive: true }).filter(file => file.endsWith('.html')).sort();
   const blocked = [];
@@ -323,8 +348,11 @@ if (distArgument) {
 // map, the coding worker's directory, the sandbox page and its chunk, an API
 // answer and a redirect. Every difference is reported, not only the first.
 const url = process.argv.find(arg => arg.startsWith('--url='))?.slice('--url='.length);
+const { state, stage } = securityPreviewOptions(process.argv.slice(2), url);
 if (url) {
   const origin = new URL(url);
+  const previewAccess = state ? loadPreviewAccess(url, state) : null;
+  const expectedAppCsp = securityPreviewPolicy(csp, stage);
   assert.equal(origin.protocol, 'https:', '--url must name an HTTPS deployment');
   const mismatches = [];
   const requestHeaders = {};
@@ -332,7 +360,7 @@ if (url) {
   // deployment without a share link. The project protects only its
   // *.vercel.app hosts, so the secret goes to those alone and never to a host
   // outside Vercel that --url happens to name.
-  const bypass = origin.hostname.endsWith('.vercel.app') ? process.env.VERCEL_AUTOMATION_BYPASS_SECRET : undefined;
+  const bypass = !previewAccess && origin.hostname.endsWith('.vercel.app') ? process.env.VERCEL_AUTOMATION_BYPASS_SECRET : undefined;
   if (bypass) requestHeaders['x-vercel-protection-bypass'] = bypass;
   // A share link (https://<deployment>/?_vercel_share=<token>, as the Vercel
   // MCP get_access_to_vercel_url returns it) trades its token for a
@@ -345,7 +373,9 @@ if (url) {
     requestHeaders.cookie = `_vercel_jwt=${jwt}`;
   }
   const get = async pathname => {
-    const response = await fetch(new URL(pathname, origin), { redirect: 'manual', headers: requestHeaders, signal: AbortSignal.timeout(30_000) });
+    const targetUrl = new URL(pathname, origin);
+    const headers = previewAccess ? previewAccess.headersFor(targetUrl) : requestHeaders;
+    const response = await fetch(targetUrl, { redirect: 'manual', headers, signal: AbortSignal.timeout(30_000) });
     // A preview behind Vercel Authentication answers every path with a
     // redirect to vercel.com's sign-in, which would read as a missing header
     // on every probe.
@@ -353,6 +383,10 @@ if (url) {
     const target = location ? new URL(location, origin).hostname : '';
     if (target === 'vercel.com' || target.endsWith('.vercel.com')) {
       assert.fail(`${origin.host}${pathname} answers ${response.status} to ${target}: the deployment sits behind Vercel Authentication. Pass a share link (--url='https://${origin.host}/?_vercel_share=<token>') or set VERCEL_AUTOMATION_BYPASS_SECRET${bypass ? ' to the project\'s current secret' : ' (sent to *.vercel.app hosts only)'}.`);
+    }
+    if (pathname.startsWith('/sandbox/assets/')) {
+      const bytes = Buffer.from(await response.arrayBuffer());
+      return { pathname, response, body: bytes.toString('utf8'), bytes };
     }
     return { pathname, response, body: await response.text() };
   };
@@ -369,6 +403,7 @@ if (url) {
   for (const pathname of ['/premium', mainChunk, mainChunk && `${mainChunk}.map`, sandboxChunk, '/assets/coding-worker/missing.js', '/api/settings', '/roadmap/specializations/fde']) {
     if (pathname) probes.push(await get(pathname));
   }
+  previewAccess?.dispose();
   // Headers Vercel sends on its own where vercel.json sets none: Cache-Control
   // (public, max-age=0, must-revalidate, or what a function sets),
   // Access-Control-Allow-Origin: * on static files, and HSTS max-age=63072000.
@@ -380,6 +415,7 @@ if (url) {
   const namedHeaders = headerNames(config);
   for (const { pathname, response, body } of probes) {
     const expected = vercelAnswer(config, pathname, path => deployed.has(path), origin.hostname);
+    if (expected.headers['content-security-policy'] === csp) expected.headers['content-security-policy'] = expectedAppCsp;
     const before = mismatches.length;
     if (expected.status !== null && response.status !== expected.status) {
       mismatches.push(`${pathname}: status ${response.status}, vercel.json gives ${expected.status} (${expected.ends})`);
@@ -421,12 +457,19 @@ if (url) {
   // Sentry organisation or PostHog host fails here instead of in the
   // learner's browser. Each extraction that finds nothing fails as well: the
   // check would otherwise pass while proving nothing.
+  const deployedSandbox = sandboxEntry(sandboxPage.body);
+  const frameModule = probes.find(probe => probe.pathname === deployedSandbox.src);
+  assert(frameModule && frameModule.response.status === 200, 'The deployed sandbox module must be readable');
+  checkSandboxBytes(frameModule.bytes, deployedSandbox.integrity);
   const chunk = probes.find(probe => probe.pathname === mainChunk);
   const deployedPolicy = parsePolicy(home.response.headers.get('content-security-policy') ?? '');
   const connect = deployedPolicy.get('connect-src') ?? deployedPolicy.get('default-src');
   if (chunk && connect) {
     const found = bundleHosts(chunk.body);
     const targets = [];
+    if (stage && (found.supabase.length !== 1 || found.supabase[0] !== stage)) {
+      mismatches.push(`${mainChunk}: the built app must use only its configured staging Supabase project`);
+    }
     if (!found.supabase.length) mismatches.push(`${mainChunk}: names no https://<ref>.supabase.co project URL; if the Supabase client left the main chunk, point this check at its new chunk`);
     for (const ref of found.supabase) {
       targets.push({ url: `https://${ref}.supabase.co/rest/v1/`, use: 'Supabase REST and Auth' }, { url: `wss://${ref}.supabase.co/realtime/v1/websocket`, use: 'the Supabase realtime socket' });

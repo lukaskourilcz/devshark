@@ -923,9 +923,7 @@ export async function handleFulfilment(req: VercelRequest, res: VercelResponse, 
   if (!(await enforceRateLimit(req, res, RATE_LIMITS.admin))) return;
   if (!(await requireAdmin(req, res))) return;
   if (!supabase) return jsonError(res, 503, 'not_configured', 'Account storage is not configured');
-  // Who made a write, for its log line, as api/admin logs `by`: the verified
-  // admin account, or the legacy password, which names nobody.
-  const by = adminSubject(req) ?? 'legacy-password';
+  const by = adminSubject(req);
 
   if (req.method === 'GET') {
     // `queue` (the default) is the picking list: paid redemptions and claimed

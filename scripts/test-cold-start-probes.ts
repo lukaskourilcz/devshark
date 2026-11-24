@@ -22,7 +22,7 @@ export async function coldProbeSafetyContracts(): Promise<void> {
     { spec: ['api/flashcards.ts', '/api/flashcards', { subject: 'webdev' }, 503, 'not_configured'], configured: false },
     { spec: ['api/user/[op].ts', '/api/user/__perf_probe__', { op: '__perf_probe__' }, 503, 'not_configured'], configured: false },
     { spec: ['api/play/[action].ts', '/api/play/__perf_probe__', { action: '__perf_probe__' }, 503, 'not_configured'], configured: false },
-    { spec: ['api/admin/[op].ts', '/api/admin/__perf_probe__', { op: '__perf_probe__' }, 401, 'unauthorized'], configured: true, legacy: true },
+    { spec: ['api/admin/[op].ts', '/api/admin/__perf_probe__', { op: '__perf_probe__' }, 403, 'forbidden'], configured: true, legacy: true },
     { spec: ['api/flashcards.ts', '/api/flashcards', { subject: 'webdev' }, 503, 'auth_not_configured'], configured: true, authMissing: true },
     { spec: ['api/play/[action].ts', '/api/play/__perf_probe__', { action: '__perf_probe__' }, 503, 'feature_disabled'], configured: true, featureOff: true },
     { spec: ['api/leaderboard.ts', '/api/leaderboard', { period: 'global', limit: '10' }, 503, 'rpc_missing'], configured: true, rpcMissing: true },
@@ -34,6 +34,7 @@ export async function coldProbeSafetyContracts(): Promise<void> {
       process.env.SUPABASE_ANON_KEY = ${JSON.stringify(configured && !authMissing ? 'cold-probe-fixture-anon' : '')};
       process.env.SUPABASE_SERVICE_ROLE_KEY = ${JSON.stringify(configured ? 'cold-probe-fixture-service' : '')};
       process.env.DEV_PASSWORD = ${JSON.stringify(legacy ? 'invented-fixture-legacy-value' : '')};
+      process.env.ALLOW_LEGACY_DEV_PASSWORD = ${JSON.stringify(legacy ? 'true' : 'false')};
       process.env.NODE_ENV = ${JSON.stringify(authMissing ? 'production' : 'development')};
       process.env.SESSION_SECRET = 'invented-fixture-session-material-not-used';
       process.env.VITE_PRODUCT = 'devshark'; process.env.VITE_LOCK_SUBJECT = 'webdev';
@@ -62,7 +63,7 @@ export async function coldProbeSafetyContracts(): Promise<void> {
         const res = { statusCode: 200, headers: {}, body: null,
           setHeader(name,value) { this.headers[name.toLowerCase()] = value; return this; }, getHeader(name) { return this.headers[name.toLowerCase()]; },
           status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; }, send(body) { this.body = body; return this; }, end() {} };
-        await mod.default({ method: 'GET', url: ${JSON.stringify(url)}, headers: {}, query, socket: { remoteAddress: '127.0.0.1' } }, res);
+        await mod.default({ method: 'GET', url: ${JSON.stringify(url)}, headers: ${legacy} ? { 'x-dev-password': 'invented-fixture-legacy-value' } : {}, body: ${legacy} ? { password: 'invented-fixture-legacy-value' } : undefined, query, socket: { remoteAddress: '127.0.0.1' } }, res);
         return { status: res.statusCode, code: res.body?.error?.code ?? null, body: res.body, allow: res.headers.allow };
       };
       try {

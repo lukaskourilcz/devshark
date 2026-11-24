@@ -72,3 +72,6 @@ execFileSync(process.execPath, ['--test', 'scripts/test-perf-tools.mjs'], { stdi
 
 // Pure image metadata/reference inventory, with owned filesystem fixtures only.
 execFileSync(process.execPath, ['--test', 'scripts/test-image-inventory.mjs'], { stdio: 'inherit' });
+
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-operation-transport.ts');
+await (await import('./cold-start-contracts')).runIsolated('scripts/test-preview-redis-namespace.ts');

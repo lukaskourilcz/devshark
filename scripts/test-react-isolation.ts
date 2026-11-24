@@ -373,6 +373,8 @@ const sidecarPath = () => join(process.cwd(), 'lib/coding/generated/react-sandbo
 type ArtifactFixtureState = {
   creates: number;
   uploads: Buffer[];
+  createError?: () => unknown;
+  stop?: () => Promise<void>;
   command?: (nonce: string) => { exitCode: number; stdout: () => Promise<string> };
 };
 async function artifactProbe(name: string) {
@@ -380,6 +382,61 @@ async function artifactProbe(name: string) {
   const state = (globalThis as unknown as { __reactArtifactFixture: ArtifactFixtureState }).__reactArtifactFixture;
   assert.ok(state, 'the fresh process loaded only the fabricated local SDK');
   const input = { appSource: 'export default function App(){ return null; }', suite: "test('fixture',()=>{});" };
+  if (name === 'vm-admission') {
+    const completedStops: Array<() => void> = [];
+    let ready: () => void = () => {};
+    const waitingForThree = new Promise<void>(resolve => { ready = resolve; });
+    state.stop = () => new Promise<void>(resolve => {
+      completedStops.push(resolve);
+      if (completedStops.length === 3) ready();
+    });
+    const admitted = Array.from({ length: 3 }, () => runIsolatedReactSuite(input));
+    await waitingForThree;
+    const busy = { name: 'GraderBusyError', reason: 'react_vm_queue_full' };
+    await assert.rejects(runIsolatedReactSuite(input), busy);
+    assert.equal(state.creates, 3, 'a fourth caller starts no VM while three stops are pending');
+    completedStops.shift()!();
+    await Promise.race(admitted);
+    state.stop = async () => {};
+    await runIsolatedReactSuite(input);
+    for (const finish of completedStops) finish();
+    await Promise.all(admitted);
+    assert.equal(state.creates, 4);
+    mock.timers.enable({ apis: ['setTimeout'] });
+    try {
+      state.stop = async () => { throw new Error('disconnected fixture'); };
+      for (let i = 0; i < 3; i++) await runIsolatedReactSuite(input);
+      await assert.rejects(runIsolatedReactSuite(input), busy);
+      mock.timers.tick(25_000);
+      state.stop = async () => {};
+      await runIsolatedReactSuite(input);
+      assert.equal(state.creates, 8);
+    } finally { mock.timers.reset(); }
+    console.log('PASS vm-admission control completed');
+    return;
+  }
+  if (name === 'startup-cause') {
+    // Only a cause's class name or HTTP status reaches the error name that is
+    // logged; its message, which may carry provider text, never does. A failed
+    // create holds its admission until the VM would have expired, so this
+    // control stays within the instance's three admissions.
+    const cases: Array<[() => unknown, string]> = [
+      [() => Object.assign(new Error('secret provider text'), { response: { status: 404 } }), 'ReactRunnerStartupHttp404'],
+      [() => Object.assign(new Error('secret provider text'), { name: 'VercelOidcTokenError' }), 'ReactRunnerStartupVercelOidcTokenError'],
+      [() => Object.assign(new Error('secret provider text'), { name: 'not a class name' }), 'ReactRunnerStartup'],
+    ];
+    for (const [createError, expected] of cases) {
+      state.createError = createError;
+      await assert.rejects(runIsolatedReactSuite(input), (error: unknown) => {
+        assert.ok(error instanceof Error);
+        assert.equal(error.name, expected);
+        assert.doesNotMatch(`${error.name} ${error.message}`, /secret provider text/);
+        return true;
+      });
+    }
+    console.log('PASS startup-cause control completed');
+    process.exit(0);
+  }
   if (name === 'snapshot-versions') {
     const { withRequestContext } = await import('../lib/http');
     const warnings: string[] = [];
@@ -450,9 +507,9 @@ async function artifactProbe(name: string) {
   assert.equal(state.uploads[0], state.uploads[1], 'the same verified Buffer is reused');
 }
 
-async function artifactIntegrity() {
+async function artifactIntegrity(onlyVmAdmission = false) {
   const failures: Error[] = [];
-  try {
+  if (!onlyVmAdmission) try {
     const runner = readFileSync(GUEST_BUNDLE);
     const sidecar = 'lib/coding/generated/react-sandbox.sha256.cjs';
     const digest: unknown = JSON.parse(readFileSync(sidecar, 'utf8'));
@@ -465,7 +522,8 @@ async function artifactIntegrity() {
     assert.ok(included.includes('lib/coding/generated/react-sandbox.cjs'), 'the actual Vercel include pattern selects its runner');
     console.log('PASS artifact integrity: the real emitted guest and passive sidecar agree and both match Vercel inclusion');
   } catch (error) { failures.push(error as Error); }
-  for (const name of ['tampered-runner', 'missing-sidecar', 'malformed-sidecar', 'wrong-digest-type', 'missing-runner', 'verified-cache', 'snapshot-versions']) {
+  const controls = ['tampered-runner', 'missing-sidecar', 'malformed-sidecar', 'wrong-digest-type', 'missing-runner', 'verified-cache', 'snapshot-versions', 'vm-admission', 'startup-cause'];
+  for (const name of onlyVmAdmission ? ['vm-admission'] : controls) {
     const dir = mkdtempSync(join(tmpdir(), 'react-artifact-'));
     try {
       const generated = join(dir, 'lib/coding/generated');
@@ -484,6 +542,7 @@ async function artifactIntegrity() {
 const state = globalThis.__reactArtifactFixture = { creates: 0, uploads: [] };
 exports.Sandbox = { create: async () => {
   state.creates++;
+  if (state.createError) throw state.createError();
   let nonce;
   return {
     writeFiles: async files => {
@@ -491,7 +550,7 @@ exports.Sandbox = { create: async () => {
       nonce = JSON.parse(files.find(file => file.path.endsWith('/input.json')).content).nonce;
     },
     runCommand: async () => state.command ? state.command(nonce) : ({exitCode:124,stdout:async()=>''}),
-    stop: async () => undefined,
+    stop: async () => { if (state.stop) await state.stop(); },
   };
 }};
 `);
@@ -505,7 +564,15 @@ exports.Sandbox = { create: async () => {
         encoding: 'utf8', timeout: 30_000,
       });
       assert.equal(child.status, 0, `${name}: ${child.error?.message ?? child.stderr}`);
-      if (name === 'snapshot-versions') console.log('PASS older React snapshot logs one request-correlated warning and preserves the passing verdict');
+      if (name === 'vm-admission') {
+        assert.match(child.stdout, /PASS vm-admission control completed/, 'the fourth request must settle without waiting for a slot');
+        console.log('PASS React VM admission: three independent callers; fourth refused; success and uncertain stop release');
+      }
+      else if (name === 'startup-cause') {
+        assert.match(child.stdout, /PASS startup-cause control completed/);
+        console.log('PASS React VM startup failure names its cause class or HTTP status, never its message');
+      }
+      else if (name === 'snapshot-versions') console.log('PASS older React snapshot logs one request-correlated warning and preserves the passing verdict');
       else console.log(`PASS artifact integrity: ${name}; verified-byte reuse and failed-cache repair`);
     } catch (error) { failures.push(error as Error); }
     finally { rmSync(dir, { recursive: true, force: true }); }
@@ -515,11 +582,13 @@ exports.Sandbox = { create: async () => {
 
 async function main() {
   if (process.argv[2] === '--artifact-probe') { await artifactProbe(process.argv[3]); return; }
+  if (process.argv[2] === '--vm-admission') { await artifactIntegrity(true); return; }
   if (process.argv[2] === '--artifact-integrity') {
     execFileSync(process.execPath, ['scripts/build-react-runner.mjs'], { stdio: ['ignore', 'ignore', 'inherit'] });
     await artifactIntegrity();
     return;
   }
+  execFileSync(process.execPath, ['--test', 'scripts/test-grading-smoke-operations.mjs'], { stdio: 'inherit' });
   await localGuest();
   await artifactIntegrity();
   await sandboxVM();

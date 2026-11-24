@@ -26,6 +26,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { isIP } from 'node:net';
+import { observeRedisTransport } from './request-timing';
 import type { VercelRequest, VercelResponse } from './vercel-types.js';
 import { jsonError, logEvent, ServiceUnavailableError, verifiedCallerId } from './http';
 import { getBearer } from './auth';
@@ -77,8 +78,7 @@ export const SHARED_NETWORK_SEATS = 32;
 
 export const RATE_LIMITS = {
   cspReport: { key: 'csp_report', capacity: 12, refillPerSecond: 2 / 60, onFailure: 'closed' },
-  // Closed while Upstash fails (`onFailure`): it is the only brake on
-  // guessing the legacy admin password.
+  // Refuse privileged operations when their shared limit is unavailable.
   admin: { key: 'admin_gate', capacity: 5, refillPerSecond: 1, onFailure: 'closed' },
   // Read-only export has one owner-controlled integration authority. Consume
   // this shared budget only after verifying its bearer, without learner Auth.
@@ -378,8 +378,16 @@ export function checkRateLimit(
 // the app keeps working (on the in-memory path) if they're absent or the env
 // vars aren't set. Hence the lazy, guarded, cached import below.
 
+// Preview rehearsals may share a provider database while keeping all of their
+// keys separate. This value is controlled solely by deployment configuration.
+const previewNamespace = process.env.VERCEL_ENV === 'preview' ? process.env.DEVSHARK_PREVIEW_REDIS_NAMESPACE : undefined;
+if (previewNamespace !== undefined && !/^[a-z0-9][a-z0-9-]{0,31}$/.test(previewNamespace)) {
+  throw new Error('Invalid DEVSHARK_PREVIEW_REDIS_NAMESPACE');
+}
+const redisPrefix = previewNamespace ? `preview:${previewNamespace}:` : '';
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+if (UPSTASH_URL && UPSTASH_TOKEN) observeRedisTransport(UPSTASH_URL);
 const LIMITER_DEADLINE_MS = 500;
 
 /** `true` when the distributed limiter has been configured via env vars. */
@@ -450,7 +458,7 @@ async function getUpstashLimiter(config: RateLimitConfig): Promise<UpstashLimite
     const limiter = new Ratelimit({
       redis,
       limiter: Ratelimit.slidingWindow(config.capacity, `${windowSeconds} s`),
-      prefix: `rl:${config.key}`,
+      prefix: `${redisPrefix}rl:${config.key}`,
       analytics: false,
       timeout: 0, // Use our deadline and local fallback for every failure.
     }) as UpstashLimiter;
@@ -844,7 +852,7 @@ export async function claimOnce(key: string, ttlSeconds: number): Promise<boolea
     const store = await getOnceStore();
     try {
       if (!store) throw new Error('once_store_unavailable');
-      return (await withLimiterDeadline(store.set(`once:${key}`, '1', { nx: true, ex: ttlSeconds }))) === 'OK';
+      return (await withLimiterDeadline(store.set(`${redisPrefix}once:${key}`, '1', { nx: true, ex: ttlSeconds }))) === 'OK';
     } catch {
       throw new ServiceUnavailableError('claim_unavailable', 'This could not be checked right now. Try again in a minute.');
     }
@@ -878,7 +886,7 @@ const endDelivery = `
   return 1`;
 
 export async function claimPaymentDelivery(digest: string) {
-  const key = `payment-webhook:${digest}`;
+  const key = `${redisPrefix}payment-webhook:${digest}`;
   const owner = randomUUID();
   const now = Date.now();
   const store = await getOnceStore();

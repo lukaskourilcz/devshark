@@ -138,11 +138,13 @@ compile admission/boot/work plus its 22 s signal gives 4 + 6 + 4 + 22 = 36 s,
 excluding auth, artifact reads and other outer work. No timer was raised to
 make these sums fit. Record the actual phase that stopped a request.
 
-There is currently no separate per-instance concurrent-React-VM semaphore.
-The one-thread compiler releases its slot before the VM runs; caller gates
-and provider capacity do not establish a global per-instance VM cap. Owner
-F11-29 remains open, as does snapshot baking F11-28. Exactly twelve physical
-handlers and current platform settings remain unchanged.
+Each function instance admits three simultaneous React VMs across all callers.
+A fourth VM gets `503 grader_busy` with `Retry-After` and records no result.
+There is no queue. A slot is held until the provider confirms stop. An uncertain
+create or stop holds it for the VM's 25-second expiry. The existing 2-per-task
+and 3-per-caller limits remain independent. Three VMs support the documented
+concurrency-3 rehearsal while bounding each instance to 3 grading vCPUs.
+The provider can start multiple function instances; this limit applies to each one.
 
 ## Upload per Submit
 
@@ -235,6 +237,8 @@ with its hidden suite, both compiled fixtures and a 48-character nonce.
    before production promotion. Runtime dependency changes require a fresh
    snapshot; code-only changes are uploaded with each run and use the current one.
    Retain the previous snapshot for rollback. No billing/plan settings change.
+
+For an approved temporary Preview rehearsal, set `REACT_SNAPSHOT_TTL_HOURS=1` when preparing the snapshot. The SDK measures expiry from the last use. Bind the new ID to that Preview alone and delete the temporary snapshot after the smoke. Omitting the variable keeps the release snapshot indefinitely. Creating a VM and retaining a snapshot use metered resources.
 
 ## Verification
 

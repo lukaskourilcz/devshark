@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { server } from './mocks/server';
 import { loadTriageVerdicts } from '../src/lib/triageApi';
-import { clearDevPassword, setDevPassword } from '../src/lib/devApi';
+import * as sessions from '../src/lib/supabaseClient';
 import { queryClient } from '../src/lib/queryClient';
 import { clearAccountData } from '../src/lib/accountData';
 import '../src/lib/auth'; // registers the real before-account-change cache clear
@@ -16,7 +16,7 @@ const overlay = (note: string) => ({
   verdicts: { private: { cat: 'react', diff: 2, rel: 2, disc: 2, fit: 2, clar: 2, mean: 2, gate: false,
     greasons: [], dup: false, dec: 'cut', reasons: [], note } },
 });
-afterEach(() => { queryClient.clear(); clearDevPassword(); });
+afterEach(() => { queryClient.clear(); vi.restoreAllMocks(); sessionStorage.removeItem('devquiz:dev-password'); });
 
 it('loads triage through the existing authenticated admin client, without a module cache', async () => {
   let privateReads = 0;
@@ -24,15 +24,18 @@ it('loads triage through the existing authenticated admin client, without a modu
   const credentials: (string | null)[] = [];
   server.use(
     http.get('*/api/admin/triage', ({ request }) => {
-      credentials.push(request.headers.get('x-dev-password'));
+      expect(request.headers.has('x-dev-password')).toBe(false);
+      credentials.push(request.headers.get('authorization'));
       return HttpResponse.json(overlay(`read-${++privateReads}`));
     }),
     http.get('*/triage-verdicts.json', () => { publicReads++; return HttpResponse.json(overlay('public')); }),
   );
-  setDevPassword('existing-admin-transport');
+  sessionStorage.setItem('devquiz:dev-password', 'retired-fixture-credential');
+  vi.spyOn(sessions, 'mayHaveSession').mockReturnValue(true);
+  vi.spyOn(sessions, 'freshStoredAccessToken').mockReturnValue('fixture-admin-session');
   expect((await loadTriageVerdicts()).verdicts.private.note).toBe('read-1');
   expect((await loadTriageVerdicts()).verdicts.private.note).toBe('read-2');
-  expect(credentials).toEqual(['existing-admin-transport', 'existing-admin-transport']);
+  expect(credentials).toEqual(['Bearer fixture-admin-session', 'Bearer fixture-admin-session']);
   expect(publicReads).toBe(0);
 });
 

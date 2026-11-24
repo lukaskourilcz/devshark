@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 const state = vi.hoisted(() => ({ user: { id: 'owner' } as { id: string } | null, verify: vi.fn() }));
 vi.mock('../src/lib/auth', async original => ({ ...await original<typeof import('../src/lib/auth')>(), useAuth: () => ({ user: state.user, isLoading: false }) }));
-vi.mock('../src/lib/devApi', async original => ({ ...await original<typeof import('../src/lib/devApi')>(), verifyPassword: state.verify }));
+vi.mock('../src/lib/devApi', async original => ({ ...await original<typeof import('../src/lib/devApi')>(), verifyAdminAccess: state.verify }));
 vi.mock('../src/components/dev/DevLogin', () => ({ default: () => <h1>Administrative access required</h1> }));
 import DevAccess from '../src/components/dev/DevAccess';
 

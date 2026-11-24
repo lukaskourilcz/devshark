@@ -22,8 +22,12 @@ describe('/admin → access check', () => {
       { error: { code: 'forbidden', message: 'Administrative access required' } },
       { status: 403 },
     )));
+    window.history.replaceState({}, '', '/dev?legacy=1');
     const onSuccess = vi.fn();
     render(<LanguageProvider><DevLogin onSuccess={onSuccess} /></LanguageProvider>);
+    expect(screen.queryByLabelText('Password')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Use legacy password' })).toBeNull();
+    window.history.replaceState({}, '', '/');
     fireEvent.click(screen.getByRole('button', { name: 'Check admin access' }));
     expect(await screen.findByText('This account does not have administrative access.')).toBeInTheDocument();
     expect(screen.queryByText('You need to sign in to do that.')).toBeNull();

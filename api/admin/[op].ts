@@ -33,11 +33,6 @@ const MAX_TAGS = 20;
 const MAX_OPTIONS = 8;
 const MIN_OPTIONS = 2;
 
-/** Who made a change, for the audit trail every console write leaves in the
- * logs: the verified admin account, or the legacy password, which names
- * nobody. */
-const actor = (req: VercelRequest): string => adminSubject(req) ?? 'legacy-password';
-
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const boundedString = (v: unknown, max: number): string | null =>
@@ -53,11 +48,8 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   // a token this instance accepted earlier (lib/auth.ts, "Accepted tokens"):
   // a role taken away or a session ended elsewhere is refused at once.
   requireFreshAuth(req);
-  // Anti-brute-force: at most ~1 auth attempt per second per IP, small burst.
-  // Runs before password check so wrong guesses count toward the budget.
+  // Rate-limit all access checks, including refused identities.
   if (!(await enforceRateLimit(req, res, RATE_LIMITS.admin))) return;
-  // Prefer a verified Supabase admin/allowlist identity. The old shared
-  // password is available in production only when explicitly enabled.
   if (!(await requireAdmin(req, res))) return;
 
   const op = String(req.query.op || '').toLowerCase();
@@ -203,7 +195,7 @@ async function qualityOp(req: VercelRequest, res: VercelResponse) {
       if (result.error) return jsonError(res, 500, 'db_error', 'Could not store quality suggestions');
       stored += batch.length;
     }
-    log({ op: 'quality', status: 200, by: actor(req), scanned: questions.length, issues: issues.length, stored });
+    log({ op: 'quality', status: 200, by: adminSubject(req), scanned: questions.length, issues: issues.length, stored });
     return res.json({ enabled, scanned: questions.length, issues, stored });
   }
 
@@ -313,7 +305,7 @@ async function saveQuestionOp(req: VercelRequest, res: VercelResponse) {
     difficulty,
     importance,
   });
-  log({ op: 'save', status: 200, by: actor(req), id: saved.id, created: !id });
+  log({ op: 'save', status: 200, by: adminSubject(req), id: saved.id, created: !id });
   return res.json({ ok: true, id: saved.id });
 }
 
@@ -332,7 +324,7 @@ async function deleteQuestionOp(req: VercelRequest, res: VercelResponse) {
   }
   const deleted = b.deleted ?? true;
   await setQuestionDeleted(id, deleted);
-  log({ op: 'delete', status: 200, by: actor(req), id, deleted });
+  log({ op: 'delete', status: 200, by: adminSubject(req), id, deleted });
   return res.json({ ok: true });
 }
 
@@ -348,7 +340,7 @@ async function bulkHideOp(req: VercelRequest, res: VercelResponse) {
       : null;
   if (max === null) return jsonError(res, 400, 'bad_request', 'maxImportance must be an integer 1–10');
   const hidden = await bulkHideByImportance(max);
-  log({ op: 'bulkhide', status: 200, by: actor(req), max, hidden });
+  log({ op: 'bulkhide', status: 200, by: adminSubject(req), max, hidden });
   return res.json({ ok: true, hidden });
 }
 
@@ -361,7 +353,7 @@ async function resetQuestionOp(req: VercelRequest, res: VercelResponse) {
   const id = boundedString(b.id, 64);
   if (!id) return jsonError(res, 400, 'bad_request', 'id is required');
   await resetQuestion(id);
-  log({ op: 'reset', status: 200, by: actor(req), id });
+  log({ op: 'reset', status: 200, by: adminSubject(req), id });
   return res.json({ ok: true });
 }
 
@@ -378,7 +370,7 @@ async function reportsOp(req: VercelRequest, res: VercelResponse) {
     const id = typeof b.id === 'string' && UUID.test(b.id) ? b.id : null;
     if (!id) return jsonError(res, 400, 'bad_request', 'id must be a report id');
     await dismissReport(id);
-    log({ op: 'reports', status: 200, by: actor(req), dismissed: id });
+    log({ op: 'reports', status: 200, by: adminSubject(req), dismissed: id });
     return res.json({ ok: true });
   }
   res.setHeader('Allow', 'GET, POST');
@@ -405,7 +397,7 @@ async function settingsOp(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'POST') {
     const b = (req.body || {}) as { settings?: unknown };
     const settings = await saveGameSettings(b.settings ?? b);
-    log({ op: 'settings', status: 200, by: actor(req) });
+    log({ op: 'settings', status: 200, by: adminSubject(req) });
     return res.json({ settings });
   }
   res.setHeader('Allow', 'GET, POST');
