@@ -769,6 +769,11 @@ async function main() {
         ['a fractional option index', 'POST', 'answer', { code: 'ABC123', question_idx: 0, selected_idx: 0.5 }, 400, 'bad_request'],
         ['a distribution index that is no number', 'GET', 'distribution', { code: 'ABC123', q: 'NaN' }, 400, 'bad_request'],
         ['a negative distribution index', 'GET', 'distribution', { code: 'ABC123', q: '-1' }, 400, 'bad_request'],
+        ['a distribution index past the database integer range', 'GET', 'distribution', { code: 'ABC123', q: '3000000000' }, 400, 'bad_request'],
+        ['a distribution index beyond the supported 999', 'GET', 'distribution', { code: 'ABC123', q: '1000' }, 400, 'bad_request'],
+        ['a fractional distribution index', 'GET', 'distribution', { code: 'ABC123', q: '1.5' }, 400, 'bad_request'],
+        ['a distribution index with trailing text', 'GET', 'distribution', { code: 'ABC123', q: '1abc' }, 400, 'bad_request'],
+        ['a repeated distribution index', 'GET', 'distribution', { code: 'ABC123', q: ['1', '2'] }, 400, 'bad_request'],
         ['a distribution code repeated in the query', 'GET', 'distribution', { code: ['ABC123', 'DEF456'], q: '0' }, 400, 'bad_request'],
         ['a heartbeat code that is a list', 'POST', 'heartbeat', { code: ['ABC123'] }, 400, 'bad_request'],
       ];
