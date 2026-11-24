@@ -3,6 +3,9 @@
    the shared QuestionShell (components/question/, UX audit U2), so the page is
    the --ss-width-task column that shell draws in, and the header, the
    question and the states share both edges. */
+/* The question and its loading card have different heights. Keep the breadcrumb
+   at the same top edge as they replace each other, even on a tall viewport. */
+#main-content .ss-route:has(> .ss-daily) { margin-block: 0 auto; }
 .ss-daily { max-width: var(--ss-width-question); }
 .ss-daily__card { display: flex; flex-direction: column; gap: 1rem; }
 .ss-daily__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
