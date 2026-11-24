@@ -485,7 +485,7 @@ async function main() {
     // Then it erases once more, for rows a billing webhook wrote meanwhile
     // (finding PROF-4).
     // Auth JS fetches the user before DELETE because the Auth server returns an empty body.
-    assert.deepEqual(calls, [
+    assert.deepEqual([...calls], [
       { name: 'delete_user_data', args: { p_user_id: USER.id } },
       { name: 'auth.admin.getUserById', args: { id: USER.id } },
       { name: 'auth.admin.deleteUser', args: { id: USER.id } },

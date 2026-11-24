@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { once } from 'node:events';
-import { globSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { globSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { mock } from 'node:test';
 import type { VercelRequest, VercelResponse } from '../lib/vercel-types';
@@ -24,6 +24,7 @@ import { join } from 'node:path';
 import { GUEST_ENV, GUEST_NODE_FLAGS, readGuestRun, type GuestInput } from '../lib/coding/react-guest';
 import type { ReactSuiteOutcome } from '../lib/coding/react-runner';
 import { compileReactLearner } from '../lib/coding/react-transpile';
+import { REACT_COMPILE_WORKER_FILE } from '../lib/coding/react-compile-pool';
 import { CODING_TASKS } from '../lib/coding/catalog';
 import { solutionFor } from '../lib/coding/solutions/index';
 import { FETCH_STUB_SOURCE } from '../shared/coding-react-support';
@@ -397,9 +398,16 @@ async function artifactProbe(name: string) {
             return versions + `\n${nonce} ${JSON.stringify(verdict)}\n`;
           },
         });
-        const req = { headers: { 'x-request-id': requestId }, method: 'POST' } as VercelRequest;
-        const res = { setHeader() {} } as VercelResponse;
+        const req: VercelRequest = { headers: { 'x-request-id': requestId }, method: 'POST', query: {}, socket: {} };
+        const headers = new Headers();
+        const unexpectedResponse = (): never => assert.fail('successful snapshot grading wrote an HTTP response');
+        const res: VercelResponse = {
+          setHeader(name, value) { headers.set(name, String(value)); return this; },
+          status: unexpectedResponse, json: unexpectedResponse, send: unexpectedResponse,
+          end: unexpectedResponse, redirect: unexpectedResponse,
+        };
         const result = await withRequestContext(req, res, () => runIsolatedReactSuite(input));
+        assert.equal(headers.get('x-request-id'), requestId);
         assert.deepEqual(result, verdict);
         assert.equal(warnings.length, stale ? 1 : 0);
       }
@@ -465,6 +473,11 @@ async function artifactIntegrity() {
       writeFileSync(join(dir, 'package.json'), '{"type":"commonjs"}\n');
       writeFileSync(join(generated, 'react-sandbox.cjs'), ARTIFACT_FIXTURE);
       writeFileSync(join(generated, 'react-sandbox.sha256.cjs'), artifactDigest(ARTIFACT_FIXTURE));
+      if (name === 'snapshot-versions') {
+        // This control compares package warnings. Use the actual built compiler
+        // so neither verdict has to fall back to an in-thread compile.
+        symlinkSync(join(process.cwd(), REACT_COMPILE_WORKER_FILE), join(dir, REACT_COMPILE_WORKER_FILE));
+      }
       // The SDK is intentionally fabricated here, rather than patching a real
       // provider module and accidentally falling through to its create method.
       writeFileSync(join(generated, 'vercel-sandbox.cjs'), `
