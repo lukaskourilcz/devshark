@@ -1,4 +1,7 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { CATEGORY_OPTIONS, getCategoryHexColor, onCategoryColorText } from '../src/lib/categories';
 import { describe, expect, it } from 'vitest';
 import {
   ACCENT_SOFT_ALPHA,
@@ -184,4 +187,100 @@ describe('wallet entries and leaderboard visibility captions', () => {
     expect(settings).toMatch(/\.lb-visibility \.astryx-field-label\s*\{\s*--color-text-disabled:\s*var\(--color-text-secondary\)/);
     for (const mode of [0, 1]) expect(contrastRatio(colours('color-text-secondary')[mode], colours('color-background-surface')[mode])).toBeGreaterThanOrEqual(4.5);
   });
+});
+
+describe('authored text and control colours', () => {
+  const root = fileURLToPath(new URL('../src/', import.meta.url));
+  const css = (file: string) => readFileSync(join(root, file), 'utf8');
+  const theme = css('styles/astryx-theme.css');
+  const apple = theme.match(/:root\[data-design='apple'\]\s*\{([^}]+)\}/)![1];
+  const editor = css('coding/Coding.css');
+  const editorApple = editor.slice(editor.lastIndexOf('--cd-editor-bg:'));
+  const tokens = (sheet: string, name: string) => new RegExp('(?:^|[;{\\s])--' + name + ':\\s*([^;]+);').exec(sheet)?.[1]?.trim();
+  const foregrounds = [
+    'brand-accent', 'brand-accent-on-soft', 'brand-on-accent', 'cd-editor-fg', 'color-background-surface',
+    'color-text-accent', 'color-text-disabled', 'color-text-primary', 'color-text-secondary', 'rm-on-accent',
+    'ss-danger', 'ss-error', 'ss-error-text', 'ss-info', 'ss-ink', 'ss-on-avatar', 'ss-on-error-text',
+    'ss-success', 'ss-success-strong', 'ss-warning',
+  ];
+  it('requires a reviewed colour family for every directly used CSS text token', () => {
+    const seen = new Set<string>();
+    for (const file of readdirSync(root, { recursive: true, encoding: 'utf8' }).filter(f => f.endsWith('.css'))) {
+      const sheet = css(file).replace(/\/\*[\s\S]*?\*\//g, '');
+      for (const match of sheet.matchAll(/(?:^|[;{])\s*color\s*:\s*var\(\s*--([\w-]+)/g)) seen.add(match[1]);
+    }
+    expect([...seen].sort()).toEqual([...foregrounds].sort());
+  });
+
+  for (const design of ['brand', 'apple']) for (const mode of [0, 1] as const) {
+    it(`checks text, focus and control surfaces in ${design} ${mode ? 'dark' : 'light'}`, () => {
+      const sheets = design === 'apple' ? [apple, editorApple, theme, editor] : [theme, editor];
+      function raw(name: string): string {
+        for (const sheet of sheets) {
+          const value = tokens(sheet, name);
+          if (value !== undefined) return value;
+        }
+        throw new Error('Missing theme colour ' + name);
+      }
+      function solid(name: string): string {
+        if (name === 'brand-accent') return mode ? SUBJECTS.webdev.accentBright : SUBJECTS.webdev.accent;
+        const value = raw(name).replace(/var\(--([\w-]+)(?:,\s*#[\da-f]+)?\)/gi, (_, key: string) => solid(key));
+        const pair = /^light-dark\((#[\da-f]+),\s*(#[\da-f]+)\)$/i.exec(value);
+        const result = pair ? pair[mode + 1] : value;
+        if (!/^#[\da-f]{6}$/i.test(result)) throw new Error('Unsupported colour ' + name + ': ' + result);
+        return result;
+      }
+      function tinted(name: string, background: string) {
+        const stops = [...raw(name).matchAll(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/g)];
+        const stop = stops[mode];
+        if (!stop) throw new Error('Missing tint ' + name);
+        const fill = '#' + stop.slice(1, 4).map(v => Number(v).toString(16).padStart(2, '0')).join('');
+        return compositeOver(fill, Number(stop[4]), background);
+      }
+      const check = (ink: string, background: string, minimum = 4.5) =>
+        expect(contrastRatio(ink, background), ink + ' on ' + background).toBeGreaterThanOrEqual(minimum);
+      const surfaces = ['body', 'surface', 'muted', 'elevated'].map(s => solid('color-background-' + s));
+      const brand = solid('brand-accent');
+      const focusAmount = /var\(--brand-accent\) (\d+)%/.exec(raw('ss-focus'))!;
+      const border = raw('color-border-strong').replace('var(--ss-ink-rgb)', raw('ss-ink-rgb'));
+      const borderStop = [...border.matchAll(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/g)][mode];
+      const borderInk = '#' + borderStop.slice(1, 4).map(c => Number(c).toString(16).padStart(2, '0')).join('');
+      for (const background of surfaces) {
+        for (const text of ['color-text-primary', 'color-text-secondary', 'color-text-accent', 'ss-ink',
+          'ss-success', 'ss-success-strong', 'ss-error', 'ss-error-text', 'ss-warning', 'ss-info']) {
+          check(solid(text), background);
+        }
+        // The danger class falls back to normal foreground in both product themes.
+        check(solid('color-text-primary'), background);
+        check(compositeOver(brand, Number(focusAmount[1]) / 100, solid('ss-ink')), background, 3);
+        check(compositeOver(borderInk, Number(borderStop[4]), background), background, 3);
+        for (const status of ['success', 'error', 'warning', 'info'] as const) {
+          const fill = tinted('ss-' + status + '-soft', background);
+          check(solid('ss-' + status), fill, 3);
+          check(solid({ success: 'ss-success-strong', error: 'ss-error-text', warning: 'ss-warning', info: 'color-text-primary' }[status]!), fill);
+        }
+      }
+      const guide = css('components/TypingRacer.css');
+      expect(guide).toContain('.ss-typing__ch--pending { color: var(--color-text-secondary); }');
+      expect(guide).toMatch(/\.ss-typing__ch--error\s*\{\s*color:\s*var\(--ss-error-text\)/);
+      const clock = css('components/Challenge.css');
+      expect(clock).toMatch(/\.challenge-run__clock\[data-low\]\s*\{\s*color:\s*var\(--ss-error-text\)/);
+      const tintPercent = /color-mix\(in srgb, var\(--ss-error\) (\d+)%, transparent\)/.exec(clock);
+      expect(tintPercent).not.toBeNull();
+      check(solid('ss-error-text'), compositeOver(solid('ss-error'), Number(tintPercent![1]) / 100, solid('color-background-muted')));
+      const onBrand = mode ? tokens(theme.slice(theme.indexOf(":root[data-theme='dark']")), 'brand-on-accent')! : raw('brand-on-accent');
+      check(onBrand, brand);
+      check(solid('color-background-surface'), solid('ss-ink'));
+      check(solid('ss-on-error-text'), solid('ss-error-text'));
+      check(solid('cd-editor-fg'), solid('cd-editor-bg'));
+      for (const name of ['keyword', 'name', 'function', 'constant', 'type', 'operator', 'comment', 'string']) {
+        check(solid('cd-syntax-' + name), solid('cd-editor-bg'));
+      }
+      // Semantic topic fills on the roadmap choose their own white or dark ink.
+      for (const option of CATEGORY_OPTIONS) {
+        const foreground = onCategoryColorText(option.value);
+        check(foreground === '#fff' ? '#ffffff' : foreground === '#000' ? '#000000' : foreground, getCategoryHexColor(option.value));
+      }
+    });
+  }
 });
