@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
+import type { Editor } from '@tiptap/core';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import AdminUsers from '../src/components/admin/AdminUsers';
 import AdminEmails from '../src/components/admin/AdminEmails';
@@ -82,10 +83,13 @@ describe('editing multiple email templates', () => {
     const firstTab = screen.getByRole('tab', { selected: true });
     const otherTab = screen.getByRole('tab', { name: 'Cancellation receipt' });
     fireEvent.change(subject, { target: { value: 'Edited confirmation' } });
+    const body = await screen.findByRole('textbox', { name: 'Email text' }) as HTMLElement & { editor: Editor };
+    act(() => { body.editor.commands.insertContent('Unsaved body text '); });
     fireEvent.click(otherTab);
     fireEvent.change(subject, { target: { value: 'Edited cancellation' } });
     fireEvent.click(firstTab);
     expect(subject).toHaveValue('Edited confirmation');
+    expect(await screen.findByRole('textbox', { name: 'Email text' })).toHaveTextContent('Unsaved body text');
     fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
     expect(subject).toHaveValue(templates.signup_confirmation.subject);
     fireEvent.click(otherTab);

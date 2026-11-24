@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Banner } from '@astryxdesign/core/Banner';
 import { Button } from '@astryxdesign/core/Button';
@@ -9,7 +9,6 @@ import { friendlyError } from '../../lib/api';
 import { StatePanel } from '../ui/StatePanel';
 import { AdminDisclosure } from './AdminDisclosure';
 import type { AdminEmails as AdminEmailsData } from '../../../../shared/admin-directory';
-import type { EmailDocument } from '../../../../shared/email-document';
 import {
   EMAIL_SAMPLE_VARIABLES,
   EMAIL_TEMPLATE_DEFINITIONS,
@@ -19,12 +18,14 @@ import {
   sampleEmailAction,
   type AuthSyncResult,
   type AuthSyncStatus,
+  type EmailTemplate,
   type EmailTemplateId,
 } from '../../../../shared/email-templates';
 
 const EmailRichTextEditor = lazy(() => import('./EmailRichTextEditor'));
 
-type Feedback = { status: 'success' | 'error' | 'warning'; title: string } | null;
+type Feedback = { status: 'success' | 'error' | 'warning'; title: string };
+type TemplateEdit = { id: EmailTemplateId; draft: EmailTemplate };
 
 /**
  * The email editor (owner, 12 November 2026, after the NAVIGYM administration): pick a template, edit
@@ -36,24 +37,30 @@ export default function AdminEmails() {
   const query = useQuery({ queryKey: adminEmailsKey, queryFn: listAdminEmails, staleTime: 60_000 });
   const [selectedId, setSelectedId] = useState<EmailTemplateId>('signup_confirmation');
   const stored = query.data?.templates[selectedId];
-  const [subject, setSubject] = useState('');
-  const [document, setDocument] = useState<EmailDocument | null>(null);
-  // What the editor shows when it is (re)loaded: a new object makes it replace its content.
-  const [seed, setSeed] = useState<EmailDocument | null>(null);
+  const [edits, setEdits] = useState<Partial<Record<EmailTemplateId, EmailTemplate>>>({});
+  const draft = edits[selectedId] ?? stored;
+  const subject = draft?.subject ?? '';
+  const document = draft?.document;
   const [testTo, setTestTo] = useState('');
-  const [saveFeedback, setSaveFeedback] = useState<Feedback>(null);
-  const [testFeedback, setTestFeedback] = useState<Feedback>(null);
+  const [saveFeedback, setSaveFeedback] = useState<(Feedback & { id: EmailTemplateId }) | null>(null);
+  const [testFeedback, setTestFeedback] = useState<(Feedback & { id: EmailTemplateId }) | null>(null);
 
-  // Load the selected template, and again after a save or reset replaced it.
-  useEffect(() => {
+  function change(patch: Partial<EmailTemplate>) {
     if (!stored) return;
-    setSubject(stored.subject);
-    setDocument(stored.document);
-    setSeed({ ...stored.document });
-  }, [stored]);
-  useEffect(() => { setSaveFeedback(null); setTestFeedback(null); }, [selectedId]);
+    setEdits(current => ({ ...current, [selectedId]: { ...(current[selectedId] ?? stored), ...patch } }));
+    setSaveFeedback(null);
+  }
+  // Typing after Save creates a different draft. Its earlier acknowledgement
+  // can update the stored template, but must leave those newer edits in place.
+  function discard(id: EmailTemplateId, expected: EmailTemplate | undefined) {
+    setEdits(current => {
+      if (!current[id] || current[id] !== expected) return current;
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+  }
 
-  const draft = document ? { subject, document } : null;
   const dirty = !!stored && !!draft && (draft.subject !== stored.subject || JSON.stringify(draft.document) !== JSON.stringify(stored.document));
   const problem = draft ? emailTemplateProblem(selectedId, draft) : null;
   const preview = useMemo(() => document ? renderEmailTemplate({ subject, document }, EMAIL_SAMPLE_VARIABLES, sampleEmailAction(selectedId)) : null,
@@ -64,31 +71,37 @@ export default function AdminEmails() {
     return { status: 'warning', title: sync.reason === 'not_configured' ? t('admin.emails.savedNoToken')
       : t('admin.emails.savedSyncFailed').replace('{status}', sync.status ? 'HTTP ' + sync.status : t('admin.emails.noResponse')) };
   };
-  const replace = (template: AdminEmailsData['templates'][EmailTemplateId]) =>
-    queryClient.setQueryData<AdminEmailsData>(adminEmailsKey, old => old ? { ...old, templates: { ...old.templates, [selectedId]: template } } : old);
+  const replace = (id: EmailTemplateId, template: AdminEmailsData['templates'][EmailTemplateId]) =>
+    queryClient.setQueryData<AdminEmailsData>(adminEmailsKey, old => old ? { ...old, templates: { ...old.templates, [id]: template } } : old);
 
   const save = useMutation({
-    mutationFn: () => saveAdminEmail({ action: 'save', id: selectedId, subject, document: document! }),
+    mutationFn: ({ id, draft }: TemplateEdit) => saveAdminEmail({ action: 'save', id, subject: draft.subject, document: draft.document }),
     onMutate: () => setSaveFeedback(null),
-    onSuccess: result => { if ('template' in result) { replace(result.template); setSaveFeedback(syncMessage(result.authSync)); } },
-    onError: error => setSaveFeedback({ status: 'error', title: friendlyError(error) }),
+    onSuccess: (result, { id, draft }) => {
+      if (!('template' in result)) return;
+      replace(id, result.template);
+      discard(id, draft);
+      setSaveFeedback({ id, ...syncMessage(result.authSync) });
+    },
+    onError: (error, { id }) => setSaveFeedback({ id, status: 'error', title: friendlyError(error) }),
   });
   const reset = useMutation({
-    mutationFn: () => saveAdminEmail({ action: 'reset', id: selectedId }),
+    mutationFn: ({ id }: { id: EmailTemplateId; edit?: EmailTemplate }) => saveAdminEmail({ action: 'reset', id }),
     onMutate: () => setSaveFeedback(null),
-    onSuccess: result => {
+    onSuccess: (result, { id, edit }) => {
       if (!('template' in result)) return;
-      replace(result.template);
+      replace(id, result.template);
+      discard(id, edit);
       const message = syncMessage(result.authSync);
-      setSaveFeedback(message?.status === 'success' ? { status: 'success', title: t('admin.emails.resetDone') } : message);
+      setSaveFeedback({ id, ...message, title: message.status === 'success' ? t('admin.emails.resetDone') : message.title });
     },
-    onError: error => setSaveFeedback({ status: 'error', title: friendlyError(error) }),
+    onError: (error, { id }) => setSaveFeedback({ id, status: 'error', title: friendlyError(error) }),
   });
   const test = useMutation({
-    mutationFn: () => saveAdminEmail({ action: 'test', id: selectedId, to: testTo.trim() }),
+    mutationFn: ({ id, to }: { id: EmailTemplateId; to: string }) => saveAdminEmail({ action: 'test', id, to }),
     onMutate: () => setTestFeedback(null),
-    onSuccess: () => setTestFeedback({ status: 'success', title: t('admin.emails.testSent') }),
-    onError: error => setTestFeedback({ status: 'error', title: friendlyError(error) }),
+    onSuccess: (_result, { id }) => setTestFeedback({ id, status: 'success', title: t('admin.emails.testSent') }),
+    onError: (error, { id }) => setTestFeedback({ id, status: 'error', title: friendlyError(error) }),
   });
 
   if (query.isPending) return <p role="status">{t('admin.emails.loading')}</p>;
@@ -123,19 +136,19 @@ export default function AdminEmails() {
             {definition.required.length ? ' ' + t('admin.emails.required').replace('{variables}', definition.required.join(', ')) : ''}</p>
           {definition.delivery === 'supabase_auth' ? <p className="admin-muted">{authTemplateNote(selectedId, data.authSync, t)}</p> : null}
         </AdminDisclosure>
-        <form onSubmit={event => { event.preventDefault(); if (!problem && dirty) save.mutate(); }}>
-          <TextInput label={t('admin.emails.subject')} value={subject} onChange={setSubject} width="100%" />
+        <form onSubmit={event => { event.preventDefault(); if (draft && !problem && dirty && !busy) save.mutate({ id: selectedId, draft }); }}>
+          <TextInput label={t('admin.emails.subject')} value={subject} onChange={value => change({ subject: value })} width="100%" />
           <p className="admin-email-label" id="email-body-label">{t('admin.emails.body')}</p>
-          {seed ? <Suspense fallback={<p role="status">{t('admin.emails.editorLoading')}</p>}>
-            <EmailRichTextEditor initialDocument={seed} onChange={setDocument} labelId="email-body-label" helpId="email-body-help" />
+          {document ? <Suspense fallback={<p role="status">{t('admin.emails.editorLoading')}</p>}>
+            <EmailRichTextEditor key={selectedId} initialDocument={document} onChange={value => change({ document: value })} labelId="email-body-label" helpId="email-body-help" />
           </Suspense> : null}
           <p className="admin-muted admin-email-help" id="email-body-help">{t('admin.emails.bodyHelp')}</p>
           {problem && dirty ? <Banner status="warning" title={problem} /> : null}
-          {saveFeedback ? <Banner status={saveFeedback.status} title={saveFeedback.title} /> : null}
+          {saveFeedback?.id === selectedId ? <Banner status={saveFeedback.status} title={saveFeedback.title} /> : null}
           <div className="admin-email-actions">
             <Button type="submit" variant="primary" label={save.isPending ? t('admin.emails.saving') : t('admin.emails.save')} isDisabled={!dirty || !!problem || busy} />
-            {dirty ? <Button variant="secondary" label={t('admin.emails.discard')} onClick={() => { setSubject(stored!.subject); setDocument(stored!.document); setSeed({ ...stored!.document }); }} isDisabled={busy} /> : null}
-            {stored?.custom ? <Button variant="secondary" label={t('admin.emails.reset')} onClick={() => reset.mutate()} isDisabled={busy} /> : null}
+            {dirty ? <Button variant="secondary" label={t('admin.emails.discard')} onClick={() => discard(selectedId, edits[selectedId])} isDisabled={busy} /> : null}
+            {stored?.custom ? <Button variant="secondary" label={t('admin.emails.reset')} onClick={() => reset.mutate({ id: selectedId, edit: edits[selectedId] })} isDisabled={busy} /> : null}
           </div>
         </form>
       </div>
@@ -147,9 +160,9 @@ export default function AdminEmails() {
           <p className="admin-email-preview-subject">{preview.subject}</p>
           <iframe className="admin-email-frame" title={t('admin.emails.preview')} sandbox="" srcDoc={preview.html} />
         </> : null}
-        <form className="admin-email-test" onSubmit={event => { event.preventDefault(); if (testTo.trim()) test.mutate(); }}>
+        <form className="admin-email-test" onSubmit={event => { event.preventDefault(); if (testTo.trim() && !test.isPending) test.mutate({ id: selectedId, to: testTo.trim() }); }}>
           <TextInput type="email" label={t('admin.emails.testTo')} description={t('admin.emails.testHelp')} value={testTo} onChange={setTestTo} placeholder="you@example.com" width="100%" />
-          {testFeedback ? <Banner status={testFeedback.status} title={testFeedback.title} /> : null}
+          {testFeedback?.id === selectedId ? <Banner status={testFeedback.status} title={testFeedback.title} /> : null}
           <Button type="submit" variant="secondary" label={test.isPending ? t('admin.emails.sending') : t('admin.emails.sendTest')} isDisabled={!testTo.trim() || test.isPending || !data.deliveryConfigured} />
           {!data.deliveryConfigured ? <p className="admin-muted">{t('admin.emails.testNeedsKey')}</p> : null}
         </form>
