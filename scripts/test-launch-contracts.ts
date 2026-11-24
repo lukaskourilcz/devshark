@@ -1,7 +1,8 @@
+// Clear local service credentials before any handler dependency is evaluated.
+import './launch-test-env';
+import { transformSync } from 'esbuild';
 import { privateCspReport } from '../lib/csp-reports';
 import { adminDirectoryContracts } from './test-admin-directory';
-// First: clears the environment the handlers below read when imported.
-import './launch-test-env';
 import { createCodingSession as encodeCodingSession } from '../lib/coding/session';
 import assert from 'node:assert/strict';
 import { complexityContracts } from './coding-complexity-contract';
@@ -7093,11 +7094,12 @@ function consentContracts() {
   const read = (path: string) => readFileSync(join(process.cwd(), path), 'utf8');
   const main = read('client/src/main.tsx');
   const analytics = read('client/src/lib/analytics.ts');
+  const executable = transformSync(analytics, { loader: 'ts', format: 'esm', target: 'esnext' }).code;
   // posthog-js comes in through lib/posthogClient.ts alone, which the
   // consent gate imports dynamically.
   assert.doesNotMatch(main, /posthog-js|posthogClient/, 'main.tsx must not import PostHog');
   assert.doesNotMatch(analytics, /^import (?!type)[^;]*'posthog-js'/m, 'analytics.ts must not import posthog-js at run time');
-  assert.equal(analytics.match(/import\('\.\/posthogClient'\)/g)?.length, 1, 'one dynamic import of the PostHog client');
+  assert.equal(executable.match(/import\(['"]\.\/posthogClient['"]\)/g)?.length, 1, 'one dynamic import of the PostHog client');
   assert.doesNotMatch(analytics, /^import [^;]*'\.\/posthogClient'/m, 'the PostHog client is never imported statically');
   assert.match(read('client/src/lib/posthogClient.ts'), /opt_out_capturing_by_default: true,\s+opt_out_persistence_by_default: true/);
   assert.match(analytics, /if \(!active \|\| !key\) return Promise\.resolve\(null\);/, 'PostHog loads only while analytics consent holds');
