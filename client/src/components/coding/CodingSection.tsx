@@ -370,7 +370,7 @@ function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = t
     <div ref={listRef} id={listId} className="cd-project-list">{(showAll ? challenges : challenges.slice(0, LIST_FOLD)).map((challenge, index) => {
       const completed = challenge.stages.filter(id => evolvingPassed(id, passed)).length;
       const resumeId = evolvingResume(challenge, passed);
-      const laterLocked = laterLockedIn(challenge);
+      const resumeLocked = isBarred(premiumOf(resumeId));
       // The verb says where the learner stands: nothing done, part done, all done.
       const action = !progressKnown ? codingListCopy('coding.project.open') : completed === challenge.stages.length ? codingListCopy('coding.evolving.review') : completed > 0 ? t('coding.continue') : codingListCopy('coding.evolving.start');
       return <article key={challenge.id} className="cd-project" tabIndex={index >= LIST_FOLD ? -1 : undefined} aria-labelledby={`${challenge.id}-name`}>
@@ -382,10 +382,10 @@ function EvolvingGallery({ passed, premiumOf, category, track, progressKnown = t
         </div>
         <div className="cd-project__progress">
           {progressKnown && <div className="cd-stage-meter" aria-hidden>{challenge.stages.map(id => <span key={id} data-complete={evolvingPassed(id, passed)} />)}</div>}
-          <p>{progressKnown ? t(challenge.short ? 'coding.evolving.levelsProgress' : 'coding.evolving.progress', { n: completed, total: challenge.stages.length }) : codingListCopy('coding.progress.unavailable')}{laterLocked && <> <Badge variant="neutral" label={t('premium.badge')} /></>}</p>
+          <p>{progressKnown ? t(challenge.short ? 'coding.evolving.levelsProgress' : 'coding.evolving.progress', { n: completed, total: challenge.stages.length }) : codingListCopy('coding.progress.unavailable')}{resumeLocked && <> <Badge variant="neutral" label={t('premium.badge')} /></>}</p>
         </div>
         {/* The quieter fin: the page's one SwimCta is its next challenge. */}
-        <FadeFinCta label={action} ariaLabel={codingListCopy('coding.project.action', { action, title: challenge.title })} finLeft="62%" finSize={26} accent="var(--brand-accent)" onClick={() => { if (isBarred(premiumOf(resumeId))) askForPremium(resumeId); else navigate(`/coding/${evolvingTaskTrack(resumeId)}/${resumeId}`, { state: { codingReturnTo: location.pathname + location.search } }); }} />
+        <FadeFinCta label={action} ariaLabel={codingListCopy('coding.project.action', { action, title: challenge.title })} finLeft="62%" finSize={26} accent="var(--brand-accent)" onClick={() => { if (resumeLocked) askForPremium(resumeId); else navigate(`/coding/${evolvingTaskTrack(resumeId)}/${resumeId}`, { state: { codingReturnTo: location.pathname + location.search } }); }} />
       </article>;
     })}</div>
     {foldable && (

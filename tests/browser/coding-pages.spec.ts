@@ -3,7 +3,8 @@ import AxeBuilder from '@axe-core/playwright';
 import { CODING_TASKS, playable } from '../../lib/coding/catalog';
 import { localAuth, storeFakeSession } from './fake-session';
 import { fulfilTaskRead, isTaskRead } from './coding-task-read';
-import { EVOLVING_CHALLENGES } from '../../shared/evolving';
+import { EVOLVING_CHALLENGES, evolvingTaskTrack } from '../../shared/evolving';
+import { isFreeCodingTask } from '../../shared/tiers';
 
 // The Coding pages against the built app, with the API answered here in its
 // real shapes: a missing track or task (C3-17, V3-2), a track whose progress
@@ -23,6 +24,7 @@ const notFound = (route: Route) => route.fulfill({ status: 404, json: { error: {
 const unknownTask = (route: Route) => route.fulfill({ status: 404, json: { error: { code: 'not_found', message: 'Unknown task' } } });
 
 interface Api {
+  entitlement?: (route: Route) => Promise<void>;
   progress?: (route: Route) => Promise<void>;
   task?: (route: Route) => Promise<void>;
   session?: (route: Route) => Promise<void>;
@@ -38,7 +40,7 @@ async function answer(page: Page, api: Api = {}) {
       if (!url.search) return route.fulfill({ json: { topics: [], structure: {} } });
       return notFound(route);
     }
-    if (op === 'entitlement') return route.fulfill({ json: PREMIUM });
+    if (op === 'entitlement') return api.entitlement ? api.entitlement(route) : route.fulfill({ json: PREMIUM });
     if (op === 'coding-progress') return api.progress ? api.progress(route) : route.fulfill({ json: PROGRESS });
     if (op === 'coding-bookmarks') return api.bookmarks ? api.bookmarks(route) : route.fulfill({ json: { saved: [], collections: [] } });
     if (op === 'practice-session') return api.session ? api.session(route) : route.fulfill({ json: { session: null } });
@@ -338,3 +340,44 @@ test.describe('phone Coding routes', () => {
   });
 
 });
+
+test('a guest project with a free opening stage shows its access rule once and a free start', async ({page}) => {
+  await answer(page);
+  await page.goto('/coding/fullstack');
+  const project = page.locator('.cd-project').filter({has: page.getByRole('button', {name: 'Start Link shortener', exact:true})});
+  await expect(project).toBeVisible();
+  await expect(project.getByText('Premium', {exact:true})).toHaveCount(0);
+});
+
+for (const [tier, stage] of [
+  ['free', 'first'], ['free', 'boundary'], ['premium', 'boundary'], ['unknown', 'boundary'], ['free', 'completed'],
+] as const) {
+  test(`project badge and keyboard action agree for a ${tier} account at ${stage}`, async ({ page }) => {
+    const project = EVOLVING_CHALLENGES.find(one => one.id === 'fullstack-links')!;
+    const paid = project.stages.findIndex(id => !isFreeCodingTask(id));
+    const passes = stage === 'first' ? 0 : stage === 'completed' ? project.stages.length : paid;
+    const target = project.stages[Math.min(passes, project.stages.length - 1)];
+    await storeFakeSession(page);
+    await localAuth(page);
+    await answer(page, {
+      entitlement: route => tier === 'unknown' ? notFound(route) : route.fulfill({ json: { ...PREMIUM, tier } }),
+      progress: route => route.fulfill({ json: {
+        ...PROGRESS, tasks: Object.fromEntries(project.stages.slice(0, passes).map(id => [id, PROGRESS.tasks[TASK]])),
+      } }),
+    });
+    await page.goto('/coding/fullstack');
+    const row = page.getByRole('article', { name: project.title, exact: true });
+    const action = row.getByRole('button');
+    await expect(action).toHaveAccessibleName(new RegExp(`${stage === 'completed' ? 'Review' : passes ? 'Continue' : 'Start'} ${project.title}`));
+    const locked = tier === 'free' && stage === 'boundary';
+    await expect(row.getByText('Premium', { exact: true })).toHaveCount(locked ? 1 : 0);
+    await action.focus();
+    await page.keyboard.press('Enter');
+    if (locked) {
+      await expect(page.getByRole('dialog')).toBeVisible();
+      await expect(page).toHaveURL(/\/coding\/fullstack$/);
+    } else {
+      await expect(page).toHaveURL(new RegExp(`/coding/${evolvingTaskTrack(target)}/${target}$`));
+    }
+  });
+}
