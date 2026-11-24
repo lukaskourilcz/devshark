@@ -34,7 +34,7 @@
 .admin-email-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:6px;border-bottom:1px solid var(--color-border)}
 .admin-email-toolbar select{min-height:36px;padding:0 8px;border:1px solid var(--color-border-strong);border-radius:var(--radius-inner);background:transparent;color:inherit;font:inherit}
 .admin-email-tool{min-width:36px;min-height:36px;border:1px solid transparent;border-radius:var(--radius-inner);background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
-.admin-email-tool[aria-pressed=true]{border-color:var(--color-border);background:var(--color-border)}
+.admin-email-tool[aria-pressed=true]{border-color:var(--color-border-strong);border-bottom:3px double currentColor;background:var(--color-background-muted)}
 .admin-email-tool:disabled{opacity:.4;cursor:default}
 .admin-email-editor-content{min-height:280px;padding:12px 14px;outline:none;line-height:1.6;overflow-wrap:anywhere}
 .admin-email-editor-content p{margin:0 0 12px}.admin-email-editor-content ul,.admin-email-editor-content ol{margin:0 0 12px;padding-left:24px}

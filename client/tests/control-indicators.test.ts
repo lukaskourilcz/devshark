@@ -42,6 +42,13 @@ describe('editable fields and resize handles', () => {
     )).toBe(true);
   });
 
+  it('marks active email formatting with a visible edge and a second line under the glyph', () => {
+    const selector = '.admin-email-tool[aria-pressed=true]';
+    const rules = declarations('components/admin/AdminPage.css', selector).join(' ');
+    expect(rules).toMatch(/border-color:\s*var\(--color-border-strong\)/);
+    expect(rules).toMatch(/border-bottom:\s*3px double currentColor/);
+  });
+
   it('keeps the empty lesson heart identifiable while its fill drains', () => {
     const src = join(dirname(fileURLToPath(import.meta.url)), '../src');
     const meter = readFileSync(join(src, 'components/learn/LessonRunner.tsx'), 'utf8');
