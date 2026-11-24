@@ -1,7 +1,7 @@
 // Clear local service credentials before any handler dependency is evaluated.
 import './launch-test-env';
 import { transformSync } from 'esbuild';
-import { privateCspReport } from '../lib/csp-reports';
+import { handleCspReport, privateCspReport } from '../lib/csp-reports';
 import { adminDirectoryContracts } from './test-admin-directory';
 import { createCodingSession as encodeCodingSession } from '../lib/coding/session';
 import assert from 'node:assert/strict';
@@ -4052,6 +4052,52 @@ assert.deepEqual(sanitizedReport, { 'csp-report': { 'document-uri': 'https://dev
   'effective-directive': 'img-src', 'violated-directive': 'img-src', 'blocked-uri': 'redacted' } });
 assert.equal(privateCspReport({ 'csp-report': { 'effective-directive': 'private text' } }), null);
 
+async function cspReportingContracts() {
+  const previous = process.env.VITE_SENTRY_DSN;
+  const originalFetch = globalThis.fetch;
+  const sent: unknown[] = [];
+  const syntheticKey = '0'.repeat(32);
+  const host = 'o4511808879001600.ingest.de.sentry.io';
+  process.env.VITE_SENTRY_DSN = `https://${syntheticKey}@${host}/1`;
+  globalThis.fetch = async (url, init) => {
+    assert.equal(String(url), `https://${host}/api/1/security/?sentry_key=${syntheticKey}`);
+    assert.deepEqual(init?.headers, { 'content-type': 'application/csp-report' });
+    sent.push(JSON.parse(String(init?.body)));
+    return new Response(null, { status: 204 });
+  };
+  const post = async (body: unknown, type = 'application/reports+json', address = '192.0.2.77') => {
+    const req = { headers: { 'content-type': type, 'x-forwarded-for': address }, body, socket: {} };
+    const res = mockResponse();
+    await handleCspReport(req as never, res as never);
+    return res.statusCode;
+  };
+  const item = { type: 'csp-violation', url: 'https://example.test/private', body: {
+    effectiveDirective: 'img-src', blockedURL: 'https://images.example/private?query=fixture',
+    referrer: 'https://private.example/path', sample: 'private fixture text' } };
+  try {
+    assert.equal(await post(JSON.stringify([item, { type: 'deprecation', body: item.body },
+      { ...item, body: { effectiveDirective: 'script-src', blockedURL: 'inline' } }])), 204);
+    assert.deepEqual(sent, [sanitizedReport, { 'csp-report': { 'document-uri': 'https://devshark.app/',
+      'effective-directive': 'script-src', 'violated-directive': 'script-src', 'blocked-uri': 'inline' } }]);
+    assert.equal(await post({ 'csp-report': { 'effective-directive': 'img-src' } }, 'application/csp-report'), 204);
+    assert.deepEqual(sent[2], sanitizedReport, 'legacy posts share the same scrubber and sink');
+    assert.equal(await post({}), 400);
+    assert.equal(await post(Array(9).fill(item)), 413);
+    assert.equal(await post(' '.repeat(8193)), 413);
+    assert.equal(await post([{ ...item, url: 'x'.repeat(8193) }]), 413, 'decoded chunked batches keep the byte cap');
+    assert.equal(await post([], 'text/plain'), 415);
+    assert.equal(sent.length, 3);
+    const address = '192.0.2.78';
+    assert.equal(await post(Array(8).fill(item), 'application/reports+json', address), 204);
+    assert.equal(await post(Array(5).fill(item), 'application/reports+json', address), 429);
+    assert.equal(sent.length, 11, 'a batch over its remaining allowance forwards no partial batch');
+    console.log('PASS CSP collector: modern and legacy formats, sanitized envelopes, batch limits and unchanged per-report quota');
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (previous === undefined) delete process.env.VITE_SENTRY_DSN; else process.env.VITE_SENTRY_DSN = previous;
+  }
+}
+
 function assertGenericError(label: string, error: Record<string, unknown> | undefined) {
   assert.deepEqual(Object.keys(error ?? {}).filter((key) => !['code', 'message', 'requestId'].includes(key)), [],
     `${label} answers the generic error body`);
@@ -7088,6 +7134,7 @@ async function main() {
   unstorableTextContracts();
   strictQueryContracts();
   await quizStepQueryContracts();
+  await cspReportingContracts();
   await malformedBodyContracts();
   await oversizeBodyContracts();
   await requestIdContracts();

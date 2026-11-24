@@ -14,6 +14,7 @@ const header = (route, name) => Object.entries(route.headers ?? {}).find(([key])
 const appRules = headerRoutes.filter(route => /(?:^|;)\s*frame-ancestors\s+'none'\s*(?:;|$)/i.test(header(route, 'Content-Security-Policy') ?? ''));
 assert.equal(appRules.length, 1, `Exactly one header route may carry the app policy (frame-ancestors 'none'); found ${appRules.map(route => route.src).join(', ') || 'none'}`);
 const [app] = appRules;
+assert.equal(header(app, 'Reporting-Endpoints'), 'csp="/api/settings?op=csp-report"');
 const csp = header(app, 'Content-Security-Policy');
 
 // The type values a browser runs as script (the HTML standard's JavaScript MIME
@@ -185,6 +186,7 @@ const APP_POLICY = {
   'worker-src': ["'self'"],
   'upgrade-insecure-requests': [],
   'report-uri': ['/api/settings?op=csp-report'],
+  'report-to': ['csp'],
 };
 /** How policy `actual` differs from policy `expected` (both from
  * parsePolicy), directive by directive; sources may come in any order. The
