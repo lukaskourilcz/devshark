@@ -14,6 +14,7 @@ import {
 import {
   jsonError,
   queryInt,
+  queryString,
   withTimeout,
   requireAuthSub,
   requireAuthResult,
@@ -741,7 +742,9 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   //   POST ?resource=coding-submit       → server grading (every track)
   //   POST ?resource=coding-reveal       → the reference solution after a pass or give-up
   //   POST ?resource=coding-reset        → Reset, signed in: opens the task's repeat XP
-  const resource = typeof req.query.resource === 'string' ? req.query.resource : '';
+  const requestedResource = queryString(req, 'resource');
+  if (requestedResource === null) return jsonError(res, 400, 'bad_request', 'Expected one resource');
+  const resource = requestedResource ?? '';
   if (resource.startsWith('coding-')) {
     try {
       if (resource === 'coding-task' && (req.method === 'GET' || req.method === 'POST')) return await handleCodingTask(req, res, supabase);
@@ -751,7 +754,10 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
       if (resource === 'coding-reveal' && req.method === 'POST') return await handleCodingReveal(req, res, supabase);
       if (resource === 'coding-reset' && req.method === 'POST') return await handleCodingReset(req, res, supabase);
       if (resource === 'coding-approaches' && req.method === 'GET') return await handleCodingApproaches(req, res, supabase);
-      res.setHeader('Allow', resource === 'coding-task' ? 'GET, POST' : ['coding-approaches', 'coding-brief', 'coding-state'].includes(resource) ? 'GET' : 'POST');
+      const read = ['coding-approaches', 'coding-brief', 'coding-state'].includes(resource);
+      const write = ['coding-submit', 'coding-reveal', 'coding-reset'].includes(resource);
+      if (!read && !write && resource !== 'coding-task') return jsonError(res, 404, 'unknown_resource', 'Unknown roadmap resource');
+      res.setHeader('Allow', resource === 'coding-task' ? 'GET, POST' : read ? 'GET' : 'POST');
       return jsonError(res, 405, 'method_not_allowed', 'Method not allowed');
     } catch (error) {
       if (error instanceof ServiceUnavailableError) return jsonError(res, 503, error.code, error.message);
@@ -769,7 +775,7 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
       if (resource === 'learning-path-catalog') return await handleLearningPathCatalog(req, shareCatalogWithCdn(req, res));
       if (resource === 'learning-path-start') return await handleActivityStart(req, res, supabase);
       if (resource === 'learning-path-submit') return await handleActivitySubmit(req, res, supabase);
-      return jsonError(res, 404, 'not_found', 'Unknown learning-path resource');
+      return jsonError(res, 404, 'unknown_resource', 'Unknown roadmap resource');
     } catch (error) {
       if (error instanceof ServiceUnavailableError) throw error;
       logEvent({ status: 500, kind: 'learning_path_error', resource, category: error instanceof Error ? error.name : 'unknown' });
@@ -888,6 +894,16 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
       if (error instanceof ServiceUnavailableError) throw error;
       return jsonError(res, 500, 'internal_error', 'Internal error');
     }
+  }
+
+  // Recognised sub-resources above return directly on their supported method.
+  // Only the absence of a resource selects the public roadmap.
+  if (resource) {
+    const read = ['eligibility', 'progress'].includes(resource);
+    const write = ['answer', 'complete', 'attempt-status', 'skill-check'].includes(resource);
+    if (!read && !write) return jsonError(res, 404, 'unknown_resource', 'Unknown roadmap resource');
+    res.setHeader('Allow', read ? 'GET' : 'POST');
+    return jsonError(res, 405, 'method_not_allowed', 'Method not allowed');
   }
 
   if (req.method !== 'GET') {

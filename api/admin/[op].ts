@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '../../lib/vercel-types.js';
 import { isRetiredTopic } from '../../shared/retired-content';
-import { createServiceClient, jsonError, createLogger, ServiceUnavailableError, withTimeout, withRequestContext } from '../../lib/http';
+import { createServiceClient, jsonError, createLogger, ServiceUnavailableError, withTimeout, withRequestContext, unstorableText, UNSTORABLE_TEXT_MESSAGE } from '../../lib/http';
 import { adminSubject, requireAdmin } from '../../lib/admin-auth';
 import { requireFreshAuth } from '../../lib/auth';
 import { enforceRateLimit, RATE_LIMITS } from '../../lib/rate-limit';
@@ -48,16 +48,6 @@ const boundedString = (v: unknown, max: number): string | null =>
 const cutText = (text: string, max: number): string =>
   text.length <= max ? text : Array.from(text).slice(0, max).join('');
 
-/** Postgres text and JSONB refuse U+0000 (22P05), so a question, a setting, a
- * voucher note or an id holding it failed the write and answered 500. The
- * values are walked, not the JSON text, so a question about escapes that
- * spells `\u0000` out still saves. */
-function holdsNul(value: unknown, depth = 0): boolean {
-  if (typeof value === 'string') return value.includes('\u0000');
-  if (depth > 8 || value === null || typeof value !== 'object') return false;
-  return Object.values(value as Record<string, unknown>).some((one) => holdsNul(one, depth + 1));
-}
-
 async function routeHandler(req: VercelRequest, res: VercelResponse) {
   // An admin is checked against Supabase Auth on every request, never against
   // a token this instance accepted earlier (lib/auth.ts, "Accepted tokens"):
@@ -71,8 +61,8 @@ async function routeHandler(req: VercelRequest, res: VercelResponse) {
   if (!(await requireAdmin(req, res))) return;
 
   const op = String(req.query.op || '').toLowerCase();
-  if (holdsNul(req.body)) {
-    return jsonError(res, 400, 'bad_request', 'Text cannot contain a NUL (U+0000) character');
+  if (unstorableText(req.body)) {
+    return jsonError(res, 400, 'bad_request', UNSTORABLE_TEXT_MESSAGE);
   }
   try {
     switch (op) {
@@ -337,7 +327,10 @@ async function deleteQuestionOp(req: VercelRequest, res: VercelResponse) {
   if (!id) return jsonError(res, 400, 'bad_request', 'id is required');
   if (!(await knownQuestionId(id))) return unknownQuestion(res);
   // `deleted: false` restores a soft-deleted base question; default is delete.
-  const deleted = b.deleted === false ? false : true;
+  if (b.deleted !== undefined && typeof b.deleted !== 'boolean') {
+    return jsonError(res, 400, 'bad_request', 'deleted must be a boolean');
+  }
+  const deleted = b.deleted ?? true;
   await setQuestionDeleted(id, deleted);
   log({ op: 'delete', status: 200, by: actor(req), id, deleted });
   return res.json({ ok: true });

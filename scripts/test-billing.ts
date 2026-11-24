@@ -704,6 +704,10 @@ export async function runBillingSuite(db: Backend, lib: Lib): Promise<number> {
       assert.equal(res.body.error.code, 'bad_signature');
     }
     assert.equal(await db.event(`evt_1FixtureSubscriptionCreated_sig`), null, 'an unsigned event is never recorded');
+    for (const malformed of [{}, { id: 'evt_missing', object: 'event', type: 'customer.subscription.created', data: null }]) {
+      const text = JSON.stringify(malformed);
+      assert.equal((await deliver(text, 'string', sign(text))).statusCode, 400);
+    }
     assert.equal(await premium(a.userId), false);
     const old = process.env.STRIPE_WEBHOOK_SECRET;
     delete process.env.STRIPE_WEBHOOK_SECRET;

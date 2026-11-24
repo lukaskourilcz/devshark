@@ -4,6 +4,9 @@
  * mounts a Stripe-hosted payment iframe; card details never reach devShark. */
 
 import Stripe from 'stripe';
+import { rawBodyCandidates } from '../raw-body';
+/** @public The isolated billing harness also reads these candidates. */
+export { rawBodyCandidates } from '../raw-body';
 import type { VercelRequest } from '../vercel-types.js';
 import type { BillingConfig } from './config';
 
@@ -65,75 +68,6 @@ export function stripeErrorCode(error: unknown): { status: number | null; code: 
   };
 }
 
-/* ── The raw body ─────────────────────────────────────────────────────────
- *
- * Stripe signs the exact bytes it sends. `op=payment-webhook` reads its body
- * as `req.body` when that is a string and re-serialises it otherwise; that is
- * enough for a provider that signs compact JSON, but Stripe sends indented
- * JSON, and `JSON.stringify` of the parsed object no longer matches it.
- *
- * Vercel's Node runtime buffers the request before the handler runs and then
- * replays the same bytes through the request's `data` and `end` events. So the
- * raw body is read from those events first. When a runtime has already
- * consumed the stream, the candidates fall back to what payment-webhook uses:
- * the body string, or the body re-serialised (compact, then with Stripe's
- * two-space indentation). Trying a candidate is safe: a signature only matches
- * bytes Stripe signed, and every candidate parses to the body the handler
- * then uses. */
-
-type StreamLike = {
-  on?: (event: string, listener: (...args: unknown[]) => void) => unknown;
-  removeListener?: (event: string, listener: (...args: unknown[]) => void) => unknown;
-  readableEnded?: boolean;
-};
-
-function readStream(req: VercelRequest, timeoutMs: number): Promise<string | null> {
-  const stream = req as unknown as StreamLike;
-  // A stream a runtime has read already sends no more events: waiting for
-  // them would only add the whole timeout to every delivery.
-  if (typeof stream.on !== 'function' || stream.readableEnded === true) return Promise.resolve(null);
-  return new Promise((resolve) => {
-    const chunks: Buffer[] = [];
-    let done = false;
-    const finish = (value: string | null) => {
-      if (done) return;
-      done = true;
-      clearTimeout(timer);
-      stream.removeListener?.('data', onData);
-      stream.removeListener?.('end', onEnd);
-      stream.removeListener?.('error', onError);
-      resolve(value);
-    };
-    const onData = (chunk: unknown) => {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk), 'utf8'));
-    };
-    const onEnd = () => finish(chunks.length ? Buffer.concat(chunks).toString('utf8') : null);
-    const onError = () => finish(null);
-    const timer = setTimeout(() => finish(null), timeoutMs);
-    stream.on!('data', onData);
-    stream.on!('end', onEnd);
-    stream.on!('error', onError);
-  });
-}
-
-/** The strings the signature may cover, most faithful first. */
-/** @public Fresh-module contract reader: scripts/test-billing.ts accesses this through its isolated loader. */
-export async function rawBodyCandidates(req: VercelRequest, timeoutMs = 1500): Promise<string[]> {
-  const out: string[] = [];
-  const add = (value: string | null | undefined) => {
-    if (typeof value === 'string' && value.length > 0 && !out.includes(value)) out.push(value);
-  };
-  add(await readStream(req, timeoutMs));
-  const body = req.body as unknown;
-  if (typeof body === 'string') add(body);
-  else if (Buffer.isBuffer(body)) add(body.toString('utf8'));
-  else if (body && typeof body === 'object') {
-    add(JSON.stringify(body));
-    add(JSON.stringify(body, null, 2));
-  }
-  return out;
-}
-
 /** Verify `Stripe-Signature` against the raw body and return the event, or
  * null when no candidate verifies. Uses Stripe's own verifier (HMAC-SHA256,
  * constant-time comparison, five-minute tolerance). */
@@ -143,7 +77,11 @@ export async function verifyStripeEvent(req: VercelRequest, secret: string): Pro
   if (typeof signature !== 'string' || signature.length === 0 || signature.length > 2000) return null;
   for (const candidate of await rawBodyCandidates(req)) {
     try {
-      return Stripe.webhooks.constructEvent(candidate, signature, secret);
+      const event = Stripe.webhooks.constructEvent(candidate, signature, secret);
+      if (event && event.object === 'event' && typeof event.id === 'string' && event.id.length > 0
+        && typeof event.type === 'string' && event.type.length > 0
+        && event.data && typeof event.data === 'object' && !Array.isArray(event.data)) return event;
+      return null;
     } catch {
       // Try the next candidate; none verifying means the request is refused.
     }

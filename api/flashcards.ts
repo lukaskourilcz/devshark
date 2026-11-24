@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '../lib/vercel-types.js';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { createServiceClient, jsonError, withTimeout, requireAuthSub, withRequestContext, ServiceUnavailableError } from '../lib/http';
+import { createServiceClient, jsonError, withTimeout, requireAuthSub, withRequestContext, ServiceUnavailableError, unstorableText, UNSTORABLE_TEXT_MESSAGE } from '../lib/http';
 import { enforceClassRateLimit, RATE_LIMITS } from '../lib/rate-limit';
 import { deploymentSubjectIds } from '../lib/product-scope';
 import { isScopeSubject, subjectForCategory } from '../shared/subject-catalog';
@@ -67,8 +67,8 @@ export async function handleFlashcards(req: VercelRequest, res: VercelResponse, 
       }
       // Postgres text cannot hold U+0000, so a card carrying one would fail
       // the write and answer 500. It is the browser's text, refused as such.
-      if ([body.question_id, body.question, body.correct_answer, body.explanation].some((value) => typeof value === 'string' && value.includes('\u0000'))) {
-        return jsonError(res, 400, 'bad_request', 'Card text cannot contain a null character');
+      if ([body.question_id, body.question, body.correct_answer, body.explanation].some((value) => unstorableText(value))) {
+        return jsonError(res, 400, 'bad_request', UNSTORABLE_TEXT_MESSAGE);
       }
       const bank = await getEffectiveQuestionsById(subject);
       const source = bank.get(question_id);
@@ -103,7 +103,7 @@ export async function handleFlashcards(req: VercelRequest, res: VercelResponse, 
       const qid =
         str(req.query.question_id, MAX.id) ??
         str((req.body as { question_id?: unknown } | undefined)?.question_id, MAX.id);
-      if (!qid || qid.includes('\u0000')) return jsonError(res, 400, 'bad_request', 'question_id is required');
+      if (!qid || unstorableText(qid)) return jsonError(res, 400, 'bad_request', 'question_id is required');
       const { error } = await withTimeout(
         db.from('flashcards').delete().eq('user_id', userId).eq('subject', subject).eq('question_id', qid),
       );

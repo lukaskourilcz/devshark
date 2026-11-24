@@ -19,7 +19,7 @@ import { assessComplexity } from '../coding/complexity';
 import { codingPassXp, complexityGuidance, type ComplexityReport } from '../../shared/coding-complexity';
 import { codingAwardId, creditVerifiedXp, settleMilestonesAfterPass } from '../rewards/coins';
 import { AuthError, tryAuth } from '../auth';
-import { createLogger, isRpcMissing, jsonError, requireAuthSub, ServiceUnavailableError, withTimeout } from '../http';
+import { createLogger, isRpcMissing, jsonError, requireAuthSub, ServiceUnavailableError, withTimeout, unstorableText, UNSTORABLE_TEXT_MESSAGE } from '../http';
 import { prefetchTier, refuseLocked, resolveTier } from '../access';
 import { enforceAddressRateLimit, enforcePerItemRateLimit, enforceRateLimit, enterInFlight, RATE_LIMITS } from '../rate-limit';
 import { deploymentSubjectIds } from '../product-scope';
@@ -754,15 +754,6 @@ type ActivityPayload =
       draftUnavailable?: boolean;
     };
 
-/** Postgres JSONB and text refuse U+0000 (22P05), which would answer 500:
- * a draft or artifact holding the character is refused first. The values are
- * walked, not the JSON, so code that spells the escape out as text passes. */
-function holdsNul(value: unknown, depth = 0): boolean {
-  if (typeof value === 'string') return value.includes('\u0000');
-  if (depth > 4 || value === null || typeof value !== 'object') return false;
-  return Object.values(value as Record<string, unknown>).some((one) => holdsNul(one, depth + 1));
-}
-const NUL_MESSAGE = 'Text cannot contain a NUL (U+0000) character';
 
 /** Builds the learner-facing payload. Options are shuffled per attempt and the
  * correct index is returned separately, for the sealed session only. */
@@ -1151,7 +1142,7 @@ export async function handleActivitySubmit(req: VercelRequest, res: VercelRespon
       if (submitted && Buffer.byteLength(JSON.stringify(submitted), 'utf8') > PATH_LIMITS.payloadBytes) {
         return jsonError(res, 413, 'too_large', 'The submission is limited to 64 kB');
       }
-      if (submitted && holdsNul(submitted)) return jsonError(res, 400, 'bad_request', NUL_MESSAGE);
+      if (submitted && unstorableText(submitted)) return jsonError(res, 400, 'bad_request', UNSTORABLE_TEXT_MESSAGE);
       const graded = gradeArtifact(activity, submitted as Record<string, string | string[]> | undefined);
       state = graded.state;
       criteria = graded.criteria;
@@ -1569,7 +1560,7 @@ export async function handlePathDraft(req: VercelRequest, res: VercelResponse, s
     if (Buffer.byteLength(serialized, 'utf8') > PATH_LIMITS.payloadBytes) {
       return jsonError(res, 413, 'too_large', 'A draft is limited to 64 kB');
     }
-    if (holdsNul(content)) return jsonError(res, 400, 'bad_request', NUL_MESSAGE);
+    if (unstorableText(content)) return jsonError(res, 400, 'bad_request', UNSTORABLE_TEXT_MESSAGE);
     if (typeof content.code === 'string' && pathCodeTooLarge(content.code)) {
       return jsonError(res, 413, 'too_large', 'Code is limited to 20 kB');
     }
