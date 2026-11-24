@@ -90,7 +90,9 @@ DECLARE
     -- The friendships_select_party policy (migration 075) calls it for a
     -- signed-in learner, so authenticated needs EXECUTE. It reads only the
     -- caller's own block on one pair.
-    'devshark_private.friendship_blocked_by_viewer(text,text)'
+    'devshark_private.friendship_blocked_by_viewer(text,text)',
+    -- Realtime checks the authenticated connection when a player joins or sends.
+    'devshark_private.match_broadcast_member(text)'
   ];
   v_found TEXT[] := pg_temp.definer_violations(v_allowed);
 BEGIN

@@ -51,7 +51,7 @@ export function joinMatchChannel(code: string): RealtimeChannel {
   const open = () => {
     if (closed) return;
     const opened = client.channel(topic, {
-      config: { broadcast: { self: true } },
+      config: { private: true, broadcast: { self: true } },
     });
     opened.on('broadcast', { event: '*' }, (message: { event: string; payload: unknown }) => {
       if (closed) return;
@@ -70,7 +70,7 @@ export function joinMatchChannel(code: string): RealtimeChannel {
   return {
     send: async (event, payload) => {
       await ready;
-      if (closed || !channel) return;
+      if (closed || !channel || currentStatus !== 'SUBSCRIBED') return;
       await channel.send({ type: 'broadcast', event, payload });
     },
     subscribe: <T,>(event: string, fn: Listener<T>) => {

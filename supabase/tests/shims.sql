@@ -65,3 +65,6 @@ BEGIN
   END IF;
 END;
 $$;
+
+-- Local bare PostgreSQL also needs the provider's policy-facing contract.
+\ir realtime-fixture.sql
