@@ -38,6 +38,7 @@
  * fetch. Nothing leaves the machine. */
 
 import assert from 'node:assert/strict';
+import { gradingReadinessContracts } from './grading-readiness-contracts';
 import { createHash, generateKeyPairSync } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -1153,6 +1154,27 @@ async function main() {
       assert.equal(reads('/rest/v1/user_stats').length - before.database, 2, 'a later probe checks again');
     }
     console.log('PASS verified caller: health probes that arrive together share one check');
+
+    await gradingReadinessContracts();
+    assert.equal((await call(health as Handler, {})).body.dependencies.grading, 'ok');
+    const savedSnapshot = process.env.REACT_RUNNER_SNAPSHOT_ID;
+    const savedEnvironment = process.env.VERCEL_ENV;
+    try {
+      process.env.VERCEL_ENV = 'production';
+      delete process.env.REACT_RUNNER_SNAPSHOT_ID;
+      const unconfigured = await call(health as Handler, {});
+      assert.equal(unconfigured.statusCode, 200);
+      assert.equal(unconfigured.body.dependencies.grading, 'unconfigured');
+      assert.equal(unconfigured.headers['cache-control'], 'no-store');
+      process.env.REACT_RUNNER_SNAPSHOT_ID = 'fixture-presence-only';
+      assert.equal((await call(health as Handler, {})).body.dependencies.grading, 'ok');
+    } finally {
+      if (savedSnapshot === undefined) delete process.env.REACT_RUNNER_SNAPSHOT_ID;
+      else process.env.REACT_RUNNER_SNAPSHOT_ID = savedSnapshot;
+      if (savedEnvironment === undefined) delete process.env.VERCEL_ENV;
+      else process.env.VERCEL_ENV = savedEnvironment;
+    }
+    console.log('PASS verified caller: fixed grading self-test, timeout, cache and configuration recovery');
 
     healthReadHangs = true;
     try {
