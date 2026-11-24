@@ -152,3 +152,22 @@ export async function verifyStripeEvent(req: VercelRequest, secret: string): Pro
 }
 
 export type { Stripe };
+
+
+/** Read the complete Stripe list before a caller changes its status filter. */
+export async function listStripeObjects<T extends { id: string }>(
+  load: (page: { limit: number; starting_after?: string }) => PromiseLike<{ data: T[]; has_more: boolean }>,
+): Promise<T[]> {
+  const rows: T[] = [];
+  const cursors = new Set<string>();
+  let cursor: string | undefined;
+  for (;;) {
+    const page = await load(cursor ? { limit: 100, starting_after: cursor } : { limit: 100 });
+    rows.push(...page.data);
+    if (!page.has_more) return rows;
+    const next = page.data[page.data.length - 1]?.id;
+    if (!next || cursors.has(next)) throw new Error('stripe_list_incomplete');
+    cursors.add(next);
+    cursor = next;
+  }
+}

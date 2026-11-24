@@ -17,7 +17,7 @@ import { createLogger, isRpcMissing, withTimeout } from '../http';
 import { accountExists } from '../entitlements';
 import { deploymentSubjectIds } from '../product-scope';
 import { billingConfig, premiumPriceIds, type BillingConfig } from './config';
-import { stripeErrorCode, type StripeApi } from './stripe';
+import { listStripeObjects, stripeErrorCode, type StripeApi } from './stripe';
 
 const log = createLogger('user/billing');
 
@@ -490,19 +490,9 @@ export async function applyCheckoutSession(
  * subscription past one page, and the second-checkout guard, the cancel page
  * and account deletion would not see it. */
 export async function allSubscriptionsOf(deps: BillingDeps, customerId: string): Promise<Stripe.Subscription[]> {
-  const subs: Stripe.Subscription[] = [];
-  let startingAfter: string | undefined;
-  // Ten pages of 100 is far beyond any real customer; the cap only bounds a
-  // runaway list.
-  for (let page = 0; page < 10; page += 1) {
-    const list = await deps.stripe.subscriptions.list({
-      customer: customerId, status: 'all', limit: 100, ...(startingAfter ? { starting_after: startingAfter } : {}),
-    });
-    subs.push(...list.data);
-    if (!list.has_more || list.data.length === 0) break;
-    startingAfter = list.data[list.data.length - 1].id;
-  }
-  return subs;
+  return listStripeObjects((page) => deps.stripe.subscriptions.list({
+    customer: customerId, status: 'all', ...page,
+  }));
 }
 
 /** The customer's devShark subscriptions that can still charge, as Stripe has
@@ -524,7 +514,9 @@ export async function liveDevsharkSubscriptions(deps: BillingDeps, customerId: s
 export async function expireOpenCheckouts(deps: BillingDeps, customerId: string): Promise<{ expired: number; completed: boolean }> {
   let open: Stripe.Checkout.Session[];
   try {
-    open = (await deps.stripe.checkout.sessions.list({ customer: customerId, status: 'open', limit: 100 })).data;
+    open = await listStripeObjects((page) => deps.stripe.checkout.sessions.list({
+      customer: customerId, status: 'open', ...page,
+    }));
   } catch (error) {
     if (stripeErrorCode(error).code === 'resource_missing') return { expired: 0, completed: false };
     throw error;
