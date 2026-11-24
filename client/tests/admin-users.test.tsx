@@ -83,12 +83,12 @@ describe('editing multiple email templates', () => {
     const tabs = await screen.findAllByRole('tab');
     tabs[0].focus();
     fireEvent.keyDown(tabs[0], { key: 'ArrowLeft' });
-    expect(tabs.at(-1)).toHaveFocus();
-    fireEvent.keyDown(tabs.at(-1)!, { key: 'ArrowRight' });
+    expect(tabs[tabs.length - 1]).toHaveFocus();
+    fireEvent.keyDown(tabs[tabs.length - 1], { key: 'ArrowRight' });
     expect(tabs[0]).toHaveFocus();
     fireEvent.keyDown(tabs[0], { key: 'End' });
-    expect(tabs.at(-1)).toHaveAttribute('aria-selected', 'true');
-    fireEvent.keyDown(tabs.at(-1)!, { key: 'Home' });
+    expect(tabs[tabs.length - 1]).toHaveAttribute('aria-selected', 'true');
+    fireEvent.keyDown(tabs[tabs.length - 1], { key: 'Home' });
     expect(tabs[0]).toHaveFocus();
     expect(tabs.filter(tab => tab.tabIndex === 0)).toEqual([tabs[0]]);
     expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', tabs[0].id);
