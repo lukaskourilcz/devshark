@@ -1,3 +1,5 @@
+import { utcToday } from '../../../shared/daily-question';
+import { useUtcDay } from '../lib/utcDay';
 import { createContext, Suspense, useContext, useEffect, useId, useRef, useState, type MutableRefObject, type ReactNode } from 'react';
 import { Kicker } from './landing/LandingKit';
 import { Link, useNavigate } from 'react-router-dom';
@@ -379,6 +381,7 @@ export function StreakCard({
   unavailable?: boolean;
 }) {
   const { t } = useLanguage();
+  const day = useUtcDay(utcToday);
   const currentLabelId = useId();
   const longestLabelId = useId();
   // The shield and the count read one protection state, so a streak that a
@@ -390,7 +393,7 @@ export function StreakCard({
     let active = true;
     takeProtectionRead(early).then((next) => { if (active) setProtection(next); });
     return () => { active = false; };
-  }, [unavailable, early]);
+  }, [unavailable, early, day]);
   // A failed read leaves the shields and protections unknown. A streak whose
   // last day was today or yesterday needs neither; any other is shown as
   // unknown rather than as the 0 the no-protection rule would give.
