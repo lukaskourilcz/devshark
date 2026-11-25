@@ -22,9 +22,11 @@ async function mockQuestion(page: Page) {
   await page.route('**/api/quiz/daily?qotd=*', (route) => route.fulfill({
     json: {
       date: today,
-      track: 'javascript',
+      // The page renders the date's rotated track while loading, so the fixture
+      // must answer with the same track or the header changes on some days.
+      track: qotdTrack(today),
       sessionId: 'sealed-session',
-      question: { id: 'q-1', question: 'What does `typeof null` return?', options: ['"null"', '"object"', '"undefined"', '"number"'], category: 'javascript', difficulty: 2 },
+      question: { id: 'q-1', question: 'What does `typeof null` return?', options: ['"null"', '"object"', '"undefined"', '"number"'], category: qotdTrack(today), difficulty: 2 },
     },
   }));
   await page.route('**/api/quiz/submit', (route) => route.fulfill({
