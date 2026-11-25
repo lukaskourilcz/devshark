@@ -9266,6 +9266,33 @@ Each entry lists **LCP ms / CLS / TBT ms / observed interaction ms** as intake �
 Across the 96 candidate visits, maximum LCP was 1,692 ms mobile and 564 ms desktop. Every CLS was zero. Fifteen dedicated learner interactions passed. Median observed latency was 80 ms for Quiz start, 64 ms for an answer, 80 ms for Learn, 64 ms for a coding keystroke and 64 ms for the mobile drawer. The maximum was 96 ms. The fixture observed local interactions. Production field INP requires the live consented telemetry cohort.
 
 
+### Final released main (`2993388f`, 25 November 2026)
+
+This is the F16 retake of the eight section 5 measurements on the merged `main` that production serves (`2993388f`, released through the CLI with `DEPLOY_COMMIT_SHA`). F1 is the 19 November baseline used above.
+
+| §5 measurement | F1 | `2993388f` | Change |
+| --- | ---: | --- | ---: |
+| 1. Initial gzip | 218,661 B | 215,958 B in four requests, at the committed budget | −1.24% |
+| 2. Treemap | 233 emitted chunks | 236 emitted chunks. The largest is the lazy `ts-compiler` at 1,092,846 B gzip. | +1.29% by count |
+| 3. Browser performance | Home mobile Lighthouse 92 | `audit:performance --url=https://devshark.app`: mobile 99 (LCP 938 ms, CLS 0, TBT 143 ms), desktop 100 (LCP 261 ms, CLS 0). The local parity build scored 100 and 100. | +7.61% mobile score |
+| 4. Twelve handler cold starts | Archived import and first-byte tables | See "F7 serverless latency closeout" below for the production operation counts and timings of the twelve handlers on this release. | Lab and production intervals differ. Field cold starts need a day of traffic (#636). |
+| 5. Images in `client/public` and `client/src/assets` | 11 files, 269,577 B | 11 files, 269,577 B. The two share-card SVG inputs in `client/src/og/assets` (2 files, 18,259 B) are build inputs outside the F1 scope. | 0.00% |
+| 6. npm production advisories | Root 0, client 0 | Root 0, client 0 | Absolute change 0 |
+| 7. Production database advisors | 39 warnings, 0 errors | 0 warnings, 0 errors, 49 informational results (40 tables with RLS and no policy, which are service-only, 7 unused indexes, 1 table without a primary key, 1 auth connection setting) | −100% warnings |
+| 8. Repository, Linux image and CI | Allocated KiB: Git 132,988, docs 20,172, media 1,512, public 284. Image 141,951,324 B. Ten workflows 14,200 wall s, 33,831 job s. | Allocated KiB: shared Git store 376,828 (includes retained audit refs and worktrees), docs 22,448, media 1,512, public 284. Image 142,963,646 B ([container job](https://github.com/lukaskourilcz/devshark/actions/runs/45510086383)). Ten latest completed Product quality runs, all conclusions: 10,034 wall s, 29,441 job s. | Image +0.71%. Docs +11.28%, media and public 0.00%. CI wall −29.34%, jobs −12.98%. |
+
+#### `ci:parity` on `2993388f`
+
+`npm run ci:parity -- --install` on macOS with Node 24.22.3, `CI=true`, colima for Docker. Summary: `complete: true`, `dirty: false`, `head: 2993388f966996f50bcd79525ca740c9c64eace7`, mode `full`, 425.81 minutes, 37 passed, 8 failed, 1 skipped, 0 not run. The sql job needs `--sql` with a database and ran in CI instead.
+
+| Result | Steps |
+| --- | --- |
+| Pass (37) | install, build, check:ci-build-artifact, typecheck:api, typecheck:scripts, typecheck:tooling, audit:native-reviews, check:unused, check:security, check:docs-archive, check:deploy-contexts, check:binary-size, check:images, check:security:dist, check:public, check:bundle, audit:prod, audit:client, test:performance, test:launch, test:coding-auth, test:grading-integrity, test:path-authority, test:react-authority, test:paths, test:billing, test:fallbacks, test:garden, test:live-grading, test:client, test:coding, chromium, preview, test:harness, audit:performance, build:storybook, storybook |
+| Skipped (1) | check:quickjs-build: inputs unchanged against `origin/main`, as CI skips it |
+| Fail (8) | browser:chromium, check:responsive, check:responsive:dark, check:responsive:zoom200, check:responsive:zoom400, test:browser:csp, browser:storybook, test:container |
+
+The browser failures are timeouts on an overloaded 8 GB Mac: `Page.navigate did not answer within 30000ms` (180 responsive probes), Playwright test timeouts. The one assertion failure in browser:chromium was a real test defect: the Daily header fixture answered track `javascript` every day while the page renders the date's rotated track, so it failed on 25 November (`system-design`). The fixture is fixed in this change and the spec passes (15 of 15). A rerun of only these steps (`--only`, load average 15) passed check:responsive:dark, check:responsive:zoom200 and build:storybook and failed a different set, again on timeouts (`spawnSync … ETIMEDOUT`). `test:container` fails deterministically on macOS only: `npm ci --prefix` inside the macOS temporary directory reports `EUSAGE` instead of the expected `EINTEGRITY` in `docker/runtime-dependencies.test.mjs`. The same steps passed on Linux in [Product quality run 45510086383](https://github.com/lukaskourilcz/devshark/actions/runs/45510086383) for the same commit, with all nine jobs (sql, quickjs, client-build, static, tests, coding, browser, container, verify) green.
+
 ## Epic F8 database hardening (18 November 2026)
 
 The final hosted PostgreSQL 17.6.1.171 suite built a fresh database from 89 files, reapplied 077–089 with an unchanged schema and row-count fingerprint, and passed all 82 SQL fixtures, including pg_cron. Native PostgreSQL 17.11 (Postgres.app) passed 81 with one pg_cron skip. Its separate scheduling fixture applied 086 twice, confirmed the one active job, and verified rejection of a disabled job. The hosted application checks passed API type checking, launch, migration fallback and billing contracts. The integrated source passed `git diff --check`. The hosted SQL job supplied the provider image and its Realtime catalog. [SQL output](https://github.com/lukaskourilcz/devshark/actions/runs/45315542819/job/138181532238) · [Static checks](https://github.com/lukaskourilcz/devshark/actions/runs/45315542819/job/138181532205) · [Application contracts](https://github.com/lukaskourilcz/devshark/actions/runs/45315542819/job/138181532236).
