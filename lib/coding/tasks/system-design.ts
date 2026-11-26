@@ -16,7 +16,7 @@ export const SYSTEM_DESIGN_TASKS: CodingTaskSource[] = [
     prompt: "Design a service that creates a short code for a long URL and redirects visitors to the destination. Work through the requirements, data model, redirect path, failures, and the first likely scaling step.",
     starter: "",
     hints: [
-      "Before you draw anything, count how many people create a link and how many people click one, and design for the larger group.",
+      "Think about what a newsletter does to one link once it goes out, and let that decide your first question.",
     ],
     verify: "guided",
     estimatedMinutes: 10,
