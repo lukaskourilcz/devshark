@@ -16,7 +16,7 @@ export const SYSTEM_DESIGN_TASKS: CodingTaskSource[] = [
     prompt: "Design a service that creates a short code for a long URL and redirects visitors to the destination. Work through the requirements, data model, redirect path, failures, and the first likely scaling step.",
     starter: "",
     hints: [
-      "Before you draw anything, count how many people create a link and how many people click one, and design for the larger group.",
+      "Think about what a newsletter does to one link once it goes out, and let that decide your first question.",
     ],
     verify: "guided",
     estimatedMinutes: 10,
@@ -340,13 +340,13 @@ Resizing, if it is done inside the request. It is processor-heavy and it starves
     prompt: "Design email-and-password accounts for a site running on two web servers behind a load balancer. Cover credential storage, shared sessions, safe login errors, and protection against repeated password guesses.",
     starter: "",
     hints: [
-      "The password is never stored. Everything else in this design follows from taking that seriously.",
+      "Picture someone copying the whole users table, and design so that the copy is worth as little to them as possible.",
     ],
     verify: "guided",
     estimatedMinutes: 10,
     design: {
       scenario: "A site currently has no accounts and needs them: register with an email and password, sign in, stay signed in, and sign out. It runs on two web servers behind a load balancer.",
-      brief: "Never store readable passwords. The server owns identity decisions, and either web server must be able to validate the same session.",
+      brief: "Build register, sign in, stay signed in and sign out. Decide which rule governs credentials, what the users table holds, how a later request knows who is asking, what a failed sign-in says, and what you do about repeated guesses.",
       steps: [
         {
           key: "requirements",
@@ -398,7 +398,7 @@ Resizing, if it is done inside the request. It is processor-heavy and it starves
             "Nothing, with the form silently doing nothing",
           ],
           correct: 0,
-          explanation: "Different messages let anybody with the form discover which addresses have accounts here, which is worth something on its own and worth more on a site people would rather not be known to use. One message for both cases gives that away for nothing. The friendlier wording is a real cost and you should say so, since people do genuinely forget which address they used — the usual answer is a good password reset flow, not a more revealing error. Silence just looks broken.",
+          explanation: "Different messages let anybody with the form discover which addresses have accounts here, which is worth something on its own and worth more on a site people would rather not be known to use. One message for both cases gives that away for nothing. Giving up the friendlier wording is a real cost and you should say so, since people do genuinely forget which address they used — the usual answer is a good password reset flow, not a more revealing error. \"Wrong password\" for every case hides the same fact but misleads someone who only mistyped their email, and silence just looks broken.",
         },
         {
           key: "scale",
@@ -449,7 +449,7 @@ Not capacity — this is a small amount of work per request. It is somebody gues
     prompt: "Design a small bakery shop with limited stock and card payments through an outside provider. Work through what needs the most care, how an order records prices, the checkout flow, a payment that times out, and a busy morning.",
     starter: "",
     hints: [
-      "Almost all of it is browsing, which is forgiving. One number is not, and that is the stock count.",
+      "Ask which mistake in this shop could not be fixed by simply reloading the page.",
     ],
     verify: "guided",
     estimatedMinutes: 10,
@@ -899,7 +899,7 @@ The database, under reads, long before anything to do with orders — a few doze
       format: "tradeoff",
       scenario: "A new sign-up form takes an email and a password. The team has to decide what actually goes into the users table when somebody registers.",
       prompt: "What should be stored in the password column?",
-      explanation: "A hash is one-way: you can check a password by hashing what was typed and comparing, but you can never turn the stored value back into the password. Slow-by-design algorithms like bcrypt and Argon2id make guessing millions of candidates impractical, and each adds a random salt per password, so two people with the same password get different hashes. Encryption is the wrong tool because it is reversible — whoever holds the key holds every password. Storing them as typed means one leaked backup exposes every account, on your site and on every other site where somebody reused it. Fast hashes like SHA-256 or MD5 are guessed at enormous speed, which is the opposite of what you want.",
+      explanation: "A hash is one-way: you can check a password by hashing what was typed and comparing, but you can never turn the stored value back into the password. Slow-by-design algorithms like bcrypt and Argon2id make every guess slow and costly, so trying millions of candidates takes far longer, and each adds a random salt per password, so two people with the same password get different hashes. Encryption is the wrong tool because it is reversible — whoever holds the key holds every password. Storing them as typed means one leaked backup exposes every account, on your site and on every other site where somebody reused it. Fast hashes like SHA-256 or MD5 are guessed at enormous speed, which is the opposite of what you want.",
       options: [
         "A hash made by a slow algorithm designed for passwords, such as bcrypt or Argon2id",
         "The password encrypted with a key kept on another server, so support can recover it",
@@ -955,7 +955,7 @@ The database, under reads, long before anything to do with orders — a few doze
       format: "tradeoff",
       scenario: "Signing up sends a welcome email. The email provider sometimes takes several seconds, and while it does, the person is staring at a spinner.",
       prompt: "What should the sign-up request do about the email?",
-      explanation: "The account exists whether or not the email has gone out, so waiting for it makes the user pay for work they do not care about. Handing it to a background worker — a separate process picking jobs off a list — means the reply is instant and the worker can keep retrying through an outage with nobody watching. Doing it in the request is only right when the answer changes the response, like a card payment. Retrying inline makes the worst case longer. Overnight is fine for a digest, not for a message people expect now.",
+      explanation: "The account exists whether or not the email has gone out, so waiting for it makes the user pay for work they do not care about. Handing it to a background worker — a separate process picking jobs off a list — means the reply is instant and the worker can keep retrying through an outage with nobody watching. Doing it in the request is only right when the answer changes the response, like a card payment. A shorter timeout still makes people wait and simply loses the email whenever the provider is slow. Retrying inline makes the worst case longer. Overnight is fine for a digest, not for a message people expect now.",
       options: [
         "Save the account, hand the email to a background worker, and reply straight away",
         "Send the email during the request, as now, but with a shorter timeout",
@@ -1123,7 +1123,7 @@ The database, under reads, long before anything to do with orders — a few doze
       format: "tradeoff",
       scenario: "A single web server is running near its limit at busy times. The site must stay up when one machine fails or is redeployed, and traffic keeps growing every month. The team can move to a much larger machine, or put a load balancer in front of several ordinary ones.",
       prompt: "Which should the team choose?",
-      explanation: "With these two needs, several servers win. One machine, however large, takes the site down when it fails or reboots for a deploy, and there is a largest machine you can buy. Without those needs a bigger machine is simpler and a fine first move. Several ordinary servers behind a load balancer keep serving when one dies and let you add more as traffic grows. The price is that your app must stop keeping anything important in its own memory, so sessions and uploads move somewhere shared. Price per machine is not the deciding reason, and managed load balancers run as redundant pairs, so they are not the weak point.",
+      explanation: "With these two needs, several servers win. One machine, however large, takes the site down when it fails or reboots for a deploy, and there is a largest machine you can buy. Without those needs a bigger machine is simpler and a fine first move. Several ordinary servers behind a load balancer keep serving when one dies and let you add more as traffic grows. The price is that your app must stop keeping anything important in its own memory, so sessions and uploads move somewhere shared. Price per machine is not the deciding reason, and managed load balancers run on several machines at once, so they are not the weak point.",
       options: [
         "Several ordinary servers behind a load balancer, so one failing is survivable",
         "One much larger machine, because it is simpler and needs no changes to the app",
@@ -1291,7 +1291,7 @@ The database, under reads, long before anything to do with orders — a few doze
       format: "bottleneck",
       scenario: "An admin page emails every member of a group by looping through them and calling the email provider once per person. Groups have grown from ten people to two thousand.",
       prompt: "What breaks first on a large group?",
-      explanation: "Two thousand calls one after another take far longer than a web request is allowed to run, and because the only record of progress is the loop itself, the timeout leaves the job half done with no safe way to resume — run it again and the first half get a second email. The fix is to hand the work to a background worker, record what happened per person, and make each step safe to repeat. Two thousand names is nothing to hold in memory, and the loop uses one database connection, not one per email. A provider rate limit can bite as well, and a worker can pace the sends to stay under it.",
+      explanation: "Two thousand calls one after another take far longer than a web request is allowed to run, and because the only record of progress is the loop itself, the timeout leaves the job half done with no safe way to resume — run it again and the first half get a second email. The fix is to hand the work to a background worker, record what happened per person, and make each step safe to repeat. Two thousand names is nothing to hold in memory, and the loop uses one database connection, not one per email. A provider rate limit can bite as well, and a worker can pace the sends to stay under it. Spam filters judge the sender and the content, not whether one request sent the messages, and here they go out one at a time anyway.",
       options: [
         "The request times out partway, with no record of who already got the email",
         "The email provider marks the messages as spam because they all leave at once",
@@ -1319,7 +1319,7 @@ The database, under reads, long before anything to do with orders — a few doze
       format: "bottleneck",
       scenario: "Uploaded images are read from disk and sent out by the same application servers that handle every other request. A campaign is about to bring ten times the traffic.",
       prompt: "What breaks first when the traffic arrives?",
-      explanation: "An image is hundreds to thousands of times larger than a typical API response, so shipping them out consumes the connections, bandwidth and attention of servers meant to be answering everything else. The symptom is confusing, because pages with no images get slow too. The fix is to let object storage or a CDN serve the files directly, leaving your servers to do the part only they can do. Visitors read images rather than upload them, so the disk barely grows, and the browser limits connections per address without refusing anything.",
+      explanation: "An image is hundreds to thousands of times larger than a typical API response, so shipping them out consumes the connections, bandwidth and attention of servers meant to be answering everything else. The symptom is confusing, because pages with no images get slow too. The fix is to let object storage or a CDN serve the files directly, leaving your servers to do the part only they can do. Visitors read images rather than upload them, so the disk barely grows, and the browser limits connections per address without refusing anything. Any lookup needed to find an image is tiny next to sending its bytes, so the database is not where this hurts.",
       options: [
         "Sending image bytes ties up the servers, so ordinary requests slow down too",
         "The disk fills up, because ten times the traffic brings ten times the images",
@@ -1347,7 +1347,7 @@ The database, under reads, long before anything to do with orders — a few doze
       format: "bottleneck",
       scenario: "Four application servers sit behind a load balancer, and all four talk to a single database. Traffic is growing steadily and most of it is reading.",
       prompt: "What breaks first as traffic keeps growing?",
-      explanation: "Application servers are easy to add because they hold nothing of their own — but every one you add points at the same database, so scaling the easy half only pushes harder on the half you have not scaled. Since most of the traffic is reads, the usual next step is a read replica: a continuously updated copy, usually a moment behind the original, that serves reads while writes still go to the original. Because it lags, a read that must see the user’s own latest write still goes to the original. Recognising which part of a diagram is the shared one is most of what \"where does this break\" means.",
+      explanation: "Application servers are easy to add because they hold nothing of their own — but every one you add points at the same database, so scaling the easy half only pushes harder on the half you have not scaled. Since most of the traffic is reads, the usual next step is a read replica: a continuously updated copy, usually a moment behind the original, that serves reads while writes still go to the original. Because it lags, a read that must see the user’s own latest write still goes to the original. The load balancer only forwards requests and copes with far more than four servers can answer, and the network inside a data centre is rarely the limit. Recognising which part of a diagram is the shared one is most of what \"where does this break\" means.",
       options: [
         "The database, since adding application servers only sends it more work",
         "The load balancer, which has to route every one of the extra requests",
@@ -1375,7 +1375,7 @@ The database, under reads, long before anything to do with orders — a few doze
       format: "bottleneck",
       scenario: "A page needs last month’s orders. The code loads every order from the database and then filters by date in the application.",
       prompt: "What breaks first as the orders table grows?",
-      explanation: "The database is very good at filtering, and it is sitting right next to the data. Doing it in the application means every row is read, serialised, sent across the network and held in memory before nearly all of them are discarded — work that grows with the whole table rather than with the answer. Moving the condition into the query, with an index on the date, makes the database return only what you asked for. Comparing dates is trivial; it is the volume that hurts.",
+      explanation: "The database is very good at filtering, and it is sitting right next to the data. Doing it in the application means every row is read, serialised, sent across the network and held in memory before nearly all of them are discarded — work that grows with the whole table rather than with the answer. Moving the condition into the query, with an index on the date, makes the database return only what you asked for. Comparing dates is trivial; it is the volume that hurts. A connection held while all those rows stream out is a symptom of that same volume, not a separate cause, and the browser only ever receives the month that was kept.",
       options: [
         "The app pulls every order into memory, then throws nearly all of them away",
         "Comparing dates in the application gets too slow once there are many rows",
@@ -1403,7 +1403,7 @@ The database, under reads, long before anything to do with orders — a few doze
       format: "bottleneck",
       scenario: "A page lists fifty blog posts. The code fetches the posts with one query, then loops over them and fetches each post’s author with another.",
       prompt: "What breaks first as the page shows more posts?",
-      explanation: "This is the N plus one problem: one query for the list, then one more for every item in it. Each round trip is small but they add up, and the count grows with the page size, so it degrades exactly when the page gets useful. The fix is to ask for all the authors at once — one query with the fifty ids, or a join — turning fifty-one trips into two. Each author lookup is by primary key, which already has an index, and fifty posts are nothing to hold or render. Knowing the name is worth it, because it is one of the first things a reviewer looks for.",
+      explanation: "This is the N plus one problem: one query for the list, then one more for every item in it. Each round trip is small but they add up, and the count grows with the page size, so it degrades exactly when the page gets useful. The fix is to ask for all the authors at once — one query with the fifty ids, or a join — turning fifty-one trips into two, or into one with the join. Each author lookup is by primary key, which already has an index, and fifty posts are nothing to hold or render. Knowing the name is worth it, because it is one of the first things a reviewer looks for.",
       options: [
         "One page makes fifty-one separate queries, each paying its own round trip",
         "The posts stop fitting in memory once the page has to hold fifty of them",

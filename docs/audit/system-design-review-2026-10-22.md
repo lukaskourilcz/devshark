@@ -509,3 +509,61 @@ The 45 hidden system-design tasks are now reviewed. 16 could return as they are,
 - Several explanations contradict their own options or other tasks in the track.
 
 Do you want this format (5-step walkthroughs plus quick estimate, tradeoff, bottleneck and sequence drills, graded by a sealed key) to come back once those fixes are made and a fresh review passes? Or should the track stay hidden or be retired? The track stays hidden until you decide.
+
+## Second reading, 26 November 2026
+
+Three independent model readers (Claude) re-read all 45 tasks in the edited file at `origin/main` `769142b1`, one batch of 15 each, and recomputed every estimate. They applied the verdict rules above, including the length-clue rule, and recorded for each task whether they agree with the first reading. The rows are in [`wip/system-design/`](wip/system-design/) as one JSON line per task. The coordinating reader checked every proposed edit in context before applying it, one commit per task.
+
+- Result: 33 pass, 12 needed a fix. No key, estimate band or sequence order is wrong. The fixes rebut distractors that the explanations left unanswered, correct three small facts and stop one brief and three hints from giving away step answers.
+- Length clues: none. The ratio of the correct option to the longest other option is 0.82 to 1.16 in the 25 choice drills. In walkthroughs the longest option is correct in at most 3 of 5 steps (`sd-accounts-and-login`), which is below the pass mark of 4, and no step reaches 1.5×.
+- Estimate bands: each of the ten bands contains the key and rejects a 10× error. Their width is 2.2× to 6.3×.
+- Disagreements with the first reading: `sd-accounts-and-login` (the brief gave away two answers), `sd-url-shortener` (the hint still stated the requirements answer), `dd-the-slow-email`, `dd-serving-images-yourself` and `dd-emailing-inside-a-request` (distractors left unrebutted).
+- Still a model review only. It is not ledger-grade acceptance, and there is no human reader. The track stays hidden until the owner decides whether the reviewed format returns.
+
+| Task | Format | Verdict | Length ratio | Fix |
+| --- | --- | --- | ---: | --- |
+| `sd-url-shortener` | design | fix | 1.00 | The hint states the requirements step key almost verbatim (count creators vs clickers), although the first review records the read/write ratio as removed from the hint |
+| `sd-to-do-list-api` | design | pass | 1.01 |  |
+| `sd-photo-sharing` | design | pass | 0.99 |  |
+| `sd-accounts-and-login` | design | fix | 1.38 | The brief, shown before any step, states the requirements key and the design key outright; The deepdive explanation does not say why the 'Wrong password regardless' option is worse, and 'The friendlier wording is a real cost' reads as the opposite of what is meant; The hint states the requirements step key |
+| `sd-small-online-shop` | design | fix | 0.99 | The hint names the requirements step key (the stock count) and the scale insight (browsing is most traffic) |
+| `dd-requests-per-second` | estimate | pass | n/a |  |
+| `dd-a-year-of-photos` | estimate | pass | n/a |  |
+| `dd-how-much-cache` | estimate | pass | n/a |  |
+| `dd-rows-in-two-years` | estimate | pass | n/a |  |
+| `dd-people-online-at-once` | estimate | pass | n/a |  |
+| `dd-a-day-of-messages` | estimate | pass | n/a |  |
+| `dd-a-month-of-backups` | estimate | pass | n/a |  |
+| `dd-sizing-for-the-peak` | estimate | pass | n/a |  |
+| `dd-the-size-of-an-index` | estimate | pass | n/a |  |
+| `dd-data-leaving-per-day` | estimate | pass | n/a |  |
+| `dd-which-kind-of-database` | tradeoff | pass | 1.00 |  |
+| `dd-where-uploaded-files-go` | tradeoff | pass | 0.93 |  |
+| `dd-where-a-login-lives` | tradeoff | pass | 0.84 |  |
+| `dd-storing-passwords` | tradeoff | fix | 0.96 | Explanation says slow hashes make guessing millions of candidates impractical |
+| `dd-where-to-check-input` | tradeoff | pass | 0.91 |  |
+| `dd-the-slow-email` | tradeoff | fix | 1.16 | Explanation does not rebut the 'Send the email during the request, as now, but with a shorter timeout' distractor |
+| `dd-a-query-that-got-slow` | tradeoff | pass | 0.93 |  |
+| `dd-answering-for-a-missing-thing` | tradeoff | pass | 1.07 |  |
+| `dd-plain-http-or-https` | tradeoff | pass | 0.87 |  |
+| `dd-a-list-that-keeps-growing` | tradeoff | pass | 1.11 |  |
+| `dd-what-is-worth-caching` | tradeoff | pass | 0.93 |  |
+| `dd-one-big-server-or-several` | tradeoff | fix | 0.97 | Explanation says managed load balancers run as redundant pairs |
+| `dd-images-loading-slowly` | tradeoff | pass | 0.90 |  |
+| `dd-when-a-call-fails` | tradeoff | pass | 0.95 |  |
+| `dd-store-the-total-or-add-it-up` | tradeoff | pass | 0.82 |  |
+| `dd-a-table-with-no-index` | bottleneck | pass | 0.99 |  |
+| `dd-sessions-and-a-second-server` | bottleneck | pass | 0.97 |  |
+| `dd-emailing-inside-a-request` | bottleneck | fix | 0.97 | The explanation never says why the spam distractor is wrong, though it rebuts the other two |
+| `dd-serving-images-yourself` | bottleneck | fix | 0.99 | The explanation does not address the database distractor |
+| `dd-everything-on-one-database` | bottleneck | fix | 0.97 | The explanation does not say why the load balancer and network distractors are wrong |
+| `dd-filtering-in-the-app` | bottleneck | fix | 1.00 | The explanation does not address the connection-pool or browser distractors |
+| `dd-querying-in-a-loop` | bottleneck | fix | 1.01 | The explanation says that both remedies, an id-list query or a join, turn 51 trips into two |
+| `dd-a-call-with-no-timeout` | bottleneck | pass | 0.97 |  |
+| `dd-resizing-during-upload` | bottleneck | pass | 0.96 |  |
+| `dd-returning-everything` | bottleneck | pass | 0.99 |  |
+| `dd-typing-a-web-address` | sequence | pass | n/a |  |
+| `dd-one-request-through-the-system` | sequence | pass | n/a |  |
+| `dd-signing-somebody-up` | sequence | pass | n/a |  |
+| `dd-reading-through-a-cache` | sequence | pass | n/a |  |
+| `dd-uploading-a-file` | sequence | pass | n/a |  |
