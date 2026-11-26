@@ -449,7 +449,7 @@ Not capacity — this is a small amount of work per request. It is somebody gues
     prompt: "Design a small bakery shop with limited stock and card payments through an outside provider. Work through what needs the most care, how an order records prices, the checkout flow, a payment that times out, and a busy morning.",
     starter: "",
     hints: [
-      "Almost all of it is browsing, which is forgiving. One number is not, and that is the stock count.",
+      "Ask which mistake in this shop could not be fixed by simply reloading the page.",
     ],
     verify: "guided",
     estimatedMinutes: 10,
