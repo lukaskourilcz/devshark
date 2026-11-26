@@ -1375,7 +1375,7 @@ The database, under reads, long before anything to do with orders — a few doze
       format: "bottleneck",
       scenario: "A page needs last month’s orders. The code loads every order from the database and then filters by date in the application.",
       prompt: "What breaks first as the orders table grows?",
-      explanation: "The database is very good at filtering, and it is sitting right next to the data. Doing it in the application means every row is read, serialised, sent across the network and held in memory before nearly all of them are discarded — work that grows with the whole table rather than with the answer. Moving the condition into the query, with an index on the date, makes the database return only what you asked for. Comparing dates is trivial; it is the volume that hurts.",
+      explanation: "The database is very good at filtering, and it is sitting right next to the data. Doing it in the application means every row is read, serialised, sent across the network and held in memory before nearly all of them are discarded — work that grows with the whole table rather than with the answer. Moving the condition into the query, with an index on the date, makes the database return only what you asked for. Comparing dates is trivial; it is the volume that hurts. A connection held while all those rows stream out is a symptom of that same volume, not a separate cause, and the browser only ever receives the month that was kept.",
       options: [
         "The app pulls every order into memory, then throws nearly all of them away",
         "Comparing dates in the application gets too slow once there are many rows",
