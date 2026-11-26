@@ -1403,7 +1403,7 @@ The database, under reads, long before anything to do with orders — a few doze
       format: "bottleneck",
       scenario: "A page lists fifty blog posts. The code fetches the posts with one query, then loops over them and fetches each post’s author with another.",
       prompt: "What breaks first as the page shows more posts?",
-      explanation: "This is the N plus one problem: one query for the list, then one more for every item in it. Each round trip is small but they add up, and the count grows with the page size, so it degrades exactly when the page gets useful. The fix is to ask for all the authors at once — one query with the fifty ids, or a join — turning fifty-one trips into two. Each author lookup is by primary key, which already has an index, and fifty posts are nothing to hold or render. Knowing the name is worth it, because it is one of the first things a reviewer looks for.",
+      explanation: "This is the N plus one problem: one query for the list, then one more for every item in it. Each round trip is small but they add up, and the count grows with the page size, so it degrades exactly when the page gets useful. The fix is to ask for all the authors at once — one query with the fifty ids, or a join — turning fifty-one trips into two, or into one with the join. Each author lookup is by primary key, which already has an index, and fifty posts are nothing to hold or render. Knowing the name is worth it, because it is one of the first things a reviewer looks for.",
       options: [
         "One page makes fifty-one separate queries, each paying its own round trip",
         "The posts stop fitting in memory once the page has to hold fifty of them",
