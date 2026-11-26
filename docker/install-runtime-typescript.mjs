@@ -1,7 +1,7 @@
 // The grader loads TypeScript at runtime. Installing it into the root package
 // would also restore unrelated devDependencies, so use a separate locked prefix.
 import { spawnSync } from 'node:child_process';
-import { cp, lstat, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, lstat, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -31,7 +31,9 @@ try {
   if (error.code !== 'ENOENT') throw error;
 }
 
-const prefix = await mkdtemp(join(tmpdir(), 'devshark-runtime-typescript-'));
+// npm treats a prefix reached through a symlink (macOS /var -> /private/var)
+// as a link to its real path and then reports the folder as a missing package.
+const prefix = await mkdtemp(join(await realpath(tmpdir()), 'devshark-runtime-typescript-'));
 try {
   const pkg = { name: 'devshark-runtime-compiler', version: '1.0.0', private: true, dependencies: { typescript: compiler.version } };
   const { dev, devOptional, optional, ...runtimeCompiler } = compiler;
