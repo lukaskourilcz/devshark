@@ -340,13 +340,13 @@ Resizing, if it is done inside the request. It is processor-heavy and it starves
     prompt: "Design email-and-password accounts for a site running on two web servers behind a load balancer. Cover credential storage, shared sessions, safe login errors, and protection against repeated password guesses.",
     starter: "",
     hints: [
-      "The password is never stored. Everything else in this design follows from taking that seriously.",
+      "Picture someone copying the whole users table, and design so that the copy is worth as little to them as possible.",
     ],
     verify: "guided",
     estimatedMinutes: 10,
     design: {
       scenario: "A site currently has no accounts and needs them: register with an email and password, sign in, stay signed in, and sign out. It runs on two web servers behind a load balancer.",
-      brief: "Never store readable passwords. The server owns identity decisions, and either web server must be able to validate the same session.",
+      brief: "Build register, sign in, stay signed in and sign out. Decide which rule governs credentials, what the users table holds, how a later request knows who is asking, what a failed sign-in says, and what you do about repeated guesses.",
       steps: [
         {
           key: "requirements",
@@ -398,7 +398,7 @@ Resizing, if it is done inside the request. It is processor-heavy and it starves
             "Nothing, with the form silently doing nothing",
           ],
           correct: 0,
-          explanation: "Different messages let anybody with the form discover which addresses have accounts here, which is worth something on its own and worth more on a site people would rather not be known to use. One message for both cases gives that away for nothing. The friendlier wording is a real cost and you should say so, since people do genuinely forget which address they used — the usual answer is a good password reset flow, not a more revealing error. Silence just looks broken.",
+          explanation: "Different messages let anybody with the form discover which addresses have accounts here, which is worth something on its own and worth more on a site people would rather not be known to use. One message for both cases gives that away for nothing. Giving up the friendlier wording is a real cost and you should say so, since people do genuinely forget which address they used — the usual answer is a good password reset flow, not a more revealing error. \"Wrong password\" for every case hides the same fact but misleads someone who only mistyped their email, and silence just looks broken.",
         },
         {
           key: "scale",
