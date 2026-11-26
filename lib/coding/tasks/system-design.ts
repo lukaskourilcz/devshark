@@ -955,7 +955,7 @@ The database, under reads, long before anything to do with orders — a few doze
       format: "tradeoff",
       scenario: "Signing up sends a welcome email. The email provider sometimes takes several seconds, and while it does, the person is staring at a spinner.",
       prompt: "What should the sign-up request do about the email?",
-      explanation: "The account exists whether or not the email has gone out, so waiting for it makes the user pay for work they do not care about. Handing it to a background worker — a separate process picking jobs off a list — means the reply is instant and the worker can keep retrying through an outage with nobody watching. Doing it in the request is only right when the answer changes the response, like a card payment. Retrying inline makes the worst case longer. Overnight is fine for a digest, not for a message people expect now.",
+      explanation: "The account exists whether or not the email has gone out, so waiting for it makes the user pay for work they do not care about. Handing it to a background worker — a separate process picking jobs off a list — means the reply is instant and the worker can keep retrying through an outage with nobody watching. Doing it in the request is only right when the answer changes the response, like a card payment. A shorter timeout still makes people wait and simply loses the email whenever the provider is slow. Retrying inline makes the worst case longer. Overnight is fine for a digest, not for a message people expect now.",
       options: [
         "Save the account, hand the email to a background worker, and reply straight away",
         "Send the email during the request, as now, but with a shorter timeout",
