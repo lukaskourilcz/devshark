@@ -67,7 +67,7 @@ An automated practical passes on every critical assertion plus at least 80% of t
 
 Completion states are `not_started`, `in_progress`, `verified_pass`, `self_reviewed` and `needs_revision`, and each module says which evidence counts. The server says **"FDE guided path completed"** only after every required verified check and required portfolio submission, and shows **"Portfolio self-reviewed"** separately. No "Certified FDE", hiring guarantee or automatic Senior rank.
 
-Multiple-choice options are plausible and comparably specific; the scenario's constraints make the preferred choice defensible, and the feedback says why each alternative fails here and when it could work. Exercises accept equivalent working code, include hidden edge cases and keep solutions sealed. Authors review both false passes and unfair failures, and avoid vendor trivia, obscure syntax and keyword-matching essays.
+Multiple-choice options are plausible and comparably specific, and the keyed option is never clearly the longest: `test:paths` fails a question whose key is more than 1.15 times the distractors' mean length or 5 % longer than the longest distractor; the scenario's constraints make the preferred choice defensible, and the feedback says why each alternative fails here and when it could work. Exercises accept equivalent working code, include hidden edge cases and keep solutions sealed. Authors review both false passes and unfair failures, and avoid vendor trivia, obscure syntax and keyword-matching essays.
 
 ## Inventory and numbering
 
