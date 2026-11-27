@@ -1067,7 +1067,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-patterns-q1",
           "prompt": "What evidence should the product proposal distinguish?",
           "options": [
-            "Repeated technical behaviour, customer-specific rules and the cost or failure history of each.",
+            "Repeated technical behaviour, customer-specific rules and their cost or failure history.",
             "The newest customer’s terminology, presented as the common vocabulary for every account.",
             "The total line count of the newest adapter without its operational history.",
             "The number of features competitors advertise without checking these customer workflows."
