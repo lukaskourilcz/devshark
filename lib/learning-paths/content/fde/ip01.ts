@@ -370,6 +370,11 @@ export const FDE_IP01: ModuleSource = {
         "label": "a replay is not delivered twice"
       }
     ],
+    "contract": [
+      "Keep the existing names `parseSelector`, `selectorMatches`, `selectorDescription`, `planEvents`, `SAMPLE_EVENT` and `SAMPLE_SUBSCRIPTION`. The tests and the harness call them, so a renamed or replaced one fails every case that uses it.",
+      "`__event`, `__subscription` and `__route` come from the task harness and are appended after your code. Read from them; do not define names that start with `__`.",
+      "Parse errors and descriptions are compared exactly. Inputs may be frozen: never mutate an event, subscription or previousSeen list."
+    ],
     "harness": "var __event = function (patch) { return Object.assign({}, SAMPLE_EVENT, {tags: SAMPLE_EVENT.tags.slice()}, patch || {}); };\nvar __subscription = function (selector, patch) { return Object.assign({}, SAMPLE_SUBSCRIPTION, {selector: selector}, patch || {}); };\nvar __route = function (values, tags, patch) {\n  var parsed = parseSelector({kind:'allTags', values:values});\n  if (!parsed.ok) return { errors:parsed.errors };\n  var plan = planEvents([__event({tags:tags})],[__subscription(parsed.value,patch)],[]);\n  return plan.deliveries.map(function (delivery) { return delivery.subscriptionId; });\n};"
   }
 },

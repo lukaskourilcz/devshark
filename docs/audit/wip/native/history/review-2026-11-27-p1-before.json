@@ -77,5 +77,84 @@
         "run: /private/tmp/codex-b10-ip01-review-proof.log; focused real gradePathCode/TypeScript/QuickJS check of all three final references and three demonstrated grading-hole variants. This is not the unflagged path suite."
       ]
     }
+  },
+  {
+    "id": "fde-v1-ip01-policy-router",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-ip01",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/ip01.ts",
+    "contentHash": "56556a7d2c85389d",
+    "previousHash": null,
+    "gradingHash": "9f3cf7dc7376b629",
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Add an all-tags selector without merging tenant authority, losing persisted replay identity or changing existing selector semantics.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": 4,
+      "explanation": null
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "answerOptions": "This is a lesson, reading activity or coding exercise rather than an answer-option question.",
+      "explanation": "No independent authored post-answer explanation exists; the lesson or code contract, tests and criterion feedback provide the relevant guidance."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Tenant-aware event selection and replay handling remain current integration concerns.",
+      "practicalUtility": "The drill preserves authority outside the new selector and exercises durable replay input rather than same-batch duplicates only.",
+      "transferable": "Predicate selection, authorization and operation identity remain separate across routing systems.",
+      "audienceFit": "The full unfamiliar starter, named entry points, hints and visible checks support intermediate TypeScript developers without external services.",
+      "riskOutcome": "The item addresses malformed data, regression, tenant/state or replay errors without claiming production-system safety."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Read the entire 332-line event planner, parse/match/description extension contract, visible and hidden assertions, reference delta and original six flawed variants. Shape/count-before-entry validation, trim-sensitive duplicate errors, case-sensitive every-tag matching and configuration-order description agree. Found a persisted-replay grading gap because existing probes supplied previousSeen=[]; a learner could discard that state and still pass. Added a nonempty frozen previousSeen assertion that refuses an already-seen tenant/event before routing and preserves the seed. The all-critical tenant-replay group prevents that failure from being averaged away. Starter/reference code remain unchanged, and the final hint now links to discriminated-union documentation.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/ip01.ts #fde-v1-ip01-policy-router; complete final item and linked fixture/contract read on 2026-10-22.",
+      "https://www.typescriptlang.org/docs/handbook/2/narrowing.html",
+      "inventory: final merged-catalogue nativeContentHash=56556a7d2c85389d; nativeGradingHash=9f3cf7dc7376b629; hashes bind actual content/tests/reference, not editorial scores.",
+      "repo: lib/learning-paths/content/fde/ip01-policy-router.ts; full starter read; no I/O and fictional provenance inspected.",
+      "repo: lib/learning-paths/solutions/fde-ip01.ts; full reference changes and all visible/hidden expectations inspected.",
+      "repo: scripts/test-learning-paths.ts original six per-drill KNOWN_WRONG_PATH substitutions read; root coordinates newly added safe-integer/persisted-replay variants.",
+      "run: /private/tmp/codex-b10-ip01-review-proof.log; focused real gradePathCode/TypeScript/QuickJS check of all three final references and three demonstrated grading-hole variants. This is not the unflagged path suite."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex B10/IP01 product-copy/native reviewer sub-agent; separate reader from original author in the same session, including final review of own bounded grading-test/hint fixes; not human or external independent audit"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate model full reading and focused actual-sandbox proof of the final assertions; no full-suite or live-deployment claim.",
+      "notes": "Final router reference passes 10/10 hidden assertions. Discarding persisted previousSeen makes tenant-replay fail while the other critical groups pass. Final prompt, hints, complete starter, full reference delta and all authored assertions reread. All declared criteria are critical; hidden tests remain server-side. The line-count fixtureNote matches the trimmed actual starter. This proves these bounded checks only, not production safety, employer acceptance or measured speed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/ip01.ts #fde-v1-ip01-policy-router; complete final item and linked fixture/contract read on 2026-10-22.",
+        "https://www.typescriptlang.org/docs/handbook/2/narrowing.html",
+        "inventory: final merged-catalogue nativeContentHash=56556a7d2c85389d; nativeGradingHash=9f3cf7dc7376b629; hashes bind actual content/tests/reference, not editorial scores.",
+        "repo: lib/learning-paths/content/fde/ip01-policy-router.ts; full starter read; no I/O and fictional provenance inspected.",
+        "repo: lib/learning-paths/solutions/fde-ip01.ts; full reference changes and all visible/hidden expectations inspected.",
+        "repo: scripts/test-learning-paths.ts original six per-drill KNOWN_WRONG_PATH substitutions read; root coordinates newly added safe-integer/persisted-replay variants.",
+        "run: /private/tmp/codex-b10-ip01-review-proof.log; focused real gradePathCode/TypeScript/QuickJS check of all three final references and three demonstrated grading-hole variants. This is not the unflagged path suite."
+      ]
+    }
   }
 ]
