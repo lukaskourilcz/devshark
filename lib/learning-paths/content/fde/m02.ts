@@ -1006,7 +1006,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-offline-q2",
           "prompt": "Which pilot preserves the central authority the scenario names?",
           "options": [
-            "Queue uniquely identified scans locally and show reservations as provisional until confirmed.",
+            "Queue scans by operation id; show reservations as provisional until confirmed.",
             "Let each scanner issue final stock promises from its last cached quantity.",
             "Overwrite central inventory with each device’s full snapshot on reconnection.",
             "Discard offline scans so reconnection never encounters duplicate operations."

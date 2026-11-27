@@ -12653,5 +12653,147 @@
         "run: PATHS_ONLY=fde npm run test:paths"
       ]
     }
+  },
+  {
+    "id": "fde-v1-m02-cases-offline-q2",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "989e6bd2b222d43c",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Queue identified offline work while keeping unconfirmed reservations provisional.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This question supplies scenario context and answer feedback but no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Queue identified offline work while keeping unconfirmed reservations provisional.",
+      "transferable": "A queued uniquely identified scan can be replayed while a provisional reservation honestly lacks central confirmation.",
+      "audienceFit": "The preceding decomposition lessons teach the authority/evidence/scope reasoning used by this intermediate case.",
+      "riskOutcome": "Directly exercises a correctness, access, capacity or external-effect boundary in this item."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "A queued uniquely identified scan can be replayed while a provisional reservation honestly lacks central confirmation. Final cached promises can oversell, snapshot overwrite can lose other work, and discarding scans loses real operations. The key does not claim central authority prohibits all bounded allocation designs.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-offline-q2; read prompt, all four options, correct index, explanation and parent scenario.",
+      "manual: Queue identified offline work while keeping unconfirmed reservations provisional.",
+      "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; 989e6bd2b222d43c; no scores derived from execution."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": true,
+      "run": "Codex B3 content/copy reviewer sub-agent; separate from authoring agent in the same 2026-10-22 session; not human review"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate reviewer sub-agent; full initial reading and final reading of revised items; same task session.",
+      "notes": "Final independent reading: A queued uniquely identified scan can be replayed while a provisional reservation honestly lacks central confirmation. Final cached promises can oversell, snapshot overwrite can lose other work, and discarding scans loses real operations. The key does not claim central authority prohibits all bounded allocation designs. The authored key selects the first source option; assessment shuffles display order. No learner attempt or live provider/model execution was performed by this reviewer.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-offline-q2; read prompt, all four options, correct index, explanation and parent scenario.",
+        "manual: Queue identified offline work while keeping unconfirmed reservations provisional.",
+        "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; 989e6bd2b222d43c; no scores derived from execution."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m02-cases-offline",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "9783e8b87197d426",
+    "previousHash": "afcffe1fee7f238b",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Make disconnected stock reservations provisional unless bounded allocation changes the constraint.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "answerOptions": "This record assesses the lesson or activity wrapper; each nested check question has its own individual option-set review.",
+      "hint": "No separate pre-answer hint exists on this lesson or activity wrapper.",
+      "explanation": "The wrapper has no independent post-answer explanation; nested question feedback is reviewed in its individual question record."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Preserve operational scans without promising shared stock from stale caches.",
+      "transferable": "Separate duplicate suppression from consistency between distinct operations.",
+      "audienceFit": "The bounded fictional material supports intermediate developers without external accounts or paid APIs.",
+      "riskOutcome": "Directly exercises a correctness, access, capacity or external-effect boundary in this item."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Edited q4 to balance option lengths and give distractors a concrete, plausible rationale. Other questions in this check were outside the batch.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02.ts fde-v1-m02-cases-offline",
+      "run: lencheck (correct option at most 1.15x the distractor mean and at most 5% above the longest distractor; scratch script, not committed)",
+      "run: PATHS_ONLY=fde npm run test:paths"
+    ],
+    "reviewedAt": "2026-11-27",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Claude Code session 2026-11-27; FDE learning-path audit 2026-11-27-p1"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "model subagent of the same session that proposed the edit, separate final English reading; applied, length-checked and test-run by the session",
+      "notes": "Reread q4 against the scenario after the edits; keys and explanations unchanged in meaning. Other questions in this check still use a keyed option at index 0 that is often the longest; not re-audited here. Self-review only.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02.ts fde-v1-m02-cases-offline",
+        "run: lencheck (correct option at most 1.15x the distractor mean and at most 5% above the longest distractor; scratch script, not committed)",
+        "run: PATHS_ONLY=fde npm run test:paths"
+      ]
+    }
   }
 ]
