@@ -118,7 +118,8 @@
     "fde-v1-m05-l2",
     "fde-v1-m08-l1",
     "fde-v1-m08-l2",
-    "fde-v1-m02-l2"
+    "fde-v1-m02-l2",
+    "fde-v1-m10-l1"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -236,7 +237,8 @@
     "fde-v1-m05-l2",
     "fde-v1-m08-l1",
     "fde-v1-m08-l2",
-    "fde-v1-m02-l2"
+    "fde-v1-m02-l2",
+    "fde-v1-m10-l1"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
@@ -256,6 +258,7 @@
     "review-2026-10-15-n034.jsonl",
     "review-2026-10-15-n035.jsonl",
     "review-2026-10-15-n038.jsonl",
+    "review-2026-10-15-n040.jsonl",
     "review-2026-10-15-n042.jsonl",
     "review-2026-10-22-b10-ip01.jsonl",
     "review-2026-10-22-b10-ip02.jsonl",

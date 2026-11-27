@@ -8349,5 +8349,85 @@
         "run: native-n032-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
       ]
     }
+  },
+  {
+    "id": "fde-v1-m10-l1",
+    "kind": "native-lesson",
+    "path": "fde",
+    "module": "fde-v1-m10",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m10.ts",
+    "contentHash": "6e207642559d36d0",
+    "previousHash": "477c03a1e606c646",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Design informed approvals with policy-dependent warnings, truthful local cancellation and accessible status feedback.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Approval accessibility remains current.",
+      "practicalUtility": "Misleading cancellation or hidden warning can cause wrong decisions.",
+      "transferable": "Client state differs from server effect authority.",
+      "audienceFit": "Explicit workbench policy makes permissive warning behavior inspectable.",
+      "riskOutcome": "Corrects universal abort, idempotency and announcement claims."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Read all prose, two code snippets, four-question table, cancellation trace and callouts. Add explicit currency to approval parameters. Missing required evidence can block rather than always permit approval. Abort can stop client transport/body work and uses supplied reason or defaultAbortError; it does not undo accepted server effects. Local request-id invalidation is distinct from reconciliation. RFC does not mandate a universal idempotency key for every safe retry. Bounded visible automatic load retries can be legitimate. aria-live delivery and urgency vary,not everyerrorassertive;44pxisworkbenchdesigngoalnotallWCAGlevels. Frame string checks as selected evidence, not complete accessibility.",
+    "evidence": [
+      "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/abort",
+      "https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-live",
+      "https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html",
+      "https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html",
+      "repo: lib/learning-paths/content/fde/m10.ts l1",
+      "run: check-native-2026-10-15-n040.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n040-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n040"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Final full English/code reading checks cancellation versus server uncertainty, current approval scope, warnings and status semantics. Trusted state/DOM-shaped recorder verifies matching state/text only; no rendered control, screen reader, keyboard, transport abort or provider effect is tested. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "https://developer.mozilla.org/en-US/docs/Web/API/AbortController/abort",
+        "https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-live",
+        "https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html",
+        "https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html",
+        "repo: lib/learning-paths/content/fde/m10.ts l1",
+        "run: check-native-2026-10-15-n040.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n040-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
   }
 ]

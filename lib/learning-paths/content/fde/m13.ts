@@ -158,8 +158,8 @@ export const FDE_M13: ModuleSource = {
       sources: [
         {
           label: 'MDN — aria-live',
-          url: 'https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-live',
-          reviewedOn: '2026-09-08',
+          url: 'https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-live',
+          reviewedOn: '2026-11-27',
         },
         {
           label: 'MDN — AbortController',
