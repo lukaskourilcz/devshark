@@ -26,7 +26,9 @@
     "fde-v1-bridge-python-api-client",
     "fde-v1-m01-q1",
     "fde-v1-m01-q2",
-    "fde-v1-m01-checks"
+    "fde-v1-m01-checks",
+    "fde-v1-m02-cases-dashboard-q3",
+    "fde-v1-m02-cases-dashboard"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -52,7 +54,9 @@
     "fde-v1-bridge-python-api-client",
     "fde-v1-m01-q1",
     "fde-v1-m01-q2",
-    "fde-v1-m01-checks"
+    "fde-v1-m01-checks",
+    "fde-v1-m02-cases-dashboard-q3",
+    "fde-v1-m02-cases-dashboard"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
@@ -66,6 +70,7 @@
     "review-2026-10-15-n042.jsonl",
     "review-2026-10-22-b10-ip01.jsonl",
     "review-2026-10-22-b10-ip02.jsonl",
+    "review-2026-10-22-b3-cases.jsonl",
     "review-2026-10-22-b9-python.jsonl"
   ],
   "history": "docs/audit/wip/native/history/review-2026-11-27-p1-before.json",

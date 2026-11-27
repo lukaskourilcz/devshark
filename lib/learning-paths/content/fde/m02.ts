@@ -262,9 +262,9 @@ export const FDE_M02: ModuleSource = {
           "prompt": "Which baseline can support a later comparison of investigation time?",
           "options": [
             "Median minutes per late-shipment investigation during a named shift, from saved observations.",
-            "The sponsor’s target of a fifty-percent reduction after the dashboard launch.",
-            "The total number of shipments displayed on the dashboard this morning.",
-            "The number of page views the current dashboard receives each working day."
+            "The sponsor’s target of a fifty-percent cut in investigation time after the dashboard launch.",
+            "The total number of late shipments the dashboard displayed during this morning’s shift.",
+            "Daily page views of the current dashboard, taken from its analytics over the last month."
           ],
           "correct": 0,
           "explanation": "The observed investigation times define the work, population, window and measurement method. The reduction is a target rather than a starting value. Shipment count measures volume, while page views measure visits; neither measures time spent investigating.",
