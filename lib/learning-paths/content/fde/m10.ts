@@ -599,7 +599,7 @@ export const FDE_M10: ModuleSource = {
           id: "fde-v1-m08-q2",
           prompt: "An authorized knowledge-base article genuinely quotes a prompt-injection attack as a security example. Product policy allows showing such examples. The assistant may summarize it but has no export tool or export permission. Which treatment preserves the example without giving its quoted instruction authority?",
           options: [
-            "Treat the quotation as untrusted content and keep export authority outside the summarizer.",
+            "Treat the quotation as untrusted content; keep export authority outside the summarizer.",
             "Treat any quoted attack as authorization to run the export described in the example.",
             "Remove export permission checks after deleting the exact quoted instruction sentence.",
             "Give the quotation an untrusted label and let that label authorize proposed exports.",
@@ -613,7 +613,7 @@ export const FDE_M10: ModuleSource = {
           prompt: "This workbench fixes the active tenant to the currently authorized server session, TEN-4021. Its chosen API contract ignores any model-supplied tenant field. A proposal contains tenantId TEN-7788. Which implementation follows that contract?",
           options: [
             "Use TEN-7788 in the query after validating that it matches the tenant-id format.",
-            "Derive TEN-4021 from the trusted session and enforce its access on every resource used.",
+            "Derive TEN-4021 from the trusted session and enforce its access on every resource.",
             "Switch the active tenant to TEN-7788 because the proposal explicitly names it.",
             "Accept the proposed tenant whenever the model says it has administrator approval.",
           ],
@@ -627,11 +627,11 @@ export const FDE_M10: ModuleSource = {
           options: [
             "Keep the existing approval screen and allow an unlimited number of case ids per call.",
             "Check the existing deletion scope again and permanently delete every submitted case.",
-            "Record all deleted ids after executing an unlimited irreversible deletion.",
+            "Record all deleted ids after an unlimited irreversible deletion, so support can recreate the cases.",
             "Enforce a per-call case limit, use recoverable deletion and record the approved operation.",
           ],
           correct: 3,
-          explanation: "The enforced limit bounds one call, while recoverable state and a working restore procedure support reversal within the permitted window. Approval, current authorization and audit records remain necessary parts of this design. Approval can reduce mistakes; it does not by itself specify a batch limit or restore lost data. Repeated calls need separate cumulative controls, and a restore window does not guarantee recovery after expiry or override retention obligations.",
+          explanation: "The enforced limit bounds one call, while recoverable state and a working restore procedure support reversal within the permitted window. Approval, current authorization and audit records remain necessary parts of this design. Approval can reduce mistakes; it does not by itself specify a batch limit or restore lost data. A list of deleted ids says what was lost and holds none of the case data. Repeated calls need separate cumulative controls, and a restore window does not guarantee recovery after expiry or override retention obligations.",
           competencies: ['ai-security'],
         },
       ],

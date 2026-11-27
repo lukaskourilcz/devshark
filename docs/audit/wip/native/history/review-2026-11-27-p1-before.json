@@ -9378,5 +9378,295 @@
       ]
     },
     "revision": 2
+  },
+  {
+    "id": "fde-v1-m08-q2",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m08",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m08.ts",
+    "contentHash": "0c54be23b5eb2d74",
+    "previousHash": "f5139d99901556c4",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Keep a permitted quoted security example as content while withholding export authority from its summarizer.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 4,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 3,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 3,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Untrusted retrieval remains relevant.",
+      "practicalUtility": "Security examples must not grant capabilities.",
+      "transferable": "Content policy and execution authority are separate.",
+      "audienceFit": "The stem explicitly permits the quotation and denies export access.",
+      "riskOutcome": "Avoids claiming allowlists alone prevent every unwanted export or misleading summary."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Original document disposition lacked policy and asserted three gates make the sentence unable to affect execution; an injected export to an allowed recipient could still be unwanted. Specify genuine permitted quotation and a summarizer without export capability. Explain residual output risks and legitimate quarantine under other policies. Distractors test a basic trust boundary rather than claiming all filtering is useless.",
+    "evidence": [
+      "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+      "https://genai.owasp.org/llmrisk/llm052025-improper-output-handling/",
+      "run: check-native-2026-10-15-n028.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n028-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n028"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Read stem, all four treatments and explanation. No untrusted role is claimed to grant or enforce authority. Quoting an attack is not proof of malicious intent; phrase removal is not permission enforcement. No model/export system was run. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+        "https://genai.owasp.org/llmrisk/llm052025-improper-output-handling/",
+        "run: check-native-2026-10-15-n028.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n028-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m08-q3",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m08",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m08.ts",
+    "contentHash": "1ec667744272bbba",
+    "previousHash": "f49e0527b23e3a5d",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Apply a fixed active-tenant contract using current server authority while recognizing that strict mismatch rejection can also be secure.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 3,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 3,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Tenant isolation remains current.",
+      "practicalUtility": "Resource authorization cannot come from model output.",
+      "transferable": "Shape and identity authority are distinct.",
+      "audienceFit": "A stated ignoring contract removes ambiguity between two valid API designs.",
+      "riskOutcome": "Rejects the misleading assertion that comparison is inherently a half-fix."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Original correct option said nowhere despite required resource checks, and dismissed valid comparison-based rejection. Make ignoring the supplied field an explicit API design; key derives trusted active tenant and enforces every resource access. Explain that authorized selectors and strict comparison can be secure in other designs. Alternatives are concise authority errors.",
+    "evidence": [
+      "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+      "repo: lib/learning-paths/content/fde/m08.ts q3",
+      "run: check-native-2026-10-15-n028.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n028-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n028"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Read all identifiers and alternatives. TEN-4021 is the currently authorized active tenant; TEN-7788 is merely proposed. Ignoring the input does not remove tenant checks. No actual session/database boundary was exercised. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+        "repo: lib/learning-paths/content/fde/m08.ts q3",
+        "run: check-native-2026-10-15-n028.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n028-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m08-q4",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m08",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m08.ts",
+    "contentHash": "39112798dc537a7a",
+    "previousHash": "bb9461abc7f8ce42",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Distinguish per-call deletion limits and permitted recovery from existing approval, scope and audit controls.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Bounded agency remains relevant.",
+      "practicalUtility": "Deletion needs a clear recovery design.",
+      "transferable": "Authorization, limits and recovery solve different problems.",
+      "audienceFit": "Existing approval/scope and permitted tested restore make the comparison determinate.",
+      "riskOutcome": "Qualifies cumulative risk and restore expiry rather than promising all rows return."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Original invented an operator blindly approving 200 ids and claimed approval bounds nothing. State existing scope/approval and a policy permitting temporary soft deletion; ask for direct per-call size and recovery controls. Acknowledge approval reduces mistakes and repeated calls need cumulative limits. Remove positional option reference and unconditional restoration guarantee.",
+    "evidence": [
+      "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+      "repo: lib/learning-paths/content/fde/m08.ts q4",
+      "run: check-native-2026-10-15-n028.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n028-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n028"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Read each design and feedback. The cap bounds one mistaken call, not unlimited repeated calls; recoverability depends on a working allowed restore window. No restore, deletion or approval operation was executed. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+        "repo: lib/learning-paths/content/fde/m08.ts q4",
+        "run: check-native-2026-10-15-n028.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n028-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m08-checks",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m08",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m08.ts",
+    "contentHash": "473cf5e3fe6187e6",
+    "previousHash": "9922457e1b18a4cc",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Assess four explicit security boundaries with immediate exercise feedback and no claim that one gate proves whole-system safety.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Security boundaries remain current.",
+      "practicalUtility": "Clear policies prevent ambiguous safe alternatives.",
+      "transferable": "Enforcement versus model suggestions transfers across tools.",
+      "audienceFit": "Four bounded decisions fit this module.",
+      "riskOutcome": "Summary and exercise keys align with the rewritten scenarios."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Individually reviewed all four rewritten questions; summary names approved refunds, permitted examples, trusted tenant context and recoverable deletion. Retain exercise purpose, security competency, verification and 0.8 threshold. Source keys now [2,0,1,3] rather than four identical positions; runtime shuffling remains unchanged.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m08.ts checks",
+      "repo: lib/learning-paths/grade.ts gradeCheck",
+      "run: check-native-2026-10-15-n028.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n028-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n028"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Read the parent and all options/explanations in final English. All correct pass, each single miss fails at 75% and review is immediate. Bindings/policy-presence assertions do not establish real security integration or generate editorial scores. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m08.ts checks",
+        "repo: lib/learning-paths/grade.ts gradeCheck",
+        "run: check-native-2026-10-15-n028.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n028-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
   }
 ]
