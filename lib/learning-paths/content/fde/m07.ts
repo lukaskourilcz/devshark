@@ -134,8 +134,8 @@ export const FDE_M07: ModuleSource = {
         },
         {
           label: 'OWASP Top 10 for Large Language Model Applications',
-          url: 'https://owasp.org/www-project-top-10-for-large-language-model-applications/',
-          reviewedOn: '2026-09-08',
+          url: 'https://owasp.org/projects/top-10-for-large-language-model-applications',
+          reviewedOn: '2026-11-27',
         },
         {
           label: 'NIST AI Risk Management Framework',
@@ -330,8 +330,8 @@ export const FDE_M07: ModuleSource = {
         },
         {
           label: 'OWASP Top 10 for Large Language Model Applications',
-          url: 'https://owasp.org/www-project-top-10-for-large-language-model-applications/',
-          reviewedOn: '2026-09-08',
+          url: 'https://owasp.org/projects/top-10-for-large-language-model-applications',
+          reviewedOn: '2026-11-27',
         },
       ],
       sections: [

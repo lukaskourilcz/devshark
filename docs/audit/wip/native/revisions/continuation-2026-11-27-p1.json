@@ -111,7 +111,13 @@
     "fde-v1-ip03-pattern-feedback-q2",
     "fde-v1-ip03-pattern-feedback-q3",
     "fde-v1-ip03-pattern-feedback-q4",
-    "fde-v1-ip03-pattern-feedback"
+    "fde-v1-ip03-pattern-feedback",
+    "fde-v1-m01-l1",
+    "fde-v1-m04-l2",
+    "fde-v1-m05-l1",
+    "fde-v1-m05-l2",
+    "fde-v1-m08-l1",
+    "fde-v1-m08-l2"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -222,7 +228,13 @@
     "fde-v1-ip03-pattern-feedback-q2",
     "fde-v1-ip03-pattern-feedback-q3",
     "fde-v1-ip03-pattern-feedback-q4",
-    "fde-v1-ip03-pattern-feedback"
+    "fde-v1-ip03-pattern-feedback",
+    "fde-v1-m01-l1",
+    "fde-v1-m04-l2",
+    "fde-v1-m05-l1",
+    "fde-v1-m05-l2",
+    "fde-v1-m08-l1",
+    "fde-v1-m08-l2"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
@@ -237,6 +249,10 @@
     "review-2026-10-15-n026.jsonl",
     "review-2026-10-15-n027.jsonl",
     "review-2026-10-15-n030.jsonl",
+    "review-2026-10-15-n031.jsonl",
+    "review-2026-10-15-n034.jsonl",
+    "review-2026-10-15-n035.jsonl",
+    "review-2026-10-15-n038.jsonl",
     "review-2026-10-15-n042.jsonl",
     "review-2026-10-22-b10-ip01.jsonl",
     "review-2026-10-22-b10-ip02.jsonl",
