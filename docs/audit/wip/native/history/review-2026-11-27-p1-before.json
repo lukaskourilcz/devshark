@@ -10231,5 +10231,219 @@
         "run: native-n029-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
       ]
     }
+  },
+  {
+    "id": "fde-v1-diagnostic-q1",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-diagnostic",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/diagnostic.ts",
+    "contentHash": "61f77e1e7d7d44e3",
+    "previousHash": "1dc46b4ff3b9a278",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Terminate vendor pagination by its documented cursor sentinel, including short or empty nonfinal pages.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Cursor pagination remains a current integration pattern.",
+      "practicalUtility": "Silent partial imports are a practical failure.",
+      "transferable": "Documented termination differs from inferred batch size.",
+      "audienceFit": "The operational scenario fits the FDE diagnostic.",
+      "riskOutcome": "Explicit request validity removes speculative alternative causes."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Retain the correct short-page stop diagnosis and intentionally broken job. State that page_size 500 and an initial null cursor are accepted and that 11000 is the expected total across returned pages. Remove the universal 500-argument engine-limit claim and unsupported maximum-page-size behavior. Explain that completed pushes did not silently discard data and the cursor sentinel must also handle empty nonfinal pages.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/diagnostic.ts vendor contract and pullContacts context",
+      "run: check-native-2026-10-15-n015.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n015-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n015"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread stem, code, all four alternatives and explanation. A deterministic stub with 500,0,500,23 returned items stops the original after 500/two calls; replacing only the stop condition with next_cursor===null retrieves 1023/four calls. This confirms the documented failure mechanism without claiming real vendor or authenticated activity acceptance. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/diagnostic.ts vendor contract and pullContacts context",
+        "run: check-native-2026-10-15-n015.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n015-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-diagnostic-q12",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-diagnostic",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/diagnostic.ts",
+    "contentHash": "f4110987502c7fff",
+    "previousHash": "3c32eab901e1cdc6",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Limit a selected-case demo claim to observed behavior rather than inferring production readiness.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 5,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Demo versus evaluation evidence remains current.",
+      "practicalUtility": "A sponsor needs accurate readiness claims.",
+      "transferable": "Selection bias and unmeasured coverage transfer broadly.",
+      "audienceFit": "Three cases versus a daily queue makes the limitation concrete.",
+      "riskOutcome": "Broadening readiness beyond a single rate prevents a new overclaim."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Shorten the oversized key to success on three chosen cases without measured wider readiness. Replace the overly narrow readiness-is-a-rate explanation with representative quality, failure and operational evidence. Preserve the distinction from a hedged unsupported yes and an unlabelled complaint-based rollout.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/diagnostic.ts q12",
+      "https://scikit-learn.org/stable/common_pitfalls.html#data-leakage",
+      "run: check-native-2026-10-15-n018.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n018-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n018"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread the stem and all four options after shortening. The demo establishes observed success on its selected examples; it neither provides a random-traffic rate nor measures load, failures or operational readiness. The result is useful bounded evidence, not no evidence at all. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/diagnostic.ts q12",
+        "https://scikit-learn.org/stable/common_pitfalls.html#data-leakage",
+        "run: check-native-2026-10-15-n018.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n018-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-diagnostic-check",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-diagnostic",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/diagnostic.ts; lib/learning-paths/competencies.ts; lib/learning-paths/handlers.ts",
+    "contentHash": "3c90ea267997c42b",
+    "previousHash": "78e3cc4b35407aed",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Report the latest accepted diagnostic evidence per tagged competency without turning an aggregate pass into mastery or access.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Diagnostic evidence remains current.",
+      "practicalUtility": "False mastery would misdirect bridge recommendations.",
+      "transferable": "Aggregate success differs from a competency assessment.",
+      "audienceFit": "Twelve bounded cases provide explicitly coarse evidence.",
+      "riskOutcome": "Fixes the runtime blocker and preserves unassessed/optional semantics."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Edited q2, q7 and q10 so the keyed option no longer stands out by length. The other nine questions were outside this batch and were not rewritten.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/diagnostic.ts fde-v1-diagnostic-check",
+      "run: lencheck (correct option at most 1.15x the distractor mean and at most 5% above the longest distractor; scratch script, not committed)",
+      "run: PATHS_ONLY=fde npm run test:paths"
+    ],
+    "reviewedAt": "2026-11-27",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Claude Code session 2026-11-27; FDE learning-path audit 2026-11-27-p1"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "model subagent of the same session that proposed the edit, separate final English reading; applied, length-checked and test-run by the session",
+      "notes": "Reread q2, q7 and q10 in full after the edits; keys unchanged and explanations still refute each distractor. q7 keeps one notably long distractor. Questions outside the batch not re-audited for length. Self-review only.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/diagnostic.ts fde-v1-diagnostic-check",
+        "run: lencheck (correct option at most 1.15x the distractor mean and at most 5% above the longest distractor; scratch script, not committed)",
+        "run: PATHS_ONLY=fde npm run test:paths"
+      ]
+    }
   }
 ]

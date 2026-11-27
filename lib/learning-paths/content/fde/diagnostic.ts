@@ -81,9 +81,9 @@ export const FDE_DIAGNOSTIC: ModuleSource = {
             code: 'const pullContacts = async () => {\n  const contacts = [];\n  let cursor = null;\n\n  while (true) {\n    const page = await vendor.contacts({ cursor, page_size: 500 });\n    contacts.push(...page.items);\n    if (page.items.length < 500) break;\n    cursor = page.next_cursor;\n  }\n\n  return contacts;\n};',
           },
           options: [
-            '`if (page.items.length < 500) break;` — a short page is not the end of this collection, and only `next_cursor === null` says it is.',
+            '`if (page.items.length < 500) break;` — a short page can arrive mid-collection; only `next_cursor === null` marks the end.',
             '`contacts.push(...page.items)` — spreading 500 entries onto the argument list overflows it and drops the tail.',
-            '`let cursor = null;` — a null cursor starts the scan from an undefined position, so the first request skips ahead.',
+            '`let cursor = null;` — a null cursor starts the scan from an undefined position, so the first request skips ahead in the list.',
             '`page_size: 500` is above the vendor maximum, so every response is truncated to the vendor default.',
           ],
           correct: 0,
@@ -255,8 +255,8 @@ export const FDE_DIAGNOSTIC: ModuleSource = {
             'A twelve-minute live demo handles three cases the engineer picked, all three correctly. The sponsor asks whether it is ready for the 400-case daily queue. What does the demo support?',
           options: [
             'That the workflow is covered end to end, and the remaining cases are variations on the same path.',
-            'A yes, with a caveat in the notes that quality will vary on real traffic.',
-            'The workflow worked on those three chosen cases; readiness for the wider queue has not been measured.',
+            'A yes, with a caveat in the notes that quality will vary once real traffic arrives.',
+            'It worked on those three chosen cases; readiness for the wider queue has not been measured.',
             'Nothing yet. Put it on the live queue for a week and count the complaints.',
           ],
           correct: 2,
