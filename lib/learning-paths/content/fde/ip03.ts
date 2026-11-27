@@ -807,13 +807,13 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-evaluation-q1",
           "prompt": "Which release decision follows from the stated contract?",
           "options": [
-            "Release C because its total accuracy is higher.",
-            "Remove the five failing cases and recompute the release metric.",
-            "Average the security failures into the cost score so the gain can offset them.",
-            "Block C until the tenant-restriction failure is corrected and re-evaluated, despite its aggregate improvement."
+            "Release C, since its total accuracy beats B on the same 100 held-out cases and the slice is only five items.",
+            "Drop the five failing cases as an unrepresentative slice and recompute the release metric on the rest.",
+            "Fold the security failures into a weighted overall score so the accuracy gain can offset them.",
+            "Block C until the tenant-restriction failures are fixed and re-evaluated, whatever its total accuracy."
           ],
           "correct": 3,
-          "explanation": "The explicit security gate is not an average-score tradeoff. Higher overall accuracy cannot satisfy it; removing failures or averaging them into a different metric changes the contract instead of meeting it.",
+          "explanation": "The explicit security gate is not an average-score tradeoff. Higher total accuracy cannot satisfy it, and dropping the failing slice or weighting it into an overall score changes the contract instead of meeting it.",
           "competencies": [
             "evaluation",
             "ai-security"
@@ -824,12 +824,12 @@ export const FDE_IP03: ModuleSource = {
           "prompt": "After repeatedly tuning C on this set, what remains needed for an honest final comparison?",
           "options": [
             "A separate untouched evaluation set or explicitly renewed holdout, with the tuning exposure recorded.",
-            "Keep calling the same set unseen because the case ids did not change.",
-            "Use only the easiest tuned cases to reduce evaluation noise.",
-            "Compare against the baseline’s old score while changing C’s case population."
+            "Keep reporting the same set as unseen, since the case ids and expected outputs have not changed.",
+            "Rerun only the cases C now passes reliably, so run-to-run noise does not blur the final comparison.",
+            "Compare C’s new score with B’s score from the original run, even though C’s case population changed."
           ],
           "correct": 0,
-          "explanation": "Repeated tuning exposes the set and weakens its holdout role. Stable ids do not undo exposure, easy-case selection biases the test, and differing populations make the baseline comparison misleading.",
+          "explanation": "Repeated tuning exposes the set and weakens its holdout role. Unchanged ids do not undo exposure, keeping only the cases C passes biases the test, and differing populations make the baseline comparison misleading.",
           "competencies": [
             "evaluation"
           ]
@@ -838,10 +838,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-evaluation-q3",
           "prompt": "Which report meets the stated measurement requirement?",
           "options": [
-            "A single blended score without units or slice outcomes.",
+            "A single blended score that combines quality, cost and latency, without units or slice outcomes.",
             "Quality, refusal, cost and latency separately, with the blocking slice visible.",
-            "Accuracy only, treating refusals as missing data.",
-            "Cost per successful answer while omitting failures and refused requests."
+            "Accuracy on answered cases only, with refusals treated as missing data.",
+            "Cost per successful answer, leaving out failed and refused requests."
           ],
           "correct": 1,
           "explanation": "Separate measures reveal the contract’s tradeoffs and failures. Blending hides them; omitting refused or failed cases can change the evaluated population and conceal the outcomes users receive.",
@@ -853,13 +853,13 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-evaluation-q4",
           "prompt": "A grader labels an unsupported answer correct. What should the team do?",
           "options": [
-            "Trust it because an automated grader produced a number.",
-            "Change the expected outcome to match C without reviewing the case.",
+            "Accept the label, since the automated grader applies the same rule to every candidate and the baseline.",
+            "Update the expected outcome to match C’s answer, since C passed most other cases in that slice.",
             "Inspect the case, expected outcome and grader rule before treating its score as evidence of quality.",
-            "Remove unsupported-answer cases from future evaluations."
+            "Drop unsupported-answer cases from future runs, since the grader cannot score them reliably."
           ],
           "correct": 2,
-          "explanation": "A grader can be wrong. Reviewing the underlying contract and case tests whether the score means what it claims. Automatic trust, outcome edits chosen for the candidate and dropping the failure class discard that check.",
+          "explanation": "A grader can be wrong, and applying the same wrong rule to every candidate stays wrong. Reviewing the case and the grader rule tests whether the score means what it claims. Accepting the label, editing the outcome to fit the candidate and dropping the failure class discard that check.",
           "competencies": [
             "evaluation"
           ]
