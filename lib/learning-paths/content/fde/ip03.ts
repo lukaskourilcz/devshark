@@ -968,13 +968,13 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-private-network-q1",
           "prompt": "Which change addresses the credential proposal?",
           "options": [
-            "Bake the key into an earlier layer and delete it in a later layer.",
+            "Copy the key into an early build layer and delete it in a later layer so the final image has no key file.",
             "Use the approved scoped workload identity and keep long-lived keys out of image layers.",
-            "Put the key in a comment so the runtime does not execute it.",
-            "Share an administrator key across all tenant deployments."
+            "Store the key in a commented-out line of the config file so the runtime never reads or executes it.",
+            "Share one administrator key across all tenant deployments so rotation happens in a single place."
           ],
           "correct": 1,
-          "explanation": "The approved identity avoids distributing an embedded long-lived key. Later deletion does not establish removal from earlier image layers; comments still carry data; a shared administrator key widens both scope and exposure.",
+          "explanation": "The approved identity avoids distributing an embedded long-lived key. Later deletion does not remove the key from earlier image layers; a commented line still ships the data; a shared administrator key widens both scope and exposure.",
           "competencies": [
             "boundaries",
             "deployment"
@@ -984,10 +984,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-private-network-q2",
           "prompt": "What must the release gate do about the replacement?",
           "options": [
-            "Proceed because an infrastructure tool generated the plan.",
-            "Treat code rollback as proof that replaced data will reappear.",
+            "Proceed, since the infrastructure tool generated the plan and its validation step reported no errors.",
+            "Treat a code rollback to the previous release as the recovery path for the replaced data.",
             "Refuse rollout until the data impact, verified recovery plan and required approvals are established.",
-            "Ignore replacement lines if the container health check passes."
+            "Proceed if the container health check passes, since replacement lines are routine in generated plans."
           ],
           "correct": 2,
           "explanation": "The replacement has unresolved data risk. A generated plan and healthy container do not establish recoverability, and restoring application code does not recreate lost data. The gate needs the missing evidence before exposure.",
@@ -999,13 +999,13 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-private-network-q3",
           "prompt": "Which acceptance check tests the private connectivity requirement?",
           "options": [
-            "Verify only that an engineer’s laptop can call the public endpoint.",
-            "Check only that the Terraform file contains the word private.",
-            "Ask the model whether the network appears secure from its prompt.",
-            "Verify the actual workload resolves and reaches the approved private endpoint under its role, while forbidden public egress is refused."
+            "From an engineer’s laptop on the corporate VPN, call the service endpoint and confirm it returns a 200.",
+            "Check that the Terraform plan sets the endpoint type to private and declares no public route for the service.",
+            "Ask the model to review the network configuration and report whether the setup appears secure.",
+            "From the deployed workload under its role, reach the private endpoint and confirm public egress is refused."
           ],
           "correct": 3,
-          "explanation": "The workload’s actual route, identity and refused egress test the specified boundary. A laptop, configuration keyword or model opinion does not establish that deployed traffic follows it.",
+          "explanation": "The workload’s actual route, identity and refused egress test the specified boundary. A laptop call, a planned setting or a model review does not establish that deployed traffic follows it.",
           "competencies": [
             "boundaries",
             "deployment"
@@ -1016,12 +1016,12 @@ export const FDE_IP03: ModuleSource = {
           "prompt": "Which rollback claim is honest before recovery is verified?",
           "options": [
             "Reverting code may be possible, but replaced or migrated state needs its own tested recovery/reconciliation plan.",
-            "One earlier image always restores the entire system and all data.",
-            "A successful build guarantees safe rollback of every migration.",
-            "The customer’s ownership makes recovery evidence unnecessary."
+            "Redeploying the earlier image restores the system, since the image pins the schema and data version it shipped with.",
+            "A green build of the previous release shows that each migration in it can be rolled back safely.",
+            "Because the customer owns the data store, their backups cover recovery and Pine needs no evidence of its own."
           ],
           "correct": 0,
-          "explanation": "Code and state can change independently. Images, builds and ownership do not prove how data is recovered. The case explicitly lacks that evidence, so the release discussion must keep the limitation visible.",
+          "explanation": "Code and state can change independently. An image, a build and customer ownership do not prove how data is recovered. The case explicitly lacks that evidence, so the release discussion must keep the limitation visible.",
           "competencies": [
             "deployment",
             "operations"
