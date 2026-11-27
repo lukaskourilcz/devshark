@@ -8273,5 +8273,81 @@
       ]
     },
     "revision": 2
+  },
+  {
+    "id": "fde-v1-m02-l2",
+    "kind": "native-lesson",
+    "path": "fde",
+    "module": "fde-v1-m02",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02.ts",
+    "contentHash": "c40177e540354619",
+    "previousHash": "ef468a4734ffeee8",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Use documented delivery/retry semantics and atomic scoped idempotency with explicit limits for external effects and recovery.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Retries and idempotency remain relevant.",
+      "practicalUtility": "Concurrent/crash windows can duplicate financial effects.",
+      "transferable": "A stable key is not an implementation or delivery guarantee.",
+      "audienceFit": "A bounded connector trace separates fixture behavior from HTTP semantics.",
+      "riskOutcome": "Fixes false atomicity, universal at-least-once,429 and zero-delay claims."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Read all eleven sections, six table rows, trace and JS snippets. Original get/refund/put code had neither a transaction nor concurrency control despite claiming both. Replace it with explicitly illustrative local transactional APIs, serialized scoped key and request fingerprint under trusted actor context; external provider effects still require their own contract/recovery. Not every transport is at-least-once. Current-state sync needs upsert rather than permanently discarding updates. Safe methods permit incidental effects; responses need not repeat; POST may have reliable idempotency semantics.429 Retry-After is optional and proves no universal no-read/no-write condition. A key on500 alone proves no replay result. Backoff accepts zero delay and names parsed inputs/deadline limits; cursor-only resume is not guaranteed.",
+    "evidence": [
+      "https://httpwg.org/specs/rfc9110.html#safe.methods",
+      "https://www.rfc-editor.org/rfc/rfc6585#section-4",
+      "repo: lib/learning-paths/content/fde/m02.ts l2",
+      "run: check-native-2026-10-15-n032.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n032-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n032"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Final full reading matches RFC9110/RFC6585. Six trace frames finish with4records2skips1duplicate4requests, under the fixture contract. Actual nextDelay example returns0/500/2000/15000 with fixed randomness; transaction sketch only compiles and is not a tested database client or payment integration. No live source, network, atomic storage or financial effect was run. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "https://httpwg.org/specs/rfc9110.html#safe.methods",
+        "https://www.rfc-editor.org/rfc/rfc6585#section-4",
+        "repo: lib/learning-paths/content/fde/m02.ts l2",
+        "run: check-native-2026-10-15-n032.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n032-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
   }
 ]
