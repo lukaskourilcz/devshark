@@ -643,7 +643,7 @@ export const FDE_M08: ModuleSource = {
           id: 'fde-v1-m06-q5',
           prompt: 'Marlbrook’s finance team wants refunds handled faster. Every request names an order id, and the steps never change: read the order, check the remaining balance, then propose the refund for a person to approve. Which build fits this task?',
           options: [
-            'A fixed workflow: code runs the three steps in order and calls a model only for a step that needs language, such as reading a free-text reason.',
+            'A fixed workflow: code runs the steps in order and calls a model only where a step needs language, such as a free-text reason.',
             'An agent holding all three tools with a ten-call budget, so the model picks the order of the steps for each request.',
             'An orchestrator that hands the read, the balance check and the refund proposal to three sub-agents and merges their answers.',
             'An agent holding all three tools with no call budget, because the approval at the end already stops any wrong refund.',

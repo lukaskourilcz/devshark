@@ -129,7 +129,8 @@
     "fde-v1-m03-checks",
     "fde-v1-m05-data-q5",
     "fde-v1-m05-data-checks",
-    "fde-v1-m04-q1"
+    "fde-v1-m04-q1",
+    "fde-v1-m06-q5"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -258,7 +259,8 @@
     "fde-v1-m03-checks",
     "fde-v1-m05-data-q5",
     "fde-v1-m05-data-checks",
-    "fde-v1-m04-q1"
+    "fde-v1-m04-q1",
+    "fde-v1-m06-q5"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
@@ -289,6 +291,7 @@
     "review-2026-10-22-b3-cases.jsonl",
     "review-2026-10-22-b5.jsonl",
     "review-2026-10-22-b6.jsonl",
+    "review-2026-10-22-b7.jsonl",
     "review-2026-10-22-b8.jsonl",
     "review-2026-10-22-b9-python.jsonl"
   ],
