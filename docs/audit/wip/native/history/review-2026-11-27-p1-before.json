@@ -1566,5 +1566,225 @@
         "https://www.python-httpx.org/advanced/timeouts/"
       ]
     }
+  },
+  {
+    "id": "fde-v1-m01-q1",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m01",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m01.ts",
+    "contentHash": "a93cbdac822b30bd",
+    "previousHash": "2e07b2cd80d894dc",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Make an undefined routine-ticket workflow observable before selecting mechanisms or claiming coverage.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Workflow discovery remains current.",
+      "practicalUtility": "Concrete examples expose actual operator work.",
+      "transferable": "Exploration differs from a representative baseline.",
+      "audienceFit": "A constrained one-hour meeting gives the question focus.",
+      "riskOutcome": "Qualifying three observations avoids another unsupported production-readiness claim."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Retain the keyed request for concrete tickets and observation, with target/model/wording distractors. The old explanation treated twenty selected tickets and three observed cases as baseline-ready timing and dismissed any coverage target as invented. Reframe them as an initial exploratory sample, require broader labelled coverage before production claims, acknowledge useful targets, and select a mechanism after understanding workflow/constraints.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m01.ts q1",
+      "repo: lib/learning-paths/content/fde/diagnostic.ts q12 bounded demonstration evidence",
+      "run: check-native-2026-10-15-n020.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n020-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n020"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread stem, all four choices and feedback. Examples clarify what routine means and how handling works; a desired percentage alone cannot define those cases, and model selection/wording presuppose the mechanism. Three observations can supply initial timings without establishing population coverage or savings. This is manual discovery reasoning, not a completed field study. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m01.ts q1",
+        "repo: lib/learning-paths/content/fde/diagnostic.ts q12 bounded demonstration evidence",
+        "run: check-native-2026-10-15-n020.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n020-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m01-q2",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m01",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m01.ts",
+    "contentHash": "97d5441d05f8164d",
+    "previousHash": "797a763f25f11a07",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Recognize an observed baseline value with a defined metric, population, period and repeatable source.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Repeatable baseline measurements remain current.",
+      "practicalUtility": "Improvement claims need a known starting point.",
+      "transferable": "A metric definition differs from a measured value and target.",
+      "audienceFit": "A hypothetical note makes the discovery distinction concrete.",
+      "riskOutcome": "Removing positional feedback preserves meaning after shuffling."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "The old key described a median metric but supplied no observed median. State a hypothetical observed 19-minute value, first human reply, tier-1 export slice, August/412 tickets and saved export query. Explain the actual measured note rather than first option, and the promised 40% target rather than last one. Keep estimate/value-judgment/target distractors.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m01.ts q2",
+      "repo: lib/learning-paths/content/fde/m01.ts scope-brief evidence limits",
+      "run: check-native-2026-10-15-n021.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n021-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n021"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread stem, every alternative and feedback. The measured note now contains a value as well as its context; it is explicitly hypothetical and is not collected evidence for the separate scope brief. A target does not supply its own starting measurement. No real ticket export or baseline was collected. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m01.ts q2",
+        "repo: lib/learning-paths/content/fde/m01.ts scope-brief evidence limits",
+        "run: check-native-2026-10-15-n021.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n021-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m01-checks",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m01",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m01.ts",
+    "contentHash": "ce008b44a81ef43c",
+    "previousHash": "f9d1102b65b276f7",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Assess the four bounded discovery decisions with a date-complete mechanism example and full exercise feedback.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Discovery assessment remains relevant.",
+      "practicalUtility": "Unclear evidence/requirements distort project scope.",
+      "transferable": "A scored fixture differs from field competence.",
+      "audienceFit": "Four bounded decisions match reviewed lesson objectives.",
+      "riskOutcome": "Keeps current parent/child bindings after a precise correction."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Re-read full parent and allfourchildprompts/options/explanations after q3date/provenance revision. q1samplesareexploratorynotrepresentative; q2hypothetical measured note ismostcompleteofgivenalternatives; q3mechanism classificationdoesnotbanagreedrequirements; q4explicitdataapprovalgatecannotbeinferredfromsponsormeeting. Parent hash includes revised q3butq1/q2/q4retain theirpriorindividualhashes. Withfourquestionsandthreshold.8,4/4passesandanymissfails; purposeexercise exposesreviewafterfailure. No new domaingate,rewardorcompletionrule is added. Existing n021parentreview is revised without addingcoverage.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m01.ts checks",
+      "repo: docs/audit/wip/native/review-2026-10-15-n021.jsonl priorreview",
+      "repo: lib/learning-paths/grade.ts gradeCheck",
+      "run: check-native-2026-10-15-n042.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n042-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n042"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Final English reading confirms exact four-item composition and current q3dated outcome. Trusted gradeCheck probes verify4/4passand3/4needsrevision with full review. Canonical option order is not learner wire order; existing sealed server shuffle remains authoritative. No authenticated attempt, representative discovery study or independent approval is claimed. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m01.ts checks",
+        "repo: docs/audit/wip/native/review-2026-10-15-n021.jsonl priorreview",
+        "repo: lib/learning-paths/grade.ts gradeCheck",
+        "run: check-native-2026-10-15-n042.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n042-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
   }
 ]

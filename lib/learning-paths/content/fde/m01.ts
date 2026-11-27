@@ -608,10 +608,10 @@ Next step
           prompt:
             'The VP of Customer Operations at Marlbrook says: “The assistant should handle the routine tickets.” Nobody has defined routine. You have one hour with the support team this week. Which question do you ask first?',
           options: [
-            '“Show me the last twenty tickets you would call routine, and let me watch you work three of them.”',
-            '“What percentage of tickets should the assistant handle without an agent?”',
-            '“Which model would you like us to use for this?”',
-            '“Can you write down the wording the assistant should use for the common cases?”',
+            '“Show me twenty recent tickets you would call routine, and let me watch you work three of them.”',
+            '“What percentage of tickets should the assistant resolve without an agent by the end of the pilot?”',
+            '“Which model would you like us to use, so we can test it against your ticket volume?”',
+            '“Can you write down the wording the assistant should use for the common cases you see?”',
           ],
           correct: 0,
           explanation:
@@ -622,10 +622,10 @@ Next step
           id: 'fde-v1-m01-q2',
           prompt: 'Which hypothetical note supplies the most complete measured baseline for the Marlbrook support project?',
           options: [
-            'Observed median first human reply: 19 minutes; tier-1 export tickets, August, 412 tickets; saved export query.',
-            'The agents say that roughly half of their day goes to answering the same questions again.',
-            'Support is costing too much for a team of four.',
-            'Handle time will fall by 40 percent once the assistant is live.',
+            'Observed median first human reply: 19 minutes; 412 tier-1 export tickets, August; saved export query.',
+            'In interviews the agents say roughly half of their day goes to answering the same questions again.',
+            'Support is costing too much for a team of four, according to the finance review last quarter.',
+            'Handle time will fall by 40 percent once the assistant is live, per the vendor case study.',
           ],
           correct: 0,
           explanation:

@@ -23,7 +23,10 @@
     "fde-v1-bridge-incident-case",
     "fde-v1-bridge-python-api-q3",
     "fde-v1-bridge-python-api-q4",
-    "fde-v1-bridge-python-api-client"
+    "fde-v1-bridge-python-api-client",
+    "fde-v1-m01-q1",
+    "fde-v1-m01-q2",
+    "fde-v1-m01-checks"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -46,7 +49,10 @@
     "fde-v1-bridge-incident-case",
     "fde-v1-bridge-python-api-q3",
     "fde-v1-bridge-python-api-q4",
-    "fde-v1-bridge-python-api-client"
+    "fde-v1-bridge-python-api-client",
+    "fde-v1-m01-q1",
+    "fde-v1-m01-q2",
+    "fde-v1-m01-checks"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
@@ -55,6 +61,7 @@
     "review-2026-10-15-n018.jsonl",
     "review-2026-10-15-n019.jsonl",
     "review-2026-10-15-n020.jsonl",
+    "review-2026-10-15-n021.jsonl",
     "review-2026-10-15-n027.jsonl",
     "review-2026-10-15-n042.jsonl",
     "review-2026-10-22-b10-ip01.jsonl",
