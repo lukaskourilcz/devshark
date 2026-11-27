@@ -9809,5 +9809,281 @@
         "run: PATHS_ONLY=fde npm run test:paths"
       ]
     }
+  },
+  {
+    "id": "fde-v1-m11-deploy-q2",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m11-deploy",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m11-deploy.ts",
+    "contentHash": "792eb2c8d0532d65",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Read -/+ with forces replacement on a data-holding database as destroy-then-create and stop the apply.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Accidental replacement of stateful resources is a current IaC failure.",
+      "practicalUtility": "Stops data loss at plan review.",
+      "transferable": "Replace-versus-update applies to any IaC tool.",
+      "audienceFit": "Reuses the lesson's fixture at module level.",
+      "riskOutcome": "Protects three years of tickets."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Terraform lifecycle docs: replacement destroys then creates by default; create_before_destroy reverses order and neither copies data; the key and the in-place and create-first distractors are accurate. The state-only distractor (D) is the weakest. storage_encrypted on aws_db_instance is replace-only, so the fixture is realistic; a real destroy also depends on final-snapshot settings hidden in the fixture, which does not change the right action. Answer options 4.",
+    "evidence": [
+      "https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle",
+      "https://developer.hashicorp.com/terraform/cli/commands/plan",
+      "repo: lib/learning-paths/content/fde/m11-deploy.ts q2"
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Claude Code workflow subagent 2026-10-22; B8 (#504) individual native review by a reviewer separate from the B8 author, same session"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread against the lifecycle page fetched 2026-10-22. Explanation also says how to do the encryption change properly (its own plan with a data copy). No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle",
+        "https://developer.hashicorp.com/terraform/cli/commands/plan",
+        "repo: lib/learning-paths/content/fde/m11-deploy.ts q2"
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m11-deploy-q4",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m11-deploy",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m11-deploy.ts",
+    "contentHash": "a5796c44d25a99f3",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Choose a private endpoint over IP allow-lists, NAT egress filtering or a VPN detour when traffic may not cross the internet.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 5,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Private connectivity requirements are standard in regulated customers.",
+      "practicalUtility": "A design choice made in every customer-cloud deployment.",
+      "transferable": "Every large cloud has a private-endpoint equivalent.",
+      "audienceFit": "The policy and subnets are stated, so the question is answerable.",
+      "riskOutcome": "Keeps ticket data off the public internet."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "PrivateLink page: connect a VPC to services as if they were in it, without internet gateway, NAT device, public IP, Direct Connect or Site-to-Site VPN, and control which endpoints are reachable. All distractors are designs teams really propose and the explanation says why each still crosses the internet or leaves the customer's control.",
+    "evidence": [
+      "https://docs.aws.amazon.com/vpc/latest/privatelink/what-is-privatelink.html",
+      "repo: lib/learning-paths/content/fde/m11-deploy.ts q4"
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Claude Code workflow subagent 2026-10-22; B8 (#504) individual native review by a reviewer separate from the B8 author, same session"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread against the PrivateLink page fetched 2026-10-22. One defensible answer; no product name is the answer text. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "https://docs.aws.amazon.com/vpc/latest/privatelink/what-is-privatelink.html",
+        "repo: lib/learning-paths/content/fde/m11-deploy.ts q4"
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m11-deploy-q5",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m11-deploy",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m11-deploy.ts",
+    "contentHash": "2354e31bde42ca1a",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Recognize that redeploying old code after a column drop fails and recovery needs a pre-drop restore point; expand and contract avoids it.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Schema-coupled rollbacks are a current incident cause.",
+      "practicalUtility": "Shapes the rollback plan a change board asks for.",
+      "transferable": "Expand/contract applies to any schema and API.",
+      "audienceFit": "Builds on the lesson's three-phase table.",
+      "riskOutcome": "Prevents shipping a drop and its consumer change together."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Parallel change (Danilo Sato) gives expand, migrate, contract; the key and explanation apply it correctly. Distractors A (pipeline versions both) and D (Terraform restores the column) are plausible misconceptions; C (database recreates a column from migration history on connect) is weak. Answer options 4.",
+    "evidence": [
+      "https://martinfowler.com/bliki/ParallelChange.html",
+      "repo: lib/learning-paths/content/fde/m11-deploy.ts q5"
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Claude Code workflow subagent 2026-10-22; B8 (#504) individual native review by a reviewer separate from the B8 author, same session"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread all options; one defensible answer. Explanation correctly says Terraform state tracks the instance, not columns. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "https://martinfowler.com/bliki/ParallelChange.html",
+        "repo: lib/learning-paths/content/fde/m11-deploy.ts q5"
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m11-deploy-checks",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m11-deploy",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m11-deploy.ts",
+    "contentHash": "1644f2e004a7f9d8",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Grade reading of a Dockerfile, two Terraform fixtures, a private-network design and a migration history from a customer-account deployment.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "All six cases are current deployment decisions.",
+      "practicalUtility": "Each question rehearses a review an FDE meets in a customer account.",
+      "transferable": "Fixtures use AWS names but no product is the answer.",
+      "audienceFit": "Six questions in 20 minutes fit the fixtures' length.",
+      "riskOutcome": "Required with the release gate for module completion."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Read title, summary, threshold and all six questions (individual records q1-q6). Summary matches; deployment competency, machine_verified, 0.8 threshold, required as verified_pass. Source keys [1,2,2,2,1,1] never use positions 0 or 3, but the grader shuffles options per attempt, so position gives no cue to a learner.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m11-deploy.ts checks",
+      "repo: lib/learning-paths/grade.ts gradeCheck",
+      "run: scratch checks.ts gradeCheck: all correct verified_pass 1.0, one miss verified_pass 0.8333, two misses needs_revision 0.6667 at passThreshold 0.8.",
+      "run: PATHS_ONLY=fde npm run test:paths passed after the review fixes (Node 24.22.0)."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Claude Code workflow subagent 2026-10-22; B8 (#504) individual native review by a reviewer separate from the B8 author, same session"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "gradeCheck run: 6/6 and 5/6 pass, 4/6 needs revision. Grades fixture reading only. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m11-deploy.ts checks",
+        "repo: lib/learning-paths/grade.ts gradeCheck",
+        "run: scratch checks.ts gradeCheck: all correct verified_pass 1.0, one miss verified_pass 0.8333, two misses needs_revision 0.6667 at passThreshold 0.8.",
+        "run: PATHS_ONLY=fde npm run test:paths passed after the review fixes (Node 24.22.0)."
+      ]
+    }
   }
 ]

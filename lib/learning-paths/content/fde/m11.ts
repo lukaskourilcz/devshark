@@ -531,14 +531,14 @@ export const FDE_M11: ModuleSource = {
             code: '  # aws_db_instance.cases must be replaced\n-/+ resource "aws_db_instance" "cases" {\n      ~ storage_encrypted = false -> true # forces replacement\n    }\n\n  # aws_security_group.workbench will be updated in-place\n  ~ resource "aws_security_group" "workbench" { ... }\n\nPlan: 1 to add, 1 to change, 1 to destroy.',
           },
           options: [
-            'Terraform encrypts the database in place and keeps its data, since only a storage setting changes. Apply it during the change window.',
+            'Terraform encrypts the database in place and keeps its data, since only a storage setting changes. Apply it during the next change window.',
             'Terraform builds the new database first and then removes the old one, so the tickets move across. Apply it and check the row count.',
-            'Terraform destroys the database and creates an empty one. Stop the apply, take the encryption change out, and get a plan with nothing to destroy.',
+            'Terraform destroys the database and creates an empty one. Stop the apply, drop the encryption change, and get a plan with nothing to destroy.',
             'Terraform changes only its state file for the setting, so no remote object changes. Apply it and run a refresh afterwards.',
           ],
           correct: 2,
           explanation:
-            '`-/+` with `# forces replacement` means Terraform cannot change `storage_encrypted` in place, and the lifecycle docs say a replacement destroys the existing object first and then creates a new one. The release did not ask for a database change, so you take the encryption change out and approve a plan that destroys nothing; encrypting the database becomes its own planned change, with a copy of the data. An in-place update would show `~`, not `-/+`. Create-before-destroy only applies when the configuration sets `create_before_destroy`, and even then Terraform builds a new empty object; it copies no data. A plan that touched only state would propose no action on a remote object; this one proposes replacing the database.',
+            '`-/+` with `# forces replacement` means Terraform cannot change `storage_encrypted` in place, and the lifecycle docs say a replacement destroys the existing object first and then creates a new one. The release did not ask for a database change, so you drop the encryption change and approve a plan that destroys nothing; encrypting the database becomes its own planned change, with a copy of the data. An in-place update would show `~`, not `-/+`. Create-before-destroy only applies when the configuration sets `create_before_destroy`, and even then Terraform builds a new empty object; it copies no data. A plan that touched only state would propose no action on a remote object; this one proposes replacing the database.',
           competencies: ['deployment'],
         },
         {
@@ -567,7 +567,7 @@ export const FDE_M11: ModuleSource = {
           options: [
             'Give the workbench a public address and let your API accept calls only from that address.',
             'Route the calls through a NAT device whose egress firewall allows only your API’s hostname.',
-            'Connect to your API through a private endpoint in Marlbrook’s network, with no internet path in between.',
+            'Reach your API through a private endpoint in Marlbrook’s network, with no internet path in between.',
             'Open a site-to-site VPN from Marlbrook’s network to your office and forward the calls from there.',
           ],
           correct: 2,
@@ -580,8 +580,8 @@ export const FDE_M11: ModuleSource = {
           prompt:
             'Release 42 shipped code that reads only `priority` and, in the same release, a migration that dropped `legacy_priority`. Release 41 reads `legacy_priority`. The release 42 canary is failing. What does redeploying release 41 do?',
           options: [
-            'It restores the previous code and the previous schema, because the release pipeline versions both together.',
-            'It restores the previous code, which then fails on a column the database no longer has. Recovery needs a restore point from before the drop.',
+            'It restores the previous code and the previous schema, because the release pipeline versions the image and the migrations together.',
+            'It restores the previous code, which fails on a column the database no longer has. Recovery needs a restore point from before the drop.',
             'It restores the previous code, and the database recreates `legacy_priority` from its migration history on the next connection.',
             'It restores the previous code, and Terraform puts the column back on the next apply because its state recorded the old schema.',
           ],
