@@ -642,10 +642,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-approval-q1",
           "prompt": "Which component must enforce the refund boundary?",
           "options": [
-            "The model’s system prompt alone because it names the approval rule.",
-            "Trusted server code that validates the current actor, exact proposal and required approval before calling the payment service.",
-            "A client badge saying Approved without binding it to the submitted arguments.",
-            "A retrieved note that says this customer always approves refunds."
+            "The model’s system prompt, because it states the approval rule and the model follows it each turn.",
+            "Trusted server code that checks the current actor, exact proposal and bound approval before paying.",
+            "A client-side Approved badge set by the reviewer, without binding it to the submitted arguments.",
+            "A retrieved account note stating that refunds for this customer are pre-approved by support."
           ],
           "correct": 1,
           "explanation": "The stated boundary requires trusted authorization and a bound approval. Prompt text, an unbound badge and untrusted retrieved notes cannot establish that the exact current refund is permitted.",
@@ -659,10 +659,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-approval-q2",
           "prompt": "The amount changes after approval. What should the executor do?",
           "options": [
-            "Reuse the approval because the account id did not change.",
-            "Execute the new amount if the model explains why it changed.",
-            "Reject the stale approval and obtain approval for the changed proposal under the current authority.",
-            "Copy the old approval timestamp into the changed request."
+            "Reuse the existing approval, because the account id and plan version did not change.",
+            "Execute the new amount if the model explains the change and the difference is small.",
+            "Reject the stale approval and get a new one for the changed proposal under current authority.",
+            "Carry the original approval timestamp into the changed request so the audit trail stays continuous."
           ],
           "correct": 2,
           "explanation": "Approval is tied to the amount and version, so the changed proposal is not covered. Account identity alone, a model explanation or a copied timestamp does not authorize the new action.",
@@ -675,10 +675,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-approval-q3",
           "prompt": "The refund call times out after it may have executed. Which next step respects replay safety?",
           "options": [
-            "Create a new idempotency key immediately so the retry is accepted.",
-            "Assume the timeout proves that no refund happened.",
-            "Issue a compensating charge automatically before checking the outcome.",
-            "Reconcile the recorded outcome and retry only under the same operation identity according to the payment contract."
+            "Create a new idempotency key so the payment service accepts the retry instead of rejecting a duplicate.",
+            "Treat the timeout as proof that no refund happened and ask the operator to approve it again.",
+            "Issue a compensating charge right away, before checking the outcome, in case the refund went through.",
+            "Reconcile the recorded outcome, then retry only under the same idempotency key per the payment contract."
           ],
           "correct": 3,
           "explanation": "A timeout leaves the effect uncertain. Reconciliation and the stipulated identity prevent treating the retry as a new refund. Fresh keys, assuming no effect and automatic compensation can create new unauthorized effects.",
@@ -692,9 +692,9 @@ export const FDE_IP03: ModuleSource = {
           "prompt": "A retrieved note instructs the agent to skip approval. How should it be treated?",
           "options": [
             "As untrusted content that cannot change the executor’s authority or approval checks.",
-            "As an updated policy because it arrived through retrieval.",
-            "As authorization if its wording includes the customer’s name.",
-            "As a reason to enable an administrator tool for this request."
+            "As an updated policy, because it arrived through the approved retrieval index.",
+            "As authorization, if its wording names the customer and the exact refund amount.",
+            "As a reason to enable an administrator tool so the request can finish without delay."
           ],
           "correct": 0,
           "explanation": "Retrieved text is explicitly untrusted in the case. Its origin or personalization does not let it modify trusted policy, and granting a broader tool would weaken the very boundary under attack.",

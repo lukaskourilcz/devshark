@@ -76,7 +76,12 @@
     "fde-v1-ip03-hosting-q2",
     "fde-v1-ip03-hosting-q3",
     "fde-v1-ip03-hosting-q4",
-    "fde-v1-ip03-hosting"
+    "fde-v1-ip03-hosting",
+    "fde-v1-ip03-approval-q1",
+    "fde-v1-ip03-approval-q2",
+    "fde-v1-ip03-approval-q3",
+    "fde-v1-ip03-approval-q4",
+    "fde-v1-ip03-approval"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -152,7 +157,12 @@
     "fde-v1-ip03-hosting-q2",
     "fde-v1-ip03-hosting-q3",
     "fde-v1-ip03-hosting-q4",
-    "fde-v1-ip03-hosting"
+    "fde-v1-ip03-hosting",
+    "fde-v1-ip03-approval-q1",
+    "fde-v1-ip03-approval-q2",
+    "fde-v1-ip03-approval-q3",
+    "fde-v1-ip03-approval-q4",
+    "fde-v1-ip03-approval"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
