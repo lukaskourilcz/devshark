@@ -1134,10 +1134,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-pattern-feedback-q1",
           "prompt": "Which boundary is a defensible proposal to test?",
           "options": [
-            "Share the entire first adapter and let each team remove safety checks it does not need.",
-            "Move tenant checks into a source flag so trusted imports can skip them.",
-            "Declare all timestamp conventions identical because the canonical type is the same.",
-            "Keep tenant/replay invariants in the core and expose validated source mapping/normalization policies as adapters."
+            "Share the entire first adapter as the core and let each team remove the safety checks it does not need.",
+            "Move tenant checks behind a per-source flag so imports from sources the team already trusts can skip them.",
+            "Treat all timestamp conventions as identical, since both adapters produce the same canonical timestamp type.",
+            "Keep tenant/replay invariants in the core and put validated per-source mapping and normalization in adapters."
           ],
           "correct": 3,
           "explanation": "The proposal separates required safety from explicit variation. Whole-adapter forks, optional safety and assumed semantic equivalence fail to preserve that distinction. The two deployments motivate a test, not a universal default.",
@@ -1151,9 +1151,9 @@ export const FDE_IP03: ModuleSource = {
           "prompt": "Which fixture helps reproduce the shared parser’s failure?",
           "options": [
             "A synthetic input preserving the explicit offset, observed rejection and expected canonical instant.",
-            "A successful input with the offset removed to simplify the sample.",
-            "An unrestricted production export because more data is always stronger evidence.",
-            "A screenshot of the final dashboard without the transformation inputs."
+            "A passing input with the offset stripped, so the sample stays small and parses in both adapters.",
+            "A full production export from the second source, since real records show the failure most reliably.",
+            "A screenshot of the final dashboard showing the wrong time, without the parser inputs."
           ],
           "correct": 0,
           "explanation": "The reproduction must preserve the property that fails. Removing the offset removes that property; a production export needs authorization and minimization; a dashboard screenshot does not specify the parser input or expected transformation.",
@@ -1166,10 +1166,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-pattern-feedback-q3",
           "prompt": "Which feedback note gives Product an actionable decision?",
           "options": [
-            "Promise a universal parser and a delivery date before checking the conflict.",
-            "Compare a bounded shared interface with keeping adapters local, state evidence limits, and assign an owner and validation step.",
-            "List only the preferred implementation with no alternative or unknowns.",
-            "Present unmeasured savings for every future customer as an established result."
+            "Commit to a universal parser and a delivery date now, and resolve the timestamp conflict during the build.",
+            "Compare a bounded shared interface with local adapters, state the evidence limits, and name an owner and test.",
+            "Recommend the preferred shared parser in detail and leave out the alternative and the open unknowns.",
+            "Report projected savings for all future customers as a measured result of the two deployments."
           ],
           "correct": 1,
           "explanation": "An owner, bounded comparison and evidence limits make a decision reviewable. A premature promise, omitted alternatives and invented savings commit beyond what the two cases establish.",
@@ -1182,10 +1182,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-pattern-feedback-q4",
           "prompt": "What should a stop/reversal plan include for the experiment?",
           "options": [
-            "Only the command that restores the previous code image.",
-            "Only a statement that the experiment is reversible.",
+            "The command that restores the previous code image, tested once in staging before the experiment starts.",
+            "A statement that the experiment is reversible, signed off by the team that built the shared parser.",
             "The signal that stops exposure, the accountable role, and how already transformed records are reconciled.",
-            "Only the number of people who liked the proposed interface."
+            "A count of reviewers who preferred the new interface, as the threshold for keeping or reverting it."
           ],
           "correct": 2,
           "explanation": "Reversal must address existing effects and decision authority. A code command or reversibility assertion does not explain data reconciliation, and preference counts do not establish a safe recovery path.",

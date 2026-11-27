@@ -106,7 +106,12 @@
     "fde-v1-ip03-operator-q2",
     "fde-v1-ip03-operator-q3",
     "fde-v1-ip03-operator-q4",
-    "fde-v1-ip03-operator"
+    "fde-v1-ip03-operator",
+    "fde-v1-ip03-pattern-feedback-q1",
+    "fde-v1-ip03-pattern-feedback-q2",
+    "fde-v1-ip03-pattern-feedback-q3",
+    "fde-v1-ip03-pattern-feedback-q4",
+    "fde-v1-ip03-pattern-feedback"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -212,7 +217,12 @@
     "fde-v1-ip03-operator-q2",
     "fde-v1-ip03-operator-q3",
     "fde-v1-ip03-operator-q4",
-    "fde-v1-ip03-operator"
+    "fde-v1-ip03-operator",
+    "fde-v1-ip03-pattern-feedback-q1",
+    "fde-v1-ip03-pattern-feedback-q2",
+    "fde-v1-ip03-pattern-feedback-q3",
+    "fde-v1-ip03-pattern-feedback-q4",
+    "fde-v1-ip03-pattern-feedback"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
