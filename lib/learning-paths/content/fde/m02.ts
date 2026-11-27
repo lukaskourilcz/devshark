@@ -337,13 +337,13 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-employee-sync-q3",
           "prompt": "What is the smallest pilot that can expose dangerous differences before granting access?",
           "options": [
-            "Propose a change set and have Facilities review status conflicts before any write.",
+            "Propose a change set; Payroll and Facilities review conflicts before any write.",
             "Replace both employee directories after one successful end-to-end API request.",
             "Send every differing field to both APIs and inspect failures the next morning.",
             "Synchronise active records only and ignore termination events during the pilot."
           ],
           "correct": 0,
-          "explanation": "A reviewed proposal tests mapping and lifecycle behaviour before its side effect. Replacing directories exceeds the pilot. Blind writes discover mistakes after they affect access. Ignoring termination removes the explicit safety requirement.",
+          "explanation": "A proposal reviewed by each data owner tests mapping and lifecycle behaviour before its side effect. Replacing directories exceeds the pilot. Blind writes discover mistakes after they affect access. Ignoring termination removes the explicit safety requirement.",
           "competencies": [
             "discovery"
           ]
