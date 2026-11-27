@@ -286,8 +286,8 @@ export const FDE_M08: ModuleSource = {
       sources: [
         {
           label: 'Anthropic, “Building effective agents” (19 December 2024): workflows versus agents, the simplest solution first, stopping conditions, human checkpoints, orchestrator-workers',
-          url: 'https://www.anthropic.com/engineering/building-effective-agents',
-          reviewedOn: '2026-10-21',
+          url: 'https://www.anthropic.com/research/building-effective-agents',
+          reviewedOn: '2026-11-27',
         },
         {
           label: 'Model Context Protocol specification 2026-07-28, Tools: a human in the loop with the ability to deny tool invocations',

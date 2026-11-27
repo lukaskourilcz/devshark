@@ -75,8 +75,8 @@ export const FDE_M06: ModuleSource = {
       sources: [
         {
           label: 'Anthropic — Building effective agents',
-          url: 'https://www.anthropic.com/engineering/building-effective-agents',
-          reviewedOn: '2026-09-08',
+          url: 'https://www.anthropic.com/research/building-effective-agents',
+          reviewedOn: '2026-11-27',
         },
         {
           label: 'Google SRE Book — Service Level Objectives',
