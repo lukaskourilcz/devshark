@@ -474,7 +474,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-wrong-feature-q2",
           "prompt": "Which prototype fits the authority you have?",
           "options": [
-            "A purchase lookup with an eligibility explanation and an explicit handoff to the approver.",
+            "A purchase lookup with an eligibility explanation and an explicit approver handoff.",
             "An automatic refund for amounts below a threshold chosen by the prototype author.",
             "A summary page that quietly marks the refund approved after showing its evidence.",
             "A payment screen that sends the refund when the operator opens the ticket."
@@ -489,7 +489,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-wrong-feature-q3",
           "prompt": "What should the sponsor update make explicit?",
           "options": [
-            "The measured lookup improvement and the approval-policy change still outside this project.",
+            "The measured lookup improvement and the approval-policy change outside this project.",
             "A claim that faster summaries prove autonomous refunds are safe for every request.",
             "A promise to remove the approver once operators become familiar with the prototype.",
             "A statement that policy compliance is guaranteed because no model provider is named."
@@ -504,9 +504,9 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-wrong-feature-q4",
           "prompt": "Finance authorises a limited payment pilot. What must happen before adding writes?",
           "options": [
-            "Agree the eligible cases, approval evidence, audit trail and rollback or compensation procedure.",
+            "Agree eligible cases, approval evidence, audit trail and rollback or compensation steps.",
             "Reuse the read-only pilot’s acceptance unchanged because its lookup already worked.",
-            "Enable writes for every request and use complaints to identify exceptional cases.",
+            "Enable writes for every request and let customer complaints identify the exceptional cases.",
             "Remove the operator confirmation so the limited pilot demonstrates full automation."
           ],
           "correct": 0,

@@ -152,7 +152,11 @@
     "fde-v1-m02-cases-employee-sync",
     "fde-v1-m02-cases-deadline-q1",
     "fde-v1-m02-cases-deadline-q2",
-    "fde-v1-m02-cases-deadline"
+    "fde-v1-m02-cases-deadline",
+    "fde-v1-m02-cases-wrong-feature-q2",
+    "fde-v1-m02-cases-wrong-feature-q3",
+    "fde-v1-m02-cases-wrong-feature-q4",
+    "fde-v1-m02-cases-wrong-feature"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -304,7 +308,11 @@
     "fde-v1-m02-cases-employee-sync",
     "fde-v1-m02-cases-deadline-q1",
     "fde-v1-m02-cases-deadline-q2",
-    "fde-v1-m02-cases-deadline"
+    "fde-v1-m02-cases-deadline",
+    "fde-v1-m02-cases-wrong-feature-q2",
+    "fde-v1-m02-cases-wrong-feature-q3",
+    "fde-v1-m02-cases-wrong-feature-q4",
+    "fde-v1-m02-cases-wrong-feature"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
