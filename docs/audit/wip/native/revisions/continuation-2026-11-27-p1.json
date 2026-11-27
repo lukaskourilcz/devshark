@@ -81,7 +81,12 @@
     "fde-v1-ip03-approval-q2",
     "fde-v1-ip03-approval-q3",
     "fde-v1-ip03-approval-q4",
-    "fde-v1-ip03-approval"
+    "fde-v1-ip03-approval",
+    "fde-v1-ip03-freshness-q1",
+    "fde-v1-ip03-freshness-q2",
+    "fde-v1-ip03-freshness-q3",
+    "fde-v1-ip03-freshness-q4",
+    "fde-v1-ip03-freshness"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -162,7 +167,12 @@
     "fde-v1-ip03-approval-q2",
     "fde-v1-ip03-approval-q3",
     "fde-v1-ip03-approval-q4",
-    "fde-v1-ip03-approval"
+    "fde-v1-ip03-approval",
+    "fde-v1-ip03-freshness-q1",
+    "fde-v1-ip03-freshness-q2",
+    "fde-v1-ip03-freshness-q3",
+    "fde-v1-ip03-freshness-q4",
+    "fde-v1-ip03-freshness"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [

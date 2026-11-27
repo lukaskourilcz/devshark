@@ -726,13 +726,13 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-freshness-q1",
           "prompt": "Which information makes an answer’s evidence inspectable?",
           "options": [
-            "Only a confidence percentage produced by the model.",
-            "Only the fact that the generated answer contains a citation-shaped string.",
-            "The authorized source identity/version and retrieval time, with the supported claim linked to that evidence.",
-            "Only the document’s title, reused across all of its versions."
+            "A model-reported confidence score for each answer, stored with the response so reviewers can sort by certainty.",
+            "A citation marker in the answer text, checked by a pattern match that confirms each paragraph has a source tag.",
+            "The authorized source id and version plus retrieval time, with each supported claim linked to that evidence.",
+            "The document title and folder path, kept stable across revisions so links survive when the policy is replaced."
           ],
           "correct": 2,
-          "explanation": "Versioned provenance helps identify the actual permitted evidence. Confidence, citation shape and a reused title do not establish which version supported the claim or whether the current actor could read it.",
+          "explanation": "Versioned provenance identifies the permitted evidence an answer used. A confidence score, a citation-shaped marker and a title reused across versions do not establish which version supported the claim or whether the current actor could read it.",
           "competencies": [
             "retrieval"
           ]
@@ -741,13 +741,13 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-freshness-q2",
           "prompt": "What must a removal plan inventory?",
           "options": [
-            "Only the original source file because derived stores are automatic.",
-            "Only the visible answer cache because the index contains vectors.",
-            "Only the browser history of users who previously saw the answer.",
+            "The original source file, since the index and caches rebuild from it on their next scheduled refresh.",
+            "The answer cache users see, since the index stores only vectors and holds no readable policy text.",
+            "The browser history and local storage of users who saw the answer, so the old text leaves their devices.",
             "The index, caches and exported snapshots, with an owner and the stated policy for each copy."
           ],
           "correct": 3,
-          "explanation": "The scenario names separately stored copies; removal must address their lifecycle explicitly. Deleting one source does not prove those copies disappeared, and a vector index or snapshot still needs a stated policy.",
+          "explanation": "The scenario names separately stored copies, so the plan must address the lifecycle of each one. A scheduled rebuild does not prove those copies disappeared, a vector index or snapshot still needs a stated policy, and user browsers are not among the copies Alder stores.",
           "competencies": [
             "boundaries",
             "operations"
@@ -757,13 +757,13 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-freshness-q3",
           "prompt": "Which test addresses the 09:05 permission change?",
           "options": [
-            "Query as the revoked user after the change, including a warm answer-cache path, and verify the removed material cannot be used.",
-            "Query only as an administrator who retains access.",
-            "Clear all caches and test only the new empty-cache path.",
-            "Check only that the policy title still appears in the index."
+            "Query as the revoked user after 09:05, including a warm answer-cache path, and confirm the removed material is not used.",
+            "Query as an administrator after 09:05 and confirm the answer cites the replaced policy version, since admins see every document.",
+            "Clear all caches first, then query as the revoked user so the test runs on a clean, repeatable cold path.",
+            "Check the index access list for the policy document and confirm the revoked user no longer appears on it."
           ],
           "correct": 0,
-          "explanation": "The revoked actor and warm path exercise the relevant boundary. Administrator access, a forced-cold path and title presence cannot establish that cached evidence respects the changed permission.",
+          "explanation": "The revoked actor and the warm cache path exercise the boundary that changed. An administrator query, a forced cold path and index metadata cannot establish that cached answers respect the revoked permission.",
           "competencies": [
             "boundaries",
             "retrieval",
@@ -774,10 +774,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-freshness-q4",
           "prompt": "Which claim exceeds what a valid citation establishes?",
           "options": [
-            "That the cited source can be inspected by an authorized reviewer.",
-            "That the whole generated answer is current, authorized and semantically supported merely because one citation id resolves.",
-            "That source-version metadata can help reproduce a retrieval decision.",
-            "That each substantive claim still needs support from the permitted evidence."
+            "That an authorized reviewer can open the cited source and check the passage the answer relied on.",
+            "That the whole answer is current, authorized and supported because one of its citation ids resolves.",
+            "That stored source-version metadata can help a reviewer reproduce which document a retrieval returned.",
+            "That each substantive claim in the answer still needs its own support from the permitted evidence."
           ],
           "correct": 1,
           "explanation": "A resolvable id is only part of the evidence chain. It does not by itself validate every claim, freshness or authorization. The other statements describe bounded uses of provenance rather than a complete guarantee.",
