@@ -8732,5 +8732,90 @@
       ]
     },
     "revision": 3
+  },
+  {
+    "id": "fde-v1-m11-deploy-l2",
+    "kind": "native-lesson",
+    "path": "fde",
+    "module": "fde-v1-m11-deploy",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m11-deploy.ts",
+    "contentHash": "62536aaa9940bc41",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Read a Terraform plan for a data-destroying replacement, apply only the reviewed saved plan, name the release gates and price a rollback with expand and contract.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Terraform plans, canaries and change boards are current practice.",
+      "practicalUtility": "The plan-symbol table and the rollback-cost table are directly usable.",
+      "transferable": "Replace-versus-update and expand/contract apply to any IaC tool and database.",
+      "audienceFit": "Fixtures are small and readable at FDE level.",
+      "riskOutcome": "Prevents applying a plan that destroys the case database and dropping a column in the same release."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Read every section: plan description, fixture plan (forces replacement on storage_encrypted, which the AWS provider does treat as replace-only), symbol table, lifecycle prose, saved-plan callout, four gates, change management, parallel change, three-phase table, five-frame trace and fixture note. Sources confirm: plan reads remote state, proposes, does not apply; -out file accepted by apply and holding cleartext data; default replacement destroys then creates, prevent_destroy rejects such plans, create_before_destroy reverses order; state holds secrets in plaintext, keep it out of Git with access controls and audit logs; SRE Workbook canary definition and pause-and-roll-back; Danilo Sato's expand/migrate/contract; Sierra's change-management and rollbacks quotes verbatim.",
+    "evidence": [
+      "https://developer.hashicorp.com/terraform/cli/commands/plan",
+      "https://developer.hashicorp.com/terraform/tutorials/cli/plan",
+      "https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle",
+      "https://developer.hashicorp.com/terraform/language/state/sensitive-data",
+      "https://sre.google/workbook/canarying-releases/",
+      "https://martinfowler.com/bliki/ParallelChange.html",
+      "https://jobs.ashbyhq.com/sierra/d9c0aa93-e35d-4752-9cef-4c39dcad5365",
+      "repo: lib/learning-paths/content/fde/m11-deploy.ts l2",
+      "run: scratch list.ts (outside the repo) over catalog + audit.ts hashes: 2 stale and 19 unrecorded FDE items, all in M08 (v2 M10) and M11; no untouched item listed.",
+      "run: PATHS_ONLY=fde npm run test:paths passed after the review fixes (Node 24.22.0)."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Claude Code workflow subagent 2026-10-22; B8 (#504) individual native review by a reviewer separate from the B8 author, same session"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "All seven sources opened on 2026-10-22. Limitation noted, not a defect: a real aws_db_instance destroy also depends on final-snapshot and deletion-protection settings hidden in the fixture, so 'comes back empty' describes the new instance, which is what the lesson claims. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "https://developer.hashicorp.com/terraform/cli/commands/plan",
+        "https://developer.hashicorp.com/terraform/tutorials/cli/plan",
+        "https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle",
+        "https://developer.hashicorp.com/terraform/language/state/sensitive-data",
+        "https://sre.google/workbook/canarying-releases/",
+        "https://martinfowler.com/bliki/ParallelChange.html",
+        "https://jobs.ashbyhq.com/sierra/d9c0aa93-e35d-4752-9cef-4c39dcad5365",
+        "repo: lib/learning-paths/content/fde/m11-deploy.ts l2",
+        "run: scratch list.ts (outside the repo) over catalog + audit.ts hashes: 2 stale and 19 unrecorded FDE items, all in M08 (v2 M10) and M11; no untouched item listed.",
+        "run: PATHS_ONLY=fde npm run test:paths passed after the review fixes (Node 24.22.0)."
+      ]
+    }
   }
 ]

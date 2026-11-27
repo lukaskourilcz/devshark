@@ -346,9 +346,9 @@ export const FDE_M11: ModuleSource = {
           reviewedOn: '2026-10-21',
         },
         {
-          label: 'Terraform docs: Sensitive data in state',
-          url: 'https://developer.hashicorp.com/terraform/language/state/sensitive-data',
-          reviewedOn: '2026-10-21',
+          label: 'Terraform docs: Manage sensitive data',
+          url: 'https://developer.hashicorp.com/terraform/language/manage-sensitive-data',
+          reviewedOn: '2026-11-27',
         },
         {
           label: 'Google SRE Workbook: Canarying releases',

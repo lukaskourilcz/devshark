@@ -123,7 +123,8 @@
     "fde-v1-m04-l1",
     "fde-v1-m06-l2",
     "fde-v1-m07-l1",
-    "fde-v1-m07-l2"
+    "fde-v1-m07-l2",
+    "fde-v1-m11-deploy-l2"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -246,7 +247,8 @@
     "fde-v1-m04-l1",
     "fde-v1-m06-l2",
     "fde-v1-m07-l1",
-    "fde-v1-m07-l2"
+    "fde-v1-m07-l2",
+    "fde-v1-m11-deploy-l2"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
