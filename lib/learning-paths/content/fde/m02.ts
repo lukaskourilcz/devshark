@@ -476,11 +476,11 @@ export const FDE_M02: ModuleSource = {
           "options": [
             "A purchase lookup with an eligibility explanation and an explicit approver handoff.",
             "An automatic refund for amounts below a threshold chosen by the prototype author.",
-            "A summary page that quietly marks the refund approved after showing its evidence.",
+            "A summary page that marks the refund approved once the operator has read its evidence.",
             "A payment screen that sends the refund when the operator opens the ticket."
           ],
           "correct": 0,
-          "explanation": "The lookup prepares the decision while leaving payment approval with its owner. An invented threshold grants authority nobody supplied. Marking approval or paying on page view crosses the same boundary through a different interface.",
+          "explanation": "The lookup prepares the decision while leaving payment approval with its owner. An invented threshold grants authority nobody supplied. Marking approval once the evidence is read or paying on page view crosses the same boundary through a different interface.",
           "competencies": [
             "discovery"
           ]

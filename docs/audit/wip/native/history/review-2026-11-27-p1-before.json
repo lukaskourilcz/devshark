@@ -13223,5 +13223,147 @@
         "run: PATHS_ONLY=fde npm run test:paths"
       ]
     }
+  },
+  {
+    "id": "fde-v1-m02-cases-wrong-feature-q2",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "884de9985e79c342",
+    "previousHash": "1a52094695aeffa6",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Prototype decision support while leaving payment authority with its owner.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 4,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 5,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This question supplies scenario context and answer feedback but no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Prototype decision support while leaving payment authority with its owner.",
+      "transferable": "A purchase lookup, eligibility explanation and approver handoff stay read-only.",
+      "audienceFit": "The preceding decomposition lessons teach the authority/evidence/scope reasoning used by this intermediate case.",
+      "riskOutcome": "Directly exercises a correctness, access, capacity or external-effect boundary in this item."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Compressed \"an explicit handoff to the approver\" to \"an explicit approver handoff\".",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02.ts fde-v1-m02-cases-wrong-feature-q2",
+      "run: lencheck (correct option at most 1.15x the distractor mean and at most 5% above the longest distractor; scratch script, not committed)",
+      "run: PATHS_ONLY=fde npm run test:paths"
+    ],
+    "reviewedAt": "2026-11-27",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Claude Code session 2026-11-27; FDE learning-path audit 2026-11-27-p1"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "model subagent of the same session that proposed the edit, separate final English reading; applied, length-checked and test-run by the session",
+      "notes": "Key: lookup plus eligibility explanation and a handoff keeps payment approval with Finance. A self-chosen auto-refund threshold, a summary that marks approval, and a screen that pays on open each take approval authority nobody granted. Explanation unchanged. Self-review only.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02.ts fde-v1-m02-cases-wrong-feature-q2",
+        "run: lencheck (correct option at most 1.15x the distractor mean and at most 5% above the longest distractor; scratch script, not committed)",
+        "run: PATHS_ONLY=fde npm run test:paths"
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m02-cases-wrong-feature",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "64e52df872b339f8",
+    "previousHash": "2899a1f7ea8d4b09",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Reduce refund lookup friction while respecting the finance approval boundary.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 4,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 5,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "answerOptions": "This record assesses the lesson or activity wrapper; each nested check question has its own individual option-set review.",
+      "hint": "No separate pre-answer hint exists on this lesson or activity wrapper.",
+      "explanation": "The wrapper has no independent post-answer explanation; nested question feedback is reviewed in its individual question record."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Push back on automatic approval while offering a permitted improvement.",
+      "transferable": "Separate desired outcome, requested mechanism and owner-controlled permission.",
+      "audienceFit": "The bounded fictional material supports intermediate developers without external accounts or paid APIs.",
+      "riskOutcome": "Directly exercises a correctness, access, capacity or external-effect boundary in this item."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Length rebalance of fde-v1-m02-cases-wrong-feature-q2, fde-v1-m02-cases-wrong-feature-q3, fde-v1-m02-cases-wrong-feature-q4: keys tightened without changing meaning, and where needed a distractor got the concrete wrong reasoning an engineer would give. Every edited question now passes the length rule; no key, correct index or option count changed.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02.ts fde-v1-m02-cases-wrong-feature",
+      "run: lencheck (correct option at most 1.15x the distractor mean and at most 5% above the longest distractor; scratch script, not committed)",
+      "run: PATHS_ONLY=fde npm run test:paths"
+    ],
+    "reviewedAt": "2026-11-27",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Claude Code session 2026-11-27; FDE learning-path audit 2026-11-27-p1"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "model subagent of the same session that proposed the edit, separate final English reading; applied, length-checked and test-run by the session",
+      "notes": "Reread the whole check after the edits. Each key still follows from the stem or scenario constraints, and each distractor stays wrong for the reason its explanation states. No em or en dashes or ASCII-quoted \"xp\" were added, and no scenario quotes an option or explanation. Self-review only; no independent or human approval.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02.ts fde-v1-m02-cases-wrong-feature",
+        "run: lencheck (correct option at most 1.15x the distractor mean and at most 5% above the longest distractor; scratch script, not committed)",
+        "run: PATHS_ONLY=fde npm run test:paths"
+      ]
+    }
   }
 ]
