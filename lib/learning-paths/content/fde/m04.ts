@@ -968,8 +968,8 @@ export const FDE_M04: ModuleSource = {
           options: [
             'The signature check, because each signature is valid only for the first request that presents it to the receiver.',
             'The timestamp tolerance, because the copy arrives 40 seconds later than the original delivery did.',
-            'TLS, because the resent copy travels on a different connection, with different keys, than the original delivery.',
-            'A replay store keyed by connection and `webhook-id`, keeping each key until its signed timestamp is more than 300 seconds old.',
+            'TLS, because the resent copy travels on a different connection, with different session keys, than the original delivery.',
+            'A replay store keyed by connection and `webhook-id`, keeping each key until its signed timestamp is over 300 seconds old.',
           ],
           correct: 3,
           explanation:
