@@ -66,7 +66,12 @@
     "fde-v1-ip03-spike-q2",
     "fde-v1-ip03-spike-q3",
     "fde-v1-ip03-spike-q4",
-    "fde-v1-ip03-spike"
+    "fde-v1-ip03-spike",
+    "fde-v1-ip03-regulated-q1",
+    "fde-v1-ip03-regulated-q2",
+    "fde-v1-ip03-regulated-q3",
+    "fde-v1-ip03-regulated-q4",
+    "fde-v1-ip03-regulated"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -132,7 +137,12 @@
     "fde-v1-ip03-spike-q2",
     "fde-v1-ip03-spike-q3",
     "fde-v1-ip03-spike-q4",
-    "fde-v1-ip03-spike"
+    "fde-v1-ip03-spike",
+    "fde-v1-ip03-regulated-q1",
+    "fde-v1-ip03-regulated-q2",
+    "fde-v1-ip03-regulated-q3",
+    "fde-v1-ip03-regulated-q4",
+    "fde-v1-ip03-regulated"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [

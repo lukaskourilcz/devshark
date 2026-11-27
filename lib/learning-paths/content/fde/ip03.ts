@@ -477,13 +477,13 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-regulated-q1",
           "prompt": "Which action follows from the no-egress requirement before choosing a provider?",
           "options": [
-            "Send a small sample to a public endpoint because it is only a pilot.",
-            "Treat a provider’s general security marketing as an exception approval.",
-            "Rely on a prompt that tells the model not to retain customer text.",
-            "Map data flows and reject any proposed path that sends customer text outside the approved boundary unless its owner changes the requirement."
+            "Send a small masked sample to a public endpoint, since a short pilot on masked text is not production use.",
+            "Treat a provider’s published security and data-retention claims as approval for an exception to the rule.",
+            "Use a hosted endpoint and rely on a system prompt telling the model never to store or retain customer text.",
+            "Map data flows and reject any path that sends customer text past the boundary unless its owner changes the rule."
           ],
           "correct": 3,
-          "explanation": "The explicit approved boundary governs this case. A pilot, marketing claim or prompt does not authorize an exception or change where data travels. The designated owner must resolve an exception; the exercise does not decide what a law requires.",
+          "explanation": "The explicit approved boundary governs this case. A pilot, a provider’s claims or a prompt does not authorize an exception or change where data travels. The designated owner must resolve an exception; the exercise does not decide what a law requires.",
           "competencies": [
             "boundaries",
             "deployment"
@@ -494,9 +494,9 @@ export const FDE_IP03: ModuleSource = {
           "prompt": "What should the workload identity be allowed to do?",
           "options": [
             "Only the operations and resources this workflow needs, using the approved identity boundary.",
-            "All project operations so future extensions require no identity changes.",
-            "The combined privileges of every user who may ask a question.",
-            "A shared administrator token embedded in the container image."
+            "All project operations, so future workflow extensions do not need new identity reviews or grants.",
+            "The combined privileges of every user who may ask a question, so any request can be served.",
+            "A shared administrator token stored in the container image so every replica authenticates the same way."
           ],
           "correct": 0,
           "explanation": "The requirement calls for scoped identity. Broad future permissions, combined user authority and embedded administrator secrets enlarge access beyond the workflow and make the boundary harder to control or revoke.",
@@ -509,10 +509,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-regulated-q3",
           "prompt": "Which audit design fits the stated retention constraint?",
           "options": [
-            "Keep complete prompts forever because audit data is operational.",
-            "Record the necessary decision metadata, minimize sensitive payloads and define deletion across audit copies within the approved policy.",
-            "Delete the primary log after 30 days but leave exports outside the inventory.",
-            "Claim the model’s refusal message proves that every audit copy was deleted."
+            "Keep complete prompts indefinitely, since audit data is operational and falls outside the retention limit.",
+            "Record needed decision metadata, minimize sensitive payloads and define deletion for all audit copies.",
+            "Delete the primary log after 30 days and treat exports to the analytics store as a separate system.",
+            "Accept the model’s confirmation that audit copies were deleted as evidence that the 30-day limit holds."
           ],
           "correct": 1,
           "explanation": "The approved policy includes copies, not just the primary log. Indefinite payload retention and untracked exports contradict it; a model response cannot establish backend deletion. The precise required metadata still needs the control owner’s decision.",
@@ -525,10 +525,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-regulated-q4",
           "prompt": "A stakeholder asks whether passing this check makes the system compliant. What is accurate?",
           "options": [
-            "The check certifies the system against all relevant regulation.",
-            "Private hosting makes every other control optional.",
-            "It demonstrates the authored control decisions in this exercise; the designated owners still assess the actual system and requirements.",
-            "A successful synthetic prototype replaces the need for an approved data-flow review."
+            "The check covers the case’s stated controls, so passing it certifies the system against the relevant regulation.",
+            "Private hosting keeps data inside the network, which makes the remaining controls optional.",
+            "It shows the authored control decisions in this exercise; the named owners still assess the real system.",
+            "A successful synthetic prototype replaces the approved data-flow review before live deployment."
           ],
           "correct": 2,
           "explanation": "Exercise performance is bounded evidence. It is neither a legal assessment nor a certification, and private hosting or synthetic success does not establish all other controls. Actual scope, operation and evidence remain for the named owners.",
