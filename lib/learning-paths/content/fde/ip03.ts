@@ -395,10 +395,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-spike-q1",
           "prompt": "Which first control addresses the growing queue within those constraints?",
           "options": [
-            "Accept all work into an unlimited queue to avoid visible refusals.",
-            "Disable tenant checks until the campaign load returns to normal.",
+            "Accept all work into an unbounded queue so interactive users never see a refusal during the campaign.",
+            "Pause tenant checks until campaign load returns to normal, then re-enable them once queues drain.",
             "Apply bounded admission and shed or defer the optional report before weakening interactive safety checks.",
-            "Retry every queued request immediately on every available worker."
+            "Retry every queued request immediately on any free worker so old requests finish before their deadlines."
           ],
           "correct": 2,
           "explanation": "Bounded admission keeps overload from accumulating without limit, and the optional report is the stated degradable work. Unlimited queues hide delay; disabling tenant checks violates a mandatory boundary; immediate duplicate retries add load.",
@@ -410,9 +410,9 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-spike-q2",
           "prompt": "What evidence best supports a new capacity decision?",
           "options": [
-            "Multiply the old average request count by ten and assume equal work.",
-            "Use successful-request latency after removing all rejected requests.",
-            "Use the campaign’s visitor count as a substitute for backend demand.",
+            "Multiply the old average request count by ten and size the pool on the measured per-request cost.",
+            "Use latency of successful requests only, after removing rejected ones that would skew the percentiles.",
+            "Use the campaign’s projected visitor count, converted at the old ratio, as backend demand.",
             "Measure resource demand and tail behavior for the new mix, including queue time and rejected work."
           ],
           "correct": 3,
@@ -426,10 +426,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-spike-q3",
           "prompt": "How should a retrying client avoid amplifying this overload?",
           "options": [
-            "Use bounded retries with backoff and remaining-deadline checks for operations whose retry semantics are known.",
-            "Retry without delay until the service acknowledges the request.",
-            "Increase concurrency whenever a previous retry was rejected.",
-            "Retry mutations under a fresh identity so the server treats them as new work."
+            "Bounded retries with backoff and a remaining-deadline check, for operations with known retry semantics.",
+            "Retry without delay until the service acknowledges, so each request reaches a worker as early as possible.",
+            "Raise client concurrency after each rejected retry so more attempts get through while capacity frees up.",
+            "Retry mutations under a fresh identity so the server treats them as new work rather than duplicates."
           ],
           "correct": 0,
           "explanation": "A bounded retry policy can avoid immediate retry storms while respecting time and operation semantics. The alternatives add work, increase pressure or risk duplicate effects. Backoff alone does not make an unsafe mutation replay-safe.",
@@ -442,10 +442,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-spike-q4",
           "prompt": "Which acceptance result can look healthy while hiding a tenant-specific overload failure?",
           "options": [
-            "Recorded per-tenant refusal rates alongside global latency.",
+            "Per-tenant refusal rates recorded for each tenant alongside the global latency figure.",
             "A good global average while one small tenant’s requests are consistently refused.",
-            "A separate count of deferred optional reports.",
-            "End-to-end measurements that include queued and rejected requests."
+            "A separate count of deferred optional reports, kept apart from interactive requests.",
+            "End-to-end measurements that include queued and rejected requests for every tenant."
           ],
           "correct": 1,
           "explanation": "A global average can conceal a tenant’s persistent failure. Sliced refusal rates, deferred-work counts and complete-path measurements expose that behavior rather than hide it; they do not by themselves decide the customer’s fairness policy.",

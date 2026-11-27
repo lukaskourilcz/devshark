@@ -61,7 +61,12 @@
     "fde-v1-ip03-batching-q2",
     "fde-v1-ip03-batching-q3",
     "fde-v1-ip03-batching-q4",
-    "fde-v1-ip03-batching"
+    "fde-v1-ip03-batching",
+    "fde-v1-ip03-spike-q1",
+    "fde-v1-ip03-spike-q2",
+    "fde-v1-ip03-spike-q3",
+    "fde-v1-ip03-spike-q4",
+    "fde-v1-ip03-spike"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -122,7 +127,12 @@
     "fde-v1-ip03-batching-q2",
     "fde-v1-ip03-batching-q3",
     "fde-v1-ip03-batching-q4",
-    "fde-v1-ip03-batching"
+    "fde-v1-ip03-batching",
+    "fde-v1-ip03-spike-q1",
+    "fde-v1-ip03-spike-q2",
+    "fde-v1-ip03-spike-q3",
+    "fde-v1-ip03-spike-q4",
+    "fde-v1-ip03-spike"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
