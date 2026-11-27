@@ -1037,9 +1037,9 @@ export const FDE_M02: ModuleSource = {
           "prompt": "The sponsor insists that every offline reservation be final. What should you do?",
           "options": [
             "Explain the conflict with shared central stock and negotiate a bounded per-site allocation or a provisional promise.",
-            "Guarantee both final reservations because each device has a unique operation id.",
-            "Accept the promise and reconcile any overselling without changing the written scope.",
-            "Treat the last reconnected site as correct and erase reservations from the other site."
+            "Guarantee both sites’ final reservations, since each device’s unique operation id prevents double counting.",
+            "Accept the promise as written and reconcile any overselling centrally after reconnection, without changing scope.",
+            "Treat the last site to reconnect as correct and erase the conflicting reservations the other site made."
           ],
           "correct": 0,
           "explanation": "A bounded allocation can change the constraint; a provisional promise exposes it. Unique ids prevent duplicate operations but do not create stock. Quietly accepting or erasing conflicting reservations hides the tradeoff from the people who must own it.",
