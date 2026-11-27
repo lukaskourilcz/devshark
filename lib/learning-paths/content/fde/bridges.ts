@@ -943,7 +943,7 @@ def fetch_page(client: httpx.Client, cursor: str | None) -> dict:
       },
       "options": [
         "All requests from every concurrent caller to at most two per second.",
-        "At most two read_one calls inside this invocation’s guarded region at a time.",
+        "At most two read_one calls in this invocation’s guarded region at a time.",
         "The total number of records returned, so two ids are discarded.",
         "The number of scheduled coroutines, so gather creates only two results."
       ],
@@ -980,7 +980,7 @@ def fetch_page(client: httpx.Client, cursor: str | None) -> dict:
         "code": "import asyncio\nimport httpx\n\nasync def load_accounts(ids: list[int]) -> list[dict]:\n    limit = asyncio.Semaphore(2)\n    async with httpx.AsyncClient(\n        base_url=\"https://crm.example.invalid\", timeout=5.0\n    ) as client:\n        async def read_one(account_id: int) -> dict:\n            async with limit:\n                response = await client.get(f\"/accounts/{account_id}\")\n                response.raise_for_status()\n                return response.json()\n        return await asyncio.gather(*(read_one(i) for i in ids))\n"
       },
       "options": [
-        "Every sibling is cancelled and settled before gather raises to its caller.",
+        "Every sibling is cancelled and settled before gather raises.",
         "The first raised exception is propagated to the awaiting caller.",
         "A request can fail at raise_for_status before it returns its body.",
         "The function needs a stated policy for unfinished work and cleanup."
@@ -1001,8 +1001,8 @@ def fetch_page(client: httpx.Client, cursor: str | None) -> dict:
       "options": [
         "The same id must be removed because a semaphore deduplicates inputs.",
         "The output must be sorted because AsyncClient normalizes result order.",
-        "The second 7 must fail because HTTPX forbids repeated URLs.",
-        "Duplicate handling: this code schedules three reads and preserves both 7 results."
+        "The second 7 must fail because HTTPX forbids repeated URLs in one client.",
+        "Duplicate handling: the code schedules three reads and keeps both 7 results."
       ],
       "correct": 3,
       "explanation": "The generator creates one coroutine per input occurrence. Neither the semaphore nor the client deduplicates ids. A consumer must decide whether repeated records are wanted or need a separate identity and reconciliation policy.",
