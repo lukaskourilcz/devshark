@@ -888,10 +888,10 @@ def fetch_page(client: httpx.Client, cursor: str | None) -> dict:
         "code": "from fastapi import FastAPI\nimport httpx\n\napp = FastAPI()\n\nasync def read_account(client: httpx.AsyncClient, account_id: int) -> dict:\n    response = await client.get(f\"/accounts/{account_id}\")\n    response.raise_for_status()\n    return response.json()\n\n@app.get(\"/accounts/{account_id}\")\nasync def account(account_id: int):\n    async with httpx.AsyncClient(\n        base_url=\"https://crm.example.invalid\", timeout=5.0\n    ) as client:\n        record = await read_account(client, account_id)\n    return {\"id\": record[\"id\"], \"name\": record[\"display_name\"]}\n"
       },
       "options": [
-        "The return annotation rejects the response before parsing it.",
-        "HTTP status validation guarantees all keys used by the route exist.",
-        "HTTPX renames name to display_name from the route return shape.",
-        "The final record[\"display_name\"] lookup fails; the snippet lacks shape validation."
+        "The -> dict annotation rejects the payload before read_account returns it.",
+        "raise_for_status guarantees that every key the route reads exists in the body.",
+        "HTTPX maps name to display_name to match the shape the route returns.",
+        "The record[\"display_name\"] lookup fails; the snippet has no shape validation."
       ],
       "correct": 3,
       "explanation": "JSON decoding produces a value but does not enforce the dictionary shape expected by this route. The missing-key lookup fails. Neither the annotation nor HTTP status checking establishes the required keys, and HTTPX does not invent the rename.",
@@ -907,10 +907,10 @@ def fetch_page(client: httpx.Client, cursor: str | None) -> dict:
         "code": "from fastapi import FastAPI\nimport httpx\n\napp = FastAPI()\n\nasync def read_account(client: httpx.AsyncClient, account_id: int) -> dict:\n    response = await client.get(f\"/accounts/{account_id}\")\n    response.raise_for_status()\n    return response.json()\n\n@app.get(\"/accounts/{account_id}\")\nasync def account(account_id: int):\n    async with httpx.AsyncClient(\n        base_url=\"https://crm.example.invalid\", timeout=5.0\n    ) as client:\n        record = await read_account(client, account_id)\n    return {\"id\": record[\"id\"], \"name\": record[\"display_name\"]}\n"
       },
       "options": [
-        "Its context closes the client on exit; timeout=5.0 alone does not prove an overall route deadline.",
-        "The client stays open indefinitely so later route invocations can reuse its pool.",
-        "A five-second network timeout makes retries and JSON validation unnecessary.",
-        "The async keyword moves all synchronous helper work to a separate thread."
+        "The context closes the client on exit; timeout=5.0 does not set a whole-route deadline.",
+        "The client stays open after the block so later requests to this route reuse its connection pool.",
+        "A five-second network timeout bounds every failure, so retries and JSON validation are unnecessary.",
+        "Declaring the route async def makes FastAPI run its synchronous work in a worker thread."
       ],
       "correct": 0,
       "explanation": "The context owns cleanup. HTTPX network timeouts do not by themselves establish a whole-route budget or validate payloads. This locally created client is not a persistent application-wide pool, and async does not move ordinary synchronous work to a thread.",
