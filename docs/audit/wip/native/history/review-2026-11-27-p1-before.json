@@ -3000,5 +3000,150 @@
         "run: native-n025-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
       ]
     }
+  },
+  {
+    "id": "fde-v1-m06-q4",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m06",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m06.ts",
+    "contentHash": "b7d56c934d877e88",
+    "previousHash": "1bcc5016dc15588e",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Revalidate mutable refund conditions with the effect rather than treating prior approval as a balance reservation.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Time-of-check/time-of-use risk remains current.",
+      "practicalUtility": "Concurrent refunds can exhaust an approved balance.",
+      "transferable": "Consent, reservations, atomic conditions and retries differ.",
+      "audienceFit": "Exact balance/amount/timing makes refusal derivable.",
+      "riskOutcome": "Adding atomic enforcement avoids leaving another race after rechecking."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "The old stem did not say whether the colleague's refund exhausted the balance, and a standalone re-read still races with execution. State approval reserves nothing, remaining balance and approved amount both24050, then a full manual refund. Require current authorization/balance/replay protections atomically with the effect and refuse failed preconditions, rather than every irrelevant state change. Keep approval-age and retry-budget distractors without a universal five-minute cutoff.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m06.ts q4 explicit balance/reservation contract",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+      "run: check-native-2026-10-15-n026.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n026-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n026"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread all options and final feedback. The stipulated remaining balance is now zero and cannot cover24050; checking and writing need a suitable transaction/conditional operation. No actual money, database lock, refund handler or financial workflow is exercised by the arithmetic proof. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m06.ts q4 explicit balance/reservation contract",
+        "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+        "run: check-native-2026-10-15-n026.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n026-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m06-checks",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m06",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m06.ts",
+    "contentHash": "591ce999692fe5e0",
+    "previousHash": "81753f3ac6ce2a0e",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Apply six tool and agent boundary decisions with immediate feedback at the 0.8 pass threshold.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Schema, version, approval, live-state, workflow and delegation decisions are current.",
+      "practicalUtility": "Each question maps to a failure an FDE would ship.",
+      "transferable": "Decisions generalize beyond the Marlbrook fixture.",
+      "audienceFit": "Six questions fit a 20-minute module check.",
+      "riskOutcome": "Every question keeps authority separate from structural validity."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Read the parent and all six questions. q1-q4 are unchanged and keep their bound n026 records; q5 and q6 receive individual records in this batch. Summary names all six decisions in order. Six questions at 0.8 need five correct, so one miss passes and two fail; keys are authored at index 0 and the grader shuffles display. Machine verification and tools competency retained.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m06.ts checks",
+      "repo: lib/learning-paths/grade.ts gradeCheck",
+      "repo: docs/audit/wip/native/review-2026-10-15-n026.jsonl q1-q4"
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Claude Code review subagent 2026-10-22, separate from the B7 content author; individual native batch b7 (#503)"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same reviewer/session, separate final English reading of the bound version",
+      "notes": "Since n026 the check grew from four to six questions (workflow versus agent, sub-agent grant) and the summary was updated; the 75% single-miss behaviour of the four-question set no longer applies (5/6 passes). Final reading confirms the summary and question set. No independent/human approval, live provider, production or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m06.ts checks",
+        "repo: lib/learning-paths/grade.ts gradeCheck",
+        "repo: docs/audit/wip/native/review-2026-10-15-n026.jsonl q1-q4"
+      ]
+    },
+    "revision": 2
   }
 ]

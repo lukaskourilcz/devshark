@@ -630,8 +630,8 @@ export const FDE_M08: ModuleSource = {
           id: 'fde-v1-m06-q4',
           prompt: "Approval records intent but reserves no balance. At 09:12 an operator approved a 24050-cent refund, equal to the remaining refundable balance. A colleague fully refunded that order at 09:15; the dispatcher reaches the approved call at 09:17. Why must it revalidate before the effect?",
           options: [
-            "Consent is not a reservation; atomically enforce current authorization, balance and replay protections, and refuse the exhausted balance.",
-            'The approval is stale, and every approval must carry a time limit shorter than five minutes.',
+            "Approval reserved nothing, so check authorization, balance and replay atomically with the refund, and refuse it.",
+            'The approval has gone stale: approvals must expire in under five minutes, and 09:12 to 09:17 is five.',
             'The dispatcher cannot rely on the operator’s judgement, so it re-evaluates the decision itself before acting.',
             'The retry budget resets when a call is approved, so the call has to be re-validated to avoid a duplicate attempt.',
           ],
