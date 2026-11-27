@@ -1050,10 +1050,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-operator-q1",
           "prompt": "Which screen states support an informed decision?",
           "options": [
-            "Replace every non-success state with a success-colored empty panel.",
-            "Enable approval before the proposal arguments or citations have loaded.",
-            "Show pending, refusal/failure and completed proposal states separately, with the action and evidence visible before approval.",
-            "Hide refusal reasons to keep the screen visually consistent."
+            "Render every non-success state as an empty panel in the success color, so the layout never shifts between states.",
+            "Enable the approve button as soon as the proposal appears, while its arguments and citations still load.",
+            "Show pending, refused/failed and completed states separately, with action and evidence visible before approval.",
+            "Show one generic unavailable label for every refusal, without the reasons, so the screen stays visually uniform."
           ],
           "correct": 2,
           "explanation": "Distinct states and visible evidence let the operator understand what is ready and what failed. Empty success styling, premature approval and hidden refusal reasons conceal the information the decision requires.",
@@ -1065,13 +1065,13 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-operator-q2",
           "prompt": "What should the client do with a result from a cancelled request?",
           "options": [
-            "Apply it to whichever customer screen is open when it arrives.",
-            "Treat UI cancellation as proof that no remote action occurred.",
-            "Automatically approve it so the background work is not wasted.",
-            "Ignore it for the cancelled view using request identity; reconcile any remote effect according to the backend contract."
+            "Apply it to whichever customer screen is open when it arrives, so the finished work still shows up.",
+            "Discard it and treat the UI cancellation as proof that the backend never ran the remote action.",
+            "Approve it automatically, since the operator started the request and the background work already finished.",
+            "Drop it from the cancelled view by request identity, and reconcile any remote effect per the backend contract."
           ],
           "correct": 3,
-          "explanation": "Request identity prevents a late result from changing the wrong view. It does not prove a remote effect stopped; applying the result elsewhere or approving it adds risk and exceeds the operator’s decision.",
+          "explanation": "Request identity prevents a late result from changing the wrong view. It does not prove a remote effect stopped, so cancellation alone cannot rule one out; applying the result elsewhere or approving it adds risk and exceeds the operator’s decision.",
           "competencies": [
             "operations",
             "handoff"
@@ -1082,9 +1082,9 @@ export const FDE_IP03: ModuleSource = {
           "prompt": "What must a citation link preserve?",
           "options": [
             "The current actor’s authorized route to the specific evidence; opening it must not bypass tenant permissions.",
-            "A globally shared raw-document URL even if it omits authorization.",
-            "Only the document title, with access assumed from the proposal’s presence.",
-            "The model’s assurance that anyone with the link is an approved reader."
+            "A shared raw-document URL that any reviewer can open, even when it skips the authorization check.",
+            "The document title alone, with read access assumed because the citation already appears in the proposal.",
+            "The model’s assurance, shown beside the link, that anyone holding it is an approved reader of that document."
           ],
           "correct": 0,
           "explanation": "Evidence links remain part of the permission boundary. A raw shared URL, title or model assurance does not establish the viewer’s current right to read the document.",
@@ -1098,10 +1098,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-operator-q4",
           "prompt": "What should happen if the server refuses approval after permissions change?",
           "options": [
-            "Keep the optimistic success state because the button was clicked.",
+            "Keep the success state shown after the click, since the operator already approved the action.",
             "Show the refusal and require a fresh authorized decision rather than presenting the action as completed.",
-            "Replay under another actor’s token to honor the original UI promise.",
-            "Hide the refusal and keep retrying without an updated decision."
+            "Replay the approval under another operator’s token so the action the UI promised still goes through.",
+            "Hide the refusal and retry the approval in the background until the server accepts it."
           ],
           "correct": 1,
           "explanation": "The server is the stated authority. A click does not override changed permission; success styling, borrowed identity and silent retries misrepresent or bypass that decision.",

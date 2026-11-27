@@ -7094,5 +7094,357 @@
         "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; fd9dd5d9950964c6; hashing binds the review and does not generate scores."
       ]
     }
+  },
+  {
+    "id": "fde-v1-ip03-operator-q1",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-ip03",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/ip03.ts",
+    "contentHash": "e467074c5a324663",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Show distinct proposal, pending, refusal and failure states before operator approval.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 4,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 3,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 3,
+    "notApplicable": {
+      "hint": "The served question has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 1
+    },
+    "relevanceScore": 9,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring operator design reasoning rather than a changing provider feature or SDK guarantee.",
+      "practicalUtility": "Show distinct proposal, pending, refusal and failure states before operator approval.",
+      "transferable": "Visible action/evidence and distinct states support the declared human decision.",
+      "audienceFit": "The two preceding design lessons teach the named operator contract and the scenario supplies its local constraints.",
+      "riskOutcome": "Improves evidence, comparison or communication quality while avoiding unsupported real-world outcome claims."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Visible action/evidence and distinct states support the declared human decision. Success-colored emptiness, approval before loading and hidden refusal reasons conceal needed information. These are intentionally basic interface alternatives, so options score 3 and learning value 4 rather than treating the item as advanced UI design.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-operator-q1; full source/merged question and parent scenario read on 2026-10-22.",
+      "manual: Show distinct proposal, pending, refusal and failure states before operator approval.; correct authored option index 2; other alternatives individually considered in the rationale.",
+      "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; e467074c5a324663; hashing binds the review and does not generate scores."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex B10/IP03 product-copy reviewer sub-agent, separate from original author in the same session; includes final reading of this reviewer’s bounded content/competency corrections; not human or external independent audit"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate model reading from author; full initial content reading plus final rereading of scenarios, keys, explanations and competency attribution.",
+      "notes": "Final reading of the prompt, all four options, source key, explanation, parent scenario and refined competencies: Visible action/evidence and distinct states support the declared human decision. Success-colored emptiness, approval before loading and hidden refusal reasons conceal needed information. These are intentionally basic interface alternatives, so options score 3 and learning value 4 rather than treating the item as advanced UI design. No learner attempt, model call or external-system test was performed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-operator-q1; full source/merged question and parent scenario read on 2026-10-22.",
+        "manual: Show distinct proposal, pending, refusal and failure states before operator approval.; correct authored option index 2; other alternatives individually considered in the rationale.",
+        "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; e467074c5a324663; hashing binds the review and does not generate scores."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-ip03-operator-q2",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-ip03",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/ip03.ts",
+    "contentHash": "41887f657670af72",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Reject late cancelled-view results while reconciling possible remote effects.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 4,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "The served question has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring operator design reasoning rather than a changing provider feature or SDK guarantee.",
+      "practicalUtility": "Reject late cancelled-view results while reconciling possible remote effects.",
+      "transferable": "Request identity prevents a late result from mutating the wrong current view.",
+      "audienceFit": "The two preceding design lessons teach the named operator contract and the scenario supplies its local constraints.",
+      "riskOutcome": "Addresses a concrete access, deadline, deployment or side-effect failure in this item; no live operation is claimed."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Request identity prevents a late result from mutating the wrong current view. UI cancellation does not establish remote cancellation; applying the result elsewhere or automatically approving it adds an unauthorized decision. The answer separates client rendering from backend effect state.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-operator-q2; full source/merged question and parent scenario read on 2026-10-22.",
+      "manual: Reject late cancelled-view results while reconciling possible remote effects.; correct authored option index 3; other alternatives individually considered in the rationale.",
+      "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; 41887f657670af72; hashing binds the review and does not generate scores."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex B10/IP03 product-copy reviewer sub-agent, separate from original author in the same session; includes final reading of this reviewer’s bounded content/competency corrections; not human or external independent audit"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate model reading from author; full initial content reading plus final rereading of scenarios, keys, explanations and competency attribution.",
+      "notes": "Final reading of the prompt, all four options, source key, explanation, parent scenario and refined competencies: Request identity prevents a late result from mutating the wrong current view. UI cancellation does not establish remote cancellation; applying the result elsewhere or automatically approving it adds an unauthorized decision. The answer separates client rendering from backend effect state. No learner attempt, model call or external-system test was performed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-operator-q2; full source/merged question and parent scenario read on 2026-10-22.",
+        "manual: Reject late cancelled-view results while reconciling possible remote effects.; correct authored option index 3; other alternatives individually considered in the rationale.",
+        "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; 41887f657670af72; hashing binds the review and does not generate scores."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-ip03-operator-q3",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-ip03",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/ip03.ts",
+    "contentHash": "d48567e455d94ba5",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Preserve current actor authorization when an operator opens cited evidence.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 3,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 3,
+    "notApplicable": {
+      "hint": "The served question has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring operator design reasoning rather than a changing provider feature or SDK guarantee.",
+      "practicalUtility": "Preserve current actor authorization when an operator opens cited evidence.",
+      "transferable": "A citation link remains a permission-bearing route to specific evidence.",
+      "audienceFit": "The two preceding design lessons teach the named operator contract and the scenario supplies its local constraints.",
+      "riskOutcome": "Addresses a concrete access, deadline, deployment or side-effect failure in this item; no live operation is claimed."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "A citation link remains a permission-bearing route to specific evidence. A raw global URL, title-based assumption and model assurance cannot grant the viewer access. The model-assurance choice is easy, so options score 3; handoff, retrieval and boundaries fit the actual link-review concern.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-operator-q3; full source/merged question and parent scenario read on 2026-10-22.",
+      "manual: Preserve current actor authorization when an operator opens cited evidence.; correct authored option index 0; other alternatives individually considered in the rationale.",
+      "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; d48567e455d94ba5; hashing binds the review and does not generate scores."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex B10/IP03 product-copy reviewer sub-agent, separate from original author in the same session; includes final reading of this reviewer’s bounded content/competency corrections; not human or external independent audit"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate model reading from author; full initial content reading plus final rereading of scenarios, keys, explanations and competency attribution.",
+      "notes": "Final reading of the prompt, all four options, source key, explanation, parent scenario and refined competencies: A citation link remains a permission-bearing route to specific evidence. A raw global URL, title-based assumption and model assurance cannot grant the viewer access. The model-assurance choice is easy, so options score 3; handoff, retrieval and boundaries fit the actual link-review concern. No learner attempt, model call or external-system test was performed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-operator-q3; full source/merged question and parent scenario read on 2026-10-22.",
+        "manual: Preserve current actor authorization when an operator opens cited evidence.; correct authored option index 0; other alternatives individually considered in the rationale.",
+        "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; d48567e455d94ba5; hashing binds the review and does not generate scores."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-ip03-operator-q4",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-ip03",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/ip03.ts",
+    "contentHash": "9fa25d07ce39da6d",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Make a server permission refusal visible instead of preserving optimistic success.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 3,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 3,
+    "notApplicable": {
+      "hint": "The served question has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring operator design reasoning rather than a changing provider feature or SDK guarantee.",
+      "practicalUtility": "Make a server permission refusal visible instead of preserving optimistic success.",
+      "transferable": "The backend is explicitly the authority when permissions change.",
+      "audienceFit": "The two preceding design lessons teach the named operator contract and the scenario supplies its local constraints.",
+      "riskOutcome": "Addresses a concrete access, deadline, deployment or side-effect failure in this item; no live operation is claimed."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "The backend is explicitly the authority when permissions change. Visible refusal plus a fresh authorized decision respects it; clicked-button success, another actor token and silent retries bypass or misrepresent the result. The borrowed-token alternative is conspicuous, warranting options 3.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-operator-q4; full source/merged question and parent scenario read on 2026-10-22.",
+      "manual: Make a server permission refusal visible instead of preserving optimistic success.; correct authored option index 1; other alternatives individually considered in the rationale.",
+      "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; 9fa25d07ce39da6d; hashing binds the review and does not generate scores."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex B10/IP03 product-copy reviewer sub-agent, separate from original author in the same session; includes final reading of this reviewer’s bounded content/competency corrections; not human or external independent audit"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate model reading from author; full initial content reading plus final rereading of scenarios, keys, explanations and competency attribution.",
+      "notes": "Final reading of the prompt, all four options, source key, explanation, parent scenario and refined competencies: The backend is explicitly the authority when permissions change. Visible refusal plus a fresh authorized decision respects it; clicked-button success, another actor token and silent retries bypass or misrepresent the result. The borrowed-token alternative is conspicuous, warranting options 3. No learner attempt, model call or external-system test was performed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-operator-q4; full source/merged question and parent scenario read on 2026-10-22.",
+        "manual: Make a server permission refusal visible instead of preserving optimistic success.; correct authored option index 1; other alternatives individually considered in the rationale.",
+        "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; 9fa25d07ce39da6d; hashing binds the review and does not generate scores."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-ip03-operator",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-ip03",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/ip03.ts",
+    "contentHash": "c2a23ed363192207",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Support current human decisions while handling late results and server permission changes.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This record assesses the lesson or activity wrapper; each nested option set has its own individual review.",
+      "hint": "This wrapper has no separate pre-answer hint.",
+      "explanation": "This wrapper has no independent post-answer explanation; teaching prose and nested question feedback are assessed in their relevant records."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring operator design reasoning rather than a changing provider feature or SDK guarantee.",
+      "practicalUtility": "Support current human decisions while handling late results and server permission changes.",
+      "transferable": "Read Willow’s visible proposal/citations, human approval, cancellation race and backend authority with all four questions.",
+      "audienceFit": "A bounded fictional case/reading supplies the decision context for optional intermediate interview practice without external accounts.",
+      "riskOutcome": "Addresses a concrete access, deadline, deployment or side-effect failure in this item; no live operation is claimed."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Read Willow’s visible proposal/citations, human approval, cancellation race and backend authority with all four questions. The client must not mistake cancellation for remote rollback, evidence links cannot bypass permissions, and a server refusal cannot remain optimistic success. Handoff is central, with operations/retrieval/boundaries added only where assessed.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-operator; complete lesson or activity/linked-reading context read on 2026-10-22.",
+      "manual: Support current human decisions while handling late results and server permission changes.",
+      "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; c2a23ed363192207; hashing binds the review and does not generate scores."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex B10/IP03 product-copy reviewer sub-agent, separate from original author in the same session; includes final reading of this reviewer’s bounded content/competency corrections; not human or external independent audit"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate model reading from author; full initial content reading plus final rereading of scenarios, keys, explanations and competency attribution.",
+      "notes": "Final focused rereading of the full item and its declared coverage: Read Willow’s visible proposal/citations, human approval, cancellation race and backend authority with all four questions. The client must not mistake cancellation for remote rollback, evidence links cannot bypass permissions, and a server refusal cannot remain optimistic success. Handoff is central, with operations/retrieval/boundaries added only where assessed. The module is optional, has no requirements and contributes no guided completion evidence; no real architecture acceptance was executed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-operator; complete lesson or activity/linked-reading context read on 2026-10-22.",
+        "manual: Support current human decisions while handling late results and server permission changes.",
+        "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; c2a23ed363192207; hashing binds the review and does not generate scores."
+      ]
+    }
   }
 ]

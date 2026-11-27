@@ -101,7 +101,12 @@
     "fde-v1-ip03-private-network-q2",
     "fde-v1-ip03-private-network-q3",
     "fde-v1-ip03-private-network-q4",
-    "fde-v1-ip03-private-network"
+    "fde-v1-ip03-private-network",
+    "fde-v1-ip03-operator-q1",
+    "fde-v1-ip03-operator-q2",
+    "fde-v1-ip03-operator-q3",
+    "fde-v1-ip03-operator-q4",
+    "fde-v1-ip03-operator"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -202,7 +207,12 @@
     "fde-v1-ip03-private-network-q2",
     "fde-v1-ip03-private-network-q3",
     "fde-v1-ip03-private-network-q4",
-    "fde-v1-ip03-private-network"
+    "fde-v1-ip03-private-network",
+    "fde-v1-ip03-operator-q1",
+    "fde-v1-ip03-operator-q2",
+    "fde-v1-ip03-operator-q3",
+    "fde-v1-ip03-operator-q4",
+    "fde-v1-ip03-operator"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
