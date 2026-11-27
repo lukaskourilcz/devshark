@@ -270,6 +270,6 @@ export const FDE_PATH: PathSource = {
       reviewedOn: '2026-09-08',
     },
   ],
-  reviewedOn: '2026-10-22',
+  reviewedOn: '2026-11-27',
   completionLabel: 'FDE guided path completed',
 };
