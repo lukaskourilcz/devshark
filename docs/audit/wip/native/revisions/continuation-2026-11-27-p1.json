@@ -7,14 +7,16 @@
     "fde-v1-ip01-policy-router",
     "fde-v1-ip01-asset-ledger",
     "fde-v1-ip02-tenant-quotes",
-    "fde-v1-ip02-actor-page"
+    "fde-v1-ip02-actor-page",
+    "fde-v1-ip02-tenant-ledger"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
     "fde-v1-ip01-policy-router",
     "fde-v1-ip01-asset-ledger",
     "fde-v1-ip02-tenant-quotes",
-    "fde-v1-ip02-actor-page"
+    "fde-v1-ip02-actor-page",
+    "fde-v1-ip02-tenant-ledger"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [

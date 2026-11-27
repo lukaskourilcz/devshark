@@ -485,6 +485,11 @@ export const FDE_IP02: ModuleSource = {
             "label": "exact equal revision is duplicate"
           }
         ],
+        "contract": [
+          "Keep the signature `applyTenantCsv(actorTenantId, snapshot, csv, mode)` and the existing `applyCsv`. The harness calls `applyTenantCsv` with the actor `TEN-NORTH`, so a renamed entry point fails every case.",
+          "`__csv`, `__ledger` and `__record` come from the task harness and are appended after your code. Read from them; do not define names that start with `__`.",
+          "Error objects, records and counts are compared exactly. Snapshots may be frozen: never mutate a record or array you were handed."
+        ],
         "harness": "var __csv=function(rows){return 'tenant_id,item_id,revision,kind,location,label\\n'+rows.join('\\n');};\nvar __ledger=function(rows,mode,snapshot){return applyTenantCsv('TEN-NORTH',snapshot||[],__csv(rows),mode||'commit');};\nvar __record=function(){return {tenantId:'TEN-NORTH',itemId:'A1',revision:1,location:'R1',label:'Monitor',status:'active',lastChange:'[\"create\",\"TEN-NORTH\",\"A1\",1,\"R1\",\"Monitor\"]'};};"
       }
     }
