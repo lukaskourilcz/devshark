@@ -778,8 +778,8 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-knowledge-q2",
           "prompt": "Which first slice fits the pilot’s stated evidence contract?",
           "options": [
-            "One tenant and document family, with current citations, inaccessible-source tests and abstention.",
-            "All tenants at once, relying on answer wording to conceal restricted source names.",
+            "One tenant and document family, with current citations, access-denial tests and abstention.",
+            "All tenants at once, relying on careful answer wording to conceal restricted source names.",
             "A search across old and new articles, with whichever result has the highest raw score.",
             "A live model demonstration that omits sources because the pilot uses fixtures."
           ],
@@ -793,10 +793,10 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-knowledge-q3",
           "prompt": "Which evaluation distinguishes better answers from more confident guesses?",
           "options": [
-            "Correct, supported answers and justified abstentions, broken down by access and freshness cases.",
+            "Correct, supported answers and justified abstentions, split by access and freshness case.",
             "The fraction of requests receiving any answer, with abstention counted as a defect.",
             "The average response length, with longer answers treated as more complete.",
-            "The number of retrieved documents, without checking which documents support a claim."
+            "The number of retrieved documents per answer, without checking which documents support a claim."
           ],
           "correct": 0,
           "explanation": "The evaluation must cover support and warranted refusal on the named failure slices. Answer rate alone rewards guessing. Length and retrieval count do not establish whether a claim is supported.",

@@ -12229,5 +12229,217 @@
         "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; 191c1309447405cf; no editorial scores generated from tests."
       ]
     }
+  },
+  {
+    "id": "fde-v1-m02-cases-knowledge-q2",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "0d7d96a34dec7550",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Evaluate a bounded tenant/document slice with freshness, access and abstention cases.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This question supplies scenario context and answer feedback but no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Evaluate a bounded tenant/document slice with freshness, access and abstention cases.",
+      "transferable": "One tenant and document family retain the evidence contract while reducing scope.",
+      "audienceFit": "The preceding decomposition lessons teach the authority/evidence/scope reasoning used by this intermediate case.",
+      "riskOutcome": "Directly exercises a correctness, access, capacity or external-effect boundary in this item."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "One tenant and document family retain the evidence contract while reducing scope. Concealing source names cannot prevent restricted content leakage, raw retrieval score does not establish current authority, and a live demonstration cannot inherit acceptance from authored fixtures or discard citations.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-knowledge-q2; read prompt, all four options, correct index, explanation and parent scenario.",
+      "manual: Evaluate a bounded tenant/document slice with freshness, access and abstention cases.",
+      "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; 0d7d96a34dec7550; no scores derived from execution."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": true,
+      "run": "Codex B3 content/copy reviewer sub-agent; separate from authoring agent in the same 2026-10-22 session; not human review"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate reviewer sub-agent; full initial reading and final reading of revised items; same task session.",
+      "notes": "Final independent reading: One tenant and document family retain the evidence contract while reducing scope. Concealing source names cannot prevent restricted content leakage, raw retrieval score does not establish current authority, and a live demonstration cannot inherit acceptance from authored fixtures or discard citations. The authored key selects the first source option; assessment shuffles display order. No learner attempt or live provider/model execution was performed by this reviewer.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-knowledge-q2; read prompt, all four options, correct index, explanation and parent scenario.",
+        "manual: Evaluate a bounded tenant/document slice with freshness, access and abstention cases.",
+        "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; 0d7d96a34dec7550; no scores derived from execution."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m02-cases-knowledge-q3",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "ef03dc4da5dc8a9f",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Evaluate support and justified abstention rather than answer volume or length.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This question supplies scenario context and answer feedback but no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Evaluate support and justified abstention rather than answer volume or length.",
+      "transferable": "Correct supported answers and justified abstentions on access/freshness slices correspond to the stated contract.",
+      "audienceFit": "The preceding decomposition lessons teach the authority/evidence/scope reasoning used by this intermediate case.",
+      "riskOutcome": "Directly exercises a correctness, access, capacity or external-effect boundary in this item."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Correct supported answers and justified abstentions on access/freshness slices correspond to the stated contract. Answer rate rewards guessing when support is absent; response length and retrieved count do not establish that any claim is supported. The metrics remain tied to authored fixture evidence.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-knowledge-q3; read prompt, all four options, correct index, explanation and parent scenario.",
+      "manual: Evaluate support and justified abstention rather than answer volume or length.",
+      "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; ef03dc4da5dc8a9f; no scores derived from execution."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": true,
+      "run": "Codex B3 content/copy reviewer sub-agent; separate from authoring agent in the same 2026-10-22 session; not human review"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate reviewer sub-agent; full initial reading and final reading of revised items; same task session.",
+      "notes": "Final independent reading: Correct supported answers and justified abstentions on access/freshness slices correspond to the stated contract. Answer rate rewards guessing when support is absent; response length and retrieved count do not establish that any claim is supported. The metrics remain tied to authored fixture evidence. The authored key selects the first source option; assessment shuffles display order. No learner attempt or live provider/model execution was performed by this reviewer.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-knowledge-q3; read prompt, all four options, correct index, explanation and parent scenario.",
+        "manual: Evaluate support and justified abstention rather than answer volume or length.",
+        "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; ef03dc4da5dc8a9f; no scores derived from execution."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m02-cases-knowledge",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "2a3748bd6f241c13",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Bound fixture answers by tenant permission, current evidence and justified abstention.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This record assesses the lesson or activity wrapper; each nested check question has its own individual option-set review.",
+      "hint": "No separate pre-answer hint exists on this lesson or activity wrapper.",
+      "explanation": "The wrapper has no independent post-answer explanation; nested question feedback is reviewed in its individual question record."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Prevent unsupported or restricted-source support answers.",
+      "transferable": "Keep evidence eligibility separate from retrieval score and confidence.",
+      "audienceFit": "The bounded fictional material supports intermediate developers without external accounts or paid APIs.",
+      "riskOutcome": "Directly exercises a correctness, access, capacity or external-effect boundary in this item."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Read the authored retrieval/model fixture disclosure and all access, first-slice, evaluation and missing-evidence questions. Accessible current citations or abstention are explicit product requirements, not a claim that citations guarantee factual truth. The scenario supplies those constraints without embedding an answer option or explanation.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-knowledge; read full activity metadata, linked lesson or scenario, and nested questions.",
+      "manual: Bound fixture answers by tenant permission, current evidence and justified abstention.",
+      "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; 2a3748bd6f241c13; no editorial scores generated from tests."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": true,
+      "run": "Codex B3 content/copy reviewer sub-agent; separate from authoring agent in the same 2026-10-22 session; not human review"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate reviewer sub-agent; full initial reading and final reading of revised items; same task session.",
+      "notes": "Final independent reading: Read the authored retrieval/model fixture disclosure and all access, first-slice, evaluation and missing-evidence questions. Accessible current citations or abstention are explicit product requirements, not a claim that citations guarantee factual truth. The scenario supplies those constraints without embedding an answer option or explanation. This is a same-session separate model reviewer, not human review, live-system acceptance or complete-catalogue approval.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-knowledge; read full activity metadata, linked lesson or scenario, and nested questions.",
+        "manual: Bound fixture answers by tenant permission, current evidence and justified abstention.",
+        "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; 2a3748bd6f241c13; no editorial scores generated from tests."
+      ]
+    }
   }
 ]
