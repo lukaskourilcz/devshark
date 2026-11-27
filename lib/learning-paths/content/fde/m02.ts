@@ -869,10 +869,10 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-adoption-q3",
           "prompt": "Which observation can support a claim about useful adoption?",
           "options": [
-            "Use during eligible tickets, successful returns to the workflow and operator correction effort.",
-            "The number of people who received an email announcing the pilot.",
-            "The number of logins after a compulsory training session on the new screen.",
-            "The number of tokens consumed by the proposed larger model."
+            "Use in eligible tickets, successful returns to the workflow and operator correction effort.",
+            "The number of operators who received and opened the email announcing the new pilot link.",
+            "The number of pilot logins recorded in the week after a compulsory training session.",
+            "The number of tokens the lookup consumed each day after the larger model was switched on."
           ],
           "correct": 0,
           "explanation": "Eligible-workflow use and correction effort connect adoption to actual work. Emails measure reach, compulsory logins can measure attendance, and token use measures consumption. None alone establishes usefulness.",

@@ -1928,5 +1928,147 @@
         "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; 4f80c29ed55fbeb9; no editorial scores generated from tests."
       ]
     }
+  },
+  {
+    "id": "fde-v1-m02-cases-adoption-q3",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "c86d18816917f01d",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Measure eligible workflow use, successful return and correction effort.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This question supplies scenario context and answer feedback but no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 1
+    },
+    "relevanceScore": 9,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Measure eligible workflow use, successful return and correction effort.",
+      "transferable": "Use during eligible tickets and correction effort provide evidence connected to actual operator work.",
+      "audienceFit": "The preceding decomposition lessons teach the authority/evidence/scope reasoning used by this intermediate case.",
+      "riskOutcome": "Improves scope, communication or measurement quality; no live operational side effect occurs in this exercise."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Use during eligible tickets and correction effort provide evidence connected to actual operator work. Announcement recipients, compulsory logins and token consumption respectively measure reach, attendance or consumption rather than usefulness. The wording says these observations can support a claim and does not assert causality from a single metric.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-adoption-q3; read prompt, all four options, correct index, explanation and parent scenario.",
+      "manual: Measure eligible workflow use, successful return and correction effort.",
+      "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; c86d18816917f01d; no scores derived from execution."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": true,
+      "run": "Codex B3 content/copy reviewer sub-agent; separate from authoring agent in the same 2026-10-22 session; not human review"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate reviewer sub-agent; full initial reading and final reading of revised items; same task session.",
+      "notes": "Final independent reading: Use during eligible tickets and correction effort provide evidence connected to actual operator work. Announcement recipients, compulsory logins and token consumption respectively measure reach, attendance or consumption rather than usefulness. The wording says these observations can support a claim and does not assert causality from a single metric. The authored key selects the first source option; assessment shuffles display order. No learner attempt or live provider/model execution was performed by this reviewer.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-adoption-q3; read prompt, all four options, correct index, explanation and parent scenario.",
+        "manual: Measure eligible workflow use, successful return and correction effort.",
+        "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; c86d18816917f01d; no scores derived from execution."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m02-cases-adoption",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "7b7cc59bab42d9c3",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Test whether ticket-context integration improves useful operator adoption.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This record assesses the lesson or activity wrapper; each nested check question has its own individual option-set review.",
+      "hint": "No separate pre-answer hint exists on this lesson or activity wrapper.",
+      "explanation": "The wrapper has no independent post-answer explanation; nested question feedback is reviewed in its individual question record."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 1
+    },
+    "relevanceScore": 9,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Reduce context-transfer effort and measure eligible live workflow use.",
+      "transferable": "Measure outcomes in the work where a proposed improvement will be used.",
+      "audienceFit": "The bounded fictional material supports intermediate developers without external accounts or paid APIs.",
+      "riskOutcome": "Improves scope, communication or measurement quality; no live operational side effect occurs in this exercise."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Read the ninety-to-ten-second demonstration and later low use, operator-reported context loss, permitted browser-link surface and final sensitive-URL constraint. The sequence distinguishes demo speed from workflow use, tests the stated friction, and retains server authorisation when transporting an identifier.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-adoption; read full activity metadata, linked lesson or scenario, and nested questions.",
+      "manual: Test whether ticket-context integration improves useful operator adoption.",
+      "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; 7b7cc59bab42d9c3; no editorial scores generated from tests."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": true,
+      "run": "Codex B3 content/copy reviewer sub-agent; separate from authoring agent in the same 2026-10-22 session; not human review"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate reviewer sub-agent; full initial reading and final reading of revised items; same task session.",
+      "notes": "Final independent reading: Read the ninety-to-ten-second demonstration and later low use, operator-reported context loss, permitted browser-link surface and final sensitive-URL constraint. The sequence distinguishes demo speed from workflow use, tests the stated friction, and retains server authorisation when transporting an identifier. This is a same-session separate model reviewer, not human review, live-system acceptance or complete-catalogue approval.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-adoption; read full activity metadata, linked lesson or scenario, and nested questions.",
+        "manual: Test whether ticket-context integration improves useful operator adoption.",
+        "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; 7b7cc59bab42d9c3; no editorial scores generated from tests."
+      ]
+    }
   }
 ]
