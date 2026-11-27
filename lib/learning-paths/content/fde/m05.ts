@@ -647,7 +647,7 @@ export const FDE_M05: ModuleSource = {
               "-- accounts has a unique index on (tenant_id, external_id)\nINSERT INTO accounts AS a (tenant_id, external_id, email, updated_at)\nVALUES ('T1', 'ACC-0007', :email, :updated_at)\nON CONFLICT (tenant_id, external_id) DO UPDATE\nSET email = excluded.email,\n    updated_at = excluded.updated_at;",
           },
           options: [
-            '`old@wrenstreet.example` and 09:00: the replay overwrites the newer row, because nothing compares the timestamps.',
+            '`old@wrenstreet.example` and 09:00: the replay overwrites the newer row; nothing compares timestamps.',
             '`shop@wrenstreet.example` and 10:00: ON CONFLICT keeps the existing row when the key already exists.',
             '`shop@wrenstreet.example` and 10:00: the replay fails with a unique violation and changes nothing.',
             'Two rows for ACC-0007, one from each batch, until a later dedupe removes the older one.',
