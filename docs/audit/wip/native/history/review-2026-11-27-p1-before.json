@@ -2856,5 +2856,149 @@
         "run: native-n024-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
       ]
     }
+  },
+  {
+    "id": "fde-v1-m05-q4",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m05",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m05.ts",
+    "contentHash": "c0d047d8f65b5fbd",
+    "previousHash": "774703b96d59f8bb",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Choose a stable authorized version/chunk locator that enables inspecting support rather than mistaking citation metadata for truth.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 5,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Citation provenance remains current.",
+      "practicalUtility": "Operators need to inspect the actual supporting revision.",
+      "transferable": "Resolvable evidence differs from a title, snippet or similarity score.",
+      "audienceFit": "An explicit archive/resolver makes the locator answerable.",
+      "riskOutcome": "Removing positional and automatic-preservation claims keeps shuffled feedback accurate."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "The old metadata alone did not establish archived content exists or is accessible. State an authorized immutable version/chunk resolver. Replace first/fourth option references with actual formats, and remove the unsupported weakest-of-four claim. Explain retained content, citation ids checked against the retrieved set and manual claim support; unversioned URLs may change, while immutable URLs can also be valid in other designs.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m05.ts q4 citation formats",
+      "run: check-native-2026-10-15-n025.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n025-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n025"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread four exact citation forms and explanation. The keyed JSON names KB-118 v3/chunk c4 and retrieval time; under the stipulated resolver it locates the right passage for inspection. Those fields do not by themselves preserve content, prove factual support or authorize access. No archive URL was fetched. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m05.ts q4 citation formats",
+        "run: check-native-2026-10-15-n025.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n025-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m05-checks",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m05",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m05.ts",
+    "contentHash": "4cb82a35fb19f46a",
+    "previousHash": "153f68455e39985d",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Apply explicit grounding, access, version and provenance contracts across the four retrieval questions.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "The retrieval distinctions remain current.",
+      "practicalUtility": "They prevent unsupported operational answers.",
+      "transferable": "Local evidence and eligibility differ from universal pipeline assumptions.",
+      "audienceFit": "Four concrete examples fit the module check.",
+      "riskOutcome": "The summary now matches bounded source-support claims."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "All four items have individual reviews in this batch. Align the summary to shown synthesis failure, pre-ranking policy/coverage, current-version eligibility and resolvable provenance. Keep exercise purpose, retrieval competency, machine verification and 0.8 threshold.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m05.ts checks",
+      "repo: lib/learning-paths/grade.ts gradeCheck",
+      "run: check-native-2026-10-15-n025.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n025-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n025"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread the full parent and all corrected items. All correct pass; each single miss fails at 75% and reveals explanations. Source keys remain zero before attempt shuffling. Literal context checks bind the five records but do not generate editorial scores or establish live retrieval/model acceptance. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m05.ts checks",
+        "repo: lib/learning-paths/grade.ts gradeCheck",
+        "run: check-native-2026-10-15-n025.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n025-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
   }
 ]
