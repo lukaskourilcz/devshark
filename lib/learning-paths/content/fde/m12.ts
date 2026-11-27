@@ -557,7 +557,7 @@ export const FDE_M12: ModuleSource = {
             "An alert only when triage 5xx responses exceed their existing limit.",
             "An alert only when triage p95 exceeds its existing upper limit.",
             "A probe that checks only whether a fixture request returns HTTP 200.",
-            "The daily returns-slice abstention rate checked against the agreed 20% limit.",
+            "The daily returns-slice abstention rate against the agreed 20% limit.",
           ],
           correct: 3,
           explanation: "The stated 40% abstention exceeds the 20% rule, while the other monitors check conditions that remain healthy here. This identifies a relevant quality signal, not a guaranteed earliest detector across every possible monitor. Abstention may be appropriate for difficult inputs; a change requires investigation of traffic, labels and policy rather than assuming every handoff is an error. Faster responses do not generally imply abstention is cheaper, and HTTP 200 alone establishes neither routing correctness nor useful automation.",

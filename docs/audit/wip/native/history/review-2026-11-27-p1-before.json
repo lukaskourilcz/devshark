@@ -10085,5 +10085,151 @@
         "run: PATHS_ONLY=fde npm run test:paths passed after the review fixes (Node 24.22.0)."
       ]
     }
+  },
+  {
+    "id": "fde-v1-m09-q4",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m09",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m09.ts",
+    "contentHash": "f3b025d50a88bc3e",
+    "previousHash": "05add0e4704c8f98",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Choose a directly relevant slice-abstention monitor with explicit baseline and alert threshold.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Quality monitoring remains current.",
+      "practicalUtility": "HTTP success can conceal reduced automation.",
+      "transferable": "Availability and task utility require different signals.",
+      "audienceFit": "Known baseline10%, observed40% and limit20% resolve alert behavior.",
+      "riskOutcome": "Removes unsupported earliest-detection and universal faster-abstention claims."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Original gave no baseline or alert threshold yet claimed a daily monitor would catch the incident first. State sufficient agreed volume and 10/40/20 rates; ask direct detection among monitors whose conditions are healthy. Abstention is not intrinsically wrong and may reflect a traffic/policy change. A 200-only probe cannot validate routing quality.",
+    "evidence": [
+      "https://sre.google/resources/practices-and-processes/incident-management-guide/",
+      "repo: lib/learning-paths/content/fde/m09.ts q4",
+      "run: check-native-2026-10-15-n029.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n029-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n029"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Read all monitor conditions: 40 exceeds20, previous10 does not. Other limits remain healthy by premise. No monitoring system, actual sample sufficiency calculation or alert delivery was exercised. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "https://sre.google/resources/practices-and-processes/incident-management-guide/",
+        "repo: lib/learning-paths/content/fde/m09.ts q4",
+        "run: check-native-2026-10-15-n029.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n029-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m09-checks",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m09",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m09.ts",
+    "contentHash": "c6e4460ef5dfcabf",
+    "previousHash": "f5ce0521cd6511f1",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Assess bounded trace interpretation, mitigation, rollback scope and quality monitoring with immediate exercise review.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Operations judgment remains current.",
+      "practicalUtility": "Clear incident premises improve decisions.",
+      "transferable": "Evidence scope transfers across services.",
+      "audienceFit": "Four decisions fit this module.",
+      "riskOutcome": "Summary matches actual timing and policy limits."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Individually reviewed all four questions. Replace claims of first detector and universal rollback scope with bounded decisions; retain operations competency, exercise purpose, machine verification and0.8 threshold. Source keys[0,1,2,3] are mixed before runtime shuffling.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m09.ts checks",
+      "repo: lib/learning-paths/grade.ts gradeCheck",
+      "run: check-native-2026-10-15-n029.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n029-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n029"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Read complete parent and corrected questions. Four correct pass, every single miss fails at75% with keys/explanations available. The proof binds hashes and arithmetic, not production operations or editorial quality. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m09.ts checks",
+        "repo: lib/learning-paths/grade.ts gradeCheck",
+        "run: check-native-2026-10-15-n029.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n029-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
   }
 ]
