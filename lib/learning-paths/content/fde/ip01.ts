@@ -555,6 +555,11 @@ export const FDE_IP01: ModuleSource = {
         "label": "the audit describes the new label"
       }
     ],
+    "contract": [
+      "Keep the existing names `parseCommand`, `changeKey`, `describeCommand`, `applyCommand`, `applyCsv` and `INPUT_HEADER`. The tests and the harness call them, so a renamed or replaced one fails every case that uses it.",
+      "`__csv`, `__asset`, `__rename` and `__assetView` come from the task harness and are appended after your code. Read from them; do not define names that start with `__`.",
+      "Error codes, fingerprints and descriptions are compared exactly. Snapshots may be frozen: never mutate a record or array you were handed."
+    ],
     "harness": "var __csv = function (rows) { return [INPUT_HEADER].concat(rows).join('\\n'); };\nvar __asset = function () { return applyCsv([], __csv(['TEN-WEST,EQ-8,1,create,Depot-A,Old label'])).records; };\nvar __rename = function (label, tenant, revision, snapshot) {\n  return applyCsv(snapshot || __asset(), __csv([(tenant || 'TEN-WEST') + ',EQ-8,' + (revision || 2) + ',rename,,' + label]));\n};\nvar __assetView = function (result) {\n  if (!result.ok) return result;\n  return { records: result.records.map(function (row) { return [row.tenantId,row.itemId,row.revision,row.location,row.label,row.status]; }), counts: result.counts, changes:result.changes };\n};"
   }
 }
