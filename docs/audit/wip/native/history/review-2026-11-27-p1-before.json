@@ -12937,5 +12937,149 @@
         "run: PATHS_ONLY=fde npm run test:paths"
       ]
     }
+  },
+  {
+    "id": "fde-v1-m02-q4",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m02",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02.ts",
+    "contentHash": "ed279833f8683bda",
+    "previousHash": "f32156725ebc1dd4",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Deduplicate a stable ticket-version row rather than a delivery attempt or all versions of one ticket.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 5,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "At-least-once delivery remains current.",
+      "practicalUtility": "Business/version identity prevents duplicate ingestion.",
+      "transferable": "Transport attempts differ from logical updates.",
+      "audienceFit": "The literal webhook makes each candidate key inspectable.",
+      "riskOutcome": "Explicit tenant/version scope and qualified content hashes prevent overbroad dedup rules."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "State one tenant, unique ticket ids and stable logical version numbers, so the two-field key is sufficient in the declared scope. Retain all four concise alternatives. Replace hashing-only-ticket-would-work with a qualified canonical-content policy; identical content may represent separate legitimate updates when stable version identity is absent.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02.ts q4 literal JSON/version contract",
+      "run: check-native-2026-10-15-n022.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n022-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n022"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread the JSON and all feedback. Changing deliveryId/time leaves the ticket-version key equal and changes the full payload hash; changing version to4 gives a new row key while ticket id alone stays equal. No real webhook, storage write or generic content-hash equivalence is claimed. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02.ts q4 literal JSON/version contract",
+        "run: check-native-2026-10-15-n022.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n022-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m02-checks",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m02",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02.ts",
+    "contentHash": "8ab51d75a3991e09",
+    "previousHash": "c2db72ef39cdb00b",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Apply explicit retry, rate-limit, stable-pagination and logical-deduplication contracts across four integration questions.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "The four integration distinctions remain current.",
+      "practicalUtility": "They address common silent sync failures.",
+      "transferable": "Each depends on the declared contract rather than a universal shortcut.",
+      "audienceFit": "Four bounded examples fit the module check.",
+      "riskOutcome": "Accurate summary and immediate feedback support correcting errors."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "All four child items have individual reviews in this batch. Update the summary to justified retry semantics, rate-limit instructions, documented stable keyset and tenant-scoped ticket-version identity. Retain exercise purpose, integration competency, machine verification and 0.8 threshold.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02.ts checks",
+      "repo: lib/learning-paths/grade.ts gradeCheck",
+      "run: check-native-2026-10-15-n022.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n022-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n022"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread the full parent and four corrected items. All correct pass; any one miss falls to75%, fails and returns explanations. The source keys are unchanged before per-attempt shuffling. Execution binds these five records but does not supply editorial scores or independent standards approval. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02.ts checks",
+        "repo: lib/learning-paths/grade.ts gradeCheck",
+        "run: check-native-2026-10-15-n022.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n022-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
   }
 ]

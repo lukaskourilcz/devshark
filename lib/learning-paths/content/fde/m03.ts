@@ -466,7 +466,7 @@ export const FDE_M03: ModuleSource = {
             '`ticket.id` together with `ticket.version`.',
             '`deliveryId`, since it is unique for every delivery.',
             'A SHA-256 hash of the whole payload.',
-            '`ticket.id` on its own.',
+            '`ticket.id` on its own, since ids are unique.',
           ],
           correct: 0,
           explanation:
