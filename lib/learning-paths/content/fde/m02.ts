@@ -611,8 +611,8 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-hosting-q1",
           "prompt": "Which question belongs before provider or deployment selection?",
           "options": [
-            "Which data classes, network paths and retention controls must the approval review verify?",
-            "Which hosted provider has the most persuasive public demonstration?",
+            "Which data classes, network paths and retention controls must approval review verify?",
+            "Which hosted provider has the most persuasive public demonstration on similar documents?",
             "Which model has the highest general benchmark score without the customer’s data?",
             "Which self-hosted model can be deployed before an operator workflow is chosen?"
           ],
@@ -626,7 +626,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-hosting-q2",
           "prompt": "Which pilot can start within the stated approval boundary?",
           "options": [
-            "Evaluate the rules baseline and approved-network fixtures while the endpoint review proceeds.",
+            "Evaluate the rules baseline and approved-network fixtures during the endpoint review.",
             "Send sensitive documents to an unapproved endpoint and delete them after evaluation.",
             "Declare self-hosting approved because the customer owns the virtual machines.",
             "Remove sensitive fields by hand and assume the remaining text cannot contain them."
@@ -641,7 +641,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-hosting-q3",
           "prompt": "Which comparison exposes a real hosting tradeoff for this team?",
           "options": [
-            "Task quality, reviewable data controls, operating effort and cost at the expected workload.",
+            "Task quality, reviewable data controls, operating effort and cost at expected workload.",
             "The model’s public rank alone, with security and operation deferred until purchase.",
             "A claim that private machines eliminate the need for monitoring and patching.",
             "The lowest token price, with retries and platform staffing left out of the estimate."
