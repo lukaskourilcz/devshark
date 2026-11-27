@@ -5,16 +5,19 @@
   "reviewedIds": [
     "fde-v1-ip01-rate-card",
     "fde-v1-ip01-policy-router",
-    "fde-v1-ip01-asset-ledger"
+    "fde-v1-ip01-asset-ledger",
+    "fde-v1-ip02-tenant-quotes"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
     "fde-v1-ip01-policy-router",
-    "fde-v1-ip01-asset-ledger"
+    "fde-v1-ip01-asset-ledger",
+    "fde-v1-ip02-tenant-quotes"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
-    "review-2026-10-22-b10-ip01.jsonl"
+    "review-2026-10-22-b10-ip01.jsonl",
+    "review-2026-10-22-b10-ip02.jsonl"
   ],
   "history": "docs/audit/wip/native/history/review-2026-11-27-p1-before.json",
   "proof": null,

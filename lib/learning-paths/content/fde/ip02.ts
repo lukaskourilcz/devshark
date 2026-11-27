@@ -253,6 +253,11 @@ export const FDE_IP02: ModuleSource = {
             "label": "later failure rejects earlier planned quotes"
           }
         ],
+        "contract": [
+          "Keep the signature `planTenantQuotes(actorTenantId, requests, cards)` and the existing `quote()`. The harness calls `planTenantQuotes` with the actor `TEN-NORTH`, so a renamed entry point fails every case.",
+          "`__tenantCard`, `__quoteRequest` and `__quotePlan` come from the task harness and are appended after your code. Read from them; do not define names that start with `__`.",
+          "Error strings and the success shape are compared exactly. Inputs may be frozen: never mutate a request, card or array."
+        ],
         "harness": "var __tenantCard = function (tenant, amount, id) { return {tenantId:tenant,card:{id:id||'C-1',carrier:'Fixture',currency:'EUR',version:1,discountBasisPoints:0,rules:[{kind:'flat',id:'flat',label:'Base',amount:amount}]}}; };\nvar __quoteRequest = function (patch) { return Object.assign({requestId:'REQ-1',tenantId:'TEN-NORTH',cardId:'C-1',shipment:{id:'S-1',zone:'local',weightGrams:1000,declaredValueCents:0,flags:[]}},patch||{}); };\nvar __quotePlan = function (requests,cards) { return planTenantQuotes('TEN-NORTH',requests,cards); };"
       }
     },
