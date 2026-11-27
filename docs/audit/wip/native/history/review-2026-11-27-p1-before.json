@@ -1118,5 +1118,223 @@
         "run: native-n042-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
       ]
     }
+  },
+  {
+    "id": "fde-v1-bridge-incident-q1",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-bridges",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/bridges.ts",
+    "contentHash": "102af8435063fc0f",
+    "previousHash": "90e2ff2233480dda",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Detect a tenant-isolation invariant directly when ordinary service-health metrics remain normal.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Tenant-aware monitoring remains current.",
+      "practicalUtility": "A fast 200 response can still expose the wrong data.",
+      "transferable": "Correctness invariants differ from latency/availability.",
+      "audienceFit": "The full fixture timeline makes the question independently answerable.",
+      "riskOutcome": "Removing first-alert and unobserved CPU claims prevents unsupported certainty."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Ask which signal directly tests the shown failure rather than which would necessarily fire first. Shorten the keyed ownership check and specify high-latency threshold in the distractor, since a low-latency anomaly alert is a different possibility. Explain that mismatched responses must also be blocked. Remove the invented CPU decrease and use the timeline's unchanged CPU/5xx observations.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/bridges.ts INCIDENT_TIMELINE",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+      "run: check-native-2026-10-15-n018.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n018-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n018"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread the complete unchanged timeline, four alternatives and feedback. The authorized request tenant differs from the returned article tenant in the fault; normal latency/5xx/CPU do not directly validate that relation. An illustrative slug-cache mismatch is not a real alert-delivery or tenant-data probe. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/bridges.ts INCIDENT_TIMELINE",
+        "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+        "run: check-native-2026-10-15-n018.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n018-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-bridge-incident-q3",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-bridges",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/bridges.ts",
+    "contentHash": "692adccf90c63024",
+    "previousHash": "a8f71930563a0e61",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Contain an active tenant disclosure using an immediately available validated compatible rollback, then verify containment and investigate prior exposure.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Incident containment remains current.",
+      "practicalUtility": "An active disclosure needs prompt verified containment.",
+      "transferable": "Availability of a safe rollback differs from assuming one.",
+      "audienceFit": "A timed decision within the fixture fits the bridge.",
+      "riskOutcome": "Explicit assumptions prevent universally recommending an unsafe rollback."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "The old key assumed a previous release ran safely for months and would automatically stop disclosure, neither established at the decision time. State a tested schema-compatible rollback ready now and no kill switch. Shorten the key and require verifying containment. Distinguish evidence available at 11:52 from later root-cause findings, avoid inventing refill timing, and preserve investigation/evidence alongside containment.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/bridges.ts INCIDENT_TIMELINE and q3",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+      "run: check-native-2026-10-15-n019.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n019-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n019"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread the full timeline, time-limited prompt, all alternatives and feedback. Under the explicit options/assumptions the compatible known-good release is available now; a forward fix is not yet diagnosed. Flushing or shortening the later-known unsafe key does not repair isolation. This is manual incident reasoning, not a performed rollout or a universal rollback rule. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/bridges.ts INCIDENT_TIMELINE and q3",
+        "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+        "run: check-native-2026-10-15-n019.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n019-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-bridge-incident-case",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-bridges",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/bridges.ts",
+    "contentHash": "1fed58958009074a",
+    "previousHash": "b562feb89d903104",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Read the direct invariant, cache-key cause, constrained containment and persistent consequences of the complete incident fixture.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Incident reasoning remains current.",
+      "practicalUtility": "Containment and past consequences require separate evidence.",
+      "transferable": "Normal health metrics do not establish correct isolation.",
+      "audienceFit": "One complete fixture supports four independent readings.",
+      "riskOutcome": "Explicit rollback constraints prevent a universal safest-action claim."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "The four embedded questions have individual n018/n019 reviews. Align the parent summary with direct correctness signals, missing key scope, the stated compatible rollback conditions and consequences already outside the service. Preserve optional diagnostic grading, operations competency and threshold.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/bridges.ts incident-case activity",
+      "repo: lib/learning-paths/grade.ts gradeCheck",
+      "run: check-native-2026-10-15-n020.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n020-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n020"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread the whole unchanged timeline and all four corrected items. Four correct pass; any one miss falls below 80% and reveals diagnostic feedback. No alert delivery, rollback, notification or tenant incident has been carried out; the parent records comprehension of a synthetic incident only. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/bridges.ts incident-case activity",
+        "repo: lib/learning-paths/grade.ts gradeCheck",
+        "run: check-native-2026-10-15-n020.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n020-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
   }
 ]

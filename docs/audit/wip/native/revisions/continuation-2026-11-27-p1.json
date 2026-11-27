@@ -17,7 +17,10 @@
     "fde-v1-diagnostic-q2",
     "fde-v1-diagnostic-q7",
     "fde-v1-diagnostic-q10",
-    "fde-v1-diagnostic-check"
+    "fde-v1-diagnostic-check",
+    "fde-v1-bridge-incident-q1",
+    "fde-v1-bridge-incident-q3",
+    "fde-v1-bridge-incident-case"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -34,12 +37,18 @@
     "fde-v1-diagnostic-q2",
     "fde-v1-diagnostic-q7",
     "fde-v1-diagnostic-q10",
-    "fde-v1-diagnostic-check"
+    "fde-v1-diagnostic-check",
+    "fde-v1-bridge-incident-q1",
+    "fde-v1-bridge-incident-q3",
+    "fde-v1-bridge-incident-case"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
     "review-2026-10-15-n016.jsonl",
     "review-2026-10-15-n017.jsonl",
+    "review-2026-10-15-n018.jsonl",
+    "review-2026-10-15-n019.jsonl",
+    "review-2026-10-15-n020.jsonl",
     "review-2026-10-15-n027.jsonl",
     "review-2026-10-15-n042.jsonl",
     "review-2026-10-22-b10-ip01.jsonl",

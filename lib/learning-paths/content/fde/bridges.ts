@@ -600,10 +600,10 @@ const operatorReducer = (state, action) => {
           prompt: 'Latency, 5xx rate and CPU stayed normal during the cross-tenant reads. Which additional signal directly tests the failure shown in the timeline?',
           context: { language: 'text', code: INCIDENT_TIMELINE },
           options: [
-            'Count and alert when a cached article’s tenant differs from the request’s authorized tenant.',
-            'A high-latency threshold alert on the article-lookup span.',
-            'An error-rate alert on triage-api responses in the 5xx range.',
-            'A CPU saturation alert on the instances serving the cache.',
+            'Alert when a cached article’s tenant differs from the request’s authorized tenant.',
+            'A high-latency threshold alert on the article-lookup span, set just above its usual 90 ms.',
+            'An error-rate alert on triage-api 5xx responses, paged when the rate rises above the 0.2% baseline.',
+            'A CPU saturation alert on the 12 instances, where a growing in-memory cache would show first.',
           ],
           correct: 0,
           explanation:
@@ -631,9 +631,9 @@ const operatorReducer = (state, action) => {
           context: { language: 'text', code: INCIDENT_TIMELINE },
           options: [
             'Restore the known-good release, verify disclosure has stopped, and investigate replies already sent.',
-            'Add the tenant id to the cache key and deploy the fix forward.',
-            'Flush the cache on all 12 instances and leave 41c7 running.',
-            'Cut the cache time to live to 30 seconds and watch whether the reports stop.',
+            'Add the tenant id to the cache key, have the change reviewed, and deploy the fix forward to all 12 instances.',
+            'Flush the in-memory cache on all 12 instances and keep 41c7 running while the cause is diagnosed.',
+            'Cut the cache time to live to 30 seconds so wrong entries expire quickly, and watch the reports.',
           ],
           correct: 0,
           explanation:
