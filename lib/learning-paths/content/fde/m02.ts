@@ -945,7 +945,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-surge-q3",
           "prompt": "Which test is needed beside raw throughput?",
           "options": [
-            "A sustained burst with queue growth, priority, rate-limit handling and duplicate-notification checks.",
+            "A sustained burst that checks queue growth, priority, rate limits and duplicate notifications.",
             "The peak arrival rate with retries disabled and no priority classes in the generated workload.",
             "The full priority mix with an unlimited dependency stub that never rate-limits requests.",
             "The real dependency limit at steady average traffic without the launch-sized burst."
@@ -960,8 +960,8 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-surge-q4",
           "prompt": "Sustained urgent work now requires more than 100 downstream requests per minute. What should you tell the sponsor?",
           "options": [
-            "The current objective cannot cover all urgent work; choose a bounded fallback or change the promise.",
-            "Every urgent job can retain its deadline if the queue is moved to a faster database.",
+            "The objective cannot cover all urgent work; pick a bounded fallback or change the promise.",
+            "The queue can move to a faster database so every urgent job still meets its two-minute deadline.",
             "The cap can be ignored temporarily because urgent jobs have a higher business value.",
             "The objective still holds if unfinished urgent jobs are omitted from the report."
           ],

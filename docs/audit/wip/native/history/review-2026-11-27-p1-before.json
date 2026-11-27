@@ -12441,5 +12441,217 @@
         "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; 2a3748bd6f241c13; no editorial scores generated from tests."
       ]
     }
+  },
+  {
+    "id": "fde-v1-m02-cases-surge-q3",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "b144ffa751561d06",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Exercise launch bursts with priority, retry, bottleneck and notification semantics together.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 5,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "hint": "This question supplies scenario context and answer feedback but no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Exercise launch bursts with priority, retry, bottleneck and notification semantics together.",
+      "transferable": "Each revised distractor removes a distinct relevant condition: retries/priority, the real dependency cap, or launch-sized bursts.",
+      "audienceFit": "The preceding decomposition lessons teach the authority/evidence/scope reasoning used by this intermediate case.",
+      "riskOutcome": "Directly exercises a correctness, access, capacity or external-effect boundary in this item."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Each revised distractor removes a distinct relevant condition: retries/priority, the real dependency cap, or launch-sized bursts. The key combines queue growth, urgent scheduling, rate handling and duplicate-notification checks. These alternatives now require interpreting the scenario rather than rejecting screenshots.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-surge-q3; read prompt, all four options, correct index, explanation and parent scenario.",
+      "manual: Exercise launch bursts with priority, retry, bottleneck and notification semantics together.",
+      "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; b144ffa751561d06; no scores derived from execution."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": true,
+      "run": "Codex B3 content/copy reviewer sub-agent; separate from authoring agent in the same 2026-10-22 session; not human review"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate reviewer sub-agent; full initial reading and final reading of revised items; same task session.",
+      "notes": "Final independent reading: Each revised distractor removes a distinct relevant condition: retries/priority, the real dependency cap, or launch-sized bursts. The key combines queue growth, urgent scheduling, rate handling and duplicate-notification checks. These alternatives now require interpreting the scenario rather than rejecting screenshots. The authored key selects the first source option; assessment shuffles display order. No learner attempt or live provider/model execution was performed by this reviewer.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-surge-q3; read prompt, all four options, correct index, explanation and parent scenario.",
+        "manual: Exercise launch bursts with priority, retry, bottleneck and notification semantics together.",
+        "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; b144ffa751561d06; no scores derived from execution."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m02-cases-surge-q4",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "1b35e0106069c203",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Communicate the objective tradeoff when sustained urgent request demand exceeds capacity.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 3,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 3,
+    "notApplicable": {
+      "hint": "This question supplies scenario context and answer feedback but no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Communicate the objective tradeoff when sustained urgent request demand exceeds capacity.",
+      "transferable": "The prompt now specifies sustained urgent work requiring more than 100 downstream requests per minute, removing job/request and brief-burst ambiguity.",
+      "audienceFit": "The preceding decomposition lessons teach the authority/evidence/scope reasoning used by this intermediate case.",
+      "riskOutcome": "Directly exercises a correctness, access, capacity or external-effect boundary in this item."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "The prompt now specifies sustained urgent work requiring more than 100 downstream requests per minute, removing job/request and brief-burst ambiguity. Negotiating a bounded fallback or changed promise follows that hard constraint. A faster queue, ignored cap and omitted unfinished work cannot create capacity; the last two are easy integrity violations, hence options 3.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-surge-q4; read prompt, all four options, correct index, explanation and parent scenario.",
+      "manual: Communicate the objective tradeoff when sustained urgent request demand exceeds capacity.",
+      "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; 1b35e0106069c203; no scores derived from execution."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": true,
+      "run": "Codex B3 content/copy reviewer sub-agent; separate from authoring agent in the same 2026-10-22 session; not human review"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate reviewer sub-agent; full initial reading and final reading of revised items; same task session.",
+      "notes": "Final independent reading: The prompt now specifies sustained urgent work requiring more than 100 downstream requests per minute, removing job/request and brief-burst ambiguity. Negotiating a bounded fallback or changed promise follows that hard constraint. A faster queue, ignored cap and omitted unfinished work cannot create capacity; the last two are easy integrity violations, hence options 3. The authored key selects the first source option; assessment shuffles display order. No learner attempt or live provider/model execution was performed by this reviewer.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-surge-q4; read prompt, all four options, correct index, explanation and parent scenario.",
+        "manual: Communicate the objective tradeoff when sustained urgent request demand exceeds capacity.",
+        "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; 1b35e0106069c203; no scores derived from execution."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m02-cases-surge",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "6fdbfe9548fff729",
+    "previousHash": "ddfa49cfccb9432c",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Plan launch traffic with a shared request budget and honest overload promises.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "answerOptions": "This record assesses the lesson or activity wrapper; each nested check question has its own individual option-set review.",
+      "hint": "No separate pre-answer hint exists on this lesson or activity wrapper.",
+      "explanation": "The wrapper has no independent post-answer explanation; nested question feedback is reviewed in its individual question record."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Admit and prioritise work within an external throughput ceiling.",
+      "transferable": "Distinguish job arrival rate, in-flight concurrency and aggregate request rate.",
+      "audienceFit": "The bounded fictional material supports intermediate developers without external accounts or paid APIs.",
+      "riskOutcome": "Directly exercises a correctness, access, capacity or external-effect boundary in this item."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Edited q1 and q2 to balance option lengths and give distractors a concrete, plausible rationale. Other questions in this check were outside the batch.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02.ts fde-v1-m02-cases-surge",
+      "run: lencheck (correct option at most 1.15x the distractor mean and at most 5% above the longest distractor; scratch script, not committed)",
+      "run: PATHS_ONLY=fde npm run test:paths"
+    ],
+    "reviewedAt": "2026-11-27",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Claude Code session 2026-11-27; FDE learning-path audit 2026-11-27-p1"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "model subagent of the same session that proposed the edit, separate final English reading; applied, length-checked and test-run by the session",
+      "notes": "Reread q1 and q2 against the scenario after the edits; keys and explanations unchanged in meaning. Other questions in this check still use a keyed option at index 0 that is often the longest; not re-audited here. Self-review only.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02.ts fde-v1-m02-cases-surge",
+        "run: lencheck (correct option at most 1.15x the distractor mean and at most 5% above the longest distractor; scratch script, not committed)",
+        "run: PATHS_ONLY=fde npm run test:paths"
+      ]
+    }
   }
 ]

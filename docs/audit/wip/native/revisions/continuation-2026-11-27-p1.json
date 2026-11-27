@@ -171,7 +171,9 @@
     "fde-v1-m02-cases-invoices",
     "fde-v1-m02-cases-knowledge-q2",
     "fde-v1-m02-cases-knowledge-q3",
-    "fde-v1-m02-cases-knowledge"
+    "fde-v1-m02-cases-knowledge",
+    "fde-v1-m02-cases-surge-q3",
+    "fde-v1-m02-cases-surge-q4"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -342,7 +344,9 @@
     "fde-v1-m02-cases-invoices",
     "fde-v1-m02-cases-knowledge-q2",
     "fde-v1-m02-cases-knowledge-q3",
-    "fde-v1-m02-cases-knowledge"
+    "fde-v1-m02-cases-knowledge",
+    "fde-v1-m02-cases-surge-q3",
+    "fde-v1-m02-cases-surge-q4"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
