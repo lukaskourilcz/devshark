@@ -3286,5 +3286,293 @@
         "run: PATHS_ONLY=fde npm run test:paths passed after the review fixes (Node 24.22.0)."
       ]
     }
+  },
+  {
+    "id": "fde-v1-m10-q2",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m10",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m10.ts",
+    "contentHash": "386ba9a3ff1a3935",
+    "previousHash": "46416547a0a170af",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Add success criteria, an observation window and reachable escalation to a runbook missing that specific loop.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Runbook usability remains current.",
+      "practicalUtility": "On-call operators need recovery and escalation criteria.",
+      "transferable": "A specific gap differs from certifying an entire runbook.",
+      "audienceFit": "The quoted page makes omissions inspectable.",
+      "riskOutcome": "Removes claims that diagrams or understanding are inappropriate during incidents."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Original broad question had other genuine omissions, dismissed diagrams and root-cause understanding, and assumed returning concurrency always correct. Ask specifically for the verification/escalation gap. Retain actual runbook and plausible ancillary additions. Explain access, safe action/reversal and cleanup still need review; this check does not certify production readiness.",
+    "evidence": [
+      "https://sre.google/workbook/incident-response/",
+      "repo: lib/learning-paths/content/fde/m10.ts q2",
+      "run: check-native-2026-10-15-n030.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n030-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n030"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread full runbook context and all additions. Owner naming is not a complete reachable escalation procedure or recovery threshold. No real dashboard, concurrency change, rota contact or incident was operated. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "https://sre.google/workbook/incident-response/",
+        "repo: lib/learning-paths/content/fde/m10.ts q2",
+        "run: check-native-2026-10-15-n030.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n030-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m10-q3",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m10",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m10.ts",
+    "contentHash": "7af93ea4886cc83b",
+    "previousHash": "7d01d4f618ffcfe0",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Support informed pre-submission approval while accurately stating an irreversible provider boundary.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Human approval remains current.",
+      "practicalUtility": "Operators must understand parameters and effect boundaries.",
+      "transferable": "UI consent does not replace server enforcement.",
+      "audienceFit": "An explicit irreversible provider contract prevents impossible undo promises.",
+      "riskOutcome": "Separates evidence, confidence and generated explanations without claiming they have no use."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Original demanded a way to stop an already started refund without a cancellability contract. State irreversibility after provider acceptance and ask for informed confirmation beforehand. Show amount/currency/order/evidence/effects, decline and boundary; execution rechecks approval/current authorization/balance. A compensating effect differs from undo. Calibrated confidence can help, generated reasoning is not independent evidence.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m10.ts q3 explicit provider boundary",
+      "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+      "run: check-native-2026-10-15-n030.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n030-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n030"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Read each screen proposal against the provider premise. A fixed30-second undo promise is unsupported; clear pre-submit refusal and accurate effect disclosure are possible. No provider, payment or actual consent flow was executed. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m10.ts q3 explicit provider boundary",
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+        "run: check-native-2026-10-15-n030.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n030-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m10-q4",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m10",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m10.ts",
+    "contentHash": "ee2090888c2e73fd",
+    "previousHash": "197e87ec2cf6b858",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Recognize recurring observed workaround evidence while treating single-customer requests as legitimate product input.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Product discovery remains current.",
+      "practicalUtility": "Observed repeated problems guide investigation.",
+      "transferable": "Evidence strength differs from feature priority or market validation.",
+      "audienceFit": "Three sites in one customer are explicitly not three independent customers.",
+      "riskOutcome": "Removes invented measured costs and false exclusion of individual requests."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Original excluded customer-specific requests from product input and claimed measured reload cost not supplied. Ask for strongest observed recurring-problem evidence among these reports. All requests can matter and inspire reusable features; recurrence is not a prerequisite. Three sites do not prove cross-customer demand, automatic priority or a particular solution.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m10.ts q4 explicit observations",
+      "run: check-native-2026-10-15-n030.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n030-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n030"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Read observations and explanation. The key reports independent site workarounds with a stated freshness problem; no time/cost measurement or broader customer validation exists. Other requests remain useful discovery leads. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m10.ts q4 explicit observations",
+        "run: check-native-2026-10-15-n030.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n030-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m10-checks",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m10",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m10.ts",
+    "contentHash": "1b2508b14b8a2cf0",
+    "previousHash": "8fadc0e9f71aebed",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Assess explicit acceptance exceptions, runbook verification, irreversible confirmation and bounded product evidence with exercise review.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Operational handoff remains current.",
+      "practicalUtility": "Precise acceptance evidence prevents overclaiming readiness.",
+      "transferable": "Authority, observed results and generalization are separate.",
+      "audienceFit": "Four bounded decisions fit this module.",
+      "riskOutcome": "Parent summary matches all rewritten scenarios."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Individually reviewed four questions; summary names their bounded contracts. Retain exercise purpose, handoff competency, verification and0.8 threshold. Mixed source keys[1,3,0,2] precede existing runtime shuffling. No certification or actual operations acceptance is claimed.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m10.ts checks",
+      "repo: lib/learning-paths/grade.ts gradeCheck",
+      "run: check-native-2026-10-15-n030.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n030-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n030"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Read full parent and final English options/explanations. All correct pass, any one miss fails at75% with immediate review. Hash/grade/timing checks do not assign editorial scores or prove real handoff readiness. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m10.ts checks",
+        "repo: lib/learning-paths/grade.ts gradeCheck",
+        "run: check-native-2026-10-15-n030.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n030-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
   }
 ]
