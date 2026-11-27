@@ -35,7 +35,9 @@
     "fde-v1-m02-cases-surge-q2",
     "fde-v1-m02-cases-surge",
     "fde-v1-m02-cases-offline-q4",
-    "fde-v1-m02-cases-offline"
+    "fde-v1-m02-cases-offline",
+    "fde-v1-m02-cases-patterns-q3",
+    "fde-v1-m02-cases-patterns"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -70,7 +72,9 @@
     "fde-v1-m02-cases-surge-q2",
     "fde-v1-m02-cases-surge",
     "fde-v1-m02-cases-offline-q4",
-    "fde-v1-m02-cases-offline"
+    "fde-v1-m02-cases-offline",
+    "fde-v1-m02-cases-patterns-q3",
+    "fde-v1-m02-cases-patterns"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [

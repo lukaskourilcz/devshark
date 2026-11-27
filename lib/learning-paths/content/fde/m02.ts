@@ -1098,9 +1098,9 @@ export const FDE_M02: ModuleSource = {
           "prompt": "Which proposal can Product evaluate in the available planning slot?",
           "options": [
             "One bounded common component, evidence from three integrations and explicit adoption and support costs.",
-            "A declaration that three deployments prove the component will fit every future customer.",
-            "A long backlog of optional connector features without a proposed first user.",
-            "A request to rewrite the product before estimating migration or maintenance effort."
+            "A claim that three working deployments prove the component will fit every future customer.",
+            "A long backlog of connector features requested across all three customers, with no proposed first user.",
+            "A request to rewrite the product’s ingestion layer now, before estimating migration or maintenance effort."
           ],
           "correct": 0,
           "explanation": "A bounded component with users, evidence and cost supports a decision. Three integrations do not prove universal fit. An unprioritised feature list and an uncosted rewrite leave the decision undefined.",
