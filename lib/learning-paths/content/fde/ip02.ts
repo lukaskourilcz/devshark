@@ -378,6 +378,11 @@ export const FDE_IP02: ModuleSource = {
             "label": "persisted seen identity prevents a fresh delivery"
           }
         ],
+        "contract": [
+          "Keep the signature `planActorPage(actorTenantId, events, subscriptions, previousSeen, eventLimit)`, the existing `planEvents` and `eventKey`. The harness calls them, so a renamed entry point fails every case.",
+          "`__ev`, `__sub`, `__page` and `__view` come from the task harness and are appended after your code. Read from them; do not define names that start with `__`.",
+          "The returned plan keeps the existing field names; the tests read `deliveries`, `duplicates`, `unmatched`, `nextSeen` and `remaining`. Inputs may be frozen: never mutate them."
+        ],
         "harness": "var __ev=function(id,tenant,tags){return {id:id||'E1',tenantId:tenant||'TEN-NORTH',kind:'ticket.opened',severity:'info',tags:tags||[],subject:'A ticket'};};\nvar __sub=function(tenant,selector){return {id:'S1',tenantId:tenant||'TEN-NORTH',enabled:true,channel:'audit',destination:'local',selector:selector||{kind:'all'}};};\nvar __page=function(events,subscriptions,seen,limit){return planActorPage('TEN-NORTH',events,subscriptions,seen||[],limit===undefined?1:limit);};\nvar __view=function(p){return p.ok?{ok:true,remaining:p.remaining,events:p.deliveries.map(function(d){return d.eventId;}),duplicates:p.duplicates,unmatched:p.unmatched,seen:p.nextSeen}:p;};"
       }
     },

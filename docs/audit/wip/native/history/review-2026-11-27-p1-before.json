@@ -314,5 +314,84 @@
         "run: /private/tmp/codex-b10-ip02-review-proof.log; actual focused gradePathCode/TypeScript/QuickJS runs for three final references and six faulty variants; no full-suite claim."
       ]
     }
+  },
+  {
+    "id": "fde-v1-ip02-actor-page",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-ip02",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/ip02.ts",
+    "contentHash": "592fa1cd1d2ae498",
+    "previousHash": null,
+    "gradingHash": "ea38fae23af52228",
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Repair tenant selection, owned-event page boundaries and persisted replay continuity before event routing.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": 4,
+      "explanation": null
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "answerOptions": "This item has no answer options; it is instruction or authored coding practice.",
+      "explanation": "There is no separate post-answer explanation; instruction, contract, visible examples and criterion feedback provide guidance."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Actor-scoped pagination and persisted deduplication remain ordinary service concerns.",
+      "practicalUtility": "The wrapper forces page consumption to precede selectors and replay classification.",
+      "transferable": "Unmatched and already-seen records consuming page slots is a reusable cursor-contract lesson.",
+      "audienceFit": "The 345-line typed fixture preserves familiar selectors while isolating a new entry point.",
+      "riskOutcome": "Critical isolation, page and replay criteria prevent averaging away these failures."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Read all 345 starter lines, actual Plan.nextSeen interface and helpers, final code contract, visible examples, reference delta and hidden assertions. The correct pipeline selects actor-owned events in input order, takes the bounded page, then passes unchanged subscriptions and previousSeen to planEvents. Replaced the invalid hidden historic string with an actual JSON eventKey within the stated domain. Added a nonempty fifty-of-fifty-one page probe because always slicing one could previously pass, and a full duplicate-consuming-page result. Replaced generic payload/preview hints with paging-specific guidance and added criterion details. The 12,468-byte starter fits the cap; the declared line count and familiar-helper caveat are accurate. Hints score 4 for pointing at boundaries without a worked trace.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/ip02.ts #fde-v1-ip02-actor-page; complete final rendered item and associated context read on 2026-10-22.",
+      "https://www.typescriptlang.org/docs/handbook/2/narrowing.html",
+      "inventory: merged-catalogue nativeContentHash=592fa1cd1d2ae498; nativeGradingHash=ea38fae23af52228; exact bindings do not manufacture editorial scores.",
+      "repo: lib/learning-paths/content/fde/ip02-actor-page.ts; complete decoded starter read; line count, fictional provenance and no-I/O boundary inspected.",
+      "repo: lib/learning-paths/solutions/fde-ip02.ts; full reference delta and all final visible/hidden expectations inspected.",
+      "repo: scripts/test-learning-paths.ts; original three per-drill flawed substitutions read; root coordinates additional proven variants.",
+      "run: /private/tmp/codex-b10-ip02-review-proof.log; actual focused gradePathCode/TypeScript/QuickJS runs for three final references and six faulty variants; no full-suite claim."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex B10/IP02 product-copy/native reviewer sub-agent; separate reader from original author in the same session, including final reread of own bounded grading/copy fixes; not human or external audit"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate model complete reading and focused actual sandbox proof; no full-suite, live deployment or learner-performance claim.",
+      "notes": "Final reference passes 10/10 hidden assertions and all critical groups in the focused real sandbox. Always taking one event fails page-boundary. Final content, complete helper, reference change and all assertion expectations reread. Passing establishes these bounded authored checks; no learner attempt, measured interview speed or production safety is established.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/ip02.ts #fde-v1-ip02-actor-page; complete final rendered item and associated context read on 2026-10-22.",
+        "https://www.typescriptlang.org/docs/handbook/2/narrowing.html",
+        "inventory: merged-catalogue nativeContentHash=592fa1cd1d2ae498; nativeGradingHash=ea38fae23af52228; exact bindings do not manufacture editorial scores.",
+        "repo: lib/learning-paths/content/fde/ip02-actor-page.ts; complete decoded starter read; line count, fictional provenance and no-I/O boundary inspected.",
+        "repo: lib/learning-paths/solutions/fde-ip02.ts; full reference delta and all final visible/hidden expectations inspected.",
+        "repo: scripts/test-learning-paths.ts; original three per-drill flawed substitutions read; root coordinates additional proven variants.",
+        "run: /private/tmp/codex-b10-ip02-review-proof.log; actual focused gradePathCode/TypeScript/QuickJS runs for three final references and six faulty variants; no full-suite claim."
+      ]
+    }
   }
 ]
