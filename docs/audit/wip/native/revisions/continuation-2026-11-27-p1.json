@@ -30,7 +30,10 @@
     "fde-v1-m02-cases-dashboard-q3",
     "fde-v1-m02-cases-dashboard",
     "fde-v1-m02-cases-adoption-q3",
-    "fde-v1-m02-cases-adoption"
+    "fde-v1-m02-cases-adoption",
+    "fde-v1-m02-cases-surge-q1",
+    "fde-v1-m02-cases-surge-q2",
+    "fde-v1-m02-cases-surge"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -60,7 +63,10 @@
     "fde-v1-m02-cases-dashboard-q3",
     "fde-v1-m02-cases-dashboard",
     "fde-v1-m02-cases-adoption-q3",
-    "fde-v1-m02-cases-adoption"
+    "fde-v1-m02-cases-adoption",
+    "fde-v1-m02-cases-surge-q1",
+    "fde-v1-m02-cases-surge-q2",
+    "fde-v1-m02-cases-surge"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [

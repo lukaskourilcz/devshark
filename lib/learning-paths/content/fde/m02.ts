@@ -916,9 +916,9 @@ export const FDE_M02: ModuleSource = {
           "prompt": "Which question most changes the capacity plan?",
           "options": [
             "Which jobs are urgent, what may queue and how the downstream cap applies to each job.",
-            "Which worker instance has the highest maximum thread count.",
-            "Which chart makes the five-hundred-job launch forecast easiest to present.",
-            "Which notification template should be reused for all job classes."
+            "Which worker instance type has the highest thread count for absorbing tenfold load.",
+            "Which chart makes the five-hundred-job launch forecast easiest for the sponsor to approve.",
+            "Which notification template the urgent and deferred job classes should share at launch."
           ],
           "correct": 0,
           "explanation": "Priority, queue tolerance and dependency demand determine the admitted workload. Instance size cannot remove the external cap. Presentation and wording do not determine how many downstream requests a job needs.",
@@ -930,10 +930,10 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-surge-q2",
           "prompt": "Which initial design respects the hard dependency limit?",
           "options": [
-            "Enforce at most 100 downstream requests per minute across workers and retries, with a bounded queue and an explicit urgent-work policy.",
-            "Limit each worker to 100 requests per minute and add workers when urgent jobs queue.",
+            "Share one 100-per-minute budget across workers and retries, plus a bounded queue and an urgent-work policy.",
+            "Limit each worker to 100 downstream requests per minute and add workers whenever urgent jobs start to queue.",
             "Cap concurrent calls at 100 and retry every rejection immediately, without a shared time-based budget.",
-            "Apply a shared 100-per-minute budget to first attempts while retries use a separate unbounded pool."
+            "Apply a shared 100-per-minute budget to first attempts, while retries draw on a separate unbounded pool."
           ],
           "correct": 0,
           "explanation": "A shared request-rate budget includes retries and respects the dependency’s time-based limit. A per-worker budget multiplies the total. Concurrency bounds in-flight work rather than requests per minute, and immediate retries add load. Excluding retries from the shared budget can still exceed the cap. The bounded queue and urgent policy define what users may expect when demand exceeds capacity.",
