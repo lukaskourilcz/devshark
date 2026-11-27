@@ -702,8 +702,8 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-invoices-q2",
           "prompt": "What should happen when a payment request times out with an unknown outcome?",
           "options": [
-            "Look up the original operation or reconcile it before retrying with its stable identity.",
-            "Create a new payment operation because a timeout proves no payment committed.",
+            "Look up or reconcile the original operation before retrying with its stable identity.",
+            "Create a new payment operation because a timeout proves the provider committed no payment.",
             "Mark the invoice paid because any timeout implies the provider accepted it.",
             "Delete the failed request so the next nightly run treats the invoice as new."
           ],
@@ -717,9 +717,9 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-invoices-q3",
           "prompt": "Which pilot acceptance test probes the named safety requirement?",
           "options": [
-            "Replay the uncertain operation and verify one provider payment with the expected settled amount and one reconciled local record.",
+            "Replay the uncertain operation; verify one provider payment of the expected amount and one reconciled local record.",
             "Replay the same operation and verify one local invoice record, without checking the provider’s payment ledger.",
-            "Send many distinct fresh invoices and verify their throughput and provider settlement totals.",
+            "Send many distinct fresh invoices and verify their throughput and provider settlement totals at pilot volume.",
             "Replay with a new operation id after each timeout and verify that each request receives a success response."
           ],
           "correct": 0,
@@ -732,13 +732,13 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-invoices-q4",
           "prompt": "The provider cannot look up an operation by key. What tradeoff should you present?",
           "options": [
-            "Hold uncertain payments for reconciliation until an agreed source can establish the outcome.",
+            "Hold uncertain payments in reconciliation until an agreed source confirms the outcome.",
             "Repeat uncertain payments with new keys because manual review slows settlement.",
             "Treat every timeout as a permanent failure without reconciling the invoice later.",
-            "Remove idempotency keys because the provider cannot search them directly."
+            "Remove idempotency keys because the provider cannot search them, so they add no safety."
           ],
           "correct": 0,
-          "explanation": "Holding uncertainty costs time but avoids pretending the outcome is known. Fresh-key retries can duplicate a payment. Permanent failure without reconciliation can leave financial records wrong. Removing keys does not add outcome visibility.",
+          "explanation": "Holding uncertainty costs time but avoids pretending the outcome is known. Fresh-key retries can duplicate a payment. Permanent failure without reconciliation can leave financial records wrong. Removing keys adds no outcome visibility and gives up duplicate protection on retry.",
           "competencies": [
             "discovery"
           ]

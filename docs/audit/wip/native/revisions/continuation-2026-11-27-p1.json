@@ -164,7 +164,11 @@
     "fde-v1-m02-cases-hosting-q1",
     "fde-v1-m02-cases-hosting-q2",
     "fde-v1-m02-cases-hosting-q3",
-    "fde-v1-m02-cases-hosting"
+    "fde-v1-m02-cases-hosting",
+    "fde-v1-m02-cases-invoices-q2",
+    "fde-v1-m02-cases-invoices-q3",
+    "fde-v1-m02-cases-invoices-q4",
+    "fde-v1-m02-cases-invoices"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -328,7 +332,11 @@
     "fde-v1-m02-cases-hosting-q1",
     "fde-v1-m02-cases-hosting-q2",
     "fde-v1-m02-cases-hosting-q3",
-    "fde-v1-m02-cases-hosting"
+    "fde-v1-m02-cases-hosting",
+    "fde-v1-m02-cases-invoices-q2",
+    "fde-v1-m02-cases-invoices-q3",
+    "fde-v1-m02-cases-invoices-q4",
+    "fde-v1-m02-cases-invoices"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
