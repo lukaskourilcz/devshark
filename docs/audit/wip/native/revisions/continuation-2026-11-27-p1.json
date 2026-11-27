@@ -134,7 +134,8 @@
     "fde-v1-m08-q2",
     "fde-v1-m08-q3",
     "fde-v1-m08-q4",
-    "fde-v1-m08-checks"
+    "fde-v1-m08-checks",
+    "fde-v1-m08-q5"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -268,7 +269,8 @@
     "fde-v1-m08-q2",
     "fde-v1-m08-q3",
     "fde-v1-m08-q4",
-    "fde-v1-m08-checks"
+    "fde-v1-m08-checks",
+    "fde-v1-m08-q5"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [

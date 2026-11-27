@@ -653,8 +653,8 @@ export const FDE_M10: ModuleSource = {
             'A support lead asks the assistant to total refunds by region from a CSV export. The model writes a 40-line script, and the lead wants it run on the export right away. Which way of running it fits the risk?',
           options: [
             'Run it inside the workbench API process with `eval`, wrapped in try/catch so an exception cannot crash the server.',
-            'Scan it first with a filter that rejects scripts mentioning `fs`, `child_process` or `fetch`, then run it on the API server.',
-            'Run it in a separate container with no network or credentials, the export mounted read-only, a non-root user and CPU, memory and time limits.',
+            'Scan it first with a filter that rejects any script mentioning `fs`, `child_process` or `fetch`, then run it on the API server.',
+            'Run it in a container with no network or credentials, the export mounted read-only, a non-root user and CPU, memory and time limits.',
             'Paste it into the support lead’s own laptop terminal, since the export already sits in that person’s downloads folder.',
           ],
           correct: 2,
