@@ -472,5 +472,359 @@
         "run: /private/tmp/codex-b10-ip02-review-proof.log; actual focused gradePathCode/TypeScript/QuickJS runs for three final references and six faulty variants; no full-suite claim."
       ]
     }
+  },
+  {
+    "id": "fde-v1-m07-q1",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m07",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m07.ts",
+    "contentHash": "f9097a708fcb5275",
+    "previousHash": "79adcc35a1a304a7",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Identify explicit evaluation-example leakage without confusing small samples or a simple baseline with contamination.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Evaluation leakage remains current.",
+      "practicalUtility": "Tuned-on test examples can overstate routing quality.",
+      "transferable": "Data influence differs from sample size and representativeness.",
+      "audienceFit": "Four named teams expose distinct evaluation problems.",
+      "riskOutcome": "A fresh evaluation repair and qualified uncertainty avoid unsupported statistical claims."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "State pre-tuning related-group separation and ask which report explicitly feeds evaluation labels into tuning. Shorten/parallelize alternatives while preserving Team C as the key. Removing only eight leaked examples does not automatically remove selection/feedback influence on the remainder; require fresh unexposed evaluation evidence. Acknowledge Team A's selected/tiny sample limits and do not call a two-case gain inside noise without a test.",
+    "evidence": [
+      "https://scikit-learn.org/stable/common_pitfalls.html#data-leakage",
+      "repo: lib/learning-paths/content/fde/m07.ts q1",
+      "run: check-native-2026-10-15-n027.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n027-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n027"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread all four teams and feedback against primary leakage guidance. Team C reports the same set it copied into the prompt. Small sample precision and a legitimate keyword baseline are separate issues. No hypothesis test, independent evaluation dataset or model run was performed. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "https://scikit-learn.org/stable/common_pitfalls.html#data-leakage",
+        "repo: lib/learning-paths/content/fde/m07.ts q1",
+        "run: check-native-2026-10-15-n027.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n027-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m07-q2",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m07",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m07.ts",
+    "contentHash": "bce2e86531b9693c",
+    "previousHash": "cf936072c5857063",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Compute and label correct automatic yield, wrong decisions and abstentions at stated hypothetical coverage/conditional accuracy.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 5,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Coverage/conditional-quality reporting remains current.",
+      "practicalUtility": "Operators need error and handoff counts as well as accuracy.",
+      "transferable": "A correct-yield fraction differs from approved autonomous closure.",
+      "audienceFit": "A hypothetical 400-ticket batch makes the arithmetic transparent.",
+      "riskOutcome": "Separating 228 correct from12 wrong fixes an ambiguous keyed count."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "The old lead question did not provide accepted error tolerance and mixed routing with unattended closure; its key said228 closed with12 of them wrong, although228 is the correct subset of240 answered. Ask for the hypothetical rate-derived report:228 correct,12 wrong,160 abstain and57% correct-answer yield. Remove an unexplained daily-volume claim and make risk acceptance separate from this arithmetic.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m07.ts q2 explicit hypothetical rates",
+      "run: check-native-2026-10-15-n027.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n027-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n027"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread stem, four reports and explanation. 400×60%=240, 240×95%=228, remainder12;160 are unanswered. Rates do not promise identical production counts or authorize unattended closure. Conditional accuracy, abstention and latency each answer a different part of the report. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m07.ts q2 explicit hypothetical rates",
+        "run: check-native-2026-10-15-n027.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n027-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m07-q3",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m07",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m07.ts",
+    "contentHash": "8d612133207bb903",
+    "previousHash": "826a27121e71d7d2",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Report observed aggregate improvement and slice regression using explicit equal-denominator counts and appropriate uncertainty.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 5,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Slice evaluation remains current.",
+      "practicalUtility": "Aggregate gains can hide concentrated failures.",
+      "transferable": "Observed sample changes differ from guaranteed future outcomes.",
+      "audienceFit": "Twelve cases per group make every count derivable.",
+      "riskOutcome": "Correcting six versus five gains removes a concrete arithmetic error."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Supply the missing denominators and exact counts8→11,9→12,10→7 across12 cases each. The old explanation claimed five fewer billing/delivery failures; it is six, offset by three more returns failures for a net gain of three. Shorten alternatives, report the observed tradeoff and assess agreed criteria/uncertainty rather than predicting shipping outcomes or dismissing the drop as noise.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m07.ts q3 exact count scenario",
+      "run: check-native-2026-10-15-n027.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n027-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n027"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread all numbers and choices. Baseline27/36=75%; candidate30/36≈83.3%; changes are+3,+3,-3. Both aggregate gain and returns regression are true on this held-out sample. The proof is arithmetic, not a significance analysis or production forecast. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m07.ts q3 exact count scenario",
+        "run: check-native-2026-10-15-n027.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n027-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m07-q4",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m07",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m07.ts",
+    "contentHash": "4e4e0e75fb737beb",
+    "previousHash": "84568fc46f8787e4",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Compare answered-case accuracy alongside coverage and correct-answer yield without defining abstentions as universally wrong.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 5,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Selective prediction metrics remain current.",
+      "practicalUtility": "Higher conditional quality can cover less work.",
+      "transferable": "Metric denominators must be named explicitly.",
+      "audienceFit": "Two systems on the same36 cases support direct comparison.",
+      "riskOutcome": "Removing monotonic-abstention and calibration claims prevents misleading conclusions."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Shorten the key to22/24 conditional accuracy,24/36 coverage and22/36 yield. Reject the claim accuracy always rises as answers fall: dropping correct cases can lower it. A refuse-all system has no answered-case observations, not proof of calibration or learned nothing. Whether abstention is scored as an error or operator work is a defined evaluation policy;22/36 is correctly labelled yield rather than the sole universal accuracy.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m07.ts q4 denominators and counts",
+      "run: check-native-2026-10-15-n027.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n027-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n027"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread all choices and feedback. A:75%/100%/75%; B:91.7%/66.7%/61.1%, with12 abstentions. Explicit two-of-three examples show conditional accuracy can rise or fall when one answer is removed. No calibration or operator-cost experiment is claimed. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m07.ts q4 denominators and counts",
+        "run: check-native-2026-10-15-n027.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n027-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m07-checks",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m09",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m09.ts",
+    "contentHash": "8a434ec852679d07",
+    "previousHash": "cd9b180eb61c5077",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Apply six evaluation-report decisions with immediate feedback at the 0.8 pass threshold.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Leakage, denominators, slices, failure modes and release rules are current.",
+      "practicalUtility": "Each question is a report-reading decision an FDE makes.",
+      "transferable": "Transfers to any evaluation report.",
+      "audienceFit": "Six questions fit a 20-minute check.",
+      "riskOutcome": "Covers the misreadings that ship regressions."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Fresh reading on 2026-10-22 of the parent check and all six questions with keys and explanations. q1 Team C leakage, q2 400×0.60=240 answered, 228 correct, 12 wrong, 160 abstentions, q3 net +3 with returns 10 to 7, q4 75% versus 91.7% conditional with 66.7% coverage, q5 retrieval miss, q6 B under the predeclared rule. Six questions at 0.8 need five correct. The parent check's hash moved only because q5's explanation now names M07 (retrieval) instead of M05. Title, summary, pass threshold, the other five questions and every key are unchanged. Scores and decision carried after this reading: the edit corrects a stale cross-reference and changes no claim, fixture, key or grading behaviour, and nothing in the reading contradicts the scores the previous record gave.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m07.ts checks",
+      "repo: lib/learning-paths/grade.ts gradeCheck",
+      "repo: docs/audit/wip/native/review-2026-10-15-n027.jsonl q1-q4"
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Claude Code session 2026-10-22 integrating B3 into B9 (#505); same session as the cross-reference edit, no separate reviewer"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same session, final English reading of the bound version after the edit",
+      "notes": "Re-read the whole item after the module-number correction. Every Mxx reference in it was checked against the final manifest order in lib/learning-paths/content/fde.ts (M04 boundaries, M06 AI system choices, M07 retrieval, M08 tools, M09 evaluation). No other text changed. Model review in the integrating session; no independent or human acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde.ts (final module order)",
+        "repo: lib/learning-paths/content/fde/m09.ts"
+      ]
+    },
+    "revision": 3
   }
 ]
