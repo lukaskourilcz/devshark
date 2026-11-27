@@ -363,6 +363,11 @@ const KNOWN_WRONG_PATH: Record<string, { label: string; replace: [string, string
 
 /** The authoring targets the curriculum documents commit to. A path that
  * falls short is not ready to publish, whatever the validator says. */
+/** How much longer than its distractors a check's keyed option may be: at
+ * most 1.15 times their mean length and 5 % over the longest one (#699). */
+const MAX_KEY_TO_DISTRACTOR_MEAN = 1.15;
+const MAX_KEY_OVER_LONGEST = 1.05;
+
 const TARGETS: Record<string, { lessons: number; moduleChecks: number; codeExercises: number }> = {
   fde: { lessons: 20, moduleChecks: 40, codeExercises: 10 },
 };
@@ -432,6 +437,27 @@ async function main() {
       .filter((activity) => activity.kind === 'code' || activity.kind === 'artifact').length;
     if (everyDraftable > PATH_LIMITS.draftsPerEnrollment) {
       fail(`${where}: ${everyDraftable} activities across the loop, capstone and optional modules keep drafts, but an enrollment holds at most ${PATH_LIMITS.draftsPerEnrollment}`);
+    }
+
+    /* ── no check gives its key away by length ─────────────────────────── */
+    // The content contract asks for options of comparable specificity. In
+    // November 2026 the keyed option was strictly the longest in 127 of 197
+    // questions, often at twice the distractors' length, so picking the
+    // longest option passed most checks (#699). A key may be as long as its
+    // distractors, never clearly longer.
+    for (const module of path.modules) {
+      for (const activity of module.activities) {
+        for (const question of activity.questions ?? []) {
+          const lengths = question.options.map((option) => option.length);
+          const key = lengths[question.correct];
+          const others = lengths.filter((_, index) => index !== question.correct);
+          const mean = others.reduce((sum, length) => sum + length, 0) / others.length;
+          const longest = Math.max(...others);
+          if (key > MAX_KEY_TO_DISTRACTOR_MEAN * mean || key > MAX_KEY_OVER_LONGEST * longest) {
+            fail(`${where}/${question.id}: the keyed option is ${key} characters against a distractor mean of ${mean.toFixed(0)} and a longest distractor of ${longest}; a learner can pick it by length`);
+          }
+        }
+      }
     }
 
     /* ── the database completes a module by moduleComplete's rule ──────── */
