@@ -96,10 +96,10 @@ export const FDE_DIAGNOSTIC: ModuleSource = {
           prompt:
             'A connector posts one invoice per approved order. When the invoice service answers 504, the connector retries the same POST up to three times. Finance reports that roughly one order in two hundred produced two invoices. Which change prevents duplicate invoices while preserving automatic retries, including concurrent attempts for the same order?',
           options: [
-            'Retry at most once, so at worst a single duplicate is created.',
-            'Add exponential backoff with jitter between the attempts.',
-            'Persist one idempotency key per order; the service atomically reuses the recorded result for repeated keys.',
-            'Stop retrying on 504 and surface the timeout to the operator.',
+            'Retry at most once after a 504, so an order can produce no more than one extra invoice.',
+            'Add exponential backoff with jitter, giving the invoice service time to finish before the next attempt.',
+            'Persist one idempotency key per order; the service atomically returns the stored result on repeats.',
+            'Stop retrying on 504 and send the timed-out order to an operator, who checks for an invoice before resending.',
           ],
           correct: 2,
           explanation:
@@ -179,10 +179,10 @@ export const FDE_DIAGNOSTIC: ModuleSource = {
           prompt:
             'The triage queue shows a spinner while cases load, then the list. When the case service answers 503 the component keeps its `loading` flag set and the spinner stays up. What is the minimum fix?',
           options: [
-            'Keep the spinner and add a line in the header saying results may be delayed.',
+            'Keep the spinner and add a header line saying results may be delayed while the service recovers.',
             'Show the empty-queue message, since an operator with no cases and an operator with a failed fetch both have nothing to work on.',
-            'Give the failure its own state that names what failed and offers a retry, so a load that ended never renders as a load still running.',
-            'Log the error and retry every five seconds until it succeeds.',
+            'Give the failure its own state, distinct from loading, that names what failed and offers a retry.',
+            'Log the error and retry every five seconds in the background until the case service answers.',
           ],
           correct: 2,
           explanation:
@@ -224,9 +224,9 @@ export const FDE_DIAGNOSTIC: ModuleSource = {
           prompt:
             'A routing model labels 940 of 1000 held-out cases correctly, passing a 90% overall bar. Billing accounts for 60 cases, with only 24 correct (40%). Which conclusion should guide readiness?',
           options: [
-            'Ship it. The number clears the bar, and billing is 6% of the traffic.',
-            'The overall pass hides poor billing routing; report slices and apply billing-specific readiness criteria.',
-            'Gather more billing cases until the billing slice reaches the bar.',
+            'Ship it. The model clears the agreed 90% bar, and billing is only 6% of the held-out traffic.',
+            'The overall pass hides poor billing routing; report slices and set billing readiness criteria.',
+            'Hold the release and label more billing cases until the billing slice reaches 90% on its own.',
             'Re-weight the average so small slices count for more, then hold the weighted number to the same bar.',
           ],
           correct: 1,

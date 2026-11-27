@@ -826,5 +826,297 @@
       ]
     },
     "revision": 3
+  },
+  {
+    "id": "fde-v1-diagnostic-q2",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-diagnostic",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/diagnostic.ts",
+    "contentHash": "7bc7a0bb0a539f07",
+    "previousHash": "13062b2111860cfb",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Preserve safe invoice retries with one durable order identity and atomic server-side idempotency.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Idempotent writes remain current.",
+      "practicalUtility": "Timeout retries can duplicate financial records.",
+      "transferable": "Transport failure differs from business outcome.",
+      "audienceFit": "An integration diagnostic should state the required retry behavior.",
+      "riskOutcome": "Atomic same-key handling closes the concurrent-attempt gap."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "The old stop-retrying choice also prevents a second automatic write, so require preserving retries, including concurrent attempts. Shorten the key to a persisted per-order key and atomic recorded result. Explain stable payload/key, retry-window retention and fresh-key failure. Remove the unsupported claim that one retry halves duplicates and the certainty that an operator will duplicate anyway.",
+    "evidence": [
+      "https://docs.stripe.com/api/idempotent_requests",
+      "repo: lib/learning-paths/content/fde/diagnostic.ts q2",
+      "run: check-native-2026-10-15-n016.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n016-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n016"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread stem, four alternatives and explanation against primary idempotency documentation. A same-key atomic-claim illustration makes one write across three concurrent calls; a fresh key makes another. That illustration is not a provider or database transaction test. The correct choice satisfies safe retries rather than merely reducing their number. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "https://docs.stripe.com/api/idempotent_requests",
+        "repo: lib/learning-paths/content/fde/diagnostic.ts q2",
+        "run: check-native-2026-10-15-n016.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n016-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-diagnostic-q7",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-diagnostic",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/diagnostic.ts",
+    "contentHash": "807f06d8d341bfe6",
+    "previousHash": "c302e12348a2b835",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Expose a completed fetch failure separately from loading and empty data, with a usable retry.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Async operator interfaces remain current.",
+      "practicalUtility": "A stuck spinner hides an actionable failure.",
+      "transferable": "Loading, empty and error states transfer broadly.",
+      "audienceFit": "A short 503 scenario fits the diagnostic.",
+      "riskOutcome": "Allowing visible automatic retries avoids a false manual-only rule."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "The key is sound, but the old explanation said the retry must be the operator's to press. Clarify that user retry can coexist with automatic retries while failure stays visible. Retain the distinct error state and the delay/empty/silent-retry distractors; no component implementation changes.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/diagnostic.ts q7",
+      "run: check-native-2026-10-15-n017.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n017-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n017"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread all four choices and feedback. Only the keyed choice distinguishes a finished failure from ongoing work and successful emptiness. The feedback now permits backed-off automatic retries without allowing them to hide failure. This is manual scenario review, not an executed operator-screen acceptance check. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/diagnostic.ts q7",
+        "run: check-native-2026-10-15-n017.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n017-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-diagnostic-q10",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-diagnostic",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/diagnostic.ts",
+    "contentHash": "79e00e4ea8eab367",
+    "previousHash": "b8fc23d453f1d2f7",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Assess a weak billing slice alongside an aggregate pass using consistent held-out counts.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This record has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Slice-based model evaluation remains current.",
+      "practicalUtility": "Small high-impact groups can underperform behind an aggregate.",
+      "transferable": "Aggregate acceptance differs from per-group criteria.",
+      "audienceFit": "Exact integer counts make the diagnostic inspectable.",
+      "riskOutcome": "Correct arithmetic and finite-evidence limits prevent misleading readiness claims."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "A 0.41 accuracy cannot be obtained to two-decimal rounding from 60 binary-labelled cases. Use 24/60=40%, 916/940 other correct and 940/1000=94% overall. Remove the false claim no aggregate threshold could reject the result: 95% does. The actual problem is the stated 90% aggregate bar passing poor billing quality. Shorten the key and distinguish slice criteria, uncertainty, additional measurement and actual model repair.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/diagnostic.ts q10 integer-count scenario",
+      "https://scikit-learn.org/stable/common_pitfalls.html#data-leakage",
+      "run: check-native-2026-10-15-n017.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n017-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n017"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Reread every number and option. Arithmetic gives 6% billing volume, 40% billing accuracy and 94% total; 90% passes and 95% rejects. Neither more data nor a weighted number inherently repairs billing. Finite held-out outcomes are not an exact forecast of future production accuracy. No model or customer traffic was run. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/diagnostic.ts q10 integer-count scenario",
+        "https://scikit-learn.org/stable/common_pitfalls.html#data-leakage",
+        "run: check-native-2026-10-15-n017.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n017-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-diagnostic-check",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-diagnostic",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/diagnostic.ts; lib/learning-paths/competencies.ts; lib/learning-paths/handlers.ts",
+    "contentHash": "78e3cc4b35407aed",
+    "previousHash": "f3d6204bf0635cc4",
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Report the latest accepted diagnostic evidence per tagged competency without turning an aggregate pass into mastery or access.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This lesson/activity has no answer-option set; its prose, executable contract or linked reading is assessed directly.",
+      "hint": "This record has no separate pre-answer hint.",
+      "explanation": "No separate post-answer explanation exists; expository material is assessed under technical correctness, wording and learning value."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Diagnostic evidence remains current.",
+      "practicalUtility": "False mastery would misdirect bridge recommendations.",
+      "transferable": "Aggregate success differs from a competency assessment.",
+      "audienceFit": "Twelve bounded cases provide explicitly coarse evidence.",
+      "riskOutcome": "Fixes the runtime blocker and preserves unassessed/optional semantics."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "rewrite",
+    "correctnessBlocker": null,
+    "rationale": "Review parent metadata, twelve already individually reviewed child scenarios, their unchanged keys/tags and composed grading/report path. The previously identified aggregate propagation is fixed by #397source: trusted correct/item counts, multi-tag attribution, scoped latest accepted evidence rather than monotonic completion row, and legacy aggregate-only data unassessed. Parent summary now explains overall success can leave a gap and that nothing unlocks/completes. Canonical keys[0,2,1,0,2,1,2,0,3,1,0,2] yield10/12overallpass with1/3integrationgap; uncoveredareasnull/0items. Review is returned after every diagnostic result, optional module requiresnothing and alone never finishes path. Child hashes remain exactly their prior individual reviews.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/diagnostic.ts diagnostic-check",
+      "repo: lib/learning-paths/competencies.ts",
+      "repo: scripts/diagnostic-competency-contracts.ts",
+      "repo: scripts/learning-path-handler-contracts.ts #397",
+      "run: check-native-2026-10-15-n042.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+      "run: native-n042-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+    ],
+    "reviewedAt": "2026-10-15",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex session 2026-10-15; sequential five-item native batch n042"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "same model/session, separate final English reading",
+      "notes": "Final parent/child-composition reading verifies groups are not identical to per-competency denominators: boundaries and operations each have2items and one shared tag. Runtime persistence/replay/latest-read/error/clientreport cases passed separate #397contracts and browser fixtures; no authenticated production attempt or independent review is inferred. This record was withheld until the actual runtime defect was fixed. No independent/human approval or full-catalogue acceptance is claimed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/diagnostic.ts diagnostic-check",
+        "repo: lib/learning-paths/competencies.ts",
+        "repo: scripts/diagnostic-competency-contracts.ts",
+        "repo: scripts/learning-path-handler-contracts.ts #397",
+        "run: check-native-2026-10-15-n042.ts; manually selected authored examples and policy assertions, not learner-code execution or editorial scoring.",
+        "run: native-n042-proof.json binds these five exact content/grading hashes. Node 24 V8 evidence is not authenticated activity acceptance."
+      ]
+    }
   }
 ]
