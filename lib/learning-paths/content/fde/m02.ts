@@ -383,8 +383,8 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-deadline-q1",
           "prompt": "Which question should settle the first release’s purpose?",
           "options": [
-            "What operator decision must improve, and what evidence can the sponsor review in two weeks?",
-            "Which four requested features should receive equal engineering time in the pilot?",
+            "What operator decision must improve, and what evidence can the sponsor see in two weeks?",
+            "Which four requested features should receive equal engineering time in the two-week pilot?",
             "Which launch date should be announced before the integration estimate is checked?",
             "Which model should generate replies despite the pilot having no send permission?"
           ],
@@ -400,7 +400,7 @@ export const FDE_M02: ModuleSource = {
           "options": [
             "Classify one queue for operator review and measure correction effort against a baseline.",
             "Implement all four features with reduced testing to preserve the two-week date.",
-            "Launch automatic replies first and add human approval after the pilot.",
+            "Launch automatic replies first to show value early, and add human approval after the pilot.",
             "Wait two months without testing whether classification helps the operators."
           ],
           "correct": 0,

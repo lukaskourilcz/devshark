@@ -149,7 +149,10 @@
     "fde-v1-bridge-python-loader-q4",
     "fde-v1-bridge-python-async-loader",
     "fde-v1-m02-cases-employee-sync-q3",
-    "fde-v1-m02-cases-employee-sync"
+    "fde-v1-m02-cases-employee-sync",
+    "fde-v1-m02-cases-deadline-q1",
+    "fde-v1-m02-cases-deadline-q2",
+    "fde-v1-m02-cases-deadline"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -298,7 +301,10 @@
     "fde-v1-bridge-python-loader-q4",
     "fde-v1-bridge-python-async-loader",
     "fde-v1-m02-cases-employee-sync-q3",
-    "fde-v1-m02-cases-employee-sync"
+    "fde-v1-m02-cases-employee-sync",
+    "fde-v1-m02-cases-deadline-q1",
+    "fde-v1-m02-cases-deadline-q2",
+    "fde-v1-m02-cases-deadline"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [

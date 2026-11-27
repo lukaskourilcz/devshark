@@ -10889,5 +10889,217 @@
         "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; d9738f2d3fe225eb; no editorial scores generated from tests."
       ]
     }
+  },
+  {
+    "id": "fde-v1-m02-cases-deadline-q1",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "ce15572ea8a64e93",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Anchor a short release in an operator decision and reviewable evidence.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 4,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 3,
+      "hint": null,
+      "explanation": 4
+    },
+    "qualityScore": 3,
+    "notApplicable": {
+      "hint": "This question supplies scenario context and answer feedback but no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 1
+    },
+    "relevanceScore": 9,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Anchor a short release in an operator decision and reviewable evidence.",
+      "transferable": "A defined operator decision and two-week evidence window support scoping before committing to four mechanisms.",
+      "audienceFit": "The preceding decomposition lessons teach the authority/evidence/scope reasoning used by this intermediate case.",
+      "riskOutcome": "Improves scope, communication or measurement quality; no live operational side effect occurs in this exercise."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "A defined operator decision and two-week evidence window support scoping before committing to four mechanisms. Equal allocation and announcing an unchecked date fail to establish that purpose. Generating drafts could be permitted without send access, so the explanation is read as rejecting premature mechanism selection rather than banning all draft generation; the explicit selection remains unique.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-deadline-q1; read prompt, all four options, correct index, explanation and parent scenario.",
+      "manual: Anchor a short release in an operator decision and reviewable evidence.",
+      "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; ce15572ea8a64e93; no scores derived from execution."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": true,
+      "run": "Codex B3 content/copy reviewer sub-agent; separate from authoring agent in the same 2026-10-22 session; not human review"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate reviewer sub-agent; full initial reading and final reading of revised items; same task session.",
+      "notes": "Final independent reading: A defined operator decision and two-week evidence window support scoping before committing to four mechanisms. Equal allocation and announcing an unchecked date fail to establish that purpose. Generating drafts could be permitted without send access, so the explanation is read as rejecting premature mechanism selection rather than banning all draft generation; the explicit selection remains unique. The authored key selects the first source option; assessment shuffles display order. No learner attempt or live provider/model execution was performed by this reviewer.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-deadline-q1; read prompt, all four options, correct index, explanation and parent scenario.",
+        "manual: Anchor a short release in an operator decision and reviewable evidence.",
+        "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; ce15572ea8a64e93; no scores derived from execution."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m02-cases-deadline-q2",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "f27a020c2a4a3018",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Select a reviewed classification slice that matches the observed bottleneck.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "This question supplies scenario context and answer feedback but no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Select a reviewed classification slice that matches the observed bottleneck.",
+      "transferable": "One read-only queue with correction-effort measurement tests the observed repetitive task without sending messages.",
+      "audienceFit": "The preceding decomposition lessons teach the authority/evidence/scope reasoning used by this intermediate case.",
+      "riskOutcome": "Directly exercises a correctness, access, capacity or external-effect boundary in this item."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "One read-only queue with correction-effort measurement tests the observed repetitive task without sending messages. All-feature delivery with fewer tests expands uncertainty, automatic replies violate approval and access constraints, and waiting for the whole integration forgoes the bounded value test.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-deadline-q2; read prompt, all four options, correct index, explanation and parent scenario.",
+      "manual: Select a reviewed classification slice that matches the observed bottleneck.",
+      "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; f27a020c2a4a3018; no scores derived from execution."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": true,
+      "run": "Codex B3 content/copy reviewer sub-agent; separate from authoring agent in the same 2026-10-22 session; not human review"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate reviewer sub-agent; full initial reading and final reading of revised items; same task session.",
+      "notes": "Final independent reading: One read-only queue with correction-effort measurement tests the observed repetitive task without sending messages. All-feature delivery with fewer tests expands uncertainty, automatic replies violate approval and access constraints, and waiting for the whole integration forgoes the bounded value test. The authored key selects the first source option; assessment shuffles display order. No learner attempt or live provider/model execution was performed by this reviewer.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-deadline-q2; read prompt, all four options, correct index, explanation and parent scenario.",
+        "manual: Select a reviewed classification slice that matches the observed bottleneck.",
+        "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; f27a020c2a4a3018; no scores derived from execution."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-m02-cases-deadline",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-m02-cases",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/m02-cases.ts",
+    "contentHash": "b8db1b360a790789",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Negotiate evidence and scope for a two-week read-only classification pilot.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This record assesses the lesson or activity wrapper; each nested check question has its own individual option-set review.",
+      "hint": "No separate pre-answer hint exists on this lesson or activity wrapper.",
+      "explanation": "The wrapper has no independent post-answer explanation; nested question feedback is reviewed in its individual question record."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 1
+    },
+    "relevanceScore": 9,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring customer-delivery and engineering reasoning rather than a version-specific provider feature.",
+      "practicalUtility": "Deliver a measured narrow pilot while making a later scope request explicit.",
+      "transferable": "Change scope or time transparently when delivery constraints change.",
+      "audienceFit": "The bounded fictional material supports intermediate developers without external accounts or paid APIs.",
+      "riskOutcome": "Improves scope, communication or measurement quality; no live operational side effect occurs in this exercise."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Read the classification bottleneck, two-week/two-month contrast and approval boundary through all four questions. The case asks for purpose, first slice, written exclusion and changed queue scope. It does not claim that reduced testing creates capacity or that a model result alone proves operator value.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-deadline; read full activity metadata, linked lesson or scenario, and nested questions.",
+      "manual: Negotiate evidence and scope for a two-week read-only classification pilot.",
+      "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; b8db1b360a790789; no editorial scores generated from tests."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": true,
+      "run": "Codex B3 content/copy reviewer sub-agent; separate from authoring agent in the same 2026-10-22 session; not human review"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate reviewer sub-agent; full initial reading and final reading of revised items; same task session.",
+      "notes": "Final independent reading: Read the classification bottleneck, two-week/two-month contrast and approval boundary through all four questions. The case asks for purpose, first slice, written exclusion and changed queue scope. It does not claim that reduced testing creates capacity or that a model result alone proves operator value. This is a same-session separate model reviewer, not human review, live-system acceptance or complete-catalogue approval.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/m02-cases.ts #fde-v1-m02-cases-deadline; read full activity metadata, linked lesson or scenario, and nested questions.",
+        "manual: Negotiate evidence and scope for a two-week read-only classification pilot.",
+        "inventory: merged catalogue nativeContentHash/nativeGradingHash read in memory on 2026-10-22; b8db1b360a790789; no editorial scores generated from tests."
+      ]
+    }
   }
 ]
