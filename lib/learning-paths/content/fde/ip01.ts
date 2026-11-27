@@ -247,6 +247,11 @@ export const FDE_IP01: ModuleSource = {
             "label": "an earlier per-kilogram rule keeps started-unit rounding"
           }
         ],
+        "contract": [
+          "Keep the existing names `cardFromJson`, `validateCard`, `quote`, `priceRule` and `describeRule`. The tests call them directly and through the harness, so a renamed or replaced function fails every case that uses it.",
+          "`__bandRaw`, `__bandCard`, `__bandQuote` and `__bandTotals` come from the task harness and are appended after your code. Read from them; do not define names that start with `__`.",
+          "Error strings, line counts and the description text are compared exactly. Inputs may be frozen: never mutate a card, rule or shipment."
+        ],
         "harness": "var __bandRaw = function (patch) {\n  return Object.assign({ kind: 'weightBand', id: 'band', label: 'Band', baseAmount: 500, includedGrams: 2000, centsPerExtraKg: 80 }, patch || {});\n};\nvar __bandCard = function (patch, discount) {\n  var loaded = cardFromJson({ id: 'CARD-TEST', carrier: 'Harrowgate', currency: 'EUR', version: 1, discountBasisPoints: discount || 0, rules: [__bandRaw(patch)] });\n  return loaded;\n};\nvar __bandQuote = function (weight, patch, discount, zone) {\n  var loaded = __bandCard(patch, discount);\n  if (!loaded.ok) return loaded;\n  return quote({ id: 'S-TEST', zone: zone || 'regional', weightGrams: weight, declaredValueCents: 10000, flags: [] }, loaded.card);\n};\nvar __bandTotals = function (weight, patch, discount, zone) {\n  var result = __bandQuote(weight, patch, discount, zone);\n  return result.ok ? { subtotal: result.quote.subtotal, discount: result.quote.discount, total: result.quote.total, lines: result.quote.lines.length } : result;\n};"
       }
     },

@@ -1,0 +1,18 @@
+{
+  "kind": "fde-path-audit-native-review",
+  "issue": null,
+  "reviewedAt": "2026-11-27",
+  "reviewedIds": [
+    "fde-v1-ip01-rate-card"
+  ],
+  "revisedInPlace": [
+    "fde-v1-ip01-rate-card"
+  ],
+  "uniqueCoverageAdded": 0,
+  "currentReviewFiles": [
+    "review-2026-10-22-b10-ip01.jsonl"
+  ],
+  "history": "docs/audit/wip/native/history/review-2026-11-27-p1-before.json",
+  "proof": null,
+  "note": "Native records revised in place during the 2026-11-27 FDE learning-path audit (2026-11-27-p1). Each item was reread after its edit and rescored by the same model session that made the edit; no independent or human approval is claimed. Scratch hash and length scripts ran outside the repository and are not committed."
+}
