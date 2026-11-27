@@ -727,10 +727,10 @@ export const FDE_M10: ModuleSource = {
           prompt:
             'Before the hospital pilot, sales asks you to approve a slide reading “The workbench is HIPAA certified.” No assessment of the workbench has happened. What do you send back?',
           options: [
-            'Approve it, since the workbench encrypts traffic and that is the safeguard the rule cares about most.',
-            'Replace it with the specific safeguards the workbench implements, and leave whether HIPAA applies to the hospital’s compliance owners.',
-            'Change it to “HIPAA compliant”, which describes the product’s design rather than claiming an outside assessment.',
-            'Approve it for the hospital only, and remove it before the slide goes to any other customer.',
+            'Approve it, since the workbench encrypts traffic in transit and that is the safeguard the Security Rule cares about most.',
+            'Replace it with the safeguards the workbench implements, and leave HIPAA applicability to the hospital’s compliance owners.',
+            'Change it to “HIPAA compliant”, which describes how the product was designed rather than claiming an outside assessment.',
+            'Approve it for the hospital deck only, and remove the line before the slide goes to any other customer.',
           ],
           correct: 1,
           explanation:
