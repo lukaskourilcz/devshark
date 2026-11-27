@@ -337,7 +337,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-employee-sync-q3",
           "prompt": "What is the smallest pilot that can expose dangerous differences before granting access?",
           "options": [
-            "Generate a proposed change set and have Facilities review status conflicts before writes.",
+            "Propose a change set and have Facilities review status conflicts before any write.",
             "Replace both employee directories after one successful end-to-end API request.",
             "Send every differing field to both APIs and inspect failures the next morning.",
             "Synchronise active records only and ignore termination events during the pilot."
