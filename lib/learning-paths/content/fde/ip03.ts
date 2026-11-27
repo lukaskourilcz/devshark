@@ -233,9 +233,9 @@ export const FDE_IP03: ModuleSource = {
           "prompt": "Which retrieval boundary meets the stated permission rule?",
           "options": [
             "Apply actor/tenant authorization to candidates before their text can enter model context.",
-            "Retrieve globally and ask the model to omit documents the actor should not see.",
-            "Retrieve globally, generate the answer, then remove forbidden citation ids.",
-            "Use the pilot’s accurate public-document results as permission evidence."
+            "Retrieve across both tenants and instruct the model to ignore documents the actor should not see.",
+            "Retrieve globally, generate the answer, then strip citation ids that point at documents outside scope.",
+            "Treat the pilot’s accurate public-document results as evidence that permission filtering works."
           ],
           "correct": 0,
           "explanation": "Authorization must constrain the material made available. Prompt instructions and citation cleanup operate after forbidden text has already crossed that boundary. Public accuracy tests establish neither private permission handling nor isolation.",
@@ -248,10 +248,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-private-kb-q2",
           "prompt": "Which cache key is defensible for an answer that depends on private documents?",
           "options": [
-            "Use normalized query text alone because the wording determines the requested answer.",
-            "Alongside the query, include authorized tenant/scope and relevant permission/document versions, with invalidation on change.",
-            "Include the model name and temperature, while sharing results across actors.",
-            "Include only the document count so same-sized corpora can share a result."
+            "Normalized query text alone, because the wording of the question determines which answer is requested.",
+            "Query plus authorized tenant/scope and relevant permission and document versions, invalidated on change.",
+            "Query plus model name and temperature, shared across actors because those settings shape the output.",
+            "Query plus document count, so tenants whose corpora are the same size can share one cached result."
           ],
           "correct": 1,
           "explanation": "The result depends on the question, authorized scope and versions. Query wording alone, model settings and document counts do not identify which private material the current actor may read. A key still needs a change policy; adding fields alone does not handle revocation.",
@@ -264,10 +264,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-private-kb-q3",
           "prompt": "The authorized candidate set contains no support for the requested answer. Which response fits?",
           "options": [
-            "Use a high-scoring forbidden document and hide its citation.",
-            "Give the most probable answer from the public pilot and describe it as verified.",
-            "Refuse the unsupported answer or offer the stated human-review path without borrowing another tenant’s evidence.",
-            "Relax the tenant filter on the retry because the first search was empty."
+            "Answer from a high-scoring document outside the actor’s scope and leave its citation out of the reply.",
+            "Give the most probable answer based on the public pilot and label it verified because the pilot was accurate.",
+            "Refuse or offer the stated human-review path instead of borrowing another tenant’s evidence.",
+            "Retry with the tenant filter relaxed, since an empty first search usually means the filter was too strict."
           ],
           "correct": 2,
           "explanation": "An empty permitted set does not authorize another tenant’s data or turn a plausible guess into supported evidence. A safe refusal or defined review path preserves the stated boundary. Retrying with weaker authorization violates the same rule.",
@@ -279,9 +279,9 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-private-kb-q4",
           "prompt": "Which additional acceptance case addresses the session-change risk?",
           "options": [
-            "Repeat the same public prompt with a different model temperature.",
-            "Measure average answer length across the original public pilot.",
-            "Check that the forbidden document’s citation label is well formatted.",
+            "Repeat the same public prompt at a different model temperature and confirm the answer stays consistent.",
+            "Measure average answer length across the original public pilot and flag answers that grow much longer.",
+            "Check that each citation label in a private answer is well formatted and resolves to a document title.",
             "Revoke a previously allowed document and verify it cannot reappear through retrieval or cached answers."
           ],
           "correct": 3,

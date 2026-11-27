@@ -51,7 +51,12 @@
     "fde-v1-m10-q2",
     "fde-v1-m10-q3",
     "fde-v1-m10-q4",
-    "fde-v1-m10-checks"
+    "fde-v1-m10-checks",
+    "fde-v1-ip03-private-kb-q1",
+    "fde-v1-ip03-private-kb-q2",
+    "fde-v1-ip03-private-kb-q3",
+    "fde-v1-ip03-private-kb-q4",
+    "fde-v1-ip03-private-kb"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -102,7 +107,12 @@
     "fde-v1-m10-q2",
     "fde-v1-m10-q3",
     "fde-v1-m10-q4",
-    "fde-v1-m10-checks"
+    "fde-v1-m10-checks",
+    "fde-v1-ip03-private-kb-q1",
+    "fde-v1-ip03-private-kb-q2",
+    "fde-v1-ip03-private-kb-q3",
+    "fde-v1-ip03-private-kb-q4",
+    "fde-v1-ip03-private-kb"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
@@ -120,6 +130,7 @@
     "review-2026-10-15-n042.jsonl",
     "review-2026-10-22-b10-ip01.jsonl",
     "review-2026-10-22-b10-ip02.jsonl",
+    "review-2026-10-22-b10-ip03.jsonl",
     "review-2026-10-22-b3-cases.jsonl",
     "review-2026-10-22-b8.jsonl",
     "review-2026-10-22-b9-python.jsonl"
