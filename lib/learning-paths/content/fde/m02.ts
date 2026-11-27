@@ -550,8 +550,8 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-timeouts-q2",
           "prompt": "Which first intervention best respects the known write contract?",
           "options": [
-            "Trial bounded retries with the same idempotency key for a defined transient failure.",
-            "Retry every failed write immediately with a fresh key until it succeeds.",
+            "Trial bounded retries reusing the idempotency key for a defined transient failure.",
+            "Retry every failed write at once with a fresh key until the export job succeeds.",
             "Send duplicate export jobs to several workers and keep the earliest response.",
             "Remove the external rate limit in the client configuration for the pilot."
           ],
@@ -565,7 +565,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-timeouts-q3",
           "prompt": "Which result would justify a claim about the affected users?",
           "options": [
-            "Tail latency and failure rate by export-size slice over a comparable observation window.",
+            "Tail latency and failure rate by export-size slice over a comparable window.",
             "A lower mean latency after excluding all timed-out exports from the sample.",
             "One small export that succeeds after the retry change reaches a staging server.",
             "The total number of retries performed without a count of completed jobs."
@@ -580,7 +580,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-timeouts-q4",
           "prompt": "The external API reduces its rate limit. What should change first?",
           "options": [
-            "Recalculate retry and concurrency budgets and expose a bounded queue or backpressure policy.",
+            "Recalculate retry and concurrency budgets, then add a bounded queue or backpressure.",
             "Double retry concurrency so each export has more chances before its deadline.",
             "Preserve the old retry rate and describe new rejections as random network failures.",
             "Rewrite the database before measuring whether the external limit now binds."
