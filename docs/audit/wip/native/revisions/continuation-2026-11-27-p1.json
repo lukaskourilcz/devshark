@@ -1,6 +1,6 @@
 {
   "kind": "fde-path-audit-native-review",
-  "issue": null,
+  "issue": "#699",
   "reviewedAt": "2026-11-27",
   "reviewedIds": [
     "fde-v1-ip01-rate-card",
