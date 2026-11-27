@@ -96,7 +96,7 @@ An artifact lists its required fields, each field's cap and the rubric dimension
 Each line names the rule or check behind it:
 
 - Every lesson names its sources with `reviewedOn`.
-- Checks use plausible options of comparable specificity, explain why each alternative fails in this case, and pass at 80 % with retry and explanation (`passThreshold: 0.8`).
+- Checks use plausible options of comparable specificity and length (`test:paths` fails a key above 1.15 times the distractors' mean length or 5 % over the longest distractor; tighten the key or give a distractor the reasoning a real engineer would use, never pad it), explain why each alternative fails in this case, and pass at 80 % with retry and explanation (`passThreshold: 0.8`).
 - Code activities carry a passing reference, flawed variants that must fail, and criteria grouped so a security-critical failure cannot be averaged away (`test:paths`, `test:path-authority`, and `test:harness` when a grader changes).
 - Artifacts list their fields, caps and rubric dimensions before the learner starts.
 - English copy passes `.claude/skills/stop-slop` and the `product-copy-reviewer` agent's review. No AI feature, no AI claim, no certification, hiring or salary claim: completion reads "FDE guided path completed" (`completionLabel`) and the path's `nonGoals` say what it is not (CLAUDE.md, "Protected behavior" and "Brand").

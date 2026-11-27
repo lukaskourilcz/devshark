@@ -253,6 +253,11 @@ export const FDE_IP02: ModuleSource = {
             "label": "later failure rejects earlier planned quotes"
           }
         ],
+        "contract": [
+          "Keep the signature `planTenantQuotes(actorTenantId, requests, cards)` and the existing `quote()`. The harness calls `planTenantQuotes` with the actor `TEN-NORTH`, so a renamed entry point fails every case.",
+          "`__tenantCard`, `__quoteRequest` and `__quotePlan` come from the task harness and are appended after your code. Read from them; do not define names that start with `__`.",
+          "Error strings and the success shape are compared exactly. Inputs may be frozen: never mutate a request, card or array."
+        ],
         "harness": "var __tenantCard = function (tenant, amount, id) { return {tenantId:tenant,card:{id:id||'C-1',carrier:'Fixture',currency:'EUR',version:1,discountBasisPoints:0,rules:[{kind:'flat',id:'flat',label:'Base',amount:amount}]}}; };\nvar __quoteRequest = function (patch) { return Object.assign({requestId:'REQ-1',tenantId:'TEN-NORTH',cardId:'C-1',shipment:{id:'S-1',zone:'local',weightGrams:1000,declaredValueCents:0,flags:[]}},patch||{}); };\nvar __quotePlan = function (requests,cards) { return planTenantQuotes('TEN-NORTH',requests,cards); };"
       }
     },
@@ -373,6 +378,11 @@ export const FDE_IP02: ModuleSource = {
             "label": "persisted seen identity prevents a fresh delivery"
           }
         ],
+        "contract": [
+          "Keep the signature `planActorPage(actorTenantId, events, subscriptions, previousSeen, eventLimit)`, the existing `planEvents` and `eventKey`. The harness calls them, so a renamed entry point fails every case.",
+          "`__ev`, `__sub`, `__page` and `__view` come from the task harness and are appended after your code. Read from them; do not define names that start with `__`.",
+          "The returned plan keeps the existing field names; the tests read `deliveries`, `duplicates`, `unmatched`, `nextSeen` and `remaining`. Inputs may be frozen: never mutate them."
+        ],
         "harness": "var __ev=function(id,tenant,tags){return {id:id||'E1',tenantId:tenant||'TEN-NORTH',kind:'ticket.opened',severity:'info',tags:tags||[],subject:'A ticket'};};\nvar __sub=function(tenant,selector){return {id:'S1',tenantId:tenant||'TEN-NORTH',enabled:true,channel:'audit',destination:'local',selector:selector||{kind:'all'}};};\nvar __page=function(events,subscriptions,seen,limit){return planActorPage('TEN-NORTH',events,subscriptions,seen||[],limit===undefined?1:limit);};\nvar __view=function(p){return p.ok?{ok:true,remaining:p.remaining,events:p.deliveries.map(function(d){return d.eventId;}),duplicates:p.duplicates,unmatched:p.unmatched,seen:p.nextSeen}:p;};"
       }
     },
@@ -474,6 +484,11 @@ export const FDE_IP02: ModuleSource = {
             "criterion": "revision-identity",
             "label": "exact equal revision is duplicate"
           }
+        ],
+        "contract": [
+          "Keep the signature `applyTenantCsv(actorTenantId, snapshot, csv, mode)` and the existing `applyCsv`. The harness calls `applyTenantCsv` with the actor `TEN-NORTH`, so a renamed entry point fails every case.",
+          "`__csv`, `__ledger` and `__record` come from the task harness and are appended after your code. Read from them; do not define names that start with `__`.",
+          "Error objects, records and counts are compared exactly. Snapshots may be frozen: never mutate a record or array you were handed."
         ],
         "harness": "var __csv=function(rows){return 'tenant_id,item_id,revision,kind,location,label\\n'+rows.join('\\n');};\nvar __ledger=function(rows,mode,snapshot){return applyTenantCsv('TEN-NORTH',snapshot||[],__csv(rows),mode||'commit');};\nvar __record=function(){return {tenantId:'TEN-NORTH',itemId:'A1',revision:1,location:'R1',label:'Monitor',status:'active',lastChange:'[\"create\",\"TEN-NORTH\",\"A1\",1,\"R1\",\"Monitor\"]'};};"
       }

@@ -600,10 +600,10 @@ const operatorReducer = (state, action) => {
           prompt: 'Latency, 5xx rate and CPU stayed normal during the cross-tenant reads. Which additional signal directly tests the failure shown in the timeline?',
           context: { language: 'text', code: INCIDENT_TIMELINE },
           options: [
-            'Count and alert when a cached article’s tenant differs from the request’s authorized tenant.',
-            'A high-latency threshold alert on the article-lookup span.',
-            'An error-rate alert on triage-api responses in the 5xx range.',
-            'A CPU saturation alert on the instances serving the cache.',
+            'Alert when a cached article’s tenant differs from the request’s authorized tenant.',
+            'A high-latency threshold alert on the article-lookup span, set just above its usual 90 ms.',
+            'An error-rate alert on triage-api 5xx responses, paged when the rate rises above the 0.2% baseline.',
+            'A CPU saturation alert on the 12 instances, where a growing in-memory cache would show first.',
           ],
           correct: 0,
           explanation:
@@ -631,9 +631,9 @@ const operatorReducer = (state, action) => {
           context: { language: 'text', code: INCIDENT_TIMELINE },
           options: [
             'Restore the known-good release, verify disclosure has stopped, and investigate replies already sent.',
-            'Add the tenant id to the cache key and deploy the fix forward.',
-            'Flush the cache on all 12 instances and leave 41c7 running.',
-            'Cut the cache time to live to 30 seconds and watch whether the reports stop.',
+            'Add the tenant id to the cache key, have the change reviewed, and deploy the fix forward to all 12 instances.',
+            'Flush the in-memory cache on all 12 instances and keep 41c7 running while the cause is diagnosed.',
+            'Cut the cache time to live to 30 seconds so wrong entries expire quickly, and watch the reports.',
           ],
           correct: 0,
           explanation:
@@ -888,10 +888,10 @@ def fetch_page(client: httpx.Client, cursor: str | None) -> dict:
         "code": "from fastapi import FastAPI\nimport httpx\n\napp = FastAPI()\n\nasync def read_account(client: httpx.AsyncClient, account_id: int) -> dict:\n    response = await client.get(f\"/accounts/{account_id}\")\n    response.raise_for_status()\n    return response.json()\n\n@app.get(\"/accounts/{account_id}\")\nasync def account(account_id: int):\n    async with httpx.AsyncClient(\n        base_url=\"https://crm.example.invalid\", timeout=5.0\n    ) as client:\n        record = await read_account(client, account_id)\n    return {\"id\": record[\"id\"], \"name\": record[\"display_name\"]}\n"
       },
       "options": [
-        "The return annotation rejects the response before parsing it.",
-        "HTTP status validation guarantees all keys used by the route exist.",
-        "HTTPX renames name to display_name from the route return shape.",
-        "The final record[\"display_name\"] lookup fails; the snippet lacks shape validation."
+        "The -> dict annotation rejects the payload before read_account returns it.",
+        "raise_for_status guarantees that every key the route reads exists in the body.",
+        "HTTPX maps name to display_name to match the shape the route returns.",
+        "The record[\"display_name\"] lookup fails; the snippet has no shape validation."
       ],
       "correct": 3,
       "explanation": "JSON decoding produces a value but does not enforce the dictionary shape expected by this route. The missing-key lookup fails. Neither the annotation nor HTTP status checking establishes the required keys, and HTTPX does not invent the rename.",
@@ -907,10 +907,10 @@ def fetch_page(client: httpx.Client, cursor: str | None) -> dict:
         "code": "from fastapi import FastAPI\nimport httpx\n\napp = FastAPI()\n\nasync def read_account(client: httpx.AsyncClient, account_id: int) -> dict:\n    response = await client.get(f\"/accounts/{account_id}\")\n    response.raise_for_status()\n    return response.json()\n\n@app.get(\"/accounts/{account_id}\")\nasync def account(account_id: int):\n    async with httpx.AsyncClient(\n        base_url=\"https://crm.example.invalid\", timeout=5.0\n    ) as client:\n        record = await read_account(client, account_id)\n    return {\"id\": record[\"id\"], \"name\": record[\"display_name\"]}\n"
       },
       "options": [
-        "Its context closes the client on exit; timeout=5.0 alone does not prove an overall route deadline.",
-        "The client stays open indefinitely so later route invocations can reuse its pool.",
-        "A five-second network timeout makes retries and JSON validation unnecessary.",
-        "The async keyword moves all synchronous helper work to a separate thread."
+        "The context closes the client on exit; timeout=5.0 does not set a whole-route deadline.",
+        "The client stays open after the block so later requests to this route reuse its connection pool.",
+        "A five-second network timeout bounds every failure, so retries and JSON validation are unnecessary.",
+        "Declaring the route async def makes FastAPI run its synchronous work in a worker thread."
       ],
       "correct": 0,
       "explanation": "The context owns cleanup. HTTPX network timeouts do not by themselves establish a whole-route budget or validate payloads. This locally created client is not a persistent application-wide pool, and async does not move ordinary synchronous work to a thread.",
@@ -943,7 +943,7 @@ def fetch_page(client: httpx.Client, cursor: str | None) -> dict:
       },
       "options": [
         "All requests from every concurrent caller to at most two per second.",
-        "At most two read_one calls inside this invocation’s guarded region at a time.",
+        "At most two read_one calls in this invocation’s guarded region at a time.",
         "The total number of records returned, so two ids are discarded.",
         "The number of scheduled coroutines, so gather creates only two results."
       ],
@@ -980,7 +980,7 @@ def fetch_page(client: httpx.Client, cursor: str | None) -> dict:
         "code": "import asyncio\nimport httpx\n\nasync def load_accounts(ids: list[int]) -> list[dict]:\n    limit = asyncio.Semaphore(2)\n    async with httpx.AsyncClient(\n        base_url=\"https://crm.example.invalid\", timeout=5.0\n    ) as client:\n        async def read_one(account_id: int) -> dict:\n            async with limit:\n                response = await client.get(f\"/accounts/{account_id}\")\n                response.raise_for_status()\n                return response.json()\n        return await asyncio.gather(*(read_one(i) for i in ids))\n"
       },
       "options": [
-        "Every sibling is cancelled and settled before gather raises to its caller.",
+        "Every sibling is cancelled and settled before gather raises.",
         "The first raised exception is propagated to the awaiting caller.",
         "A request can fail at raise_for_status before it returns its body.",
         "The function needs a stated policy for unfinished work and cleanup."
@@ -1001,8 +1001,8 @@ def fetch_page(client: httpx.Client, cursor: str | None) -> dict:
       "options": [
         "The same id must be removed because a semaphore deduplicates inputs.",
         "The output must be sorted because AsyncClient normalizes result order.",
-        "The second 7 must fail because HTTPX forbids repeated URLs.",
-        "Duplicate handling: this code schedules three reads and preserves both 7 results."
+        "The second 7 must fail because HTTPX forbids repeated URLs in one client.",
+        "Duplicate handling: the code schedules three reads and keeps both 7 results."
       ],
       "correct": 3,
       "explanation": "The generator creates one coroutine per input occurrence. Neither the semaphore nor the client deduplicates ids. A consumer must decide whether repeated records are wanted or need a separate identity and reconciliation policy.",

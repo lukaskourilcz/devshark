@@ -247,6 +247,11 @@ export const FDE_IP01: ModuleSource = {
             "label": "an earlier per-kilogram rule keeps started-unit rounding"
           }
         ],
+        "contract": [
+          "Keep the existing names `cardFromJson`, `validateCard`, `quote`, `priceRule` and `describeRule`. The tests call them directly and through the harness, so a renamed or replaced function fails every case that uses it.",
+          "`__bandRaw`, `__bandCard`, `__bandQuote` and `__bandTotals` come from the task harness and are appended after your code. Read from them; do not define names that start with `__`.",
+          "Error strings, line counts and the description text are compared exactly. Inputs may be frozen: never mutate a card, rule or shipment."
+        ],
         "harness": "var __bandRaw = function (patch) {\n  return Object.assign({ kind: 'weightBand', id: 'band', label: 'Band', baseAmount: 500, includedGrams: 2000, centsPerExtraKg: 80 }, patch || {});\n};\nvar __bandCard = function (patch, discount) {\n  var loaded = cardFromJson({ id: 'CARD-TEST', carrier: 'Harrowgate', currency: 'EUR', version: 1, discountBasisPoints: discount || 0, rules: [__bandRaw(patch)] });\n  return loaded;\n};\nvar __bandQuote = function (weight, patch, discount, zone) {\n  var loaded = __bandCard(patch, discount);\n  if (!loaded.ok) return loaded;\n  return quote({ id: 'S-TEST', zone: zone || 'regional', weightGrams: weight, declaredValueCents: 10000, flags: [] }, loaded.card);\n};\nvar __bandTotals = function (weight, patch, discount, zone) {\n  var result = __bandQuote(weight, patch, discount, zone);\n  return result.ok ? { subtotal: result.quote.subtotal, discount: result.quote.discount, total: result.quote.total, lines: result.quote.lines.length } : result;\n};"
       }
     },
@@ -364,6 +369,11 @@ export const FDE_IP01: ModuleSource = {
         "criterion": "tenant-replay",
         "label": "a replay is not delivered twice"
       }
+    ],
+    "contract": [
+      "Keep the existing names `parseSelector`, `selectorMatches`, `selectorDescription`, `planEvents`, `SAMPLE_EVENT` and `SAMPLE_SUBSCRIPTION`. The tests and the harness call them, so a renamed or replaced one fails every case that uses it.",
+      "`__event`, `__subscription` and `__route` come from the task harness and are appended after your code. Read from them; do not define names that start with `__`.",
+      "Parse errors and descriptions are compared exactly. Inputs may be frozen: never mutate an event, subscription or previousSeen list."
     ],
     "harness": "var __event = function (patch) { return Object.assign({}, SAMPLE_EVENT, {tags: SAMPLE_EVENT.tags.slice()}, patch || {}); };\nvar __subscription = function (selector, patch) { return Object.assign({}, SAMPLE_SUBSCRIPTION, {selector: selector}, patch || {}); };\nvar __route = function (values, tags, patch) {\n  var parsed = parseSelector({kind:'allTags', values:values});\n  if (!parsed.ok) return { errors:parsed.errors };\n  var plan = planEvents([__event({tags:tags})],[__subscription(parsed.value,patch)],[]);\n  return plan.deliveries.map(function (delivery) { return delivery.subscriptionId; });\n};"
   }
@@ -544,6 +554,11 @@ export const FDE_IP01: ModuleSource = {
         "criterion": "audit",
         "label": "the audit describes the new label"
       }
+    ],
+    "contract": [
+      "Keep the existing names `parseCommand`, `changeKey`, `describeCommand`, `applyCommand`, `applyCsv` and `INPUT_HEADER`. The tests and the harness call them, so a renamed or replaced one fails every case that uses it.",
+      "`__csv`, `__asset`, `__rename` and `__assetView` come from the task harness and are appended after your code. Read from them; do not define names that start with `__`.",
+      "Error codes, fingerprints and descriptions are compared exactly. Snapshots may be frozen: never mutate a record or array you were handed."
     ],
     "harness": "var __csv = function (rows) { return [INPUT_HEADER].concat(rows).join('\\n'); };\nvar __asset = function () { return applyCsv([], __csv(['TEN-WEST,EQ-8,1,create,Depot-A,Old label'])).records; };\nvar __rename = function (label, tenant, revision, snapshot) {\n  return applyCsv(snapshot || __asset(), __csv([(tenant || 'TEN-WEST') + ',EQ-8,' + (revision || 2) + ',rename,,' + label]));\n};\nvar __assetView = function (result) {\n  if (!result.ok) return result;\n  return { records: result.records.map(function (row) { return [row.tenantId,row.itemId,row.revision,row.location,row.label,row.status]; }), counts: result.counts, changes:result.changes };\n};"
   }

@@ -286,8 +286,8 @@ export const FDE_M08: ModuleSource = {
       sources: [
         {
           label: 'Anthropic, “Building effective agents” (19 December 2024): workflows versus agents, the simplest solution first, stopping conditions, human checkpoints, orchestrator-workers',
-          url: 'https://www.anthropic.com/engineering/building-effective-agents',
-          reviewedOn: '2026-10-21',
+          url: 'https://www.anthropic.com/research/building-effective-agents',
+          reviewedOn: '2026-11-27',
         },
         {
           label: 'Model Context Protocol specification 2026-07-28, Tools: a human in the loop with the ability to deny tool invocations',
@@ -630,8 +630,8 @@ export const FDE_M08: ModuleSource = {
           id: 'fde-v1-m06-q4',
           prompt: "Approval records intent but reserves no balance. At 09:12 an operator approved a 24050-cent refund, equal to the remaining refundable balance. A colleague fully refunded that order at 09:15; the dispatcher reaches the approved call at 09:17. Why must it revalidate before the effect?",
           options: [
-            "Consent is not a reservation; atomically enforce current authorization, balance and replay protections, and refuse the exhausted balance.",
-            'The approval is stale, and every approval must carry a time limit shorter than five minutes.',
+            "Approval reserved nothing, so check authorization, balance and replay atomically with the refund, and refuse it.",
+            'The approval has gone stale: approvals must expire in under five minutes, and 09:12 to 09:17 is five.',
             'The dispatcher cannot rely on the operator’s judgement, so it re-evaluates the decision itself before acting.',
             'The retry budget resets when a call is approved, so the call has to be re-validated to avoid a duplicate attempt.',
           ],
@@ -643,7 +643,7 @@ export const FDE_M08: ModuleSource = {
           id: 'fde-v1-m06-q5',
           prompt: 'Marlbrook’s finance team wants refunds handled faster. Every request names an order id, and the steps never change: read the order, check the remaining balance, then propose the refund for a person to approve. Which build fits this task?',
           options: [
-            'A fixed workflow: code runs the three steps in order and calls a model only for a step that needs language, such as reading a free-text reason.',
+            'A fixed workflow: code runs the steps in order and calls a model only where a step needs language, such as a free-text reason.',
             'An agent holding all three tools with a ten-call budget, so the model picks the order of the steps for each request.',
             'An orchestrator that hands the read, the balance check and the refund proposal to three sub-agents and merges their answers.',
             'An agent holding all three tools with no call budget, because the approval at the end already stops any wrong refund.',

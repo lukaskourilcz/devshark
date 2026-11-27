@@ -262,9 +262,9 @@ export const FDE_M02: ModuleSource = {
           "prompt": "Which baseline can support a later comparison of investigation time?",
           "options": [
             "Median minutes per late-shipment investigation during a named shift, from saved observations.",
-            "The sponsor’s target of a fifty-percent reduction after the dashboard launch.",
-            "The total number of shipments displayed on the dashboard this morning.",
-            "The number of page views the current dashboard receives each working day."
+            "The sponsor’s target of a fifty-percent cut in investigation time after the dashboard launch.",
+            "The total number of late shipments the dashboard displayed during this morning’s shift.",
+            "Daily page views of the current dashboard, taken from its analytics over the last month."
           ],
           "correct": 0,
           "explanation": "The observed investigation times define the work, population, window and measurement method. The reduction is a target rather than a starting value. Shipment count measures volume, while page views measure visits; neither measures time spent investigating.",
@@ -337,13 +337,13 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-employee-sync-q3",
           "prompt": "What is the smallest pilot that can expose dangerous differences before granting access?",
           "options": [
-            "Generate a proposed change set and have Facilities review status conflicts before writes.",
+            "Propose a change set; Payroll and Facilities review conflicts before any write.",
             "Replace both employee directories after one successful end-to-end API request.",
             "Send every differing field to both APIs and inspect failures the next morning.",
             "Synchronise active records only and ignore termination events during the pilot."
           ],
           "correct": 0,
-          "explanation": "A reviewed proposal tests mapping and lifecycle behaviour before its side effect. Replacing directories exceeds the pilot. Blind writes discover mistakes after they affect access. Ignoring termination removes the explicit safety requirement.",
+          "explanation": "A proposal reviewed by each data owner tests mapping and lifecycle behaviour before its side effect. Replacing directories exceeds the pilot. Blind writes discover mistakes after they affect access. Ignoring termination removes the explicit safety requirement.",
           "competencies": [
             "discovery"
           ]
@@ -383,8 +383,8 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-deadline-q1",
           "prompt": "Which question should settle the first release’s purpose?",
           "options": [
-            "What operator decision must improve, and what evidence can the sponsor review in two weeks?",
-            "Which four requested features should receive equal engineering time in the pilot?",
+            "What operator decision must improve, and what evidence can the sponsor see in two weeks?",
+            "Which four requested features should receive equal engineering time in the two-week pilot?",
             "Which launch date should be announced before the integration estimate is checked?",
             "Which model should generate replies despite the pilot having no send permission?"
           ],
@@ -400,7 +400,7 @@ export const FDE_M02: ModuleSource = {
           "options": [
             "Classify one queue for operator review and measure correction effort against a baseline.",
             "Implement all four features with reduced testing to preserve the two-week date.",
-            "Launch automatic replies first and add human approval after the pilot.",
+            "Launch automatic replies first to show value early, and add human approval after the pilot.",
             "Wait two months without testing whether classification helps the operators."
           ],
           "correct": 0,
@@ -474,13 +474,13 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-wrong-feature-q2",
           "prompt": "Which prototype fits the authority you have?",
           "options": [
-            "A purchase lookup with an eligibility explanation and an explicit handoff to the approver.",
+            "A purchase lookup with an eligibility explanation and an explicit approver handoff.",
             "An automatic refund for amounts below a threshold chosen by the prototype author.",
-            "A summary page that quietly marks the refund approved after showing its evidence.",
+            "A summary page that marks the refund approved once the operator has read its evidence.",
             "A payment screen that sends the refund when the operator opens the ticket."
           ],
           "correct": 0,
-          "explanation": "The lookup prepares the decision while leaving payment approval with its owner. An invented threshold grants authority nobody supplied. Marking approval or paying on page view crosses the same boundary through a different interface.",
+          "explanation": "The lookup prepares the decision while leaving payment approval with its owner. An invented threshold grants authority nobody supplied. Marking approval once the evidence is read or paying on page view crosses the same boundary through a different interface.",
           "competencies": [
             "discovery"
           ]
@@ -489,7 +489,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-wrong-feature-q3",
           "prompt": "What should the sponsor update make explicit?",
           "options": [
-            "The measured lookup improvement and the approval-policy change still outside this project.",
+            "The measured lookup improvement and the approval-policy change outside this project.",
             "A claim that faster summaries prove autonomous refunds are safe for every request.",
             "A promise to remove the approver once operators become familiar with the prototype.",
             "A statement that policy compliance is guaranteed because no model provider is named."
@@ -504,9 +504,9 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-wrong-feature-q4",
           "prompt": "Finance authorises a limited payment pilot. What must happen before adding writes?",
           "options": [
-            "Agree the eligible cases, approval evidence, audit trail and rollback or compensation procedure.",
+            "Agree eligible cases, approval evidence, audit trail and rollback or compensation steps.",
             "Reuse the read-only pilot’s acceptance unchanged because its lookup already worked.",
-            "Enable writes for every request and use complaints to identify exceptional cases.",
+            "Enable writes for every request and let customer complaints identify the exceptional cases.",
             "Remove the operator confirmation so the limited pilot demonstrates full automation."
           ],
           "correct": 0,
@@ -550,8 +550,8 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-timeouts-q2",
           "prompt": "Which first intervention best respects the known write contract?",
           "options": [
-            "Trial bounded retries with the same idempotency key for a defined transient failure.",
-            "Retry every failed write immediately with a fresh key until it succeeds.",
+            "Trial bounded retries reusing the idempotency key for a defined transient failure.",
+            "Retry every failed write at once with a fresh key until the export job succeeds.",
             "Send duplicate export jobs to several workers and keep the earliest response.",
             "Remove the external rate limit in the client configuration for the pilot."
           ],
@@ -565,7 +565,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-timeouts-q3",
           "prompt": "Which result would justify a claim about the affected users?",
           "options": [
-            "Tail latency and failure rate by export-size slice over a comparable observation window.",
+            "Tail latency and failure rate by export-size slice over a comparable window.",
             "A lower mean latency after excluding all timed-out exports from the sample.",
             "One small export that succeeds after the retry change reaches a staging server.",
             "The total number of retries performed without a count of completed jobs."
@@ -580,7 +580,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-timeouts-q4",
           "prompt": "The external API reduces its rate limit. What should change first?",
           "options": [
-            "Recalculate retry and concurrency budgets and expose a bounded queue or backpressure policy.",
+            "Recalculate retry and concurrency budgets, then add a bounded queue or backpressure.",
             "Double retry concurrency so each export has more chances before its deadline.",
             "Preserve the old retry rate and describe new rejections as random network failures.",
             "Rewrite the database before measuring whether the external limit now binds."
@@ -611,8 +611,8 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-hosting-q1",
           "prompt": "Which question belongs before provider or deployment selection?",
           "options": [
-            "Which data classes, network paths and retention controls must the approval review verify?",
-            "Which hosted provider has the most persuasive public demonstration?",
+            "Which data classes, network paths and retention controls must approval review verify?",
+            "Which hosted provider has the most persuasive public demonstration on similar documents?",
             "Which model has the highest general benchmark score without the customer’s data?",
             "Which self-hosted model can be deployed before an operator workflow is chosen?"
           ],
@@ -626,7 +626,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-hosting-q2",
           "prompt": "Which pilot can start within the stated approval boundary?",
           "options": [
-            "Evaluate the rules baseline and approved-network fixtures while the endpoint review proceeds.",
+            "Evaluate the rules baseline and approved-network fixtures during the endpoint review.",
             "Send sensitive documents to an unapproved endpoint and delete them after evaluation.",
             "Declare self-hosting approved because the customer owns the virtual machines.",
             "Remove sensitive fields by hand and assume the remaining text cannot contain them."
@@ -641,7 +641,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-hosting-q3",
           "prompt": "Which comparison exposes a real hosting tradeoff for this team?",
           "options": [
-            "Task quality, reviewable data controls, operating effort and cost at the expected workload.",
+            "Task quality, reviewable data controls, operating effort and cost at expected workload.",
             "The model’s public rank alone, with security and operation deferred until purchase.",
             "A claim that private machines eliminate the need for monitoring and patching.",
             "The lowest token price, with retries and platform staffing left out of the estimate."
@@ -702,8 +702,8 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-invoices-q2",
           "prompt": "What should happen when a payment request times out with an unknown outcome?",
           "options": [
-            "Look up the original operation or reconcile it before retrying with its stable identity.",
-            "Create a new payment operation because a timeout proves no payment committed.",
+            "Look up or reconcile the original operation before retrying with its stable identity.",
+            "Create a new payment operation because a timeout proves the provider committed no payment.",
             "Mark the invoice paid because any timeout implies the provider accepted it.",
             "Delete the failed request so the next nightly run treats the invoice as new."
           ],
@@ -717,9 +717,9 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-invoices-q3",
           "prompt": "Which pilot acceptance test probes the named safety requirement?",
           "options": [
-            "Replay the uncertain operation and verify one provider payment with the expected settled amount and one reconciled local record.",
+            "Replay the uncertain operation; verify one provider payment of the expected amount and one reconciled local record.",
             "Replay the same operation and verify one local invoice record, without checking the provider’s payment ledger.",
-            "Send many distinct fresh invoices and verify their throughput and provider settlement totals.",
+            "Send many distinct fresh invoices and verify their throughput and provider settlement totals at pilot volume.",
             "Replay with a new operation id after each timeout and verify that each request receives a success response."
           ],
           "correct": 0,
@@ -732,13 +732,13 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-invoices-q4",
           "prompt": "The provider cannot look up an operation by key. What tradeoff should you present?",
           "options": [
-            "Hold uncertain payments for reconciliation until an agreed source can establish the outcome.",
+            "Hold uncertain payments in reconciliation until an agreed source confirms the outcome.",
             "Repeat uncertain payments with new keys because manual review slows settlement.",
             "Treat every timeout as a permanent failure without reconciling the invoice later.",
-            "Remove idempotency keys because the provider cannot search them directly."
+            "Remove idempotency keys because the provider cannot search them, so they add no safety."
           ],
           "correct": 0,
-          "explanation": "Holding uncertainty costs time but avoids pretending the outcome is known. Fresh-key retries can duplicate a payment. Permanent failure without reconciliation can leave financial records wrong. Removing keys does not add outcome visibility.",
+          "explanation": "Holding uncertainty costs time but avoids pretending the outcome is known. Fresh-key retries can duplicate a payment. Permanent failure without reconciliation can leave financial records wrong. Removing keys adds no outcome visibility and gives up duplicate protection on retry.",
           "competencies": [
             "discovery"
           ]
@@ -778,8 +778,8 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-knowledge-q2",
           "prompt": "Which first slice fits the pilot’s stated evidence contract?",
           "options": [
-            "One tenant and document family, with current citations, inaccessible-source tests and abstention.",
-            "All tenants at once, relying on answer wording to conceal restricted source names.",
+            "One tenant and document family, with current citations, access-denial tests and abstention.",
+            "All tenants at once, relying on careful answer wording to conceal restricted source names.",
             "A search across old and new articles, with whichever result has the highest raw score.",
             "A live model demonstration that omits sources because the pilot uses fixtures."
           ],
@@ -793,10 +793,10 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-knowledge-q3",
           "prompt": "Which evaluation distinguishes better answers from more confident guesses?",
           "options": [
-            "Correct, supported answers and justified abstentions, broken down by access and freshness cases.",
+            "Correct, supported answers and justified abstentions, split by access and freshness case.",
             "The fraction of requests receiving any answer, with abstention counted as a defect.",
             "The average response length, with longer answers treated as more complete.",
-            "The number of retrieved documents, without checking which documents support a claim."
+            "The number of retrieved documents per answer, without checking which documents support a claim."
           ],
           "correct": 0,
           "explanation": "The evaluation must cover support and warranted refusal on the named failure slices. Answer rate alone rewards guessing. Length and retrieval count do not establish whether a claim is supported.",
@@ -869,10 +869,10 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-adoption-q3",
           "prompt": "Which observation can support a claim about useful adoption?",
           "options": [
-            "Use during eligible tickets, successful returns to the workflow and operator correction effort.",
-            "The number of people who received an email announcing the pilot.",
-            "The number of logins after a compulsory training session on the new screen.",
-            "The number of tokens consumed by the proposed larger model."
+            "Use in eligible tickets, successful returns to the workflow and operator correction effort.",
+            "The number of operators who received and opened the email announcing the new pilot link.",
+            "The number of pilot logins recorded in the week after a compulsory training session.",
+            "The number of tokens the lookup consumed each day after the larger model was switched on."
           ],
           "correct": 0,
           "explanation": "Eligible-workflow use and correction effort connect adoption to actual work. Emails measure reach, compulsory logins can measure attendance, and token use measures consumption. None alone establishes usefulness.",
@@ -916,9 +916,9 @@ export const FDE_M02: ModuleSource = {
           "prompt": "Which question most changes the capacity plan?",
           "options": [
             "Which jobs are urgent, what may queue and how the downstream cap applies to each job.",
-            "Which worker instance has the highest maximum thread count.",
-            "Which chart makes the five-hundred-job launch forecast easiest to present.",
-            "Which notification template should be reused for all job classes."
+            "Which worker instance type has the highest thread count for absorbing tenfold load.",
+            "Which chart makes the five-hundred-job launch forecast easiest for the sponsor to approve.",
+            "Which notification template the urgent and deferred job classes should share at launch."
           ],
           "correct": 0,
           "explanation": "Priority, queue tolerance and dependency demand determine the admitted workload. Instance size cannot remove the external cap. Presentation and wording do not determine how many downstream requests a job needs.",
@@ -930,10 +930,10 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-surge-q2",
           "prompt": "Which initial design respects the hard dependency limit?",
           "options": [
-            "Enforce at most 100 downstream requests per minute across workers and retries, with a bounded queue and an explicit urgent-work policy.",
-            "Limit each worker to 100 requests per minute and add workers when urgent jobs queue.",
+            "Share one 100-per-minute budget across workers and retries, plus a bounded queue and an urgent-work policy.",
+            "Limit each worker to 100 downstream requests per minute and add workers whenever urgent jobs start to queue.",
             "Cap concurrent calls at 100 and retry every rejection immediately, without a shared time-based budget.",
-            "Apply a shared 100-per-minute budget to first attempts while retries use a separate unbounded pool."
+            "Apply a shared 100-per-minute budget to first attempts, while retries draw on a separate unbounded pool."
           ],
           "correct": 0,
           "explanation": "A shared request-rate budget includes retries and respects the dependency’s time-based limit. A per-worker budget multiplies the total. Concurrency bounds in-flight work rather than requests per minute, and immediate retries add load. Excluding retries from the shared budget can still exceed the cap. The bounded queue and urgent policy define what users may expect when demand exceeds capacity.",
@@ -945,7 +945,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-surge-q3",
           "prompt": "Which test is needed beside raw throughput?",
           "options": [
-            "A sustained burst with queue growth, priority, rate-limit handling and duplicate-notification checks.",
+            "A sustained burst that checks queue growth, priority, rate limits and duplicate notifications.",
             "The peak arrival rate with retries disabled and no priority classes in the generated workload.",
             "The full priority mix with an unlimited dependency stub that never rate-limits requests.",
             "The real dependency limit at steady average traffic without the launch-sized burst."
@@ -960,8 +960,8 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-surge-q4",
           "prompt": "Sustained urgent work now requires more than 100 downstream requests per minute. What should you tell the sponsor?",
           "options": [
-            "The current objective cannot cover all urgent work; choose a bounded fallback or change the promise.",
-            "Every urgent job can retain its deadline if the queue is moved to a faster database.",
+            "The objective cannot cover all urgent work; pick a bounded fallback or change the promise.",
+            "The queue can move to a faster database so every urgent job still meets its two-minute deadline.",
             "The cap can be ignored temporarily because urgent jobs have a higher business value.",
             "The objective still holds if unfinished urgent jobs are omitted from the report."
           ],
@@ -1006,7 +1006,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-offline-q2",
           "prompt": "Which pilot preserves the central authority the scenario names?",
           "options": [
-            "Queue uniquely identified scans locally and show reservations as provisional until confirmed.",
+            "Queue scans by operation id; show reservations as provisional until confirmed.",
             "Let each scanner issue final stock promises from its last cached quantity.",
             "Overwrite central inventory with each device’s full snapshot on reconnection.",
             "Discard offline scans so reconnection never encounters duplicate operations."
@@ -1037,9 +1037,9 @@ export const FDE_M02: ModuleSource = {
           "prompt": "The sponsor insists that every offline reservation be final. What should you do?",
           "options": [
             "Explain the conflict with shared central stock and negotiate a bounded per-site allocation or a provisional promise.",
-            "Guarantee both final reservations because each device has a unique operation id.",
-            "Accept the promise and reconcile any overselling without changing the written scope.",
-            "Treat the last reconnected site as correct and erase reservations from the other site."
+            "Guarantee both sites’ final reservations, since each device’s unique operation id prevents double counting.",
+            "Accept the promise as written and reconcile any overselling centrally after reconnection, without changing scope.",
+            "Treat the last site to reconnect as correct and erase the conflicting reservations the other site made."
           ],
           "correct": 0,
           "explanation": "A bounded allocation can change the constraint; a provisional promise exposes it. Unique ids prevent duplicate operations but do not create stock. Quietly accepting or erasing conflicting reservations hides the tradeoff from the people who must own it.",
@@ -1067,7 +1067,7 @@ export const FDE_M02: ModuleSource = {
           "id": "fde-v1-m02-cases-patterns-q1",
           "prompt": "What evidence should the product proposal distinguish?",
           "options": [
-            "Repeated technical behaviour, customer-specific rules and the cost or failure history of each.",
+            "Repeated technical behaviour, customer-specific rules and their cost or failure history.",
             "The newest customer’s terminology, presented as the common vocabulary for every account.",
             "The total line count of the newest adapter without its operational history.",
             "The number of features competitors advertise without checking these customer workflows."
@@ -1098,9 +1098,9 @@ export const FDE_M02: ModuleSource = {
           "prompt": "Which proposal can Product evaluate in the available planning slot?",
           "options": [
             "One bounded common component, evidence from three integrations and explicit adoption and support costs.",
-            "A declaration that three deployments prove the component will fit every future customer.",
-            "A long backlog of optional connector features without a proposed first user.",
-            "A request to rewrite the product before estimating migration or maintenance effort."
+            "A claim that three working deployments prove the component will fit every future customer.",
+            "A long backlog of connector features requested across all three customers, with no proposed first user.",
+            "A request to rewrite the product’s ingestion layer now, before estimating migration or maintenance effort."
           ],
           "correct": 0,
           "explanation": "A bounded component with users, evidence and cost supports a decision. Three integrations do not prove universal fit. An unprioritised feature list and an uncosted rewrite leave the decision undefined.",

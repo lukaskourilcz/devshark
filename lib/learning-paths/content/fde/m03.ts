@@ -241,8 +241,8 @@ export const FDE_M03: ModuleSource = {
         { label: 'RFC 6585 — Additional HTTP Status Codes', url: 'https://www.rfc-editor.org/rfc/rfc6585', reviewedOn: '2026-09-08' },
         {
           label: 'MDN — HTTP response status codes',
-          url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status',
-          reviewedOn: '2026-09-08',
+          url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status',
+          reviewedOn: '2026-11-27',
         },
       ],
       sections: [
@@ -466,7 +466,7 @@ export const FDE_M03: ModuleSource = {
             '`ticket.id` together with `ticket.version`.',
             '`deliveryId`, since it is unique for every delivery.',
             'A SHA-256 hash of the whole payload.',
-            '`ticket.id` on its own.',
+            '`ticket.id` on its own, since ids are unique.',
           ],
           correct: 0,
           explanation:

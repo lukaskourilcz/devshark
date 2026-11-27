@@ -134,8 +134,8 @@ export const FDE_M07: ModuleSource = {
         },
         {
           label: 'OWASP Top 10 for Large Language Model Applications',
-          url: 'https://owasp.org/www-project-top-10-for-large-language-model-applications/',
-          reviewedOn: '2026-09-08',
+          url: 'https://owasp.org/projects/top-10-for-large-language-model-applications',
+          reviewedOn: '2026-11-27',
         },
         {
           label: 'NIST AI Risk Management Framework',
@@ -330,8 +330,8 @@ export const FDE_M07: ModuleSource = {
         },
         {
           label: 'OWASP Top 10 for Large Language Model Applications',
-          url: 'https://owasp.org/www-project-top-10-for-large-language-model-applications/',
-          reviewedOn: '2026-09-08',
+          url: 'https://owasp.org/projects/top-10-for-large-language-model-applications',
+          reviewedOn: '2026-11-27',
         },
       ],
       sections: [
@@ -584,12 +584,12 @@ export const FDE_M07: ModuleSource = {
           prompt: "An authorized operator can resolve immutable archived content by sourceId, version and chunkId. Which citation record supplies the stable locator and retrieval time needed to inspect the exact supporting passage after an article edit?",
           options: [
             '`{ "sourceId": "KB-118", "version": 3, "chunkId": "KB-118#c4", "retrievedAt": "2026-04-02T09:14:11Z" }`',
-            '`"Source: the Dunfold chilled returns policy"`',
-            '`"https://kb.marlbrook.example/returns"`',
-            '`{ "score": 0.91, "snippet": "Chilled orders may be returned within 7 days of delivery." }`',
+            '`{ "source": "Dunfold chilled returns policy", "retrievedAt": "2026-04-02T09:14:11Z" }`',
+            '`{ "url": "https://kb.marlbrook.example/returns", "retrievedAt": "2026-04-02T09:14:11Z" }`',
+            '`{ "score": 0.91, "snippet": "Chilled orders may be returned within 7 days of delivery.", "rank": 1 }`',
           ],
           correct: 0,
-          explanation: "The sourceId/version/chunkId record locates the specific archived passage under the resolver assumed by the question, and retrievedAt records when it was used. The operator still has to inspect whether it supports the claim. Metadata alone neither preserves content nor proves truth: the system must retain authorized versions and validate citation ids against the actual retrieved source set. A title can be ambiguous; this unversioned URL may change; a detached snippet and similarity score do not establish provenance. Immutable versioned URLs or content-addressed references can also work in other citation designs.",
+          explanation: "The sourceId/version/chunkId record locates the specific archived passage under the resolver assumed by the question, and retrievedAt records when it was used. The operator still has to inspect whether it supports the claim. Metadata alone neither preserves content nor proves truth: the system must retain authorized versions and validate citation ids against the actual retrieved source set. A retrieval time does not rescue a title, which can be ambiguous, or this unversioned URL, which may change; a detached snippet with its score and rank does not establish provenance. Immutable versioned URLs or content-addressed references can also work in other citation designs.",
           competencies: ['retrieval'],
         },
       ],
