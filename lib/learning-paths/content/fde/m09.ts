@@ -157,8 +157,8 @@ export const FDE_M09: ModuleSource = {
       sources: [
         {
           label: 'Anthropic, “Demystifying evals for AI agents” (9 January 2026): tasks, 20 to 50 tasks from real failures, reference solutions, capability and regression evals',
-          url: 'https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents',
-          reviewedOn: '2026-10-21',
+          url: 'https://www.anthropic.com/research/demystifying-evals-for-ai-agents',
+          reviewedOn: '2026-11-27',
         },
         {
           label: 'Snowflake, Staff Applied AI Engineer (FDE) posting: quality metrics, evaluation frameworks and golden datasets',
@@ -326,8 +326,8 @@ export const FDE_M09: ModuleSource = {
       sources: [
         {
           label: 'Anthropic, “Demystifying evals for AI agents” (9 January 2026): latency, token usage, cost per task and error rates tracked on a static bank of tasks; reading transcripts',
-          url: 'https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents',
-          reviewedOn: '2026-10-21',
+          url: 'https://www.anthropic.com/research/demystifying-evals-for-ai-agents',
+          reviewedOn: '2026-11-27',
         },
         {
           label: 'Snowflake, Staff Applied AI Engineer (FDE) posting, preferred qualifications: failure-mode analysis that categorizes errors as hallucination, retrieval miss, planning failure and tool misuse',
