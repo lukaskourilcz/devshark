@@ -315,10 +315,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-batching-q1",
           "prompt": "What does the proposed full-batch path show about the deadline?",
           "options": [
-            "A 180 ms execution time proves every request stays below 400 ms.",
-            "Its stated wait plus execution can take 480 ms before other overhead, so the 400 ms budget is not protected.",
-            "A 300 ms wait proves requests always finish at the first deadline.",
-            "Batching removes the need to budget time spent waiting in a queue."
+            "The 180 ms execution time is well under 400 ms, so every request in a full batch meets its deadline.",
+            "Wait plus execution can reach 480 ms before other overhead, so the 400 ms budget is not protected.",
+            "The 300 ms maximum wait is under 400 ms, so requests always finish before the deadline expires.",
+            "Batching amortizes the queue, so time spent waiting does not need to count against the budget."
           ],
           "correct": 1,
           "explanation": "The oldest waiting request can spend 300 + 180 ms on the described path. Looking only at execution or waiting omits the other cost, and batching does not erase queue time. The fixture does not provide a measured production latency distribution.",
@@ -330,10 +330,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-batching-q2",
           "prompt": "Which batch boundary preserves the authorization requirement?",
           "options": [
-            "Authorize the batch as the most privileged actor it contains.",
-            "Authorize only the first item and reuse its scope for later items.",
-            "Keep each item’s actor scope through retrieval and result routing, even when transport shares a batch.",
-            "Remove actor metadata before batching to make cache hits more likely."
+            "Authorize the batch once as its most privileged actor so every item can read what it needs.",
+            "Authorize the first item and reuse its scope for the rest, since every item is a read-only lookup.",
+            "Keep each item’s actor scope through retrieval and result routing, even when items share a batch.",
+            "Strip actor metadata before batching so identical lookups share cache hits, then route results by order."
           ],
           "correct": 2,
           "explanation": "Sharing transport must not merge authority. The most privileged or first actor does not represent the rest, and removing scope loses the information needed to enforce isolation and deliver each result to its authorized caller.",
@@ -346,10 +346,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-batching-q3",
           "prompt": "Which change directly protects each request’s stated budget?",
           "options": [
-            "Increase maximum batch size until average throughput is highest.",
-            "Retry an expired request in a new batch with a fresh deadline.",
-            "Report only execution latency and omit the batching wait.",
-            "Bound batching wait by remaining request time and refuse work that cannot finish within the admitted budget."
+            "Increase maximum batch size until average throughput peaks, so the queue drains faster for everyone.",
+            "Retry an expired request in a new batch with a fresh 400 ms deadline so it still gets an answer.",
+            "Report only execution latency and treat batching wait as tuning noise outside the budget.",
+            "Cap batching wait by each request’s remaining time and refuse work that cannot finish in its budget."
           ],
           "correct": 3,
           "explanation": "Admission must account for remaining time. Maximum throughput may worsen tail wait, resetting the deadline changes the contract, and dropping queue time from reporting hides the breach rather than protecting the request.",
@@ -362,9 +362,9 @@ export const FDE_IP03: ModuleSource = {
           "prompt": "Which measurement tests the user-facing effect of batching?",
           "options": [
             "Measure end-to-end latency and refusal rate per request, sliced by batch wait and actor workload.",
-            "Measure only average model execution time after each batch starts.",
-            "Compare the number of successful batches without recording item counts.",
-            "Measure only the total number of requests accepted into the queue."
+            "Measure average model execution time after each batch starts, the stage batching is meant to speed up.",
+            "Compare the count of successful batches before and after the change, without recording item counts.",
+            "Measure the total number of requests accepted into the queue as the throughput the batcher delivers."
           ],
           "correct": 0,
           "explanation": "Users experience the complete request path. Execution averages omit waiting and tails; batch counts obscure differing item counts; accepted-queue volume says nothing about completion within the deadline or who is refused.",

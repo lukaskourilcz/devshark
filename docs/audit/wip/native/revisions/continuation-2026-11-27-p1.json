@@ -56,7 +56,12 @@
     "fde-v1-ip03-private-kb-q2",
     "fde-v1-ip03-private-kb-q3",
     "fde-v1-ip03-private-kb-q4",
-    "fde-v1-ip03-private-kb"
+    "fde-v1-ip03-private-kb",
+    "fde-v1-ip03-batching-q1",
+    "fde-v1-ip03-batching-q2",
+    "fde-v1-ip03-batching-q3",
+    "fde-v1-ip03-batching-q4",
+    "fde-v1-ip03-batching"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -112,7 +117,12 @@
     "fde-v1-ip03-private-kb-q2",
     "fde-v1-ip03-private-kb-q3",
     "fde-v1-ip03-private-kb-q4",
-    "fde-v1-ip03-private-kb"
+    "fde-v1-ip03-private-kb",
+    "fde-v1-ip03-batching-q1",
+    "fde-v1-ip03-batching-q2",
+    "fde-v1-ip03-batching-q3",
+    "fde-v1-ip03-batching-q4",
+    "fde-v1-ip03-batching"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
