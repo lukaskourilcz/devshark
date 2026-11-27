@@ -71,7 +71,12 @@
     "fde-v1-ip03-regulated-q2",
     "fde-v1-ip03-regulated-q3",
     "fde-v1-ip03-regulated-q4",
-    "fde-v1-ip03-regulated"
+    "fde-v1-ip03-regulated",
+    "fde-v1-ip03-hosting-q1",
+    "fde-v1-ip03-hosting-q2",
+    "fde-v1-ip03-hosting-q3",
+    "fde-v1-ip03-hosting-q4",
+    "fde-v1-ip03-hosting"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -142,7 +147,12 @@
     "fde-v1-ip03-regulated-q2",
     "fde-v1-ip03-regulated-q3",
     "fde-v1-ip03-regulated-q4",
-    "fde-v1-ip03-regulated"
+    "fde-v1-ip03-regulated",
+    "fde-v1-ip03-hosting-q1",
+    "fde-v1-ip03-hosting-q2",
+    "fde-v1-ip03-hosting-q3",
+    "fde-v1-ip03-hosting-q4",
+    "fde-v1-ip03-hosting"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [

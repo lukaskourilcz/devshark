@@ -4982,5 +4982,357 @@
         "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; e03750fcf3836bf0; hashing binds the review and does not generate scores."
       ]
     }
+  },
+  {
+    "id": "fde-v1-ip03-hosting-q1",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-ip03",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/ip03.ts",
+    "contentHash": "c930be2a550a166c",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Keep both hosting candidates open until relevant missing evidence is compared.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "The served question has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 1
+    },
+    "relevanceScore": 9,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring hosting design reasoning rather than a changing provider feature or SDK guarantee.",
+      "practicalUtility": "Keep both hosting candidates open until relevant missing evidence is compared.",
+      "transferable": "Both candidates satisfy the stated approval boundary and passed only a small pilot.",
+      "audienceFit": "The two preceding design lessons teach the named hosting contract and the scenario supplies its local constraints.",
+      "riskOutcome": "Improves evidence, comparison or communication quality while avoiding unsupported real-world outcome claims."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Both candidates satisfy the stated approval boundary and passed only a small pilot. Deployment control is not measured answer quality, low platform effort is not every-scale total cost, and pilot success is not rollout readiness. The key asks for missing evidence rather than asserting either provider wins.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-hosting-q1; full source/merged question and parent scenario read on 2026-10-22.",
+      "manual: Keep both hosting candidates open until relevant missing evidence is compared.; correct authored option index 0; other alternatives individually considered in the rationale.",
+      "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; c930be2a550a166c; hashing binds the review and does not generate scores."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex B10/IP03 product-copy reviewer sub-agent, separate from original author in the same session; includes final reading of this reviewer’s bounded content/competency corrections; not human or external independent audit"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate model reading from author; full initial content reading plus final rereading of scenarios, keys, explanations and competency attribution.",
+      "notes": "Final reading of the prompt, all four options, source key, explanation, parent scenario and refined competencies: Both candidates satisfy the stated approval boundary and passed only a small pilot. Deployment control is not measured answer quality, low platform effort is not every-scale total cost, and pilot success is not rollout readiness. The key asks for missing evidence rather than asserting either provider wins. No learner attempt, model call or external-system test was performed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-hosting-q1; full source/merged question and parent scenario read on 2026-10-22.",
+        "manual: Keep both hosting candidates open until relevant missing evidence is compared.; correct authored option index 0; other alternatives individually considered in the rationale.",
+        "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; c930be2a550a166c; hashing binds the review and does not generate scores."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-ip03-hosting-q2",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-ip03",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/ip03.ts",
+    "contentHash": "777da6a6a15be98a",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Include people and operating responsibilities in self-hosted cost.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "The served question has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 1
+    },
+    "relevanceScore": 9,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring hosting design reasoning rather than a changing provider feature or SDK guarantee.",
+      "practicalUtility": "Include people and operating responsibilities in self-hosted cost.",
+      "transferable": "Patching, capacity, incidents and upgrades are explicitly assigned to the customer.",
+      "audienceFit": "The two preceding design lessons teach the named hosting contract and the scenario supplies its local constraints.",
+      "riskOutcome": "Improves evidence, comparison or communication quality while avoiding unsupported real-world outcome claims."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Patching, capacity, incidents and upgrades are explicitly assigned to the customer. Existing salaries, licensing alone and successful-request accounting do not make those responsibilities or idle/failure capacity free. The question names cost categories without inventing prices.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-hosting-q2; full source/merged question and parent scenario read on 2026-10-22.",
+      "manual: Include people and operating responsibilities in self-hosted cost.; correct authored option index 1; other alternatives individually considered in the rationale.",
+      "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; 777da6a6a15be98a; hashing binds the review and does not generate scores."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex B10/IP03 product-copy reviewer sub-agent, separate from original author in the same session; includes final reading of this reviewer’s bounded content/competency corrections; not human or external independent audit"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate model reading from author; full initial content reading plus final rereading of scenarios, keys, explanations and competency attribution.",
+      "notes": "Final reading of the prompt, all four options, source key, explanation, parent scenario and refined competencies: Patching, capacity, incidents and upgrades are explicitly assigned to the customer. Existing salaries, licensing alone and successful-request accounting do not make those responsibilities or idle/failure capacity free. The question names cost categories without inventing prices. No learner attempt, model call or external-system test was performed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-hosting-q2; full source/merged question and parent scenario read on 2026-10-22.",
+        "manual: Include people and operating responsibilities in self-hosted cost.; correct authored option index 1; other alternatives individually considered in the rationale.",
+        "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; 777da6a6a15be98a; hashing binds the review and does not generate scores."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-ip03-hosting-q3",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-ip03",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/ip03.ts",
+    "contentHash": "1deca65f8d2d429d",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Compare hosting candidates on a shared untouched test population and relevant slices.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "The served question has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring hosting design reasoning rather than a changing provider feature or SDK guarantee.",
+      "practicalUtility": "Compare hosting candidates on a shared untouched test population and relevant slices.",
+      "transferable": "The same held-out cases with slices and separate refusal/cost/latency support a comparable decision.",
+      "audienceFit": "The two preceding design lessons teach the named hosting contract and the scenario supplies its local constraints.",
+      "riskOutcome": "Addresses a concrete access, deadline, deployment or side-effect failure in this item; no live operation is claimed."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "The same held-out cases with slices and separate refusal/cost/latency support a comparable decision. Different easy demonstrations, longest answers and training-set accuracy can hide unsupported-answer failures. Evaluation and architecture attribution fit this item rather than generic permissions labels.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-hosting-q3; full source/merged question and parent scenario read on 2026-10-22.",
+      "manual: Compare hosting candidates on a shared untouched test population and relevant slices.; correct authored option index 2; other alternatives individually considered in the rationale.",
+      "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; 1deca65f8d2d429d; hashing binds the review and does not generate scores."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex B10/IP03 product-copy reviewer sub-agent, separate from original author in the same session; includes final reading of this reviewer’s bounded content/competency corrections; not human or external independent audit"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate model reading from author; full initial content reading plus final rereading of scenarios, keys, explanations and competency attribution.",
+      "notes": "Final reading of the prompt, all four options, source key, explanation, parent scenario and refined competencies: The same held-out cases with slices and separate refusal/cost/latency support a comparable decision. Different easy demonstrations, longest answers and training-set accuracy can hide unsupported-answer failures. Evaluation and architecture attribution fit this item rather than generic permissions labels. No learner attempt, model call or external-system test was performed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-hosting-q3; full source/merged question and parent scenario read on 2026-10-22.",
+        "manual: Compare hosting candidates on a shared untouched test population and relevant slices.; correct authored option index 2; other alternatives individually considered in the rationale.",
+        "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; 1deca65f8d2d429d; hashing binds the review and does not generate scores."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-ip03-hosting-q4",
+    "kind": "native-check-question",
+    "path": "fde",
+    "module": "fde-v1-ip03",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/ip03.ts",
+    "contentHash": "9268230b252d3f1d",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Use an owned bounded rollout with observable thresholds and state recovery.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": 4,
+      "hint": null,
+      "explanation": 5
+    },
+    "qualityScore": 4,
+    "notApplicable": {
+      "hint": "The served question has no separate pre-answer hint."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 2
+    },
+    "relevanceScore": 10,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring hosting design reasoning rather than a changing provider feature or SDK guarantee.",
+      "practicalUtility": "Use an owned bounded rollout with observable thresholds and state recovery.",
+      "transferable": "The bounded rollout retains acceptance thresholds, an owner and reversal/reconciliation.",
+      "audienceFit": "The two preceding design lessons teach the named hosting contract and the scenario supplies its local constraints.",
+      "riskOutcome": "Addresses a concrete access, deadline, deployment or side-effect failure in this item; no live operation is claimed."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "The bounded rollout retains acceptance thresholds, an owner and reversal/reconciliation. Moving all tenants before defining errors, removing the prior path early and treating selection as permanent discard those controls. This is a proposed rollout policy, not a claim that a real deployment was accepted.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-hosting-q4; full source/merged question and parent scenario read on 2026-10-22.",
+      "manual: Use an owned bounded rollout with observable thresholds and state recovery.; correct authored option index 3; other alternatives individually considered in the rationale.",
+      "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; 9268230b252d3f1d; hashing binds the review and does not generate scores."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex B10/IP03 product-copy reviewer sub-agent, separate from original author in the same session; includes final reading of this reviewer’s bounded content/competency corrections; not human or external independent audit"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate model reading from author; full initial content reading plus final rereading of scenarios, keys, explanations and competency attribution.",
+      "notes": "Final reading of the prompt, all four options, source key, explanation, parent scenario and refined competencies: The bounded rollout retains acceptance thresholds, an owner and reversal/reconciliation. Moving all tenants before defining errors, removing the prior path early and treating selection as permanent discard those controls. This is a proposed rollout policy, not a claim that a real deployment was accepted. No learner attempt, model call or external-system test was performed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-hosting-q4; full source/merged question and parent scenario read on 2026-10-22.",
+        "manual: Use an owned bounded rollout with observable thresholds and state recovery.; correct authored option index 3; other alternatives individually considered in the rationale.",
+        "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; 9268230b252d3f1d; hashing binds the review and does not generate scores."
+      ]
+    }
+  },
+  {
+    "id": "fde-v1-ip03-hosting",
+    "kind": "native-activity",
+    "path": "fde",
+    "module": "fde-v1-ip03",
+    "locale": "en",
+    "source": "lib/learning-paths/content/fde/ip03.ts",
+    "contentHash": "0da9a4380d2cf6d8",
+    "previousHash": null,
+    "gradingHash": null,
+    "hashSchema": "inventory English-only object SHA256/16; native-grading:v1 for activity grading",
+    "objective": "Compare approved hosted and self-hosted candidates on missing workload and operating evidence.",
+    "intendedLevel": "intermediate",
+    "quality": {
+      "topicRelevance": 5,
+      "learningValue": 5,
+      "technicalCorrectness": 5,
+      "wording": 5,
+      "answerOptions": null,
+      "hint": null,
+      "explanation": null
+    },
+    "qualityScore": 5,
+    "notApplicable": {
+      "answerOptions": "This record assesses the lesson or activity wrapper; each nested option set has its own individual review.",
+      "hint": "This wrapper has no separate pre-answer hint.",
+      "explanation": "This wrapper has no independent post-answer explanation; teaching prose and nested question feedback are assessed in their relevant records."
+    },
+    "relevance": {
+      "presentDay": 2,
+      "practicalUtility": 2,
+      "transferable": 2,
+      "audienceFit": 2,
+      "riskOutcome": 1
+    },
+    "relevanceScore": 9,
+    "relevanceRationale": {
+      "presentDay": "Uses enduring hosting design reasoning rather than a changing provider feature or SDK guarantee.",
+      "practicalUtility": "Compare approved hosted and self-hosted candidates on missing workload and operating evidence.",
+      "transferable": "Read the two permitted candidates, small common pilot and missing tail/cost/holdout evidence through all four questions.",
+      "audienceFit": "A bounded fictional case/reading supplies the decision context for optional intermediate interview practice without external accounts.",
+      "riskOutcome": "Improves evidence, comparison or communication quality while avoiding unsupported real-world outcome claims."
+    },
+    "gates": {
+      "quality": true,
+      "relevance": true
+    },
+    "decision": "retain",
+    "correctnessBlocker": null,
+    "rationale": "Read the two permitted candidates, small common pilot and missing tail/cost/holdout evidence through all four questions. Neither deployment control nor low staffing burden is treated as measured quality or universal cost advantage. The rollout remains a bounded proposal with reversal and reconciliation. Competencies now distinguish architecture choice, evaluation, deployment and operations.",
+    "evidence": [
+      "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-hosting; complete lesson or activity/linked-reading context read on 2026-10-22.",
+      "manual: Compare approved hosted and self-hosted candidates on missing workload and operating evidence.",
+      "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; 0da9a4380d2cf6d8; hashing binds the review and does not generate scores."
+    ],
+    "reviewedAt": "2026-10-22",
+    "reviewer": {
+      "kind": "model",
+      "independent": false,
+      "run": "Codex B10/IP03 product-copy reviewer sub-agent, separate from original author in the same session; includes final reading of this reviewer’s bounded content/competency corrections; not human or external independent audit"
+    },
+    "verification": {
+      "verdict": "accept",
+      "reader": "Separate model reading from author; full initial content reading plus final rereading of scenarios, keys, explanations and competency attribution.",
+      "notes": "Final focused rereading of the full item and its declared coverage: Read the two permitted candidates, small common pilot and missing tail/cost/holdout evidence through all four questions. Neither deployment control nor low staffing burden is treated as measured quality or universal cost advantage. The rollout remains a bounded proposal with reversal and reconciliation. Competencies now distinguish architecture choice, evaluation, deployment and operations. The module is optional, has no requirements and contributes no guided completion evidence; no real architecture acceptance was executed.",
+      "evidence": [
+        "repo: lib/learning-paths/content/fde/ip03.ts #fde-v1-ip03-hosting; complete lesson or activity/linked-reading context read on 2026-10-22.",
+        "manual: Compare approved hosted and self-hosted candidates on missing workload and operating evidence.",
+        "inventory: nativeContentHash/nativeGradingHash from the final registered merged catalogue after the item reread; 0da9a4380d2cf6d8; hashing binds the review and does not generate scores."
+      ]
+    }
   }
 ]

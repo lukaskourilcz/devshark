@@ -561,9 +561,9 @@ export const FDE_IP03: ModuleSource = {
           "prompt": "What decision is supported before those measurements exist?",
           "options": [
             "Treat both as candidates and compare them against the stated requirements and missing operational evidence.",
-            "Choose S because deployment control establishes higher answer quality.",
-            "Choose H because a low operations burden proves lower total cost at every scale.",
-            "Declare the pilot sufficient evidence for a full customer rollout."
+            "Choose S, because control over deployment and tuning lets the team reach higher answer quality.",
+            "Choose H, because a low operations burden proves lower total cost at every scale the customer may reach.",
+            "Declare the shared pilot sufficient evidence, since both candidates passed it, and begin a full rollout."
           ],
           "correct": 0,
           "explanation": "The pilot does not settle quality, cost or tail behavior. Deployment control is not a quality measurement, lower operations burden does not prove every-scale total cost, and a small pilot does not establish rollout readiness.",
@@ -575,10 +575,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-hosting-q2",
           "prompt": "Which cost belongs in S’s comparison?",
           "options": [
-            "Only the accelerator rental price because staff are already employed.",
-            "The people and processes for patching, capacity, incident response and upgrades, beside infrastructure cost.",
-            "Only the license fee, assuming the customer handles the rest for free.",
-            "Only the cost of successful requests, excluding failures and idle capacity."
+            "Only the accelerator rental price, because the platform staff are already employed and paid anyway.",
+            "The people and processes for patching, capacity, incident response and upgrades, plus infrastructure.",
+            "Only the license fee, since the customer agreed to patch and operate S with its own people.",
+            "Only the cost of successful requests, treating failures and idle capacity as overhead outside the comparison."
           ],
           "correct": 1,
           "explanation": "Operating S is part of the stated responsibility. Existing salaries or customer ownership do not make that work free; success-only accounting omits failure and capacity costs. These are comparison categories, not invented cost figures.",
@@ -591,13 +591,13 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-hosting-q3",
           "prompt": "Which quality comparison is most useful for this choice?",
           "options": [
-            "Let each candidate use a different easier demonstration set.",
-            "Compare only the longest answer each candidate can produce.",
-            "Use the same held-out cases and report relevant failure slices, refusal, cost and latency for both candidates.",
-            "Choose the winner from training-set accuracy without checking unsupported answers."
+            "Let each candidate use its own demonstration set, chosen to show the strengths of that deployment.",
+            "Compare the longest complete answer each candidate can produce on the same pilot prompts.",
+            "Run the same held-out cases and report failure slices, refusal, cost and latency for both candidates.",
+            "Pick the winner by training-set accuracy, without separately checking unsupported answers."
           ],
           "correct": 2,
-          "explanation": "A shared held-out evaluation gives comparable evidence and exposes important tradeoffs. Different easy demos, answer length and training-set accuracy can hide the failures the customer actually needs the design to handle.",
+          "explanation": "A shared held-out evaluation gives comparable evidence and exposes important tradeoffs. Separate showcase sets, answer length and training-set accuracy can hide the failures the customer actually needs the design to handle.",
           "competencies": [
             "ai-architecture",
             "evaluation"
@@ -607,10 +607,10 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-hosting-q4",
           "prompt": "Which rollout plan respects the remaining uncertainty?",
           "options": [
-            "Move all tenants at once and define acceptable errors afterwards.",
-            "Remove the previous path before measuring the new one.",
-            "Treat model selection as permanent so the team need not plan rollback.",
-            "Use a bounded rollout with an owner, monitored acceptance thresholds and an explicit reversal/reconciliation plan."
+            "Move all tenants at once, since both passed the pilot, and define acceptable error rates afterwards.",
+            "Remove the previous path before measuring the new one, so traffic cannot split between two systems.",
+            "Treat the model selection as permanent, so the team can skip planning a rollback for this change.",
+            "Run a bounded rollout with an owner, monitored acceptance thresholds and a reversal/reconciliation plan."
           ],
           "correct": 3,
           "explanation": "A bounded rollout can test assumptions while retaining a controlled response to failure. Removing the prior path or deciding thresholds after exposure limits that control. Selection alone does not remove the need to handle changed or failed behavior.",
