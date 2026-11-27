@@ -887,9 +887,9 @@ export const FDE_IP03: ModuleSource = {
           "prompt": "Which state description is justified now?",
           "options": [
             "Reservation succeeded, shipment outcome is unknown, and no notification outcome has been established.",
-            "The workflow rolled back atomically because one call timed out.",
-            "The shipment definitely failed before it could have any effect.",
-            "Every later step completed because the first reservation succeeded."
+            "The workflow rolled back as a unit, since the timeout aborted the request before the shipment step committed.",
+            "The shipment failed with no effect, since a timed-out call returns before the service processes the request.",
+            "The shipment and notification completed, since the reservation succeeded and later steps run in order."
           ],
           "correct": 0,
           "explanation": "The observations establish one success and one uncertainty. No shared transaction or timeout guarantee is supplied, so neither automatic rollback, definite shipment failure nor downstream success follows.",
@@ -902,13 +902,13 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-tool-failure-q2",
           "prompt": "What should happen before a new shipment operation is created?",
           "options": [
-            "Create a fresh identity immediately and hope the first shipment did not happen.",
-            "Use the documented status/operation identity to reconcile the uncertain shipment and apply its retry contract.",
-            "Delete the local reservation record to hide the partial state.",
-            "Retry the whole workflow under a different customer identity."
+            "Create the shipment again under a fresh operation identity, since the first attempt returned no result.",
+            "Reconcile the shipment through its status lookup and operation identity, then follow its retry contract.",
+            "Delete the local reservation record so the workflow restarts from a clean state with no partial effects.",
+            "Rerun the whole workflow under a new customer session so the services treat it as a separate request."
           ],
           "correct": 1,
-          "explanation": "The status contract offers a way to resolve uncertainty without inventing a new operation. Fresh identities can duplicate effects; deleting evidence or changing the customer hides rather than repairs the partial state.",
+          "explanation": "The status contract offers a way to resolve uncertainty without inventing a new operation. A fresh identity can duplicate the shipment; deleting the reservation record or rerunning under a new session hides the partial state instead of repairing it.",
           "competencies": [
             "integration",
             "tools"
@@ -918,13 +918,13 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-tool-failure-q3",
           "prompt": "Which recovery design acknowledges the lack of a shared transaction?",
           "options": [
-            "Call the workflow atomic because each individual service is reliable.",
-            "Promise that reverting application code undoes every external effect.",
+            "Treat the workflow as atomic, since each of the three services reports high availability and retries itself.",
+            "Revert the application code to the last release, which undoes every external effect the workflow made.",
             "Record step outcomes and define authorized compensation/reconciliation for the effects that already happened.",
-            "Rely on the model to infer the missing service outcomes from the user’s request."
+            "Let the model infer the missing service outcomes from the user’s request and the workflow’s normal order."
           ],
           "correct": 2,
-          "explanation": "A step record and recovery policy make partial effects explicit. Reliable services do not create a shared transaction, code rollback does not reverse external actions, and a model guess cannot establish a service’s actual state.",
+          "explanation": "A step record and recovery policy make partial effects explicit. Reliable services do not create a shared transaction, reverting code does not reverse external actions, and a model guess cannot establish a service’s actual state.",
           "competencies": [
             "tools",
             "operations"
@@ -934,13 +934,13 @@ export const FDE_IP03: ModuleSource = {
           "id": "fde-v1-ip03-tool-failure-q4",
           "prompt": "A read-only status lookup also fails. Which retry policy fits?",
           "options": [
-            "Retry forever so the user never sees uncertainty.",
-            "Skip status lookup and mark the shipment complete.",
-            "Disable identity checks on the next lookup to reduce latency.",
-            "Bound retries by the lookup contract, remaining time and backoff, then surface unresolved state for the defined review path."
+            "Retry the lookup until it succeeds, however long it takes, so the user never has to see an uncertain state.",
+            "Skip the lookup and mark the shipment complete, since the reservation succeeded and most shipments go through.",
+            "Skip the caller identity check on the next lookup to cut latency, since the lookup is read-only anyway.",
+            "Bound retries by contract, time budget and backoff, then hand the unresolved state to the operations reviewer."
           ],
           "correct": 3,
-          "explanation": "The policy must preserve identity and make uncertainty visible when bounded recovery fails. Infinite retries hide delay; marking success invents an outcome; removing identity checks violates the service boundary.",
+          "explanation": "The policy must preserve identity and make uncertainty visible when bounded recovery fails. Unbounded retries hide the delay; marking success invents an outcome; a read-only call still crosses the service boundary, so skipping its identity check violates it.",
           "competencies": [
             "tools",
             "operations"

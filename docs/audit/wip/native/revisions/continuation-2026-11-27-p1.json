@@ -91,7 +91,12 @@
     "fde-v1-ip03-evaluation-q2",
     "fde-v1-ip03-evaluation-q3",
     "fde-v1-ip03-evaluation-q4",
-    "fde-v1-ip03-evaluation"
+    "fde-v1-ip03-evaluation",
+    "fde-v1-ip03-tool-failure-q1",
+    "fde-v1-ip03-tool-failure-q2",
+    "fde-v1-ip03-tool-failure-q3",
+    "fde-v1-ip03-tool-failure-q4",
+    "fde-v1-ip03-tool-failure"
   ],
   "revisedInPlace": [
     "fde-v1-ip01-rate-card",
@@ -182,7 +187,12 @@
     "fde-v1-ip03-evaluation-q2",
     "fde-v1-ip03-evaluation-q3",
     "fde-v1-ip03-evaluation-q4",
-    "fde-v1-ip03-evaluation"
+    "fde-v1-ip03-evaluation",
+    "fde-v1-ip03-tool-failure-q1",
+    "fde-v1-ip03-tool-failure-q2",
+    "fde-v1-ip03-tool-failure-q3",
+    "fde-v1-ip03-tool-failure-q4",
+    "fde-v1-ip03-tool-failure"
   ],
   "uniqueCoverageAdded": 0,
   "currentReviewFiles": [
